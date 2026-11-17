@@ -1,0 +1,11 @@
+[data-slot="drawer-content"],
+[data-slot="drawer-overlay"] {
+  -webkit-app-region: no-drag;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="drawer-content"] {
+    /* biome-ignore lint/complexity/noImportantStyles: beats the drag translate, which is set inline with !important */
+    translate: 0 !important;
+  }
+}
