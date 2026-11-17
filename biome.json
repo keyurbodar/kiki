@@ -12,7 +12,15 @@
       "!src/routeTree.gen.ts",
       "!**/*.svg",
       "!.bun/**",
-      "!**/.bun/**"
+      "!**/.bun/**",
+      "!.agents/**",
+      "!.claude/**",
+      "!.codex/**",
+      "!.cursor/**",
+      "!.gemini/**",
+      "!.continue/**",
+      "!MACHINE.md",
+      "!**/MACHINE.md"
     ]
   },
   "formatter": {
