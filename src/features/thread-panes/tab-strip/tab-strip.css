@@ -1,0 +1,36 @@
+.pane-tab-scroller {
+  gap: calc(var(--spacing) * 0.5);
+  --tab-fade-left: 0;
+  --tab-fade-right: 0;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black var(--tab-fade-left),
+    black calc(100% - var(--tab-fade-right)),
+    transparent
+  );
+}
+
+.pane-tab-scroller[data-fade-left="true"] {
+  --tab-fade-left: var(--scroll-fade-ramp, calc(var(--spacing) * 8));
+}
+
+.pane-tab-scroller[data-fade-right="true"] {
+  --tab-fade-right: var(--scroll-fade-ramp, calc(var(--spacing) * 8));
+}
+
+.pane-tab-scroller[data-overflowing="false"] {
+  overflow: clip;
+}
+
+.pane-chat-tab {
+  max-width: min(calc(var(--spacing) * 60), 80cqw);
+}
+
+[data-pane-tab-label] {
+  mask-image: linear-gradient(
+    to right,
+    black calc(100% - var(--tab-close-start, 0%)),
+    transparent calc(100% - var(--tab-close-end, 0%))
+  );
+}

@@ -25,21 +25,22 @@ describe("reviewDefaultSettings mock", () => {
         registry,
         getAtom,
       )) as Defaults;
-      assert.isString(initial.tier);
+      assert.isNull(initial.tier);
+      assert.equal(initial.incrementalTier, "flex");
       assert.isString(initial.effectiveTier);
 
       registry.set(setOrg, {
         params: { orgId },
-        payload: { tier: "thorough", incrementalTier: "quick" },
+        payload: { tier: "high", incrementalTier: "low" },
         reactivityKeys: [key],
       });
       const updated = (yield* AtomRegistry.getResult(
         registry,
         setOrg,
       )) as Defaults;
-      assert.equal(updated.tier, "thorough");
-      assert.equal(updated.effectiveTier, "thorough");
-      assert.equal(updated.incrementalTier, "quick");
+      assert.equal(updated.tier, "high");
+      assert.equal(updated.effectiveTier, "high");
+      assert.equal(updated.incrementalTier, "low");
     }),
   );
 });
