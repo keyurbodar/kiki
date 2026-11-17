@@ -250,7 +250,10 @@ export function CommitRangePicker({
                     (_, row) => `${ids}-to-${row + 1}`,
                   ).join(" ")}
                 />
-                <fieldset aria-label="Compare range" className="m-0 min-w-0 border-0 p-0">
+                <fieldset
+                  aria-label="Compare range"
+                  className="m-0 min-w-0 border-0 p-0"
+                >
                   <RangeRow
                     {...grid}
                     row={0}
@@ -283,6 +286,7 @@ export function CommitRangePicker({
                     </RangeRow>
                   ))}
                 </fieldset>
+              </div>
             </ScrollAreaViewport>
           </ScrollArea>
         </PopoverContent>
