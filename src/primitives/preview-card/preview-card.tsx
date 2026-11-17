@@ -7,10 +7,8 @@ import {
   useRef,
   useSyncExternalStore,
 } from "react";
-import {
-  overlayMotionClassName,
-  overlayPositionerClassName,
-} from "@/primitives/popover";
+import { motion } from "@/lib/motion";
+import { overlayPositionerClassName } from "@/primitives/popover";
 
 const OPEN_DELAY = 300;
 const COOL_DOWN = 1000;
@@ -142,7 +140,7 @@ export function PreviewCardContent({
           data-slot="preview-card-content"
           className={cx(
             "rounded-(--radius-overlay) border-hairline border-border-2 bg-popover text-foreground shadow-overlay",
-            overlayMotionClassName,
+            motion.popup,
             "flex max-h-(--available-height) w-72 flex-col overflow-hidden p-3",
             className,
           )}

@@ -1,6 +1,7 @@
 import { Collapsible as BaseCollapsible } from "@base-ui/react/collapsible";
 import { cx } from "class-variance-authority";
 import { type ComponentProps, type Ref, useCallback } from "react";
+import { motion } from "@/lib/motion";
 import { Icon } from "@/primitives/icon";
 
 export type CollapsibleProps = ComponentProps<typeof BaseCollapsible.Root>;
@@ -10,16 +11,17 @@ export function Collapsible(props: CollapsibleProps) {
 }
 
 const triggerBase = cx(
-  "group/collapsible flex cursor-pointer items-center gap-1.5 rounded text-left font-medium outline-none select-none",
+  "group/collapsible flex cursor-pointer items-center gap-1.5 rounded text-left font-medium select-none",
   "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-(--icon-sm)",
-  "focus-visible:outline-ring-inset",
+  motion.focusRing,
 );
 
 const triggerTones = {
   default: "",
   muted: "text-sm text-muted-foreground-1 hover:text-foreground",
   section:
-    "h-9 gap-2 rounded-(--radius-card) bg-section px-2 text-sm text-foreground transition-colors duration-100",
+    "h-9 gap-2 rounded-(--radius-card) bg-section px-2 text-sm text-foreground " +
+    motion.hover,
 } as const;
 
 export type CollapsibleTriggerProps = Omit<
@@ -45,7 +47,7 @@ export function CollapsibleTrigger({
       data-slot="collapsible-trigger"
       className={cx(
         triggerBase,
-        block ? "w-full" : "focus-gutter w-fit",
+        block ? "w-full" : cx(motion.focusGutter, "w-fit"),
         triggerTones[tone],
         className,
       )}
@@ -131,9 +133,7 @@ export function CollapsiblePanel({
       ref={panelRef as Ref<HTMLDivElement>}
       className={cx(
         "h-(--collapsible-panel-height) overflow-hidden",
-        "transition-[height,opacity] duration-fast ease-out-quint motion-reduce:transition-none",
-        "data-[starting-style]:h-0 data-[starting-style]:opacity-0",
-        "data-[ending-style]:h-0 data-[ending-style]:opacity-0 data-[ending-style]:duration-exit",
+        motion.collapsible,
         className,
       )}
       {...props}

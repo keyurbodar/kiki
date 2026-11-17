@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import { type ExternalToast, Toaster as Sonner, toast as sonner } from "sonner";
+import { motion } from "@/lib/motion";
 import { Button, type ButtonProps, buttonVariants } from "@/primitives/button";
 import { DotGridIcon } from "@/primitives/dot-grid-icon";
 import { Icon } from "@/primitives/icon";
@@ -378,7 +379,11 @@ export function Toast({
         aria-label="Dismiss notification"
         onPointerDown={stopPropagation}
         onClick={dismiss}
-        className="absolute right-4 top-3.5 inline-flex size-5 flex-none touch-manipulation items-center justify-center rounded-(--radius-sm) text-muted-foreground-3 outline-none transition-colors duration-100 hover:bg-secondary hover:text-foreground focus-visible:outline-ring-inset"
+        className={cx(
+          "absolute right-4 top-3.5 inline-flex size-5 flex-none touch-manipulation items-center justify-center rounded-(--radius-sm) text-muted-foreground-3 hover:bg-secondary hover:text-foreground",
+          motion.focusRing,
+          motion.hover,
+        )}
       >
         <Icon name="x" size="sm" />
       </button>

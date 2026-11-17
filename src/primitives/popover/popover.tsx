@@ -1,6 +1,7 @@
 import { Popover as BasePopover } from "@base-ui/react/popover";
 import { cva, cx, type VariantProps } from "class-variance-authority";
 import type { ComponentProps } from "react";
+import { motion } from "@/lib/motion";
 
 export const Popover = BasePopover.Root;
 
@@ -15,10 +16,7 @@ export function PopoverTrigger(props: PopoverTriggerProps) {
 export const overlayPositionerClassName =
   "z-(--z-overlay-content) outline-none";
 
-export const overlayMotionClassName =
-  "origin-(--transform-origin) outline-none transition-[opacity,scale] duration-fast ease-out-quint data-[starting-style]:scale-[0.97] data-[starting-style]:opacity-0 data-[ending-style]:scale-[0.97] data-[ending-style]:opacity-0 data-[ending-style]:duration-exit data-[instant]:transition-none";
-
-export const popoverContentVariants = cva(overlayMotionClassName, {
+export const popoverContentVariants = cva(motion.popup, {
   variants: {
     variant: {
       default:

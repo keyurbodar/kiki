@@ -1,6 +1,7 @@
 import { Tooltip as BaseTooltip } from "@base-ui/react/tooltip";
 import { cx } from "class-variance-authority";
 import type { ComponentProps, ReactNode } from "react";
+import { motion } from "@/lib/motion";
 import { Kbd } from "@/primitives/kbd";
 
 export type TooltipProviderProps = ComponentProps<typeof BaseTooltip.Provider>;
@@ -19,8 +20,10 @@ export function TooltipTrigger(props: TooltipTriggerProps) {
   return <BaseTooltip.Trigger data-slot="tooltip-trigger" {...props} />;
 }
 
-export const tooltipContentClassName =
-  "w-fit max-w-xs rounded bg-popover border-hairline border-border-2 shadow-overlay px-2 py-1 text-xs font-medium text-balance text-foreground data-[open]:animate-tooltip-in data-[closed]:animate-tooltip-out data-[instant]:animate-none";
+export const tooltipContentClassName = cx(
+  "w-fit max-w-xs rounded bg-popover border-hairline border-border-2 shadow-overlay px-2 py-1 text-xs font-medium text-balance text-foreground",
+  motion.tooltip,
+);
 
 export type TooltipContentProps = Omit<
   ComponentProps<typeof BaseTooltip.Popup>,
