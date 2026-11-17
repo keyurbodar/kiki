@@ -63,7 +63,7 @@ describe("composer control hitboxes", () => {
     expect(buttons).toHaveLength(2);
     for (const button of buttons) {
       expect(button.className).toContain("size-(--h-control-sm)");
-      expect(button.className).toContain("w-(--h-control-sm)!");
+      expect(button.className).not.toContain("w-(");
     }
   });
 });
