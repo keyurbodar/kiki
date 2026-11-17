@@ -1,6 +1,7 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { type AsyncResult, type Atom, AtomRegistry } from "effect/reactivity";
+import { OrgId } from "../../api/schemas/ids.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId, threads } from "../fixtures/world.ts";
 
@@ -12,7 +13,7 @@ interface Captain {
 
 const key = `captains:${orgId}`;
 const listQuery = ApiClient.query("captains", "list", {
-  params: { orgId },
+  params: { orgId: OrgId.make(orgId) },
   query: {},
   reactivityKeys: [key],
 });
@@ -21,7 +22,9 @@ const update = ApiClient.mutation("captains", "update");
 const deleteCaptain = ApiClient.mutation("captains", "delete");
 
 const names = (value: unknown) =>
-  (value as ReadonlyArray<Captain>).map((captain) => captain.name);
+  (value as ReadonlyArray<Captain & { readonly face?: Captain }>).map(
+    (captain) => captain.face?.name ?? captain.name,
+  );
 
 describe("captains mock", () => {
   it.effect("every read endpoint returns sensible data", () =>
@@ -33,7 +36,7 @@ describe("captains mock", () => {
 
       const list = yield* read(listQuery);
       assert.include(names(list), "Release captain");
-      const captain = (list as ReadonlyArray<Captain>)[0];
+      const captain = (list as unknown as ReadonlyArray<Captain>)[0];
       assert.isDefined(captain);
 
       const detail = yield* read(

@@ -27,9 +27,12 @@ import {
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { ThreadCard } from "@/data/api/schemas/thread";
 import { captainsAtom } from "@/data/atoms/captains";
-import { createFolderAtom } from "@/data/atoms/folders";
 import { projectsAtom } from "@/data/atoms/projects";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
+import {
+  createFolderAtom,
+  threadOrganizationKeys,
+} from "@/data/atoms/threadOrganization";
 import { allThreadsAtom } from "@/data/atoms/threads";
 import { Button } from "@/primitives/button";
 import {
@@ -651,7 +654,11 @@ function ThreadsPageLoaded({
       failed={AsyncResult.isFailure(list)}
       onRetry={retry}
       onCreateFolder={(name) =>
-        createFolder({ params: { orgId }, payload: { name } }).then(
+        createFolder({
+          params: { orgId },
+          payload: { name, visibility: "private", section: "threads" },
+          reactivityKeys: threadOrganizationKeys(orgId),
+        }).then(
           () => toast.success("Folder created"),
           () => toast.error("Couldn't create folder"),
         )

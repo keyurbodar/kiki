@@ -1,11 +1,28 @@
 import { DateTime, Effect, Ref } from "effect";
-import { JamId, ProjectId, UserId } from "../../api/schemas/ids.ts";
-import { ThreadCard, ThreadCardPage } from "../../api/schemas/thread.ts";
+import { JamNotFound } from "../../api/schemas/errors.ts";
+import {
+  JamId,
+  ProjectId,
+  ThreadFolderId,
+  ThreadTagId,
+  UserId,
+} from "../../api/schemas/ids.ts";
+import {
+  FolderCount,
+  JamArchiveResult,
+  JamBatchResult,
+  JamDetail,
+  JamSlackLink,
+  ThreadCard,
+  ThreadCardPage,
+  ThreadCounts,
+  ThreadMember,
+  ThreadMembership,
+} from "../../api/schemas/thread.ts";
 import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { isoMinutesAgo, world } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
-import { folderDetails } from "../threadOrganization/fixtures.ts";
 import {
   accessTemplate,
   projectOf,
@@ -20,14 +37,9 @@ import {
   sampleUsage,
   type ThreadAccess,
   threadIssuesOf,
-  threadPullsOf,
 } from "./fixtures.ts";
 
 const defaultPageSize = 50;
-
-const filedThreadIds = new Set(
-  folderDetails.flatMap((folder) => folder.itemIds),
-);
 
 const cursorOf = (thread: ThreadCard) =>
   `${DateTime.toEpochMillis(thread.sortActivityAt)}:${thread.id}`;
@@ -84,19 +96,6 @@ const issueSummary = (issue: (typeof world.issues)[number]) => ({
   updatedAt: issue.updatedAt,
 });
 
-const pullSummary = (pull: (typeof world.pulls)[number]) => ({
-  id: pull.id,
-  repo: pull.repo,
-  number: pull.number,
-  title: pull.title,
-  state: pull.state,
-  authorId: pull.authorId,
-  headRef: pull.headRef,
-  baseRef: pull.baseRef,
-  url: `https://github.com/${pull.repo}/pull/${pull.number}`,
-  updatedAt: pull.updatedAt,
-});
-
 const fallbackThread: ThreadCard =
   sampleThreads[0] ??
   new ThreadCard({
@@ -149,8 +148,62 @@ const activity = () => minutesAgo(0);
 
 export const JamsMock = mockGroup("jams", (handlers) =>
   Effect.gen(function* () {
-    yield* MockDb;
+    const { threadPins, threadTagAssignments, threadFolderItems } =
+      yield* MockDb;
     const threads = yield* Ref.make<ReadonlyArray<ThreadCard>>(sampleThreads);
+
+    const organize = (card: ThreadCard) =>
+      Effect.gen(function* () {
+        const pins = yield* Ref.get(threadPins);
+        const tags = yield* Ref.get(threadTagAssignments);
+        return new ThreadCard({
+          ...card,
+          pinned: pins.some((pin) => pin.jamId === card.id),
+          tagIds: tags
+            .filter((tag) => tag.jamId === card.id)
+            .map((tag) => ThreadTagId.make(tag.tagId)),
+        });
+      });
+
+    const organizedThreads = Effect.gen(function* () {
+      return yield* Effect.forEach(yield* Ref.get(threads), organize);
+    });
+
+    const batchOutcomes = (
+      jamIds: ReadonlyArray<JamId>,
+      change: (row: ThreadCard) => ThreadCard | null,
+    ) =>
+      Effect.gen(function* () {
+        const rows = yield* Ref.get(threads);
+        const known = new Set<string>(rows.map((row) => row.id));
+        yield* Ref.set(
+          threads,
+          rows.flatMap((row) => {
+            if (!jamIds.includes(row.id)) return [row];
+            const next = change(row);
+            return next === null ? [] : [next];
+          }),
+        );
+        return jamIds.map((jamId) => ({
+          jamId,
+          outcome: known.has(jamId) ? ("ok" as const) : ("not_found" as const),
+        }));
+      });
+
+    const setArchived = (jamIds: ReadonlyArray<JamId>, archived: boolean) => {
+      const changedAt = activity();
+      return batchOutcomes(
+        jamIds,
+        (row) =>
+          new ThreadCard({
+            ...row,
+            archived,
+            status: archived ? "archived" : "idle",
+            updatedAt: changedAt,
+            sortActivityAt: changedAt,
+          }),
+      );
+    };
     const access =
       yield* Ref.make<ReadonlyArray<ThreadAccess>>(sampleThreadAccess);
     const accessRequests =
@@ -308,19 +361,35 @@ export const JamsMock = mockGroup("jams", (handlers) =>
           const search = query.search?.toLowerCase();
           const sortKey =
             query.sort === "createdAt" ? "createdAt" : "sortActivityAt";
-          const matching = (yield* Ref.get(threads))
+          const folderItems = yield* Ref.get(threadFolderItems);
+          const inFolder = (jamId: string, folderId?: string) =>
+            folderItems.some(
+              (item) =>
+                item.jamId === jamId &&
+                (folderId === undefined || item.folderId === folderId),
+            );
+          const matching = (yield* organizedThreads)
             .filter((thread) =>
               query.archived === "only" ? thread.archived : !thread.archived,
+            )
+            .filter(
+              (thread) =>
+                query.tagIds === undefined ||
+                query.tagIds.some((tagId) => thread.tagIds.includes(tagId)),
+            )
+            .filter(
+              (thread) =>
+                query.folderId === undefined ||
+                inFolder(thread.id, query.folderId),
+            )
+            .filter(
+              (thread) => query.filed !== "exclude" || !inFolder(thread.id),
             )
             .filter(
               (thread) =>
                 query.projectIds === undefined ||
                 (thread.projectId !== null &&
                   query.projectIds.includes(thread.projectId)),
-            )
-            .filter(
-              (thread) =>
-                query.filed !== "exclude" || !filedThreadIds.has(thread.id),
             )
             .filter(
               (thread) =>
@@ -418,34 +487,59 @@ export const JamsMock = mockGroup("jams", (handlers) =>
       )
       .handle("get", ({ params }) =>
         Effect.gen(function* () {
-          const rows = yield* Ref.get(threads);
+          const rows = yield* organizedThreads;
           const found = rows.find((row) => row.id === params.jamId);
-          if (!found)
-            return yield* Effect.die(
-              new Error(`jams: no thread ${params.jamId}`),
-            );
-          return {
-            ...threadJSON(found),
-            project:
-              Object.values(world.projects).find(
-                (project) => project.id === projectOf(found.id),
-              ) ?? null,
-            memberIds: (yield* currentAccess(found.id)).memberIds.map(
-              memberSummary,
-            ),
-            issues: threadIssuesOf(found.id).map(issueSummary),
-            pulls: threadPullsOf(found.id).map(pullSummary),
-          };
+          if (!found) return yield* new JamNotFound({ jamId: params.jamId });
+          const current = yield* currentAccess(found.id);
+          return new JamDetail({
+            ...found,
+            parentJamId: null,
+            inheritedThroughEventId: null,
+            runStatus: found.status === "archived" ? "idle" : found.status,
+            wakePendingAt: null,
+            todos: [],
+            model: null,
+            servedModel: null,
+            servedModelEventId: null,
+            lastReadEventId: null,
+            slack: current.slack
+              ? new JamSlackLink({
+                  active: current.slack.active,
+                  channelId: current.slack.channelId,
+                  threadTs: "1700000000.000100",
+                  url: `https://acme.slack.com/archives/${current.slack.channelId}`,
+                })
+              : null,
+            membership: new ThreadMembership({
+              joinPolicy: current.joinPolicy === "anyone" ? "anyone" : "invite",
+              members: current.memberIds.map(
+                (userId) =>
+                  new ThreadMember({
+                    userId: UserId.make(userId),
+                    invitedBy:
+                      userId === current.ownerId
+                        ? null
+                        : UserId.make(current.ownerId),
+                    joinedAt: found.createdAt,
+                    subscribed: true,
+                  }),
+              ),
+              viewerRole:
+                current.ownerId === world.people.alex.id ? "owner" : "member",
+              viewerSubscribed: current.subscribed,
+            }),
+            creditsContinue: undefined,
+            requests: [],
+          });
         }),
       )
       .handle("rename", ({ params, payload }) =>
         Effect.gen(function* () {
-          const input = fields(payload);
           const updated = yield* renameThread(
             params.jamId,
-            stringValue(input, "title", "Untitled thread"),
+            payload.title ?? "Untitled thread",
           );
-          return threadJSON(updated);
+          return yield* organize(updated);
         }),
       )
       .handle("regenerateTitle", ({ params }) =>
@@ -1029,35 +1123,25 @@ export const JamsMock = mockGroup("jams", (handlers) =>
           };
         }),
       )
-      .handle("archive", ({ params, payload }) =>
-        setArchived(params.orgId, payload, threads, true),
+      .handle("archive", ({ payload }) =>
+        setArchived(payload.jamIds, true).pipe(
+          Effect.map((outcomes) => new JamArchiveResult({ outcomes })),
+        ),
       )
-      .handle("unarchive", ({ params, payload }) =>
-        setArchived(params.orgId, payload, threads, false),
+      .handle("unarchive", ({ payload }) =>
+        setArchived(payload.jamIds, false).pipe(
+          Effect.map((outcomes) => new JamBatchResult({ outcomes })),
+        ),
       )
-      .handle("restore", ({ params, payload }) =>
-        setArchived(params.orgId, payload, threads, false),
+      .handle("restore", ({ payload }) =>
+        setArchived(payload.jamIds, false).pipe(
+          Effect.map((outcomes) => new JamBatchResult({ outcomes })),
+        ),
       )
-      .handle("delete", ({ params, payload }) =>
-        Effect.gen(function* () {
-          const input = fields(payload);
-          const jamIds = listValue(input, "jamIds") ??
-            listValue(input, "threadIds") ?? [world.threads.bundler.id];
-          const rows = yield* Ref.get(threads);
-          const existing = rows.filter((row) => jamIds.includes(row.id));
-          if (existing.length === 0) {
-            return yield* Effect.die(new Error("jams: no threads to delete"));
-          }
-          yield* Ref.set(
-            threads,
-            rows.filter((row) => !jamIds.includes(row.id)),
-          );
-          return {
-            ok: true,
-            deletedIds: existing.map((row) => row.id),
-            orgId: params.orgId,
-          };
-        }),
+      .handle("delete", ({ payload }) =>
+        batchOutcomes(payload.jamIds, () => null).pipe(
+          Effect.map((outcomes) => new JamBatchResult({ outcomes })),
+        ),
       )
       .handle("asks", ({ params }) =>
         Effect.gen(function* () {
@@ -1083,22 +1167,27 @@ export const JamsMock = mockGroup("jams", (handlers) =>
       .handle("reopenAsks", ({ params, payload }) =>
         setAsks(params.orgId, payload, adHocAsks, "open"),
       )
-      .handle("counts", ({ params }) =>
+      .handle("counts", () =>
         Effect.gen(function* () {
-          const rows = yield* Ref.get(threads);
-          const asks = yield* Ref.get(adHocAsks);
-          const requests = yield* Ref.get(accessRequests);
-          return {
-            orgId: params.orgId,
-            total: rows.length,
-            working: rows.filter((row) => row.status === "working").length,
-            waiting: rows.filter((row) => row.status === "waiting").length,
-            unread: rows.filter((row) => row.hasUnreads).length,
-            archived: rows.filter((row) => row.archived).length,
-            asks: asks.filter((ask) => ask.state === "open").length,
-            accessRequests: requests.filter((row) => row.status === "pending")
-              .length,
-          };
+          const live = (yield* organizedThreads).filter(
+            (thread) => !thread.archived,
+          );
+          const liveIds = new Set<string>(live.map((thread) => thread.id));
+          const items = (yield* Ref.get(threadFolderItems)).filter((item) =>
+            liveIds.has(item.jamId),
+          );
+          const folderIds = [...new Set(items.map((item) => item.folderId))];
+          return new ThreadCounts({
+            pinned: live.filter((thread) => thread.pinned).length,
+            folders: folderIds.map(
+              (folderId) =>
+                new FolderCount({
+                  folderId: ThreadFolderId.make(folderId),
+                  count: items.filter((item) => item.folderId === folderId)
+                    .length,
+                }),
+            ),
+          });
         }),
       )
       .handle("readAll", ({ params }) =>
@@ -1137,44 +1226,6 @@ const threadJSON = (thread: ThreadCard) => ({
     url: pull.url,
   })),
 });
-
-const setArchived = (
-  orgId: string,
-  payload: unknown,
-  threads: Ref.Ref<ReadonlyArray<ThreadCard>>,
-  archived: boolean,
-) =>
-  Effect.gen(function* () {
-    const input = fields(payload);
-    const jamIds = listValue(input, "jamIds") ??
-      listValue(input, "threadIds") ?? [world.threads.bundler.id];
-    const rows = yield* Ref.get(threads);
-    const existing = rows.filter((row) => jamIds.includes(row.id));
-    if (existing.length === 0) {
-      return yield* Effect.die(
-        new Error(`jams: no threads to archive in ${orgId}`),
-      );
-    }
-    const changedAt = activity();
-    const updated = rows.map((row) =>
-      jamIds.includes(row.id)
-        ? new ThreadCard({
-            ...row,
-            archived,
-            status: archived ? "archived" : "idle",
-            updatedAt: changedAt,
-            sortActivityAt: changedAt,
-          })
-        : row,
-    );
-    yield* Ref.set(threads, updated);
-    return {
-      ok: true,
-      orgId,
-      archived,
-      jamIds: existing.map((row) => row.id),
-    };
-  });
 
 const setAsks = (
   orgId: string,
