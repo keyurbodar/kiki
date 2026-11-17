@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ProviderListPage } from "@/features/settings-integrations/cloud-credentials";
 
-export const Route = createFileRoute("/_app/settings/cloud-credentials_/azure")({
-  component: RouteComponent,
-});
+export const Route = createFileRoute("/_app/settings/cloud-credentials_/azure")(
+  {
+    component: RouteComponent,
+  },
+);
 
 function RouteComponent() {
   return <ProviderListPage provider="azure" />;
