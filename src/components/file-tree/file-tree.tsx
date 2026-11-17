@@ -24,6 +24,7 @@ import {
   statDecoration,
 } from "./tree-paths";
 import { treeStyles } from "./tree-styles";
+import "./file-tree.css";
 
 const noPaths: readonly string[] = [];
 const noSet: ReadonlySet<string> = new Set();
