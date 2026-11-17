@@ -12,8 +12,6 @@ import {
   driveReactivityKey,
   driveVersionsAtom,
 } from "@/data/atoms/drive";
-import { ChevronDownSmallIcon } from "@/features/drive/drive-detail-page/icons";
-import { HistoryIcon } from "@/features/drive/icons";
 import { Button } from "@/primitives/button";
 import {
   Dialog,
@@ -119,7 +117,7 @@ export function VolumeHistory({
                     />
                   }
                 >
-                  <HistoryIcon />
+                  <Icon name="history" />
                 </PopoverTrigger>
               }
             />
@@ -269,7 +267,8 @@ export function VolumeHistoryList({
                           setExpanded(open ? undefined : version.id)
                         }
                       >
-                        <ChevronDownSmallIcon
+                        <Icon
+                          name="chevron-down-small"
                           className={cx(open && "rotate-180")}
                         />
                       </Button>

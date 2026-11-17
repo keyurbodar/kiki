@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { AppTopBar } from "@/components/app-top-bar";
 import type { VolumeVersionRow } from "@/data/api/schemas/drive";
 import type { DriveScopeQuery } from "@/data/atoms/drive";
-import { HistoryIcon, SparkleIcon, UploadIcon } from "@/features/drive/icons";
 import { formatRelativeTime } from "@/features/drive/lib/format";
 import {
   type DriveMount,
@@ -46,7 +45,6 @@ import {
 } from "./draft";
 import { clearDraftText, draftText } from "./draft-text";
 import { DriveConfirmDialog } from "./drive-confirm-dialog";
-import { ChevronRightSmallIcon, TrashIcon } from "./icons";
 import { PaneMessage } from "./pane-message";
 import { type DriveEntry, useDriveListing } from "./use-drive-listing";
 import { useDriveSession } from "./use-drive-session";
@@ -303,7 +301,7 @@ export function DriveDetailPage({ mount, file }: DriveDetailPageProps) {
         size="sm"
         onClick={() => guard(() => setNewSkill(true))}
       >
-        <SparkleIcon />
+        <Icon name="sparkle" />
         New skill
       </Button>
       <Button
@@ -323,7 +321,7 @@ export function DriveDetailPage({ mount, file }: DriveDetailPageProps) {
         onUploads={uploads}
         trigger={
           <Button variant="outline" size="sm">
-            <UploadIcon />
+            <Icon name="import" />
             Upload
           </Button>
         }
@@ -342,7 +340,7 @@ export function DriveDetailPage({ mount, file }: DriveDetailPageProps) {
           isAdmin={session.isAdmin}
           trigger={
             <Button variant="ghost" size="sm">
-              <HistoryIcon />
+              <Icon name="history" />
               History
             </Button>
           }
@@ -440,7 +438,7 @@ export function DriveDetailPage({ mount, file }: DriveDetailPageProps) {
                       setDeleting({ path: candidate.path, count: 1 })
                     }
                   >
-                    <TrashIcon />
+                    <Icon name="trash-can" />
                   </Button>
                 )}
               </li>
@@ -514,7 +512,8 @@ export function DriveDetailPage({ mount, file }: DriveDetailPageProps) {
                     {crumb.label}
                   </Link>
                 )}
-                <ChevronRightSmallIcon
+                <Icon
+                  name="chevron-right-small"
                   aria-hidden
                   className="size-(--icon-sm) shrink-0 text-muted-foreground-3"
                 />

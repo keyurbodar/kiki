@@ -19,14 +19,6 @@ import {
 import { Textarea } from "@/primitives/textarea";
 import { changedUnderDraft, type FileDraft, type LoadedFile } from "./draft";
 import { draftText, setDraftText } from "./draft-text";
-import {
-  ArrowLeftIcon,
-  ArrowRotateClockwiseIcon,
-  ArrowUndoUpIcon,
-  ChevronDownSmallIcon,
-  ChevronRightSmallIcon,
-  TrashIcon,
-} from "./icons";
 import { DelayedPaneMessage, PaneMessage } from "./pane-message";
 import type { DriveEntry } from "./use-drive-listing";
 
@@ -67,7 +59,7 @@ export function ViewerChrome({
     <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-card">
       <div className="flex h-9 shrink-0 items-center border-b-(length:--border-hairline) border-border-1 px-2 md:hidden">
         <Button variant="ghost" size="xs" onClick={onBack}>
-          <ArrowLeftIcon />
+          <Icon name="arrow-left" />
           Files
         </Button>
       </div>
@@ -85,7 +77,10 @@ export function ViewerChrome({
               >
                 {segment}
               </button>
-              <ChevronRightSmallIcon className="size-(--icon-sm) shrink-0 text-muted-foreground-3" />
+              <Icon
+                name="chevron-right-small"
+                className="size-(--icon-sm) shrink-0 text-muted-foreground-3"
+              />
             </span>
           ))}
           <span className="min-w-0 truncate font-medium text-foreground">
@@ -121,7 +116,7 @@ export function ViewerChrome({
                 />
               }
             >
-              <ChevronDownSmallIcon />
+              <Icon name="chevron-down-small" />
             </MenuTrigger>
             <MenuContent align="end" className="w-52">
               {onSave !== undefined && (
@@ -138,7 +133,7 @@ export function ViewerChrome({
               {onDiscard !== undefined && (
                 <ResponsiveMenuItem disabled={saving} onClick={onDiscard}>
                   <span className={menuIconClassName}>
-                    <ArrowUndoUpIcon />
+                    <Icon name="arrow-undo-up" />
                   </span>
                   Discard changes
                 </ResponsiveMenuItem>
@@ -146,7 +141,7 @@ export function ViewerChrome({
               {onDelete !== undefined && (
                 <ResponsiveMenuItem data-intent="danger" onClick={onDelete}>
                   <span className={menuIconClassName}>
-                    <TrashIcon />
+                    <Icon name="trash-can" />
                   </span>
                   Delete file
                 </ResponsiveMenuItem>
@@ -233,7 +228,7 @@ export function LoadedVolumeFile({
               This file changed since you started editing
             </span>
             <Button variant="ghost" size="xs" onClick={onDiscard}>
-              <ArrowRotateClockwiseIcon />
+              <Icon name="arrow-rotate-clockwise" />
               Reload
             </Button>
           </div>

@@ -1,5 +1,4 @@
 import { type DragEvent, type ReactElement, useRef, useState } from "react";
-import { PlusIcon, SparkleIcon, UploadIcon } from "@/features/drive/icons";
 import { Button } from "@/primitives/button";
 import {
   Dialog,
@@ -60,7 +59,7 @@ export function VolumeAddMenu({
                     <Button variant="ghost" size="icon-xs" aria-label="Add" />
                   }
                 >
-                  <PlusIcon />
+                  <Icon name="plus-large" />
                 </MenuTrigger>
               }
             />
@@ -83,7 +82,7 @@ export function VolumeAddMenu({
               </ResponsiveMenuItem>
               <ResponsiveMenuItem onClick={onNewSkill}>
                 <span className={menuIconClassName}>
-                  <SparkleIcon />
+                  <Icon name="sparkle" />
                 </span>
                 New skill
               </ResponsiveMenuItem>
@@ -100,7 +99,7 @@ export function VolumeAddMenu({
           )}
           <ResponsiveMenuItem onClick={() => filesInput.current?.click()}>
             <span className={menuIconClassName}>
-              <UploadIcon />
+              <Icon name="import" />
             </span>
             Upload files
           </ResponsiveMenuItem>
