@@ -300,7 +300,9 @@ export const issueListQuery = (
   const due = dueCount(filters) > 0;
   const query: Record<string, string | ReadonlyArray<string> | undefined> = {
     match:
-      matchableCount(filters) > 1 && filters.match === "any" ? "any" : undefined,
+      matchableCount(filters) > 1 && filters.match === "any"
+        ? "any"
+        : undefined,
     assigneeIds: list(filters.assignee.userIds),
     assigneeJamIds: list(filters.assignee.jamIds),
     unassigned: flag(filters.assignee.none),
