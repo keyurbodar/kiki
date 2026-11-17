@@ -1,6 +1,7 @@
 import { useAtom, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
+import { toast } from "sonner";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { currentUserAtom } from "@/data/atoms/session";
 import { Card } from "@/primitives/card";
@@ -39,14 +40,34 @@ export function SettingsNotificationsDevicePage() {
   );
   const patch = useAtomSet(patchPushSubscriptionAtom, { mode: "promise" });
 
-  const save = (next: NotificationPrefs) => {
+  const save = (next: NotificationPrefs, previous: NotificationPrefs) => {
     setPrefs(next);
     if (subscriptionId === null || user === undefined) return;
     patch({
       params: { id: subscriptionId },
       payload: pushPatchPayload(next),
       reactivityKeys: pushSubscriptionKeys(user.id),
-    }).catch(() => {});
+    }).catch(() => {
+      setPrefs(previous);
+      toast.error("Could not update this device's notification settings", {
+        action: {
+          label: "Retry",
+          onClick: () => {
+            setPrefs(next);
+            patch({
+              params: { id: subscriptionId },
+              payload: pushPatchPayload(next),
+              reactivityKeys: pushSubscriptionKeys(user.id),
+            }).catch(() => {
+              setPrefs(previous);
+              toast.error(
+                "Could not update this device's notification settings",
+              );
+            });
+          },
+        },
+      });
+    });
   };
 
   return (
@@ -60,7 +81,7 @@ export function SettingsNotificationsDevicePage() {
             kinds={deviceCompletionKinds}
             rowId={(kind) => kindRowIds[kind]}
             checked={(kind) => isKindEnabled(prefs, kind)}
-            onChange={(kind, next) => save({ ...prefs, [kind]: next })}
+            onChange={(kind, next) => save({ ...prefs, [kind]: next }, prefs)}
             ariaPrefix="Notify when"
           />
         </Card>
@@ -70,7 +91,10 @@ export function SettingsNotificationsDevicePage() {
           <OriginRows
             checked={(origin) => isOriginEnabled(prefs, origin)}
             onChange={(origin, next) =>
-              save({ ...prefs, origins: { ...prefs.origins, [origin]: next } })
+              save(
+                { ...prefs, origins: { ...prefs.origins, [origin]: next } },
+                prefs,
+              )
             }
             ariaPrefix="Notify for"
           />
