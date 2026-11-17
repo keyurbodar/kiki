@@ -45,6 +45,25 @@ describe("/new", () => {
     expect(screen.queryByRole("button", { name: "Web app" })).toBeNull();
   });
 
+  it("puts the project, run-on and repo-branch selects above the composer", async () => {
+    await renderHome();
+    await waitFor(() => expect(composerSlot()).not.toBeNull());
+    const row = document.querySelector(
+      "[data-slot=composer]",
+    )?.previousElementSibling;
+    expect(row?.querySelector("[data-slot=project-select]")).not.toBeNull();
+    expect(row?.querySelector("[data-slot=run-on-select]")).not.toBeNull();
+    expect(row?.querySelector("[data-slot=repo-branch-select]")).not.toBeNull();
+  });
+
+  it("gives the composer its model picker and the /new placeholder", async () => {
+    await renderHome();
+    await waitFor(() => expect(composerSlot()).not.toBeNull());
+    expect(screen.getByRole("button", { name: "Model" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Add to message" })).toBeTruthy();
+    expect(screen.getByText(", / for commands, @ for context")).toBeTruthy();
+  });
+
   it("keeps the welcome out of a prompted visit", async () => {
     await renderHome("/new?prompt=Summarise%20the%20release");
     await waitFor(() => expect(composerSlot()).not.toBeNull());

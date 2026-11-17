@@ -1,0 +1,138 @@
+{
+  "defaults": {
+    "maxMismatch": 2
+  },
+  "targets": [
+    {
+      "id": "new-desktop",
+      "route": "/new",
+      "state": "welcome composer, project / run-on / repo-branch row above it",
+      "theme": "default",
+      "scheme": "dark",
+      "viewport": "1600x1000",
+      "capture": {
+        "[data-slot=composer]": [],
+        "div:has(> [data-track-owner$=\"HomePage:ProjectSelect.1\"])": []
+      },
+      "expect": {
+        "div:has(> div > [data-track-owner$=\"HomePage:ProjectSelect.1\"])": {
+          "width": "712px",
+          "max-width": "712px",
+          "padding-bottom": "100px"
+        },
+        "div:has(> [data-track-owner$=\"HomePage:ProjectSelect.1\"])": {
+          "height": "32px",
+          "min-height": "32px",
+          "gap": "12px",
+          "padding": "0px 16px 6px",
+          "align-items": "center"
+        },
+        "[data-track-owner$=\"HomePage:ProjectSelect.1\"] button": {
+          "border-radius": "6px",
+          "font-size": "13px",
+          "padding": "4px"
+        },
+        "[data-slot=composer]": {
+          "width": "712px",
+          "height": "116px",
+          "padding": "12px",
+          "border-radius": "var(--radius-card)",
+          "background-color": "var(--card)"
+        }
+      }
+    },
+    {
+      "id": "new-desktop-light",
+      "route": "/new",
+      "state": "welcome composer, light",
+      "theme": "default",
+      "scheme": "light",
+      "viewport": "1600x1000",
+      "expect": {
+        "[data-slot=composer]": {
+          "width": "712px",
+          "height": "116px",
+          "border-radius": "var(--radius-card)",
+          "background-color": "var(--card)"
+        },
+        "[data-slot=sidebar-panel]": {
+          "border-top-left-radius": "var(--radius-panel)"
+        }
+      }
+    },
+    {
+      "id": "new-desktop-1100",
+      "route": "/new",
+      "state": "welcome composer at 1100w",
+      "theme": "default",
+      "scheme": "dark",
+      "viewport": "1100x900",
+      "expect": {
+        "div:has(> div > [data-track-owner$=\"HomePage:ProjectSelect.1\"])": {
+          "width": "712px",
+          "max-width": "712px",
+          "padding-bottom": "90px"
+        },
+        "[data-slot=composer]": {
+          "width": "712px"
+        }
+      }
+    },
+    {
+      "id": "new-desktop-800",
+      "route": "/new",
+      "state": "welcome composer at the narrowest desktop width, sidebar collapsed",
+      "theme": "default",
+      "scheme": "dark",
+      "viewport": "800x900",
+      "expect": {
+        "div:has(> div > [data-track-owner$=\"HomePage:ProjectSelect.1\"])": {
+          "width": "712px",
+          "max-width": "712px",
+          "padding-bottom": "90px"
+        },
+        "[data-slot=composer]": {
+          "width": "712px"
+        }
+      }
+    },
+    {
+      "id": "new-project-menu",
+      "route": "/new",
+      "state": "project menu open",
+      "theme": "default",
+      "scheme": "dark",
+      "viewport": "1600x1000",
+      "steps": [
+        ["click", "[data-track-owner$=\"HomePage:ProjectSelect.1\"] button"],
+        ["wait", "[role=menu]"]
+      ],
+      "capture": {
+        "[role=menu]": []
+      },
+      "expect": {
+        "[role=menu]": {
+          "width": "256px",
+          "padding": "4px",
+          "border-radius": "var(--radius-overlay)",
+          "background-color": "var(--popover)"
+        }
+      }
+    },
+    {
+      "id": "new-prompt",
+      "route": "/new?prompt=Summarise%20the%20release%20notes",
+      "state": "a draft seeded from ?prompt=",
+      "theme": "default",
+      "scheme": "dark",
+      "viewport": "1600x1000",
+      "steps": [["wait", "[data-slot=composer]"]],
+      "expect": {
+        "[data-slot=composer]": {
+          "width": "712px",
+          "border-radius": "var(--radius-card)"
+        }
+      }
+    }
+  ]
+}

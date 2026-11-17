@@ -1,19 +1,51 @@
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { type ComponentProps, useCallback, useRef, useState } from "react";
-import { Composer } from "@/components/composer";
+import {
+  ASK_ANYTHING_PLACEHOLDER,
+  Composer,
+  type ComposerHandle,
+  type ComposerPayload,
+  type MentionSource,
+  PlusMenu,
+} from "@/components/composer";
+import { ModelPicker } from "@/components/model-picker";
+import {
+  defaultSelection,
+  type ModelSelection,
+} from "@/components/model-picker/catalog";
 import { ProjectSelect } from "@/components/project-select";
-import { RepoBranchSelect } from "@/components/repo-branch-select";
+import {
+  type BranchSelection,
+  RepoBranchSelect,
+} from "@/components/repo-branch-select";
+import {
+  type RunOnEntry,
+  type RunOnPlacement,
+  RunOnSelect,
+} from "@/components/run-on-select";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { Project } from "@/data/api/schemas/project";
 import { projectsAtom } from "@/data/atoms/projects";
-import { organizationsAtom } from "@/data/atoms/session";
+import {
+  organizationsAtom,
+  resolveActiveOrgId,
+  selectedOrgIdAtom,
+} from "@/data/atoms/session";
+import {
+  ComposerAttachments,
+  useComposerAttachments,
+  useFileUploader,
+} from "@/features/composer/attachments";
+import { DashboardBackdrop } from "@/features/settings-appearance/background-effect";
+import { useAppearance } from "@/features/settings-appearance/model/appearance-store";
 import { useSidebarState } from "@/features/shell/sidebar-container";
 import { cn } from "@/lib/cn";
 import { motion } from "@/lib/motion";
 import { SidebarTrigger } from "@/primitives/sidebar";
 import { HomeWelcome, type HomeWelcomeProject } from "../home-welcome";
 import { ProjectEnvironmentHint } from "../project-environment-hint";
+import { useStartThread } from "./use-start-thread";
 
 export type HomePageProps = ComponentProps<"div"> & {
   /** `?prompt=` on /new: a draft Capy seeds the composer with instead of the welcome. */
@@ -26,13 +58,25 @@ export const showsWelcome = (
   projects: ReadonlyArray<unknown>,
 ) => prompt === undefined && projects.length === 0;
 
+const noSources: MentionSource[] = [];
+
+const payloadOf = (text: string) => ({
+  text,
+  mentions: [],
+  files: [],
+});
+
 /** /new: Capy's home page, a centered composer over the panel's air gradient. */
 export function HomePage({ prompt, className, ...props }: HomePageProps) {
   const organizations = AsyncResult.getOrElse(
     useAtomValue(organizationsAtom),
     () => [],
   );
-  const organization = organizations[0];
+  const activeId = resolveActiveOrgId(
+    organizations,
+    useAtomValue(selectedOrgIdAtom),
+  );
+  const organization = organizations.find((org) => org.id === activeId);
   if (organization === undefined)
     return <HomePageBody prompt={prompt} className={className} {...props} />;
   return (
@@ -56,40 +100,63 @@ function HomePageProjects({ orgId, ...props }: HomePageProjectsProps) {
     useAtomValue(projectsAtom(orgId)),
     () => [],
   );
-  return <HomePageBody projects={projects} {...props} />;
+  return <HomePageBody orgId={orgId} projects={projects} {...props} />;
 }
 
-type HomePageBodyProps = HomePageProjectsProps & {
+type HomePageBodyProps = Omit<HomePageProjectsProps, "orgId"> & {
+  orgId?: OrgId;
   projects?: ReadonlyArray<Project>;
 };
 
 function HomePageBody({
+  orgId,
   projects = [],
   projectless = false,
   prompt,
   className,
   ...props
-}: Omit<HomePageBodyProps, "orgId">) {
+}: HomePageBodyProps) {
   const { open, isNarrow } = useSidebarState();
+  const { preferences } = useAppearance();
+  const background = preferences.background;
   const [pickedProjectId, setPickedProjectId] = useState<string>();
-  const composerRef = useRef<HTMLDivElement>(null);
-  const project =
-    projects.find(({ id }) => id === pickedProjectId) ?? projects[0];
+  const [noProject, setNoProject] = useState(false);
+  const [runOn, setRunOn] = useState<RunOnEntry | null>(null);
+  const [placement, setPlacement] = useState<RunOnPlacement | null>(null);
+  const [branches, setBranches] = useState<BranchSelection>({});
+  const [model, setModel] = useState<ModelSelection>(defaultSelection);
+  const composerRef = useRef<ComposerHandle>(null);
+  const initialDraft = useRef(
+    prompt === undefined ? undefined : payloadOf(prompt),
+  ).current;
+  const startThread = useStartThread();
+  const uploader = useFileUploader(orgId);
+  const attachments = useComposerAttachments(uploader);
+  const project = noProject
+    ? undefined
+    : (projects.find(({ id }) => id === pickedProjectId) ?? projects[0]);
+  const locked = project === undefined && !projectless;
 
   const focusComposer = useCallback(() => {
-    composerRef.current
-      ?.querySelector<HTMLElement>(
-        "textarea, input, [contenteditable=true], button",
-      )
-      ?.focus();
+    composerRef.current?.focus();
   }, []);
 
   const pickProject = useCallback(
     (picked: HomeWelcomeProject) => {
       setPickedProjectId(picked.id);
+      setNoProject(false);
       focusComposer();
     },
     [focusComposer],
+  );
+
+  const submit = useCallback(
+    (payload: ComposerPayload) => {
+      if (locked || orgId === undefined) return false;
+      void startThread({ orgId, projectId: project?.id, payload });
+      return true;
+    },
+    [locked, orgId, project?.id, startThread],
   );
 
   return (
@@ -112,6 +179,13 @@ function HomePageBody({
         aria-hidden
         className="pointer-events-none absolute inset-0 [background-image:var(--gradient-panel-air)]"
       />
+      {background === null ? null : (
+        <DashboardBackdrop
+          image={background.url}
+          effect={preferences.effect}
+          appearance={background.appearance}
+        />
+      )}
       <div className="relative flex flex-1 items-center justify-center px-6">
         <div
           className={cn(
@@ -119,21 +193,75 @@ function HomePageBody({
             motion.enterRise,
           )}
         >
-          <div className="flex min-h-8 min-w-0 items-center gap-3 pr-4 pb-1.5 pl-4">
+          <div className="flex min-h-8 min-w-0 items-center gap-3 pr-4 pb-1.5 pl-4 [&>div]:flex">
             <ProjectSelect
               data-track-owner="features/home/home-page.tsx#HomePage:ProjectSelect.1"
-              className="min-w-0 shrink"
+              orgId={orgId}
+              value={project}
+              onValueChange={(picked) => {
+                setPickedProjectId(picked.id);
+                setNoProject(false);
+              }}
+              noProject={
+                projectless
+                  ? { selected: noProject, onSelect: () => setNoProject(true) }
+                  : undefined
+              }
+              className="shrink"
+            />
+            <RunOnSelect
+              data-track-owner="features/home/home-page.tsx#HomePage:RunOnSelect.1"
+              value={runOn}
+              onChange={setRunOn}
+              placement={placement}
+              onPlacementChange={setPlacement}
+              className="shrink"
             />
             <ProjectEnvironmentHint project={project} />
-            <span className="ml-auto flex min-w-0 shrink items-center gap-2">
+            <span className="ml-auto flex min-w-0 shrink items-center gap-2 [&>div]:flex">
               <RepoBranchSelect
                 data-track-owner="features/home/home-page.tsx#HomePage:RepoBranchSelect.1"
-                className="min-w-0 shrink"
+                orgId={orgId}
+                project={project}
+                selection={branches}
+                onSelectionChange={setBranches}
+                className="shrink"
               />
             </span>
           </div>
-          <div ref={composerRef} className="relative rounded-(--radius-card)">
-            <Composer className="relative" />
+          <div className="relative rounded-(--radius-card)">
+            <Composer
+              ref={composerRef}
+              className="relative"
+              placeholder={ASK_ANYTHING_PLACEHOLDER}
+              autoFocus
+              defaultValue={initialDraft}
+              sources={noSources}
+              submitLocked={locked}
+              submitWhileUploading
+              onSubmit={submit}
+              attachments={<ComposerAttachments attachments={attachments} />}
+              hasAttachments={attachments.entries.length > 0}
+              uploading={attachments.uploading}
+              onFilesAdded={attachments.add}
+              leftControls={
+                <>
+                  <PlusMenu
+                    sources={noSources}
+                    onPickCategory={(category) => {
+                      composerRef.current?.typeCharacter(`@${category}:`);
+                    }}
+                    onAttach={(files) => attachments.add(files)}
+                  />
+                  <ModelPicker
+                    orgId={orgId}
+                    value={model}
+                    onChange={setModel}
+                    composer
+                  />
+                </>
+              }
+            />
           </div>
           {showsWelcome(prompt, projects) ? (
             <HomeWelcome
