@@ -30,6 +30,7 @@ import {
 } from "@/primitives/dialog";
 import { DotGridIcon } from "@/primitives/dot-grid-icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
+import type { MarkdownMermaidProps } from "./components";
 import {
   ArrowUpRightIcon,
   CheckmarkIcon,
@@ -374,7 +375,7 @@ export const mermaidStageVariants = cva(
     variants: {
       placement: {
         dialog:
-          "mx-5 mt-3 mb-4 rounded-(--radius-card) border-(length:--hairline) border-border-1",
+          "mx-5 mt-3 mb-4 rounded-(--radius-card) border-hairline border-border-1",
         window: "focus-visible:outline-ring-inset",
       },
     },
@@ -607,13 +608,6 @@ export function MarkdownMermaidError(props: MarkdownMermaidErrorProps) {
 
 const MIN_WIDTH_RATIO = 0.85;
 
-export type MarkdownMermaidProps = {
-  /** Mermaid source of the fence. */
-  text: string;
-  /** False while the message is still streaming; errors only show once complete. */
-  complete: boolean;
-};
-
 /** Capy's shared/markdown MermaidBlock: header (language, expand, open in window, copy), diagram or source fallback. */
 export function MarkdownMermaid({ text, complete }: MarkdownMermaidProps) {
   const host = useRef<HTMLDivElement>(null);
@@ -843,7 +837,7 @@ export function DiagramWindow({
         .join(" ")}
       {...props}
     >
-      <header className="flex h-10 shrink-0 items-center gap-2 border-b-(length:--hairline) border-border-1 pr-2 pl-3">
+      <header className="flex h-10 shrink-0 items-center gap-2 border-b-hairline border-border-1 pr-2 pl-3">
         <span className="shrink-0 font-medium text-foreground">{title}</span>
         <span className="min-w-0 truncate text-muted-foreground-1">
           {threadTitle ?? "Untitled thread"}

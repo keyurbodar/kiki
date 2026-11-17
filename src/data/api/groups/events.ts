@@ -1,5 +1,10 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import {
+  CancelMessageOutcome,
+  ContextUsage,
+  SendNowOutcome,
+} from "../../events/events.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class EventsGroup extends HttpApiGroup.make("events").add(
@@ -17,7 +22,7 @@ export class EventsGroup extends HttpApiGroup.make("events").add(
     "/orgs/:orgId/jams/:jamId/events/context-usage",
     {
       params: { orgId: Schema.String, jamId: Schema.String },
-      success: Undecoded,
+      success: ContextUsage,
     },
   ),
   HttpApiEndpoint.get("outline", "/orgs/:orgId/jams/:jamId/events/outline", {
@@ -47,7 +52,7 @@ export class EventsGroup extends HttpApiGroup.make("events").add(
         jamId: Schema.String,
         eventId: Schema.String,
       },
-      success: Undecoded,
+      success: CancelMessageOutcome,
     },
   ),
   HttpApiEndpoint.post(
@@ -59,7 +64,7 @@ export class EventsGroup extends HttpApiGroup.make("events").add(
         jamId: Schema.String,
         eventId: Schema.String,
       },
-      success: Undecoded,
+      success: SendNowOutcome,
     },
   ),
   HttpApiEndpoint.get(

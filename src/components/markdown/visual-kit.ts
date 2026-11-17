@@ -231,13 +231,13 @@ export function visualKit() {
     .btn[aria-pressed="true"] { background: var(--capy-secondary, var(--surface)); color: var(--text); }
     .btn.primary { background: var(--capy-primary, var(--accent)); color: var(--capy-primary-text, var(--text)); }
     .btn.secondary { background: var(--capy-button, var(--surface)); color: var(--text);
-      border: var(--hairline) solid var(--border); }
+      border: var(--border-width-hairline) solid var(--border); }
     .btn:focus-visible, select:focus-visible, input:focus-visible {
-      outline: calc(var(--hairline) * 2) solid var(--accent); outline-offset: calc(var(--hairline) * -2); }
+      outline: calc(var(--border-width-hairline) * 2) solid var(--accent); outline-offset: calc(var(--border-width-hairline) * -2); }
     select, input[type="text"], input[type="number"] {
       font: inherit; color: var(--text); min-width: 8rem;
       height: calc(var(--visual-space-8)); padding: 0 var(--visual-space-3);
-      border: var(--hairline) solid var(--border); border-radius: var(--radius, 0.375rem);
+      border: var(--border-width-hairline) solid var(--border); border-radius: var(--radius, 0.375rem);
       background: var(--capy-input, var(--surface));
     }
     input[type="number"] { min-width: 0; width: 7rem; font-variant-numeric: tabular-nums; }
@@ -258,10 +258,10 @@ export function visualKit() {
     .stat-delta.down { color: var(--negative); }
     .stat-note { color: var(--faint); font-size: 0.923em; }
     .table { display: grid; overflow-x: auto; column-gap: var(--visual-space-3);
-      border: var(--hairline) solid var(--border); border-radius: var(--radius-card, 0.5rem); }
+      border: var(--border-width-hairline) solid var(--border); border-radius: var(--radius-card, 0.5rem); }
     .tr { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; align-items: center;
       min-height: var(--visual-space-8); padding: 0 var(--visual-space-3); }
-    .tr + .tr { border-top: var(--hairline) solid var(--grid); }
+    .tr + .tr { border-top: var(--border-width-hairline) solid var(--grid); }
     .th { color: var(--muted); font-size: 0.923em; }
     [data-align="end"] { justify-self: end; font-variant-numeric: tabular-nums; }
     .legend { display: flex; flex-wrap: wrap; gap: var(--visual-gap-legend); color: var(--muted); font-size: 0.923em; }
@@ -272,7 +272,7 @@ export function visualKit() {
     .head slot { margin-inline-start: auto; display: flex; min-width: 0; max-width: 100%; }
     .tip { position: fixed; z-index: 10; pointer-events: none; min-width: 9em;
       padding: var(--visual-space-2) var(--visual-space-3); border-radius: var(--radius-card, 0.5rem);
-      background: var(--capy-popover, var(--surface)); border: var(--hairline) solid var(--border);
+      background: var(--capy-popover, var(--surface)); border: var(--border-width-hairline) solid var(--border);
       color: var(--text); font-size: 0.923em; }
     .tip-label { font-weight: 500; padding-bottom: var(--visual-space-1); }
     .tip-row { display: flex; align-items: center; gap: var(--visual-space-2); }

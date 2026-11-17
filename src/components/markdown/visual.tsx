@@ -94,7 +94,7 @@ const LAYOUT_TOKENS = [
   "--visual-font-size",
   "--visual-line-height",
   "--visual-body-inline-padding",
-  "--hairline",
+  "--border-width-hairline",
   "--radius",
   "--radius-card",
   "--duration-fast",

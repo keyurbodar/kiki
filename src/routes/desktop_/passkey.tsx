@@ -1,15 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { DesktopPasskeyPage } from "@/features/desktop/desktop-passkey";
 
 export const Route = createFileRoute("/desktop_/passkey")({
-  component: RouteComponent,
+  component: DesktopPasskeyPage,
 });
-
-function RouteComponent() {
-  return (
-    <RoutePlaceholder
-      title="Passkey for Capy desktop"
-      path="/desktop/passkey"
-    />
-  );
-}

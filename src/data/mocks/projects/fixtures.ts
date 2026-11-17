@@ -1,3 +1,4 @@
+import { DateTime } from "effect";
 import { ProjectId } from "../../api/schemas/ids.ts";
 import {
   Project,
@@ -5,6 +6,7 @@ import {
   ProjectRepo,
 } from "../../api/schemas/project.ts";
 import { minutesAgo } from "../fixtures/time.ts";
+import { people, projects as worldProjects } from "../fixtures/world.ts";
 
 const project = (options: {
   readonly id: string;
@@ -49,40 +51,83 @@ const project = (options: {
 
 export const sampleProjects = [
   project({
-    id: "proj_sample_web",
-    name: "Web app",
-    code: "WEB",
+    id: worldProjects.web.id,
+    name: worldProjects.web.name,
+    code: worldProjects.web.code,
     icon: "globe",
     color: "primary",
-    repos: ["acme/web"],
+    repos: worldProjects.web.repos,
     touchedMinutesAgo: 12,
   }),
   project({
-    id: "proj_sample_api",
-    name: "API",
-    code: "API",
+    id: worldProjects.api.id,
+    name: worldProjects.api.name,
+    code: worldProjects.api.code,
     icon: "console",
     color: "info",
-    repos: ["acme/api", "acme/shared"],
+    repos: worldProjects.api.repos,
     touchedMinutesAgo: 240,
   }),
   project({
-    id: "proj_sample_docs",
-    name: "Docs",
-    code: "DOC",
+    id: worldProjects.docs.id,
+    name: worldProjects.docs.name,
+    code: worldProjects.docs.code,
     icon: "files",
     color: "success",
-    repos: ["acme/docs"],
+    repos: worldProjects.docs.repos,
     touchedMinutesAgo: 60 * 24 * 3,
   }),
   project({
-    id: "proj_sample_old",
-    name: "Legacy site",
-    code: "OLD",
+    id: worldProjects.old.id,
+    name: worldProjects.old.name,
+    code: worldProjects.old.code,
     icon: "clock",
     color: "default",
-    repos: ["acme/legacy-site"],
+    repos: worldProjects.old.repos,
     deleted: true,
     touchedMinutesAgo: 60 * 24 * 40,
   }),
 ];
+
+export const projectJson = (value: Project) => ({
+  id: value.id,
+  name: value.name,
+  nameIsDerived: value.nameIsDerived,
+  description: value.description,
+  icon: value.icon,
+  color: value.color,
+  logoUrl: value.logoUrl,
+  code: value.code,
+  tailscaleEnabled: value.tailscaleEnabled,
+  tailscaleAcceptDns: value.tailscaleAcceptDns,
+  deleted: value.deleted,
+  createdAt: DateTime.formatIso(value.createdAt),
+  updatedAt: DateTime.formatIso(value.updatedAt),
+  repos: value.repos.map((repo) => ({
+    repoFullName: repo.repoFullName,
+    baseBranch: repo.baseBranch,
+    position: repo.position,
+    verificationSource: repo.verificationSource,
+    mode: repo.mode,
+  })),
+  visibility: value.visibility,
+  ownerUserId: value.ownerUserId,
+  members: value.members.map((member) => ({
+    userId: member.userId,
+    kind: member.kind,
+    invitedBy: member.invitedBy,
+    createdAt: DateTime.formatIso(member.createdAt),
+  })),
+  viewerRole: value.viewerRole,
+  lastTouchedAt: value.lastTouchedAt
+    ? DateTime.formatIso(value.lastTouchedAt)
+    : null,
+});
+
+export const sampleProjectJson = sampleProjects.map(projectJson);
+
+export const defaultProjectOwners = [
+  people.alex.id,
+  people.sam.id,
+  people.priya.id,
+] as const;

@@ -1,39 +1,25 @@
 /*
- * Tokens for the rich-content blocks (mermaid diagrams, pan-zoom stages and
- * show_visual frames, WP B6). Values come from Capy's production stylesheet
- * and the visual host in its bundle. Shared tokens that other lanes may also
- * declare (sh-overlay, outline-ring-inset) are guarded so a later definition
- * in the core layers wins by cascade order.
+ * Tokens for the rich-content blocks (pele mermaid diagrams and show_visual
+ * frames, WP B6). Values come from Capy's production stylesheet and the
+ * visual host in its bundle. The markdown-mermaid block chrome itself lives
+ * in src/components/markdown/markdown.css.
  */
-
-@theme static {
-  --shadow-overlay: var(--sh-overlay);
-}
 
 :root,
 [data-theme-preview] {
-  --hairline: 0.5px;
-  --sh-overlay:
-    0 6px 18px oklch(0% 0 0 / 0.03), 0 3px 9px oklch(0% 0 0 / 0.04),
-    0 1px 1px oklch(0% 0 0 / 0.05);
-
-  /* pele (Capy's mermaid renderer) block recolour bounds */
+  /* pele (Capy's mermaid renderer) block recolour bounds and label inks */
   --mermaid-block-lightness: max(l, 0.9);
   --mermaid-block-chroma: min(c, 0.1);
-  --mermaid-lazy-margin: 300px;
   --mermaid-label-ink-dark: rgb(27 27 29);
   --mermaid-label-ink-light: rgb(247 247 248);
+  --mermaid-lazy-margin: 300px;
 
-  /* show_visual frame: height clamp and load timeout from the bundle */
+  /* show_visual frame: height clamp, base text and the kit's spacing scale */
   --visual-frame-min: 48px;
   --visual-frame-max: 1200px;
-  --visual-frame-timeout: 10s;
-  --visual-render-debounce: 250ms;
   --visual-font-size: 13px;
   --visual-line-height: 1.45;
   --visual-body-inline-padding: 2px;
-
-  /* visual kit spacing scale, injected into every frame */
   --visual-space-1: 4px;
   --visual-space-2: 8px;
   --visual-space-3: 12px;
@@ -45,16 +31,8 @@
 }
 
 .dark {
-  --sh-overlay:
-    0 3px 8px oklch(0% 0 0 / 0.13), 0 2px 5px oklch(0% 0 0 / 0.13),
-    0 1px 1px oklch(0% 0 0 / 0.13);
   --mermaid-block-lightness: min(l, 0.27);
   --mermaid-block-chroma: min(c, 0.06);
-}
-
-@utility outline-ring-inset {
-  outline: 1px solid var(--focus-ring, var(--ring));
-  outline-offset: -1px;
 }
 
 /* pele SVG theme, mapped onto the semantic tokens exactly as Capy maps them */
@@ -99,7 +77,7 @@
 .pele .pele-node > :is(rect, path, polygon, ellipse, circle),
 .pele .pele-cluster > rect,
 .pele .pele-note > rect {
-  stroke-width: 0.5px;
+  stroke-width: var(--border-width-hairline);
 }
 
 .pele .pele-cluster-label,
@@ -108,60 +86,6 @@
   font-weight: var(--font-weight-medium);
 }
 
-[data-component="markdown-mermaid"] {
-  border: 0.5px solid var(--border-1);
-  border-radius: var(--radius-card);
-  background: var(--panel);
-  font-size: var(--text-sm);
-  margin: 0 0 0.75em;
-}
-
-[data-component="markdown-mermaid"] [data-slot="markdown-code-header"] {
-  border-bottom: 0.5px solid var(--border-1);
-  justify-content: space-between;
-  align-items: center;
-  height: 32px;
-  padding: 0 6px 0 12px;
-  display: flex;
-}
-
-[data-slot="markdown-mermaid-diagram"] {
-  overflow-x: auto;
-}
-
-[data-slot="markdown-mermaid-diagram"] > div {
-  justify-content: center;
-  display: flex;
-}
-
-[data-slot="markdown-mermaid-diagram"] svg {
-  max-width: 100%;
-  height: auto;
-}
-
-[data-component="markdown-mermaid"] pre {
-  color: var(--muted-foreground-1);
-  font-family: var(--font-mono);
-  font-size: var(--text-code-block);
-  letter-spacing: var(--text-code-block--letter-spacing);
-  margin: 0;
-  padding: 10px 12px;
-  line-height: 1.5;
-  overflow-x: auto;
-}
-
 [data-mermaid-fallback] {
   color: var(--fg);
-}
-
-[data-slot="markdown-mermaid-error"] {
-  color: var(--muted-foreground-1);
-  font-size: var(--text-xs);
-  letter-spacing: var(--text-xs--letter-spacing);
-  line-height: var(--text-xs--line-height);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin: 0;
-  padding: 8px 12px 0;
-  overflow: hidden;
 }

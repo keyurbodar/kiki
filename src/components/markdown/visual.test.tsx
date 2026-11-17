@@ -16,13 +16,19 @@ describe("buildVisualDocument", () => {
   });
 
   it("opens with the sandbox head Capy's host writes", () => {
-    expect(doc.startsWith('<!doctype html>\n<html lang="en" data-skin="web" data-theme="dark" class="dark">')).toBe(true);
+    expect(
+      doc.startsWith(
+        '<!doctype html>\n<html lang="en" data-skin="web" data-theme="dark" class="dark">',
+      ),
+    ).toBe(true);
     expect(doc).toContain(`content="${VISUAL_CSP}"`);
     expect(doc).toContain("<script>/*kit*/</script>");
   });
 
   it("escapes the title into visual-head and strips unsafe token characters", () => {
-    expect(doc).toContain('<visual-head label="Revenue &quot;by&quot; &lt;region>"></visual-head>');
+    expect(doc).toContain(
+      '<visual-head label="Revenue &quot;by&quot; &lt;region>"></visual-head>',
+    );
     expect(doc).toContain("--chart-1:teal");
     expect(doc).not.toContain("teal;}");
   });
@@ -40,7 +46,10 @@ describe("visualKit", () => {
     const visual = Reflect.get(window, "visual") as {
       get: (n: string) => unknown;
       set: (n: string, v: unknown) => void;
-      on: (e: string, l: (s: Record<string, unknown>, n: string) => void) => () => void;
+      on: (
+        e: string,
+        l: (s: Record<string, unknown>, n: string) => void,
+      ) => () => void;
       color: (i: number) => string;
       state: Record<string, unknown>;
     };
@@ -54,13 +63,17 @@ describe("visualKit", () => {
     expect(visual.get("view")).toBe("A");
 
     const changes: string[] = [];
-    visual.on("change", (state, name) => changes.push(`${name}=${String(state[name])}`));
+    visual.on("change", (state, name) =>
+      changes.push(`${name}=${String(state[name])}`),
+    );
     const buttons = tabs.shadowRoot?.querySelectorAll("button") ?? [];
     expect(buttons.length).toBe(2);
     (buttons[1] as HTMLButtonElement).click();
     await Promise.resolve();
     expect(visual.get("view")).toBe("B");
     expect(changes).toEqual(["view=B"]);
-    expect(tabs.shadowRoot?.querySelector('[aria-pressed="true"]')?.textContent).toBe("B");
+    expect(
+      tabs.shadowRoot?.querySelector('[aria-pressed="true"]')?.textContent,
+    ).toBe("B");
   });
 });

@@ -50,7 +50,7 @@ export function PanZoomControls({ view, children }: PanZoomControlsProps) {
   return (
     <div
       data-slot="pan-zoom-controls"
-      className="absolute bottom-3 left-3 flex cursor-default items-center gap-0.5 rounded-(--radius) border-(length:--hairline) border-border-2 bg-popover px-1 py-0.5 shadow-overlay"
+      className="absolute bottom-3 left-3 flex cursor-default items-center gap-0.5 rounded-(--radius) border-hairline border-border-2 bg-popover px-1 py-0.5 shadow-overlay"
       onPointerDown={(event) => event.stopPropagation()}
     >
       <ZoomButton

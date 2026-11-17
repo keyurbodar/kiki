@@ -1,12 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
-import { searchParams } from "@/lib/search-params";
+import {
+  DesktopHandoffPage,
+  desktopScheme,
+  handoffTarget,
+} from "@/features/desktop/desktop-handoff";
 
 export const Route = createFileRoute("/desktop")({
-  validateSearch: searchParams(["scheme", "to"]),
+  validateSearch: (search: Record<string, unknown>) => ({
+    to: handoffTarget(search.to),
+    scheme: desktopScheme(search.scheme),
+  }),
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="Open in desktop app" path="/desktop" />;
+  const { to, scheme } = Route.useSearch();
+  return <DesktopHandoffPage to={to} scheme={scheme} />;
 }

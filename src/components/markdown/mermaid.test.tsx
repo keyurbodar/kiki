@@ -13,7 +13,8 @@ import {
 
 afterEach(cleanup);
 
-const fence = (body: string, lang = "mermaid") => ["```" + lang, body, "```"].join("\n");
+const fence = (body: string, lang = "mermaid") =>
+  ["```" + lang, body, "```"].join("\n");
 
 describe("extractMermaidBlocks", () => {
   it("finds mermaid fences in order and ignores other languages", () => {
@@ -30,12 +31,15 @@ describe("extractMermaidBlocks", () => {
   });
 
   it("finds fences nested inside raw HTML", () => {
-    const text = `<details>\n<summary>Diagram</summary>\n\n${fence("pie\n  \"a\": 1")}\n\n</details>`;
+    const text = `<details>\n<summary>Diagram</summary>\n\n${fence('pie\n  "a": 1')}\n\n</details>`;
     expect(extractMermaidBlocks(text)).toEqual(['pie\n  "a": 1']);
   });
 
   it("indexes a block within its message", () => {
-    const text = [fence("graph LR\n  A --> B"), fence("graph LR\n  C --> D")].join("\n\n");
+    const text = [
+      fence("graph LR\n  A --> B"),
+      fence("graph LR\n  C --> D"),
+    ].join("\n\n");
     expect(mermaidIndexOf(text, "graph LR\n  C --> D")).toBe(1);
     expect(mermaidIndexOf(text, "graph LR\n  X --> Y")).toBeUndefined();
   });
@@ -48,21 +52,32 @@ describe("diagram window helpers", () => {
 
   it("sizes the popup around the diagram within screen bounds", () => {
     const screen = { availWidth: 2000, availHeight: 1000 };
-    expect(diagramWindowSize(100, 100, screen)).toEqual({ width: 480, height: 360 });
-    expect(diagramWindowSize(600, 400, screen)).toEqual({ width: 664, height: 504 });
-    expect(diagramWindowSize(5000, 5000, screen)).toEqual({ width: 1200, height: 800 });
+    expect(diagramWindowSize(100, 100, screen)).toEqual({
+      width: 480,
+      height: 360,
+    });
+    expect(diagramWindowSize(600, 400, screen)).toEqual({
+      width: 664,
+      height: 504,
+    });
+    expect(diagramWindowSize(5000, 5000, screen)).toEqual({
+      width: 1200,
+      height: 800,
+    });
   });
 });
 
 describe("mermaidTitle", () => {
   it("prefers the front-matter title", () => {
-    expect(mermaidTitle("---\ntitle: Deploy flow\n---\nflowchart LR\n  A --> B")).toBe(
-      "Deploy flow",
-    );
+    expect(
+      mermaidTitle("---\ntitle: Deploy flow\n---\nflowchart LR\n  A --> B"),
+    ).toBe("Deploy flow");
   });
 
   it("names the diagram kind, skipping comments", () => {
-    expect(mermaidTitle("%% note\nsequenceDiagram\n  A->>B: x")).toBe("Sequence diagram");
+    expect(mermaidTitle("%% note\nsequenceDiagram\n  A->>B: x")).toBe(
+      "Sequence diagram",
+    );
     expect(mermaidTitle("graph TD\n  A --> B")).toBe("Flowchart");
   });
 
@@ -81,12 +96,19 @@ describe("clampZoom", () => {
 
 describe("MarkdownMermaid", () => {
   it("shows the source under a mermaid header until the diagram renders", () => {
-    const { container } = render(<MarkdownMermaid text={"graph TD\n  A --> B"} complete />);
-    expect(container.querySelector('[data-component="markdown-mermaid"]')).not.toBeNull();
-    expect(container.querySelector('[data-slot="markdown-code-language"]')?.textContent).toBe(
-      "mermaid",
+    const { container } = render(
+      <MarkdownMermaid text={"graph TD\n  A --> B"} complete />,
     );
-    expect(container.querySelector("pre code")?.textContent).toBe("graph TD\n  A --> B");
+    expect(
+      container.querySelector('[data-component="markdown-mermaid"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-slot="markdown-code-language"]')
+        ?.textContent,
+    ).toBe("mermaid");
+    expect(container.querySelector("pre code")?.textContent).toBe(
+      "graph TD\n  A --> B",
+    );
     expect(screen.getByRole("button", { name: "Copy code" })).toBeTruthy();
   });
 });
