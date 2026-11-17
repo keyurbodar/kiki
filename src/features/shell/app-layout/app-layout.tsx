@@ -4,8 +4,8 @@ import { type ReactNode, useEffect } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SettingsSidebarPanel } from "@/features/settings/shell";
 import { Button } from "@/primitives/button";
-import { Icon } from "@/primitives/icon";
 import { Card } from "@/primitives/card";
+import { Icon } from "@/primitives/icon";
 import { Sheet, SheetContent } from "@/primitives/sheet";
 import {
   Sidebar,

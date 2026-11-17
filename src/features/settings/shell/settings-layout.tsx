@@ -92,10 +92,7 @@ export type SettingsLayoutProps = {
  * navigation sheet come from the app shell, which hosts SettingsSidebarPanel on
  * every settings route.
  */
-export function SettingsLayout({
-  children,
-  searchContext,
-}: SettingsLayoutProps) {
+export function SettingsLayout({ children }: SettingsLayoutProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const hash = useRouterState({ select: (s) => s.location.hash });
   const crumb = settingsCrumb(pathname);
