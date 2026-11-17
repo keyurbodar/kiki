@@ -1,15 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { RevylIntegrationPage } from "@/features/settings-integrations/integrations";
 
 export const Route = createFileRoute("/_app/settings/integrations_/revyl")({
-  component: RouteComponent,
+  component: RevylIntegrationPage,
 });
-
-function RouteComponent() {
-  return (
-    <RoutePlaceholder
-      title="/settings/integrations/revyl"
-      path="/settings/integrations/revyl"
-    />
-  );
-}

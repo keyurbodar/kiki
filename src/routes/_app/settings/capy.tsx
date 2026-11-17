@@ -1,10 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_app/settings/capy")({
-  component: RouteComponent,
+  beforeLoad: () => {
+    throw redirect({ to: "/settings/threads" });
+  },
 });
-
-function RouteComponent() {
-  return <RoutePlaceholder title="/settings/capy" path="/settings/capy" />;
-}

@@ -38,6 +38,8 @@ const tables = [
   "mcpServers",
   "apiKeys",
   "driveFiles",
+  "myInvitations",
+  "joinableOrganizations",
 ] as const;
 
 export type TableName = (typeof tables)[number];
