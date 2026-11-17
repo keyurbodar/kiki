@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { SignUpPage } from "@/features/auth/sign-up";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_auth/sign-up/")({
@@ -8,5 +8,13 @@ export const Route = createFileRoute("/_auth/sign-up/")({
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="Sign up" path="/sign-up" />;
+  const search = Route.useSearch();
+  return (
+    <SignUpPage
+      key={search.continue}
+      prefillEmail={search.email}
+      redirectUrl={search.redirect_url}
+      initialStep={search.continue}
+    />
+  );
 }
