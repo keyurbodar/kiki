@@ -2,7 +2,7 @@ import { useAtomValue } from "@effect/atom-react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { copyText } from "@/components/file-view/copy";
 import type { JamId, OrgId } from "@/data/api/schemas/ids";
 import {
@@ -24,7 +24,8 @@ import {
   ThreadView,
 } from "@/features/thread/thread-view";
 import { useThreadTimeline } from "@/features/thread/timeline";
-import { findPane } from "@/features/thread-panes/thread-pane";
+import { useSideThreads } from "@/features/thread-panes/side-threads";
+import { findPane, isRetiredPane } from "@/features/thread-panes/thread-pane";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/thread/$threadId")({
@@ -33,11 +34,12 @@ export const Route = createFileRoute("/_app/thread/$threadId")({
 });
 
 /**
- * Capy opens a thread with its chat alone; a `pane` the registry has not
- * landed yet renders nothing rather than guessing at another pane.
+ * Capy opens a thread with its chat alone; a pane the registry has not landed
+ * renders nothing rather than guessing at another pane, and the ids we retired
+ * (Capy has no such pane) are dropped from the URL instead of being kept.
  */
 const paneFor = (pane: string | undefined) =>
-  pane === undefined ? undefined : findPane(pane);
+  pane === undefined || isRetiredPane(pane) ? undefined : findPane(pane);
 
 export type ThreadRouteProps = {
   threadId: string;
@@ -72,6 +74,7 @@ export function ThreadRoute({
     [orgId],
   );
   const [expanded, setExpanded] = useState(false);
+  const sideThreads = useSideThreads(orgId ?? "", threadId);
   const entry = paneFor(pane);
   const activeId = activeTabId(entry);
   return (
@@ -93,6 +96,7 @@ export function ThreadRoute({
           title={thread?.title ?? "Untitled thread"}
           tabs={paneTabs()}
           activeId={activeId}
+          menu={{ sideThreads }}
           cost={
             orgId === undefined ? undefined : (
               <ThreadCostBadge orgId={orgId} jamId={threadId} />
@@ -127,6 +131,16 @@ export function ThreadScreen({
   pane: string | undefined;
 }) {
   const navigate = useNavigate();
+  const retired = isRetiredPane(pane);
+  useEffect(() => {
+    if (!retired) return;
+    void navigate({
+      to: "/thread/$threadId",
+      params: { threadId },
+      search: {},
+      replace: true,
+    });
+  }, [retired, navigate, threadId]);
   return (
     <ThreadRoute
       threadId={threadId}
