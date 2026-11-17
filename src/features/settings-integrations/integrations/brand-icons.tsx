@@ -37,12 +37,13 @@ export function TailscaleIcon() {
 
 function BrandImage({ src }: { src: string }) {
   return (
-    <img
-      src={src}
-      alt=""
+    <svg
+      viewBox="0 0 24 24"
       aria-hidden="true"
       className="size-(--icon-base) opacity-100"
-    />
+    >
+      <image href={src} width="24" height="24" />
+    </svg>
   );
 }
 
