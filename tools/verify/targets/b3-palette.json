@@ -1,11 +1,7 @@
 {
   "matrix": {
-    "theme": [
-      "default"
-    ],
-    "scheme": [
-      "dark"
-    ]
+    "theme": ["default"],
+    "scheme": ["dark"]
   },
   "defaults": {
     "maxMismatch": 2
@@ -16,14 +12,8 @@
       "route": "/thread/thr-1",
       "state": "palette-open",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"]
       ],
       "frame": "WzLZsSnRuu",
       "expect": {
@@ -44,18 +34,9 @@
       "route": "/thread/thr-1",
       "state": "palette-cat-captains",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ],
-        [
-          "press",
-          "ArrowRight"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["press", "ArrowRight"]
       ],
       "frame": "Ccrdf9PF0e",
       "expect": {
@@ -76,22 +57,10 @@
       "route": "/thread/thr-1",
       "state": "palette-cat-threads",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ],
-        [
-          "press",
-          "ArrowRight"
-        ],
-        [
-          "press",
-          "ArrowRight"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["press", "ArrowRight"],
+        ["press", "ArrowRight"]
       ],
       "frame": "5wj6qIrLbH",
       "expect": {
@@ -112,26 +81,11 @@
       "route": "/thread/thr-1",
       "state": "palette-cat-pulls",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ],
-        [
-          "press",
-          "ArrowRight"
-        ],
-        [
-          "press",
-          "ArrowRight"
-        ],
-        [
-          "press",
-          "ArrowRight"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["press", "ArrowRight"],
+        ["press", "ArrowRight"],
+        ["press", "ArrowRight"]
       ],
       "frame": "RzmbwxY_5b",
       "expect": {
@@ -152,30 +106,12 @@
       "route": "/thread/thr-1",
       "state": "palette-cat-automations",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ],
-        [
-          "press",
-          "ArrowRight"
-        ],
-        [
-          "press",
-          "ArrowRight"
-        ],
-        [
-          "press",
-          "ArrowRight"
-        ],
-        [
-          "press",
-          "ArrowRight"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["press", "ArrowRight"],
+        ["press", "ArrowRight"],
+        ["press", "ArrowRight"],
+        ["press", "ArrowRight"]
       ],
       "frame": "0M7Oq-jbIb",
       "expect": {
@@ -196,22 +132,10 @@
       "route": "/thread/thr-1",
       "state": "palette-cat-actions",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ],
-        [
-          "press",
-          "ArrowLeft"
-        ],
-        [
-          "press",
-          "ArrowLeft"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["press", "ArrowLeft"],
+        ["press", "ArrowLeft"]
       ],
       "frame": "0Qq4yoOS6W",
       "expect": {
@@ -232,18 +156,9 @@
       "route": "/thread/thr-1",
       "state": "palette-cat-settings",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ],
-        [
-          "press",
-          "ArrowLeft"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["press", "ArrowLeft"]
       ],
       "frame": "_OVUcfocnC",
       "expect": {
@@ -264,38 +179,14 @@
       "route": "/thread/thr-1",
       "state": "palette-arrow-down-x6",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ],
-        [
-          "press",
-          "ArrowDown"
-        ],
-        [
-          "press",
-          "ArrowDown"
-        ],
-        [
-          "press",
-          "ArrowDown"
-        ],
-        [
-          "press",
-          "ArrowDown"
-        ],
-        [
-          "press",
-          "ArrowDown"
-        ],
-        [
-          "press",
-          "ArrowDown"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["press", "ArrowDown"],
+        ["press", "ArrowDown"],
+        ["press", "ArrowDown"],
+        ["press", "ArrowDown"],
+        ["press", "ArrowDown"],
+        ["press", "ArrowDown"]
       ],
       "frame": "2EwW6ay01X",
       "expect": {
@@ -316,18 +207,9 @@
       "route": "/thread/thr-1",
       "state": "palette-end-key",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ],
-        [
-          "press",
-          "End"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["press", "End"]
       ],
       "frame": "M6Swy-00y6",
       "expect": {
@@ -348,19 +230,9 @@
       "route": "/thread/thr-1",
       "state": "palette-query-set",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ],
-        [
-          "fill",
-          "[data-slot=command-menu-input]",
-          "set"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["fill", "[data-slot=command-menu-input]", "set"]
       ],
       "frame": "rsHApo6CKL",
       "expect": {
@@ -381,19 +253,9 @@
       "route": "/thread/thr-1",
       "state": "palette-query-theme",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ],
-        [
-          "fill",
-          "[data-slot=command-menu-input]",
-          "theme"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["fill", "[data-slot=command-menu-input]", "theme"]
       ],
       "frame": "9cioaUzVWW",
       "expect": {
@@ -414,19 +276,9 @@
       "route": "/thread/thr-1",
       "state": "palette-query-thr",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ],
-        [
-          "fill",
-          "[data-slot=command-menu-input]",
-          "thr"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["fill", "[data-slot=command-menu-input]", "thr"]
       ],
       "frame": "aDZLyX8jj5",
       "expect": {
@@ -447,19 +299,9 @@
       "route": "/thread/thr-1",
       "state": "palette-query-model",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ],
-        [
-          "fill",
-          "[data-slot=command-menu-input]",
-          "model"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["fill", "[data-slot=command-menu-input]", "model"]
       ],
       "frame": "tmb34y7Vh4",
       "expect": {
@@ -480,19 +322,9 @@
       "route": "/thread/thr-1",
       "state": "palette-empty",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ],
-        [
-          "fill",
-          "[data-slot=command-menu-input]",
-          "zzzqqq"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["fill", "[data-slot=command-menu-input]", "zzzqqq"]
       ],
       "frame": "zRefBZORx5",
       "expect": {
@@ -513,19 +345,9 @@
       "route": "/thread/thr-1",
       "state": "palette-prefix-actions",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ],
-        [
-          "fill",
-          "[data-slot=command-menu-input]",
-          ">"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["fill", "[data-slot=command-menu-input]", ">"]
       ],
       "frame": "ZeIT0KzqIw",
       "expect": {
@@ -546,19 +368,9 @@
       "route": "/thread/thr-1",
       "state": "palette-prefix-hash",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ],
-        [
-          "fill",
-          "[data-slot=command-menu-input]",
-          "#"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["fill", "[data-slot=command-menu-input]", "#"]
       ],
       "frame": "1joNWervAV",
       "expect": {
@@ -579,19 +391,9 @@
       "route": "/thread/thr-1",
       "state": "palette-prefix-slash",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ],
-        [
-          "fill",
-          "[data-slot=command-menu-input]",
-          "/"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["fill", "[data-slot=command-menu-input]", "/"]
       ],
       "frame": "Jtqn2ffaZd",
       "expect": {
@@ -612,22 +414,10 @@
       "route": "/thread/thr-1",
       "state": "palette-closed",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ],
-        [
-          "press",
-          "Escape"
-        ],
-        [
-          "wait",
-          "500"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["press", "Escape"],
+        ["wait", "500"]
       ],
       "frame": "MF8TzP9lTm"
     },
@@ -636,14 +426,8 @@
       "route": "/thread/thr-1",
       "state": "palette-narrow-390",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"]
       ],
       "frame": "buMdOvF2EF",
       "expect": {
@@ -659,14 +443,8 @@
       "state": "palette-open (light, no frame)",
       "viewport": "1600x1000",
       "steps": [
-        [
-          "press",
-          "Control+k"
-        ],
-        [
-          "wait",
-          "[data-slot=command-menu-content]"
-        ]
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"]
       ],
       "expect": {
         "[data-slot=command-menu-content]": {
