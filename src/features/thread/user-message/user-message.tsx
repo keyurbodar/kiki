@@ -4,6 +4,11 @@ import { Markdown } from "@/components/markdown";
 import type { UserMessageRow as UserMessageRowSchema } from "@/data/events";
 import { MessageHeader } from "@/features/thread/agent-message";
 import {
+  type AttachmentEntry,
+  AttachmentGallery,
+  type GalleryItem,
+} from "@/features/thread/attachment-gallery";
+import {
   actorName,
   CopyMessageButton,
   cx,
@@ -45,6 +50,8 @@ export type UserMessageProps = ComponentProps<"div"> & {
   clampHeight?: number | { lines: number };
   /** False hides the hover footer (previews, read-only transcripts). */
   footer?: boolean;
+  /** Hands the clicked tile to the thread's lightbox. */
+  onOpenMedia?: (items: ReadonlyArray<GalleryItem>, index: number) => void;
 };
 
 export function UserMessage({
@@ -53,6 +60,7 @@ export function UserMessage({
   onToggleExpanded,
   clampHeight,
   footer = true,
+  onOpenMedia,
   className,
   ...props
 }: UserMessageProps) {
@@ -70,6 +78,9 @@ export function UserMessage({
     mine && row.state === "answered" && actions.editMessage !== undefined;
   const align = mine ? "items-end" : "items-start";
   const imageUrl = actions.resolveActor?.(row.actor)?.imageUrl;
+  const attachments: ReadonlyArray<AttachmentEntry> = row.files.map((file) => ({
+    file,
+  }));
 
   const footerEl = footer && (
     <MessageFooter touch align={mine ? "end" : "start"}>
@@ -155,6 +166,13 @@ export function UserMessage({
           align,
         )}
       >
+        {attachments.length > 0 && (
+          <AttachmentGallery
+            entries={attachments}
+            align={mine ? "end" : "start"}
+            onOpenMedia={onOpenMedia}
+          />
+        )}
         {(body !== "" || reply !== undefined) && (
           <div
             className={cx(
