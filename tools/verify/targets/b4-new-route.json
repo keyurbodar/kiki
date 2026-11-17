@@ -81,18 +81,17 @@
     {
       "id": "new-desktop-800",
       "route": "/new",
-      "state": "welcome composer at the narrowest desktop width, sidebar collapsed",
+      "state": "welcome composer at 800w, sidebar open: the column is capped by the pane, not by max-width",
       "theme": "default",
       "scheme": "dark",
       "viewport": "800x900",
       "expect": {
         "div:has(> div > [data-track-owner$=\"HomePage:ProjectSelect.1\"])": {
-          "width": "712px",
           "max-width": "712px",
           "padding-bottom": "90px"
         },
         "[data-slot=composer]": {
-          "width": "712px"
+          "max-width": "none"
         }
       }
     },
@@ -104,8 +103,14 @@
       "scheme": "dark",
       "viewport": "1600x1000",
       "steps": [
-        ["click", "[data-track-owner$=\"HomePage:ProjectSelect.1\"] button"],
-        ["wait", "[role=menu]"]
+        [
+          "click",
+          "[data-track-owner$=\"HomePage:ProjectSelect.1\"] button"
+        ],
+        [
+          "wait",
+          "[role=menu]"
+        ]
       ],
       "capture": {
         "[role=menu]": []
@@ -126,7 +131,12 @@
       "theme": "default",
       "scheme": "dark",
       "viewport": "1600x1000",
-      "steps": [["wait", "[data-slot=composer]"]],
+      "steps": [
+        [
+          "wait",
+          "[data-slot=composer]"
+        ]
+      ],
       "expect": {
         "[data-slot=composer]": {
           "width": "712px",
