@@ -3,4 +3,6 @@ import { ProjectEnvironmentPage } from "@/features/settings-projects/project-env
 
 export const Route = createFileRoute(
   "/_app/settings/projects_/$projectId_/environment-variables",
-)({ component: ProjectEnvironmentPage });
+)({
+  component: ProjectEnvironmentPage,
+});
