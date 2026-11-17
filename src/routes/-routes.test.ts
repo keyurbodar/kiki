@@ -13,6 +13,7 @@ const DEV_ONLY_ROUTES = new Set([
   "/__composer",
   "/__thread-device",
   "/__chips",
+  "/__model-picker",
 ]);
 
 function countRoutes(node: Node): number {
