@@ -93,7 +93,9 @@ export function SettingsSidebar({
           {backIcon}
           Settings
         </Link>
-        {trigger}
+        {trigger && (
+          <span className="mr-1.5 flex shrink-0 items-center">{trigger}</span>
+        )}
       </header>
       <div className="shrink-0 px-2 pb-1">
         <span data-slot="input-group" className="relative inline-flex w-full">
