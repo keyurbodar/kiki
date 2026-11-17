@@ -21,6 +21,7 @@ import {
   type ComponentProps,
   type ReactNode,
   type Ref,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -141,20 +142,20 @@ export function DiffSurface<A = unknown>({
   patch,
   fileDiffs,
   loadDiffFiles,
-  diffStyle = "unified",
-  variant = "default",
-  overflow = "wrap",
+  diffStyle: diffStyleProp,
+  variant: variantProp,
+  overflow: overflowProp,
   defaultCollapsed,
   collapsedFiles,
   onFileCollapsedChange,
   generatedFiles,
   binaryFiles,
-  expandUnchanged = false,
+  expandUnchanged: expandUnchangedProp,
   errorHref,
   fileHeader,
-  disableWorker = false,
-  workerPoolAttached = false,
-  itemCards = false,
+  disableWorker: disableWorkerProp,
+  workerPoolAttached: workerPoolAttachedProp,
+  itemCards: itemCardsProp,
   groups,
   codeViewRef,
   renderFooter,
@@ -170,6 +171,13 @@ export function DiffSurface<A = unknown>({
   className,
   ...props
 }: DiffSurfaceProps<A>) {
+  const diffStyle = diffStyleProp ?? "unified";
+  const variant = variantProp ?? "default";
+  const overflow = overflowProp ?? "wrap";
+  const expandUnchanged = expandUnchangedProp ?? false;
+  const disableWorker = disableWorkerProp ?? false;
+  const workerPoolAttached = workerPoolAttachedProp ?? false;
+  const itemCards = itemCardsProp ?? false;
   const hidden = useAtomValue(diffHiddenCategoriesAtom);
   const [expanded, setExpanded] = useAtom(diffExpandedCategoriesAtom);
   const isClient = useIsClient();
@@ -189,7 +197,7 @@ export function DiffSurface<A = unknown>({
   );
   const collapsed = collapsedFiles ?? ownCollapsed;
 
-  const attachHandle = (next: DiffSurfaceHandle<A> | null) => {
+  const attachHandle = useCallback((next: DiffSurfaceHandle<A> | null) => {
     const restore = restoreRef.current;
     if (next === null) {
       restoreRef.current = getTopFile(handleRef.current) ?? restore;
@@ -207,7 +215,7 @@ export function DiffSurface<A = unknown>({
     }
     handleRef.current = next;
     setHandle(next);
-  };
+  }, []);
 
   useEffect(() => {
     if (handle === null || selectedLines === undefined) return;
@@ -892,7 +900,7 @@ export type DiffLoadingBodyProps = {
 export function DiffLoadingBody({
   height,
   className,
-  grouped = false,
+  grouped,
 }: DiffLoadingBodyProps) {
   const lineHeight = useDiffLineHeight();
   const rows = Math.max(
@@ -921,7 +929,7 @@ export function DiffLoadingBody({
       ))}
     </div>
   );
-  return grouped ? (
+  return grouped === true ? (
     body
   ) : (
     <DiffLoadingRegion label="Loading diff">{body}</DiffLoadingRegion>

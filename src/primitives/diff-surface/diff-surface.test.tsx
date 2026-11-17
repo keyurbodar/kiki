@@ -126,6 +126,17 @@ it("renders skeleton rows inside a labelled loading region", () => {
 });
 
 describe("DiffSurface", () => {
+  it("mounts a parsed patch without re-attaching the view every render", async () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    wrap(<DiffSurface patch={SAMPLE_PATCH} disableWorker />);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(errors.mock.calls.flat().join(" ")).not.toContain(
+      "Maximum update depth",
+    );
+    expect(document.querySelector("[data-slot=diff-surface]")).toBeTruthy();
+    errors.mockRestore();
+  });
+
   it("falls back to raw text with the reason and source link", () => {
     wrap(
       <DiffSurface
