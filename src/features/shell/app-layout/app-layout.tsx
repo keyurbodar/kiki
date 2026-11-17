@@ -2,6 +2,9 @@ import { useRouterState } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import { type ReactNode, useEffect } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
+import { SettingsSidebarPanel } from "@/features/settings/shell";
+import { Button } from "@/primitives/button";
+import { Icon } from "@/primitives/icon";
 import { Card } from "@/primitives/card";
 import { Sheet, SheetContent } from "@/primitives/sheet";
 import {
@@ -21,8 +24,6 @@ const selectPathname = (state: { location: { pathname: string } }) =>
   state.location.pathname;
 
 export function AppLayout({ children, banner }: AppLayoutProps) {
-  const pathname = useRouterState({ select: selectPathname });
-  if (pathname.startsWith(SETTINGS_PATH)) return children;
   return (
     <SidebarProvider>
       <div className="group/shell flex min-w-0 flex-1 flex-col">
@@ -34,17 +35,39 @@ export function AppLayout({ children, banner }: AppLayoutProps) {
   );
 }
 
+function SidebarToggle({ onClick }: { onClick: () => void }) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      aria-label="Toggle sidebar"
+      onClick={onClick}
+    >
+      <Icon name="sidebar-simple-left-wide" size="sm" />
+    </Button>
+  );
+}
+
 function AppShellBody({ children, banner }: AppLayoutProps) {
   const { open, isNarrow } = useSidebarState();
   const openMobile = useSidebarOpenMobile();
   const { setOpenMobile, toggle } = useSidebarActions();
   const pathname = useRouterState({ select: selectPathname });
-  const nav = <AppSidebar />;
 
   useSidebarShortcut(toggle);
   useEffect(() => {
     if (pathname) setOpenMobile(false);
   }, [pathname, setOpenMobile]);
+
+  const settings = pathname.startsWith(SETTINGS_PATH);
+  const nav = settings ? (
+    <SettingsSidebarPanel
+      onNavigate={() => setOpenMobile(false)}
+      trigger={isNarrow ? undefined : <SidebarToggle onClick={toggle} />}
+    />
+  ) : (
+    <AppSidebar />
+  );
 
   return (
     <>
