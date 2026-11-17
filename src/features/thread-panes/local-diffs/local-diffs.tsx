@@ -116,7 +116,11 @@ export function LocalDiffsView({ target }: { target: LocalDiffTarget }) {
 
   if (!AsyncResult.isSuccess(status)) {
     return (
-      <EmptyState line="Local diff unavailable" sub="Loading local changes" />
+      <EmptyState
+        line="Local diff unavailable"
+        sub="Loading local changes"
+        art="sleep"
+      />
     );
   }
   const changed = readChanged(status.value);
@@ -125,6 +129,7 @@ export function LocalDiffsView({ target }: { target: LocalDiffTarget }) {
       <EmptyState
         line="No local changes"
         sub="The working tree on this device is clean"
+        art="review"
       />
     );
   }

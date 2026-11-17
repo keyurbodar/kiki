@@ -24,10 +24,12 @@ import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   availableScopes,
+  changedPatchFiles,
   type DiffScope,
   type DiffTurn,
   defaultScope,
   filterTurns,
+  groupTurns,
   patchTotals,
   pickTurn,
   rangeLabel,
@@ -319,7 +321,7 @@ export function DiffsView({ threadId }: DiffsViewProps) {
   if (files.length === 0) {
     return (
       <div className="flex min-h-0 flex-1 flex-col">
-        <Toolbar />
+        <Toolbar>Diffs</Toolbar>
         <EmptyState
           line="No changes yet"
           sub="Diffs show up here as Capy works"
@@ -383,7 +385,7 @@ export function DiffsView({ threadId }: DiffsViewProps) {
                 {file.path}
               </span>
             ) : (
-              <DiffBodyCard patch={file.patch} path={file.path} />
+              <DiffBodyCard patch={file.patch ?? ""} path={file.path} />
             )}
           </div>
         ))}

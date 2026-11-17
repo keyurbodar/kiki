@@ -1,0 +1,26 @@
+{
+  "matrix": {
+    "theme": [
+      "default"
+    ],
+    "scheme": [
+      "dark",
+      "light"
+    ]
+  },
+  "defaults": {
+    "maxMismatch": 2
+  },
+  "targets": [
+    {
+      "id": "pane-diffs",
+      "route": "/thread/jam_sample_0001?pane=diffs",
+      "variants": {
+        "default/dark": {
+          "frame": "JyvbArWMZ0",
+          "viewport": "1600x1000"
+        }
+      }
+    }
+  ]
+}

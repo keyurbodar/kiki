@@ -121,7 +121,10 @@ export function pickTurn(
   const start = shift ? Math.min(index, from) : index;
   const end = shift ? Math.max(index, through) : index;
   if (start < 0 || end >= turns.length || end < 0) return undefined;
-  return { from: turns[start].eventId, through: turns[end].eventId };
+  return {
+    from: turns[start]?.eventId ?? "",
+    through: turns[end]?.eventId ?? "",
+  };
 }
 
 export function rangeLabel(from: number, through: number, count: number) {
@@ -139,10 +142,18 @@ export function filesForScope(
       (file) => file.repo === undefined || scope.from <= scope.through,
     );
   }
-  return files.filter((file) => {
-    if (file.category !== undefined) return file.category === scope.scope;
-    return diffCategory(file.path) === scope.scope;
-  });
+  if (scope.scope === "local") return [];
+  if (scope.scope === "pr-preview" || scope.scope === "uncommitted") {
+    const wanted = scope.scope;
+    return files.filter((file) => {
+      const category = file.category ?? diffCategory(file.path);
+      if (category === "generated") return true;
+      return (
+        category !== undefined && (category as string) === (wanted as string)
+      );
+    });
+  }
+  return [];
 }
 
 export type PatchFile = DiffToolbarFile & {

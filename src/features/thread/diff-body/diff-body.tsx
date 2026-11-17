@@ -1,4 +1,3 @@
-import { PatchDiff } from "@pierre/diffs/react";
 import { cx } from "class-variance-authority";
 import { useEffect, useRef, useState } from "react";
 import { DiffCards } from "@/components/diff-cards";
@@ -6,7 +5,7 @@ import {
   type DiffSelection,
   DiffSelectionToolbar,
 } from "@/components/diff-selection-toolbar";
-import { type DiffStyle, useDiffPreferences } from "@/lib/diff-preferences";
+import { useDiffPreferences } from "@/lib/diff-preferences";
 import { Button } from "@/primitives/button";
 import { DiffSurface } from "@/primitives/diff-surface";
 
@@ -104,19 +103,13 @@ export function DiffBodyCard({
       >
         <DiffSurface
           data-slot="diff-body"
+          patch={patch}
+          diffStyle={preferences.diffStyle}
+          overflow={preferences.diffWrap ? "wrap" : "scroll"}
+          variant="minimal"
           className="rounded-(--radius-card)"
           style={open ? undefined : { maxHeight: collapsedHeight }}
-        >
-          <PatchDiff
-            patch={patch}
-            options={{
-              theme: "default-dark",
-              overflow: preferences.diffWrap ? "wrap" : "scroll",
-              diffStyle: preferences.diffStyle as DiffStyle,
-              disableFileHeader: true,
-            }}
-          />
-        </DiffSurface>
+        />
         {dimmed ? (
           <>
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card to-transparent" />

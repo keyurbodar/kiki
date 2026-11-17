@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   availableScopes,
   changedPatchFiles,
+  type DiffTurn,
   defaultScope,
   filterTurns,
   groupTurns,
@@ -11,7 +12,7 @@ import {
   turnTitle,
 } from "./logic";
 
-const turns = [
+const turns: DiffTurn[] = [
   {
     eventId: "e1",
     repos: [{ repo: "acme/web", scopes: ["turn"] }],
@@ -31,12 +32,12 @@ const turns = [
 describe("diffs-view logic", () => {
   it("groups per-event repo rows into turns", () => {
     const grouped = groupTurns([
-      turns[0],
-      { ...turns[0], repos: [{ repo: "acme/api", scopes: ["turn"] }] },
+      turns[0]!,
+      { ...turns[0]!, repos: [{ repo: "acme/api", scopes: ["turn"] }] },
     ]);
     expect(grouped).toHaveLength(1);
-    expect(grouped[0].repos).toHaveLength(2);
-    expect(grouped[0].additions).toBe(6);
+    expect(grouped[0]?.repos).toHaveLength(2);
+    expect(grouped[0]?.additions).toBe(6);
   });
 
   it("collects scopes and picks a valid default", () => {
@@ -57,7 +58,7 @@ describe("diffs-view logic", () => {
     expect(filterTurns(turns, "turn 1").map((entry) => entry.index)).toEqual([
       0,
     ]);
-    expect(turnTitle(turns[0], 0)).toBe("First turn");
+    expect(turnTitle(turns[0]!, 0)).toBe("First turn");
   });
 
   it("extends the range on shift-click", () => {
@@ -92,7 +93,7 @@ describe("changedPatchFiles", () => {
       new Set(["src/checkout/retry.ts"]),
     );
     expect(files).toHaveLength(1);
-    expect(files[0].patch).toContain("+new");
+    expect(files[0]?.patch).toContain("+new");
     expect(patchTotals(files)).toEqual({ additions: 1, deletions: 1 });
   });
 });
