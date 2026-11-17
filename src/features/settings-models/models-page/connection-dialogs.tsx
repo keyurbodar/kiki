@@ -52,9 +52,13 @@ export function RenameSeatDialog({
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3 py-4">
-            <label className="flex flex-col gap-1 text-xs text-muted-foreground-1">
+            <label
+              htmlFor="rename-subscription-name"
+              className="flex flex-col gap-1 text-xs text-muted-foreground-1"
+            >
               Name
               <Input
+                id="rename-subscription-name"
                 value={name}
                 maxLength={128}
                 autoFocus
@@ -63,12 +67,7 @@ export function RenameSeatDialog({
             </label>
           </div>
           <DialogFooter>
-            <Button
-              variant="ghost"
-              size="sm"
-              type="button"
-              onClick={onClose}
-            >
+            <Button variant="ghost" size="sm" type="button" onClick={onClose}>
               Cancel
             </Button>
             <Button

@@ -1,5 +1,6 @@
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { ModelDefaultsSection } from "../model-defaults/model-defaults-section";
+import type { ModelEntry } from "../model-defaults/model-selection";
 import { CompactAtDialog } from "./compact-at-dialog";
 import {
   MoveToOrganizationDialog,
@@ -9,16 +10,22 @@ import {
 export type ModelsPageProps = {
   compactAtRequest?: {
     scope: "user" | "org";
-    entryId: string;
+    entry: ModelEntry;
     value?: number;
   };
   renameRequest?: { service: string; credentialId: string; label: string };
   moveRequest?: { name: string; credentialId: string };
   onCloseDialog?: () => void;
   onSaveCompactAt?: (compactAt: number | null) => Promise<void>;
-  onRename?: (service: string, credentialId: string, name: string) => Promise<void>;
+  onRename?: (
+    service: string,
+    credentialId: string,
+    name: string,
+  ) => Promise<void>;
   onMove?: (credentialId: string) => Promise<void>;
 };
+
+const noop = () => {};
 
 export function ModelsPage({
   compactAtRequest,
@@ -29,6 +36,7 @@ export function ModelsPage({
   onRename,
   onMove,
 }: ModelsPageProps) {
+  const close = onCloseDialog ?? noop;
   return (
     <SettingsPage
       title="Models"
@@ -42,15 +50,10 @@ export function ModelsPage({
       />
       {compactAtRequest !== undefined && onSaveCompactAt !== undefined ? (
         <CompactAtDialog
-          entry={{
-            id: compactAtRequest.entryId,
-            name: compactAtRequest.entryId,
-            provider: "capy",
-            context: 200_000,
-          }}
+          entry={compactAtRequest.entry}
           scope={compactAtRequest.scope}
           value={compactAtRequest.value}
-          onClose={onCloseDialog ?? (() => {})}
+          onClose={close}
           onSave={onSaveCompactAt}
         />
       ) : null}
@@ -58,7 +61,7 @@ export function ModelsPage({
         <RenameSeatDialog
           service={renameRequest.service}
           label={renameRequest.label}
-          onClose={onCloseDialog ?? (() => {})}
+          onClose={close}
           onRename={(name) =>
             onRename(renameRequest.service, renameRequest.credentialId, name)
           }
@@ -67,7 +70,7 @@ export function ModelsPage({
       {moveRequest !== undefined && onMove !== undefined ? (
         <MoveToOrganizationDialog
           name={moveRequest.name}
-          onClose={onCloseDialog ?? (() => {})}
+          onClose={close}
           onMove={() => onMove(moveRequest.credentialId)}
         />
       ) : null}

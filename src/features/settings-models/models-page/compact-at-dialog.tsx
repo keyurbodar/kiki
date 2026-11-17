@@ -10,7 +10,11 @@ import {
   DialogTitle,
 } from "@/primitives/dialog";
 import { Input } from "@/primitives/input";
-import { type ModelEntry, formatTokens, parseTokens } from "../model-defaults/model-selection";
+import {
+  formatTokens,
+  type ModelEntry,
+  parseTokens,
+} from "../model-defaults/model-selection";
 
 export const minimumCompactAt = 50_000;
 
@@ -55,7 +59,9 @@ export function CompactAtDialog({
   const builtIn = Math.round((entry.context ?? 200_000) * 0.8);
   const floor = isUser ? Math.min(builtIn, 400_000) : builtIn;
   const max = isUser ? (entry.context ?? 200_000) : Number.POSITIVE_INFINITY;
-  const [raw, setRaw] = useState(value === undefined ? "" : formatTokens(value));
+  const [raw, setRaw] = useState(
+    value === undefined ? "" : formatTokens(value),
+  );
   const [saving, setSaving] = useState(false);
 
   const save = async () => {
@@ -93,9 +99,13 @@ export function CompactAtDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-3 py-4">
-          <label className="flex flex-col gap-1 text-xs text-muted-foreground-1">
+          <label
+            htmlFor="compact-at-tokens"
+            className="flex flex-col gap-1 text-xs text-muted-foreground-1"
+          >
             Tokens
             <Input
+              id="compact-at-tokens"
               type="text"
               inputMode="numeric"
               placeholder={formatTokens(floor)}

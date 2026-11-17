@@ -8,45 +8,10 @@ export type ModelEntry = {
   id: string;
   name: string;
   provider: string;
-  efforts?: ReadonlyArray<string>;
+  efforts: ReadonlyArray<string>;
   defaultEffort?: string;
   context?: number;
 };
-
-export const fallbackCatalog: ReadonlyArray<ModelEntry> = [
-  {
-    id: "anthropic/claude-opus",
-    name: "Claude Opus 5.5",
-    provider: "anthropic",
-    efforts: ["low", "medium", "high"],
-    defaultEffort: "medium",
-    context: 200_000,
-  },
-  {
-    id: "anthropic/claude-sonnet",
-    name: "Claude Sonnet 5.5",
-    provider: "anthropic",
-    efforts: ["low", "medium", "high"],
-    defaultEffort: "medium",
-    context: 200_000,
-  },
-  {
-    id: "openai/gpt",
-    name: "GPT",
-    provider: "openai",
-    efforts: ["low", "medium", "high"],
-    defaultEffort: "medium",
-    context: 128_000,
-  },
-  {
-    id: "google/gemini",
-    name: "Gemini",
-    provider: "google",
-    efforts: ["low", "medium", "high"],
-    defaultEffort: "medium",
-    context: 1_000_000,
-  },
-];
 
 const effortLabels: Record<string, string> = {
   none: "None",
@@ -60,22 +25,23 @@ const effortLabels: Record<string, string> = {
 };
 
 export function fromSelection(value: unknown): ModelSelection | null {
-  if (typeof value === "string") return { modelId: value };
+  if (typeof value === "string")
+    return value === "" ? null : { modelId: value };
   if (typeof value !== "object" || value === null) return null;
   const candidate = value as Record<string, unknown>;
-  const modelId = candidate.modelId ?? candidate.model;
+  const modelId = candidate.modelId;
   if (typeof modelId !== "string" || modelId === "") return null;
-  const reasoningMode =
-    typeof candidate.reasoningMode === "string"
-      ? candidate.reasoningMode
-      : typeof candidate.effort === "string"
-        ? candidate.effort
-        : undefined;
-  const modes =
-    typeof candidate.modes === "object" && candidate.modes !== null
-      ? (candidate.modes as Record<string, boolean>)
-      : undefined;
-  return { modelId, reasoningMode, modes };
+  return {
+    modelId,
+    reasoningMode:
+      typeof candidate.reasoningMode === "string"
+        ? candidate.reasoningMode
+        : undefined,
+    modes:
+      typeof candidate.modes === "object" && candidate.modes !== null
+        ? (candidate.modes as Record<string, boolean>)
+        : undefined,
+  };
 }
 
 export function toSelection(value: ModelSelection | null): unknown {
@@ -87,15 +53,62 @@ export function toSelection(value: ModelSelection | null): unknown {
   };
 }
 
+export function extractCatalog(value: unknown): ReadonlyArray<ModelEntry> {
+  const rows = Array.isArray(value)
+    ? value
+    : typeof value === "object" &&
+        value !== null &&
+        Array.isArray((value as { entries?: unknown }).entries)
+      ? (value as { entries: unknown[] }).entries
+      : [];
+  return rows.flatMap((row) => {
+    if (typeof row !== "object" || row === null) return [];
+    const item = row as Record<string, unknown>;
+    const id = item.id;
+    const name = item.name ?? item.label;
+    if (typeof id !== "string" || typeof name !== "string") return [];
+    const limits =
+      typeof item.limits === "object" && item.limits !== null
+        ? (item.limits as Record<string, unknown>)
+        : undefined;
+    return [
+      {
+        id,
+        name,
+        provider: typeof item.provider === "string" ? item.provider : "capy",
+        efforts: Array.isArray(item.efforts)
+          ? item.efforts.filter(
+              (effort): effort is string => typeof effort === "string",
+            )
+          : [],
+        defaultEffort:
+          typeof item.defaultEffort === "string"
+            ? item.defaultEffort
+            : undefined,
+        context:
+          typeof limits?.context === "number" ? limits.context : undefined,
+      },
+    ];
+  });
+}
+
 export function catalogEntry(
   catalog: ReadonlyArray<ModelEntry>,
   selection: ModelSelection | null,
 ): ModelEntry | undefined {
   if (selection === null) return undefined;
-  return (
-    catalog.find((entry) => entry.id === selection.modelId) ??
-    catalog.find((entry) => selection.modelId.startsWith(`${entry.id}/`))
-  );
+  return catalog.find((entry) => entry.id === selection.modelId);
+}
+
+export function providerOf(
+  catalog: ReadonlyArray<ModelEntry>,
+  selection: ModelSelection | null,
+): string {
+  const entry = catalogEntry(catalog, selection);
+  if (entry !== undefined) return entry.provider;
+  if (selection === null) return "capy";
+  const slash = selection.modelId.indexOf("/");
+  return slash === -1 ? "capy" : selection.modelId.slice(0, slash);
 }
 
 export function selectionName(
@@ -114,8 +127,8 @@ export function selectionEffort(
   selection: ModelSelection | null,
 ): string {
   if (selection === null) return "";
-  const entry = catalogEntry(catalog, selection);
-  const effort = selection.reasoningMode ?? entry?.defaultEffort;
+  const effort =
+    selection.reasoningMode ?? catalogEntry(catalog, selection)?.defaultEffort;
   if (effort === undefined) return "";
   return effortLabels[effort] ?? effort;
 }

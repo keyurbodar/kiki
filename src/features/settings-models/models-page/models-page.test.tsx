@@ -16,9 +16,7 @@ function renderPage() {
 describe("/settings/models", () => {
   it("shows Capy's page copy and the default-model rows", async () => {
     renderPage();
-    expect(
-      await screen.findByRole("heading", { name: "Models" }),
-    ).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Models" })).toBeTruthy();
     expect(
       screen.getByText(
         "For each model, a thread runs on the first subscription or key below that serves it",
@@ -28,8 +26,12 @@ describe("/settings/models", () => {
     expect(
       screen.getByText("The model a thread starts on when nobody picks one"),
     ).toBeTruthy();
-    expect(screen.getByText("Set by your pick in the home composer")).toBeTruthy();
-    expect(screen.getByText("Used for threads you start from Slack")).toBeTruthy();
+    expect(
+      screen.getByText("Set by your pick in the home composer"),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("Used for threads you start from Slack"),
+    ).toBeTruthy();
     expect(
       screen.getByText("Used for threads started from Linear issues"),
     ).toBeTruthy();
@@ -44,7 +46,16 @@ describe("/settings/models", () => {
     render(
       <RegistryProvider>
         <ModelsPage
-          compactAtRequest={{ scope: "user", entryId: "anthropic/claude-opus" }}
+          compactAtRequest={{
+            scope: "user",
+            entry: {
+              id: "anthropic/claude-opus",
+              name: "Claude Opus 5.5",
+              provider: "anthropic",
+              efforts: ["low", "medium", "high"],
+              context: 200_000,
+            },
+          }}
           renameRequest={{
             service: "claude-code",
             credentialId: "cred_sample",
@@ -58,9 +69,7 @@ describe("/settings/models", () => {
         />
       </RegistryProvider>,
     );
-    expect(
-      await screen.findByText("Compact at (your threads)"),
-    ).toBeTruthy();
+    expect(await screen.findByText("Compact at (your threads)")).toBeTruthy();
     expect(screen.getByText("Rename Claude Code subscription")).toBeTruthy();
     expect(
       screen.getByText("Move Sample key to the organization"),

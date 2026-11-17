@@ -2,26 +2,21 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
+import { Card } from "@/primitives/card";
+import { Icon } from "@/primitives/icon";
+import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/primitives/popover";
-import {
-  catalogEntry,
+  filterCatalog,
   type ModelEntry,
   type ModelSelection,
+  providerOf,
   selectionEffort,
   selectionName,
 } from "./model-selection";
 
 const triggerClass = "w-full justify-between @xl:w-64";
-const rowClass = "@max-xl:flex-col @max-xl:items-stretch @max-xl:gap-3";
-const providerColors: Record<string, string> = {
-  anthropic: "text-[#d97757]",
-  openai: "text-[#10a37f]",
-  google: "text-[#4285f4]",
-};
+export const modelRowClass =
+  "@max-xl:flex-col @max-xl:items-stretch @max-xl:gap-3";
 
 export function ClaudeMark({ className }: { className?: string }) {
   return (
@@ -37,32 +32,43 @@ export function ClaudeMark({ className }: { className?: string }) {
   );
 }
 
-function ProviderMark({ provider }: { provider: string }) {
-  if (provider === "anthropic" || provider === "claude-code")
-    return <ClaudeMark className="size-(--icon-sm)" />;
+export function AnthropicMark({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      fillRule="evenodd"
+      className={className}
+    >
+      <path d="M13.827 3.52h3.603L24 20h-3.603l-6.57-16.48zm-7.258 0h3.767L16.906 20h-3.674l-1.343-3.461H5.017l-1.344 3.46H0L6.57 3.522zm4.132 9.959L8.453 7.687 6.205 13.48H10.7z" />
+    </svg>
+  );
+}
+
+export function ProviderMark({ provider }: { provider: string }) {
+  if (provider === "anthropic" || provider === "claude") {
+    return (
+      <span className="flex shrink-0">
+        <AnthropicMark className="size-(--icon-sm)" />
+      </span>
+    );
+  }
+  if (provider === "claude-code") {
+    return (
+      <span className="flex shrink-0 text-primary-ink">
+        <ClaudeMark className="size-(--icon-sm)" />
+      </span>
+    );
+  }
   return (
     <span
       aria-hidden
-      className={`grid size-(--icon-sm) place-items-center rounded-(--radius-sm) bg-secondary text-2xs font-medium ${providerColors[provider] ?? "text-foreground"}`}
+      className="grid size-(--icon-sm) shrink-0 place-items-center rounded-(--radius-sm) bg-secondary text-2xs font-medium text-muted-foreground-1"
     >
       {provider.slice(0, 1).toUpperCase()}
     </span>
   );
-}
-
-export function ModelGlyph({
-  selection,
-  catalog,
-}: {
-  selection: ModelSelection | null;
-  catalog: ReadonlyArray<ModelEntry>;
-}) {
-  const provider =
-    selection === null
-      ? "anthropic"
-      : (catalogEntry(catalog, selection)?.provider ??
-        selection.modelId.split("/")[0]);
-  return <ProviderMark provider={provider} />;
 }
 
 export function ModelTriggerLabel({
@@ -75,8 +81,12 @@ export function ModelTriggerLabel({
   const effort = selectionEffort(catalog, selection);
   return (
     <span className="flex min-w-0 items-center gap-1.5">
-      <ModelGlyph selection={selection} catalog={catalog} />
-      <span className="min-w-0 truncate">{selectionName(catalog, selection)}</span>
+      <span className="flex shrink-0">
+        <ProviderMark provider={providerOf(catalog, selection)} />
+      </span>
+      <span className="min-w-0 truncate">
+        {selectionName(catalog, selection)}
+      </span>
       {effort !== "" && (
         <span className="shrink-0 text-muted-foreground-2">{effort}</span>
       )}
@@ -84,71 +94,61 @@ export function ModelTriggerLabel({
   );
 }
 
-export function ModelChooser({
-  value,
-  catalog,
-  disabled,
-  badge,
-  onChange,
-  inherit,
-}: {
+export type ModelChooserProps = {
   value: ModelSelection | null;
   catalog: ReadonlyArray<ModelEntry>;
   disabled?: boolean;
   badge?: string;
-  onChange: (value: ModelSelection | null) => void;
   inherit?: {
     label: string;
     value: ModelSelection | null;
     active: boolean;
   };
-}) {
+  onChange: (value: ModelSelection | null) => void;
+};
+
+export function ModelChooser({
+  value,
+  catalog,
+  disabled,
+  badge,
+  inherit,
+  onChange,
+}: ModelChooserProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const needle = query.trim().toLowerCase();
-  const matches = catalog.filter(
-    (entry) =>
-      entry.name.toLowerCase().includes(needle) ||
-      entry.id.toLowerCase().includes(needle),
-  );
-  const pick = (entry: ModelEntry) => {
-    onChange({ modelId: entry.id, reasoningMode: entry.defaultEffort });
+  const matches = filterCatalog(catalog, query);
+  const pick = (next: ModelSelection | null) => {
+    onChange(next);
     setQuery("");
     setOpen(false);
   };
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         render={
           <Button
-            variant="outline"
+            variant="solid"
             size="sm"
             aria-label="Model"
             disabled={disabled}
             className={triggerClass}
-          >
-            <ModelTriggerLabel selection={value} catalog={catalog} />
-            <span className="flex shrink-0 items-center gap-1.5">
-              {badge !== undefined && <Badge size="xs">{badge}</Badge>}
-              <svg
-                aria-hidden
-                viewBox="0 0 24 24"
-                fill="none"
-                className="size-(--icon-sm) shrink-0 text-muted-foreground-3"
-              >
-                <path
-                  d="M8 10L10.9393 12.9393C11.5251 13.5251 12.4749 13.5251 13.0607 12.9393L16 10"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
-          </Button>
+          />
         }
-      />
+      >
+        <ModelTriggerLabel selection={value} catalog={catalog} />
+        <span className="flex shrink-0 items-center gap-1.5">
+          {badge !== undefined && (
+            <Badge size="xs" color="neutral">
+              {badge}
+            </Badge>
+          )}
+          <Icon
+            name="chevron-down-small"
+            className="size-(--icon-sm) shrink-0 text-muted-foreground-3"
+          />
+        </span>
+      </PopoverTrigger>
       <PopoverContent align="end" className="w-80">
         <input
           aria-label="Search models"
@@ -157,28 +157,28 @@ export function ModelChooser({
           onChange={(event) => setQuery(event.target.value)}
           className="h-(--h-control-sm) w-full min-w-0 bg-transparent px-2 text-sm text-foreground outline-none placeholder:text-muted-foreground-3"
         />
-        {inherit?.active === true && (
+        {inherit !== undefined && (
           <button
             type="button"
-            onClick={() => {
-              onChange(inherit.value);
-              setOpen(false);
-            }}
-            className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-sm text-foreground hover:bg-secondary"
+            onClick={() => pick(inherit.value)}
+            className="flex w-full items-center justify-between gap-2 px-2 py-1.5 text-left text-sm text-foreground hover:bg-secondary"
           >
             <span>{inherit.label}</span>
+            {inherit.active && <Icon name="circle-check" size="sm" />}
           </button>
         )}
         {matches.length === 0 ? (
           <p className="px-2 py-4 text-center text-sm font-normal text-muted-foreground-2">
-            No model matches
+            No listed model matches
           </p>
         ) : (
           matches.map((entry) => (
             <button
               key={entry.id}
               type="button"
-              onClick={() => pick(entry)}
+              onClick={() =>
+                pick({ modelId: entry.id, reasoningMode: entry.defaultEffort })
+              }
               className="flex w-full items-center justify-between gap-2 px-2 py-1.5 text-left text-sm text-foreground hover:bg-secondary"
             >
               <span className="flex min-w-0 items-center gap-1.5">
@@ -186,9 +186,7 @@ export function ModelChooser({
                 <span className="truncate">{entry.name}</span>
               </span>
               {value?.modelId === entry.id && (
-                <span aria-hidden className="text-foreground">
-                  ✓
-                </span>
+                <Icon name="circle-check" size="sm" />
               )}
             </button>
           ))
@@ -198,6 +196,18 @@ export function ModelChooser({
   );
 }
 
+export type DefaultModelsSectionProps = {
+  catalog: ReadonlyArray<ModelEntry>;
+  webValue: ModelSelection | null;
+  orgValue: ModelSelection | null;
+  surfaceValues: Record<string, ModelSelection | null>;
+  isAdmin: boolean;
+  adminReason: string;
+  onSaveWeb: (value: ModelSelection | null) => void;
+  onSaveOrg: (value: ModelSelection | null) => void;
+  onSaveSurface: (surface: string, value: ModelSelection | null) => void;
+};
+
 export function DefaultModelsSection({
   catalog,
   webValue,
@@ -205,34 +215,10 @@ export function DefaultModelsSection({
   surfaceValues,
   isAdmin,
   adminReason,
-  saving,
-  catalogFailed,
   onSaveWeb,
   onSaveOrg,
   onSaveSurface,
-}: {
-  catalog: ReadonlyArray<ModelEntry>;
-  webValue: ModelSelection | null;
-  orgValue: ModelSelection | null;
-  surfaceValues: Record<string, ModelSelection | null>;
-  isAdmin: boolean;
-  adminReason?: string;
-  saving: string | null;
-  catalogFailed: boolean;
-  onSaveWeb: (value: ModelSelection | null) => void;
-  onSaveOrg: (value: ModelSelection | null) => void;
-  onSaveSurface: (surface: string, value: ModelSelection | null) => void;
-}) {
-  if (catalogFailed)
-    return (
-      <p
-        role="status"
-        className="px-4 py-4 text-sm text-muted-foreground-2"
-      >
-        No listed model matches
-      </p>
-    );
-
+}: DefaultModelsSectionProps) {
   const surfaces = [
     {
       surface: "slack",
@@ -247,19 +233,12 @@ export function DefaultModelsSection({
       description: "Used for threads started from Linear issues",
     },
   ];
-
   return (
-    <div data-slot="card" className="@container">
-      <SettingsRow
-        id="model-defaults"
-        label="Web"
-        description="Set by your pick in the home composer"
-        className={rowClass}
-      >
+    <Card rows className="@container">
+      <ModelRow label="Web" description="Set by your pick in the home composer">
         <ModelChooser
           value={webValue}
           catalog={catalog}
-          disabled={saving !== null}
           badge={webValue === null ? "Org" : undefined}
           inherit={{
             label: "Org default",
@@ -268,45 +247,43 @@ export function DefaultModelsSection({
           }}
           onChange={onSaveWeb}
         />
-      </SettingsRow>
+      </ModelRow>
       {surfaces.map((item) => (
-        <SettingsRow
+        <ModelRow
           key={item.surface}
           id={item.id}
           label={item.label}
           description={item.description}
-          className={rowClass}
         >
           <ModelChooser
             value={surfaceValues[item.surface] ?? null}
             catalog={catalog}
-            disabled={saving !== null}
-            badge={surfaceValues[item.surface] === null ? "Web" : undefined}
-            onChange={(value) => onSaveSurface(item.surface, value)}
+            badge={
+              (surfaceValues[item.surface] ?? null) === null ? "Web" : undefined
+            }
             inherit={{
               label: "Web default",
               value: webValue,
-              active: surfaceValues[item.surface] === null,
+              active: (surfaceValues[item.surface] ?? null) === null,
             }}
+            onChange={(value) => onSaveSurface(item.surface, value)}
           />
-        </SettingsRow>
+        </ModelRow>
       ))}
-      <SettingsRow
+      <ModelRow
         id="org-default-model"
         label="Organization default"
         description="For members without a web default, and service users"
-        className={rowClass}
       >
         {isAdmin ? (
           <ModelChooser
             value={orgValue}
             catalog={catalog}
-            disabled={saving !== null}
             onChange={onSaveOrg}
           />
         ) : (
           <Button
-            variant="outline"
+            variant="solid"
             size="sm"
             aria-label="Model"
             disabled
@@ -314,36 +291,40 @@ export function DefaultModelsSection({
             className={triggerClass}
           >
             <ModelTriggerLabel selection={orgValue} catalog={catalog} />
+            <Icon
+              name="chevron-down-small"
+              className="size-(--icon-sm) shrink-0 text-muted-foreground-3"
+            />
           </Button>
         )}
-      </SettingsRow>
-    </div>
+      </ModelRow>
+    </Card>
   );
 }
 
-function SettingsRow({
+function ModelRow({
   id,
   label,
   description,
-  className,
   children,
 }: {
   id?: string;
   label: string;
   description: string;
-  className?: string;
   children: ReactNode;
 }) {
   return (
     <div
       id={id}
       data-slot="settings-row"
-      className={`group/row flex gap-6 p-4 items-center justify-between ${className ?? ""}`}
+      className={`group/row flex gap-6 p-4 items-center justify-between ${modelRowClass}`}
     >
-      <div className="flex min-w-0 flex-col gap-0.5">
-        <div className="text-sm font-medium text-foreground">{label}</div>
-        <div className="font-normal text-muted-foreground-2 text-sm">
-          {description}
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <div className="text-sm font-medium text-foreground">{label}</div>
+          <div className="text-sm font-normal text-muted-foreground-2">
+            {description}
+          </div>
         </div>
       </div>
       <div className="relative flex shrink-0 items-center gap-2">

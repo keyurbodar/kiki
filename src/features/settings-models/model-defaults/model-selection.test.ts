@@ -1,24 +1,48 @@
 import { describe, expect, it } from "vitest";
 import {
-  fallbackCatalog,
+  extractCatalog,
   filterCatalog,
   formatTokens,
   fromSelection,
   parseTokens,
+  providerOf,
   selectionEffort,
   selectionName,
   toSelection,
 } from "./model-selection";
 
+const catalog = [
+  {
+    id: "anthropic/claude-opus",
+    name: "Claude Opus 5.5",
+    provider: "anthropic",
+    efforts: ["low", "medium", "high"],
+    defaultEffort: "medium",
+    context: 200_000,
+  },
+  {
+    id: "openai/gpt",
+    name: "GPT",
+    provider: "openai",
+    efforts: ["low", "high"],
+    context: 128_000,
+  },
+];
+
 describe("model selection", () => {
-  it("accepts both the bare and structured org payloads", () => {
+  it("accepts bare and structured payloads", () => {
     expect(fromSelection("anthropic/claude-opus")?.modelId).toBe(
       "anthropic/claude-opus",
     );
     expect(
       fromSelection({ modelId: "openai/gpt", reasoningMode: "high" }),
-    ).toEqual({ modelId: "openai/gpt", reasoningMode: "high", modes: undefined });
+    ).toEqual({
+      modelId: "openai/gpt",
+      reasoningMode: "high",
+      modes: undefined,
+    });
     expect(fromSelection(undefined)).toBeNull();
+    expect(fromSelection({})).toBeNull();
   });
 
   it("round-trips a selection through the API shape", () => {
@@ -27,28 +51,47 @@ describe("model selection", () => {
       reasoningMode: "high",
       modes: { fast: true },
     };
-    expect(toSelection(fromSelection(selection))).toEqual({
-      modelId: "openai/gpt",
-      reasoningMode: "high",
-      modes: { fast: true },
-    });
+    expect(toSelection(fromSelection(selection))).toEqual(selection);
+    expect(toSelection(null)).toBeNull();
   });
 
-  it("shows fallback names and effort labels", () => {
-    expect(selectionName(fallbackCatalog, { modelId: "unknown/model" })).toBe(
-      "model",
+  it("reads the catalog out of the endpoint payload", () => {
+    expect(
+      extractCatalog({ entries: [{ id: "x/y", name: "Y", provider: "x" }] }),
+    ).toEqual([{ id: "x/y", name: "Y", provider: "x", efforts: [] }]);
+    expect(
+      extractCatalog([{ id: "a/b", name: "B", limits: { context: 9000 } }]),
+    ).toEqual([
+      { id: "a/b", name: "B", provider: "capy", efforts: [], context: 9000 },
+    ]);
+    expect(extractCatalog(null)).toEqual([]);
+  });
+
+  it("names a selection, its provider and its effort", () => {
+    expect(selectionName(catalog, { modelId: "anthropic/claude-opus" })).toBe(
+      "Claude Opus 5.5",
     );
-    expect(selectionEffort(fallbackCatalog, { modelId: "anthropic/claude-opus" })).toBe(
+    expect(selectionName(catalog, { modelId: "unknown/model" })).toBe("model");
+    expect(selectionName(catalog, null)).toBe("No model");
+    expect(providerOf(catalog, { modelId: "unknown/model" })).toBe("unknown");
+    expect(providerOf(catalog, null)).toBe("capy");
+    expect(selectionEffort(catalog, { modelId: "anthropic/claude-opus" })).toBe(
       "Medium",
     );
-    expect(selectionName(fallbackCatalog, null)).toBe("No model");
+    expect(
+      selectionEffort(catalog, {
+        modelId: "anthropic/claude-opus",
+        reasoningMode: "xhigh",
+      }),
+    ).toBe("Extra high");
   });
 
   it("filters the catalog case-insensitively", () => {
-    expect(filterCatalog(fallbackCatalog, "GPT").map((entry) => entry.id)).toEqual([
+    expect(filterCatalog(catalog, "GPT").map((entry) => entry.id)).toEqual([
       "openai/gpt",
     ]);
-    expect(filterCatalog(fallbackCatalog, "nothing")).toEqual([]);
+    expect(filterCatalog(catalog, "  ")).toEqual(catalog);
+    expect(filterCatalog(catalog, "nothing")).toEqual([]);
   });
 });
 
