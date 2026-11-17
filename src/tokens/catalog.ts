@@ -174,6 +174,8 @@ export const SIZES = [
   "--h-menu-row",
   "--h-palette-row",
   "--spacing-page-padding",
+  "--spacing-hairline",
+  "--spacing-switch-inset",
 ] as const;
 
 export const Z_INDEX = [

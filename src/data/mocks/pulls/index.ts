@@ -1,172 +1,692 @@
-import { DateTime, Effect, Ref } from "effect";
-import type { PullRequestId } from "../../api/schemas/ids.ts";
-import {
-  PullRequestCard,
-  PullRequestPage,
-  type PullState,
-  PullThreadChip,
-} from "../../api/schemas/pull.ts";
-import { MockDb, newId } from "../db/MockDb.ts";
-import { isoMinutesAgo, members } from "../fixtures/world.ts";
+import { Effect, Ref } from "effect";
+import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
+import { isoMinutesAgo, people, threads } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
-  branchesByRepo,
-  extraPulls,
-  type PullExtras,
-  type PullRow,
-  projectByRepo,
-  threadById,
+  defaultLocalPull,
+  orgPullActivity,
+  pullActivity,
+  pullBranches,
+  pullChecks,
+  pullChecksNames,
+  pullComments,
+  pullCommitDiff,
+  pullCompareDiff,
+  pullDetail,
+  pullDiff,
+  pullFileUrls,
+  pullFindings,
+  pullHourlyActivity,
+  pullImage,
+  pullIssues,
+  pullLabels,
+  pullReview,
+  pullReviewers,
+  pullReviewSkip,
+  pullReviews,
+  pullStackRelatives,
+  pullStackTree,
+  pullSummaries,
+  pullThreads,
+  viewedPullFiles,
 } from "./fixtures.ts";
 
-const pageSize = 50;
+const text = (value: unknown): string | undefined =>
+  typeof value === "string" && value.length > 0 ? value : undefined;
 
-const checksFor = (state: string): PullExtras["checksState"] =>
-  state === "failed"
-    ? "failed"
-    : state === "pending"
-      ? "pending"
-      : state === "merged" || state === "ready"
-        ? "passed"
-        : "none";
+const flag = (value: unknown): boolean => value === true || value === "true";
 
-const date = (iso: string) => DateTime.makeUnsafe(iso);
-
-export const toPullCard = (row: PullRow & PullExtras) => {
-  const author = members.find((person) => person.id === row.authorId);
-  const login = author?.githubLogin ?? row.authorId;
-  const project = projectByRepo.get(row.repo);
-  const thread = row.threadId === null ? undefined : threadById.get(row.threadId);
-  const threadProject =
-    thread?.projectId == null
-      ? undefined
-      : [...projectByRepo.values()].find((p) => p.id === thread.projectId);
-  const updatedAt = date(row.updatedAt);
-  return new PullRequestCard({
-    id: row.id as PullRequestId,
-    projectId: (project?.id ?? null) as PullRequestCard["projectId"],
-    repo: row.repo,
-    number: row.number,
-    title: row.title,
-    state: row.state as PullState,
-    checksState: row.checksState ?? checksFor(row.state) ?? "none",
-    additions: row.additions,
-    deletions: row.deletions,
-    diffBreakdown: null,
-    author: login,
-    authorAvatarUrl: "",
-    url: `https://github.com/${row.repo}/pull/${row.number}`,
-    headRef: row.headRef,
-    baseRef: row.baseRef,
-    threadId: (thread?.id ?? null) as PullRequestCard["threadId"],
-    thread:
-      thread === undefined
-        ? null
-        : new PullThreadChip({
-            id: thread.id as PullThreadChip["id"],
-            number: thread.number,
-            title: thread.title,
-            projectCode: threadProject?.code ?? null,
-          }),
-    jamId: (thread?.id ?? null) as PullRequestCard["jamId"],
-    parentId: null,
-    stackNumber: null,
-    stackPosition: null,
-    createdAt:
-      row.createdMinutesAgo === undefined
-        ? DateTime.subtract(updatedAt, { days: 1 })
-        : date(isoMinutesAgo(row.createdMinutesAgo)),
-    updatedAt,
-  });
-};
-
-const newestFirst = (a: PullRequestCard, b: PullRequestCard) =>
-  DateTime.toEpochMillis(b.updatedAt) - DateTime.toEpochMillis(a.updatedAt) ||
-  (b.id > a.id ? 1 : -1);
-
-const cursorOf = (pull: PullRequestCard) =>
-  `${DateTime.toEpochMillis(pull.updatedAt)}:${pull.id}`;
+const queryText = (query: unknown, key: string): string | undefined =>
+  text(fields(query)[key]);
 
 export const PullsMock = mockGroup("pulls", (handlers) =>
   Effect.gen(function* () {
-    const { pulls } = yield* MockDb;
-    const extras = yield* Ref.make(extraPulls);
-    const allCards = Effect.gen(function* () {
-      const rows = [...(yield* Ref.get(pulls)), ...(yield* Ref.get(extras))];
-      return rows.map(toPullCard).sort(newestFirst);
-    });
+    const { issueLabels, pulls } = yield* MockDb;
+    const localPulls = yield* Ref.make([
+      { ...defaultLocalPull, threadId: threads.checkoutTest.id },
+      {
+        ...defaultLocalPull,
+        id: "localpull_mock_2",
+        number: 214,
+        title: "Polish the dark mode toggle",
+        state: "draft",
+        threadId: threads.darkMode.id,
+        updatedAt: isoMinutesAgo(18),
+      },
+    ]);
+    const bodies = yield* Ref.make<Readonly<Record<string, string>>>({});
+    const autoMerge = yield* Ref.make<Readonly<Record<string, boolean>>>({});
+    const comments = yield* Ref.make([...pullComments]);
+    const findings = yield* Ref.make([...pullFindings]);
+    const reviewers = yield* Ref.make([...pullReviewers]);
+    const reviews = yield* Ref.make([...pullReviews]);
+    const labels = yield* Ref.make<
+      ReadonlyArray<{ id: string; name: string; color: string }>
+    >([...pullLabels]);
+    const linkedThreads = yield* Ref.make([...pullThreads]);
+    const viewedFiles = yield* Ref.make([...viewedPullFiles]);
+
+    const findPull = (pullId: string) =>
+      Effect.gen(function* () {
+        const rows = yield* Ref.get(pulls);
+        const row = rows.find((candidate) => candidate.id === pullId);
+        if (!row) return yield* missing("pulls", pullId);
+        return row;
+      });
+
+    const detailOf = (pullId: string) =>
+      Effect.gen(function* () {
+        const row = yield* findPull(pullId);
+        const detail = pullDetail(row.id) ?? {
+          issueIds: [] as ReadonlyArray<string>,
+          authorLogin: people.alex.githubLogin,
+          authorName: "Alex Morgan",
+          authorAvatarUrl: `https://example.com/avatars/${people.alex.id}.png`,
+          filesChanged: 0,
+          commentsCount: 0,
+          commitsCount: 0,
+          autoMerge: false,
+        };
+        return {
+          ...detail,
+          id: row.id,
+          repo: row.repo,
+          repoFullName: row.repo,
+          number: row.number,
+          title: row.title,
+          state: row.state,
+          authorId: row.authorId,
+          authorLogin: detail.authorLogin,
+          authorName: detail.authorName,
+          authorAvatarUrl: detail.authorAvatarUrl,
+          headRef: row.headRef,
+          baseRef: row.baseRef,
+          additions: row.additions,
+          deletions: row.deletions,
+          threadId: row.threadId,
+          updatedAt: row.updatedAt,
+          url: `https://github.com/${row.repo}/pull/${row.number}`,
+          body:
+            (yield* Ref.get(bodies))[pullId] ??
+            (row.state === "draft"
+              ? "Working through the changes before marking this ready."
+              : `Updates ${row.headRef} for the ${row.baseRef} branch.`),
+          draft: row.state === "draft",
+          mergedAt: row.state === "merged" ? row.updatedAt : null,
+          closedAt:
+            row.state === "merged" || row.state === "closed"
+              ? row.updatedAt
+              : null,
+          reviewDecision: row.state === "ready" ? "review_required" : null,
+          issues: pullIssues.filter((issue) =>
+            detail.issueIds.includes(issue.id),
+          ),
+          autoMerge: (yield* Ref.get(autoMerge))[pullId] ?? detail.autoMerge,
+        };
+      });
+
+    const setPullState = (pullId: string, state: string) =>
+      Effect.gen(function* () {
+        const current = yield* findPull(pullId);
+        const updated = {
+          ...current,
+          state: state as (typeof current)["state"],
+          updatedAt: isoMinutesAgo(0),
+        };
+        yield* Ref.set(
+          pulls,
+          (yield* Ref.get(pulls)).map((row) =>
+            row.id === pullId ? updated : row,
+          ),
+        );
+        return yield* detailOf(pullId);
+      });
 
     return handlers
-      .handle("list", ({ params, query }) =>
+      .handle("localPullsForThread", ({ params }) =>
         Effect.gen(function* () {
-          const cards = yield* allCards;
-          const term = query.search?.trim().toLowerCase() ?? "";
-          const after = query.updatedAfter
-            ? Date.parse(query.updatedAfter)
-            : undefined;
-          const within = <A>(list: ReadonlyArray<A> | undefined, value: A) =>
-            list === undefined || list.length === 0 || list.includes(value);
-          const outside = <A>(list: ReadonlyArray<A> | undefined, value: A) =>
-            list === undefined || !list.includes(value);
-          const matching = cards.filter(
-            (pull) =>
-              params.orgId !== "" &&
-              within(query.state, pull.state) &&
-              outside(query.excludedState, pull.state) &&
-              within(query.repos, pull.repo) &&
-              within(query.authors, pull.author) &&
-              within(query.projectIds, pull.projectId ?? "") &&
-              outside(query.excludedProjectIds, pull.projectId ?? "") &&
-              (after === undefined ||
-                DateTime.toEpochMillis(pull.updatedAt) > after) &&
-              (term === "" ||
-                pull.title.toLowerCase().includes(term) ||
-                `#${pull.number}`.includes(term) ||
-                pull.repo.includes(term)),
-          );
-          const start =
-            query.cursor === undefined
-              ? 0
-              : matching.findIndex((pull) => cursorOf(pull) === query.cursor) +
-                1;
-          const limit = Number(query.limit ?? pageSize);
-          const items = matching.slice(start, start + limit);
-          const last = items.at(-1);
-          return new PullRequestPage({
-            items,
-            cursor:
-              last !== undefined && start + limit < matching.length
-                ? cursorOf(last)
-                : null,
-          });
+          const rows = yield* Ref.get(localPulls);
+          return rows.filter((row) => row.threadId === params.jamId);
         }),
       )
-      .handle("branches", ({ query }) =>
-        Effect.succeed(branchesByRepo[query.repo] ?? []),
+      .handle("removeLocalPull", ({ params }) =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(localPulls);
+          if (!rows.some((row) => row.id === params.id)) {
+            return yield* Effect.die(
+              new Error(`pulls.localPulls: no row ${params.id}`),
+            );
+          }
+          yield* Ref.set(
+            localPulls,
+            rows.filter((row) => row.id !== params.id),
+          );
+          return { ok: true };
+        }),
+      )
+      .handle("forThread", ({ params }) =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(pulls);
+          const matching = rows
+            .filter((row) => row.threadId === params.jamId)
+            .map((row) => row.id);
+          return yield* Effect.forEach(matching, detailOf);
+        }),
       )
       .handle("create", ({ payload }) =>
         Effect.gen(function* () {
-          const rows = [...(yield* Ref.get(pulls)), ...(yield* Ref.get(extras))];
-          const number =
-            Math.max(
-              0,
-              ...rows.filter((row) => row.repo === payload.repo).map((row) => row.number),
-            ) + 1;
+          const input = fields(payload);
+          const rows = yield* Ref.get(pulls);
           const row = {
             id: newId("pr"),
-            repo: payload.repo,
-            number,
-            title: payload.title,
-            state: payload.draft === false ? "pending" : "draft",
-            authorId: members[0]?.id ?? "",
-            headRef: payload.head,
-            baseRef: payload.base,
+            repo: text(input.repo) ?? "acme/web",
+            number: Math.max(...rows.map((candidate) => candidate.number)) + 1,
+            title: text(input.title) ?? "New pull request",
+            state: "draft" as const,
+            authorId: people.alex.id,
+            headRef: text(input.headRef) ?? "feat/new-change",
+            baseRef: text(input.baseRef) ?? "main",
             additions: 0,
             deletions: 0,
-            threadId: null,
+            threadId: text(input.threadId) ?? null,
             updatedAt: isoMinutesAgo(0),
           };
-          yield* Ref.update(pulls, (all) => [...all, row]);
-          return toPullCard(row);
+          yield* Ref.set(pulls, [...rows, row]);
+          const body = text(input.body);
+          if (body) {
+            yield* Ref.update(bodies, (current) => ({
+              ...current,
+              [row.id]: body,
+            }));
+          }
+          return yield* detailOf(row.id);
+        }),
+      )
+      .handle("list", ({ query }) =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(pulls);
+          const state = queryText(query, "state");
+          const repo = queryText(query, "repo");
+          const search = queryText(query, "search")?.toLowerCase();
+          const limit = Number(queryText(query, "limit") ?? rows.length);
+          const matching = rows
+            .filter((row) => !state || row.state === state)
+            .filter((row) => !repo || row.repo === repo)
+            .filter((row) =>
+              search ? row.title.toLowerCase().includes(search) : true,
+            )
+            .slice(0, Number.isFinite(limit) ? limit : rows.length)
+            .map((row) => row.id);
+          return yield* Effect.forEach(matching, detailOf);
+        }),
+      )
+      .handle("get", ({ params }) => detailOf(params.pullId))
+      .handle("editBody", ({ params, payload }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          yield* Ref.update(bodies, (current) => ({
+            ...current,
+            [params.pullId]: text(fields(payload).body) ?? "",
+          }));
+          return yield* detailOf(params.pullId);
+        }),
+      )
+      .handle("activity", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          const matching = pullActivity.filter(
+            (item) => item.pullId === params.pullId,
+          );
+          return matching.length > 0
+            ? matching
+            : [
+                {
+                  id: `act_${params.pullId}`,
+                  pullId: params.pullId,
+                  type: "updated",
+                  actorId: people.alex.id,
+                  body: "updated the pull request",
+                  createdAt: isoMinutesAgo(60),
+                },
+              ];
+        }),
+      )
+      .handle("publishAssets", ({ params, payload }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          const assets = fields(payload).assets;
+          return {
+            ok: true,
+            pullId: params.pullId,
+            published: Array.isArray(assets) ? assets.length : 1,
+            publishedAt: isoMinutesAgo(0),
+          };
+        }),
+      )
+      .handle("setAutoMerge", ({ params, payload }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          const enabled = flag(fields(payload).enabled);
+          yield* Ref.update(autoMerge, (current) => ({
+            ...current,
+            [params.pullId]: enabled,
+          }));
+          return yield* detailOf(params.pullId);
+        }),
+      )
+      .handle("checks", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return pullChecks;
+        }),
+      )
+      .handle("close", ({ params }) => setPullState(params.pullId, "closed"))
+      .handle("comment", ({ params, payload }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          const input = fields(payload);
+          const comment = {
+            id: newId("cmt"),
+            pullId: params.pullId,
+            authorId: people.alex.id,
+            authorLogin: people.alex.githubLogin,
+            body: text(input.body) ?? "Looks good to me.",
+            createdAt: isoMinutesAgo(0),
+            updatedAt: isoMinutesAgo(0),
+            resolved: false,
+            path: text(input.path) ?? null,
+            line: typeof input.line === "number" ? input.line : null,
+          };
+          yield* Ref.update(comments, (current) => [...current, comment]);
+          return comment;
+        }),
+      )
+      .handle("resolveComment", ({ params }) =>
+        Effect.gen(function* () {
+          const current = yield* Ref.get(comments);
+          const comment = current.find((item) => item.id === params.commentId);
+          if (!comment) {
+            return yield* Effect.die(
+              new Error(`pulls.comments: no row ${params.commentId}`),
+            );
+          }
+          const resolved = { ...comment, resolved: true };
+          yield* Ref.set(
+            comments,
+            current.map((item) =>
+              item.id === params.commentId ? resolved : item,
+            ),
+          );
+          return resolved;
+        }),
+      )
+      .handle("commitDiff", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return { ...pullCommitDiff, sha: params.sha };
+        }),
+      )
+      .handle("compareDiff", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return {
+            ...pullCompareDiff,
+            base: params.base,
+            head: params.head,
+          };
+        }),
+      )
+      .handle("diff", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return pullDiff;
+        }),
+      )
+      .handle("fileUrls", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return pullFileUrls;
+        }),
+      )
+      .handle("setDraft", ({ params, payload }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return yield* setPullState(
+            params.pullId,
+            flag(fields(payload).draft) ? "draft" : "ready",
+          );
+        }),
+      )
+      .handle("updateFinding", ({ params, payload }) =>
+        Effect.gen(function* () {
+          const current = yield* Ref.get(findings);
+          const finding = current.find((item) => item.id === params.findingId);
+          if (!finding) {
+            return yield* Effect.die(
+              new Error(`pulls.findings: no row ${params.findingId}`),
+            );
+          }
+          const status = text(fields(payload).status) ?? finding.status;
+          const updated = { ...finding, status };
+          yield* Ref.set(
+            findings,
+            current.map((item) =>
+              item.id === params.findingId ? updated : item,
+            ),
+          );
+          return updated;
+        }),
+      )
+      .handle("image", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return pullImage;
+        }),
+      )
+      .handle("labels", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return yield* Ref.get(labels);
+        }),
+      )
+      .handle("setLabel", ({ params, payload }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          const input = fields(payload);
+          const labelId = text(input.labelId) ?? "lbl_sample_bug";
+          const available = yield* Ref.get(issueLabels);
+          const label = available.find((item) => item.id === labelId);
+          if (!label) return yield* missing("issueLabels", labelId);
+          const current = yield* Ref.get(labels);
+          if (!current.some((item) => item.id === labelId)) {
+            yield* Ref.set(labels, [...current, label]);
+          }
+          return yield* Ref.get(labels);
+        }),
+      )
+      .handle("merge", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return yield* setPullState(params.pullId, "merged");
+        }),
+      )
+      .handle("reopen", ({ params }) => setPullState(params.pullId, "ready"))
+      .handle("review", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return { ...pullReview, pullId: params.pullId };
+        }),
+      )
+      .handle("requestReview", ({ params, payload }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          const reviewerId = text(fields(payload).reviewerId);
+          if (reviewerId) {
+            const current = yield* Ref.get(reviewers);
+            if (!current.some((item) => item.id === reviewerId)) {
+              const person = Object.values(people).find(
+                (candidate) => candidate.id === reviewerId,
+              );
+              if (!person) {
+                return yield* Effect.die(
+                  new Error(`pulls.reviewers: no member ${reviewerId}`),
+                );
+              }
+              yield* Ref.set(reviewers, [
+                ...current,
+                {
+                  id: person.id,
+                  login: person.githubLogin,
+                  name: `${person.firstName} ${person.lastName}`,
+                  role: "reviewer",
+                  state: "pending",
+                  approved: false,
+                },
+              ]);
+            }
+          }
+          return yield* Ref.get(reviewers);
+        }),
+      )
+      .handle("reviewSkip", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return { ...pullReviewSkip, pullId: params.pullId };
+        }),
+      )
+      .handle("reviewers", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return yield* Ref.get(reviewers);
+        }),
+      )
+      .handle("setReviewer", ({ params, payload }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          const reviewerId = text(fields(payload).reviewerId);
+          if (!reviewerId) {
+            return yield* Effect.die(
+              new Error("pulls.setReviewer: reviewerId is required"),
+            );
+          }
+          const current = yield* Ref.get(reviewers);
+          const existing = current.find((item) => item.id === reviewerId);
+          if (!existing) {
+            const person = Object.values(people).find(
+              (candidate) => candidate.id === reviewerId,
+            );
+            if (!person) {
+              return yield* Effect.die(
+                new Error(`pulls.reviewers: no member ${reviewerId}`),
+              );
+            }
+            const added = {
+              id: person.id,
+              login: person.githubLogin,
+              name: `${person.firstName} ${person.lastName}`,
+              role: "reviewer",
+              state: "pending",
+              approved: false,
+            };
+            yield* Ref.set(reviewers, [...current, added]);
+            return added;
+          }
+          return existing;
+        }),
+      )
+      .handle("submitReview", ({ params, payload }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          const input = fields(payload);
+          const state = text(input.state) ?? "commented";
+          const review = {
+            id: newId("ghr"),
+            githubReviewId: newId("ghr"),
+            pullId: params.pullId,
+            authorId: people.alex.id,
+            authorLogin: people.alex.githubLogin,
+            state,
+            body: text(input.body) ?? "Reviewed the changes.",
+            submittedAt: isoMinutesAgo(0),
+          };
+          yield* Ref.update(reviews, (current) => [...current, review]);
+          return review;
+        }),
+      )
+      .handle("dismissReview", ({ params }) =>
+        Effect.gen(function* () {
+          const current = yield* Ref.get(reviews);
+          const review = current.find(
+            (item) => item.githubReviewId === params.githubReviewId,
+          );
+          if (!review) {
+            return yield* Effect.die(
+              new Error(`pulls.reviews: no row ${params.githubReviewId}`),
+            );
+          }
+          const dismissed = { ...review, state: "dismissed" };
+          yield* Ref.set(
+            reviews,
+            current.map((item) =>
+              item.githubReviewId === params.githubReviewId ? dismissed : item,
+            ),
+          );
+          return dismissed;
+        }),
+      )
+      .handle("stackRelatives", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return pullStackRelatives;
+        }),
+      )
+      .handle("stackTree", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return { ...pullStackTree, rootPullId: params.pullId };
+        }),
+      )
+      .handle("summary", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return (
+            pullSummaries.find((item) => item.pullId === params.pullId) ??
+            pullSummaries[0]
+          );
+        }),
+      )
+      .handle("summaryLatest", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return (
+            pullSummaries.find((item) => item.pullId === params.pullId) ??
+            pullSummaries[0]
+          );
+        }),
+      )
+      .handle("threads", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return yield* Ref.get(linkedThreads);
+        }),
+      )
+      .handle("linkThread", ({ params, payload }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          const jamId = text(fields(payload).jamId) ?? threads.paginate.id;
+          const current = yield* Ref.get(linkedThreads);
+          if (current.some((item) => item.id === jamId)) return current;
+          const thread = Object.values(threads).find(
+            (candidate) => candidate.id === jamId,
+          );
+          if (!thread) {
+            return yield* Effect.die(
+              new Error(`pulls.threads: no thread ${jamId}`),
+            );
+          }
+          const linked = {
+            id: thread.id,
+            number: thread.number,
+            title: thread.title,
+            projectId: thread.projectId,
+          };
+          yield* Ref.set(linkedThreads, [...current, linked]);
+          return yield* Ref.get(linkedThreads);
+        }),
+      )
+      .handle("unlinkThread", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          yield* Ref.set(
+            linkedThreads,
+            (yield* Ref.get(linkedThreads)).filter(
+              (item) => item.id !== params.jamId,
+            ),
+          );
+          return { ok: true };
+        }),
+      )
+      .handle("updateBranch", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return {
+            ok: true,
+            pullId: params.pullId,
+            updatedAt: isoMinutesAgo(0),
+          };
+        }),
+      )
+      .handle("viewedFiles", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          return yield* Ref.get(viewedFiles);
+        }),
+      )
+      .handle("setFileViewed", ({ params, payload }) =>
+        Effect.gen(function* () {
+          yield* findPull(params.pullId);
+          const input = fields(payload);
+          const path = text(input.path) ?? pullDiff.files[0]!.path;
+          const viewed = flag(input.viewed);
+          const current = yield* Ref.get(viewedFiles);
+          const updated = current.map((item) =>
+            item.path === path
+              ? { ...item, viewed, viewedAt: viewed ? isoMinutesAgo(0) : null }
+              : item,
+          );
+          yield* Ref.set(viewedFiles, updated);
+          return updated;
+        }),
+      )
+      .handle("orgActivity", ({ query }) =>
+        Effect.gen(function* () {
+          const repo = queryText(query, "repo");
+          const rows = yield* Ref.get(pulls);
+          const matching = rows.filter((row) => !repo || row.repo === repo);
+          return matching.length > 0 ? orgPullActivity : [];
+        }),
+      )
+      .handle("orgHourlyActivity", () => Effect.succeed(pullHourlyActivity))
+      .handle("branches", () => Effect.succeed(pullBranches))
+      .handle("byNumber", ({ payload }) =>
+        Effect.gen(function* () {
+          const number = Number(fields(payload).number);
+          const repo = text(fields(payload).repo);
+          const rows = yield* Ref.get(pulls);
+          const row = rows.find(
+            (candidate) =>
+              candidate.number === number &&
+              (repo === undefined || candidate.repo === repo),
+          );
+          if (!row) return yield* missing("pulls", String(number));
+          return yield* detailOf(row.id);
+        }),
+      )
+      .handle("checkNames", () => Effect.succeed(pullChecksNames))
+      .handle("find", ({ query }) =>
+        Effect.gen(function* () {
+          const search = queryText(query, "q")?.toLowerCase();
+          const repo = queryText(query, "repo");
+          const state = queryText(query, "state");
+          const rows = yield* Ref.get(pulls);
+          return rows
+            .filter((row) => !repo || row.repo === repo)
+            .filter((row) => !state || row.state === state)
+            .filter((row) =>
+              search
+                ? row.title.toLowerCase().includes(search) ||
+                  row.repo.toLowerCase().includes(search)
+                : true,
+            )
+            .map((row) => pullDetail(row.id));
+        }),
+      )
+      .handle("public", () =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(pulls);
+          return rows
+            .filter((row) => row.state !== "draft")
+            .map((row) => pullDetail(row.id));
         }),
       );
   }),

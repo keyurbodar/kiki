@@ -1,0 +1,75 @@
+import { isoMinutesAgo, people, threads, world } from "../fixtures/world.ts";
+
+export const childThreads = [
+  {
+    id: "jam_sample_child1",
+    parentId: threads.checkoutTest.id,
+    number: 42,
+    title: "Stub the payment gateway in CI",
+    state: "working",
+    ownerId: people.alex.id,
+    createdAt: isoMinutesAgo(28),
+    updatedAt: isoMinutesAgo(12),
+  },
+  {
+    id: "jam_sample_child2",
+    parentId: threads.checkoutTest.id,
+    number: 43,
+    title: "Add a retry budget to checkout",
+    state: "waiting",
+    ownerId: people.sam.id,
+    createdAt: isoMinutesAgo(24 * 60),
+    updatedAt: isoMinutesAgo(3 * 60),
+  },
+  {
+    id: "jam_sample_child3",
+    parentId: threads.darkMode.id,
+    number: 44,
+    title: "Check contrast in the settings panel",
+    state: "idle",
+    ownerId: people.priya.id,
+    createdAt: isoMinutesAgo(2 * 24 * 60),
+    updatedAt: isoMinutesAgo(90),
+  },
+  {
+    id: "jam_sample_child4",
+    parentId: threads.darkMode.id,
+    number: 45,
+    title: "Persist the theme choice",
+    state: "done",
+    ownerId: people.casey.id,
+    createdAt: isoMinutesAgo(4 * 24 * 60),
+    updatedAt: isoMinutesAgo(2 * 24 * 60),
+  },
+  {
+    id: "jam_sample_child5",
+    parentId: threads.paginate.id,
+    number: 46,
+    title: "Document the orders cursor",
+    state: "idle",
+    ownerId: people.jordan.id,
+    createdAt: isoMinutesAgo(5 * 24 * 60),
+    updatedAt: isoMinutesAgo(3 * 24 * 60),
+  },
+] as const;
+
+export const taskThreads = [
+  {
+    taskId: "task_sample_checkout",
+    threadId: threads.checkoutTest.id,
+    title: threads.checkoutTest.title,
+    status: "working",
+    ownerId: people.alex.id,
+    issueId: world.issues[1]?.id ?? "iss_sample_2",
+    createdAt: isoMinutesAgo(3 * 60),
+  },
+  {
+    taskId: "task_sample_dark_mode",
+    threadId: threads.darkMode.id,
+    title: threads.darkMode.title,
+    status: "waiting",
+    ownerId: people.sam.id,
+    issueId: world.issues[2]?.id ?? "iss_sample_3",
+    createdAt: isoMinutesAgo(5 * 60),
+  },
+] as const;
