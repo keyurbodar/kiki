@@ -49,6 +49,7 @@ import {
 import { copyText } from "./clipboard";
 import { usePullOrgId } from "./context";
 import { toDiffFiles } from "./file-tree-model";
+import { PullGuideTab } from "./guide-tab";
 import {
   ArrowShareRightIcon,
   BranchIcon,
@@ -784,14 +785,6 @@ export function PullRail({
   );
 }
 
-function TabPlaceholder({ line }: { line: string }) {
-  return (
-    <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-muted-foreground-2">
-      {line}
-    </div>
-  );
-}
-
 export type PullViewProps = {
   pull: Pull;
   host: "page" | "panel" | "pane";
@@ -891,7 +884,7 @@ export function PullView({
           ) : current === "diff" ? (
             <DiffTab pull={pullRef} anchor={anchor} />
           ) : (
-            <TabPlaceholder line="Guide" />
+            <PullGuideTab pullId={pull.id} />
           )}
         </div>
         {host === "page" && current !== "guide" && (
