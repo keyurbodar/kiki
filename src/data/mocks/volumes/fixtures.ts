@@ -1,170 +1,371 @@
-import { driveFiles, isoMinutesAgo, org, people } from "../fixtures/world.ts";
+import {
+  automations,
+  captains,
+  driveFiles,
+  isoMinutesAgo,
+  people,
+  projects,
+  threads,
+  viewer,
+} from "../fixtures/world.ts";
 
-export interface DriveShare {
-  readonly id: string;
-  readonly fileId: string;
+/**
+ * Capy Drive sample data for the Acme org. Each volume is one drive scope; its
+ * versions are listed oldest first and each holds the full file set at that
+ * point, so the mock can derive manifests, folder pages, changes and per-file
+ * history without storing them separately.
+ */
+
+const hour = 60;
+const day = 24 * hour;
+
+/** Pads a tag into an id that matches Capy's id patterns. */
+const sampleId = (prefix: string, tag: string, length: number) =>
+  `${prefix}_${tag.toUpperCase().padEnd(length, "0")}`;
+
+export const volumeId = (tag: string) => sampleId("vol", `01S${tag}`, 26);
+export const versionId = (tag: string) => sampleId("vver", `01S${tag}`, 26);
+export const shareId = (tag: string) => `dsh_${`sample${tag}`.padEnd(24, "x")}`;
+
+export interface FixtureFile {
   readonly path: string;
-  readonly scope: "organization" | "public";
-  readonly permission: "view" | "edit";
-  readonly url: string;
-  readonly createdBy: string;
-  readonly createdAt: string;
-  readonly revokedAt: string | null;
+  readonly content: string;
+  readonly mode?: number;
 }
 
-export interface DriveVersion {
+export interface FixtureVersion {
+  readonly id: string;
+  readonly kind: "autosave" | "checkpoint";
+  readonly createdAt: string;
+  readonly threadId: string | null;
+  readonly threadTitle: string | null;
+  readonly authorName: string | null;
+  readonly files: ReadonlyArray<FixtureFile>;
+}
+
+export interface FixtureScope {
+  readonly projectId: string | null;
+  readonly userId: string | null;
+  readonly automationId: string | null;
+  readonly captainJamId: string | null;
+}
+
+export interface FixtureVolume {
+  readonly id: string;
+  readonly namespace: string;
+  readonly name: string;
+  readonly description: string | null;
+  readonly archived: boolean;
+  readonly scope: FixtureScope;
+  readonly versions: ReadonlyArray<FixtureVersion>;
+}
+
+export interface FixtureShare {
   readonly id: string;
   readonly volumeId: string;
-  readonly label: string;
-  readonly createdAt: string;
-  readonly createdBy: string;
-  readonly fileCount: number;
-}
-
-export interface DriveChange {
-  readonly id: string;
   readonly path: string;
-  readonly kind: "added" | "modified" | "deleted";
-  readonly sha256: string;
-  readonly updatedAt: string;
+  readonly visibility: "private" | "org" | "public";
+  readonly createdBy: string | null;
+  readonly createdAt: string;
 }
 
-export const volumeId = "vol_sample_acme";
-export const organizationName = org.name;
-export const organizationDomain = org.domain;
+const noScope: FixtureScope = {
+  projectId: null,
+  userId: null,
+  automationId: null,
+  captainJamId: null,
+};
 
-export const shares: ReadonlyArray<DriveShare> = [
+const fullName = (person: { firstName: string; lastName: string }) =>
+  `${person.firstName} ${person.lastName}`;
+
+const [releaseCaptain, docsCaptain] = captains;
+const [nightlyDeps] = automations;
+
+const orgAgents = `# Acme agent instructions
+
+- Use bun for every JavaScript project.
+- Open pull requests against main and keep them small.
+- Never commit secrets or customer data.
+`;
+
+const releaseNotesSkill = `---
+name: release-notes
+description: Draft release notes from the merged pull requests since the last tag.
+---
+
+# Release notes
+
+1. List the pull requests merged since the last release tag.
+2. Group them by area and write one line per change.
+3. Link each line to its pull request.
+`;
+
+const triageSkill = `---
+name: triage
+description: Label and prioritise new issues in the Acme tracker.
+---
+
+# Triage
+
+Read each new issue, pick one area label and one priority, and ask for a reproduction when steps are missing.
+`;
+
+const styleGuide = `# Writing style
+
+Write in plain language. Prefer short sentences, active voice and concrete examples.
+`;
+
+const checkoutSpec = `# Checkout retry
+
+The checkout test fails when the payment stub answers slower than 2 seconds.
+
+## Plan
+
+1. Wait for the payment response instead of a fixed timeout.
+2. Retry the stub call once before failing.
+`;
+
+const checkoutSpecV2 = `${checkoutSpec}
+## Status
+
+Fixed in the latest release; the retry is covered by the integration suite.
+`;
+
+const latencyCsv = `day,p50_ms,p95_ms
+mon,182,410
+tue,176,398
+wed,190,455
+thu,171,377
+fri,169,362
+`;
+
+const webAgents = `# Web app instructions
+
+Run \`bun run test\` before opening a pull request.
+`;
+
+const captainNotes = `# Release captain notes
+
+- Cut the release branch on Monday.
+- Collect the crew's reports before tagging.
+`;
+
+const crewRules = `# Crew rules
+
+Each crew thread owns one pull request and reports back when CI is green.
+`;
+
+const weekReport = `# Week 9 report
+
+Three pull requests merged, one rolled back. The checkout fix shipped on Thursday.
+`;
+
+export const sampleVolumes: ReadonlyArray<FixtureVolume> = [
   {
-    id: "shr_sample_spec",
-    fileId: driveFiles[0].id,
-    path: driveFiles[0].path,
-    scope: "organization",
-    permission: "view",
-    url: "https://capy.example/s/shr_sample_spec",
-    createdBy: people.alex.id,
-    createdAt: isoMinutesAgo(2 * 24 * 60),
-    revokedAt: null,
+    id: volumeId("ORG"),
+    namespace: "org",
+    name: "Acme",
+    description: null,
+    archived: false,
+    scope: noScope,
+    versions: [
+      {
+        id: versionId("ORG1"),
+        kind: "checkpoint",
+        createdAt: isoMinutesAgo(9 * day),
+        threadId: threads.incidents.id,
+        threadTitle: threads.incidents.title,
+        authorName: fullName(people.sam),
+        files: [
+          { path: "AGENTS.md", content: orgAgents },
+          { path: "guides/style.md", content: styleGuide },
+        ],
+      },
+      {
+        id: versionId("ORG2"),
+        kind: "autosave",
+        createdAt: isoMinutesAgo(2 * day),
+        threadId: null,
+        threadTitle: null,
+        authorName: fullName(viewer),
+        files: [
+          { path: "AGENTS.md", content: orgAgents },
+          { path: "guides/style.md", content: styleGuide },
+          { path: "skills/release-notes/SKILL.md", content: releaseNotesSkill },
+          { path: "skills/triage/SKILL.md", content: triageSkill },
+        ],
+      },
+    ],
   },
   {
-    id: "shr_sample_chart",
-    fileId: driveFiles[1].id,
-    path: driveFiles[1].path,
-    scope: "public",
-    permission: "view",
-    url: "https://capy.example/s/shr_sample_chart",
-    createdBy: people.jordan.id,
-    createdAt: isoMinutesAgo(24 * 60),
-    revokedAt: null,
+    id: volumeId("PERSONAL"),
+    namespace: "user",
+    name: "Your drive",
+    description: null,
+    archived: false,
+    scope: { ...noScope, userId: viewer.id },
+    versions: [],
+  },
+  {
+    id: volumeId("WEB"),
+    namespace: "project",
+    name: projects.web.name,
+    description: null,
+    archived: false,
+    scope: { ...noScope, projectId: projects.web.id },
+    versions: [
+      {
+        id: versionId("WEB1"),
+        kind: "checkpoint",
+        createdAt: isoMinutesAgo(5 * day),
+        threadId: threads.checkoutTest.id,
+        threadTitle: threads.checkoutTest.title,
+        authorName: fullName(people.alex),
+        files: [
+          { path: "AGENTS.md", content: webAgents },
+          { path: "specs/checkout-retry.md", content: checkoutSpec },
+        ],
+      },
+      {
+        id: versionId("WEB2"),
+        kind: "checkpoint",
+        createdAt: isoMinutesAgo(3 * hour),
+        threadId: threads.bundler.id,
+        threadTitle: threads.bundler.title,
+        authorName: fullName(people.jordan),
+        files: [
+          { path: "AGENTS.md", content: webAgents },
+          { path: "specs/checkout-retry.md", content: checkoutSpecV2 },
+          { path: "reports/latency-week-9.csv", content: latencyCsv },
+        ],
+      },
+    ],
+  },
+  {
+    id: volumeId("WEBYOU"),
+    namespace: "project-user",
+    name: `Your drive in ${projects.web.name}`,
+    description: null,
+    archived: false,
+    scope: { ...noScope, projectId: projects.web.id, userId: viewer.id },
+    versions: [
+      {
+        id: versionId("WEBYOU1"),
+        kind: "autosave",
+        createdAt: isoMinutesAgo(day),
+        threadId: null,
+        threadTitle: null,
+        authorName: fullName(viewer),
+        files: [
+          {
+            path: "drafts/ideas.md",
+            content: "# Ideas\n\n- Cache the product list on the edge.\n",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: volumeId("DOCS"),
+    namespace: "project",
+    name: projects.docs.name,
+    description: null,
+    archived: false,
+    scope: { ...noScope, projectId: projects.docs.id },
+    versions: [],
+  },
+  {
+    id: volumeId("CAP1"),
+    namespace: "captain",
+    name: releaseCaptain.name,
+    description: null,
+    archived: false,
+    scope: { ...noScope, captainJamId: releaseCaptain.id },
+    versions: [
+      {
+        id: versionId("CAP11"),
+        kind: "checkpoint",
+        createdAt: isoMinutesAgo(40),
+        threadId: releaseCaptain.id,
+        threadTitle: releaseCaptain.name,
+        authorName: fullName(people.alex),
+        files: [
+          { path: "NOTES.md", content: captainNotes },
+          { path: "CREW.md", content: crewRules },
+          { path: "reports/week-9.md", content: weekReport },
+        ],
+      },
+    ],
+  },
+  {
+    id: volumeId("CAP2"),
+    namespace: "captain",
+    name: docsCaptain.name,
+    description: null,
+    archived: false,
+    scope: { ...noScope, captainJamId: docsCaptain.id },
+    versions: [
+      {
+        id: versionId("CAP21"),
+        kind: "checkpoint",
+        createdAt: isoMinutesAgo(day + 2 * hour),
+        threadId: docsCaptain.id,
+        threadTitle: docsCaptain.name,
+        authorName: fullName(people.priya),
+        files: [{ path: "NOTES.md", content: "# Docs captain notes\n" }],
+      },
+    ],
+  },
+  {
+    id: volumeId("AUTODEPS"),
+    namespace: "automation",
+    name: nightlyDeps.name,
+    description: null,
+    archived: false,
+    scope: { ...noScope, automationId: nightlyDeps.id },
+    versions: [
+      {
+        id: versionId("AUTODEPS1"),
+        kind: "autosave",
+        createdAt: isoMinutesAgo(7 * hour),
+        threadId: null,
+        threadTitle: null,
+        authorName: null,
+        files: [
+          {
+            path: "state/last-run.json",
+            content: '{\n  "outdated": 3,\n  "checkedAt": "nightly"\n}\n',
+          },
+        ],
+      },
+    ],
   },
 ];
 
-export const versions: ReadonlyArray<DriveVersion> = [
+export const sampleShares: ReadonlyArray<FixtureShare> = [
   {
-    id: "ver_sample_2",
-    volumeId,
-    label: "Release 2.4 notes",
-    createdAt: isoMinutesAgo(30),
-    createdBy: people.sam.id,
-    fileCount: driveFiles.length,
+    id: shareId("spec"),
+    volumeId: volumeId("WEB"),
+    path: "specs/checkout-retry.md",
+    visibility: "public",
+    createdBy: fullName(people.alex),
+    createdAt: isoMinutesAgo(2 * hour),
   },
   {
-    id: "ver_sample_1",
-    volumeId,
-    label: "Before release",
-    createdAt: isoMinutesAgo(24 * 60),
-    createdBy: people.alex.id,
-    fileCount: driveFiles.length - 1,
-  },
-];
-
-export const changes: ReadonlyArray<DriveChange> = [
-  {
-    id: "chg_sample_1",
-    path: driveFiles[2].path,
-    kind: "modified",
-    sha256: "sha256_sample_notes",
-    updatedAt: isoMinutesAgo(30),
-  },
-  {
-    id: "chg_sample_2",
-    path: driveFiles[0].path,
-    kind: "added",
-    sha256: "sha256_sample_spec",
-    updatedAt: isoMinutesAgo(3 * 60),
-  },
-  {
-    id: "chg_sample_3",
-    path: "notes/old-plan.md",
-    kind: "deleted",
-    sha256: "sha256_sample_old",
-    updatedAt: isoMinutesAgo(24 * 60),
+    id: shareId("style"),
+    volumeId: volumeId("ORG"),
+    path: "guides/style.md",
+    visibility: "org",
+    createdBy: fullName(people.sam),
+    createdAt: isoMinutesAgo(3 * day),
   },
 ];
 
-export const skills = [
-  {
-    id: "skill_sample_pdf",
-    name: "PDF reader",
-    description: "Extract text and tables from PDF files",
-    enabled: true,
-  },
-  {
-    id: "skill_sample_sheet",
-    name: "Spreadsheet reader",
-    description: "Read and update workbook cells",
-    enabled: true,
-  },
-  {
-    id: "skill_sample_slides",
-    name: "Slide reader",
-    description: "Read slide text from presentations",
-    enabled: false,
-  },
-] as const;
+/** Capy Drive storage limit for the sample org: 10 GB. */
+export const sampleStorageLimitBytes = 10 * 1024 ** 3;
 
-export const scopes = [
-  {
-    id: "scope_sample_project",
-    name: "project-web",
-    path: "specs",
-    writable: true,
-    fileCount: 1,
-  },
-  {
-    id: "scope_sample_org",
-    name: "organization",
-    path: "notes",
-    writable: true,
-    fileCount: 1,
-  },
-  {
-    id: "scope_sample_user",
-    name: "user",
-    path: "reports",
-    writable: false,
-    fileCount: 1,
-  },
-] as const;
-
-export const fileVersions = [
-  {
-    id: "fver_sample_spec_2",
-    fileId: driveFiles[0].id,
-    version: 2,
-    sha256: "sha256_sample_spec_2",
-    createdAt: isoMinutesAgo(3 * 60),
-    createdBy: people.alex.id,
-  },
-  {
-    id: "fver_sample_spec_1",
-    fileId: driveFiles[0].id,
-    version: 1,
-    sha256: "sha256_sample_spec_1",
-    createdAt: isoMinutesAgo(24 * 60),
-    createdBy: people.alex.id,
-  },
-] as const;
-
+/** Still-undecoded agent context preview, kept from the first volumes mock. */
 export const agentContext = {
   title: "Checkout retry context",
   summary:
