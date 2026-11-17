@@ -34,3 +34,20 @@ Same mechanism as Capy:
 ## Sources and coverage
 
 See [COVERAGE.md](./COVERAGE.md) for how every bundle variable and every canvas token maps to this folder.
+
+## Component-scoped variables
+
+Some variables in Capy's stylesheet are not tokens. They're locals that a component sets on itself, usually through an arbitrary-property utility such as `[--table-row-h:32px]`, so they have no global value here. Whoever builds the component owns them:
+
+- Button and menu intents: `--intent-*`, `--focus-ring`, `--menu-row-highlight`
+- Toasts (sonner's own variables): `--normal-*`, `--gray1` to `--gray12`, `--error-*`, `--info-*`, `--success-*`, `--warning-*` (`-bg`, `-border`, `-text`), `--lift`
+- Diff viewer: `--diff-card-*`, `--diff-comment-*`, `--diff-gutter-utility-*`, `--diff-sticky-*`
+- File tree: `--capy-file-tree-surface`, `--capy-tree-indent`, `--tree-connector-bleed`
+- Tables: `--table-*`
+- Tabs: `--tab-fade-left`, `--tab-fade-right`, `--tab-surface`
+- Lightbox: `--lightbox-gutter`, `--lightbox-strip`
+- Scroll areas and masks: `--scroll-area-inset`, `--scroll-fade-ramp`, `--scroll-fade-surface`, `--mask-fade-ramp`, `--mask-notch`, `--clamp-fade`
+- Panels: `--panel-border`
+- Shimmer: `--shimmer-lit` (registered with `@property` in `motion.css`)
+
+The raw values those components set (32px rows, 3.5rem gutters, ...) still belong in this folder: add a component token here and set the local from it.

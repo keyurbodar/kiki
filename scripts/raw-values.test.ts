@@ -25,8 +25,9 @@ describe("findRawValues", () => {
 });
 
 describe("isGuarded", () => {
-  it("skips the token layer, tests and generated routes", () => {
+  it("skips the token layer, mock data, tests and generated routes", () => {
     expect(isGuarded("src/tokens/primitives.css")).toBe(false);
+    expect(isGuarded("src/data/events/fixtures.ts")).toBe(false);
     expect(isGuarded("src/routeTree.gen.ts")).toBe(false);
     expect(isGuarded("src/lib/x.test.ts")).toBe(false);
     expect(isGuarded("src/features/thread/view.tsx")).toBe(true);
