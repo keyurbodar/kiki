@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { GitHubCallback } from "@/features/onboarding/callback-surface";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/web/callbacks/github")({
@@ -14,10 +14,16 @@ export const Route = createFileRoute("/web/callbacks/github")({
 });
 
 function RouteComponent() {
+  const search = Route.useSearch();
   return (
-    <RoutePlaceholder
-      title="/web/callbacks/github"
-      path="/web/callbacks/github"
+    <GitHubCallback
+      input={{
+        code: search.code,
+        error: search.error,
+        state: search.state,
+        installationId: search.installation_id,
+        setupAction: search.setup_action,
+      }}
     />
   );
 }

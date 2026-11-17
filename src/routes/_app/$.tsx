@@ -1,10 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { createFileRoute, notFound } from "@tanstack/react-router";
+import { NotFoundCard } from "@/components/not-found-page";
 
 export const Route = createFileRoute("/_app/$")({
-  component: RouteComponent,
+  head: () => ({ meta: [{ title: "Page not found" }] }),
+  beforeLoad: () => {
+    throw notFound();
+  },
+  notFoundComponent: NotFoundCard,
 });
-
-function RouteComponent() {
-  return <RoutePlaceholder title="Page not found" path="/$" />;
-}
