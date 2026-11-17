@@ -1,0 +1,20 @@
+/*
+ * Markdown renderer tokens (shared/markdown). Raw values from Capy's production
+ * stylesheet rules for [data-component=markdown], markdown-code, markdown-table
+ * and markdown-mermaid. src/components/markdown/markdown.css consumes them.
+ */
+
+:root,
+[data-theme-preview] {
+  --markdown-quote-rule: 2px;
+  --markdown-link-underline-offset: 2px;
+  --markdown-inline-code-px: 4px;
+  --markdown-cell-py: 6px;
+  --markdown-cell-px: 10px;
+  --markdown-pre-py: 10px;
+  --markdown-pre-px: 12px;
+  --markdown-code-header-h: 32px;
+  --markdown-code-header-pl: 12px;
+  --markdown-code-header-pr: 6px;
+  --markdown-mermaid-error-pt: 8px;
+}
