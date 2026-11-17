@@ -1,15 +1,21 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
-import { Undecoded, UndecodedQuery } from "../undecoded.ts";
+import {
+  AnnouncementKey,
+  AnnouncementList,
+  AnnouncementListInclude,
+  AnnouncementState,
+  RecordAnnouncementRequest,
+} from "../schemas/announcement.ts";
 
 export class AnnouncementsGroup extends HttpApiGroup.make("announcements").add(
   HttpApiEndpoint.get("list", "/me/announcements", {
-    query: UndecodedQuery,
-    success: Undecoded,
+    query: { include: Schema.optional(AnnouncementListInclude) },
+    success: AnnouncementList,
   }),
   HttpApiEndpoint.post("record", "/me/announcements/:key", {
-    params: { key: Schema.String },
-    payload: Undecoded,
-    success: Undecoded,
+    params: { key: AnnouncementKey },
+    payload: RecordAnnouncementRequest,
+    success: AnnouncementState,
   }),
 ) {}

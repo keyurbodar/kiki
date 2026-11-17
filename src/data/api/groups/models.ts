@@ -1,12 +1,18 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
 import { InferredMethod } from "../annotations.ts";
+import { JamId, OrgId } from "../schemas/ids.ts";
+import { PickerModel } from "../schemas/model.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class ModelsGroup extends HttpApiGroup.make("models").add(
   HttpApiEndpoint.get("list", "/models", {
-    query: UndecodedQuery,
-    success: Undecoded,
+    query: {
+      orgId: Schema.optional(OrgId),
+      jamId: Schema.optional(JamId),
+      serviceUserId: Schema.optional(Schema.String),
+    },
+    success: Schema.Array(PickerModel),
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.delete("disconnect", "/models/credentials/:service", {
     params: { service: Schema.String },
