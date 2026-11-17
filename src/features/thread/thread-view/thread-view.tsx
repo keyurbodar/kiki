@@ -1,12 +1,19 @@
+import { useAtomValue } from "@effect/atom-react";
 import { cx } from "class-variance-authority";
+import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useMemo, useState } from "react";
 import { AppTopBar } from "@/components/app-top-bar";
 import { Composer } from "@/components/composer";
+import { threadMachinesAtom } from "@/data/atoms/setup";
 import type { TimelineRow } from "@/data/events";
 import {
   ComposerFooter,
+  type FooterMachine,
   MachineTrigger,
+  type SetupStep,
+  type StatusColor,
 } from "@/features/composer/composer-footer";
+import { ContextMeter } from "@/features/composer/context-meter";
 import {
   AttachmentSourceProvider,
   apiAttachmentSource,
@@ -117,6 +124,79 @@ const attachmentSourceFor = (orgId: string | undefined, jamId: string) =>
     ? pendingAttachmentSource
     : apiAttachmentSource(orgId, jamId);
 
+const machineStatusColor = (state: string): StatusColor => {
+  if (state === "running" || state === "online") return "success";
+  if (state === "sleeping" || state === "asleep") return "neutral";
+  if (state === "stopped" || state === "gone") return "danger";
+  return "warning";
+};
+
+const footerMachine = (rows: readonly unknown[]): FooterMachine | null => {
+  const first = rows[0];
+  if (first === null || typeof first !== "object") return null;
+  const row = first as Record<string, unknown>;
+  const state = typeof row.state === "string" ? row.state : "";
+  const isDevice = row.kind === "device";
+  const name = typeof row.name === "string" ? row.name : null;
+  const steps: SetupStep[] = Array.isArray(row.setupSteps)
+    ? row.setupSteps.flatMap((step): SetupStep[] => {
+        if (step === null || typeof step !== "object") return [];
+        const item = step as Record<string, unknown>;
+        const phase = item.phase;
+        const status = item.status;
+        if (
+          phase !== "initialize" &&
+          phase !== "refresh" &&
+          phase !== "startup"
+        )
+          return [];
+        if (
+          status !== "not_ready" &&
+          status !== "queued" &&
+          status !== "running" &&
+          status !== "success" &&
+          status !== "error"
+        )
+          return [];
+        return [
+          {
+            phase,
+            status,
+            repoFullName:
+              typeof item.repoFullName === "string" ? item.repoFullName : null,
+            startedAt:
+              typeof item.startedAt === "string" ||
+              typeof item.startedAt === "number"
+                ? new Date(item.startedAt)
+                : null,
+            durationMs:
+              typeof item.durationMs === "number" ? item.durationMs : null,
+          },
+        ];
+      })
+    : [];
+  return {
+    device:
+      isDevice && name !== null
+        ? {
+            name,
+            workspaceKind: "checkout",
+            connected: true,
+            isThisDevice: false,
+          }
+        : null,
+    state,
+    color: machineStatusColor(state),
+    statusLabel: state === "sleeping" ? "Asleep" : state,
+    detail: state === "running" || state === "online" ? null : state,
+    allocation: null,
+    sizeLabel: typeof row.size === "string" ? row.size : null,
+    settingUp: false,
+    setupDegraded: false,
+    setupSteps: steps,
+  };
+};
+
 export function ThreadView({
   threadId,
   rows,
@@ -134,6 +214,15 @@ export function ThreadView({
   takeover,
 }: ThreadViewProps) {
   const submit = useComposerSend(threadId);
+  const orgId = handlers.orgId;
+  const machineRows = useAtomValue(
+    orgId === undefined
+      ? threadMachinesAtom("" as never, threadId)
+      : threadMachinesAtom(orgId as never, threadId),
+  );
+  const machines = AsyncResult.isSuccess(machineRows)
+    ? footerMachine(machineRows.value as readonly unknown[])
+    : null;
 
   const [hidden, setHidden] = useState<ReadonlySet<string>>(
     () => new Set<string>(),
@@ -210,7 +299,12 @@ export function ThreadView({
                 )}
                 <ComposerFooter
                   data-slot="composer-footer"
-                  machine={<MachineTrigger machine={null} />}
+                  machine={<MachineTrigger machine={machines} />}
+                  meter={
+                    orgId === undefined ? undefined : (
+                      <ContextMeter orgId={orgId} jamId={threadId} />
+                    )
+                  }
                 />
               </div>
             </div>

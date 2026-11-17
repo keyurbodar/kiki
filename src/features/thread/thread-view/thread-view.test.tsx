@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeThreadFixtures, TimelineRow } from "@/data/events";
 import type { ThreadTimeline } from "@/features/thread/timeline";
 import { ThreadRoute } from "@/routes/_app/thread/$threadId";
+import { ThreadView } from "./thread-view";
 
 const decodeRow = Schema.decodeUnknownSync(TimelineRow);
 
@@ -24,6 +25,12 @@ const timeline = (overrides: Partial<ThreadTimeline> = {}): ThreadTimeline => ({
   loadOlder: () => undefined,
   ...overrides,
 });
+
+vi.mock("@/features/composer/context-meter", () => ({
+  ContextMeter: ({ orgId, jamId }: { orgId: string; jamId: string }) => (
+    <div data-slot="context-meter" data-org={orgId} data-jam={jamId} />
+  ),
+}));
 
 const current = vi.hoisted(() => ({
   timeline: undefined as unknown as ThreadTimeline,
@@ -56,7 +63,8 @@ const messages = rows.filter(
 describe("thread view composer slot", () => {
   it("shows the composer on a thread with nothing waiting", () => {
     const { container } = renderRoute(timeline({ rows: messages }));
-    expect(slot(container, "composer")).not.toBeNull();
+    const composer = slot(container, "composer");
+    expect(composer).not.toBeNull();
     expect(slot(container, "composer-footer")).not.toBeNull();
     expect(slot(container, "clarify-takeover")).toBeNull();
     expect(slot(container, "request-takeover")).toBeNull();
@@ -112,5 +120,45 @@ describe("thread view composer slot", () => {
       timeline({ rows: messages, hasOlder: true, loadingOlder: true }),
     );
     expect(slot(container, "chat-loading-older")).not.toBeNull();
+  });
+});
+
+describe("thread composer footer", () => {
+  const handlers = {
+    orgId: "org_sample",
+    parentJamId: null,
+    onClarifySubmit: () => undefined,
+  };
+
+  it("renders the footer inside the composer host", () => {
+    const { container } = renderRoute(timeline({ rows: messages }));
+    const footer = slot(container, "composer-footer");
+    const host = slot(container, "composer")?.parentElement;
+    expect(host).not.toBeNull();
+    expect(footer).not.toBeNull();
+    expect(host?.contains(footer)).toBe(true);
+    expect(host?.lastElementChild).toBe(footer);
+  });
+
+  it("keeps the footer mounted when a takeover replaces the composer", () => {
+    const { container } = renderRoute(
+      timeline({ rows: messages, pendingAsk: clarify as never }),
+    );
+    expect(slot(container, "composer")).toBeNull();
+    expect(slot(container, "clarify-takeover")).not.toBeNull();
+    expect(slot(container, "composer-footer")).not.toBeNull();
+  });
+
+  it("feeds the footer the thread context meter when an org is present", () => {
+    const { container } = render(
+      <RegistryProvider>
+        <ThreadView threadId="jam_sample" rows={messages} handlers={handlers} />
+      </RegistryProvider>,
+    );
+    const meter = slot(container, "context-meter");
+    expect(meter).not.toBeNull();
+    expect(meter?.closest('[data-slot="composer-footer"]')).not.toBeNull();
+    expect(meter?.getAttribute("data-org")).toBe("org_sample");
+    expect(meter?.getAttribute("data-jam")).toBe("jam_sample");
   });
 });
