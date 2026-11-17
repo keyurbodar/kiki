@@ -2,7 +2,7 @@
 
 const SECOND_MS = 1_000;
 
-/** Capy's summary duration: "45s", "3m 20s", "2h 5m". */
+/** Capy's summary duration: seconds, minutes and hours. */
 export const formatDuration = (ms: number): string => {
   if (!Number.isFinite(ms) || ms < 0) return "—";
   const seconds = Math.max(1, Math.ceil(ms / SECOND_MS));
