@@ -95,9 +95,6 @@ export function updateStatus(row: UpdateRowData): string {
     if (row.issues === undefined) return "neutral";
     return row.issues === 0 ? "success" : "attention";
   }
-  if (/\b(failed|failing|broken|red)\b/i.test(row.summary)) return "failure";
-  if (/\b(passed|green|succeeded|merged)\b/i.test(row.summary))
-    return "success";
   return "neutral";
 }
 

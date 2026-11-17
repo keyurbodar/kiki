@@ -59,3 +59,14 @@ it("infers notice source and status from the notification key", () => {
   expect(updateSource(row)).toBe("github");
   expect(updateStatus(row)).toBe("success");
 });
+
+it("never reads status out of a notice's prose", () => {
+  const row: UpdateRow = rowFrom({
+    ...base,
+    type: "update",
+    kind: "notice",
+    notificationKey: "file_saved",
+    summary: "Fixed the broken build, merged",
+  });
+  expect(updateStatus(row)).toBe("neutral");
+});
