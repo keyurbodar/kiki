@@ -154,7 +154,6 @@ export function ProfilePage({
               <CopyField className="relative flex min-w-0 w-56">
                 <Input
                   size="sm"
-                  font="mono"
                   readOnly
                   aria-label="user ID"
                   spellCheck={false}

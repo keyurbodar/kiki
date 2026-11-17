@@ -43,6 +43,12 @@ const isVoiceMode = (value: unknown): value is VoiceMode =>
 const isOverrides = (value: unknown): value is KeybindOverrides =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
+const tableHeadCell =
+  "flex min-w-0 items-center gap-0.5 pr-4 text-xs font-normal whitespace-nowrap text-muted-foreground-1 select-none";
+
+const tableCell =
+  "relative flex min-h-(--table-row-h) min-w-0 items-center pr-4";
+
 export function applyCapture(
   overrides: KeybindOverrides,
   command: KeybindingCommand,
@@ -152,10 +158,13 @@ export function ShortcutsPage() {
             key={command.command}
             className="relative col-span-full grid grid-cols-subgrid before:absolute before:inset-y-0 before:-inset-x-2 before:rounded before:transition-colors before:duration-100 hover:before:bg-section"
           >
-            <div role="cell" className="text-sm font-medium text-foreground">
+            <div
+              role="cell"
+              className={`${tableCell} text-sm font-medium text-foreground`}
+            >
               {command.label}
             </div>
-            <div role="cell">
+            <div role="cell" className={tableCell}>
               {editing === command.command ? (
                 <Input
                   // biome-ignore lint/a11y/noAutofocus: Capy focuses the recorder when editing starts
@@ -207,10 +216,13 @@ export function ShortcutsPage() {
                 </button>
               )}
             </div>
-            <div role="cell" className="text-xs text-muted-foreground-1">
+            <div
+              role="cell"
+              className={`${tableCell} text-xs text-muted-foreground-1`}
+            >
               {whenLabels[command.command] ?? "Always"}
             </div>
-            <div role="cell" className="flex justify-end">
+            <div role="cell" className={`${tableCell} justify-end`}>
               <Menu>
                 <MenuTrigger
                   render={
@@ -316,16 +328,26 @@ export function ShortcutsPage() {
         <div className="-mx-4">
           <div
             role="table"
-            className="isolate grid w-full grid-cols-[minmax(var(--table-lead-min),1.4fr)_minmax(var(--table-fluid-min),1.2fr)_minmax(var(--table-fluid-min),1fr)_auto] overflow-x-auto overscroll-x-contain px-4 [--table-fluid-min:0] [--table-lead-min:0] max-md:[--table-fluid-min:8rem] max-md:[--table-lead-min:10rem] max-md:[clip-path:inset(0_0_0_0.5rem)]"
+            className="isolate grid w-full grid-cols-[minmax(var(--table-lead-min),1.4fr)_minmax(var(--table-fluid-min),1.2fr)_minmax(var(--table-fluid-min),1fr)_auto] overflow-x-auto overscroll-x-contain px-4 [--table-fluid-min:0] [--table-lead-min:0] [--table-row-h:calc(var(--spacing)*12.5)] [--table-lead-bg:var(--card)] max-md:[--table-fluid-min:8rem] max-md:[--table-lead-min:10rem] max-md:[clip-path:inset(0_0_0_0.5rem)]"
           >
             <div
               role="row"
               className="col-span-full grid h-8 grid-cols-subgrid items-center"
             >
-              <div role="columnheader">Command</div>
-              <div role="columnheader">Keybinding</div>
-              <div role="columnheader">When</div>
-              <div role="columnheader" aria-hidden="true" />
+              <div role="columnheader" className={tableHeadCell}>
+                Command
+              </div>
+              <div role="columnheader" className={tableHeadCell}>
+                Keybinding
+              </div>
+              <div role="columnheader" className={tableHeadCell}>
+                When
+              </div>
+              <div
+                role="columnheader"
+                className={tableHeadCell}
+                aria-hidden="true"
+              />
             </div>
             {group("General", general)}
             {desktop.length > 0 && group("Desktop", desktop)}

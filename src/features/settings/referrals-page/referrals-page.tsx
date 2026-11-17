@@ -20,6 +20,12 @@ import {
   usd,
 } from "./referrals-model";
 
+const tableHeadCell =
+  "flex min-w-0 items-center gap-0.5 pr-4 text-xs font-normal whitespace-nowrap text-muted-foreground-1 select-none";
+
+const tableCell =
+  "relative flex min-h-(--table-row-h) min-w-0 items-center pr-4";
+
 export type ReferralsPageProps = { summary?: ReferralSummary };
 
 export function ReferralsPage({
@@ -176,26 +182,44 @@ export function ReferralsPage({
           <Card className="py-2">
             <div
               role="table"
-              className="grid"
+              className="isolate grid w-full overflow-x-auto overscroll-x-contain px-4 [--table-fluid-min:0] [--table-lead-min:0] [--table-row-h:calc(var(--spacing)*11)] [--table-lead-bg:var(--card)]"
               style={
                 {
                   "--table-auto-min": "calc(var(--spacing) * 18)",
                   gridTemplateColumns:
-                    "minmax(0,3fr) minmax(var(--table-auto-min),auto) minmax(var(--table-auto-min),auto)",
+                    "minmax(var(--table-lead-min),3fr) minmax(var(--table-auto-min),auto) minmax(var(--table-auto-min),auto)",
                 } as CSSProperties
               }
             >
-              <div role="row" className="group/head contents">
-                <div role="columnheader">Entry</div>
-                <div role="columnheader">Amount</div>
-                <div role="columnheader">Balance</div>
+              <div
+                role="row"
+                className="relative mb-0.5 col-span-full grid h-8 grid-cols-subgrid items-center [--table-lead-bg:var(--section)] before:absolute before:inset-y-0 before:-inset-x-2 before:rounded-(--radius-card) before:bg-section [&>*]:relative"
+              >
+                <div role="columnheader" className={tableHeadCell}>
+                  Entry
+                </div>
+                <div
+                  role="columnheader"
+                  className={`${tableHeadCell} justify-end`}
+                >
+                  Amount
+                </div>
+                <div
+                  role="columnheader"
+                  className={`${tableHeadCell} justify-end`}
+                >
+                  Balance
+                </div>
               </div>
               {summary.history.length === 0 ? (
                 <div
                   role="row"
                   className="relative col-span-full grid grid-cols-subgrid"
                 >
-                  <div role="cell" className="col-span-full">
+                  <div
+                    role="cell"
+                    className={`${tableCell} col-span-full text-muted-foreground-2`}
+                  >
                     No rewards or applied credits yet
                   </div>
                 </div>
@@ -204,9 +228,9 @@ export function ReferralsPage({
                   <div
                     role="row"
                     key={entry.id}
-                    className="relative col-span-full grid grid-cols-subgrid"
+                    className="relative col-span-full grid grid-cols-subgrid before:absolute before:inset-y-0 before:-inset-x-2 before:rounded before:transition-colors before:duration-100 hover:before:bg-section"
                   >
-                    <div role="cell">
+                    <div role="cell" className={tableCell}>
                       <span className="flex min-w-0 flex-col gap-0.5">
                         <span className="min-w-0 text-sm font-medium text-foreground">
                           {entry.title}
@@ -218,10 +242,16 @@ export function ReferralsPage({
                         )}
                       </span>
                     </div>
-                    <div role="cell" className="text-right tabular-nums">
+                    <div
+                      role="cell"
+                      className={`${tableCell} justify-end tabular-nums`}
+                    >
                       {signedUsd(entry.delta)}
                     </div>
-                    <div role="cell" className="text-right tabular-nums">
+                    <div
+                      role="cell"
+                      className={`${tableCell} justify-end tabular-nums`}
+                    >
                       {usd(entry.balance)}
                     </div>
                   </div>
