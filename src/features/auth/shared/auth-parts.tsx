@@ -64,12 +64,7 @@ export function FieldError({ children }: { children: ReactNode }) {
 }
 
 export function AuthDivider() {
-  return (
-    <div
-      role="none"
-      className="h-hairline w-full shrink-0 bg-border-1"
-    />
-  );
+  return <div role="none" className="h-hairline w-full shrink-0 bg-border-1" />;
 }
 
 export function AuthSpinner({ label = "Loading" }: { label?: string }) {
