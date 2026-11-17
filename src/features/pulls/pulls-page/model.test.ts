@@ -211,6 +211,33 @@ describe("pull sections", () => {
     ]);
   });
 
+  it("drops pulls without a project when a project filter is on", () => {
+    const unassigned = pull({ id: "u", projectId: null });
+    const assigned = pull({ id: "a", projectId: "p1" });
+    const filters = { ...emptyFilters, projects: ["p1"] };
+    expect(matchesFilters(unassigned, filters, now)).toBe(false);
+    expect(matchesFilters(assigned, filters, now)).toBe(true);
+    expect(
+      matchesFilters(unassigned, setNegative(filters, "projects", true), now),
+    ).toBe(true);
+  });
+
+  it("keeps same-named repositories apart and labels them by owner", () => {
+    const sections = buildSections(
+      [
+        pull({ id: "a", repo: "acme/web" }),
+        pull({ id: "b", repo: "partner/web" }),
+      ],
+      { ...defaultPrefs, filters: emptyFilters, grouping: "repo" },
+      false,
+      now,
+    );
+    expect(sections.map((section) => section.label)).toEqual([
+      "acme/web",
+      "partner/web",
+    ]);
+  });
+
   it("groups by repository and author", () => {
     const byRepo = buildSections(
       pulls,

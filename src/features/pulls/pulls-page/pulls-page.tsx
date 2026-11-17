@@ -22,7 +22,11 @@ import { PlusGlyph } from "@/features/pulls/pulls-list/pull-row/pull-icons";
 import { PullsList } from "@/features/pulls/pulls-list/pulls-list";
 import { Button } from "@/primitives/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
-import { createPullAtom, pullsAtom, pullsReactivityKey } from "./data/atoms";
+import {
+  createPullAtom,
+  pullsPagesAtom,
+  pullsReactivityKey,
+} from "./data/atoms";
 import { decodePullPage } from "./data/pull";
 import {
   activeViewKey,
@@ -121,29 +125,29 @@ function PullsPageFor({ orgId }: { orgId: string }) {
     setPrefs((current) => ({ ...current, filters: next }));
 
   const result = useAtomValue(
-    pullsAtom(orgId, toListRequest(filters, "", now, pageLimit)),
+    pullsPagesAtom(orgId, toListRequest(filters, "", now, pageLimit)),
+  );
+  const unfiltered = useAtomValue(
+    pullsPagesAtom(orgId, toListRequest(emptyFilters, "", now, pageLimit)),
   );
   const projects = useAtomValue(projectsAtom(orgId as never));
   const createPull = useAtomSet(createPullAtom, { mode: "promise" });
 
-  const pulls = useMemo(
-    () =>
-      AsyncResult.isSuccess(result) ? decodePullPage(result.value).items : [],
-    [result],
-  );
+  const pulls = AsyncResult.isSuccess(result) ? result.value : [];
+  const everyPull = AsyncResult.isSuccess(unfiltered) ? unfiltered.value : [];
   const options: PullFilterOptions = useMemo(
     () => ({
       projects: AsyncResult.isSuccess(projects)
         ? projectOptions(projects.value)
         : [],
-      repos: [...new Set(pulls.map((pull) => pull.repo))].sort(),
-      authors: [...new Set(pulls.map((pull) => pull.author))]
+      repos: [...new Set(everyPull.map((pull) => pull.repo))].sort(),
+      authors: [...new Set(everyPull.map((pull) => pull.author))]
         .sort()
         .map((login) => ({ id: login, label: login })),
       captains: [],
       labels: [],
     }),
-    [projects, pulls],
+    [projects, everyPull],
   );
   const sections = useMemo(
     () => buildSections(pulls, prefs, false, now),

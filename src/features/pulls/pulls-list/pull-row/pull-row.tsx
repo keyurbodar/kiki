@@ -61,7 +61,7 @@ export const PullRow = memo(function PullRow({
         }}
         data-pull-row={pull.id}
         data-pull-url={pull.url}
-        className="flex h-11 items-center gap-2 rounded px-2 outline-none select-none transition-colors duration-100 hover:bg-section focus-visible:outline-ring-inset data-[selected]:bg-section"
+        className="flex h-11 items-center gap-2 rounded px-2 outline-none select-none transition-colors duration-hover hover:bg-section focus-visible:outline-ring-inset data-[selected]:bg-section"
       >
         <span className="flex size-4 shrink-0 items-center justify-center">
           <PullStateIcon state={pull.state} />

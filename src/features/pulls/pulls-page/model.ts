@@ -233,11 +233,10 @@ export const matchesFilters = (
   if (!listMatches(filters, "authors", filters.authors, pull.author)) {
     return false;
   }
-  if (
-    pull.projectId !== null &&
-    !listMatches(filters, "projects", filters.projects, pull.projectId)
-  ) {
-    return false;
+  if (filters.projects.length > 0) {
+    const inProjects =
+      pull.projectId !== null && filters.projects.includes(pull.projectId);
+    if (inProjects === isNegative(filters, "projects")) return false;
   }
   if (filters.thread !== null) {
     const linked = pull.threadId !== null;
@@ -292,17 +291,25 @@ export const buildSections = (
   }
   if (prefs.grouping === "repo" || prefs.grouping === "author") {
     const keyOf = (pull: PullCard) =>
-      prefs.grouping === "repo" ? repoName(pull.repo) : pull.author;
+      prefs.grouping === "repo" ? pull.repo : pull.author;
     const groups = new Map<string, Array<PullCard>>();
     for (const pull of visible) {
       const key = keyOf(pull);
       groups.set(key, [...(groups.get(key) ?? []), pull]);
     }
+    const collides = (key: string) =>
+      [...groups.keys()].filter((other) => repoName(other) === repoName(key))
+        .length > 1;
     return [...groups.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, members]) => ({
         id: `${prefs.grouping}:${key}`,
-        label: key,
+        label:
+          prefs.grouping === "repo"
+            ? collides(key)
+              ? key
+              : repoName(key)
+            : key,
         members,
         showCount: true,
       }));
