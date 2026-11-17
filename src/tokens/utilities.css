@@ -8,6 +8,7 @@
   --shadow-overlay: var(--sh-overlay);
   --shadow-row-open: var(--sh-row-open);
   --shadow-composer: var(--sh-composer);
+  --shadow-sheet: var(--sh-sheet);
 }
 
 :root,
@@ -57,6 +58,28 @@
     animation-timeline: var(--scroll-divider-timeline, scroll(nearest block));
     animation-range: 0 var(--scroll-divider-ramp, 12px);
   }
+}
+
+/* Right-side fade on clamped text: the ramp covers the last line box only. */
+@utility mask-fade-r-clamp {
+  mask-image:
+    linear-gradient(black, black),
+    linear-gradient(
+      to right,
+      black calc(100% - var(--mask-fade-ramp, var(--mask-fade-ramp-default))),
+      transparent 100%
+    );
+  mask-position: center top, center bottom;
+  mask-size: 100% calc(100% - 1lh), 100% 1lh;
+  mask-repeat: no-repeat;
+}
+
+@utility truncate-start {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  direction: rtl;
+  overflow: hidden;
 }
 
 @utility mask-fade-r {
