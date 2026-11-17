@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as Char91__composerFooterChar93RouteImport } from './routes/[__composer-footer]'
+import { Route as Char91__mediaLightboxChar93RouteImport } from './routes/[__media-lightbox]'
 import { Route as Char91__tokensChar93RouteImport } from './routes/[__tokens]'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
@@ -175,6 +176,12 @@ const Char91__composerFooterChar93Route =
   Char91__composerFooterChar93RouteImport.update({
     id: '/__composer-footer',
     path: '/__composer-footer',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91__mediaLightboxChar93Route =
+  Char91__mediaLightboxChar93RouteImport.update({
+    id: '/__media-lightbox',
+    path: '/__media-lightbox',
     getParentRoute: () => rootRouteImport,
   } as any)
 const Char91__tokensChar93Route = Char91__tokensChar93RouteImport.update({
@@ -1051,6 +1058,7 @@ const AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
@@ -1212,6 +1220,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
@@ -1373,6 +1382,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteRouteWithChildren
   '/_auth': typeof AuthRouteRouteWithChildren
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
@@ -1537,6 +1547,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/__composer-footer'
+    | '/__media-lightbox'
     | '/__tokens'
     | '/design'
     | '/desktop'
@@ -1698,6 +1709,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/__composer-footer'
+    | '/__media-lightbox'
     | '/__tokens'
     | '/design'
     | '/desktop'
@@ -1858,6 +1870,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_auth'
     | '/__composer-footer'
+    | '/__media-lightbox'
     | '/__tokens'
     | '/design'
     | '/desktop'
@@ -2022,6 +2035,7 @@ export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   Char91__composerFooterChar93Route: typeof Char91__composerFooterChar93Route
+  Char91__mediaLightboxChar93Route: typeof Char91__mediaLightboxChar93Route
   Char91__tokensChar93Route: typeof Char91__tokensChar93Route
   DesignRoute: typeof DesignRoute
   DesktopRoute: typeof DesktopRoute
@@ -2053,6 +2067,13 @@ declare module '@tanstack/react-router' {
       path: '/__composer-footer'
       fullPath: '/__composer-footer'
       preLoaderRoute: typeof Char91__composerFooterChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__media-lightbox': {
+      id: '/__media-lightbox'
+      path: '/__media-lightbox'
+      fullPath: '/__media-lightbox'
+      preLoaderRoute: typeof Char91__mediaLightboxChar93RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/__tokens': {
@@ -3522,6 +3543,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   AuthRouteRoute: AuthRouteRouteWithChildren,
   Char91__composerFooterChar93Route: Char91__composerFooterChar93Route,
+  Char91__mediaLightboxChar93Route: Char91__mediaLightboxChar93Route,
   Char91__tokensChar93Route: Char91__tokensChar93Route,
   DesignRoute: DesignRoute,
   DesktopRoute: DesktopRoute,
