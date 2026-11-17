@@ -64,7 +64,7 @@ export function SettingsRow({
         Boolean(icon) && "min-h-15",
         highlighted && "bg-card-hover",
         clickable &&
-          "relative cursor-pointer transition-colors duration-100 hover:bg-card-hover",
+          "relative cursor-pointer transition-colors duration-hover hover:bg-card-hover",
         className,
       )}
       {...props}
@@ -122,7 +122,7 @@ export function SettingsRow({
               className={cx(
                 "-mr-2 flex items-center gap-1",
                 !children &&
-                  "opacity-0 transition-opacity duration-100 group-hover/row:opacity-100 focus-within:opacity-100 has-[[data-popup-open]]:opacity-100 pointer-coarse:opacity-100",
+                  "opacity-0 transition-opacity duration-hover group-hover/row:opacity-100 focus-within:opacity-100 has-[[data-popup-open]]:opacity-100 pointer-coarse:opacity-100",
               )}
             >
               {actions}
@@ -168,7 +168,7 @@ export function SettingsRowLink({
       id={id}
       data-slot="settings-row-link"
       className={cx(
-        "flex items-center justify-between gap-6 p-4 transition-colors duration-100 outline-none select-none",
+        "flex items-center justify-between gap-6 p-4 transition-colors duration-hover outline-none select-none",
         "hover:bg-card-hover focus-visible:outline-ring-inset",
         Boolean(icon) && "min-h-15",
         className,

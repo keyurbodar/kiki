@@ -21,7 +21,7 @@ it("keeps Capy's card variants and their class strings", () => {
     "flex flex-col overflow-clip bg-transparent rounded-(--radius-card)",
   );
   expect(cardVariants({ variant: "interactive" })).toContain(
-    "cursor-pointer select-none transition-colors duration-100 hover:bg-card-hover",
+    "cursor-pointer select-none transition-colors duration-hover hover:bg-card-hover",
   );
   expect(cardVariants({ variant: "panel" })).toContain(
     "md:rounded-(--radius-panel) md:border-hairline md:border-(--card-hairline) md:shadow-card",
