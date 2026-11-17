@@ -12,15 +12,20 @@ import {
   ViewTab,
   ViewToolbar,
 } from "@/components/view-toolbar";
+import { captainsAtom } from "@/data/atoms/captains";
 import { projectsAtom } from "@/data/atoms/projects";
 import { organizationsAtom } from "@/data/atoms/session";
 import {
   NewPullDialog,
   type NewPullInput,
 } from "@/features/pulls/new-pull-dialog";
-import { PlusGlyph } from "@/features/pulls/pulls-list/pull-row/pull-icons";
+import {
+  PlusGlyph,
+  SearchGlyph,
+} from "@/features/pulls/pulls-list/pull-row/pull-icons";
 import { PullsList } from "@/features/pulls/pulls-list/pulls-list";
 import { Button } from "@/primitives/button";
+import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   createPullAtom,
@@ -36,6 +41,7 @@ import {
   hasFilters,
   type PullFilters,
   sameFilters,
+  toggle,
   toListRequest,
   viewTabs,
 } from "./model";
@@ -64,6 +70,16 @@ const projectOptions = (value: unknown) =>
       )
     : [];
 
+const captainOptions = (value: unknown) =>
+  Array.isArray(value)
+    ? value.flatMap((captain) =>
+        typeof captain?.id === "string" &&
+        typeof captain?.face?.name === "string"
+          ? [{ id: captain.id as string, label: captain.face.name as string }]
+          : [],
+      )
+    : [];
+
 /** The /pulls page: header, view tabs, filters and the sectioned list. */
 export function PullsPage() {
   const organizations = useAtomValue(organizationsAtom);
@@ -87,22 +103,59 @@ export function PullsPage() {
 }
 
 function PullsFrame({
+  search,
   trailing,
   children,
 }: {
+  search?: React.ReactNode;
   trailing?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <div className="relative flex min-w-0 flex-1 flex-col">
-      <AppTopBar className="flex h-12 shrink-0 items-center gap-2 px-3">
-        <h1 className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
-          Pull requests
-        </h1>
-        {trailing}
+      <AppTopBar className="sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center border-b-hairline border-border-1 bg-panel px-2">
+        {search ?? (
+          <h1 className="ml-2.5 min-w-0 truncate text-sm font-medium text-foreground">
+            Pull requests
+          </h1>
+        )}
+        {trailing === undefined ? null : (
+          <div className="ml-auto flex shrink-0 items-center gap-1.5 pl-2">
+            {trailing}
+          </div>
+        )}
       </AppTopBar>
       {children}
     </div>
+  );
+}
+
+/** The header's search field: opens in place of the title, closes on blur when empty. */
+function HeaderSearch({
+  value,
+  onChange,
+  onClose,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <input
+      type="search"
+      aria-label="Search pull requests"
+      placeholder="Search pull requests"
+      ref={(input) => input?.focus()}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      onBlur={() => {
+        if (value.trim() === "") onClose();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") onClose();
+      }}
+      className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground-3"
+    />
   );
 }
 
@@ -123,14 +176,17 @@ function PullsPageFor({ orgId }: { orgId: string }) {
   const filters = prefs.filters;
   const setFilters = (next: PullFilters) =>
     setPrefs((current) => ({ ...current, filters: next }));
+  const term = prefs.search.trim();
+  const searching = term !== "";
 
   const result = useAtomValue(
-    pullsPagesAtom(orgId, toListRequest(filters, "", now, pageLimit)),
+    pullsPagesAtom(orgId, toListRequest(filters, term, now, pageLimit)),
   );
   const unfiltered = useAtomValue(
     pullsPagesAtom(orgId, toListRequest(emptyFilters, "", now, pageLimit)),
   );
   const projects = useAtomValue(projectsAtom(orgId as never));
+  const captains = useAtomValue(captainsAtom(orgId as never));
   const createPull = useAtomSet(createPullAtom, { mode: "promise" });
 
   const pulls = AsyncResult.isSuccess(result) ? result.value : [];
@@ -144,29 +200,31 @@ function PullsPageFor({ orgId }: { orgId: string }) {
       authors: [...new Set(everyPull.map((pull) => pull.author))]
         .sort()
         .map((login) => ({ id: login, label: login })),
-      captains: [],
+      captains: AsyncResult.isSuccess(captains)
+        ? captainOptions(captains.value)
+        : [],
       labels: [],
     }),
-    [projects, everyPull],
+    [projects, captains, everyPull],
   );
   const sections = useMemo(
-    () => buildSections(pulls, prefs, false, now),
-    [pulls, prefs, now],
+    () => buildSections(pulls, prefs, searching, now),
+    [pulls, prefs, searching, now],
   );
   const activeKey = activeViewKey(prefs);
   const activeView =
     viewTabs.find((tab) => tab.key === activeKey)?.filters ??
     prefs.savedViews.find((view) => view.id === activeKey)?.filters;
   const dirty = activeView === undefined || !sameFilters(activeView, filters);
-  const chips = pullFilterChips(filters, options, setFilters);
+  const chips = pullFilterChips(filters, options, setFilters, activeView);
 
   const onCreate = (input: NewPullInput) =>
     createPull({
       params: { orgId },
       payload: {
         repo: input.repo.fullName,
-        base: input.baseBranch,
-        head: input.headBranch,
+        baseRef: input.baseBranch,
+        headRef: input.headBranch,
         title: input.title,
         body: input.body === "" ? undefined : input.body,
         draft: input.draft,
@@ -188,29 +246,56 @@ function PullsPageFor({ orgId }: { orgId: string }) {
       },
     );
 
-  const totalVisible = sections.reduce(
-    (count, section) => count + section.members.length,
-    0,
-  );
-
   return (
     <PullsFrame
-      trailing={
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="New pull request"
-                onClick={() => setNewOpen(true)}
-              />
+      search={
+        prefs.searchOpen ? (
+          <HeaderSearch
+            value={prefs.search}
+            onChange={(search) =>
+              setPrefs((current) => ({ ...current, search }))
             }
-          >
-            <PlusGlyph className="size-(--icon-sm)" />
-          </TooltipTrigger>
-          <TooltipContent side="bottom">New pull request</TooltipContent>
-        </Tooltip>
+            onClose={() =>
+              setPrefs((current) => ({ ...current, searchOpen: false }))
+            }
+          />
+        ) : undefined
+      }
+      trailing={
+        <>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Search"
+                  onClick={() =>
+                    setPrefs((current) => ({ ...current, searchOpen: true }))
+                  }
+                />
+              }
+            >
+              <SearchGlyph className="size-(--icon-sm)" />
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Search</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="New pull request"
+                  onClick={() => setNewOpen(true)}
+                />
+              }
+            >
+              <PlusGlyph className="size-(--icon-sm)" />
+            </TooltipTrigger>
+            <TooltipContent side="bottom">New pull request</TooltipContent>
+          </Tooltip>
+        </>
       }
     >
       <ViewToolbar
@@ -288,27 +373,35 @@ function PullsPageFor({ orgId }: { orgId: string }) {
           icons={toolbarIcons}
         />
       )}
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="flex min-h-full flex-col pb-16">
-          {AsyncResult.isInitial(result) ? null : totalVisible === 0 &&
-            !prefs.showEmptySections ? (
-            <EmptyState
-              text={
-                AsyncResult.isFailure(result)
-                  ? "Action failed"
-                  : emptyText(
-                      false,
-                      pulls.length,
-                      hasFilters(filters),
-                      activeKey === "open",
-                    )
-              }
-            />
-          ) : (
-            <PullsList sections={sections} now={now} />
-          )}
-        </div>
-      </div>
+      AD
+      <ScrollArea className="relative min-h-0 flex-1">
+        <ScrollAreaViewport className="size-full overflow-auto overscroll-contain">
+          <div className="flex min-h-full flex-col pb-16">
+            {AsyncResult.isFailure(result) ? (
+              <EmptyState text="Action failed" />
+            ) : (
+              <PullsList
+                sections={AsyncResult.isInitial(result) ? [] : sections}
+                now={now}
+                collapsed={prefs.collapsedSections}
+                onToggleSection={(id) =>
+                  setPrefs((current) => ({
+                    ...current,
+                    collapsedSections: toggle(current.collapsedSections, id),
+                  }))
+                }
+                loading={AsyncResult.isInitial(result)}
+                emptyText={emptyText(
+                  searching,
+                  pulls.length,
+                  hasFilters(filters),
+                  activeKey === "open",
+                )}
+              />
+            )}
+          </div>
+        </ScrollAreaViewport>
+      </ScrollArea>
       <SaveViewDialog
         open={saving}
         onOpenChange={setSaving}

@@ -1,6 +1,7 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
+import { type ExploreCard, ExploreListing } from "../../api/schemas/explore.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
 
 interface Icon {
@@ -8,27 +9,17 @@ interface Icon {
   readonly mimeType: string;
 }
 
-interface ListingSummary {
-  readonly kind: string;
-  readonly slug: string;
-  readonly displayName: string;
-  readonly icon: Icon;
-}
-
-interface Listing extends ListingSummary {
-  readonly description: string;
-  readonly authorId: string;
-  readonly wallpaper: Icon;
-}
-
 const iconAtom = ApiClient.query("explorePublic", "icon", {
-  params: { kind: "plugin", slug: "release-notes" },
+  params: { kind: "plugin", slug: "edge-platform" },
 });
 const listingsAtom = ApiClient.query("explorePublic", "listings", {
   query: {},
 });
+const skillListingsAtom = ApiClient.query("explorePublic", "listings", {
+  query: { kind: "skill" },
+});
 const listingAtom = ApiClient.query("explorePublic", "listing", {
-  params: { kind: "skill", slug: "code-review" },
+  params: { kind: "skill", slug: "debugging-playbook" },
 });
 const wallpaperAtom = ApiClient.query("explorePublic", "wallpaperImage", {
   params: { slug: "absolutely" },
@@ -40,38 +31,51 @@ describe("explorePublic mock", () => {
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
       const icon = (yield* AtomRegistry.getResult(registry, iconAtom)) as Icon;
-      assert.include(icon.url, "/plugin/release-notes.png");
+      assert.include(icon.url, "/plugin/edge-platform.png");
       assert.strictEqual(icon.mimeType, "image/png");
     }),
   );
 
-  it.effect("lists public listings without an org id", () =>
+  it.effect("lists public listings as cards", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
-      const listings = yield* AtomRegistry.getResult(registry, listingsAtom);
-      const rows = listings as ReadonlyArray<ListingSummary>;
+      const rows = (yield* AtomRegistry.getResult(
+        registry,
+        listingsAtom,
+      )) as ReadonlyArray<ExploreCard>;
       assert.isAbove(rows.length, 0);
-      assert.isTrue(rows.every((row) => row.icon.url.startsWith("https://")));
+      assert.isTrue(
+        rows.every(
+          (row) =>
+            row.kind.length > 0 &&
+            row.slug.length > 0 &&
+            row.displayName.length > 0,
+        ),
+      );
       assert.isTrue(
         rows.some((row) => row.kind === "plugin") &&
-          rows.some((row) => row.kind === "skill") &&
-          rows.some((row) => row.kind === "theme"),
+          rows.some((row) => row.kind === "skill"),
       );
+
+      const skills = (yield* AtomRegistry.getResult(
+        registry,
+        skillListingsAtom,
+      )) as ReadonlyArray<ExploreCard>;
+      assert.isAbove(skills.length, 0);
+      assert.isTrue(skills.every((row) => row.kind === "skill"));
     }),
   );
 
-  it.effect("returns a single listing with its wallpaper", () =>
+  it.effect("returns a single listing with its content", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
-      const listing = (yield* AtomRegistry.getResult(
-        registry,
-        listingAtom,
-      )) as Listing;
-      assert.strictEqual(listing.slug, "code-review");
-      assert.strictEqual(listing.kind, "skill");
-      assert.isAbove(listing.description.length, 0);
-      assert.isAbove(listing.authorId.length, 0);
-      assert.include(listing.wallpaper.url, "/themes/code-review.png");
+      const listing = yield* AtomRegistry.getResult(registry, listingAtom);
+      assert.instanceOf(listing, ExploreListing);
+      assert.strictEqual(listing.card.slug, "debugging-playbook");
+      assert.strictEqual(listing.card.kind, "skill");
+      assert.isAbove(listing.card.description.length, 0);
+      assert.strictEqual(listing.content.kind, "skill");
+      assert.isAbove(listing.versions.length, 0);
     }),
   );
 

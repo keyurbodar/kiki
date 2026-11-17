@@ -23,6 +23,15 @@ import type { DomainRow } from "./state.ts";
 const text = (value: unknown) =>
   typeof value === "string" && value.length > 0 ? value : undefined;
 
+const dnsRecordFor = (domain: string, id: string) => ({
+  host: "_capy-challenge." + domain,
+  type: "TXT",
+  value: "capy-verify=" + id,
+});
+
+const numberField = (value: unknown, fallback: number) =>
+  typeof value === "number" && Number.isFinite(value) ? value : fallback;
+
 const flag = (value: unknown, fallback: boolean) =>
   typeof value === "boolean" ? value : fallback;
 
@@ -180,10 +189,13 @@ export const OrganizationsMock = mockGroup("organizations", (handlers) =>
         Effect.gen(function* () {
           const input = fields(payload);
           const domain = text(input.domain) ?? "example.org";
+          const id = newId("dom");
           const row: DomainRow = {
-            id: newId("dom"),
+            id,
             domain,
             verified: false,
+            verification: "dns",
+            dnsRecord: dnsRecordFor(domain, id),
             ssoRequired: false,
             createdAt: isoMinutesAgo(0),
             verifiedAt: null,
@@ -330,15 +342,29 @@ export const OrganizationsMock = mockGroup("organizations", (handlers) =>
           yield* findOrganization(params.orgId).pipe(Effect.orDie);
           const input = fields(payload);
           const mfaRequired = flag(input.required ?? input.mfaRequired, true);
-          const mfaEnforceAt = mfaRequired ? minutesAgo(-30 * 24 * 60) : null;
-          yield* setSettings({ mfaRequired, mfaEnforceAt });
+          const graceDays = mfaRequired
+            ? Math.max(0, numberField(input.graceDays, 30))
+            : 0;
+          const mfaLevel = text(input.level ?? input.mfaLevel) ?? "any";
+          const mfaEnforceAt = mfaRequired
+            ? minutesAgo(-graceDays * 24 * 60)
+            : null;
+          yield* setSettings({
+            mfaRequired,
+            mfaEnforceAt,
+            mfaLevel,
+            mfaGraceDays: graceDays,
+          });
           yield* updateOrganizations(params.orgId, {
             mfaRequired,
             mfaEnforceAt,
+            mfaLevel,
           });
           return {
             ok: true,
             mfaRequired,
+            mfaLevel,
+            graceDays,
             mfaEnforceAt: mfaEnforceAt
               ? DateTime.formatIso(mfaEnforceAt)
               : null,

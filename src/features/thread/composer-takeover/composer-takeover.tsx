@@ -11,6 +11,10 @@ import {
   type FeedbackRequestTakeoverProps,
 } from "@/features/thread/feedback-request";
 import {
+  McpSetupCard,
+  type McpSetupCardProps,
+} from "@/features/thread/mcp-setup-card";
+import {
   EnvironmentRequestTakeover,
   type EnvironmentRequestTakeoverProps,
 } from "@/features/thread/request-takeover";
@@ -24,7 +28,8 @@ export type ComposerTakeoverProps =
   | ({ kind: "environment" } & EnvironmentRequestTakeoverProps)
   | ({ kind: "desktop" } & DesktopRequestTakeoverProps)
   | ({ kind: "terminal" } & TerminalRequestTakeoverProps)
-  | ({ kind: "feedback" } & FeedbackRequestTakeoverProps);
+  | ({ kind: "feedback" } & FeedbackRequestTakeoverProps)
+  | ({ kind: "mcp-setup" } & McpSetupCardProps);
 
 export function ComposerTakeover(props: ComposerTakeoverProps) {
   switch (props.kind) {
@@ -38,5 +43,7 @@ export function ComposerTakeover(props: ComposerTakeoverProps) {
       return <TerminalRequestTakeover {...props} />;
     case "feedback":
       return <FeedbackRequestTakeover {...props} />;
+    case "mcp-setup":
+      return <McpSetupCard {...props} />;
   }
 }

@@ -322,6 +322,7 @@ const issue = (
   options: {
     readonly projectId?: string;
     readonly assigneeId?: string | null;
+    readonly assigneeIds?: ReadonlyArray<string>;
     readonly labelIds?: ReadonlyArray<string>;
     readonly threadIds?: ReadonlyArray<string>;
     readonly pullIds?: ReadonlyArray<string>;
@@ -337,6 +338,8 @@ const issue = (
   stateId,
   projectId: options.projectId ?? projects.web.id,
   assigneeId: options.assigneeId ?? null,
+  assigneeIds:
+    options.assigneeIds ?? (options.assigneeId ? [options.assigneeId] : []),
   creatorId: people.alex.id,
   labelIds: options.labelIds ?? [],
   threadIds: options.threadIds ?? [],
@@ -365,6 +368,7 @@ export const issues = [
   }),
   issue(3, "Dark mode for settings", "ist_sample_in_review", {
     assigneeId: people.sam.id,
+    assigneeIds: [people.sam.id, people.priya.id],
     labelIds: ["lbl_sample_feature"],
     threadIds: [threads.darkMode.id],
     pullIds: ["pr_sample_128"],
