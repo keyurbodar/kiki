@@ -68,7 +68,7 @@ export const resolveFilterValue = (
     return parseSince(value, new Date()) === undefined ? undefined : value;
   const best = rankOptions(options[key], value)[0];
   if (best !== undefined && best.match?.tier !== "fuzzy") return best.item.id;
-  if (key === "author") return "github:" + value.replace(/^@/, "");
+  if (key === "author") return `github:${value.replace(/^@/, "")}`;
   if (key !== "status" && key !== "captain") return value;
   return undefined;
 };
@@ -235,7 +235,7 @@ export function useFilterSearch({
   const pickKey = (key: FilterKey) => {
     if (active?.kind === "key")
       replaceText(
-        spliceFilterQuery(value, active.start, active.end, key + ":"),
+        spliceFilterQuery(value, active.start, active.end, `${key}:`),
       );
   };
 
@@ -263,16 +263,16 @@ export function useFilterSearch({
   const suggestions: Suggestion[] =
     valueToken === undefined
       ? keyRows.map((key) => ({
-          id: "key-" + key,
+          id: `key-${key}`,
           group: "Filter by",
           icon: keyIcon,
-          label: key + ":",
+          label: `${key}:`,
           detail: filterKeyLabels[key],
           pick: () => pickKey(key),
         }))
       : [
           ...ranked.map((option) => ({
-            id: "value-" + option.id,
+            id: `value-${option.id}`,
             group: option.group ?? filterKeyLabels[valueToken.key],
             icon: option.icon,
             label: option.label,
@@ -283,7 +283,7 @@ export function useFilterSearch({
             ? []
             : [
                 {
-                  id: "raw-" + raw,
+                  id: `raw-${raw}`,
                   group:
                     ranked.at(-1)?.group ?? filterKeyLabels[valueToken.key],
                   icon:
@@ -371,7 +371,7 @@ export function useFilterSearch({
                     <div
                       key={suggestion.id}
                       ref={at === index ? scrollIntoNearest : undefined}
-                      id={filterSearchPanelId + "-row-" + at}
+                      id={`${filterSearchPanelId}-row-${at}`}
                       role="option"
                       tabIndex={-1}
                       aria-selected={at === index}
@@ -429,7 +429,7 @@ export function useFilterSearch({
       onSelect,
       panelId: filterSearchPanelId,
       activeDescendant: open
-        ? filterSearchPanelId + "-row-" + index
+        ? `${filterSearchPanelId}-row-${index}`
         : undefined,
       panel,
     },
