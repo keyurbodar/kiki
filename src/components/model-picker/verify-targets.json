@@ -1,9 +1,6 @@
 {
   "matrix": {
-    "scheme": [
-      "dark",
-      "light"
-    ]
+    "scheme": ["dark", "light"]
   },
   "defaults": {
     "maxMismatch": 2
@@ -15,14 +12,8 @@
       "state": "popover open on the composer footer",
       "viewport": "1440x900",
       "steps": [
-        [
-          "wait",
-          "[data-slot=popover-content]"
-        ],
-        [
-          "wait",
-          "[data-slot=picker-lab-card]"
-        ]
+        ["wait", "[data-slot=popover-content]"],
+        ["wait", "[data-slot=picker-lab-card]"]
       ],
       "capture": {
         "[data-slot=popover-content]": [
@@ -32,10 +23,7 @@
           "box-shadow",
           "border-top-width"
         ],
-        "[role=listbox]": [
-          "max-height",
-          "overflow-y"
-        ],
+        "[role=listbox]": ["max-height", "overflow-y"],
         "[role=listbox] [role=option]": [
           "height",
           "font-size",
@@ -47,17 +35,9 @@
           "background-color",
           "border-radius"
         ],
-        "[data-slot=picker-lab-rail]": [
-          "width",
-          "border-radius"
-        ],
-        "[data-slot=menu-search-row]": [
-          "height"
-        ],
-        "[data-slot=menu-search-row] input": [
-          "height",
-          "font-size"
-        ]
+        "[data-slot=picker-lab-rail]": ["width", "border-radius"],
+        "[data-slot=menu-search-row]": ["height"],
+        "[data-slot=menu-search-row] input": ["height", "font-size"]
       },
       "expect": {
         "[data-slot=popover-content]": {
@@ -85,24 +65,12 @@
       "state": "second model row highlighted",
       "viewport": "1440x900",
       "steps": [
-        [
-          "wait",
-          "[data-slot=popover-content]"
-        ],
-        [
-          "hover",
-          "[role=listbox] [role=option]:nth-of-type(4)"
-        ],
-        [
-          "wait",
-          "[role=listbox] [data-highlighted]"
-        ]
+        ["wait", "[data-slot=popover-content]"],
+        ["hover", "[role=listbox] [role=option]:nth-of-type(4)"],
+        ["wait", "[role=listbox] [data-highlighted]"]
       ],
       "capture": {
-        "[role=listbox] [data-highlighted]": [
-          "background-color",
-          "height"
-        ]
+        "[role=listbox] [data-highlighted]": ["background-color", "height"]
       }
     },
     {
@@ -110,19 +78,9 @@
       "route": "/__model-picker",
       "state": "closed triggers row",
       "viewport": "1440x900",
-      "steps": [
-        [
-          "wait",
-          "[aria-label=Model]"
-        ]
-      ],
+      "steps": [["wait", "[aria-label=Model]"]],
       "capture": {
-        "[aria-label=Model]": [
-          "height",
-          "font-size",
-          "color",
-          "border-radius"
-        ]
+        "[aria-label=Model]": ["height", "font-size", "color", "border-radius"]
       }
     }
   ]

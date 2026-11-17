@@ -227,4 +227,13 @@ describe("model picker catalog", () => {
     ]);
     expect(parsed.map((item) => item.id)).toEqual(["a/b"]);
   });
+
+  it("reads the catalog out of the /models envelope", () => {
+    expect(
+      parseEntries({
+        models: [{ id: "a/b", name: "A", efforts: ["low"] }],
+        credentials: [],
+      }).map((item) => item.id),
+    ).toEqual(["a/b"]);
+  });
 });

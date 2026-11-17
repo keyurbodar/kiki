@@ -33,14 +33,20 @@ export function ModelPickerPreview() {
         </div>
       </div>
       <div className="flex flex-col gap-3">
-        <span className="font-mono text-muted-foreground-2 text-xs">closed</span>
+        <span className="font-mono text-muted-foreground-2 text-xs">
+          closed
+        </span>
         <div className="flex items-center gap-6">
           <ModelPicker
             entries={sampleCatalog}
             value={value}
             onChange={setValue}
           />
-          <ModelPicker entries={sampleCatalog} value={defaultSelection} loading />
+          <ModelPicker
+            entries={sampleCatalog}
+            value={defaultSelection}
+            loading
+          />
           <ModelPicker
             entries={sampleCatalog}
             value={value}
