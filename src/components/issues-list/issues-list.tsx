@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { DateTime } from "effect";
 import { type ReactNode, useState } from "react";
 import { toast } from "sonner";
+import { IssueDueChip } from "@/components/issue-due";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type {
   IssuePriority,
@@ -17,10 +18,12 @@ import {
   IssueStateIcon,
 } from "@/features/issues/issue-parts";
 import { IssueStatusOptions } from "@/features/issues/issue-pickers";
+import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import { Menu, MenuContent, MenuTrigger } from "@/primitives/menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { ActorAvatar } from "../actor-filter";
-import { type IssueFilters, stateVisible } from "../issues-filters";
+import { type IssueFilters, localDate, stateVisible } from "../issues-filters";
 import {
   ChevronDownGlyph,
   ChevronRightGlyph,
@@ -384,13 +387,34 @@ export function IssueRow({
       ) : null}
       <span className="flex shrink-0 items-center gap-2">
         {issue.viewer.mentions > 0 ? (
-          <span className="text-xs font-semibold text-foreground tabular-nums">
-            {issue.viewer.mentions}
-          </span>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Badge
+                  variant="filled"
+                  size="count"
+                  color="accent"
+                  aria-label={`${issue.viewer.mentions} unread ${issue.viewer.mentions === 1 ? "mention" : "mentions"} of you`}
+                  className="h-3.5 min-w-4.5 shrink-0 gap-0 px-1"
+                />
+              }
+            >
+              {issue.viewer.mentions > 99
+                ? "99+"
+                : String(issue.viewer.mentions)}
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {`${issue.viewer.mentions} unread ${issue.viewer.mentions === 1 ? "mention" : "mentions"} of you`}
+            </TooltipContent>
+          </Tooltip>
         ) : null}
         {issue.dueAt === undefined || hidden("due") ? null : (
-          <span className="@max-sm/list:hidden text-xs font-normal text-muted-foreground-2">
-            {issue.dueAt}
+          <span className="@max-sm/list:hidden flex">
+            <IssueDueChip
+              due={issue.dueAt}
+              today={localDate(now)}
+              closed={state?.type === "closed"}
+            />
           </span>
         )}
         {hidden("priority") ? null : (
