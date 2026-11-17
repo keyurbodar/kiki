@@ -62,7 +62,7 @@ const turnsAtom = (threadId: string) =>
     reactivityKeys: [`git:${threadId}`],
   });
 
-function Toolbar({ children }: { children: React.ReactNode }) {
+function Toolbar({ children }: { children?: React.ReactNode }) {
   return (
     <div className="flex min-h-9 shrink-0 items-center gap-1 border-b-hairline border-border-1 px-2">
       {children}
