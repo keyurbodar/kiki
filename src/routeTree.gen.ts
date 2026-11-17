@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as Char91__p17Char93RouteImport } from './routes/[__p17]'
 import { Route as Char91__tokensChar93RouteImport } from './routes/[__tokens]'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
@@ -170,6 +171,11 @@ import { Route as AppProjectProjectIdPullOwnerRepoPrNumberRouteImport } from './
 import { Route as AppSettingsProjectsProjectIdDevEnvironmentBuildsBuildIdRouteImport } from './routes/_app/settings/projects_/$projectId_/dev-environment_/builds/$buildId'
 import { Route as AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRouteImport } from './routes/_app/settings/projects_/$projectId_/dev-environment_/repositories/$owner/$repo'
 
+const Char91__p17Char93Route = Char91__p17Char93RouteImport.update({
+  id: '/__p17',
+  path: '/__p17',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char91__tokensChar93Route = Char91__tokensChar93RouteImport.update({
   id: '/__tokens',
   path: '/__tokens',
@@ -1043,6 +1049,7 @@ const AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/__p17': typeof Char91__p17Char93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
@@ -1203,6 +1210,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
+  '/__p17': typeof Char91__p17Char93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
@@ -1363,6 +1371,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteRouteWithChildren
   '/_auth': typeof AuthRouteRouteWithChildren
+  '/__p17': typeof Char91__p17Char93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
@@ -1526,6 +1535,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/__p17'
     | '/__tokens'
     | '/design'
     | '/desktop'
@@ -1686,6 +1696,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/__p17'
     | '/__tokens'
     | '/design'
     | '/desktop'
@@ -1845,6 +1856,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/_auth'
+    | '/__p17'
     | '/__tokens'
     | '/design'
     | '/desktop'
@@ -2008,6 +2020,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
+  Char91__p17Char93Route: typeof Char91__p17Char93Route
   Char91__tokensChar93Route: typeof Char91__tokensChar93Route
   DesignRoute: typeof DesignRoute
   DesktopRoute: typeof DesktopRoute
@@ -2034,6 +2047,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/__p17': {
+      id: '/__p17'
+      path: '/__p17'
+      fullPath: '/__p17'
+      preLoaderRoute: typeof Char91__p17Char93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/__tokens': {
       id: '/__tokens'
       path: '/__tokens'
@@ -3500,6 +3520,7 @@ const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   AuthRouteRoute: AuthRouteRouteWithChildren,
+  Char91__p17Char93Route: Char91__p17Char93Route,
   Char91__tokensChar93Route: Char91__tokensChar93Route,
   DesignRoute: DesignRoute,
   DesktopRoute: DesktopRoute,
