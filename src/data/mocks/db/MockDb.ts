@@ -1,5 +1,6 @@
 import { Context, Effect, Layer, Ref } from "effect";
 import { world } from "../fixtures/world.ts";
+import { makeOrgState, type OrgState } from "../organizations/state.ts";
 
 type Widen<T> = T extends string
   ? string
@@ -40,6 +41,8 @@ export type TableName = (typeof tables)[number];
 
 export type MockTables = {
   readonly [K in TableName]: Ref.Ref<ReadonlyArray<Row<K>>>;
+} & {
+  readonly orgState: OrgState;
 };
 
 let sequence = 0;
@@ -64,7 +67,14 @@ export class MockDb extends Context.Service<MockDb, MockTables>()(
           Effect.map((ref) => [name, ref] as const),
         ),
       );
-      return MockDb.of(Object.fromEntries(entries) as unknown as MockTables);
+      const orgState = yield* makeOrgState;
+      return MockDb.of({
+        ...(Object.fromEntries(entries) as unknown as Omit<
+          MockTables,
+          "orgState"
+        >),
+        orgState,
+      });
     }),
   );
 }
