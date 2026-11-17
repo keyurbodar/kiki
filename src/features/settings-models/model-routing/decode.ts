@@ -35,7 +35,19 @@ const listOf = <A>(raw: unknown, key: string): ReadonlyArray<A> => {
   return [];
 };
 
-export const decodeRouting = (raw: unknown) => revive(raw) as ModelsRouting;
+export const decodeRouting = (raw: unknown): ModelsRouting | undefined => {
+  const value = revive(raw);
+  if (value === null || typeof value !== "object" || Array.isArray(value))
+    return undefined;
+  const routing = value as Partial<ModelsRouting>;
+  return {
+    admin: routing.admin === true,
+    seats: routing.seats ?? [],
+    credentials: routing.credentials ?? [],
+    routes: routing.routes ?? [],
+    settings: routing.settings ?? [],
+  };
+};
 
 export const decodeSettings = (raw: unknown) =>
   (revive(raw) ?? {}) as ModelsSettings;

@@ -84,14 +84,17 @@ import {
   cleanHeaders,
   customIdProblem,
   type DiscoveredModel,
-  type DiscoverResponse,
   type Discovery,
   directTicks,
   draftHeaders,
   hasHeaderProblems,
+  headersEqual,
   listedModels,
   matchedFirst,
+  mergeDiscovered,
+  pendingCompactAts,
   readDaybreak,
+  readDiscovery,
   readMediaCheck,
   servedCount,
   shortDate,
@@ -335,6 +338,7 @@ export function ConnectSheet({
       )
     : undefined;
   const savedUrl = credential?.baseURL ?? defaultUrl ?? "";
+  const pendingCompact = pendingCompactAts(compactAts, customs, orgCompactAt);
   const changes = {
     name:
       credential !== undefined && name.trim() !== credential.name
@@ -352,7 +356,7 @@ export function ConnectSheet({
     headers:
       credential === undefined ||
       azure ||
-      JSON.stringify(sentHeaders) === JSON.stringify(credential.headers ?? [])
+      headersEqual(sentHeaders, credential.headers)
         ? undefined
         : sentHeaders,
     api:
@@ -371,7 +375,10 @@ export function ConnectSheet({
   const canSubmit =
     credential === undefined
       ? ready && name.trim() !== "" && discovery !== undefined && settled
-      : (changed || modelsChanged) && ready && name.trim() !== "" && settled;
+      : (changed || modelsChanged || pendingCompact.length > 0) &&
+        ready &&
+        name.trim() !== "" &&
+        settled;
   const wireAt = wireCheckedAt(credential?.wire);
 
   const compactAtOf = (model: string) =>
@@ -381,7 +388,6 @@ export function ConnectSheet({
 
   const saveCompactAts = (message: string) => {
     if (orgId === undefined || !isAdmin) return Promise.resolve(true);
-    const kept = new Set(customs.map((m) => m.model));
     const settle = <A, E>(exit: Exit.Exit<A, E>) => {
       if (Exit.isSuccess(exit)) return true;
       toast.error(message, {
@@ -390,26 +396,19 @@ export function ConnectSheet({
       return false;
     };
     return Promise.all(
-      [...compactAts].flatMap(([model, compactAt]) => {
-        if (
-          !kept.has(model) ||
-          orgCompactAt.find((e) => e.model === model)?.compactAt === compactAt
-        )
-          return [];
-        return [
-          compactAt === undefined
-            ? removeCompactAt({
-                params: { orgId },
-                query: { model },
-                reactivityKeys: modelsKeys.compactAt(orgId),
-              }).then(settle)
-            : upsertCompactAt({
-                params: { orgId },
-                payload: { model, compactAt },
-                reactivityKeys: modelsKeys.compactAt(orgId),
-              }).then(settle),
-        ];
-      }),
+      pendingCompact.map(([model, compactAt]) =>
+        compactAt === undefined
+          ? removeCompactAt({
+              params: { orgId },
+              query: { model },
+              reactivityKeys: modelsKeys.compactAt(orgId),
+            }).then(settle)
+          : upsertCompactAt({
+              params: { orgId },
+              payload: { model, compactAt },
+              reactivityKeys: modelsKeys.compactAt(orgId),
+            }).then(settle),
+      ),
     ).then((results) => results.every(Boolean));
   };
 
@@ -489,7 +488,7 @@ export function ConnectSheet({
           });
           return;
         }
-        const result = exit.value as DiscoverResponse;
+        const result = readDiscovery(exit.value);
         if (result.outcome === "rejected") {
           setProblem({
             field: "key",
@@ -523,16 +522,11 @@ export function ConnectSheet({
           ),
         ];
         setModels((current) =>
-          direct
-            ? current.filter((m) => m.name !== undefined)
-            : preset === undefined
-              ? [
-                  ...current.filter(
-                    (m) => !found.some((f) => f.model === m.model),
-                  ),
-                  ...found,
-                ]
-              : [...labs.map((lab) => ({ model: labWildcard(lab) })), ...found],
+          mergeDiscovered(
+            current,
+            direct ? [] : labs.map((lab) => ({ model: labWildcard(lab) })),
+            found,
+          ),
         );
       })
       .finally(() => setChecking(false));
@@ -629,7 +623,7 @@ export function ConnectSheet({
     })
       .then((exit) => {
         const result = Exit.isSuccess(exit)
-          ? (exit.value as DiscoverResponse)
+          ? readDiscovery(exit.value)
           : undefined;
         if (result?.outcome === "unreachable") {
           toast.error(
