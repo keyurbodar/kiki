@@ -1,0 +1,91 @@
+/*
+ * Tokens for the rich-content blocks (pele mermaid diagrams and show_visual
+ * frames, WP B6). Values come from Capy's production stylesheet and the
+ * visual host in its bundle. The markdown-mermaid block chrome itself lives
+ * in src/components/markdown/markdown.css.
+ */
+
+:root,
+[data-theme-preview] {
+  /* pele (Capy's mermaid renderer) block recolour bounds and label inks */
+  --mermaid-block-lightness: max(l, 0.9);
+  --mermaid-block-chroma: min(c, 0.1);
+  --mermaid-label-ink-dark: rgb(27 27 29);
+  --mermaid-label-ink-light: rgb(247 247 248);
+  --mermaid-lazy-margin: 300px;
+
+  /* show_visual frame: height clamp, base text and the kit's spacing scale */
+  --visual-frame-min: 48px;
+  --visual-frame-max: 1200px;
+  --visual-font-size: 13px;
+  --visual-line-height: 1.45;
+  --visual-body-inline-padding: 2px;
+  --visual-space-1: 4px;
+  --visual-space-2: 8px;
+  --visual-space-3: 12px;
+  --visual-space-4: 16px;
+  --visual-space-5: 20px;
+  --visual-space-6: 24px;
+  --visual-space-8: 32px;
+  --visual-space-10: 40px;
+}
+
+.dark {
+  --mermaid-block-lightness: min(l, 0.27);
+  --mermaid-block-chroma: min(c, 0.06);
+}
+
+/* pele SVG theme, mapped onto the semantic tokens exactly as Capy maps them */
+.pele {
+  --pele-bg: var(--panel);
+  --pele-fg: var(--text);
+  --pele-muted: var(--muted-foreground-1);
+  --pele-line: var(--muted-foreground-2);
+  --pele-surface: var(--card);
+  --pele-surface-alt: var(--secondary);
+  --pele-border: var(--border-2);
+  --pele-accent: var(--primary);
+  --pele-critical: var(--destructive);
+  --pele-error: var(--destructive);
+  --pele-font: var(--font-sans);
+  --pele-font-mono: var(--font-mono);
+  --pele-title-weight: var(--font-weight-medium);
+  --pele-heading-weight: var(--font-weight-medium);
+  --pele-bold-weight: var(--font-weight-semibold);
+  --pele-radius: var(--radius-card);
+  --pele-series-1: var(--chart-1);
+  --pele-series-2: var(--chart-2);
+  --pele-series-3: var(--chart-3);
+  --pele-series-4: var(--chart-4);
+  --pele-series-5: var(--chart-5);
+  --pele-series-6: var(--chart-6);
+  --pele-series-7: var(--chart-7);
+  --pele-series-8: var(--chart-8);
+}
+
+.pele .pele-rect[data-mermaid-block] {
+  fill: oklch(
+    from var(--mermaid-block-fill) var(--mermaid-block-lightness)
+      var(--mermaid-block-chroma) h
+  );
+}
+
+.pele .pele-edge-label text {
+  fill: var(--muted-foreground-1);
+}
+
+.pele .pele-node > :is(rect, path, polygon, ellipse, circle),
+.pele .pele-cluster > rect,
+.pele .pele-note > rect {
+  stroke-width: var(--border-width-hairline);
+}
+
+.pele .pele-cluster-label,
+.pele .pele-frame-label,
+.pele .pele-frame-kind {
+  font-weight: var(--font-weight-medium);
+}
+
+[data-mermaid-fallback] {
+  color: var(--fg);
+}
