@@ -1,6 +1,44 @@
 import { ScrollArea as BaseScrollArea } from "@base-ui/react/scroll-area";
 import { cx } from "class-variance-authority";
-import type { ComponentProps, ReactNode, Ref } from "react";
+import {
+  type ComponentProps,
+  type ReactNode,
+  type Ref,
+  useCallback,
+  useEffect,
+  useRef,
+  useSyncExternalStore,
+} from "react";
+import "./scroll-area.css";
+
+const NARROW_QUERY = "(width < 48rem)";
+
+const subscribeNarrow = (onChange: () => void) => {
+  const media = window.matchMedia(NARROW_QUERY);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+};
+
+const narrowSnapshot = () =>
+  typeof window !== "undefined" && window.matchMedia(NARROW_QUERY).matches;
+
+/**
+ * True below the md breakpoint, where Capy drops Base UI's custom scrollbar and
+ * scrolls natively: touch scrolling needs the platform's own rubber-banding and
+ * momentum, and Base UI's hairline thumb is not reachable with a finger.
+ */
+function useNarrowViewport(): boolean {
+  return useSyncExternalStore(subscribeNarrow, narrowSnapshot, () => false);
+}
+
+const setRef = <T,>(ref: Ref<T> | undefined, node: T | null) => {
+  if (typeof ref === "function") ref(node);
+  else if (ref !== null && ref !== undefined)
+    (ref as { current: T | null }).current = node;
+};
+
+const viewportBase =
+  "size-full overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
 
 export type ScrollAreaProps = Omit<
   ComponentProps<typeof BaseScrollArea.Root>,
@@ -25,6 +63,105 @@ export function ScrollArea({
   children,
   ...props
 }: ScrollAreaProps) {
+  const narrow = useNarrowViewport();
+  const root = useRef<HTMLDivElement>(null);
+  const viewport = useRef<HTMLDivElement | null>(null);
+
+  const bindViewport = useCallback(
+    (node: HTMLDivElement | null) => {
+      viewport.current = node;
+      setRef(onViewport, node);
+    },
+    [onViewport],
+  );
+
+  useEffect(() => {
+    if (!narrow) return;
+    const rootNode = root.current;
+    const viewportNode = viewport.current;
+    if (rootNode === null || viewportNode === null) return;
+    let frame = 0;
+    let scrollable: boolean | null = null;
+    let start: boolean | null = null;
+    let end: boolean | null = null;
+    const measure = () => {
+      frame = 0;
+      const max = viewportNode.scrollHeight - viewportNode.clientHeight;
+      const overflows = max > 1;
+      if (overflows !== scrollable) {
+        if (overflows) viewportNode.setAttribute("tabindex", "0");
+        else viewportNode.removeAttribute("tabindex");
+        scrollable = overflows;
+      }
+      if (!fadeY) return;
+      const atStart = viewportNode.scrollTop <= 1;
+      const atEnd = max - viewportNode.scrollTop <= 1;
+      if (atStart !== start) {
+        rootNode.toggleAttribute("data-scroll-start", atStart);
+        start = atStart;
+      }
+      if (atEnd !== end) {
+        rootNode.toggleAttribute("data-scroll-end", atEnd);
+        end = atEnd;
+      }
+      if (!rootNode.hasAttribute("data-scroll-ready"))
+        rootNode.setAttribute("data-scroll-ready", "");
+    };
+    const schedule = () => {
+      if (frame === 0) frame = requestAnimationFrame(measure);
+    };
+    const resize = new ResizeObserver(schedule);
+    resize.observe(viewportNode);
+    const observeChildren = () => {
+      for (const child of viewportNode.children) resize.observe(child);
+    };
+    observeChildren();
+    const mutations = new MutationObserver((records) => {
+      for (const record of records)
+        for (const removed of record.removedNodes)
+          if (removed instanceof Element) resize.unobserve(removed);
+      observeChildren();
+      schedule();
+    });
+    mutations.observe(viewportNode, { childList: true });
+    if (fadeY)
+      viewportNode.addEventListener("scroll", schedule, { passive: true });
+    schedule();
+    return () => {
+      if (frame !== 0) cancelAnimationFrame(frame);
+      viewportNode.removeEventListener("scroll", schedule);
+      resize.disconnect();
+      mutations.disconnect();
+    };
+  }, [narrow, fadeY]);
+
+  const caps = fadeY ? (
+    <>
+      <div aria-hidden className="scroll-fade-cap-t" />
+      <div aria-hidden className="scroll-fade-cap-b" />
+    </>
+  ) : null;
+
+  if (narrow)
+    return (
+      <div
+        ref={root}
+        data-slot="scroll-area"
+        data-scroll-restoration-ignore={retainScroll ? "" : undefined}
+        className={cx("relative min-h-0", className)}
+      >
+        <div
+          ref={bindViewport}
+          data-slot="scroll-area-viewport"
+          data-scroll-restoration-id={scrollRestorationId}
+          className={cx(viewportBase, "overflow-auto", viewportClassName)}
+        >
+          {children}
+        </div>
+        {caps}
+      </div>
+    );
+
   return (
     <BaseScrollArea.Root
       data-slot="scroll-area"
@@ -33,14 +170,13 @@ export function ScrollArea({
       {...props}
     >
       <ScrollAreaViewport
-        ref={onViewport}
+        ref={bindViewport}
         data-scroll-restoration-id={scrollRestorationId}
         className={viewportClassName}
       >
         {children}
       </ScrollAreaViewport>
-      {fadeY && <div aria-hidden className="scroll-fade-cap-t" />}
-      {fadeY && <div aria-hidden className="scroll-fade-cap-b" />}
+      {caps}
       <ScrollAreaScrollbar>
         <ScrollAreaThumb />
       </ScrollAreaScrollbar>
@@ -60,10 +196,7 @@ export function ScrollAreaViewport({
   return (
     <BaseScrollArea.Viewport
       data-slot="scroll-area-viewport"
-      className={cx(
-        "size-full overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-        className,
-      )}
+      className={cx(viewportBase, className)}
       {...props}
     />
   );

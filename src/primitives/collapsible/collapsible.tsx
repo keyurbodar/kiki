@@ -3,6 +3,7 @@ import { cx } from "class-variance-authority";
 import { type ComponentProps, type Ref, useCallback } from "react";
 import { motion } from "@/lib/motion";
 import { Icon } from "@/primitives/icon";
+import "./collapsible.css";
 
 export type CollapsibleProps = ComponentProps<typeof BaseCollapsible.Root>;
 

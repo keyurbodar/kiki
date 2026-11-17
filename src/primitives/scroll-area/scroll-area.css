@@ -1,0 +1,42 @@
+/*
+ * Scroll edge fades, from Capy's stylesheet. The caps are siblings of the
+ * viewport and stay hidden until the area is measurable and has content past
+ * the opposite edge: `data-overflow-y-start/-end` come from Base UI's scroll
+ * area root, `data-scroll-start/-end` from the native viewport below md.
+ */
+[data-slot="scroll-area"] > .scroll-fade-cap-t,
+[data-slot="scroll-area"] > .scroll-fade-cap-b {
+  position: absolute;
+  inset-inline: 0;
+  z-index: 1;
+  height: var(--scroll-fade-ramp, 2rem);
+  pointer-events: none;
+  visibility: hidden;
+}
+
+[data-slot="scroll-area"] > .scroll-fade-cap-t {
+  top: 0;
+  background: linear-gradient(
+    to bottom,
+    var(--scroll-fade-surface, var(--panel)),
+    transparent
+  );
+}
+
+[data-slot="scroll-area"] > .scroll-fade-cap-b {
+  bottom: 0;
+  background: linear-gradient(
+    to top,
+    var(--scroll-fade-surface, var(--panel)),
+    transparent
+  );
+}
+
+[data-slot="scroll-area"][data-overflow-y-start] > .scroll-fade-cap-t,
+[data-slot="scroll-area"][data-overflow-y-end] > .scroll-fade-cap-b,
+[data-slot="scroll-area"][data-scroll-ready]:not([data-scroll-start])
+  > .scroll-fade-cap-t,
+[data-slot="scroll-area"][data-scroll-ready]:not([data-scroll-end])
+  > .scroll-fade-cap-b {
+  visibility: visible;
+}
