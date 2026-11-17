@@ -1,105 +1,320 @@
 import { DateTime, Effect, Ref } from "effect";
-import { fixtureNow } from "../fixtures/time.ts";
+import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
+import { minutesAgo } from "../fixtures/time.ts";
 import { mockGroup } from "../mockGroup.ts";
-import { sampleMcpServers, sampleMcpTools } from "./fixtures.ts";
+import {
+  type McpConnection,
+  type McpSecret,
+  type McpSetup,
+  sampleConnections,
+  sampleFavicon,
+  sampleRedirectUri,
+  sampleSecrets,
+  sampleSetups,
+  sampleToolsByServer,
+} from "./fixtures.ts";
 
-type MockServer = (typeof sampleMcpServers)[number];
+const text = (value: unknown, fallback: string) =>
+  typeof value === "string" && value.length > 0 ? value : fallback;
 
-const now = () => DateTime.formatIso(fixtureNow);
+const flag = (value: unknown, fallback: boolean) =>
+  typeof value === "boolean" ? value : fallback;
 
 export const McpMock = mockGroup("mcp", (handlers) =>
   Effect.gen(function* () {
-    const servers =
-      yield* Ref.make<ReadonlyArray<MockServer>>(sampleMcpServers);
-    const find = (serverId: string) =>
-      Ref.get(servers).pipe(
-        Effect.map((all) => all.find((server) => server.id === serverId)),
-      );
-    const patch = (serverId: string, changes: Partial<MockServer>) =>
-      Ref.updateAndGet(servers, (all) =>
-        all.map((server) =>
-          server.id === serverId
-            ? { ...server, ...changes, updatedAt: now() }
-            : server,
-        ),
-      ).pipe(
-        Effect.map(
-          (all) => all.find((server) => server.id === serverId) ?? null,
-        ),
-      );
+    const { mcpServers } = yield* MockDb;
+    const setups = yield* Ref.make<ReadonlyArray<McpSetup>>(sampleSetups);
+    const connections =
+      yield* Ref.make<ReadonlyArray<McpConnection>>(sampleConnections);
+    const secrets = yield* Ref.make<ReadonlyArray<McpSecret>>(sampleSecrets);
+    const favicons = yield* Ref.make<Readonly<Record<string, string>>>({});
+    const oauthStates = yield* Ref.make<Readonly<Record<string, string>>>({});
+    const oauthSessions = yield* Ref.make<Readonly<Record<string, string>>>({});
+    const tests = yield* Ref.make<Readonly<Record<string, string>>>({});
+
+    const requireServer = (id: string) =>
+      Effect.gen(function* () {
+        const rows = yield* Ref.get(mcpServers);
+        const server = rows.find((row) => row.id === id);
+        if (!server) return yield* missing("mcpServers", id);
+        return server;
+      });
+
+    const requireSetup = (id: string) =>
+      Effect.gen(function* () {
+        const rows = yield* Ref.get(setups);
+        const setup = rows.find((row) => row.id === id);
+        if (!setup) {
+          return yield* Effect.die(new Error(`mcp.setups: no row ${id}`));
+        }
+        return setup;
+      });
+
+    const patchSetup = (id: string, patch: Partial<McpSetup>) =>
+      Effect.gen(function* () {
+        const current = yield* requireSetup(id);
+        const updated = {
+          ...current,
+          ...patch,
+          updatedAt: isoNow(),
+        };
+        yield* Ref.update(setups, (rows) =>
+          rows.map((row) => (row.id === id ? updated : row)),
+        );
+        return updated;
+      });
+
+    const setServerStatus = (id: string, status: string) =>
+      Effect.gen(function* () {
+        const current = yield* requireServer(id);
+        const updated = { ...current, status };
+        yield* Ref.update(mcpServers, (rows) =>
+          rows.map((row) => (row.id === id ? updated : row)),
+        );
+        return updated;
+      });
+
     return handlers
-      .handle("listServers", () => Ref.get(servers))
-      .handle("serverTools", ({ params }) =>
-        find(params.serverId).pipe(
-          Effect.map((server) =>
-            server === undefined ? null : sampleMcpTools,
-          ),
-        ),
-      )
-      .handle("listConnections", () => Effect.succeed([]))
-      .handle("enableServer", ({ params }) =>
-        patch(params.serverId, { enabled: true }),
-      )
-      .handle("disableServer", ({ params }) =>
-        patch(params.serverId, { enabled: false }),
-      )
-      .handle("refreshServer", ({ params }) => patch(params.serverId, {}))
-      .handle("updateServer", ({ params, payload }) =>
-        patch(params.serverId, payload as Partial<MockServer>),
-      )
-      .handle("deleteServer", ({ params }) =>
-        Ref.update(servers, (all) =>
-          all.filter((server) => server.id !== params.serverId),
-        ).pipe(Effect.as(null)),
-      )
-      .handle("createServer", ({ payload }) =>
+      .handle("resolveFavicon", ({ payload }) =>
         Effect.gen(function* () {
-          const request = payload as Partial<MockServer> & {
-            readonly owner?: "user" | "organization";
-          };
-          const [template] = sampleMcpServers;
-          const created: MockServer = {
-            ...template,
-            ...request,
-            id: `mcp_sample_${(yield* Ref.get(servers)).length + 1}`,
-            owner:
-              request.owner === "user"
-                ? { kind: "user", userId: "user_sample_alex" }
-                : { kind: "organization" },
-            displayName: request.displayName ?? request.serverKey ?? "",
-            health: { state: "unchecked" },
-            toolCount: null,
-            createdAt: now(),
-            updatedAt: now(),
-          } as unknown as MockServer;
-          yield* Ref.update(servers, (all) => [...all, created]);
-          return created;
+          const input = fields(payload);
+          const url = text(input.url, sampleFavicon.url);
+          yield* Ref.update(favicons, (rows) => ({ ...rows, [url]: url }));
+          return { url };
         }),
       )
-      .handle("testServer", ({ params }) =>
-        find(params.serverId).pipe(
-          Effect.map((server) => ({
-            version: "2025-06-18",
-            auth: server?.auth ?? "none",
-            requestedScopes: [],
-            grantedScopes: [],
-            requiredScopes: null,
-            passed: ["connect", "auth", "permissions", "protocol", "list"],
-            failure: null,
-            toolCount: server?.toolCount ?? 0,
-            machines: [],
-          })),
-        ),
+      .handle("completeOAuth", ({ payload }) =>
+        Effect.gen(function* () {
+          const input = fields(payload);
+          const state = text(input.state, "state_sample_errors");
+          const states = yield* Ref.get(oauthStates);
+          if (!(state in states)) {
+            return yield* Effect.die(
+              new Error(`mcp.oauthStates: no row ${state}`),
+            );
+          }
+          const session = `oauth_session_mock_${state}`;
+          yield* Ref.update(oauthSessions, (rows) => ({
+            ...rows,
+            [state]: session,
+          }));
+          return { state, session, connected: true };
+        }),
       )
-      .handle("probeDraft", () =>
-        Effect.succeed({
-          reachable: true,
-          auth: "none",
-          version: "2025-06-18",
-          passed: ["connect", "protocol", "list"],
-          failure: null,
-          toolCount: 3,
+      .handle("listSetups", ({ params }) =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(setups);
+          return rows.filter(
+            (setup) =>
+              setup.orgId === params.orgId && setup.jamId === params.jamId,
+          );
+        }),
+      )
+      .handle("listServers", () => Ref.get(mcpServers))
+      .handle("createServer", ({ payload }) =>
+        Effect.gen(function* () {
+          const input = fields(payload);
+          const server = {
+            id: newId("mcp"),
+            key: text(input.key, "custom"),
+            name: text(input.name, "New MCP server"),
+            url: text(input.url, "https://mcp.example.com/custom"),
+            transport: text(input.transport, "http"),
+            status: "needs_auth",
+          };
+          yield* Ref.update(mcpServers, (rows) => [...rows, server]);
+          return server;
+        }),
+      )
+      .handle("updateServer", ({ params, payload }) =>
+        Effect.gen(function* () {
+          const current = yield* requireServer(params.serverId);
+          const input = fields(payload);
+          const updated = {
+            ...current,
+            ...(typeof input.key === "string" ? { key: input.key } : {}),
+            ...(typeof input.name === "string" ? { name: input.name } : {}),
+            ...(typeof input.url === "string" ? { url: input.url } : {}),
+            ...(typeof input.transport === "string"
+              ? { transport: input.transport }
+              : {}),
+          };
+          yield* Ref.update(mcpServers, (rows) =>
+            rows.map((row) => (row.id === current.id ? updated : row)),
+          );
+          return updated;
+        }),
+      )
+      .handle("listConnections", ({ params }) =>
+        Effect.gen(function* () {
+          yield* requireServer(params.serverId);
+          const rows = yield* Ref.get(connections);
+          return rows.filter((row) => row.serverId === params.serverId);
+        }),
+      )
+      .handle("deleteServer", ({ params }) =>
+        Effect.gen(function* () {
+          yield* requireServer(params.serverId);
+          yield* Ref.update(mcpServers, (rows) =>
+            rows.filter((row) => row.id !== params.serverId),
+          );
+          yield* Ref.update(connections, (rows) =>
+            rows.filter((row) => row.serverId !== params.serverId),
+          );
+          return { ok: true };
+        }),
+      )
+      .handle("disableServer", ({ params }) =>
+        setServerStatus(params.serverId, "disabled"),
+      )
+      .handle("disconnectCredential", ({ params }) =>
+        Effect.gen(function* () {
+          yield* requireServer(params.serverId);
+          yield* Ref.update(connections, (rows) =>
+            rows.map((row) =>
+              row.serverId === params.serverId
+                ? { ...row, status: "needs_auth", credentialId: null }
+                : row,
+            ),
+          );
+          return { ok: true };
+        }),
+      )
+      .handle("enableServer", ({ params }) =>
+        setServerStatus(params.serverId, "connected"),
+      )
+      .handle("startOAuth", ({ params, payload }) =>
+        Effect.gen(function* () {
+          const server = yield* requireServer(params.serverId);
+          const input = fields(payload);
+          const state = `state_${server.id}`;
+          const redirectUri = text(input.redirectUri, sampleRedirectUri);
+          yield* Ref.update(oauthStates, (rows) => ({
+            ...rows,
+            [state]: redirectUri,
+          }));
+          return {
+            state,
+            authorizationUrl: `https://mcp.example.com/oauth/authorize?state=${state}`,
+            redirectUri,
+          };
+        }),
+      )
+      .handle("refreshServer", ({ params }) =>
+        Effect.gen(function* () {
+          const server = yield* requireServer(params.serverId);
+          return {
+            ...server,
+            status: "connected",
+            refreshedAt: DateTime.formatIso(minutesAgo(0)),
+          };
+        }),
+      )
+      .handle("getSecretValue", ({ params }) =>
+        Effect.gen(function* () {
+          const server = yield* requireServer(params.serverId);
+          const rows = yield* Ref.get(secrets);
+          const secret = rows.find(
+            (row) =>
+              row.serverId === server.id &&
+              row.position === params.position &&
+              row.name === params.name,
+          );
+          if (!secret) {
+            return yield* Effect.die(
+              new Error(
+                `mcp.secrets: no row ${params.serverId}/${params.position}/${params.name}`,
+              ),
+            );
+          }
+          return { value: secret.value, name: secret.name };
+        }),
+      )
+      .handle("testServer", ({ params, payload }) =>
+        Effect.gen(function* () {
+          const server = yield* requireServer(params.serverId);
+          const input = fields(payload);
+          const status =
+            server.status === "disabled"
+              ? "skipped"
+              : flag(input.verbose, false)
+                ? "ok"
+                : "ok";
+          const result = {
+            serverId: server.id,
+            status,
+            detail: `Reached ${server.url}`,
+            testedAt: DateTime.formatIso(minutesAgo(0)),
+          };
+          yield* Ref.update(tests, (rows) => ({
+            ...rows,
+            [server.id]: status,
+          }));
+          return result;
+        }),
+      )
+      .handle("serverTools", ({ params }) =>
+        Effect.gen(function* () {
+          const server = yield* requireServer(params.serverId);
+          const tools = sampleToolsByServer[server.id] ?? [];
+          return [...tools];
+        }),
+      )
+      .handle("probeDraft", ({ payload }) =>
+        Effect.sync(() => {
+          const input = fields(payload);
+          const url = text(input.url, "https://mcp.example.com/draft");
+          return {
+            name: text(input.name, "Draft MCP server"),
+            url,
+            transport: text(input.transport, "http"),
+            status: "draft",
+            tools: sampleToolsByServer.mcp_sample_errors ?? [],
+            favicon: sampleFavicon.url,
+          };
+        }),
+      )
+      .handle("createSetup", ({ payload }) =>
+        Effect.gen(function* () {
+          const input = fields(payload);
+          const setup: McpSetup = {
+            id: newId("setup"),
+            orgId: text(input.orgId, sampleSetups[0]?.orgId ?? ""),
+            jamId: text(input.jamId, sampleSetups[0]?.jamId ?? ""),
+            name: text(input.name, "New MCP setup"),
+            status: "pending",
+            ownerId: text(input.ownerId, sampleSetups[0]?.ownerId ?? ""),
+            attempts: 0,
+            createdAt: isoNow(),
+            updatedAt: isoNow(),
+            completedAt: null,
+          };
+          yield* Ref.update(setups, (rows) => [...rows, setup]);
+          return setup;
+        }),
+      )
+      .handle("getSetup", ({ params }) => requireSetup(params.setupId))
+      .handle("completeSetup", ({ params, payload }) =>
+        Effect.gen(function* () {
+          const current = yield* requireSetup(params.setupId);
+          const input = fields(payload);
+          return yield* patchSetup(current.id, {
+            status: "completed",
+            ...(typeof input.name === "string" ? { name: input.name } : {}),
+            completedAt: isoNow(),
+          });
+        }),
+      )
+      .handle("retrySetup", ({ params }) =>
+        Effect.gen(function* () {
+          const current = yield* requireSetup(params.setupId);
+          return yield* patchSetup(current.id, {
+            status: "in_progress",
+            attempts: current.attempts + 1,
+          });
         }),
       );
   }),
 );
+
+const isoNow = () => DateTime.formatIso(minutesAgo(0));

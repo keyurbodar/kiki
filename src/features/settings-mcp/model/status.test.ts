@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { sampleMcpServers } from "@/data/mocks/mcp/fixtures.ts";
-import { sampleInstallations } from "@/data/mocks/plugins/fixtures.ts";
 import { listSections } from "../mcp-and-plugins-page/model.ts";
+import { toInstallation, toServer } from "./normalize.ts";
 import {
   healthStatus,
   listCountLabel,
@@ -10,11 +9,40 @@ import {
   serverStatus,
   statusParts,
 } from "./status.ts";
-import type { InstalledPlugin, McpServer } from "./types.ts";
 
-const servers = sampleMcpServers as unknown as ReadonlyArray<McpServer>;
-const plugins =
-  sampleInstallations as unknown as ReadonlyArray<InstalledPlugin>;
+const servers = [
+  toServer({
+    id: "mcp_a",
+    key: "errors",
+    name: "Error tracker",
+    url: "https://mcp.example.com/errors",
+    transport: "http",
+    status: "connected",
+  }),
+  {
+    ...toServer({
+      id: "mcp_b",
+      key: "docs",
+      name: "Docs",
+      status: "connected",
+    }),
+    owner: { kind: "user", userId: "user_sample_alex" } as const,
+  },
+  {
+    ...toServer({ id: "mcp_c", key: "search", name: "Search" }),
+    pluginInstallationId: "inst_a",
+  },
+];
+const plugins = [
+  toInstallation({
+    id: "inst_a",
+    pluginKey: "search",
+    displayName: "Acme Search",
+    version: "1.0.0",
+    versionId: "ver_a",
+    status: "connected",
+  }),
+];
 
 describe("MCP status", () => {
   it("labels health states like Capy", () => {
@@ -97,6 +125,6 @@ describe("MCP status", () => {
     );
     expect(names.organization).toEqual(["Acme Search", "Error tracker"]);
     expect(names.member).toEqual([]);
-    expect(names.yours).toEqual([]);
+    expect(names.yours).toEqual(["Docs"]);
   });
 });

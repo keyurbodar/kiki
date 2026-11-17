@@ -1,6 +1,5 @@
-import { useAtomSet, useAtomValue } from "@effect/atom-react";
+import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
-import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -29,7 +28,7 @@ import { Input } from "@/primitives/input";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
-import { mcpKeys, mcpMutation, mcpServersAtom } from "../model/atoms.ts";
+import { mcpKeys, mcpMutation } from "../model/atoms.ts";
 import {
   draftFromServer,
   emptyKeyValue,
@@ -47,6 +46,7 @@ import { timeAgo } from "../model/time.ts";
 import type { McpDiagnosis, McpMount, McpServer } from "../model/types.ts";
 import {
   useActiveOrgId,
+  useMcpServersState,
   useProjects,
   useServerTools,
 } from "../model/use-mcp-data.ts";
@@ -90,8 +90,8 @@ function ServerPageForOrg({
   serverId,
   orgId,
 }: ServerPageProps & { readonly orgId: OrgId }) {
-  const result = useAtomValue(mcpServersAtom(orgId));
-  if (!AsyncResult.isSuccess(result))
+  const result = useMcpServersState(orgId);
+  if (result.status !== "ready")
     return (
       <SettingsPage title="MCP server">
         <div className="flex items-center justify-center gap-2 p-8 text-sm font-normal text-muted-foreground-2">
@@ -99,7 +99,7 @@ function ServerPageForOrg({
         </div>
       </SettingsPage>
     );
-  const servers = result.value as ReadonlyArray<McpServer>;
+  const servers = result.value;
   const server = servers.find((entry) => entry.id === serverId);
   if (server === undefined)
     return (

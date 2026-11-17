@@ -1,113 +1,145 @@
-import { isoMinutesAgo as iso } from "../fixtures/world.ts";
+import { isoMinutesAgo, orgId, people, threads } from "../fixtures/world.ts";
 
-const server = (options: {
+export interface McpSetup {
   readonly id: string;
-  readonly serverKey: string;
-  readonly displayName: string;
-  readonly url: string;
-  readonly owner: "organization" | "user";
-  readonly connection?: "organization" | "member";
-  readonly projectId?: string | null;
-  readonly auth?: "none" | "headers" | "oauth";
-  readonly toolCount: number;
-  readonly pluginInstallationId?: string | null;
-  readonly checkedMinutesAgo: number;
-}) => ({
-  id: options.id,
-  owner:
-    options.owner === "organization"
-      ? { kind: "organization" }
-      : { kind: "user", userId: "user_sample_alex" },
-  projectId: options.projectId ?? null,
-  serverKey: options.serverKey,
-  displayName: options.displayName,
-  iconUrl: null,
-  placement: "backend",
-  transport: "http",
-  deviceId: null,
-  pluginInstallationId: options.pluginInstallationId ?? null,
-  connection: options.connection ?? "organization",
-  privateThreadsOnly: false,
-  url: options.url,
-  command: null,
-  args: [],
-  cwd: null,
-  env: {},
-  requestHeaders: {},
-  credentialHeaders: {},
-  auth: options.auth ?? "none",
-  clientId: null,
-  clientSecret: null,
-  clientIdentity: "auto",
-  connectOnDemand: false,
-  scopes: null,
-  disabledTools: null,
-  allowedTools: null,
-  readOnlyTools: null,
-  hint: null,
-  enabled: true,
-  credential:
-    options.auth === undefined || options.auth === "none"
-      ? null
-      : {
-          status: "active",
-          authRequiredReason: null,
-          grantedScopes: [],
-          requiredScopes: null,
-          updatedAt: iso(options.checkedMinutesAgo),
-        },
-  toolCount: options.toolCount as number | null,
-  health: {
-    state: "ready",
-    toolCount: options.toolCount as number | null,
-    excluded: 0,
-    checkedAt: iso(options.checkedMinutesAgo),
-  },
-  createdAt: iso(60 * 24 * 7),
-  updatedAt: iso(options.checkedMinutesAgo),
-});
+  readonly orgId: string;
+  readonly jamId: string;
+  readonly name: string;
+  readonly status: "pending" | "in_progress" | "completed" | "failed";
+  readonly ownerId: string;
+  readonly attempts: number;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+  readonly completedAt: string | null;
+}
 
-export const sampleMcpServers = [
-  server({
-    id: "mcp_sample_errors",
-    serverKey: "errors",
-    displayName: "Error tracker",
-    url: "https://mcp.example.com/errors",
-    owner: "organization",
-    projectId: "proj_sample_web",
-    toolCount: 9,
-    checkedMinutesAgo: 52,
-  }),
-  server({
-    id: "mcp_sample_search",
-    serverKey: "acme-search",
-    displayName: "Acme Search",
-    url: "https://search.example.com/mcp",
-    owner: "organization",
-    auth: "oauth",
-    toolCount: 12,
-    pluginInstallationId: "plugin_inst_sample_search",
-    checkedMinutesAgo: 30,
-  }),
-  server({
-    id: "mcp_sample_docs",
-    serverKey: "docs",
-    displayName: "Docs search",
-    url: "https://mcp.example.com/docs",
-    owner: "user",
-    connection: "member",
-    auth: "oauth",
-    toolCount: 14,
-    checkedMinutesAgo: 75,
-  }),
+export const sampleSetups: ReadonlyArray<McpSetup> = [
+  {
+    id: "setup_sample_errors",
+    orgId,
+    jamId: threads.checkoutTest.id,
+    name: "Error tracker setup",
+    status: "completed",
+    ownerId: people.alex.id,
+    attempts: 1,
+    createdAt: isoMinutesAgo(180),
+    updatedAt: isoMinutesAgo(120),
+    completedAt: isoMinutesAgo(120),
+  },
+  {
+    id: "setup_sample_docs",
+    orgId,
+    jamId: threads.checkoutTest.id,
+    name: "Docs search setup",
+    status: "failed",
+    ownerId: people.sam.id,
+    attempts: 2,
+    createdAt: isoMinutesAgo(90),
+    updatedAt: isoMinutesAgo(15),
+    completedAt: null,
+  },
+  {
+    id: "setup_sample_other",
+    orgId,
+    jamId: threads.darkMode.id,
+    name: "Docs indexing setup",
+    status: "in_progress",
+    ownerId: people.priya.id,
+    attempts: 1,
+    createdAt: isoMinutesAgo(45),
+    updatedAt: isoMinutesAgo(5),
+    completedAt: null,
+  },
 ];
 
-export const sampleMcpTools = {
-  tools: [
-    { name: "list_incidents", description: "List open incidents" },
-    { name: "get_incident", description: "Read one incident by id" },
-    { name: "post_update", description: "Post a status update" },
+export interface McpConnection {
+  readonly id: string;
+  readonly serverId: string;
+  readonly name: string;
+  readonly status: "connected" | "needs_auth" | "disabled";
+  readonly credentialId: string | null;
+  readonly createdBy: string;
+  readonly createdAt: string;
+  readonly lastUsedAt: string | null;
+}
+
+export const sampleConnections: ReadonlyArray<McpConnection> = [
+  {
+    id: "conn_sample_errors",
+    serverId: "mcp_sample_errors",
+    name: "Error tracker credential",
+    status: "connected",
+    credentialId: "cred_sample_errors",
+    createdBy: people.alex.id,
+    createdAt: isoMinutesAgo(240),
+    lastUsedAt: isoMinutesAgo(4),
+  },
+  {
+    id: "conn_sample_docs",
+    serverId: "mcp_sample_docs",
+    name: "Docs search credential",
+    status: "needs_auth",
+    credentialId: null,
+    createdBy: people.sam.id,
+    createdAt: isoMinutesAgo(120),
+    lastUsedAt: null,
+  },
+];
+
+export interface McpTool {
+  readonly name: string;
+  readonly description: string;
+}
+
+export const sampleToolsByServer: Readonly<
+  Record<string, ReadonlyArray<McpTool>>
+> = {
+  mcp_sample_errors: [
+    {
+      name: "list_recent_errors",
+      description: "Lists the most recent errors reported by the app.",
+    },
+    {
+      name: "search_errors",
+      description: "Searches error reports by message or release.",
+    },
   ],
-  instructions: null,
-  observedAt: iso(52),
+  mcp_sample_docs: [
+    {
+      name: "search_docs",
+      description: "Searches the Acme documentation for a phrase.",
+    },
+    {
+      name: "get_page",
+      description: "Returns the contents of one documentation page.",
+    },
+  ],
 };
+
+export interface McpSecret {
+  readonly serverId: string;
+  readonly position: string;
+  readonly name: string;
+  readonly value: string;
+}
+
+export const sampleSecrets: ReadonlyArray<McpSecret> = [
+  {
+    serverId: "mcp_sample_errors",
+    position: "0",
+    name: "token",
+    value: "example-errors-token",
+  },
+  {
+    serverId: "mcp_sample_docs",
+    position: "0",
+    name: "token",
+    value: "example-docs-token",
+  },
+];
+
+export const sampleFavicon = {
+  url: "https://mcp.example.com/favicon.ico",
+};
+
+export const sampleRedirectUri = "https://example.com/oauth/callback";

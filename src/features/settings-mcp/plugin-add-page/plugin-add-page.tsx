@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
-import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
 import { toast } from "sonner";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
@@ -87,7 +86,7 @@ function AddByVersion({
   readonly sourceRef?: string;
 }) {
   const result = usePluginVersion(orgId, versionId);
-  if (AsyncResult.isSuccess(result))
+  if (result.status === "ready")
     return result.value === null ? (
       <Message>This plugin is not available</Message>
     ) : (
@@ -95,7 +94,7 @@ function AddByVersion({
     );
   return (
     <Message>
-      {AsyncResult.isFailure(result)
+      {result.status === "failed"
         ? "This plugin is not available"
         : "Loading plugin"}
     </Message>

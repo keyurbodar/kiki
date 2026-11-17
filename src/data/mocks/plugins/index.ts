@@ -1,149 +1,492 @@
-import { DateTime, Effect, Ref } from "effect";
-import { fixtureNow } from "../fixtures/time.ts";
-import { sampleMcpServers } from "../mcp/fixtures.ts";
+import { Effect, Ref } from "effect";
+import { fields, MockDb, newId } from "../db/MockDb.ts";
+import {
+  isoMinutesAgo,
+  projects as worldProjects,
+  threads as worldThreads,
+} from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
+  type MarketplaceListing,
+  type PluginInstallation,
+  type PluginServerConnection,
   sampleInstallations,
   sampleMarketplace,
-  samplePluginVersions,
-  sampleSearchVersion,
+  sampleThreadPlugins,
+  sampleVersions,
+  type ThreadPluginBinding,
 } from "./fixtures.ts";
 
-type MockInstallation = (typeof sampleInstallations)[number];
+const locallyMissing = (table: string, id: string) =>
+  Effect.die(new Error(`plugins.${table}: no row ${id}`));
 
-const now = () => DateTime.formatIso(fixtureNow);
+const text = (value: unknown, fallback: string) =>
+  typeof value === "string" && value.trim() !== "" ? value : fallback;
 
-const detail = (installation: MockInstallation) => {
-  const version =
-    samplePluginVersions.find((entry) => entry.id === installation.versionId) ??
-    sampleSearchVersion;
-  return {
-    installation,
-    version,
-    pending: null,
-    canRollBack: false,
-    pendingIsRollback: false,
-    held: false,
-    removedFromMarketplace: false,
-    sourceRef: null,
-    servers: version.servers.map((spec) => {
-      const server = sampleMcpServers.find(
-        (entry) =>
-          entry.pluginInstallationId === installation.id &&
-          entry.serverKey === spec.serverKey,
-      );
-      return {
-        serverId: server?.id ?? `mcp_for_${installation.id}`,
-        ownServerId: null,
-        entry: spec.entry,
-        serverKey: spec.serverKey,
-        displayName: spec.displayName,
-        placement: spec.placement,
-        transport: spec.transport,
-        auth: spec.auth,
-        connection: spec.connection,
-        status: installation.status ?? "Not checked",
-        connected: server !== undefined,
-        toolCount: server?.toolCount ?? null,
-      };
-    }),
-  };
+const lookupInstallation = (
+  rows: ReadonlyArray<PluginInstallation>,
+  id: string,
+) => {
+  const found = rows.find((row) => row.id === id);
+  return found ? Effect.succeed(found) : locallyMissing("installations", id);
 };
 
 export const PluginsMock = mockGroup("plugins", (handlers) =>
   Effect.gen(function* () {
-    const installations =
-      yield* Ref.make<ReadonlyArray<MockInstallation>>(sampleInstallations);
-    const find = (installationId: string) =>
-      Ref.get(installations).pipe(
-        Effect.map((all) => all.find((entry) => entry.id === installationId)),
-      );
-    const patch = (
-      installationId: string,
-      changes: Partial<MockInstallation>,
-    ) =>
-      Ref.updateAndGet(installations, (all) =>
-        all.map((entry) =>
-          entry.id === installationId
-            ? { ...entry, ...changes, updatedAt: now() }
-            : entry,
-        ),
-      ).pipe(
-        Effect.map((all) => {
-          const entry = all.find((item) => item.id === installationId);
-          return entry === undefined ? null : detail(entry);
-        }),
-      );
+    const { members } = yield* MockDb;
+    const installations = yield* Ref.make<ReadonlyArray<PluginInstallation>>(
+      structuredClone(sampleInstallations),
+    );
+    const versions = yield* Ref.make(structuredClone(sampleVersions));
+    const marketplace = yield* Ref.make<ReadonlyArray<MarketplaceListing>>(
+      structuredClone(sampleMarketplace),
+    );
+    const threadPlugins = yield* Ref.make<ReadonlyArray<ThreadPluginBinding>>(
+      structuredClone(sampleThreadPlugins),
+    );
+
     return handlers
-      .handle("listMarketplace", () => Effect.succeed(sampleMarketplace))
-      .handle("listInstallations", () => Ref.get(installations))
-      .handle("getInstallation", ({ params }) =>
-        find(params.installationId).pipe(
-          Effect.map((entry) => (entry === undefined ? null : detail(entry))),
-        ),
+      .handle("listThreadPlugins", ({ params }) =>
+        Effect.gen(function* () {
+          const thread = Object.values(worldThreads).find(
+            (row) => row.id === params.jamId,
+          );
+          if (!thread) {
+            return yield* locallyMissing("threads", params.jamId);
+          }
+          const bindings = (yield* Ref.get(threadPlugins)).filter(
+            (row) => row.threadId === params.jamId,
+          );
+          return bindings.map((row) => ({
+            ...row,
+            threadTitle: thread.title,
+          }));
+        }),
       )
-      .handle("getVersion", ({ params }) =>
-        Effect.succeed(
-          samplePluginVersions.find((entry) => entry.id === params.versionId) ??
-            null,
-        ),
-      )
-      .handle("patchInstallation", ({ params, payload }) => {
-        const { updatedAt: _, ...changes } = payload as {
-          readonly updatedAt?: string;
-        } & Partial<MockInstallation>;
-        return patch(params.installationId, changes);
-      })
-      .handle("removeInstallation", ({ params }) =>
-        Ref.update(installations, (all) =>
-          all.filter((entry) => entry.id !== params.installationId),
-        ).pipe(Effect.as(null)),
-      )
-      .handle("syncInstallation", ({ params }) =>
-        find(params.installationId).pipe(
-          Effect.map((entry) => ({
-            outcome: "unchanged",
-            plugin: entry === undefined ? null : detail(entry),
-          })),
-        ),
-      )
-      .handle("fetchGitHubVersion", () =>
-        Effect.succeed({
-          version: { ...samplePluginVersions[2], source: "github" },
-          ref: "main",
+      .handle("listInstallations", () =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(installations);
+          return rows.map((row) => ({
+            ...row,
+            projectName:
+              Object.values(worldProjects).find((p) => p.id === row.projectId)
+                ?.name ?? null,
+          }));
         }),
       )
       .handle("addInstallation", ({ payload }) =>
         Effect.gen(function* () {
-          const request = payload as {
-            readonly versionId: string;
-            readonly owner: "organization" | "me";
-            readonly projectId: string | null;
-          };
-          const version =
-            samplePluginVersions.find(
-              (entry) => entry.id === request.versionId,
-            ) ?? sampleSearchVersion;
-          const created: MockInstallation = {
-            ...(sampleInstallations[0] as MockInstallation),
-            id: `plugin_inst_sample_${(yield* Ref.get(installations)).length + 1}`,
-            pluginId: version.pluginId,
-            pluginName: version.name,
+          const input = fields(payload);
+          const versionId = text(input.versionId, "plugver_sample_docs_0_9_0");
+          const version = (yield* Ref.get(versions)).find(
+            (row) => row.id === versionId,
+          );
+          if (!version) {
+            return yield* locallyMissing("versions", versionId);
+          }
+          const installIntoThreadId = text(input.threadId, "");
+          if (
+            installIntoThreadId !== "" &&
+            !Object.values(worldThreads).some(
+              (row) => row.id === installIntoThreadId,
+            )
+          ) {
+            return yield* locallyMissing("threads", installIntoThreadId);
+          }
+          const actorId = text(input.installedBy, "");
+          if (
+            actorId !== "" &&
+            !(yield* Ref.get(members)).some((m) => m.id === actorId)
+          ) {
+            return yield* locallyMissing("members", actorId);
+          }
+          const id = newId("plugininst");
+          const now = isoMinutesAgo(0);
+          const installation: PluginInstallation = {
+            id,
+            pluginKey: version.pluginKey,
             displayName: version.displayName,
-            description: version.description,
-            versionId: version.id,
             version: version.version,
-            repository: version.repository,
-            owner: request.owner,
-            projectId: request.projectId,
-            toolCount: 0,
-            skillCount: version.skills.length,
-            status: "Not checked",
-            createdAt: now(),
-            updatedAt: now(),
+            versionId: version.id,
+            status: "connected",
+            threadIds: installIntoThreadId === "" ? [] : [installIntoThreadId],
+            projectId:
+              typeof input.projectId === "string" ? input.projectId : null,
+            installedBy: actorId === "" ? "user_sample_alex" : actorId,
+            installedAt: now,
+            updatedAt: now,
+            updateAvailable: false,
+            rollbackVersion: null,
+            rollbackToVersion: null,
+            lastSyncedAt: now,
+            servers: version.manifest.servers
+              ? (
+                  version.manifest.servers as ReadonlyArray<{
+                    readonly key: string;
+                    readonly name: string;
+                  }>
+                ).map((server) => ({
+                  serverKey: server.key,
+                  name: server.name,
+                  status: "disconnected" as const,
+                  connectedBy: null,
+                  connectedAt: null,
+                }))
+              : [],
+            errorMessage: null,
           };
-          yield* Ref.update(installations, (all) => [...all, created]);
-          return detail(created);
+          yield* Ref.update(installations, (rows) => [...rows, installation]);
+          if (installIntoThreadId !== "") {
+            yield* Ref.update(threadPlugins, (rows) => [
+              ...rows,
+              {
+                id: newId("plugthread"),
+                threadId: installIntoThreadId,
+                installationId: id,
+                pluginKey: version.pluginKey,
+                displayName: version.displayName,
+                version: version.version,
+                status: "enabled" as const,
+                addedBy: installation.installedBy,
+                addedAt: now,
+              },
+            ]);
+          }
+          yield* Ref.update(marketplace, (rows) =>
+            rows.map((row) =>
+              row.key === version.pluginKey ? { ...row, installed: true } : row,
+            ),
+          );
+          return installation;
+        }),
+      )
+      .handle("getInstallation", ({ params }) =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(installations);
+          return yield* lookupInstallation(rows, params.installationId);
+        }),
+      )
+      .handle("patchInstallation", ({ params, payload }) =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(installations);
+          const current = yield* lookupInstallation(
+            rows,
+            params.installationId,
+          );
+          const input = fields(payload);
+          const updated: PluginInstallation = {
+            ...current,
+            ...(typeof input.displayName === "string"
+              ? { displayName: input.displayName }
+              : {}),
+            ...(typeof input.status === "string"
+              ? { status: input.status as PluginInstallation["status"] }
+              : {}),
+            ...(typeof input.projectId === "string"
+              ? { projectId: input.projectId }
+              : {}),
+            ...(Array.isArray(input.threadIds)
+              ? { threadIds: input.threadIds as ReadonlyArray<string> }
+              : {}),
+            updatedAt: isoMinutesAgo(0),
+          };
+          yield* Ref.set(
+            installations,
+            rows.map((row) => (row.id === current.id ? updated : row)),
+          );
+          return updated;
+        }),
+      )
+      .handle("removeInstallation", ({ params }) =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(installations);
+          const current = yield* lookupInstallation(
+            rows,
+            params.installationId,
+          );
+          yield* Ref.set(
+            installations,
+            rows.filter((row) => row.id !== current.id),
+          );
+          yield* Ref.update(threadPlugins, (all) =>
+            all.filter((row) => row.installationId !== current.id),
+          );
+          yield* Ref.update(marketplace, (all) =>
+            all.map((row) =>
+              row.key === current.pluginKey
+                ? { ...row, installed: false }
+                : row,
+            ),
+          );
+          return { ok: true, id: current.id };
+        }),
+      )
+      .handle("rollbackInstallation", ({ params, payload }) =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(installations);
+          const current = yield* lookupInstallation(
+            rows,
+            params.installationId,
+          );
+          const input = fields(payload);
+          const target = text(input.version, current.rollbackVersion ?? "");
+          const fallback = (yield* Ref.get(versions))
+            .filter((row) => row.pluginKey === current.pluginKey)
+            .find((row) => row.version !== current.version);
+          const rollbackVersion =
+            target || (fallback?.version ?? current.version);
+          const updated: PluginInstallation = {
+            ...current,
+            version: rollbackVersion,
+            versionId: fallback?.id ?? current.versionId,
+            status: "connected",
+            updateAvailable: true,
+            rollbackVersion: current.version,
+            rollbackToVersion: rollbackVersion,
+            updatedAt: isoMinutesAgo(0),
+            errorMessage: null,
+          };
+          yield* Ref.set(
+            installations,
+            rows.map((row) => (row.id === current.id ? updated : row)),
+          );
+          yield* Ref.update(threadPlugins, (all) =>
+            all.map((row) =>
+              row.installationId === current.id
+                ? { ...row, version: rollbackVersion }
+                : row,
+            ),
+          );
+          return updated;
+        }),
+      )
+      .handle("cancelRollback", ({ params }) =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(installations);
+          const current = yield* lookupInstallation(
+            rows,
+            params.installationId,
+          );
+          const updated: PluginInstallation = {
+            ...current,
+            rollbackToVersion: null,
+            updatedAt: isoMinutesAgo(0),
+          };
+          yield* Ref.set(
+            installations,
+            rows.map((row) => (row.id === current.id ? updated : row)),
+          );
+          return updated;
+        }),
+      )
+      .handle("connectServer", ({ params, payload }) =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(installations);
+          const current = yield* lookupInstallation(
+            rows,
+            params.installationId,
+          );
+          const input = fields(payload);
+          const server = current.servers.find(
+            (row) => row.serverKey === params.serverKey,
+          );
+          if (!server) {
+            return yield* locallyMissing("servers", params.serverKey);
+          }
+          const connectedBy = text(input.connectedBy, current.installedBy);
+          if (
+            !(yield* Ref.get(members)).some((row) => row.id === connectedBy)
+          ) {
+            return yield* locallyMissing("members", connectedBy);
+          }
+          const connection: PluginServerConnection = {
+            ...server,
+            name: text(input.name, server.name),
+            status: "connected",
+            connectedBy,
+            connectedAt: isoMinutesAgo(0),
+          };
+          const updated: PluginInstallation = {
+            ...current,
+            servers: current.servers.map((row) =>
+              row.serverKey === params.serverKey ? connection : row,
+            ),
+            status: "connected",
+            updatedAt: isoMinutesAgo(0),
+          };
+          yield* Ref.set(
+            installations,
+            rows.map((row) => (row.id === current.id ? updated : row)),
+          );
+          return { ...updated, server: connection };
+        }),
+      )
+      .handle("disconnectServer", ({ params }) =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(installations);
+          const current = yield* lookupInstallation(
+            rows,
+            params.installationId,
+          );
+          const server = current.servers.find(
+            (row) => row.serverKey === params.serverKey,
+          );
+          if (!server) {
+            return yield* locallyMissing("servers", params.serverKey);
+          }
+          const connection: PluginServerConnection = {
+            ...server,
+            status: "disconnected",
+            connectedBy: null,
+            connectedAt: null,
+          };
+          const updated: PluginInstallation = {
+            ...current,
+            servers: current.servers.map((row) =>
+              row.serverKey === params.serverKey ? connection : row,
+            ),
+            updatedAt: isoMinutesAgo(0),
+          };
+          yield* Ref.set(
+            installations,
+            rows.map((row) => (row.id === current.id ? updated : row)),
+          );
+          return { ...updated, server: connection };
+        }),
+      )
+      .handle("syncInstallation", ({ params }) =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(installations);
+          const current = yield* lookupInstallation(
+            rows,
+            params.installationId,
+          );
+          const now = isoMinutesAgo(0);
+          const updated: PluginInstallation = {
+            ...current,
+            lastSyncedAt: now,
+            updatedAt: now,
+            errorMessage: null,
+          };
+          yield* Ref.set(
+            installations,
+            rows.map((row) => (row.id === current.id ? updated : row)),
+          );
+          return updated;
+        }),
+      )
+      .handle("updateInstallation", ({ params, payload }) =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(installations);
+          const current = yield* lookupInstallation(
+            rows,
+            params.installationId,
+          );
+          const input = fields(payload);
+          const versionId = text(input.versionId, "");
+          const allVersions = yield* Ref.get(versions);
+          const target =
+            versionId === ""
+              ? allVersions.find((row) => row.pluginKey === current.pluginKey)
+              : allVersions.find((row) => row.id === versionId);
+          if (!target) {
+            return yield* locallyMissing("versions", versionId);
+          }
+          const updated: PluginInstallation = {
+            ...current,
+            version: target.version,
+            versionId: target.id,
+            status: "connected",
+            updateAvailable: false,
+            rollbackVersion: current.version,
+            rollbackToVersion: null,
+            lastSyncedAt: isoMinutesAgo(0),
+            updatedAt: isoMinutesAgo(0),
+            errorMessage: null,
+          };
+          yield* Ref.set(
+            installations,
+            rows.map((row) => (row.id === current.id ? updated : row)),
+          );
+          yield* Ref.update(threadPlugins, (all) =>
+            all.map((row) =>
+              row.installationId === current.id
+                ? { ...row, version: target.version }
+                : row,
+            ),
+          );
+          return updated;
+        }),
+      )
+      .handle("getVersion", ({ params }) =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(versions);
+          const found = rows.find((row) => row.id === params.versionId);
+          if (!found) {
+            return yield* locallyMissing("versions", params.versionId);
+          }
+          return {
+            ...found,
+            plugin: {
+              id: found.pluginKey,
+              key: found.pluginKey,
+              displayName: found.displayName,
+            },
+            installation: {
+              version: found.version,
+            },
+          };
+        }),
+      )
+      .handle("getVersionIcon", ({ params }) =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(versions);
+          const found = rows.find((row) => row.id === params.versionId);
+          if (!found) {
+            return yield* locallyMissing("versions", params.versionId);
+          }
+          return {
+            versionId: found.id,
+            url: found.iconUrl,
+            contentType: "image/svg+xml",
+          };
+        }),
+      )
+      .handle("fetchGitHubVersion", ({ payload }) =>
+        Effect.gen(function* () {
+          const input = fields(payload);
+          const repo = text(input.repository, "acme/ci-helper");
+          const version = text(input.version, "1.4.0");
+          const match = (yield* Ref.get(marketplace)).find(
+            (row) => row.repository === repo,
+          );
+          const displayName = match?.displayName ?? "CI Helper";
+          const resolvedVersion = match?.latestVersion ?? version;
+          return {
+            id: `plugver_github_${repo.replaceAll("/", "_")}_${resolvedVersion}`,
+            repository: repo,
+            pluginKey: match?.key ?? "ci-helper",
+            displayName,
+            version: resolvedVersion,
+            changelog: `Upstream notes for ${displayName} ${resolvedVersion}.`,
+            manifest: {
+              name: match?.key ?? "ci-helper",
+              version: resolvedVersion,
+              repository: repo,
+            },
+            publishedAt: isoMinutesAgo(24 * 60),
+            source: "github",
+          };
+        }),
+      )
+      .handle("listMarketplace", () =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(marketplace);
+          const installed = yield* Ref.get(installations);
+          return rows.map((row) => ({
+            ...row,
+            installed: installed.some((item) => item.pluginKey === row.key),
+          }));
         }),
       );
   }),

@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
-import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
 import { toast } from "sonner";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
@@ -43,7 +42,7 @@ function UpdateForOrg({
   installationId,
 }: PluginUpdatePageProps & { readonly orgId: OrgId }) {
   const result = usePluginInstallation(orgId, installationId);
-  if (!AsyncResult.isSuccess(result)) return <Message>Loading plugin</Message>;
+  if (result.status !== "ready") return <Message>Loading plugin</Message>;
   if (result.value === null)
     return <Message>This plugin no longer exists</Message>;
   if (result.value.pending === null)
