@@ -1,190 +1,178 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { type AsyncResult, type Atom, AtomRegistry } from "effect/reactivity";
-import { ApiClient } from "../../client/ApiClient.ts";
-import { driveFiles, orgId, people } from "../fixtures/world.ts";
+import { AtomRegistry } from "effect/reactivity";
+import { VolumeFolderPage } from "../../api/schemas/drive.ts";
+import {
+  driveChangesAtom,
+  driveCreateShare,
+  driveFileVersionsAtom,
+  driveFolderAtom,
+  driveOrgSharesAtom,
+  drivePublicShareAtom,
+  driveScopeDirectoryAtom,
+  driveUpdateShare,
+  driveVersionsAtom,
+  driveVolumesAtom,
+  driveWrite,
+} from "../../atoms/drive.ts";
+import { orgId, projects, viewer } from "../fixtures/world.ts";
+import { shareId, versionId, volumeId } from "./fixtures.ts";
+import { digest, folderEntries } from "./index.ts";
 
-const key = `volumes:${orgId}`;
-const volumeId = "vol_sample_acme";
-const versionId = "ver_sample_2";
-const listAtom = ApiClient.query("volumes", "list", {
-  params: { orgId },
-  query: {},
-  reactivityKeys: [key],
-});
-const sharesAtom = ApiClient.query("volumes", "listShares", {
-  params: { orgId, volumeId },
-  reactivityKeys: [key],
-});
-const write = ApiClient.mutation("volumes", "write");
-const createShare = ApiClient.mutation("volumes", "createShare");
-const revokeShare = ApiClient.mutation("volumes", "revokeShare");
-
-interface Listing {
-  readonly items: ReadonlyArray<{ readonly id: string; readonly path: string }>;
-}
-
-type Share = { readonly id: string };
-
-const paths = (value: unknown) =>
-  (value as Listing).items.map((row) => row.path);
-const shareIds = (value: unknown) =>
-  (value as ReadonlyArray<Share>).map((row) => row.id);
+const web = volumeId("WEB");
 
 describe("volumes mock", () => {
-  it.effect("answers every volumes endpoint", () =>
+  it.effect("summarises every scope with storage", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
-      assert.isAbove(
-        paths(yield* AtomRegistry.getResult(registry, listAtom)).length,
-        0,
+      const directory = yield* AtomRegistry.getResult(
+        registry,
+        driveScopeDirectoryAtom(orgId),
       );
-
-      const get = <A, E>(atom: Atom.Atom<AsyncResult.AsyncResult<A, E>>) =>
-        AtomRegistry.getResult(registry, atom);
-      const queries = [
-        ApiClient.query("volumes", "readShare", {
-          params: { shareId: "shr_sample_spec" },
-        }),
-        ApiClient.query("volumes", "agentContextPreview", {
-          params: { orgId },
-          query: {},
-        }),
-        ApiClient.query("volumes", "scopeDirectory", {
-          params: { orgId },
-          query: {},
-        }),
-        ApiClient.query("volumes", "listOrgShares", {
-          params: { orgId },
-          query: {},
-        }),
-        ApiClient.query("volumes", "skills", {
-          params: { orgId },
-          query: {},
-        }),
-        ApiClient.query("volumes", "fileVersions", {
-          params: { orgId, volumeId },
-          query: { fileId: driveFiles[0].id },
-        }),
-        ApiClient.query("volumes", "listShares", {
-          params: { orgId, volumeId },
-        }),
-        ApiClient.query("volumes", "versions", { params: { orgId, volumeId } }),
-        ApiClient.query("volumes", "manifest", {
-          params: { orgId, volumeId, versionId },
-          query: {},
-        }),
-        ApiClient.query("volumes", "changes", {
-          params: { orgId, volumeId, versionId },
-        }),
-        ApiClient.query("volumes", "file", {
-          params: { orgId, volumeId, versionId, sha256: "sha256_sample_spec" },
-        }),
-        ApiClient.query("volumes", "tree", {
-          params: { orgId, volumeId, versionId },
-          query: {},
-        }),
-        ApiClient.query("volumes", "publicShare", {
-          params: { shareId: "shr_sample_chart" },
-        }),
-      ];
-      for (const query of queries) {
-        assert.isNotEmpty(yield* get(query));
-      }
-
-      const archive = ApiClient.mutation("volumes", "archive");
-      registry.set(archive, {
-        params: { orgId, volumeId },
-        reactivityKeys: [key],
-      });
-      assert.isNotEmpty(yield* AtomRegistry.getResult(registry, archive));
-
-      const restore = ApiClient.mutation("volumes", "restore");
-      registry.set(restore, {
-        params: { orgId, volumeId },
-        payload: { versionId },
-        reactivityKeys: [key],
-      });
-      assert.isNotEmpty(yield* AtomRegistry.getResult(registry, restore));
-
-      const unarchive = ApiClient.mutation("volumes", "unarchive");
-      registry.set(unarchive, {
-        params: { orgId, volumeId },
-        reactivityKeys: [key],
-      });
-      assert.isNotEmpty(yield* AtomRegistry.getResult(registry, unarchive));
-
-      const purgeName = ApiClient.mutation("volumes", "purgeName");
-      registry.set(purgeName, {
-        params: { orgId, volumeId },
-        payload: { name: "notes/old-plan.md" },
-        reactivityKeys: [key],
-      });
-      const purged = yield* AtomRegistry.getResult(registry, purgeName);
-      assert.isTrue((purged as { ok: boolean }).ok);
-
-      const updateShare = ApiClient.mutation("volumes", "updateShare");
-      registry.set(updateShare, {
-        params: { orgId, shareId: "shr_sample_spec" },
-        payload: { permission: "edit" },
-        reactivityKeys: [key],
-      });
-      assert.isNotEmpty(yield* AtomRegistry.getResult(registry, updateShare));
+      assert.strictEqual(directory.items.length, 8);
+      assert.strictEqual(directory.storage.limitBytes, 10 * 1024 ** 3);
+      assert.isAbove(directory.storage.usedBytes, 0);
     }),
   );
 
-  it.effect("refreshes drive files and shares after mutations", () =>
+  it.effect("lists one exact scope and its root folder", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
-      registry.mount(listAtom);
-      registry.mount(sharesAtom);
-      yield* AtomRegistry.getResult(registry, listAtom);
-      const before = paths(yield* AtomRegistry.getResult(registry, listAtom));
-
-      registry.set(write, {
-        params: { orgId },
-        payload: {
-          path: "notes/wiring-test.md",
-          size: 12,
-          mimeType: "text/markdown",
-          updatedBy: people.alex.id,
-        },
-        reactivityKeys: [key],
-      });
-      yield* AtomRegistry.getResult(registry, write);
-      const after = paths(
-        yield* AtomRegistry.getResult(registry, listAtom, {
-          suspendOnWaiting: true,
-        }),
+      const volumes = yield* AtomRegistry.getResult(
+        registry,
+        driveVolumesAtom(orgId, { projectId: projects.web.id }),
       );
-      assert.isAbove(after.length, before.length);
-      assert.include(after, "notes/wiring-test.md");
-
-      registry.set(createShare, {
-        params: { orgId, volumeId },
-        payload: {
-          fileId: driveFiles[0].id,
-          scope: "organization",
-          permission: "view",
-        },
-        reactivityKeys: [key],
-      });
-      const created = yield* AtomRegistry.getResult(registry, createShare);
-      const id = (created as { id: string }).id;
-      const withShare = yield* AtomRegistry.getResult(registry, sharesAtom, {
-        suspendOnWaiting: true,
-      });
-      assert.include(shareIds(withShare), id);
-
-      registry.set(revokeShare, {
-        params: { orgId, shareId: id },
-        reactivityKeys: [key],
-      });
-      yield* AtomRegistry.getResult(registry, revokeShare);
-      const afterRevoke = yield* AtomRegistry.getResult(registry, sharesAtom, {
-        suspendOnWaiting: true,
-      });
-      assert.notInclude(shareIds(afterRevoke), id);
+      assert.deepStrictEqual(
+        volumes.map((volume) => volume.id),
+        [web],
+      );
+      const head = volumes[0]?.headVersionId ?? "";
+      const page = yield* AtomRegistry.getResult(
+        registry,
+        driveFolderAtom(orgId, web, head, ""),
+      );
+      assert.instanceOf(page, VolumeFolderPage);
+      assert.deepStrictEqual(
+        (page as VolumeFolderPage).entries.map((entry) => entry.name),
+        ["reports", "specs", "AGENTS.md"],
+      );
     }),
   );
+
+  it.effect("reports history and per-file versions", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const versions = yield* AtomRegistry.getResult(
+        registry,
+        driveVersionsAtom(orgId, web),
+      );
+      assert.deepStrictEqual(
+        versions.map((row) => row.id),
+        [versionId("WEB2"), versionId("WEB1")],
+      );
+      const changes = yield* AtomRegistry.getResult(
+        registry,
+        driveChangesAtom(orgId, web, versionId("WEB2")),
+      );
+      assert.deepStrictEqual(
+        changes.changes.map((row) => [row.path, row.change]),
+        [
+          ["reports/latency-week-9.csv", "added"],
+          ["specs/checkout-retry.md", "modified"],
+        ],
+      );
+      const fileVersions = yield* AtomRegistry.getResult(
+        registry,
+        driveFileVersionsAtom(orgId, web, "specs/checkout-retry.md"),
+      );
+      assert.strictEqual(fileVersions.length, 2);
+    }),
+  );
+
+  it.effect("writes a file and refreshes the drive queries", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const scope = { userId: viewer.id };
+      registry.mount(driveVolumesAtom(orgId, scope));
+      const before = yield* AtomRegistry.getResult(
+        registry,
+        driveVolumesAtom(orgId, scope),
+      );
+      assert.strictEqual(before[0]?.fileCount, 0);
+      registry.set(driveWrite, {
+        params: { orgId: orgId as never },
+        payload: {
+          scope: scope as never,
+          expectedDigest: null,
+          changes: [{ path: "todo.md", content: "# Todo\n" }],
+        },
+        reactivityKeys: [`volume:${orgId}`],
+      });
+      yield* AtomRegistry.getResult(registry, driveWrite);
+      const after = yield* AtomRegistry.getResult(
+        registry,
+        driveVolumesAtom(orgId, scope),
+        { suspendOnWaiting: true },
+      );
+      assert.strictEqual(after[0]?.fileCount, 1);
+    }),
+  );
+
+  it.effect("creates, publishes and lists shares", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      registry.set(driveCreateShare, {
+        params: { orgId: orgId as never, volumeId: web as never },
+        payload: { path: "AGENTS.md" },
+        reactivityKeys: [`volume:${orgId}`],
+      });
+      const share = yield* AtomRegistry.getResult(registry, driveCreateShare);
+      registry.mount(drivePublicShareAtom(share.id));
+      assert.strictEqual(share.visibility, "private");
+      const restricted = yield* AtomRegistry.getResult(
+        registry,
+        drivePublicShareAtom(share.id),
+      );
+      assert.strictEqual(restricted.type, "restricted");
+      registry.set(driveUpdateShare, {
+        params: { orgId: orgId as never, shareId: share.id },
+        payload: { visibility: "public" },
+        reactivityKeys: [`volume:${orgId}`, `drive-share:${share.id}`],
+      });
+      yield* AtomRegistry.getResult(registry, driveUpdateShare);
+      const opened = yield* AtomRegistry.getResult(
+        registry,
+        drivePublicShareAtom(share.id),
+        { suspendOnWaiting: true },
+      );
+      assert.strictEqual(opened.type, "file");
+      const listed = yield* AtomRegistry.getResult(
+        registry,
+        driveOrgSharesAtom(orgId),
+      );
+      assert.strictEqual(listed.total, 3);
+      assert.isTrue(listed.items.some((row) => row.id === shareId("spec")));
+    }),
+  );
+
+  it("derives folders and stable digests", () => {
+    assert.match(digest("a"), /^[0-9a-f]{64}$/u);
+    assert.strictEqual(digest("a"), digest("a"));
+    assert.notStrictEqual(digest("a"), digest("b"));
+    const entries = folderEntries(
+      [
+        { path: "a/b.md", content: "x" },
+        { path: "a/c/d.md", content: "yy" },
+        { path: "e.md", content: "z" },
+      ],
+      "a",
+    );
+    assert.deepStrictEqual(
+      entries.map((entry) => [entry.kind, entry.path, entry.sizeBytes]),
+      [
+        ["folder", "a/c", 2],
+        ["file", "a/b.md", 1],
+      ],
+    );
+  });
 });
