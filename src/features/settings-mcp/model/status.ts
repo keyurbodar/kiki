@@ -179,7 +179,9 @@ export type ProjectRef =
 
 export const projectRef = (
   projectId: string | null,
-  projects: ReadonlyArray<{ readonly id: string; readonly name: string }> | undefined,
+  projects:
+    | ReadonlyArray<{ readonly id: string; readonly name: string }>
+    | undefined,
   deleted: ReadonlyArray<{ readonly id: string }> | undefined,
 ): ProjectRef | undefined => {
   if (projectId === null) return undefined;

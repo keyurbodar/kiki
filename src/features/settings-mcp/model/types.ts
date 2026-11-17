@@ -10,7 +10,11 @@ export type McpSecretPosition =
   | "client_secret";
 
 export type McpSecretView =
-  | { readonly kind: "literal"; readonly value: string; readonly visible?: boolean }
+  | {
+      readonly kind: "literal";
+      readonly value: string;
+      readonly visible?: boolean;
+    }
   | { readonly kind: "project_env"; readonly name: string }
   | { readonly kind: "machine_env"; readonly name: string }
   | { readonly kind: "file"; readonly path: string; readonly key: string }
@@ -132,7 +136,10 @@ export interface McpDiagnosis {
     readonly detail: string;
   } | null;
   readonly toolCount: number | null;
-  readonly machines: ReadonlyArray<{ readonly id: string; readonly label: string }>;
+  readonly machines: ReadonlyArray<{
+    readonly id: string;
+    readonly label: string;
+  }>;
 }
 
 export interface McpDraftProbe {
@@ -167,7 +174,10 @@ export interface PluginServerSpec {
   readonly connection: McpConnection;
   readonly scopes?: ReadonlyArray<string>;
   readonly secrets: Readonly<
-    Record<string, { readonly description: string; readonly optional?: boolean }>
+    Record<
+      string,
+      { readonly description: string; readonly optional?: boolean }
+    >
   >;
 }
 

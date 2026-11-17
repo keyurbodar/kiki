@@ -1,6 +1,6 @@
 import { DateTime, Effect, Ref } from "effect";
-import { sampleMcpServers } from "../mcp/fixtures.ts";
 import { fixtureNow } from "../fixtures/time.ts";
+import { sampleMcpServers } from "../mcp/fixtures.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
   sampleInstallations,
@@ -58,7 +58,10 @@ export const PluginsMock = mockGroup("plugins", (handlers) =>
       Ref.get(installations).pipe(
         Effect.map((all) => all.find((entry) => entry.id === installationId)),
       );
-    const patch = (installationId: string, changes: Partial<MockInstallation>) =>
+    const patch = (
+      installationId: string,
+      changes: Partial<MockInstallation>,
+    ) =>
       Ref.updateAndGet(installations, (all) =>
         all.map((entry) =>
           entry.id === installationId
@@ -118,8 +121,9 @@ export const PluginsMock = mockGroup("plugins", (handlers) =>
             readonly projectId: string | null;
           };
           const version =
-            samplePluginVersions.find((entry) => entry.id === request.versionId) ??
-            sampleSearchVersion;
+            samplePluginVersions.find(
+              (entry) => entry.id === request.versionId,
+            ) ?? sampleSearchVersion;
           const created: MockInstallation = {
             ...(sampleInstallations[0] as MockInstallation),
             id: `plugin_inst_sample_${(yield* Ref.get(installations)).length + 1}`,

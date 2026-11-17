@@ -9,7 +9,8 @@ const now = () => DateTime.formatIso(fixtureNow);
 
 export const McpMock = mockGroup("mcp", (handlers) =>
   Effect.gen(function* () {
-    const servers = yield* Ref.make<ReadonlyArray<MockServer>>(sampleMcpServers);
+    const servers =
+      yield* Ref.make<ReadonlyArray<MockServer>>(sampleMcpServers);
     const find = (serverId: string) =>
       Ref.get(servers).pipe(
         Effect.map((all) => all.find((server) => server.id === serverId)),
@@ -22,13 +23,17 @@ export const McpMock = mockGroup("mcp", (handlers) =>
             : server,
         ),
       ).pipe(
-        Effect.map((all) => all.find((server) => server.id === serverId) ?? null),
+        Effect.map(
+          (all) => all.find((server) => server.id === serverId) ?? null,
+        ),
       );
     return handlers
       .handle("listServers", () => Ref.get(servers))
       .handle("serverTools", ({ params }) =>
         find(params.serverId).pipe(
-          Effect.map((server) => (server === undefined ? null : sampleMcpTools)),
+          Effect.map((server) =>
+            server === undefined ? null : sampleMcpTools,
+          ),
         ),
       )
       .handle("listConnections", () => Effect.succeed([]))

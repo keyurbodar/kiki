@@ -1,8 +1,8 @@
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
+import type { OrgId } from "@/data/api/schemas/ids.ts";
 import { projectsAtom } from "@/data/atoms/projects.ts";
 import { organizationsAtom } from "@/data/atoms/session.ts";
-import type { OrgId } from "@/data/api/schemas/ids.ts";
 import {
   familyKey,
   marketplaceAtom,
@@ -21,45 +21,47 @@ import type {
   PluginVersion,
 } from "./types.ts";
 
-const valueOf = <A>(result: AsyncResult.AsyncResult<unknown, unknown>) =>
+const resultValue = <A>(result: AsyncResult.AsyncResult<unknown, unknown>) =>
   AsyncResult.isSuccess(result) ? (result.value as A) : undefined;
 
 export const useActiveOrgId = (): OrgId | undefined =>
-  valueOf<ReadonlyArray<{ readonly id: OrgId }>>(
+  resultValue<ReadonlyArray<{ readonly id: OrgId }>>(
     useAtomValue(organizationsAtom),
   )?.[0]?.id;
 
 const disabledOrg = "" as OrgId;
 
 export const useMcpServers = (orgId: OrgId | undefined) =>
-  valueOf<ReadonlyArray<McpServer>>(
+  resultValue<ReadonlyArray<McpServer>>(
     useAtomValue(mcpServersAtom(orgId ?? disabledOrg)),
   );
 
 export const usePluginInstallations = (orgId: OrgId | undefined) =>
-  valueOf<ReadonlyArray<InstalledPlugin>>(
+  resultValue<ReadonlyArray<InstalledPlugin>>(
     useAtomValue(pluginInstallationsAtom(orgId ?? disabledOrg)),
   );
 
 export const useMarketplace = (orgId: OrgId | undefined) =>
-  valueOf<ReadonlyArray<MarketplacePlugin>>(
+  resultValue<ReadonlyArray<MarketplacePlugin>>(
     useAtomValue(marketplaceAtom(orgId ?? disabledOrg)),
   );
 
 export const usePluginInstallation = (orgId: OrgId, installationId: string) =>
-  useAtomValue(pluginInstallationAtom(familyKey(orgId, installationId))) as
-    AsyncResult.AsyncResult<InstalledPluginDetail | null, unknown>;
+  useAtomValue(
+    pluginInstallationAtom(familyKey(orgId, installationId)),
+  ) as AsyncResult.AsyncResult<InstalledPluginDetail | null, unknown>;
 
 export const usePluginVersion = (orgId: OrgId, versionId: string) =>
-  useAtomValue(pluginVersionAtom(familyKey(orgId, versionId))) as
-    AsyncResult.AsyncResult<PluginVersion | null, unknown>;
+  useAtomValue(
+    pluginVersionAtom(familyKey(orgId, versionId)),
+  ) as AsyncResult.AsyncResult<PluginVersion | null, unknown>;
 
 export const useServerTools = (orgId: OrgId, serverId: string) =>
-  valueOf<McpServerTools | null>(
+  resultValue<McpServerTools | null>(
     useAtomValue(mcpServerToolsAtom(familyKey(orgId, serverId))),
   );
 
 export const useProjects = (orgId: OrgId | undefined) =>
-  valueOf<ReadonlyArray<{ readonly id: string; readonly name: string }>>(
+  resultValue<ReadonlyArray<{ readonly id: string; readonly name: string }>>(
     useAtomValue(projectsAtom(orgId ?? disabledOrg)),
   );
