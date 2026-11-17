@@ -26,6 +26,14 @@ export const githubInstallationAtom = Atom.family((orgId: OrgId) =>
   }),
 );
 
+export const githubWorkspaceAtom = Atom.family((orgId: OrgId) =>
+  ApiClient.query("integrations", "getGitHubWorkspace", {
+    params: { orgId },
+    reactivityKeys: integrationKeys.githubInstallation(orgId),
+    timeToLive: queryTimeToLive,
+  }),
+);
+
 export const slackConnectionAtom = Atom.family((orgId: OrgId) =>
   ApiClient.query("integrations", "getSlack", {
     params: { orgId },

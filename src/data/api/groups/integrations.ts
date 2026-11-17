@@ -4,6 +4,7 @@ import { InferredMethod } from "../annotations.ts";
 import {
   GitHubInstallationConnection,
   GitHubUserConnection,
+  GitHubWorkspaceConnection,
   LinearConnection,
   PaperStatus,
   SlackConnection,
@@ -128,7 +129,10 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
   HttpApiEndpoint.get(
     "getGitHubWorkspace",
     "/orgs/:orgId/integrations/github/workspace",
-    { params: { orgId: Schema.String }, success: Undecoded },
+    {
+      params: { orgId: Schema.String },
+      success: Schema.NullOr(GitHubWorkspaceConnection),
+    },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.get("getLinear", "/orgs/:orgId/integrations/linear", {
     params: { orgId: Schema.String },

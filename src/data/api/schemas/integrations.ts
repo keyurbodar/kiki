@@ -114,3 +114,33 @@ export class TailscaleConnection extends Schema.Class<TailscaleConnection>(
 export class IntegrationMutationResult extends Schema.Class<IntegrationMutationResult>(
   "IntegrationMutationResult",
 )({ ok: Schema.Literal(true) }) {}
+
+export class GitHubWorkspaceProject extends Schema.Class<GitHubWorkspaceProject>(
+  "GitHubWorkspaceProject",
+)({ id: ProjectId, name: Schema.String }) {}
+
+export class GitHubWorkspaceInstallation extends Schema.Class<GitHubWorkspaceInstallation>(
+  "GitHubWorkspaceInstallation",
+)({
+  installationId: Schema.Number,
+  accountLogin: Schema.NullOr(Schema.String),
+  accountType: Schema.NullOr(Schema.String),
+  state: Schema.Literals(["active", "suspended", "unavailable"]),
+  repositoryCount: Schema.Number,
+  manageUrl: Schema.NullOr(Schema.String),
+}) {}
+
+export class GitHubWorkspaceRepo extends Schema.Class<GitHubWorkspaceRepo>(
+  "GitHubWorkspaceRepo",
+)({
+  repoFullName: Schema.String,
+  accountLogins: Schema.Array(Schema.String),
+  projects: Schema.Array(GitHubWorkspaceProject),
+}) {}
+
+export class GitHubWorkspaceConnection extends Schema.Class<GitHubWorkspaceConnection>(
+  "GitHubWorkspaceConnection",
+)({
+  installations: Schema.Array(GitHubWorkspaceInstallation),
+  repos: Schema.Array(GitHubWorkspaceRepo),
+}) {}

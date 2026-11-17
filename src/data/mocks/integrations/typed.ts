@@ -3,6 +3,10 @@ import type { ProjectId, UserId } from "../../api/schemas/ids.ts";
 import {
   GitHubInstallationConnection,
   GitHubUserConnection,
+  GitHubWorkspaceConnection,
+  GitHubWorkspaceInstallation,
+  GitHubWorkspaceProject,
+  GitHubWorkspaceRepo,
   LinearConnection,
   LinearTeamMapping,
   PaperConnection,
@@ -10,7 +14,7 @@ import {
   SlackConnection,
   TailscaleConnection,
 } from "../../api/schemas/integrations.ts";
-import { isoMinutesAgo, people, projects } from "../fixtures/world.ts";
+import { isoMinutesAgo, people, projects, repos } from "../fixtures/world.ts";
 
 type Row = { readonly connected: boolean; readonly [key: string]: unknown };
 
@@ -118,5 +122,42 @@ export const toTailscale = (row: Row) =>
         connectedByUserId: connectedBy,
         createdAt: time(row, "connectedAt"),
         updatedAt: time(row, "connectedAt"),
+      })
+    : null;
+
+export const toGitHubWorkspace = (row: Row) =>
+  row.connected
+    ? new GitHubWorkspaceConnection({
+        installations: [
+          new GitHubWorkspaceInstallation({
+            installationId: 1001,
+            accountLogin: "acme",
+            accountType: "Organization",
+            state: row.suspended === true ? "suspended" : "active",
+            repositoryCount: repos.length,
+            manageUrl:
+              "https://github.com/organizations/acme/settings/installations",
+          }),
+        ],
+        repos: repos.map(
+          (repo) =>
+            new GitHubWorkspaceRepo({
+              repoFullName: repo.fullName,
+              accountLogins: ["acme"],
+              projects: Object.values(projects)
+                .filter((project) =>
+                  (project.repos as ReadonlyArray<string>).includes(
+                    repo.fullName,
+                  ),
+                )
+                .map(
+                  (project) =>
+                    new GitHubWorkspaceProject({
+                      id: project.id as ProjectId,
+                      name: project.name,
+                    }),
+                ),
+            }),
+        ),
       })
     : null;

@@ -9,7 +9,6 @@ import {
   sampleGitHubInstallationRepos,
   sampleGitHubReachableInstallations,
   sampleGitHubUser,
-  sampleGitHubWorkspace,
   sampleLinearConnection,
   sampleLinearLabels,
   sampleLinearLinks,
@@ -31,6 +30,7 @@ import {
 import {
   toGitHubInstallation,
   toGitHubUser,
+  toGitHubWorkspace,
   toLinear,
   toPaper,
   toSlack,
@@ -305,7 +305,9 @@ export const IntegrationsMock = mockGroup("integrations", (handlers) =>
           ),
         ),
       )
-      .handle("getGitHubWorkspace", () => Effect.succeed(sampleGitHubWorkspace))
+      .handle("getGitHubWorkspace", () =>
+        Effect.map(Ref.get(githubInstallation), toGitHubWorkspace),
+      )
       .handle("getLinear", () => Effect.map(Ref.get(linear), toLinear))
       .handle("updateLinear", ({ payload }) => {
         const input = fields(payload);

@@ -1,3 +1,4 @@
+export { GitHubIntegrationPage } from "./github-page";
 export { IntegrationsPage } from "./integrations-page";
 export {
   LinearIntegrationPage,
