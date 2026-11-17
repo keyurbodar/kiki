@@ -488,7 +488,9 @@ export function AutomationsList({
                   data-track-owner={track(
                     "AutomationsList:CollapsibleTrigger.1",
                   )}
-                  className="group/collapsible flex h-9 w-full cursor-pointer items-center gap-2 rounded-(--radius-card) bg-section px-2 text-sm font-medium text-foreground outline-none focus-visible:outline-ring-inset"
+                  block
+                  showChevron={false}
+                  tone="section"
                 >
                   <span className="flex w-4 shrink-0 items-center justify-center">
                     <ChevronDownSmall className="size-(--icon-xs) shrink-0 -rotate-90 text-muted-foreground-3 transition-transform duration-100 group-data-[panel-open]/collapsible:rotate-0" />
