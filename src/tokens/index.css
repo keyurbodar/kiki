@@ -3,10 +3,13 @@
  * after Tailwind. Nothing outside src/tokens defines a raw value.
  */
 
+@import "./fonts.css";
+@import "./fonts-katex.css";
 @import "./primitives.css";
 @import "./semantic.css";
 @import "./components.css";
 @import "./themes/default.css";
 @import "./themes/presets.css";
 @import "./motion.css";
+@import "./effects.css";
 @import "./base.css";
