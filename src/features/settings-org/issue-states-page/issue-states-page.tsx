@@ -35,7 +35,7 @@ import { IssueLabelsSection } from "../issue-labels-section";
 import { StateEditorDialog } from "../issue-state-editor";
 import { stateIconGlyph } from "../issue-state-editor/state-icons";
 import type { IssueState, StateCounts } from "./data";
-import { decodeStates, issueStateChange } from "./data";
+import { decodeCounts, decodeStates, issueStateChange } from "./data";
 
 const updateStateAtom = ApiClient.mutation("issues", "updateState");
 const createStateAtom = ApiClient.mutation("issues", "createState");
@@ -74,8 +74,19 @@ function IssueStates({ orgId }: { orgId: string }) {
   >(null);
   const [deleting, setDeleting] = useState<IssueState | null>(null);
   const [deletingBusy, setDeletingBusy] = useState(false);
-  const [counts] = useState<StateCounts>({});
-  const keys = [reactivityKeys.issueStates(orgId)];
+  const keys = [
+    reactivityKeys.issueStates(orgId),
+    reactivityKeys.issues(orgId),
+  ];
+  const countsResult = useAtomValue(
+    ApiClient.query("issues", "stateCounts", {
+      params: { orgId: orgId as never },
+      reactivityKeys: keys,
+    }),
+  );
+  const counts = AsyncResult.isSuccess(countsResult)
+    ? decodeCounts(countsResult.value)
+    : {};
 
   const lastOfType = (state: IssueState) =>
     states.filter((item) => item.type === state.type).length === 1;
