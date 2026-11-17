@@ -1,7 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { type ReactNode, useState } from "react";
+import { type DragEvent, type ReactNode, useState } from "react";
 import { ChatIdentity } from "@/features/captains/chat-identity";
 import { Badge } from "@/primitives/badge";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuTrigger,
+} from "@/primitives/context-menu";
+import { MenuItem, MenuSeparator } from "@/primitives/menu";
 import {
   formatAge,
   type ProjectSummary,
@@ -77,6 +83,8 @@ export type ThreadRowProps = {
   checked: boolean;
   selectionMode: boolean;
   onCheck: (id: string) => void;
+  onArchive?: (id: string) => void;
+  onRename?: (id: string, title: string) => void;
   icons?: ThreadsListIcons;
 };
 
@@ -86,6 +94,7 @@ export type ThreadsListIcons = {
   readonly archived?: ReactNode;
   readonly person?: ReactNode;
   readonly automation?: ReactNode;
+  readonly folder?: ReactNode;
 };
 
 export function ThreadRow({
@@ -97,8 +106,16 @@ export function ThreadRow({
   checked,
   selectionMode,
   onCheck,
+  onArchive,
+  onRename,
   icons,
 }: ThreadRowProps) {
+  const [renaming, setRenaming] = useState(false);
+  const [draft, setDraft] = useState(title);
+  const dragStart = (event: DragEvent<HTMLDivElement>) => {
+    event.dataTransfer.setData("text/x-kiki-thread", thread.id);
+    event.dataTransfer.effectAllowed = "move";
+  };
   const title = thread.title ?? "Untitled thread";
   const project =
     thread.projectId === null ? undefined : projects.get(thread.projectId);
@@ -106,108 +123,161 @@ export function ThreadRow({
     thread.lastModelId === null ? undefined : modelName(thread.lastModelId);
   return (
     <div className="group/row relative block">
-      <Link
-        to="/thread/$threadId"
-        params={{ threadId: thread.id }}
-        data-thread-row={thread.id}
-        className={cx(
-          "flex h-11 items-center gap-2 rounded px-2 outline-none select-none [-webkit-touch-callout:none]",
-          "transition-colors duration-100 hover:bg-section data-[selected]:bg-section",
-          "focus-visible:outline-ring-inset",
-        )}
-      >
-        <button
-          type="button"
-          aria-label={checked ? "Deselect thread" : "Select thread"}
-          aria-pressed={checked}
-          className={cx(
-            leadSlot,
-            "flex cursor-pointer items-center justify-center outline-none",
-            "opacity-0 transition-opacity duration-100 group-hover/row:opacity-100 focus-visible:opacity-100",
-            "pointer-coarse:hidden",
-            (checked || selectionMode) && "opacity-100 pointer-coarse:flex",
-          )}
-          onClick={(event) => {
+      <ContextMenu>
+        <ContextMenuTrigger
+          render={
+            <Link
+              to="/thread/$threadId"
+              params={{ threadId: thread.id }}
+              data-thread-row={thread.id}
+              draggable
+              onDragStart={dragStart}
+              className={cx(
+                "flex h-11 items-center gap-2 rounded px-2 outline-none select-none [-webkit-touch-callout:none]",
+                "transition-colors duration-100 hover:bg-section data-[selected]:bg-section",
+                "focus-visible:outline-ring-inset",
+              )}
+            >
+              <button
+                type="button"
+                aria-label={checked ? "Deselect thread" : "Select thread"}
+                aria-pressed={checked}
+                className={cx(
+                  leadSlot,
+                  "flex cursor-pointer items-center justify-center outline-none",
+                  "opacity-0 transition-opacity duration-100 group-hover/row:opacity-100 focus-visible:opacity-100",
+                  "pointer-coarse:hidden",
+                  (checked || selectionMode) &&
+                    "opacity-100 pointer-coarse:flex",
+                )}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onCheck(thread.id);
+                }}
+              >
+                <span
+                  data-slot="checkbox"
+                  data-checked={checked ? "" : undefined}
+                  className="flex size-3.5 items-center justify-center rounded-xs border-hairline border-border-3 bg-input data-[checked]:bg-primary data-[checked]:text-primary-foreground"
+                >
+                  {checked ? icons?.check : null}
+                </span>
+              </button>
+              <span
+                className={cx(leadSlot, "flex items-center justify-center")}
+              >
+                {thread.captain !== null ? (
+                  <ChatIdentity
+                    name={thread.captain.name}
+                    avatarUrl={thread.captain.avatarUrl}
+                  />
+                ) : thread.archived ? (
+                  icons?.archived
+                ) : null}
+              </span>
+              <span className="@max-lg/list:hidden w-(--thread-code-width) shrink-0 text-sm font-normal whitespace-nowrap text-muted-foreground-2 tabular-nums">
+                {threadCode(thread, projects)}
+              </span>
+              <span className="flex min-w-0 flex-1 items-center gap-2">
+                <span
+                  className={cx(
+                    "mask-fade-r min-w-0 overflow-hidden text-sm whitespace-nowrap",
+                    thread.hasUnreads
+                      ? "font-semibold text-foreground"
+                      : "font-normal text-muted-foreground-1",
+                  )}
+                >
+                  {title}
+                </span>
+                {thread.personal && thread.captain === null ? (
+                  <span className="text-muted-foreground-2">
+                    {icons?.person}
+                  </span>
+                ) : null}
+              </span>
+              <span className="hidden shrink-0 items-center gap-1.5 @lg/list:flex">
+                {thread.archived && thread.archivedIdleDays !== null ? (
+                  <Badge
+                    size="base"
+                    title={
+                      "Archived automatically after " +
+                      thread.archivedIdleDays +
+                      " days with no activity"
+                    }
+                  >
+                    {icons?.archived}
+                    Auto-archived
+                  </Badge>
+                ) : null}
+                {thread.automationName !== null && !thread.archived ? (
+                  <Badge
+                    size="base"
+                    className="max-w-48"
+                    title={thread.automationName + " runs in this thread"}
+                  >
+                    {icons?.automation}
+                    <span className="min-w-0 truncate">
+                      {thread.automationName}
+                    </span>
+                  </Badge>
+                ) : null}
+                {project !== undefined && !groupedByProject ? (
+                  <Badge size="base" className="@max-4xl/list:hidden">
+                    {project.name}
+                  </Badge>
+                ) : null}
+                {model === undefined ? null : (
+                  <Badge size="base" className="@max-2xl/list:hidden">
+                    {model}
+                  </Badge>
+                )}
+              </span>
+              <span className="w-14 shrink-0 text-right text-xs font-normal text-muted-foreground-2 tabular-nums">
+                {formatAge(thread.sortActivityAt, { now, minified: true })}
+              </span>
+            </Link>
+          }
+        />
+        <ContextMenuContent>
+          <MenuItem
+            onClick={() => {
+              setDraft(thread.title ?? "");
+              setRenaming(true);
+            }}
+          >
+            Rename
+          </MenuItem>
+          <MenuItem onClick={() => onArchive?.(thread.id)}>
+            {thread.archived ? "Unarchive" : "Archive"}
+          </MenuItem>
+          <MenuSeparator />
+          <MenuItem onClick={() => onCheck(thread.id)}>
+            {checked ? "Deselect" : "Select thread"}
+          </MenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+      {renaming ? (
+        <form
+          className="absolute inset-x-0 top-0 z-(--z-overlay-content)"
+          onSubmit={(event) => {
             event.preventDefault();
-            event.stopPropagation();
-            onCheck(thread.id);
+            onRename?.(thread.id, draft.trim() || title);
+            setRenaming(false);
           }}
         >
-          <span
-            data-slot="checkbox"
-            data-checked={checked ? "" : undefined}
-            className="flex size-3.5 items-center justify-center rounded-xs border-hairline border-border-3 bg-input data-[checked]:bg-primary data-[checked]:text-primary-foreground"
-          >
-            {checked ? icons?.check : null}
-          </span>
-        </button>
-        <span className={cx(leadSlot, "flex items-center justify-center")}>
-          {thread.captain !== null ? (
-            <ChatIdentity
-              name={thread.captain.name}
-              avatarUrl={thread.captain.avatarUrl}
-            />
-          ) : thread.archived ? (
-            icons?.archived
-          ) : null}
-        </span>
-        <span className="@max-lg/list:hidden w-(--thread-code-width) shrink-0 text-sm font-normal whitespace-nowrap text-muted-foreground-2 tabular-nums">
-          {threadCode(thread, projects)}
-        </span>
-        <span className="flex min-w-0 flex-1 items-center gap-2">
-          <span
-            className={cx(
-              "mask-fade-r min-w-0 overflow-hidden text-sm whitespace-nowrap",
-              thread.hasUnreads
-                ? "font-semibold text-foreground"
-                : "font-normal text-muted-foreground-1",
-            )}
-          >
-            {title}
-          </span>
-          {thread.personal && thread.captain === null ? (
-            <span className="text-muted-foreground-2">{icons?.person}</span>
-          ) : null}
-        </span>
-        <span className="hidden shrink-0 items-center gap-1.5 @lg/list:flex">
-          {thread.archived && thread.archivedIdleDays !== null ? (
-            <Badge
-              size="base"
-              title={
-                "Archived automatically after " +
-                thread.archivedIdleDays +
-                " days with no activity"
-              }
-            >
-              {icons?.archived}
-              Auto-archived
-            </Badge>
-          ) : null}
-          {thread.automationName !== null && !thread.archived ? (
-            <Badge
-              size="base"
-              className="max-w-48"
-              title={thread.automationName + " runs in this thread"}
-            >
-              {icons?.automation}
-              <span className="min-w-0 truncate">{thread.automationName}</span>
-            </Badge>
-          ) : null}
-          {project !== undefined && !groupedByProject ? (
-            <Badge size="base" className="@max-4xl/list:hidden">
-              {project.name}
-            </Badge>
-          ) : null}
-          {model === undefined ? null : (
-            <Badge size="base" className="@max-2xl/list:hidden">
-              {model}
-            </Badge>
-          )}
-        </span>
-        <span className="w-14 shrink-0 text-right text-xs font-normal text-muted-foreground-2 tabular-nums">
-          {formatAge(thread.sortActivityAt, { now, minified: true })}
-        </span>
-      </Link>
+          <input
+            aria-label="Thread title"
+            autoFocus
+            value={draft}
+            onChange={(event) => setDraft(event.currentTarget.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") setRenaming(false);
+            }}
+            className="h-11 w-full rounded border-hairline border-border-3 bg-panel px-2 text-sm text-foreground outline-none focus-visible:outline-ring-inset"
+          />
+        </form>
+      ) : null}
     </div>
   );
 }
@@ -222,6 +292,9 @@ export type ThreadsListProps = {
   emptyText: string;
   checked: ReadonlySet<string>;
   onCheckedChange: (checked: ReadonlySet<string>) => void;
+  onDropOnSection?: (sectionId: string, threadId: string) => void;
+  onArchive?: (id: string) => void;
+  onRename?: (id: string, title: string) => void;
   footer?: ReactNode;
   icons?: ThreadsListIcons;
 };
@@ -237,6 +310,9 @@ export function ThreadsList({
   emptyText,
   checked,
   onCheckedChange,
+  onDropOnSection,
+  onArchive,
+  onRename,
   footer,
   icons,
 }: ThreadsListProps) {
@@ -277,6 +353,17 @@ export function ThreadsList({
               key={section.id}
               data-section={section.id}
               className={cx("relative flow-root", index > 0 && "mt-1")}
+              onDragOver={(event) => {
+                if (onDropOnSection !== undefined) event.preventDefault();
+              }}
+              onDrop={(event) => {
+                const threadId =
+                  event.dataTransfer.getData("text/x-kiki-thread");
+                if (threadId !== "" && onDropOnSection !== undefined) {
+                  event.preventDefault();
+                  onDropOnSection(section.id, threadId);
+                }
+              }}
             >
               <button
                 type="button"
@@ -310,6 +397,8 @@ export function ThreadsList({
                         checked={checked.has(thread.id)}
                         selectionMode={checked.size > 0}
                         onCheck={onCheck}
+                        onArchive={onArchive}
+                        onRename={onRename}
                         icons={icons}
                       />
                     </div>
