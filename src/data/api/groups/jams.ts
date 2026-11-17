@@ -1,8 +1,47 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
-import { OrgId, ProjectId } from "../schemas/ids.ts";
-import { ThreadCardPage, ThreadSort } from "../schemas/thread.ts";
+import { Forbidden, InvalidRequest, JamNotFound } from "../schemas/errors.ts";
+import {
+  ActorId,
+  JamId,
+  OrgId,
+  ProjectId,
+  ThreadFolderId,
+  ThreadTagId,
+  Timestamp,
+} from "../schemas/ids.ts";
+import {
+  JamArchiveResult,
+  JamBatchRequest,
+  JamBatchResult,
+  JamDetail,
+  RenameJamRequest,
+  ThreadCard,
+  ThreadCardPage,
+  ThreadCounts,
+  ThreadOrigin,
+  ThreadPullState,
+  ThreadSort,
+} from "../schemas/thread.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
+
+const threadFilterQuery = {
+  projectIds: Schema.optional(Schema.Array(ProjectId)),
+  origins: Schema.optional(Schema.Array(ThreadOrigin)),
+  automationIds: Schema.optional(Schema.Array(Schema.String)),
+  userIds: Schema.optional(Schema.Array(ActorId)),
+  tagIds: Schema.optional(Schema.Array(ThreadTagId)),
+  prStates: Schema.optional(Schema.Array(ThreadPullState)),
+  folderId: Schema.optional(ThreadFolderId),
+  participantIds: Schema.optional(Schema.Array(ActorId)),
+  channelIds: Schema.optional(Schema.Array(Schema.String)),
+  createdAfter: Schema.optional(Timestamp),
+  createdBefore: Schema.optional(Timestamp),
+  activityAfter: Schema.optional(Timestamp),
+  activityBefore: Schema.optional(Timestamp),
+  archived: Schema.optional(Schema.Literals(["exclude", "only"])),
+  deleted: Schema.optional(Schema.Literals(["only"])),
+};
 
 export class JamsGroup extends HttpApiGroup.make("jams").add(
   HttpApiEndpoint.get("organization", "/jams/:jamId/organization", {
@@ -16,9 +55,7 @@ export class JamsGroup extends HttpApiGroup.make("jams").add(
       limit: Schema.optional(Schema.NumberFromString),
       cursor: Schema.optional(Schema.String),
       search: Schema.optional(Schema.String),
-      projectIds: Schema.optional(Schema.Array(ProjectId)),
-      archived: Schema.optional(Schema.Literals(["exclude", "only"])),
-      deleted: Schema.optional(Schema.Literals(["only"])),
+      ...threadFilterQuery,
       filed: Schema.optional(Schema.Literals(["exclude"])),
     },
     success: ThreadCardPage,
@@ -29,13 +66,15 @@ export class JamsGroup extends HttpApiGroup.make("jams").add(
     success: Undecoded,
   }),
   HttpApiEndpoint.get("get", "/orgs/:orgId/jams/:jamId", {
-    params: { orgId: Schema.String, jamId: Schema.String },
-    success: Undecoded,
+    params: { orgId: OrgId, jamId: JamId },
+    success: JamDetail,
+    error: JamNotFound,
   }),
   HttpApiEndpoint.patch("rename", "/orgs/:orgId/jams/:jamId", {
-    params: { orgId: Schema.String, jamId: Schema.String },
-    payload: Undecoded,
-    success: Undecoded,
+    params: { orgId: OrgId, jamId: JamId },
+    payload: RenameJamRequest,
+    success: ThreadCard,
+    error: [JamNotFound, Forbidden],
   }),
   HttpApiEndpoint.put("setThreadAccess", "/orgs/:orgId/jams/:jamId/access", {
     params: { orgId: Schema.String, jamId: Schema.String },
@@ -302,9 +341,10 @@ export class JamsGroup extends HttpApiGroup.make("jams").add(
     success: Undecoded,
   }),
   HttpApiEndpoint.post("archive", "/orgs/:orgId/jams/archive", {
-    params: { orgId: Schema.String },
-    payload: Undecoded,
-    success: Undecoded,
+    params: { orgId: OrgId },
+    payload: JamBatchRequest,
+    success: JamArchiveResult,
+    error: InvalidRequest,
   }),
   HttpApiEndpoint.get("asks", "/orgs/:orgId/jams/asks", {
     params: { orgId: Schema.String },
@@ -322,28 +362,31 @@ export class JamsGroup extends HttpApiGroup.make("jams").add(
     success: Undecoded,
   }),
   HttpApiEndpoint.get("counts", "/orgs/:orgId/jams/counts", {
-    params: { orgId: Schema.String },
-    query: UndecodedQuery,
-    success: Undecoded,
+    params: { orgId: OrgId },
+    query: threadFilterQuery,
+    success: ThreadCounts,
   }),
   HttpApiEndpoint.post("delete", "/orgs/:orgId/jams/delete", {
-    params: { orgId: Schema.String },
-    payload: Undecoded,
-    success: Undecoded,
+    params: { orgId: OrgId },
+    payload: JamBatchRequest,
+    success: JamBatchResult,
+    error: InvalidRequest,
   }),
   HttpApiEndpoint.post("readAll", "/orgs/:orgId/jams/read-all", {
     params: { orgId: Schema.String },
     success: Undecoded,
   }),
   HttpApiEndpoint.post("restore", "/orgs/:orgId/jams/restore", {
-    params: { orgId: Schema.String },
-    payload: Undecoded,
-    success: Undecoded,
+    params: { orgId: OrgId },
+    payload: JamBatchRequest,
+    success: JamBatchResult,
+    error: InvalidRequest,
   }),
   HttpApiEndpoint.post("unarchive", "/orgs/:orgId/jams/unarchive", {
-    params: { orgId: Schema.String },
-    payload: Undecoded,
-    success: Undecoded,
+    params: { orgId: OrgId },
+    payload: JamBatchRequest,
+    success: JamBatchResult,
+    error: InvalidRequest,
   }),
   HttpApiEndpoint.post("create", "/orgs/:orgId/projects/:projectId/jams", {
     params: { orgId: Schema.String, projectId: Schema.String },
