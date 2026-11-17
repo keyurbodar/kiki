@@ -1,11 +1,23 @@
 import { toast } from "sonner";
 import { ModelPicker } from "@/components/model-picker";
+import {
+  formatMachine,
+  type MachineSize,
+  machineSizes,
+} from "@/components/plan-picker/plan-catalog";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { Input } from "@/primitives/input";
+import {
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuSeparator,
+  MenuTrigger,
+} from "@/primitives/menu";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
-import { ChevronDownSmall } from "./icons";
+import { Checkmark, ChevronDownSmall } from "./icons";
 import {
   type AddTriggerResult,
   addScheduleTime,
@@ -19,7 +31,13 @@ import {
   toggleId,
 } from "./model";
 import { MultiSelectMenu, type MultiSelectOption } from "./multi-select-menu";
-import { chevronClass, SectionHeader } from "./parts";
+import {
+  chevronClass,
+  cx,
+  menuCheckClass,
+  menuLabelClass,
+  SectionHeader,
+} from "./parts";
 import { nextSchedule } from "./schedule";
 import { AddTriggerMenu, TriggerRow } from "./triggers";
 
@@ -48,6 +66,22 @@ export const parseMaxRuns = (value: string) => {
     : Math.floor(parsed);
 };
 
+const machineSizeOf = (value: string | null | undefined): MachineSize | null =>
+  value !== null &&
+  value !== undefined &&
+  (machineSizes as ReadonlyArray<string>).includes(value)
+    ? (value as MachineSize)
+    : null;
+
+/** The size a run's machine boots at: the automation's own, else the project's. */
+export const machineSizeLabel = (
+  value: string | null,
+  projectDefault: string | null,
+) => {
+  const chosen = machineSizeOf(value) ?? machineSizeOf(projectDefault);
+  return chosen === null ? "Project default" : formatMachine(chosen);
+};
+
 export type EditorSectionsProps = {
   form: EditorForm;
   setForm: (form: EditorForm) => void;
@@ -55,7 +89,60 @@ export type EditorSectionsProps = {
   serviceRunAs: boolean;
   folders: ReadonlyArray<MultiSelectOption>;
   tags: ReadonlyArray<MultiSelectOption>;
+  /** The project's machine size, shown as inherited until the automation picks its own. */
+  machineSizeDefault?: string | null;
 };
+
+type MachineSizeMenuProps = {
+  value: string | null;
+  projectDefault: string | null;
+  onValueChange: (value: string | null) => void;
+};
+
+function MachineSizeMenu({
+  value,
+  projectDefault,
+  onValueChange,
+}: MachineSizeMenuProps) {
+  const chosen = machineSizeOf(value);
+  const inherited = machineSizeOf(projectDefault);
+  return (
+    <Menu>
+      <MenuTrigger
+        render={<Button variant="soft" size="sm" aria-label="Machine size" />}
+      >
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate">
+            {machineSizeLabel(value, projectDefault)}
+          </span>
+          {chosen === null && inherited !== null ? (
+            <span className="shrink-0 text-xs text-muted-foreground-2">
+              Project
+            </span>
+          ) : null}
+        </span>
+        <ChevronDownSmall className={chevronClass} />
+      </MenuTrigger>
+      <MenuContent align="end" className="w-56">
+        <MenuItem onClick={() => onValueChange(null)}>
+          <span className={menuLabelClass}>Project default</span>
+          {chosen === null ? (
+            <Checkmark className={cx("ml-auto", menuCheckClass)} />
+          ) : null}
+        </MenuItem>
+        <MenuSeparator />
+        {machineSizes.map((size) => (
+          <MenuItem key={size} onClick={() => onValueChange(size)}>
+            <span className={menuLabelClass}>{formatMachine(size)}</span>
+            {chosen === size ? (
+              <Checkmark className={cx("ml-auto", menuCheckClass)} />
+            ) : null}
+          </MenuItem>
+        ))}
+      </MenuContent>
+    </Menu>
+  );
+}
 
 const applyResult = (
   result: AddTriggerResult,
@@ -76,6 +163,7 @@ export function EditorSections({
   serviceRunAs,
   folders,
   tags,
+  machineSizeDefault = null,
 }: EditorSectionsProps) {
   const hasEventTriggers = form.triggers.some(isEventTrigger);
   const problems = hasDuplicateSchedules(form.triggers)
@@ -165,7 +253,7 @@ export function EditorSections({
             <textarea
               aria-label="Instructions"
               placeholder="e.g. Triage the new Sentry issue, find the root cause, and open a pull request with a fix"
-              className="field-sizing-content min-h-28 w-full resize-none bg-transparent p-1 text-base font-normal whitespace-pre-wrap text-foreground outline-none placeholder:text-muted-foreground-3"
+              className="field-sizing-content block min-h-28 w-full resize-none bg-transparent p-1 text-base font-normal whitespace-pre-wrap text-foreground outline-none placeholder:text-muted-foreground-3"
               value={form.prompt}
               onChange={(event) =>
                 setForm({ ...form, prompt: event.target.value })
@@ -174,7 +262,7 @@ export function EditorSections({
           </div>
           <div className="flex items-center gap-0.5 px-2 pb-1.5">
             <ModelPicker>
-              <Button variant="ghost" size="xs" aria-label="Model">
+              <Button variant="ghost" size="sm" aria-label="Model">
                 <span className="min-w-0 truncate">
                   {form.model === null
                     ? form.runsIn.threadMode === "single"
@@ -207,7 +295,7 @@ export function EditorSections({
             <textarea
               aria-label="Only run when"
               placeholder="e.g. This message reports a real product bug"
-              className="field-sizing-content max-h-40 min-h-16 w-full resize-none bg-transparent px-3 py-2 text-base font-normal text-foreground outline-none placeholder:text-muted-foreground-3"
+              className="field-sizing-content block max-h-40 min-h-16 w-full resize-none bg-transparent px-3 py-2 text-base font-normal text-foreground outline-none placeholder:text-muted-foreground-3"
               value={form.runWhen}
               onChange={(event) =>
                 setForm({ ...form, runWhen: event.target.value })
@@ -223,21 +311,32 @@ export function EditorSections({
             label="Max runs per day"
             description={limitsDescription(form.triggers)}
           >
-            <Input
-              type="number"
-              min={1}
-              aria-label="Max runs per day"
-              placeholder="No limit"
-              className="w-28"
-              value={
-                form.maxRunsPerDay === null ? "" : String(form.maxRunsPerDay)
-              }
-              onChange={(event) =>
-                setForm({
-                  ...form,
-                  maxRunsPerDay: parseMaxRuns(event.target.value),
-                })
-              }
+            <div className="w-28">
+              <Input
+                type="number"
+                min={1}
+                aria-label="Max runs per day"
+                placeholder="No limit"
+                value={
+                  form.maxRunsPerDay === null ? "" : String(form.maxRunsPerDay)
+                }
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    maxRunsPerDay: parseMaxRuns(event.target.value),
+                  })
+                }
+              />
+            </div>
+          </SettingsRow>
+          <SettingsRow
+            label="Machine size"
+            description="Compute for each run's machine, project default when unset"
+          >
+            <MachineSizeMenu
+              value={form.machineSize}
+              projectDefault={machineSizeDefault}
+              onValueChange={(machineSize) => setForm({ ...form, machineSize })}
             />
           </SettingsRow>
         </Card>

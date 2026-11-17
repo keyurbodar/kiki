@@ -6,13 +6,14 @@ import { toast } from "sonner";
 import { AppTopBar } from "@/components/app-top-bar";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { Project } from "@/data/api/schemas/project";
+import { projectKey, projectSetupAtom } from "@/data/atoms/project-settings";
 import { projectsAtom } from "@/data/atoms/projects";
 import { threadsAtom } from "@/data/atoms/threads";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { Input } from "@/primitives/input";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
-import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
+import { ScrollArea } from "@/primitives/scroll-area";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
 import {
@@ -20,7 +21,10 @@ import {
   createAutomationAtom,
 } from "../automation-editor/atoms";
 import { errorMessage } from "../automation-editor/automation-editor";
-import { EditorSections } from "../automation-editor/editor-sections";
+import {
+  EditorSections,
+  type EditorSectionsProps,
+} from "../automation-editor/editor-sections";
 import {
   ChevronDownSmall,
   ChevronRightSmall,
@@ -199,6 +203,15 @@ function NewAutomationForm({
 
   const setRunAs = (value: RunAs) => setForm(withRunAs(form, value));
 
+  const sections: EditorSectionsProps = {
+    form,
+    setForm,
+    mixedRunWhen: mixed,
+    serviceRunAs,
+    folders: [],
+    tags: [],
+  };
+
   const projectControl =
     project === undefined ? null : (
       <Menu>
@@ -258,97 +271,115 @@ function NewAutomationForm({
         </div>
       </NewAutomationTopBar>
       <ScrollArea className="min-h-0 flex-1">
-        <ScrollAreaViewport className="h-full overscroll-contain">
-          <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 pt-6 pb-10">
-            <div className="flex flex-col gap-3">
-              <Input
-                variant="blank"
-                aria-label="Automation name"
-                placeholder="Automation name"
-                className="px-0 text-xl font-medium"
-                value={form.name}
-                onChange={(event) =>
-                  setForm({ ...form, name: event.target.value })
-                }
-              />
-              <Input
-                variant="blank"
-                aria-label="Automation description"
-                placeholder="Add a description"
-                className="px-0"
-                value={form.description}
-                onChange={(event) =>
-                  setForm({ ...form, description: event.target.value })
-                }
-              />
-              <Card rows className="-mx-4 mt-3">
-                <RunsInRows
-                  runsIn={form.runsIn}
-                  thread={threads.find(
-                    (candidate) => candidate.id === form.runsIn.singleJamId,
-                  )}
-                  control={
-                    <RunsInSelect
-                      value={form.runsIn}
-                      projectId={project?.id}
-                      offerStanding={form.runsIn.singleJamId === null}
-                      onValueChange={(runsIn) => setForm({ ...form, runsIn })}
-                    />
-                  }
-                  project={projectControl}
-                />
-                <SettingsRow
-                  label="Runs as"
-                  description="Each run uses this person's access, models and bill"
-                >
-                  <OwnerSelect
-                    value={runAs}
-                    fallbackLabel={viewer.name}
-                    onValueChange={setRunAs}
-                  />
-                </SettingsRow>
-                <SettingsRow
-                  label="Post as run-as person"
-                  description={
-                    serviceRunAs
-                      ? "Needs a human run-as, a service user posts as Capy"
-                      : "Slack messages use the selected run-as account's name and photo instead of Capy"
-                  }
-                >
-                  <Switch
-                    aria-label="Post as run-as person"
-                    checked={form.slackImpersonation}
-                    disabled={serviceRunAs}
-                    onCheckedChange={(slackImpersonation) =>
-                      setForm({ ...form, slackImpersonation })
-                    }
-                  />
-                </SettingsRow>
-                <SettingsRow
-                  label="Quiet Slack posts"
-                  description="Leave the Sent by footer and the status card off this automation's Slack posts"
-                >
-                  <Switch
-                    aria-label="Quiet Slack posts"
-                    checked={form.quietSlackPosts ?? false}
-                    onCheckedChange={(quietSlackPosts) =>
-                      setForm({ ...form, quietSlackPosts })
-                    }
-                  />
-                </SettingsRow>
-              </Card>
-            </div>
-            <EditorSections
-              form={form}
-              setForm={setForm}
-              mixedRunWhen={mixed}
-              serviceRunAs={serviceRunAs}
-              folders={[]}
-              tags={[]}
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 pt-6 pb-10">
+          <div className="flex flex-col gap-3">
+            <Input
+              variant="blank"
+              aria-label="Automation name"
+              placeholder="Automation name"
+              className="px-0 text-xl font-medium"
+              value={form.name}
+              onChange={(event) =>
+                setForm({ ...form, name: event.target.value })
+              }
             />
+            <Input
+              variant="blank"
+              aria-label="Automation description"
+              placeholder="Add a description"
+              className="px-0"
+              value={form.description}
+              onChange={(event) =>
+                setForm({ ...form, description: event.target.value })
+              }
+            />
+            <Card rows className="-mx-4 mt-3">
+              <RunsInRows
+                runsIn={form.runsIn}
+                thread={threads.find(
+                  (candidate) => candidate.id === form.runsIn.singleJamId,
+                )}
+                control={
+                  <RunsInSelect
+                    value={form.runsIn}
+                    projectId={project?.id}
+                    offerStanding={form.runsIn.singleJamId === null}
+                    onValueChange={(runsIn) => setForm({ ...form, runsIn })}
+                  />
+                }
+                project={projectControl}
+              />
+              <SettingsRow
+                label="Runs as"
+                description="Each run uses this person's access, models and bill"
+              >
+                <OwnerSelect
+                  value={runAs}
+                  fallbackLabel={viewer.name}
+                  onValueChange={setRunAs}
+                />
+              </SettingsRow>
+              <SettingsRow
+                label="Post as run-as person"
+                description={
+                  serviceRunAs
+                    ? "Needs a human run-as, a service user posts as Capy"
+                    : "Slack messages use the selected run-as account's name and photo instead of Capy"
+                }
+              >
+                <Switch
+                  aria-label="Post as run-as person"
+                  checked={form.slackImpersonation}
+                  disabled={serviceRunAs}
+                  onCheckedChange={(slackImpersonation) =>
+                    setForm({ ...form, slackImpersonation })
+                  }
+                />
+              </SettingsRow>
+              <SettingsRow
+                label="Quiet Slack posts"
+                description="Leave the Sent by footer and the status card off this automation's Slack posts"
+              >
+                <Switch
+                  aria-label="Quiet Slack posts"
+                  checked={form.quietSlackPosts ?? false}
+                  onCheckedChange={(quietSlackPosts) =>
+                    setForm({ ...form, quietSlackPosts })
+                  }
+                />
+              </SettingsRow>
+            </Card>
           </div>
-        </ScrollAreaViewport>
+          {project === undefined ? (
+            <EditorSections {...sections} />
+          ) : (
+            <ProjectEditorSections
+              orgId={orgId}
+              projectId={project.id}
+              {...sections}
+            />
+          )}
+        </div>
       </ScrollArea>
     </NewAutomationShell>
+  );
+}
+
+type ProjectEditorSectionsProps = EditorSectionsProps & {
+  readonly orgId: string;
+  readonly projectId: string;
+};
+
+/** The sections plus the project's machine size, which each run inherits until someone overrides it. */
+function ProjectEditorSections({
+  orgId,
+  projectId,
+  ...sections
+}: ProjectEditorSectionsProps) {
+  const setup = resultValue(
+    useAtomValue(projectSetupAtom(projectKey(orgId as OrgId, projectId))),
+  );
+  return (
+    <EditorSections {...sections} machineSizeDefault={setup?.machineSize} />
   );
 }
