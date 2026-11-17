@@ -101,3 +101,119 @@ export const sampleSettings = {
   memberCredentials: "organization",
   availableModels: models.map((model) => model.id),
 } as const;
+
+/** Catalog rows ST10's models table renders: world models plus Capy's catalog fields. */
+export const sampleCatalogModels = models.map((model) => ({
+  id: model.id,
+  name: model.label,
+  label: model.label,
+  provider: model.provider,
+  tier: model.tier,
+  enabled: true,
+  efforts: model.tier === "peak" ? ["low", "medium", "high"] : ["low", "high"],
+  fast: model.tier !== "peak",
+  pro: model.tier === "peak",
+  limits: { context: 200_000, output: 64_000 },
+}));
+
+/** models.routing as Capy serves it: seats, credentials, per-model routes and org settings. */
+export const sampleRoutingPayload = {
+  ...sampleRouting,
+  admin: true,
+  seats: [
+    {
+      service: "claude",
+      state: "connected",
+      credentialId: "seat_sample_claude",
+      accountLabel: people.sam.email,
+      plan: "max",
+      enabled: true,
+      jobCount: 1,
+      usageCap: 5,
+      health: { state: "connected", kind: "member_seat", provider: "claude" },
+      ticks: [
+        {
+          lab: "anthropic",
+          ticked: true,
+          models: [
+            {
+              model: "anthropic/claude-opus",
+              entryId: "anthropic/claude-opus",
+              name: "Claude Opus",
+              ticked: true,
+            },
+            {
+              model: "anthropic/claude-sonnet",
+              entryId: "anthropic/claude-sonnet",
+              name: "Claude Sonnet",
+              ticked: true,
+            },
+          ],
+        },
+      ],
+      rows: [
+        {
+          model: "anthropic/claude-opus",
+          providerModelId: "claude-opus-4",
+          context: 200_000,
+        },
+      ],
+    },
+  ],
+  credentials: [
+    {
+      id: "cred_sample_anthropic",
+      name: "Anthropic workspace",
+      provider: "anthropic",
+      ownerType: "org",
+      status: "active",
+      enabled: true,
+      position: 0,
+      allModels: true,
+      health: { state: "connected", kind: "key", provider: "anthropic" },
+      ticks: [
+        {
+          lab: "anthropic",
+          ticked: true,
+          models: [
+            {
+              model: "anthropic/claude-opus",
+              entryId: "anthropic/claude-opus",
+              name: "Claude Opus",
+              ticked: true,
+            },
+            {
+              model: "anthropic/claude-sonnet",
+              entryId: "anthropic/claude-sonnet",
+              name: "Claude Sonnet",
+              ticked: true,
+            },
+          ],
+        },
+      ],
+      models: [
+        {
+          model: "anthropic/claude-opus",
+          name: "Claude Opus",
+          context: 200_000,
+        },
+        {
+          model: "anthropic/claude-sonnet",
+          name: "Claude Sonnet",
+          context: 200_000,
+        },
+      ],
+    },
+  ],
+  routes: models.map((model) => ({
+    model: model.id,
+    entryId: model.id,
+    org: {
+      kind: "org_credential",
+      ref: "cred_sample_anthropic",
+      label: "Anthropic workspace",
+      service: "anthropic",
+    },
+  })),
+  settings: [],
+} as const;
