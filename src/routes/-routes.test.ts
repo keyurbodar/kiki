@@ -13,6 +13,7 @@ const DEV_ONLY_ROUTES = new Set([
   "/__captain-dialog",
   "/__composer",
   "/__thread-device",
+  "/__media-lightbox",
   "/__chips",
   "/__model-picker",
   "/__new-thread-selects",
