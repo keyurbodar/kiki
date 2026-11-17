@@ -1,0 +1,45 @@
+/*
+ * Layer 3: component tokens.
+ * Values Capy scopes to specific components. Components consume these instead
+ * of primitives when Capy does.
+ */
+
+@theme static {
+  --radius-inner: 0.125rem;
+  --radius-button: 0.375rem;
+  --radius-kbd: 0.1875rem;
+  --radius-card: 0.5rem;
+  --radius-overlay: 0.5rem;
+  --radius-panel: 0.75rem;
+}
+
+:root,
+[data-theme-preview] {
+  --composer-ground-inset: 0.25rem;
+  --gradient-panel-air: linear-gradient(
+    180deg in oklab,
+    var(--panel) 0%,
+    var(--bg) 100%
+  );
+  --media-box-w: 34rem;
+  --media-box-h: 22.5rem;
+  --composer-editor-tall-max-h: min(40rem, 70dvh);
+  --device-skin-shadow: 0 18px 22px #00000047;
+  --sidebar-pin-face: 48px;
+  --sidebar-pin-cell: 64px;
+  --sidebar-pin-gap-x: 0px;
+  --sidebar-pin-gap-y: 4px;
+  --sidebar-pin-label-gap: 4px;
+  --sidebar-section-gap: 12px;
+  --sidebar-section-header: 28px;
+}
+
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --shell-top: 0px;
+}
+
+:root[data-tab-strip] {
+  --shell-top: 2.5rem;
+}

@@ -8,7 +8,7 @@ export const Route = createFileRoute("/")({
 function HomePage() {
   return (
     <main className="grid min-h-dvh place-items-center">
-      <h1 className="font-semibold text-2xl">{greeting("kiki")}</h1>
+      <h1 className="font-semibold text-2xl">{greeting("Capy")}</h1>
     </main>
   );
 }
