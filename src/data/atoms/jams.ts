@@ -40,3 +40,5 @@ export const renameThreadAtom = ApiClient.mutation("jams", "rename");
 export const archiveThreadsAtom = ApiClient.mutation("jams", "archive");
 
 export const unarchiveThreadsAtom = ApiClient.mutation("jams", "unarchive");
+
+export const deleteThreadsAtom = ApiClient.mutation("jams", "delete");
