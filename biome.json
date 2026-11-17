@@ -7,7 +7,16 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!src/routeTree.gen.ts", "!**/*.svg"]
+    "includes": [
+      "**",
+      "!src/routeTree.gen.ts",
+      "!**/*.svg",
+      "!.agents/skills/instabox/**",
+      "!.agents/skills/instabox-snapshots/**",
+      "!.claude/skills/instabox/**",
+      "!.claude/skills/instabox-snapshots/**",
+      "!MACHINE.md"
+    ]
   },
   "formatter": {
     "enabled": true,

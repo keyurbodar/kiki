@@ -20,3 +20,9 @@ playwright/.cache/
 # OS / editor
 .DS_Store
 *.log
+
+# Instabox CLI artifacts, dropped into a checkout when its CLI runs there
+.agents/
+.claude/skills/instabox/
+.claude/skills/instabox-snapshots/
+MACHINE.md
