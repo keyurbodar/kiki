@@ -16,6 +16,7 @@ const DEV_ONLY_ROUTES = new Set([
   "/__media-lightbox",
   "/__chips",
   "/__model-picker",
+  "/__new-thread-selects",
 ]);
 
 function countRoutes(node: Node): number {
