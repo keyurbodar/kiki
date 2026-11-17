@@ -112,7 +112,7 @@ export const COMPOSER_THEME: EditorThemeClasses = {
 };
 
 export const EDITOR_CLASS =
-  "max-h-56 min-h-16 w-full overflow-y-auto overscroll-contain p-1 text-base font-normal text-foreground outline-none md:scroll-fade-y md:supports-[animation-timeline:scroll()]:scrollbar-hide whitespace-pre-wrap [overflow-wrap:anywhere]";
+  "max-h-56 min-h-6 w-full overflow-y-auto overscroll-contain p-1 text-base font-normal text-foreground outline-none md:scroll-fade-y md:supports-[animation-timeline:scroll()]:scrollbar-hide whitespace-pre-wrap [overflow-wrap:anywhere]";
 
 export type ComposerEditorHandle = {
   submit: (delivery?: ComposerDelivery) => void;
