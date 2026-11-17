@@ -2,12 +2,14 @@ import { Effect, Layer } from "effect";
 import { FetchHttpClient, HttpRouter, HttpServer } from "effect/http";
 import { HttpApiBuilder } from "effect/http-api";
 import { KikiApi } from "../api/Api.ts";
+import { MockDb } from "./db/MockDb.ts";
 import { MockGroups } from "./groups.ts";
 
 export const mockBaseUrl = "http://kiki.mock";
 
 export const MockServices = HttpApiBuilder.layer(KikiApi).pipe(
   Layer.provide(MockGroups),
+  Layer.provide(MockDb.layer),
   Layer.provide(HttpServer.layerServices),
 );
 

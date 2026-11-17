@@ -61,6 +61,15 @@ export const ProjectsMock = mockGroup("projects", (handlers) =>
 - Put sample data in `fixtures.ts` next to the mock. **Fixtures are neutral sample data** (Acme, Alex Morgan, `acme/web`). Never copy anything from the captures: no real account, project, thread, repo, theme or person names. Use `fixtures/time.ts` for timestamps so they stay deterministic.
 - `jams`, `projects`, `organizations` and `users` are working examples.
 
+### The shared fake org
+
+Every group draws from one fake organization so screens agree with each other: the issue an issue list shows is the issue a pull links to, owned by a member the members page lists.
+
+- `mocks/fixtures/world.ts` is the cast: the Acme org, five members, projects, repos, threads, captains, issue states, labels and issues, pulls, cloud machines and devices, automations, folders, tags, MCP servers, API keys, models and drive files. Ids are stable (`user_sample_alex`, `ACME-3`, `pr_sample_128`), and `isoMinutesAgo` gives deterministic ISO timestamps for undecoded JSON.
+- `mocks/db/MockDb.ts` holds the mutable tables seeded from `world`. A group that reads or writes shared entities takes them from `MockDb` (`const { issues } = yield* MockDb`) instead of its own copy, so a write in one group shows up in another. State private to one group stays in a `Ref` inside that group's builder. `fields(payload)` reads an undecoded payload, `newId(prefix)` mints ids, and `missing(table, id)` fails an unknown id loudly.
+- Endpoints still typed `Undecoded` return plain JSON. Its shape is inferred from the endpoint name and the screen that uses it, not read from Capy's bundle, so treat it as provisional: when someone types the endpoint, the mock's response must be brought in line with the real schema.
+- Each group has a wiring test next to its mock (`mocks/<group>/<group>.test.ts`) that drives its endpoints through `ApiClient.query` and `ApiClient.mutation` atoms and checks that a mutation refreshes the queries sharing its reactivity key. `issue-labels` is the reference.
+
 ## Atoms
 
 Follow `atoms/conventions.ts`, which mirrors how Capy's bundle builds its atoms:
