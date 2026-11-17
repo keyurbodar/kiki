@@ -8,7 +8,11 @@ export const Route = createFileRoute("/_app/automation/$automationId_/drive")({
 });
 
 function RouteComponent() {
+  const { automationId } = Route.useParams();
   return (
-    <RoutePlaceholder title="Drive" path="/automation/$automationId/drive" />
+    <RoutePlaceholder
+      title="Drive"
+      path={`/automation/${automationId}/drive`}
+    />
   );
 }
