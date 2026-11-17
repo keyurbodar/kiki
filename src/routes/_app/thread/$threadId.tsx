@@ -1,21 +1,27 @@
 import { useAtomValue } from "@effect/atom-react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { copyText } from "@/components/file-view/copy";
 import type { JamId, OrgId } from "@/data/api/schemas/ids";
 import {
   organizationsAtom,
   resolveActiveOrgId,
   selectedOrgIdAtom,
 } from "@/data/atoms/session";
+import { threadsAtom } from "@/data/atoms/threads";
 import { MobileThreadScreen, useIsNarrow } from "@/features/mobile/thread";
+import { ThreadCostBadge } from "@/features/thread/cost-badge";
 import {
+  activeTabId,
+  paneTabs,
+  ThreadHeader,
   type ThreadTakeoverHandlers,
   ThreadView,
 } from "@/features/thread/thread-view";
 import { useThreadTimeline } from "@/features/thread/timeline";
-import { findPane, panes } from "@/features/thread-panes/thread-pane";
+import { findPane } from "@/features/thread-panes/thread-pane";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/thread/$threadId")({
@@ -23,19 +29,25 @@ export const Route = createFileRoute("/_app/thread/$threadId")({
   component: RouteComponent,
 });
 
-/** Capy opens a thread on its first tab (Overview); a pane that has not landed yet falls back to the first one registered. */
-const DEFAULT_PANE = "overview";
-
+/**
+ * Capy opens a thread with its chat alone; a `pane` the registry has not
+ * landed yet renders nothing rather than guessing at another pane.
+ */
 const paneFor = (pane: string | undefined) =>
-  pane === undefined ? (findPane(DEFAULT_PANE) ?? panes[0]) : findPane(pane);
+  pane === undefined ? undefined : findPane(pane);
+
+export type ThreadRouteProps = {
+  threadId: string;
+  pane: string | undefined;
+  /** The route's pane search param; undefined returns the thread to its chat. */
+  onSelectPane?: (pane: string | undefined) => void;
+};
 
 export function ThreadRoute({
   threadId,
   pane,
-}: {
-  threadId: string;
-  pane: string | undefined;
-}) {
+  onSelectPane,
+}: ThreadRouteProps) {
   const organizations =
     Option.getOrUndefined(AsyncResult.value(useAtomValue(organizationsAtom))) ??
     [];
@@ -44,6 +56,10 @@ export function ThreadRoute({
     useAtomValue(selectedOrgIdAtom),
   );
   const timeline = useThreadTimeline((orgId ?? "") as OrgId, threadId as JamId);
+  const listed = Option.getOrUndefined(
+    AsyncResult.value(useAtomValue(threadsAtom((orgId ?? "") as OrgId))),
+  );
+  const thread = listed?.items.find((card) => card.id === threadId);
   const handlers = useMemo<ThreadTakeoverHandlers>(
     () => ({
       orgId,
@@ -52,7 +68,9 @@ export function ThreadRoute({
     }),
     [orgId],
   );
+  const [expanded, setExpanded] = useState(false);
   const entry = paneFor(pane);
+  const activeId = activeTabId(entry);
   return (
     <ThreadView
       threadId={threadId}
@@ -64,7 +82,59 @@ export function ThreadRoute({
       pendingAsk={timeline.pendingAsk}
       pendingEnvironment={timeline.pendingEnvironment}
       handlers={handlers}
+      paneExpanded={expanded}
       pane={entry && <entry.component threadId={threadId} />}
+      topBar={
+        <ThreadHeader
+          threadId={threadId}
+          title={thread?.title ?? "Untitled thread"}
+          tabs={paneTabs()}
+          activeId={activeId}
+          cost={
+            orgId === undefined ? undefined : (
+              <ThreadCostBadge orgId={orgId} jamId={threadId} />
+            )
+          }
+          expanded={expanded}
+          onSelectChat={() => onSelectPane?.(undefined)}
+          onSelectTab={(id) => onSelectPane?.(id)}
+          onCloseTab={(id) => {
+            if (id === activeId) onSelectPane?.(undefined);
+          }}
+          onCopyLink={(path) =>
+            void copyText(
+              `${window.location.origin}${path}`,
+              "Link copied",
+              "Could not copy link",
+            )
+          }
+          onToggleExpand={() => setExpanded((current) => !current)}
+        />
+      }
+    />
+  );
+}
+
+/** The thread on a wide screen, with the pane search param wired to the router. */
+export function ThreadScreen({
+  threadId,
+  pane,
+}: {
+  threadId: string;
+  pane: string | undefined;
+}) {
+  const navigate = useNavigate();
+  return (
+    <ThreadRoute
+      threadId={threadId}
+      pane={pane}
+      onSelectPane={(next) =>
+        void navigate({
+          to: "/thread/$threadId",
+          params: { threadId },
+          search: next === undefined ? {} : { pane: next },
+        })
+      }
     />
   );
 }
@@ -74,5 +144,5 @@ function RouteComponent() {
   const { pane } = Route.useSearch();
   const isNarrow = useIsNarrow();
   if (isNarrow) return <MobileThreadScreen threadId={threadId} />;
-  return <ThreadRoute threadId={threadId} pane={pane} />;
+  return <ThreadScreen threadId={threadId} pane={pane} />;
 }
