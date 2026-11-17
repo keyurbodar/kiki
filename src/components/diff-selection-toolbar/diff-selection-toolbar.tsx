@@ -1,5 +1,4 @@
 import {
-  type CSSProperties,
   type ReactNode,
   type Ref,
   useLayoutEffect,
@@ -42,6 +41,8 @@ export type DiffSelectionToolbarProps = {
 };
 
 const copyFailed = () => toast.error("Could not copy");
+
+type ToolbarPosition = ReturnType<typeof selectionToolbarPosition>;
 
 /** The toolbar portals into the document, so it renders only after mount. */
 const useIsClient = () =>
@@ -138,7 +139,7 @@ export function DiffSelectionToolbar({
   const label = copy?.label ?? "Copy";
   const runCopy = copy?.run ?? copySelection;
   const isClient = useIsClient();
-  const [position, setPosition] = useState<CSSProperties>();
+  const [position, setPosition] = useState<ToolbarPosition>();
   useLayoutEffect(() => {
     setPosition(
       selectionToolbarPosition({
@@ -184,7 +185,7 @@ export function DiffSelectionToolbar({
       ref={ref}
       data-slot="selection-toolbar"
       className="fixed z-(--z-overlay-content) flex items-center gap-0.5 rounded-(--radius-overlay) border-hairline border-border-2 bg-popover p-1 shadow-overlay"
-      style={position ?? { visibility: "hidden" }}
+      style={position === undefined ? { visibility: "hidden" } : { ...position }}
       onPointerUp={(event) => event.stopPropagation()}
     >
       {commentButton}
