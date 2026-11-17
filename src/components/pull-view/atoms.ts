@@ -116,5 +116,6 @@ export const editBodyAtom = ApiClient.mutation("pulls", "editBody");
 export const unlinkThreadAtom = ApiClient.mutation("pulls", "unlinkThread");
 export const setLabelAtom = ApiClient.mutation("pulls", "setLabel");
 export const setReviewerAtom = ApiClient.mutation("pulls", "setReviewer");
+export const requestReviewAtom = ApiClient.mutation("pulls", "requestReview");
 export const commentPullAtom = ApiClient.mutation("pulls", "comment");
 export const resolveCommentAtom = ApiClient.mutation("pulls", "resolveComment");

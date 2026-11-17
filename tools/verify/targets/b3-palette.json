@@ -1,0 +1,463 @@
+{
+  "matrix": {
+    "theme": ["default"],
+    "scheme": ["dark"]
+  },
+  "defaults": {
+    "maxMismatch": 2
+  },
+  "targets": [
+    {
+      "id": "palette-open",
+      "route": "/thread/thr-1",
+      "state": "palette-open",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"]
+      ],
+      "frame": "WzLZsSnRuu",
+      "expect": {
+        "[data-slot=command-menu-content]": {
+          "max-width": "720px"
+        },
+        "[data-slot=command-menu-input]": {
+          "height": "44px",
+          "font-size": "14px"
+        },
+        "[data-slot=command-menu-footer]": {
+          "height": "40px"
+        }
+      }
+    },
+    {
+      "id": "palette-cat-captains",
+      "route": "/thread/thr-1",
+      "state": "palette-cat-captains",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["press", "ArrowRight"]
+      ],
+      "frame": "Ccrdf9PF0e",
+      "expect": {
+        "[data-slot=command-menu-content]": {
+          "max-width": "720px"
+        },
+        "[data-slot=command-menu-input]": {
+          "height": "44px",
+          "font-size": "14px"
+        },
+        "[data-slot=command-menu-footer]": {
+          "height": "40px"
+        }
+      }
+    },
+    {
+      "id": "palette-cat-threads",
+      "route": "/thread/thr-1",
+      "state": "palette-cat-threads",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["press", "ArrowRight"],
+        ["press", "ArrowRight"]
+      ],
+      "frame": "5wj6qIrLbH",
+      "expect": {
+        "[data-slot=command-menu-content]": {
+          "max-width": "720px"
+        },
+        "[data-slot=command-menu-input]": {
+          "height": "44px",
+          "font-size": "14px"
+        },
+        "[data-slot=command-menu-footer]": {
+          "height": "40px"
+        }
+      }
+    },
+    {
+      "id": "palette-cat-pulls",
+      "route": "/thread/thr-1",
+      "state": "palette-cat-pulls",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["press", "ArrowRight"],
+        ["press", "ArrowRight"],
+        ["press", "ArrowRight"]
+      ],
+      "frame": "RzmbwxY_5b",
+      "expect": {
+        "[data-slot=command-menu-content]": {
+          "max-width": "720px"
+        },
+        "[data-slot=command-menu-input]": {
+          "height": "44px",
+          "font-size": "14px"
+        },
+        "[data-slot=command-menu-footer]": {
+          "height": "40px"
+        }
+      }
+    },
+    {
+      "id": "palette-cat-automations",
+      "route": "/thread/thr-1",
+      "state": "palette-cat-automations",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["press", "ArrowRight"],
+        ["press", "ArrowRight"],
+        ["press", "ArrowRight"],
+        ["press", "ArrowRight"]
+      ],
+      "frame": "0M7Oq-jbIb",
+      "expect": {
+        "[data-slot=command-menu-content]": {
+          "max-width": "720px"
+        },
+        "[data-slot=command-menu-input]": {
+          "height": "44px",
+          "font-size": "14px"
+        },
+        "[data-slot=command-menu-footer]": {
+          "height": "40px"
+        }
+      }
+    },
+    {
+      "id": "palette-cat-actions",
+      "route": "/thread/thr-1",
+      "state": "palette-cat-actions",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["press", "ArrowLeft"],
+        ["press", "ArrowLeft"]
+      ],
+      "frame": "0Qq4yoOS6W",
+      "expect": {
+        "[data-slot=command-menu-content]": {
+          "max-width": "720px"
+        },
+        "[data-slot=command-menu-input]": {
+          "height": "44px",
+          "font-size": "14px"
+        },
+        "[data-slot=command-menu-footer]": {
+          "height": "40px"
+        }
+      }
+    },
+    {
+      "id": "palette-cat-settings",
+      "route": "/thread/thr-1",
+      "state": "palette-cat-settings",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["press", "ArrowLeft"]
+      ],
+      "frame": "_OVUcfocnC",
+      "expect": {
+        "[data-slot=command-menu-content]": {
+          "max-width": "720px"
+        },
+        "[data-slot=command-menu-input]": {
+          "height": "44px",
+          "font-size": "14px"
+        },
+        "[data-slot=command-menu-footer]": {
+          "height": "40px"
+        }
+      }
+    },
+    {
+      "id": "palette-arrow-down-x6",
+      "route": "/thread/thr-1",
+      "state": "palette-arrow-down-x6",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["press", "ArrowDown"],
+        ["press", "ArrowDown"],
+        ["press", "ArrowDown"],
+        ["press", "ArrowDown"],
+        ["press", "ArrowDown"],
+        ["press", "ArrowDown"]
+      ],
+      "frame": "2EwW6ay01X",
+      "expect": {
+        "[data-slot=command-menu-content]": {
+          "max-width": "720px"
+        },
+        "[data-slot=command-menu-input]": {
+          "height": "44px",
+          "font-size": "14px"
+        },
+        "[data-slot=command-menu-footer]": {
+          "height": "40px"
+        }
+      }
+    },
+    {
+      "id": "palette-end-key",
+      "route": "/thread/thr-1",
+      "state": "palette-end-key",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["press", "End"]
+      ],
+      "frame": "M6Swy-00y6",
+      "expect": {
+        "[data-slot=command-menu-content]": {
+          "max-width": "720px"
+        },
+        "[data-slot=command-menu-input]": {
+          "height": "44px",
+          "font-size": "14px"
+        },
+        "[data-slot=command-menu-footer]": {
+          "height": "40px"
+        }
+      }
+    },
+    {
+      "id": "palette-query-set",
+      "route": "/thread/thr-1",
+      "state": "palette-query-set",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["fill", "[data-slot=command-menu-input]", "set"]
+      ],
+      "frame": "rsHApo6CKL",
+      "expect": {
+        "[data-slot=command-menu-content]": {
+          "max-width": "720px"
+        },
+        "[data-slot=command-menu-input]": {
+          "height": "44px",
+          "font-size": "14px"
+        },
+        "[data-slot=command-menu-footer]": {
+          "height": "40px"
+        }
+      }
+    },
+    {
+      "id": "palette-query-theme",
+      "route": "/thread/thr-1",
+      "state": "palette-query-theme",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["fill", "[data-slot=command-menu-input]", "theme"]
+      ],
+      "frame": "9cioaUzVWW",
+      "expect": {
+        "[data-slot=command-menu-content]": {
+          "max-width": "720px"
+        },
+        "[data-slot=command-menu-input]": {
+          "height": "44px",
+          "font-size": "14px"
+        },
+        "[data-slot=command-menu-footer]": {
+          "height": "40px"
+        }
+      }
+    },
+    {
+      "id": "palette-query-thr",
+      "route": "/thread/thr-1",
+      "state": "palette-query-thr",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["fill", "[data-slot=command-menu-input]", "thr"]
+      ],
+      "frame": "aDZLyX8jj5",
+      "expect": {
+        "[data-slot=command-menu-content]": {
+          "max-width": "720px"
+        },
+        "[data-slot=command-menu-input]": {
+          "height": "44px",
+          "font-size": "14px"
+        },
+        "[data-slot=command-menu-footer]": {
+          "height": "40px"
+        }
+      }
+    },
+    {
+      "id": "palette-query-model",
+      "route": "/thread/thr-1",
+      "state": "palette-query-model",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["fill", "[data-slot=command-menu-input]", "model"]
+      ],
+      "frame": "tmb34y7Vh4",
+      "expect": {
+        "[data-slot=command-menu-content]": {
+          "max-width": "720px"
+        },
+        "[data-slot=command-menu-input]": {
+          "height": "44px",
+          "font-size": "14px"
+        },
+        "[data-slot=command-menu-footer]": {
+          "height": "40px"
+        }
+      }
+    },
+    {
+      "id": "palette-empty",
+      "route": "/thread/thr-1",
+      "state": "palette-empty",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["fill", "[data-slot=command-menu-input]", "zzzqqq"]
+      ],
+      "frame": "zRefBZORx5",
+      "expect": {
+        "[data-slot=command-menu-content]": {
+          "max-width": "720px"
+        },
+        "[data-slot=command-menu-input]": {
+          "height": "44px",
+          "font-size": "14px"
+        },
+        "[data-slot=command-menu-footer]": {
+          "height": "40px"
+        }
+      }
+    },
+    {
+      "id": "palette-prefix-actions",
+      "route": "/thread/thr-1",
+      "state": "palette-prefix-actions",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["fill", "[data-slot=command-menu-input]", ">"]
+      ],
+      "frame": "ZeIT0KzqIw",
+      "expect": {
+        "[data-slot=command-menu-content]": {
+          "max-width": "720px"
+        },
+        "[data-slot=command-menu-input]": {
+          "height": "44px",
+          "font-size": "14px"
+        },
+        "[data-slot=command-menu-footer]": {
+          "height": "40px"
+        }
+      }
+    },
+    {
+      "id": "palette-prefix-hash",
+      "route": "/thread/thr-1",
+      "state": "palette-prefix-hash",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["fill", "[data-slot=command-menu-input]", "#"]
+      ],
+      "frame": "1joNWervAV",
+      "expect": {
+        "[data-slot=command-menu-content]": {
+          "max-width": "720px"
+        },
+        "[data-slot=command-menu-input]": {
+          "height": "44px",
+          "font-size": "14px"
+        },
+        "[data-slot=command-menu-footer]": {
+          "height": "40px"
+        }
+      }
+    },
+    {
+      "id": "palette-prefix-slash",
+      "route": "/thread/thr-1",
+      "state": "palette-prefix-slash",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["fill", "[data-slot=command-menu-input]", "/"]
+      ],
+      "frame": "Jtqn2ffaZd",
+      "expect": {
+        "[data-slot=command-menu-content]": {
+          "max-width": "720px"
+        },
+        "[data-slot=command-menu-input]": {
+          "height": "44px",
+          "font-size": "14px"
+        },
+        "[data-slot=command-menu-footer]": {
+          "height": "40px"
+        }
+      }
+    },
+    {
+      "id": "palette-closed",
+      "route": "/thread/thr-1",
+      "state": "palette-closed",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"],
+        ["press", "Escape"],
+        ["wait", "500"]
+      ],
+      "frame": "MF8TzP9lTm"
+    },
+    {
+      "id": "palette-narrow",
+      "route": "/thread/thr-1",
+      "state": "palette-narrow-390",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"]
+      ],
+      "frame": "buMdOvF2EF",
+      "expect": {
+        "[data-slot=command-menu-footer]": {
+          "display": "none"
+        }
+      }
+    },
+    {
+      "id": "palette-open-light",
+      "route": "/thread/thr-1",
+      "scheme": "light",
+      "state": "palette-open (light, no frame)",
+      "viewport": "1600x1000",
+      "steps": [
+        ["press", "Control+k"],
+        ["wait", "[data-slot=command-menu-content]"]
+      ],
+      "expect": {
+        "[data-slot=command-menu-content]": {
+          "max-width": "720px"
+        },
+        "[data-slot=command-menu-input]": {
+          "height": "44px",
+          "font-size": "14px"
+        },
+        "[data-slot=command-menu-footer]": {
+          "height": "40px"
+        }
+      }
+    }
+  ]
+}

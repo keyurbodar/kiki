@@ -1,25 +1,22 @@
 import { Schema } from "effect";
-import { JamId, OrgId, ProjectId, Timestamp, UserId } from "./ids.ts";
+import {
+  AutomationId,
+  DriveShareId,
+  JamId,
+  OrgId,
+  ProjectId,
+  Timestamp,
+  UserId,
+  VolumeId,
+  VolumeVersionId,
+} from "./ids.ts";
 
-export const VolumeId = Schema.String.check(
-  Schema.isPattern(/^vol_[0-9A-Z]{26}$/u),
-).pipe(Schema.brand("Core.VolumeId"));
-export type VolumeId = typeof VolumeId.Type;
-
-export const VolumeVersionId = Schema.String.check(
-  Schema.isPattern(/^vver_[0-9A-Z]{26}$/u),
-).pipe(Schema.brand("Core.VolumeVersionId"));
-export type VolumeVersionId = typeof VolumeVersionId.Type;
-
-export const DriveShareId = Schema.String.check(
-  Schema.isPattern(/^dsh_[A-Za-z0-9_-]{24}$/u),
-).pipe(Schema.brand("Core.DriveShareId"));
-export type DriveShareId = typeof DriveShareId.Type;
-
-export const AutomationId = Schema.String.pipe(
-  Schema.brand("Core.AutomationId"),
-);
-export type AutomationId = typeof AutomationId.Type;
+export {
+  AutomationId,
+  DriveShareId,
+  VolumeId,
+  VolumeVersionId,
+} from "./ids.ts";
 
 export const Sha256 = Schema.String.check(Schema.isPattern(/^[0-9a-f]{64}$/u));
 

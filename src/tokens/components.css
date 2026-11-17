@@ -36,6 +36,8 @@
   --sidebar-pin-label-gap: 4px;
   --sidebar-section-gap: 12px;
   --sidebar-section-header: 28px;
+  /* Pulls list: measured from the widest `#N` code cell at runtime. */
+  --pull-code-width: 2.25rem;
 }
 
 :root {
