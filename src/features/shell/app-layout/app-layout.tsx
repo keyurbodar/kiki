@@ -1,7 +1,10 @@
-import { useRouterState } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import { type ReactNode, useEffect } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
+import { useSidebarThreads } from "@/features/sidebar/sidebar-threads-data";
+import { SidebarThreadsPanel } from "@/features/sidebar/sidebar-threads-panel";
+import { openCommandPalette } from "@/lib/command-palette-events";
 import { Card } from "@/primitives/card";
 import { Sheet, SheetContent } from "@/primitives/sheet";
 import {
@@ -39,7 +42,21 @@ function AppShellBody({ children, banner }: AppLayoutProps) {
   const openMobile = useSidebarOpenMobile();
   const { setOpenMobile, toggle } = useSidebarActions();
   const pathname = useRouterState({ select: selectPathname });
-  const nav = <AppSidebar />;
+  const navigate = useNavigate();
+  const threads = useSidebarThreads();
+  const nav = (
+    <AppSidebar
+      mode={threads.view.mode}
+      onModeChange={threads.setMode}
+      threadsSlot={
+        <SidebarThreadsPanel
+          controller={threads}
+          onNewThread={() => navigate({ to: "/new" })}
+          onSearch={() => openCommandPalette("thread")}
+        />
+      }
+    />
+  );
 
   useSidebarShortcut(toggle);
   useEffect(() => {

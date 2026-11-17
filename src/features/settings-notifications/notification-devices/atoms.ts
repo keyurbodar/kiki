@@ -8,10 +8,17 @@ export const pushSubscriptionKeys = (userId: string) => [
 ];
 
 export const pushStateAtom = Atom.family((userId: string) =>
-  ApiClient.query("push", "get", {
-    reactivityKeys: pushSubscriptionKeys(userId),
+  Atom.make((get) => {
+    get(pushRetryAtom);
+    return get(
+      ApiClient.query("push", "get", {
+        reactivityKeys: pushSubscriptionKeys(userId),
+      }),
+    );
   }),
 );
+
+export const pushRetryAtom = Atom.make(0).pipe(Atom.keepAlive);
 
 export const patchPushSubscriptionAtom = ApiClient.mutation("push", "patch");
 

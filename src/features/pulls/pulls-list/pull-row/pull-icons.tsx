@@ -128,6 +128,15 @@ export function PlusGlyph(props: GlyphProps) {
   );
 }
 
+export function SearchGlyph(props: GlyphProps) {
+  return (
+    <Glyph label="search" {...props}>
+      <circle cx="11" cy="11" r="7" {...stroke} />
+      <path d="M20 20L16.05 16.05" {...stroke} />
+    </Glyph>
+  );
+}
+
 export function ChevronDownGlyph(props: GlyphProps) {
   return (
     <Glyph label="chevron-down-small" {...props}>

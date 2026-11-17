@@ -632,10 +632,7 @@ export function PropertyRows({
           />
         </span>
       </IssuePropertyRow>
-      <IssuePropertyRow
-        icon={<Bubble />}
-        label={detail.threads.length > 1 ? "Threads" : "Thread"}
-      >
+      <IssuePropertyRow icon={<Bubble />} label="Threads">
         <span className="flex min-w-0 flex-col items-start gap-0.5">
           {detail.threads.map((thread) => (
             <ThreadValueRow

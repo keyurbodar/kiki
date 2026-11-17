@@ -29,6 +29,7 @@ export type Pull = {
   readonly authorAvatarUrl: string | null;
   readonly createdAt: Date;
   readonly headRef: string;
+  readonly headSha: string;
   readonly baseRef: string;
   readonly additions: number;
   readonly deletions: number;
@@ -144,6 +145,7 @@ export const toPull = (value: unknown): Pull | undefined => {
     authorAvatarUrl: str(raw.authorAvatarUrl),
     createdAt: toDate(raw.createdAt) ?? toDate(raw.updatedAt) ?? new Date(0),
     headRef: str(raw.headRef) ?? "",
+    headSha: str(raw.headSha) ?? "",
     baseRef: str(raw.baseRef) ?? "",
     additions: num(raw.additions),
     deletions: num(raw.deletions),

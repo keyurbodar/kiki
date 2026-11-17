@@ -4,6 +4,47 @@ export const memberMfaExtensions: Readonly<Record<string, string>> = {
   [people.sam.id]: "Acme Security Keys",
 };
 
+/**
+ * How each member proves who they are. The viewer (Alex) holds a trusted
+ * passkey, which is what unlocks the org's two-step controls.
+ */
+export const memberProtection: Readonly<
+  Record<
+    string,
+    {
+      readonly mfaEnabled: boolean;
+      readonly passkeyTrusted: boolean;
+      readonly enterpriseSso: boolean;
+    }
+  >
+> = {
+  [people.alex.id]: {
+    mfaEnabled: true,
+    passkeyTrusted: true,
+    enterpriseSso: false,
+  },
+  [people.sam.id]: {
+    mfaEnabled: true,
+    passkeyTrusted: true,
+    enterpriseSso: true,
+  },
+  [people.priya.id]: {
+    mfaEnabled: false,
+    passkeyTrusted: false,
+    enterpriseSso: true,
+  },
+  [people.jordan.id]: {
+    mfaEnabled: false,
+    passkeyTrusted: false,
+    enterpriseSso: false,
+  },
+  [people.casey.id]: {
+    mfaEnabled: false,
+    passkeyTrusted: false,
+    enterpriseSso: false,
+  },
+};
+
 export const memberAccessOverrides: Readonly<
   Record<string, { readonly removedAt: string | null; readonly role: string }>
 > = {
