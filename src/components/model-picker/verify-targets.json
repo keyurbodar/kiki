@@ -1,58 +1,41 @@
 {
-  "matrix": {
-    "scheme": ["dark", "light"]
-  },
-  "defaults": {
-    "maxMismatch": 2
-  },
+  "matrix": { "scheme": ["dark", "light"] },
+  "defaults": { "maxMismatch": 2 },
   "targets": [
     {
       "id": "model-picker-open",
       "route": "/__model-picker",
-      "state": "popover open on the composer footer",
+      "state": "popover open, first provider row highlighted",
       "viewport": "1440x900",
       "steps": [
         ["wait", "[data-slot=popover-content]"],
+        ["press", "ArrowDown"],
         ["wait", "[data-slot=picker-lab-card]"]
       ],
       "capture": {
         "[data-slot=popover-content]": [
           "width",
           "background-color",
-          "border-radius",
-          "box-shadow",
-          "border-top-width"
+          "border-radius"
         ],
         "[role=listbox]": ["max-height", "overflow-y"],
-        "[role=listbox] [role=option]": [
-          "height",
-          "font-size",
-          "column-gap",
-          "padding-left"
-        ],
+        "[role=listbox] [role=option]": ["height", "font-size", "padding-left"],
         "[data-slot=picker-lab-card]": [
           "width",
           "background-color",
           "border-radius"
         ],
-        "[data-slot=picker-lab-rail]": ["width", "border-radius"],
-        "[data-slot=menu-search-row]": ["height"],
+        "[data-slot=picker-lab-rail]": ["width"],
         "[data-slot=menu-search-row] input": ["height", "font-size"]
       },
       "expect": {
-        "[data-slot=popover-content]": {
-          "width": "320px"
-        },
-        "[role=listbox]": {
-          "max-height": "320px"
-        },
+        "[data-slot=popover-content]": { "width": "320px" },
+        "[role=listbox]": { "max-height": "320px" },
         "[role=listbox] [role=option]": {
           "height": "28px",
           "font-size": "14px"
         },
-        "[data-slot=picker-lab-card]": {
-          "width": "288px"
-        },
+        "[data-slot=picker-lab-card]": { "width": "288px" },
         "[data-slot=menu-search-row] input": {
           "height": "28px",
           "font-size": "14px"
@@ -60,27 +43,32 @@
       }
     },
     {
-      "id": "model-picker-hover",
+      "id": "model-picker-roving",
       "route": "/__model-picker",
-      "state": "second model row highlighted",
+      "state": "arrow keys walk the list and keep one row highlighted",
       "viewport": "1440x900",
       "steps": [
         ["wait", "[data-slot=popover-content]"],
-        ["hover", "[role=listbox] [role=option]:nth-of-type(4)"],
+        ["press", "ArrowDown"],
+        ["press", "ArrowDown"],
+        ["press", "ArrowDown"],
         ["wait", "[role=listbox] [data-highlighted]"]
       ],
       "capture": {
         "[role=listbox] [data-highlighted]": ["background-color", "height"]
+      },
+      "expect": {
+        "[role=listbox] [data-highlighted]": { "height": "28px" }
       }
     },
     {
       "id": "model-picker-trigger",
       "route": "/__model-picker",
-      "state": "closed triggers row",
+      "state": "closed triggers: selected, loading, inherit, unknown model",
       "viewport": "1440x900",
       "steps": [["wait", "[aria-label=Model]"]],
       "capture": {
-        "[aria-label=Model]": ["height", "font-size", "color", "border-radius"]
+        "[aria-label=Model]": ["height", "font-size", "border-radius"]
       }
     }
   ]

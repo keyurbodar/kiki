@@ -70,6 +70,18 @@ const entries: ReadonlyArray<ModelEntry> = [
 
 const groups = groupModels(entries);
 
+const at = (index: number): ModelEntry => {
+  const item = entries[index];
+  if (item === undefined) throw new Error("missing fixture entry");
+  return item;
+};
+
+const groupAt = (index: number): ModelGroup => {
+  const item = groups[index];
+  if (item === undefined) throw new Error("missing fixture group");
+  return item;
+};
+
 describe("model picker catalog", () => {
   it("groups routes by lab and slug, preferring the plan route", () => {
     const opus = groups.find(
@@ -102,7 +114,7 @@ describe("model picker catalog", () => {
   });
 
   it("keeps the remembered route, then the requested id", () => {
-    const opus = groups[0];
+    const opus = groupAt(0);
     expect(preferredRoute(opus, {}).kind).toBe("plan");
     expect(
       preferredRoute(opus, { [opus.key]: opus.routes[1].entry.id }).kind,
@@ -133,8 +145,8 @@ describe("model picker catalog", () => {
   });
 
   it("resolves modes against what the model supports", () => {
-    const opus = entries[0];
-    const sol = entries[2];
+    const opus = at(0);
+    const sol = at(2);
     expect(resolveModes(opus, { fast: true })).toEqual({
       fast: true,
       pro: false,
@@ -160,7 +172,7 @@ describe("model picker catalog", () => {
   });
 
   it("steps effort inside the model's range", () => {
-    const opus = entries[0];
+    const opus = at(0);
     expect(stepEffort(opus, "medium", 1)).toBe("high");
     expect(stepEffort(opus, "high", 1)).toBe("high");
     expect(stepEffort(opus, undefined, -1)).toBe("low");
@@ -168,7 +180,7 @@ describe("model picker catalog", () => {
 
   it("drops an effort the next model cannot run", () => {
     const next = selectEntry(
-      { modelId: entries[0].id, effort: "max", fast: true, pro: false },
+      { modelId: at(0).id, effort: "max", fast: true, pro: false },
       entry({ id: "zai/glm-5.3", efforts: ["low"] }),
     );
     expect(next.effort).toBeUndefined();
@@ -176,7 +188,7 @@ describe("model picker catalog", () => {
   });
 
   it("summarises the trigger label the way Capy does", () => {
-    const opus = entries[0];
+    const opus = at(0);
     expect(
       selectionSummary(opus, undefined, {
         fast: false,
@@ -208,8 +220,8 @@ describe("model picker catalog", () => {
     expect(formatContext(128_000)).toBe("128K");
     expect(formatPrice(4)).toBe("$4");
     expect(formatPrice(0.5)).toBe("$0.50");
-    expect(priceLabel(entries[3])).toBe("Free");
-    expect(priceLabel(entries[0])).toBe("$4 / $20");
+    expect(priceLabel(at(3))).toBe("Free");
+    expect(priceLabel(at(0))).toBe("$4 / $20");
     expect(priceLabel(entry({ id: "x/y", efforts: [] }))).toBe("");
   });
 

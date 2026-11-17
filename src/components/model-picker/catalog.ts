@@ -75,7 +75,7 @@ export type ModelGroup = {
   lab: string;
   name: string;
   older: boolean;
-  routes: ReadonlyArray<RouteOption>;
+  routes: readonly [RouteOption, ...RouteOption[]];
 };
 
 export const defaultModelId = "anthropic/claude-opus-5-5";
@@ -194,19 +194,21 @@ export function groupModels(
     ? entries.filter((entry) => entry.aliasOf === undefined)
     : entries;
   return [...new Set(visible.map(groupKey))]
-    .map((key) => {
-      const routes = visible
+    .flatMap((key) => {
+      const [first, ...rest] = visible
         .filter((entry) => groupKey(entry) === key)
         .toSorted((a, b) => Number(isPlanEntry(b)) - Number(isPlanEntry(a)))
         .map(routeOption);
-      const first = routes[0].entry;
-      return {
-        key,
-        lab: labOf(first),
-        name: first.name,
-        older: olderModels.has(modelSlug(first.id)),
-        routes,
-      };
+      if (first === undefined) return [];
+      return [
+        {
+          key,
+          lab: labOf(first.entry),
+          name: first.entry.name,
+          older: olderModels.has(modelSlug(first.entry.id)),
+          routes: [first, ...rest],
+        },
+      ];
     })
     .toSorted((a, b) => labRank(a.lab) - labRank(b.lab));
 }
@@ -274,29 +276,21 @@ export const stepEffort = (
   entry: ModelEntry,
   effort: Effort | undefined,
   step: number,
-) =>
-  entry.efforts[
-    Math.min(
-      entry.efforts.length - 1,
-      Math.max(
-        0,
-        entry.efforts.indexOf(
-          effort ?? entry.defaultEffort ?? entry.efforts[0],
-        ) + step,
-      ),
-    )
-  ];
+): Effort | undefined => {
+  const from = effort ?? entry.defaultEffort ?? entry.efforts[0];
+  const at = from === undefined ? 0 : entry.efforts.indexOf(from) + step;
+  return entry.efforts[Math.min(entry.efforts.length - 1, Math.max(0, at))];
+};
 
 export const selectionSummary = (
   entry: ModelEntry,
   effort: Effort | undefined,
   modes: Modes,
-) =>
-  [
-    !modes.pro &&
-    entry.efforts.length > 0 &&
-    (effort ?? entry.defaultEffort) !== undefined
-      ? effortLabel((effort ?? entry.defaultEffort) as Effort)
+) => {
+  const reasoning = modes.pro ? undefined : (effort ?? entry.defaultEffort);
+  return [
+    reasoning !== undefined && entry.efforts.length > 0
+      ? effortLabel(reasoning)
       : null,
     modes.fast ? "Fast" : null,
     modes.pro ? "Pro" : null,
@@ -305,6 +299,7 @@ export const selectionSummary = (
   ]
     .filter((part) => part !== null)
     .join(" ");
+};
 
 export const isFreeRoute = (route: RouteOption) =>
   route.kind === "credits" &&

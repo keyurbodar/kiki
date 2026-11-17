@@ -46,7 +46,7 @@ export function Dither({
           const t = Math.min(1, Math.max(0, (along - start) / (1 - start)));
           if (
             from + (to - from) * t * t * (3 - 2 * t) >
-            (bayer[(y % 4) * 4 + (x % 4)] + 0.5) / 16
+            ((bayer[(y % 4) * 4 + (x % 4)] ?? 8) + 0.5) / 16
           )
             context.fillRect(x, y, 1, 1);
         }
@@ -114,7 +114,9 @@ export function EffortSlider({
       aria-valuemax={efforts.length - 1}
       aria-valuenow={index}
       aria-valuetext={
-        efforts[index] === undefined ? undefined : effortLabel(efforts[index])
+        efforts[index] === undefined
+          ? undefined
+          : effortLabel(efforts[index] as Effort)
       }
       className={join(
         "group/slider w-full cursor-pointer touch-none rounded focus-visible:outline-ring-inset",
