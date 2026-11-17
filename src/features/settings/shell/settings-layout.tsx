@@ -139,7 +139,10 @@ function SettingsCrumbLink({
       }}
       className="-ml-2 flex h-(--h-control-sm) w-fit items-center gap-1.5 rounded px-2 text-sm font-medium text-muted-foreground-1 select-none transition-colors duration-100 hover:bg-secondary outline-none focus-visible:outline-ring-inset"
     >
-      <SettingsIcon name="arrow-left" className="size-(--icon-sm) shrink-0" />
+      <SettingsIcon
+        name="chevron-left-small"
+        className="size-(--icon-sm) shrink-0"
+      />
       {crumb.label}
     </a>
   );
