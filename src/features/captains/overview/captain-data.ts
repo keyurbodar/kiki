@@ -146,21 +146,23 @@ export function toCaptainDrive(value: unknown): CaptainDrive | null {
     : Array.isArray(json.files)
       ? json.files
       : [];
-  const files = (isList ? [] : rows.map(record)).flatMap((row): CaptainDriveFile[] => {
-    const entry = record(row.entry ?? row);
-    const path = text(entry.path);
-    if (path === null) return [];
-    return [
-      {
-        path,
-        volume,
-        versionId: text(row.versionId) ?? volume.headVersionId ?? "",
-        sha256: text(entry.sha256) ?? "",
-        sizeBytes: Number(entry.sizeBytes ?? entry.size ?? 0),
-        updatedAt: date(entry.updatedAt ?? row.changedAt),
-      },
-    ];
-  });
+  const files = (isList ? [] : rows.map(record)).flatMap(
+    (row): CaptainDriveFile[] => {
+      const entry = record(row.entry ?? row);
+      const path = text(entry.path);
+      if (path === null) return [];
+      return [
+        {
+          path,
+          volume,
+          versionId: text(row.versionId) ?? volume.headVersionId ?? "",
+          sha256: text(entry.sha256) ?? "",
+          sizeBytes: Number(entry.sizeBytes ?? entry.size ?? 0),
+          updatedAt: date(entry.updatedAt ?? row.changedAt),
+        },
+      ];
+    },
+  );
   return { volume, files };
 }
 
