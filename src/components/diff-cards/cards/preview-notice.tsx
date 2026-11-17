@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import "./preview-notice.css";
 
 export type PreviewNoticeStatus =
   | "loading"

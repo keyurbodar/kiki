@@ -1,0 +1,82 @@
+.pull-guide {
+  --diff-sticky-top: calc(var(--spacing) * 3);
+}
+
+.pull-guide .diff-surface > [tabindex] {
+  overflow: visible;
+}
+
+.pull-guide [data-patchless-card] {
+  overflow: clip;
+}
+
+.pull-guide-top-fade {
+  position: sticky;
+  top: var(--diff-sticky-top);
+  z-index: 1;
+  height: 0;
+  pointer-events: none;
+}
+
+.pull-guide-top-fade::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: var(--scroll-fade-ramp, calc(var(--spacing) * 8));
+  background: linear-gradient(to bottom, var(--panel), transparent);
+  transition: opacity var(--duration-fast) var(--ease-out-quint);
+}
+
+.pull-guide[data-scroll-start] .pull-guide-top-fade::before {
+  opacity: 0;
+}
+
+.pull-guide-chapter {
+  z-index: 1;
+}
+
+@media (width < 48rem) {
+  .pull-guide-top-fade {
+    display: none;
+  }
+}
+
+.pull-guide-card-cap {
+  position: absolute;
+  top: 0;
+  height: calc(var(--diff-sticky-top) + var(--radius-card));
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.pull-guide-card-cap[data-covered] {
+  visibility: visible;
+}
+
+.pull-guide-card-cap::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: var(--diff-sticky-top);
+  box-sizing: border-box;
+  height: var(--radius-card);
+  border-bottom: 0;
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  background: linear-gradient(
+    to right,
+    var(--card) var(--radius-card),
+    transparent var(--radius-card) calc(100% - var(--radius-card)),
+    var(--card) calc(100% - var(--radius-card))
+  );
+  box-shadow:
+    var(--shadow-card),
+    0 0 0 200vmax var(--panel);
+}
+
+.pull-guide [data-patchless-header] {
+  position: sticky;
+  top: var(--diff-sticky-top);
+  z-index: 1;
+}

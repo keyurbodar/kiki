@@ -70,6 +70,11 @@ describe("PreviewNotice", () => {
       "https://github.com/acme/web/pull/12",
     );
   });
+
+  it("carries Capy's notice class so its stylesheet applies", () => {
+    const { container } = render(<PreviewNotice status="too-large" />);
+    expect(container.querySelector(".diff-preview-notice")).toBeTruthy();
+  });
 });
 
 describe("MoveChip", () => {
@@ -79,5 +84,18 @@ describe("MoveChip", () => {
     render(<MoveChip metadata={{ move, at: "origin" }} onJump={onJump} />);
     fireEvent.click(screen.getByRole("button", { name: /Moved to src\/b.ts/ }));
     expect(onJump).toHaveBeenCalledWith("src/b.ts", 20, "additions");
+  });
+
+  it("carries Capy's chip classes so the stylesheet applies", () => {
+    const { container } = render(
+      <MoveChip
+        metadata={{ move: samePath, at: "origin" }}
+        onJump={() => {}}
+      />,
+    );
+    expect(container.querySelector(".diff-move-chip")).toBeTruthy();
+    expect(container.querySelector(".diff-move-chip-label")).toBeTruthy();
+    expect(container.querySelector(".diff-move-chip-count")).toBeTruthy();
+    expect(container.querySelector(".diff-move-chip-icon")).toBeTruthy();
   });
 });

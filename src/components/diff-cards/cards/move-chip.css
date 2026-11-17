@@ -1,0 +1,58 @@
+.diff-move-chip {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  padding: calc(var(--spacing) * 0.5) calc(var(--spacing) * 2);
+}
+
+.diff-move-chip-target {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: var(--text-2xs);
+  font-style: inherit;
+  font-weight: inherit;
+  font-stretch: inherit;
+  font-size-adjust: inherit;
+  font-kerning: inherit;
+  font-optical-sizing: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+  font-language-override: inherit;
+  font-variant: inherit;
+  letter-spacing: var(--text-2xs--letter-spacing);
+  line-height: var(--text-2xs--line-height);
+  color: var(--muted-foreground-2);
+  transition: color var(--duration-fast) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (hover: hover) {
+  button.diff-move-chip-target:hover {
+    color: var(--fg);
+  }
+}
+
+.diff-move-chip-icon {
+  display: block;
+  flex-shrink: 0;
+  width: calc(var(--spacing) * 3);
+  height: calc(var(--spacing) * 3);
+}
+
+.diff-move-chip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diff-move-chip-count {
+  flex-shrink: 0;
+  color: var(--muted-foreground-3);
+  font-variant-numeric: tabular-nums;
+}
