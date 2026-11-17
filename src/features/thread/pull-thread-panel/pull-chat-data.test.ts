@@ -1,6 +1,7 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
+import { JamId, OrgId } from "@/data/api/schemas/ids";
 import { ApiClient } from "@/data/client/ApiClient";
 import { orgId, projects, pulls } from "@/data/mocks/fixtures/world";
 
@@ -28,9 +29,13 @@ describe("pull chat data", () => {
       const thread = (yield* AtomRegistry.getResult(
         registry,
         ApiClient.query("jams", "get", {
-          params: { orgId, jamId: created.id },
+          params: { orgId: OrgId.make(orgId), jamId: JamId.make(created.id) },
         }),
-      )) as { userId?: string; preview?: string | null; createdAt?: string };
+      )) as unknown as {
+        userId?: string;
+        preview?: string | null;
+        createdAt?: unknown;
+      };
       assert.equal(thread.preview, "Summarize the open review comments");
       assert.isString(thread.userId);
       assert.isDefined(thread.createdAt);

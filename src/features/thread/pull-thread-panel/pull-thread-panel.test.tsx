@@ -68,9 +68,10 @@ describe("PullThreadPanel", () => {
       screen.getByText("Chat with Capy about this pull request"),
     ).toBeTruthy();
     expect(screen.getByText("web#128")).toBeTruthy();
-    const input = screen.getByRole<HTMLTextAreaElement>("textbox", {
-      name: "Message",
-    });
+    const input = document.querySelector<HTMLTextAreaElement>(
+      "[data-slot=textarea]",
+    );
+    if (input === null) throw new Error("missing chat textarea");
     expect(input.value).toBe("@#128 Add dark mode to settings ");
     fireEvent.click(screen.getByRole("button", { name: "Close panel" }));
     expect(onClose).toHaveBeenCalledOnce();
@@ -79,9 +80,10 @@ describe("PullThreadPanel", () => {
   it("starts a thread from the chat and selects it", async () => {
     const onSelectThread = vi.fn();
     renderPanel({ kind: "chat" }, { onSelectThread });
-    const input = screen.getByRole<HTMLTextAreaElement>("textbox", {
-      name: "Message",
-    });
+    const input = document.querySelector<HTMLTextAreaElement>(
+      "[data-slot=textarea]",
+    );
+    if (input === null) throw new Error("missing chat textarea");
     await waitFor(async () => {
       fireEvent.keyDown(input, { key: "Enter" });
       expect(onSelectThread).toHaveBeenCalled();

@@ -3,6 +3,7 @@ import { Option } from "effect";
 import { AsyncResult, Atom } from "effect/reactivity";
 import { useState } from "react";
 import { toast } from "sonner";
+import { JamId, OrgId } from "@/data/api/schemas/ids";
 import { queryTimeToLive } from "@/data/atoms/conventions";
 import { projectsAtom } from "@/data/atoms/projects";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
@@ -32,7 +33,7 @@ const pullThreadsAtom = Atom.family((key: string) => {
 const threadAtom = Atom.family((key: string) => {
   const [orgId = "", jamId = ""] = key.split("|");
   return ApiClient.query("jams", "get", {
-    params: { orgId, jamId },
+    params: { orgId: OrgId.make(orgId), jamId: JamId.make(jamId) },
     timeToLive: queryTimeToLive,
   });
 });

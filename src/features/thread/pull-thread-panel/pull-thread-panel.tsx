@@ -4,7 +4,6 @@ import {
   type ReactNode,
   useRef,
 } from "react";
-import { Composer } from "@/components/composer";
 import { RightPanelHostPanel } from "@/features/shell/right-panel-host";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
@@ -152,20 +151,16 @@ export function PullChatView({ pull, onClose, onCreated }: PullChatViewProps) {
         </span>
       </div>
       <div className="px-4 pb-[calc(1rem+var(--safe-bottom))]">
-        <Composer>
-          <form onSubmit={submit}>
-            <Textarea
-              ref={input}
-              variant="blank"
-              aria-label="Message"
-              placeholder={pullChatPlaceholder}
-              defaultValue={pullChatDraft(pull).text}
-              autoFocus
-              aria-busy={busy}
-              onKeyDown={onKeyDown}
-            />
-          </form>
-        </Composer>
+        <Textarea
+          ref={input}
+          variant="blank"
+          aria-label="Message"
+          placeholder={pullChatPlaceholder}
+          defaultValue={pullChatDraft(pull).text}
+          autoFocus
+          aria-busy={busy}
+          onKeyDown={onKeyDown}
+        />
       </div>
     </div>
   );
