@@ -42,6 +42,55 @@
           "frame": "UITzoMhMKk"
         }
       }
+    },
+    {
+      "id": "thread-takeover-clarify",
+      "route": "/thread/jam_sample_clarify",
+      "viewport": "1600x1000",
+      "capture": {
+        "[data-slot=clarify-takeover]": [
+          "background-color",
+          "border-radius",
+          "box-shadow",
+          "padding-top"
+        ],
+        "[data-slot=composer]": ["display"]
+      },
+      "expect": {
+        "[data-slot=composer]": {
+          "display": "none"
+        }
+      },
+      "variants": {
+        "default/dark": {
+          "frame": "k_vMRAQnSu"
+        }
+      }
+    },
+    {
+      "id": "thread-takeover-environment",
+      "route": "/thread/jam_sample_environment",
+      "viewport": "1600x1000",
+      "capture": {
+        "[data-slot=request-takeover]": [
+          "background-color",
+          "border-radius",
+          "box-shadow",
+          "padding-top"
+        ],
+        "[data-slot=variable-row]": ["min-height", "font-size"],
+        "[data-slot=composer]": ["display"]
+      },
+      "expect": {
+        "[data-slot=composer]": {
+          "display": "none"
+        }
+      },
+      "variants": {
+        "default/dark": {
+          "frame": "xuItmh4KnR"
+        }
+      }
     }
   ]
 }
