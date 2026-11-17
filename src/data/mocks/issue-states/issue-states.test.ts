@@ -19,7 +19,7 @@ type State = {
 };
 
 const names = (value: unknown) =>
-  (value as ReadonlyArray<State>).map((state) => state.name);
+  (value as { states: ReadonlyArray<State> }).states.map((state) => state.name);
 
 describe("issue-states mock", () => {
   it.effect("both endpoints change the shared state list", () =>
@@ -58,7 +58,7 @@ describe("issue-states mock", () => {
         },
       );
       assert.isTrue(
-        (afterDefault as ReadonlyArray<State>).find(
+        afterDefault.states.find(
           (state) => state.id === "ist_sample_in_progress",
         )?.isDefault,
       );
