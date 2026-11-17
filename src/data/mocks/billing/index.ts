@@ -65,6 +65,20 @@ export const BillingMock = mockGroup("billing", (handlers) =>
                 current.autoReload.threshold,
               ),
               amount: numberField(input, "amount", current.autoReload.amount),
+              thresholdCredits: numberField(
+                input,
+                "thresholdCredits",
+                current.autoReload.thresholdCredits,
+              ),
+              amountCredits: numberField(
+                input,
+                "amountCredits",
+                current.autoReload.amountCredits,
+              ),
+              monthlyCapCredits:
+                "monthlyCapCredits" in input
+                  ? (input.monthlyCapCredits as number | null)
+                  : current.autoReload.monthlyCapCredits,
             },
           }));
           return updated.autoReload;
@@ -111,6 +125,12 @@ export const BillingMock = mockGroup("billing", (handlers) =>
           const updated = yield* Ref.updateAndGet(account, (current) => ({
             ...current,
             credits: current.credits + credits,
+            customer: true,
+            balance: {
+              ...current.balance,
+              grantedCredits: current.balance.grantedCredits + credits,
+              remainingCredits: current.balance.remainingCredits + credits,
+            },
           }));
           return {
             ok: true,
@@ -126,6 +146,10 @@ export const BillingMock = mockGroup("billing", (handlers) =>
           const updated = yield* Ref.updateAndGet(account, (current) => ({
             ...current,
             cancelAtPeriodEnd: true,
+            plans: current.plans.map((plan) => ({
+              ...plan,
+              canceledAt: DateTime.formatIso(minutesAgo(0)),
+            })),
           }));
           return {
             ok: true,
@@ -139,13 +163,32 @@ export const BillingMock = mockGroup("billing", (handlers) =>
       .handle("confirmPlan", ({ payload }) =>
         Effect.gen(function* () {
           const input = fields(payload);
+          const tierId = stringField(input, "tierId", "");
           const updated = yield* Ref.updateAndGet(account, (current) => ({
             ...current,
             plan: stringField(input, "plan", current.plan),
             planStatus: "active",
             cancelAtPeriodEnd: false,
+            customer: true,
+            plans:
+              tierId === ""
+                ? current.plans
+                : current.plans.map((plan) => ({
+                    ...plan,
+                    planId: tierId,
+                    name: tierId,
+                    canceledAt: null,
+                  })),
           }));
-          return { ok: true, plan: updated.plan, status: updated.planStatus };
+          return {
+            ok: true,
+            plan: updated.plan,
+            status: updated.planStatus,
+            schedule: "immediate",
+            introApplied: false,
+            introUnavailable: false,
+            paymentUrl: null,
+          };
         }),
       )
       .handle("keepPlan", () =>
@@ -153,6 +196,7 @@ export const BillingMock = mockGroup("billing", (handlers) =>
           const updated = yield* Ref.updateAndGet(account, (current) => ({
             ...current,
             cancelAtPeriodEnd: false,
+            plans: current.plans.map((plan) => ({ ...plan, canceledAt: null })),
           }));
           return { ok: true, plan: updated.plan, status: updated.planStatus };
         }),
@@ -165,6 +209,9 @@ export const BillingMock = mockGroup("billing", (handlers) =>
           interval: accountSeed.planInterval,
           credits: accountSeed.credits,
           dueNow: accountSeed.planAmount,
+          dueTodayCents: accountSeed.planAmount,
+          nextCycleTotalCents: accountSeed.planAmount,
+          introEligible: false,
         }),
       )
       .handle("openPortal", () =>
@@ -189,10 +236,16 @@ export const BillingMock = mockGroup("billing", (handlers) =>
         }),
       )
       .handle("createSetupIntent", () =>
-        Effect.succeed({
-          id: newId("seti"),
-          clientSecret: `${newId("seti")}_secret`,
-          status: "requires_payment_method",
+        Effect.sync(() => {
+          const id = newId("seti");
+          return {
+            id,
+            setupIntentId: id,
+            clientSecret: `${id}_secret`,
+            publishableKey: "pk_test_sample",
+            alreadySaved: false,
+            status: "requires_payment_method",
+          };
         }),
       )
       .handle("updateSponsoredPaidFallthrough", ({ payload }) =>
@@ -233,7 +286,12 @@ export const BillingMock = mockGroup("billing", (handlers) =>
               amount: numberField(input, "amount", current.ssoAddOn.amount),
             },
           }));
-          return { ok: true, status: updated.ssoAddOn.status };
+          return {
+            ok: true,
+            status: updated.ssoAddOn.status,
+            paymentUrl: null,
+            requiredAction: null,
+          };
         }),
       )
       .handle("keepSsoAddOn", () =>
@@ -252,6 +310,7 @@ export const BillingMock = mockGroup("billing", (handlers) =>
           currency: "usd",
           interval: accountSeed.ssoAddOn.interval,
           dueNow: accountSeed.ssoAddOn.amount,
+          dueTodayCents: accountSeed.ssoAddOn.amount,
         }),
       );
   }),
