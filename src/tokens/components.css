@@ -68,3 +68,8 @@
 [data-theme-preview] {
   --contain-intrinsic-emoji-group: 220px;
 }
+
+/* Crew asks (T07): footer width at which the trigger fits its full label. */
+@theme static {
+  --container-crew-asks-footer: 34rem;
+}

@@ -42,10 +42,23 @@ export type SummaryTurn = {
 
 export const repoName = (repo: string) => repo.split("/")[1] ?? repo;
 
+export const repoFullNameFromPullUrl = (url: string) =>
+  /^https?:\/\/[^/]+\/([^/]+\/[^/]+)\/pull\/\d+(?:[/?#]|$)/.exec(url)?.[1];
+
 export const repoNameFromPullUrl = (url: string) =>
-  /^https?:\/\/[^/]+\/([^/]+\/[^/]+)\/pull\/\d+(?:[/?#]|$)/
-    .exec(url)?.[1]
-    ?.split("/")[1];
+  repoFullNameFromPullUrl(url)?.split("/")[1];
+
+export const livePullRequest = (
+  reference: SummaryPullRequestRef,
+  live: readonly SummaryLivePullRequest[],
+) => {
+  const repo = repoFullNameFromPullUrl(reference.url);
+  return live.find(
+    (candidate) =>
+      candidate.number === reference.number &&
+      (repo === undefined || candidate.repo === repo),
+  );
+};
 
 export const pullRequestLabel = (
   reference: SummaryPullRequestRef,
@@ -66,7 +79,7 @@ const pullRequestPhrases = (
 ) => {
   if (prs.length === 0) return [];
   const verbs = prs.map((pr) => {
-    const state = live.find((l) => l.number === pr.number)?.state;
+    const state = livePullRequest(pr, live)?.state;
     return state === "merged"
       ? "merged"
       : state === "closed"
@@ -75,7 +88,7 @@ const pullRequestPhrases = (
   });
   const [pr] = prs;
   if (prs.length === 1 && pr !== undefined) {
-    const match = live.find((l) => l.number === pr.number);
+    const match = livePullRequest(pr, live);
     const repo =
       match === undefined ? repoNameFromPullUrl(pr.url) : repoName(match.repo);
     return [

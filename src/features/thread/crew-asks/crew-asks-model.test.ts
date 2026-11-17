@@ -4,6 +4,7 @@ import {
   type CrewAsk,
   crewAsksLabel,
   crewAsksShortLabel,
+  dismissCrewAsks,
   groupCrewAsks,
 } from "./crew-asks-model";
 
@@ -96,6 +97,40 @@ describe("batchDismissals", () => {
     expect(batches).toHaveLength(2);
     expect(batches[0]?.threadIds.size).toBe(100);
     expect(batches[1]?.threadIds).toEqual(new Set(["thread_100"]));
+  });
+});
+
+describe("dismissCrewAsks", () => {
+  const askKeys = Array.from({ length: 101 }, (_, index) => ({
+    threadId: `thread_${index}`,
+    key: "ask_1",
+  }));
+
+  it("keeps earlier dismissals when a later batch fails", async () => {
+    let call = 0;
+    const onDismiss = async (batch: {
+      threadIds: string[];
+      keys: string[];
+    }) => {
+      call += 1;
+      if (call === 2) throw new Error("offline");
+      return batch.threadIds.map((threadId) => ({
+        threadId,
+        key: batch.keys[0] ?? "",
+      }));
+    };
+    const { dismissed, failed } = await dismissCrewAsks(askKeys, onDismiss);
+    expect(failed).toBe(true);
+    expect(dismissed).toHaveLength(100);
+    expect(dismissed[0]).toEqual({ threadId: "thread_0", key: "ask_1" });
+  });
+
+  it("reports no failure when every batch succeeds", async () => {
+    const onDismiss = async (batch: { threadIds: string[] }) =>
+      batch.threadIds.map((threadId) => ({ threadId, key: "ask_1" }));
+    const { dismissed, failed } = await dismissCrewAsks(askKeys, onDismiss);
+    expect(failed).toBe(false);
+    expect(dismissed).toHaveLength(101);
   });
 });
 

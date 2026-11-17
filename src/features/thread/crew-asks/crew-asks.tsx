@@ -9,14 +9,15 @@ import {
   ResponsiveMenuItem,
 } from "@/primitives/responsive-menu";
 import {
-  batchDismissals,
   CREW_ASKS_PAGE,
   type CrewAsk,
   type CrewAskItem,
   type CrewAskKey,
+  type CrewAsksDismiss,
   type CrewThread,
   crewAsksLabel,
   crewAsksShortLabel,
+  dismissCrewAsks,
   groupCrewAsks,
 } from "./crew-asks-model";
 
@@ -34,10 +35,7 @@ export type CrewAsksMenuProps = {
   asks: readonly CrewAsk[];
   threads: readonly CrewThread[];
   onOpenJam: (threadId: string) => void;
-  onDismiss: (batch: {
-    threadIds: string[];
-    keys: string[];
-  }) => Promise<readonly CrewAskKey[]>;
+  onDismiss: CrewAsksDismiss;
   onRestore?: (asks: readonly CrewAskKey[]) => Promise<void>;
   touch?: boolean;
 };
@@ -56,37 +54,23 @@ export function CrewAsksMenu({
   const items = groupCrewAsks(asks, threads, captainId);
   if (items.length === 0) return null;
 
-  const dismiss = (keys: readonly CrewAskKey[]) => {
-    batchDismissals(keys)
-      .reduce<Promise<CrewAskKey[]>>(
-        (done, batch) =>
-          done.then((dismissed) =>
-            onDismiss({
-              threadIds: [...batch.threadIds],
-              keys: [...batch.keys],
-            }).then((more) => [...dismissed, ...more]),
-          ),
-        Promise.resolve([]),
-      )
-      .then(
-        (dismissed) => {
-          if (dismissed.length === 0) return;
-          toast.success("Dismissed", {
-            action:
-              onRestore === undefined
-                ? undefined
-                : {
-                    label: "Undo",
-                    onClick: () => {
-                      onRestore(dismissed).catch(() =>
-                        toast.error("Could not restore the asks"),
-                      );
-                    },
-                  },
-          });
-        },
-        () => toast.error("Could not dismiss the asks"),
-      );
+  const dismiss = async (keys: readonly CrewAskKey[]) => {
+    const { dismissed, failed } = await dismissCrewAsks(keys, onDismiss);
+    if (failed) toast.error("Could not dismiss the asks");
+    if (dismissed.length === 0) return;
+    toast.success("Dismissed", {
+      action:
+        onRestore === undefined
+          ? undefined
+          : {
+              label: "Undo",
+              onClick: () => {
+                onRestore(dismissed).catch(() =>
+                  toast.error("Could not restore the asks"),
+                );
+              },
+            },
+    });
   };
 
   const label = crewAsksLabel(items.length);
@@ -114,7 +98,7 @@ export function CrewAsksMenu({
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
-          dismiss(item.asks);
+          void dismiss(item.asks);
         }}
       >
         <Icon name="cross-medium" />
@@ -138,7 +122,7 @@ export function CrewAsksMenu({
         onKeyDown={(event) => {
           if (event.key === "Delete" || event.key === "Backspace") {
             event.preventDefault();
-            dismiss(item.asks);
+            void dismiss(item.asks);
           }
         }}
       >
@@ -169,10 +153,10 @@ export function CrewAsksMenu({
           }
         >
           <Icon name="bubble-question" />
-          <span aria-hidden className="@max-[34rem]/footer:hidden">
+          <span aria-hidden className="@max-crew-asks-footer/footer:hidden">
             {label}
           </span>
-          <span aria-hidden className="@[34rem]/footer:hidden">
+          <span aria-hidden className="@crew-asks-footer/footer:hidden">
             {crewAsksShortLabel(items.length)}
           </span>
         </BaseMenu.Trigger>
@@ -194,7 +178,7 @@ export function CrewAsksMenu({
             )}
             <BaseMenu.Separator data-slot="menu-separator" />
             <ResponsiveMenuItem
-              onClick={() => dismiss(items.flatMap((item) => item.asks))}
+              onClick={() => void dismiss(items.flatMap((item) => item.asks))}
             >
               Dismiss all
             </ResponsiveMenuItem>
