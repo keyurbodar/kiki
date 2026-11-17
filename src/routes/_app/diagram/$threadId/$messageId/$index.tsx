@@ -1,5 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { NotFoundPage } from "@/components/not-found-page";
+import {
+  DIAGRAM_PREVIEW_ID,
+  DiagramWindowScreen,
+  RichContentPreview,
+} from "@/features/thread/diagram-window";
 
 export const Route = createFileRoute(
   "/_app/diagram/$threadId/$messageId/$index",
@@ -8,10 +13,16 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
+  const { threadId, messageId, index } = Route.useParams();
+  if (import.meta.env.DEV && threadId === DIAGRAM_PREVIEW_ID)
+    return <RichContentPreview view={messageId} index={Number(index)} />;
+  if (!/^\d{1,4}$/.test(index) || !/^[A-Za-z0-9_-]{1,128}$/.test(messageId))
+    return <NotFoundPage />;
   return (
-    <RoutePlaceholder
-      title="Diagram"
-      path="/diagram/$threadId/$messageId/$index"
+    <DiagramWindowScreen
+      threadId={threadId}
+      messageId={messageId}
+      index={Number(index)}
     />
   );
 }
