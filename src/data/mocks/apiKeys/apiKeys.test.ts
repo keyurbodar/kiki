@@ -1,88 +1,81 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
-import { ApiClient } from "../../client/ApiClient.ts";
-import { orgId } from "../fixtures/world.ts";
+import type { ApiKey, MintedApiKey } from "../../api/schemas/api-keys.ts";
+import { OrgId, ServiceUserId } from "../../api/schemas/ids.ts";
+import {
+  apiKeysAtom,
+  apiSettingsKeys,
+  mintApiKey,
+  renameApiKey,
+  revokeApiKey,
+} from "../../atoms/api-keys.ts";
+import { orgId as worldOrgId } from "../fixtures/world.ts";
 
-interface ApiKey {
-  readonly id: string;
-  readonly name: string;
-  readonly prefix: string;
-  readonly revokedAt: string | null;
-}
-
-const key = `apiKeys:${orgId}`;
-const listAtom = ApiClient.query("apiKeys", "list", {
-  params: { orgId },
-  reactivityKeys: [key],
-});
-const mint = ApiClient.mutation("apiKeys", "mint");
-const rename = ApiClient.mutation("apiKeys", "rename");
-const revoke = ApiClient.mutation("apiKeys", "revoke");
-
-const rows = (value: unknown) => value as ReadonlyArray<ApiKey>;
-
-const run = (
-  registry: Parameters<typeof AtomRegistry.getResult>[0],
-  mutation: unknown,
-  input: object,
-) => {
-  const writable = mutation as { set: (value: object) => void };
-  registry.set(writable as never, { ...input, reactivityKeys: [key] });
-  return AtomRegistry.getResult(registry, writable as never);
-};
+const orgId = OrgId.make(worldOrgId);
+const reactivityKeys = apiSettingsKeys.apiSettings(orgId);
+const names = (keys: ReadonlyArray<ApiKey>) => keys.map((key) => key.name);
 
 describe("apiKeys mock", () => {
-  it.effect("answers every apiKeys endpoint and refreshes the list", () =>
+  it.effect("lists the world's keys plus the service-user samples", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
-      registry.mount(listAtom as never);
-      assert.isAbove(
-        rows(yield* AtomRegistry.getResult(registry, listAtom)).length,
-        0,
-      );
-
-      const created = (yield* run(registry, mint, {
-        params: { orgId },
-        payload: { name: "Sample automation" },
-      })) as ApiKey;
-      assert.isNotEmpty(created.prefix);
-      assert.isNull(created.revokedAt);
-      assert.include(
-        rows(
-          yield* AtomRegistry.getResult(registry, listAtom, {
-            suspendOnWaiting: true,
-          }),
-        ).map((row) => row.id),
-        created.id,
-      );
-
-      yield* run(registry, rename, {
-        params: { orgId, keyId: created.id },
-        payload: { name: "Renamed automation" },
-      });
-      assert.strictEqual(
-        rows(
-          yield* AtomRegistry.getResult(registry, listAtom, {
-            suspendOnWaiting: true,
-          }),
-        ).find((row) => row.id === created.id)?.name,
-        "Renamed automation",
-      );
-
-      const revoked = (yield* run(registry, revoke, {
-        params: { orgId, keyId: created.id },
-      })) as { ok: boolean; id: string; revokedAt: string };
-      assert.isTrue(revoked.ok);
-      assert.strictEqual(revoked.id, created.id);
-      assert.isNotEmpty(revoked.revokedAt);
+      const keys = yield* AtomRegistry.getResult(registry, apiKeysAtom(orgId));
+      assert.deepStrictEqual(names(keys), [
+        "CI",
+        "Old script",
+        "Deploy workflow",
+        "Local scripts",
+      ]);
       assert.isNotNull(
-        rows(
-          yield* AtomRegistry.getResult(registry, listAtom, {
-            suspendOnWaiting: true,
-          }),
-        ).find((row) => row.id === created.id)?.revokedAt,
+        keys.find((key) => key.name === "Old script")?.revokedAt,
       );
+    }),
+  );
+
+  it.effect("mints, renames and revokes, refetching the list each time", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const list = apiKeysAtom(orgId);
+      registry.mount(list);
+      yield* AtomRegistry.getResult(registry, list);
+
+      registry.set(mintApiKey, {
+        params: { orgId },
+        payload: {
+          name: "Nightly",
+          serviceUserId: ServiceUserId.make("svc_sample_release"),
+        },
+        reactivityKeys,
+      });
+      const minted = (yield* AtomRegistry.getResult(
+        registry,
+        mintApiKey,
+      )) as MintedApiKey;
+      assert.strictEqual(minted.key.principalKind, "service");
+      assert.isTrue(minted.plaintext.startsWith("capy_"));
+      const afterMint = yield* AtomRegistry.getResult(registry, list, {
+        suspendOnWaiting: true,
+      });
+      assert.include(names(afterMint), "Nightly");
+
+      registry.set(renameApiKey, {
+        params: { orgId, keyId: minted.key.id },
+        payload: { name: "Nightly sync" },
+        reactivityKeys,
+      });
+      yield* AtomRegistry.getResult(registry, renameApiKey);
+      registry.set(revokeApiKey, {
+        params: { orgId, keyId: minted.key.id },
+        reactivityKeys,
+      });
+      yield* AtomRegistry.getResult(registry, revokeApiKey);
+      const afterRevoke = yield* AtomRegistry.getResult(registry, list, {
+        suspendOnWaiting: true,
+      });
+      const revoked = afterRevoke.find((key) => key.id === minted.key.id);
+      assert.strictEqual(revoked?.name, "Nightly sync");
+      assert.isNotNull(revoked?.revokedAt);
     }),
   );
 });
