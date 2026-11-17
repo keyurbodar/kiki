@@ -33,13 +33,7 @@ export const ghostIconSmButton = cx(buttonBase, ghost, iconSm);
 
 export const bareIconSmButton = cx(buttonBase, bare, iconSm);
 
-export const barLinkButton = cx(
-  buttonBase,
-  ghost,
-  "h-(--h-control-sm) text-xs [&_svg:not([class*='size-'])]:size-(--icon-sm)",
-  svgEdges,
-  "gap-1 px-1.5 md:px-2",
-);
+export const barLinkButton = cx(buttonBase, ghost, iconSm, "text-xs", svgEdges);
 
 export const segmentedXsButton = cx(
   buttonBase,
