@@ -1,7 +1,4 @@
-import { DateTime } from "effect";
-import { minutesAgo } from "../fixtures/time.ts";
-
-const iso = (minutes: number) => DateTime.formatIso(minutesAgo(minutes));
+import { isoMinutesAgo as iso } from "../fixtures/world.ts";
 
 const version = (options: {
   readonly id: string;

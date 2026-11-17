@@ -1,7 +1,4 @@
-import { DateTime } from "effect";
-import { minutesAgo } from "../fixtures/time.ts";
-
-const iso = (minutes: number) => DateTime.formatIso(minutesAgo(minutes));
+import { isoMinutesAgo as iso } from "../fixtures/world.ts";
 
 const server = (options: {
   readonly id: string;
@@ -72,10 +69,10 @@ const server = (options: {
 
 export const sampleMcpServers = [
   server({
-    id: "mcp_sample_status",
-    serverKey: "status-board",
-    displayName: "Status board",
-    url: "https://status.example.com/mcp",
+    id: "mcp_sample_errors",
+    serverKey: "errors",
+    displayName: "Error tracker",
+    url: "https://mcp.example.com/errors",
     owner: "organization",
     projectId: "proj_sample_web",
     toolCount: 9,
@@ -93,10 +90,10 @@ export const sampleMcpServers = [
     checkedMinutesAgo: 30,
   }),
   server({
-    id: "mcp_sample_notes",
-    serverKey: "notes",
-    displayName: "Notes",
-    url: "https://notes.example.com/mcp",
+    id: "mcp_sample_docs",
+    serverKey: "docs",
+    displayName: "Docs search",
+    url: "https://mcp.example.com/docs",
     owner: "user",
     connection: "member",
     auth: "oauth",
