@@ -81,10 +81,13 @@ export function DeviceShell({
       ? control.api
       : undefined;
   const interactive = api !== undefined;
-  const toDevice = (event: { clientX: number; clientY: number }) => {
+  const toDevice = (
+    event: { clientX: number; clientY: number },
+    clamp = false,
+  ) => {
     const rect = frameRef.current?.getBoundingClientRect();
     if (rect === undefined) return undefined;
-    return pointToDevice(rect, device, event.clientX, event.clientY);
+    return pointToDevice(rect, device, event.clientX, event.clientY, clamp);
   };
   const unreachable = phase.phase === "unavailable" || phase.phase === "failed";
   const overlay =
@@ -140,12 +143,12 @@ export function DeviceShell({
       }}
       onPointerMove={(event) => {
         if (api === undefined || event.buttons === 0) return;
-        const point = toDevice(event);
+        const point = toDevice(event, true);
         if (point !== undefined) api.touchMove(point.x, point.y);
       }}
       onPointerUp={(event) => {
         if (api === undefined) return;
-        const point = toDevice(event);
+        const point = toDevice(event, true);
         if (point !== undefined) api.touchUp(point.x, point.y);
       }}
       onKeyDown={(event) => {

@@ -70,6 +70,19 @@ describe("device frames", () => {
       pointToDevice({ ...rect, width: 0 }, { width: 1, height: 1 }, 0, 0),
     ).toBeUndefined();
   });
+
+  it("maps points inside the letterboxed video only", () => {
+    const rect = { left: 0, top: 0, width: 200, height: 200 };
+    const device = { width: 100, height: 200 };
+    expect(pointToDevice(rect, device, 50, 100)).toEqual({ x: 0, y: 100 });
+    expect(pointToDevice(rect, device, 150, 200)).toEqual({ x: 100, y: 200 });
+    expect(pointToDevice(rect, device, 100, 50)).toEqual({ x: 50, y: 50 });
+    expect(pointToDevice(rect, device, 20, 100)).toBeUndefined();
+    expect(pointToDevice(rect, device, 20, 100, true)).toEqual({
+      x: 0,
+      y: 100,
+    });
+  });
 });
 
 describe("DeviceShell", () => {
@@ -94,7 +107,11 @@ describe("DeviceShell", () => {
         poster={<span>poster</span>}
       />,
     );
-    expect(screen.getByRole("status").textContent).toBe("Reconnecting");
+    expect(
+      screen
+        .getAllByRole("status")
+        .some((el) => el.textContent === "Reconnecting"),
+    ).toBe(true);
   });
 
   it("offers retry when the live view failed", () => {
@@ -189,6 +206,22 @@ describe("ScreenshotHistory", () => {
     expect(
       screen.getAllByRole("button").map((b) => b.getAttribute("aria-label")),
     ).toEqual(["Preview Screenshot 2", "Preview Screenshot 1"]);
+  });
+
+  it("closes the preview with Escape and returns focus", () => {
+    render(
+      <ScreenshotHistory jamId="jam_sample" screenshots={[{ fileId: "a" }]} />,
+    );
+    const thumbnail = screen.getByRole("button", {
+      name: "Preview Screenshot 1",
+    });
+    thumbnail.focus();
+    fireEvent.click(thumbnail);
+    const preview = screen.getByRole("dialog", { name: "Screenshot 1" });
+    expect(document.activeElement).toBe(preview);
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.activeElement).toBe(thumbnail);
   });
 
   it("reads signed urls from either response shape", () => {

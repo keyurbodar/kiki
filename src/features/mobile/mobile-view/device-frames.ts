@@ -205,10 +205,21 @@ export function pointToDevice(
   device: DeviceSize,
   clientX: number,
   clientY: number,
+  clamp = false,
 ) {
   if (rect.width === 0 || rect.height === 0) return undefined;
+  const scale = Math.min(
+    rect.width / device.width,
+    rect.height / device.height,
+  );
+  const left = rect.left + (rect.width - device.width * scale) / 2;
+  const top = rect.top + (rect.height - device.height * scale) / 2;
+  const x = (clientX - left) / scale;
+  const y = (clientY - top) / scale;
+  const inside = x >= 0 && y >= 0 && x <= device.width && y <= device.height;
+  if (!inside && !clamp) return undefined;
   return {
-    x: Math.round(((clientX - rect.left) / rect.width) * device.width),
-    y: Math.round(((clientY - rect.top) / rect.height) * device.height),
+    x: Math.round(Math.min(Math.max(x, 0), device.width)),
+    y: Math.round(Math.min(Math.max(y, 0), device.height)),
   };
 }

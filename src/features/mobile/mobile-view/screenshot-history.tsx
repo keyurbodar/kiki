@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MediaLightbox } from "@/components/media-lightbox";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { useActiveOrgId, useFileUrl } from "./screenshot-url";
@@ -104,6 +104,38 @@ export function ScreenshotMedia(props: ScreenshotImageProps) {
   return <LightboxImage orgId={orgId} {...props} />;
 }
 
+function ScreenshotPreview({
+  jamId,
+  entry,
+  onClose,
+}: {
+  jamId: string;
+  entry: ScreenshotEntry;
+  onClose: () => void;
+}) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    rootRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") close.current();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
+  return (
+    <MediaLightbox
+      ref={rootRef}
+      role="dialog"
+      aria-label={entry.label}
+      tabIndex={-1}
+    >
+      <ScreenshotMedia jamId={jamId} file={entry.file} label={entry.label} />
+    </MediaLightbox>
+  );
+}
+
 export type ScreenshotHistoryProps = {
   jamId: string;
   screenshots: readonly MobileScreenshot[];
@@ -114,6 +146,7 @@ export function ScreenshotHistory({
   screenshots,
 }: ScreenshotHistoryProps) {
   const [selected, setSelected] = useState<string | null>(null);
+  const thumbnails = useRef(new Map<string, HTMLButtonElement>());
   if (screenshots.length === 0) return null;
   const entries = screenshotEntries(screenshots);
   const open = entries.find((entry) => entry.key === selected);
@@ -132,6 +165,10 @@ export function ScreenshotHistory({
         {entries.map((entry) => (
           <button
             key={entry.key}
+            ref={(node) => {
+              if (node === null) thumbnails.current.delete(entry.key);
+              else thumbnails.current.set(entry.key, node);
+            }}
             data-track-owner={track("ScreenshotHistory:button.1")}
             type="button"
             aria-label={`Preview ${entry.label}`}
@@ -147,15 +184,14 @@ export function ScreenshotHistory({
         ))}
       </div>
       {open !== undefined && (
-        <MediaLightbox
-          role="dialog"
-          aria-label={open.label}
-          onKeyDown={(event) => {
-            if (event.key === "Escape") setSelected(null);
+        <ScreenshotPreview
+          jamId={jamId}
+          entry={open}
+          onClose={() => {
+            setSelected(null);
+            thumbnails.current.get(open.key)?.focus();
           }}
-        >
-          <ScreenshotMedia jamId={jamId} file={open.file} label={open.label} />
-        </MediaLightbox>
+        />
       )}
     </section>
   );
