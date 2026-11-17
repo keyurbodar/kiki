@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { VolumeScopeDirectory } from "@/data/api/schemas/drive";
 import { mountScope } from "../lib/mount";
-import { mergeScopePages } from "./directory";
+import {
+  directoryStatus,
+  mergeScopePages,
+  type ScopePageState,
+} from "./directory";
 import { tableColumns } from "./directory-table";
 import { sharePreviewUrl, shareRoute } from "./shared-page";
 import { usageSegments } from "./usage-footer";
@@ -48,6 +52,51 @@ describe("scope directory pages", () => {
     const merged = mergeScopePages(new Map());
     expect(merged.items).toEqual([]);
     expect(merged.storage).toBeNull();
+  });
+});
+
+const read = (
+  value?: ReturnType<typeof page>,
+  failed = false,
+): ScopePageState => ({
+  value,
+  failed,
+  refresh: () => undefined,
+});
+
+describe("scope directory status", () => {
+  it("is ready once every page has arrived", () => {
+    expect(
+      directoryStatus(
+        new Map([
+          [2, read(page(2, 2, 2))],
+          [3, read(page(3, 3, 3))],
+        ]),
+        read(page(1, 3, 1)),
+      ),
+    ).toEqual({ failed: false, loading: false });
+  });
+
+  it("is loading while a page is still in flight", () => {
+    expect(
+      directoryStatus(new Map([[2, read()]]), read(page(1, 2, 1))),
+    ).toEqual({ failed: false, loading: true });
+  });
+
+  it("is failed when a later page fails, so no partial table ships", () => {
+    expect(
+      directoryStatus(
+        new Map([[2, read(undefined, true)]]),
+        read(page(1, 2, 1)),
+      ),
+    ).toEqual({ failed: true, loading: false });
+  });
+
+  it("is failed when the first page fails", () => {
+    expect(directoryStatus(new Map(), read(undefined, true))).toEqual({
+      failed: true,
+      loading: false,
+    });
   });
 });
 

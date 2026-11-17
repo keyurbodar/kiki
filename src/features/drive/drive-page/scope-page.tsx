@@ -1,11 +1,13 @@
 // biome-ignore-all lint/a11y: Capy's directory table is an ARIA grid of div subgrid rows (role table/row/cell), class for class from the bundle
-import { useAtomValue } from "@effect/atom-react";
+import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
 import { DateTime } from "effect";
+import { AsyncResult } from "effect/reactivity";
 import { Fragment } from "react";
 import type { Volume } from "@/data/api/schemas/drive";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { driveVolumesAtom } from "@/data/atoms/drive";
+import { Button } from "@/primitives/button";
 import { useIsNarrow } from "@/primitives/sidebar";
 import { formatBytes, formatRelativeTime } from "../lib/format";
 import { type DriveMount, mountScope, mountTrail } from "../lib/mount";
@@ -146,11 +148,35 @@ function ScopeVolumes({
   userId: string | undefined;
 }) {
   const narrow = useIsNarrow();
-  const result = useAtomValue(
-    driveVolumesAtom(orgId, scopeQuery(mount, userId)),
-  );
+  const atom = driveVolumesAtom(orgId, scopeQuery(mount, userId));
+  const result = useAtomValue(atom);
+  const refresh = useAtomRefresh(atom);
   const volumes = resultValue(result);
   const rows = volumeRows(volumes ?? [], Date.now());
+  if (AsyncResult.isFailure(result)) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 px-6 py-16 text-center">
+        <p className="text-sm font-medium text-foreground">
+          This drive is unavailable
+        </p>
+        <p className="max-w-xs text-xs text-muted-foreground-2">
+          Could not read the files in this drive.
+        </p>
+        <Button size="sm" variant="soft" onClick={refresh}>
+          Try again
+        </Button>
+      </div>
+    );
+  }
+  if (volumes === undefined) {
+    return (
+      <div className="flex flex-col gap-3 px-6 py-4">
+        <div className="h-8 w-full animate-skeleton-pulse rounded bg-secondary" />
+        <div className="h-8 w-full animate-skeleton-pulse rounded bg-secondary" />
+        <div className="h-8 w-2/3 animate-skeleton-pulse rounded bg-secondary" />
+      </div>
+    );
+  }
   return (
     <div className="flex w-full flex-col gap-5 px-6 py-4">
       <div className="-mx-4">

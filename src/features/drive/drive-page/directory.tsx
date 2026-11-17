@@ -20,6 +20,13 @@ export interface ScopeDirectory {
   readonly refresh: () => void;
 }
 
+/** One server page of the scope directory, with its own request state. */
+export interface ScopePageState {
+  readonly value: VolumeScopeDirectory | undefined;
+  readonly failed: boolean;
+  readonly refresh: () => void;
+}
+
 /**
  * Every scope the server holds, in page order. The endpoint pages the scope
  * directory, but the table sorts, searches and pages it locally, so all pages
@@ -40,19 +47,23 @@ export function mergeScopePages(
   };
 }
 
-const scopeDirectory = (
-  pages: ReadonlyMap<number, VolumeScopeDirectory>,
-  first: AsyncResult.AsyncResult<VolumeScopeDirectory, unknown>,
-  refresh: () => void,
-): ScopeDirectory => {
-  const loading = resultValue(first) === undefined;
+/**
+ * A directory is unavailable if any of its pages failed, and still loading
+ * while any page of the first `pageCount` has neither arrived nor failed.
+ * A partial table is never shown: an unseen page's scopes would be missing
+ * from the sort and the search with nothing saying so.
+ */
+export function directoryStatus(
+  pages: ReadonlyMap<number, ScopePageState>,
+  first: ScopePageState,
+): { readonly failed: boolean; readonly loading: boolean } {
+  const reads = [first, ...pages.values()];
+  const failed = reads.some((read) => read.failed);
   return {
-    ...mergeScopePages(pages),
-    failed: AsyncResult.isFailure(first),
-    loading: loading && !AsyncResult.isFailure(first),
-    refresh,
+    failed,
+    loading: !failed && reads.some((read) => read.value === undefined),
   };
-};
+}
 
 function ScopePageReader({
   orgId,
@@ -61,13 +72,16 @@ function ScopePageReader({
 }: {
   orgId: OrgId;
   page: number;
-  onPage: (page: number, directory: VolumeScopeDirectory) => void;
+  onPage: (page: number, state: ScopePageState) => void;
 }) {
-  const result = useAtomValue(driveScopeDirectoryAtom(orgId, page));
-  const directory = resultValue(result);
+  const atom = driveScopeDirectoryAtom(orgId, page);
+  const result = useAtomValue(atom);
+  const refresh = useAtomRefresh(atom);
+  const value = resultValue(result);
+  const failed = AsyncResult.isFailure(result);
   useEffect(() => {
-    if (directory !== undefined) onPage(page, directory);
-  }, [page, directory, onPage]);
+    onPage(page, { value, failed, refresh });
+  }, [page, value, failed, refresh, onPage]);
   return null;
 }
 
@@ -81,26 +95,47 @@ export function ScopeDirectoryProvider({
 }) {
   const [reads, setReads] = useState<{
     readonly orgId: OrgId;
-    readonly pages: ReadonlyMap<number, VolumeScopeDirectory>;
+    readonly pages: ReadonlyMap<number, ScopePageState>;
   }>(() => ({ orgId, pages: new Map() }));
   const pages = reads.orgId === orgId ? reads.pages : new Map();
   const collect = useCallback(
-    (page: number, directory: VolumeScopeDirectory) =>
+    (page: number, state: ScopePageState) =>
       setReads((previous) => {
         const current =
           previous.orgId === orgId
             ? previous.pages
-            : new Map<number, VolumeScopeDirectory>();
-        if (current.get(page) === directory) return previous;
-        return { orgId, pages: new Map(current).set(page, directory) };
+            : new Map<number, ScopePageState>();
+        const existing = current.get(page);
+        if (
+          existing !== undefined &&
+          existing.value === state.value &&
+          existing.failed === state.failed
+        ) {
+          return previous;
+        }
+        return { orgId, pages: new Map(current).set(page, state) };
       }),
     [orgId],
   );
-  const first = useAtomValue(driveScopeDirectoryAtom(orgId, 1));
-  const refresh = useAtomRefresh(driveScopeDirectoryAtom(orgId, 1));
-  const head = resultValue(first);
-  const collected = head === undefined ? pages : new Map(pages).set(1, head);
-  const pageCount = Math.max(1, head?.pageCount ?? 1);
+  const firstAtom = driveScopeDirectoryAtom(orgId, 1);
+  const firstResult = useAtomValue(firstAtom);
+  const refreshFirst = useAtomRefresh(firstAtom);
+  const first: ScopePageState = {
+    value: resultValue(firstResult),
+    failed: AsyncResult.isFailure(firstResult),
+    refresh: refreshFirst,
+  };
+  const pageCount = Math.max(1, first.value?.pageCount ?? 1);
+  const values = new Map<number, VolumeScopeDirectory>();
+  if (first.value !== undefined) values.set(1, first.value);
+  for (const [page, read] of pages) {
+    if (read.value !== undefined) values.set(page, read.value);
+  }
+  const status = directoryStatus(pages, first);
+  const refresh = () => {
+    refreshFirst();
+    for (const read of pages.values()) read.refresh();
+  };
   const laterPages = Array.from(
     { length: pageCount - 1 },
     (_, index) => index + 2,
@@ -115,7 +150,11 @@ export function ScopeDirectoryProvider({
           onPage={collect}
         />
       ))}
-      {children(scopeDirectory(collected, first, refresh))}
+      {children({
+        ...mergeScopePages(values),
+        ...status,
+        refresh,
+      })}
     </>
   );
 }
