@@ -8,6 +8,8 @@ interface Automation {
   readonly id: string;
   readonly name: string;
   readonly enabled: boolean;
+  readonly creatorUserId?: string;
+  readonly createdAt?: string;
 }
 
 interface Run {
@@ -73,6 +75,14 @@ describe("automations mock", () => {
       );
       assert.isAbove(page.items.length, 0);
       assert.equal(page.total, list.length);
+      for (const item of page.items) {
+        assert.isString(item.createdAt);
+        assert.isString(item.creatorUserId);
+      }
+      assert.include(
+        page.items.map((item) => item.creatorUserId),
+        people.alex.id,
+      );
       assert.isAbove(batches.length, 0);
       assert.isAbove(usage.totalRuns, 0);
     }),
