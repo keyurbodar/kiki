@@ -80,9 +80,10 @@ Frames come from canvas `tnKVYw9CeC` only. The script refuses any frame id missi
 To refresh the manifest after frames are added or edited, run this in a Capy `execute` program (Doop is an MCP tool, so the script cannot list the canvas itself):
 
 ```js
-const pages = JSON.parse(
-  await tools.doop.getCanvas({ canvas_id: "tnKVYw9CeC" }),
-).pages;
+const top = await tools.doop.getCanvas({ canvas_id: "tnKVYw9CeC" });
+const pages = [
+  ...top.slice(0, top.indexOf("]")).matchAll(/"id": "([^"]+)"/g),
+].map((m) => ({ id: m[1] }));
 const frames = [];
 for (const p of pages) {
   const t = await tools.doop.getCanvas({

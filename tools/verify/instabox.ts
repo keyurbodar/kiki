@@ -123,10 +123,24 @@ export class Instabox {
     memMiB?: number;
     deleteAfterSeconds?: number;
   }): Promise<string> {
-    const op = await this.json<Operation>("POST", "/v1/machines", {
-      body: opts,
-      idempotent: true,
-    });
+    let op: Operation | undefined;
+    for (let attempt = 1; !op; attempt++) {
+      try {
+        op = await this.json<Operation>("POST", "/v1/machines", {
+          body: opts,
+          idempotent: true,
+        });
+      } catch (e) {
+        if (
+          !(e instanceof InstaboxError && e.code === "rate_limited") ||
+          attempt >= 5
+        )
+          throw e;
+        await new Promise((r) =>
+          setTimeout(r, (e.retryAfterSeconds ?? 15) * 1000),
+        );
+      }
+    }
     const done = await this.waitOperation(op);
     const id = done.machineId ?? op.machineId;
     if (!id) throw new Error("instabox create returned no machineId");

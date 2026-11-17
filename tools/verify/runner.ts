@@ -201,7 +201,11 @@ export async function runJob(job: Job, shard: Shard): Promise<JobResult> {
   writeFileSync(init, themeInit(job.theme, job.scheme));
   const full = job.fullPage ? ["--full"] : [];
   try {
-    await ab(session, ["--init-script", init, "open", "about:blank"]);
+    const launch = ["--init-script", init, "open", "about:blank"];
+    await ab(session, launch, 20_000).catch(async () => {
+      await ab(session, ["close"]).catch(() => undefined);
+      return ab(session, launch);
+    });
     const { width, height, scale } = job.viewport;
     await ab(session, [
       "set",
