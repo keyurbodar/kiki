@@ -176,6 +176,31 @@ describe("buildTicks", () => {
     });
   });
 
+  it("renders an excluded named model unticked", () => {
+    const ticks = buildTicks(
+      [],
+      [],
+      [{ model: "acme-coder", name: "Acme Coder", excluded: true }],
+      false,
+      catalog,
+      "custom",
+      true,
+    );
+    expect(ticks[0]?.models[0]?.ticked).toBe(false);
+    expect(servedCount(ticks)).toBe(0);
+    expect(
+      buildTicks(
+        [],
+        [],
+        [{ model: "acme-coder", name: "Acme Coder", excluded: false }],
+        false,
+        catalog,
+        "custom",
+        true,
+      )[0]?.models[0]?.ticked,
+    ).toBe(true);
+  });
+
   it("hides served-as rows with no setting on custom endpoints", () => {
     const base: Array<LabTicks> = [
       {

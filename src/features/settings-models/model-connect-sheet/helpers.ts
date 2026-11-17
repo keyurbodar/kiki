@@ -238,7 +238,7 @@ export const buildTicks = (
                   model: m.model,
                   entryId: `${lab}/${m.model}`,
                   name: m.name ?? m.model,
-                  ticked: true,
+                  ticked: m.excluded !== true,
                   providerModelId: m.providerModelId,
                   context: m.context,
                   custom: true,
