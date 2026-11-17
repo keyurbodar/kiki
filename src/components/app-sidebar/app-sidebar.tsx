@@ -26,8 +26,8 @@ import {
 } from "@/components/sidebar-nav-editor";
 import { SidebarReferralMenu } from "@/components/sidebar-referral-menu";
 import { SidebarSetupCard } from "@/components/sidebar-setup-card";
-import { SidebarThreads } from "@/components/sidebar-threads";
 import { UserMenu } from "@/components/user-menu";
+import { SidebarThreadsPanel } from "@/features/sidebar/sidebar-threads-panel";
 import { openCommandPalette } from "@/lib/command-palette-events";
 import { Button } from "@/primitives/button";
 import {
@@ -411,7 +411,7 @@ export function AppSidebar({
           </Tooltip>
         </div>
       </header>
-      <SidebarThreads />
+      <SidebarThreadsPanel />
       <SidebarAnnouncements />
       <SidebarSetupCard />
       <SidebarDealReminder />
