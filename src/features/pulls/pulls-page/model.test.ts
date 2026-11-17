@@ -37,7 +37,6 @@ const pull = (overrides: Partial<PullCard>): PullCard => ({
   deletions: 0,
   author: "sam",
   authorAvatarUrl: "",
-  repoAvatarUrl: "",
   url: "https://github.com/acme/web/pull/1",
   headRef: "feat/sample",
   baseRef: "main",

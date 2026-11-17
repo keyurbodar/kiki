@@ -11,19 +11,11 @@ export const threadCode = (thread: NonNullable<PullCard["thread"]>) =>
     ? `#${thread.number}`
     : `${thread.projectCode}-${thread.number}`;
 
-/** The repository owner's avatar, as Capy's rows print it before the title. */
-export function RepoAvatar({ owner, src }: { owner: string; src: string }) {
+/** The repository owner's avatar cell; Capy prints the owner's image here. */
+export function RepoAvatar({ owner }: { owner: string }) {
   return (
-    <span className="relative flex size-4 shrink-0 items-center justify-center overflow-hidden rounded bg-secondary text-[0.5rem] font-medium text-muted-foreground-1 uppercase">
-      {src === "" ? (
-        <span aria-hidden>{owner.slice(0, 1)}</span>
-      ) : (
-        <img
-          alt={owner}
-          src={src}
-          className="absolute inset-0 size-full object-cover"
-        />
-      )}
+    <span className="flex size-4 shrink-0 items-center justify-center overflow-hidden rounded bg-secondary text-[0.5rem] font-medium text-muted-foreground-1 uppercase">
+      <span aria-hidden>{owner.slice(0, 1)}</span>
     </span>
   );
 }
@@ -130,7 +122,7 @@ export const PullRow = memo(function PullRow({
             {pullCode(pull, codePrefix)}
           </span>
         </span>
-        <RepoAvatar owner={owner} src={pull.repoAvatarUrl} />
+        <RepoAvatar owner={owner} />
         <span
           className="mask-fade-r min-w-0 flex-1 overflow-hidden text-sm font-medium whitespace-nowrap text-foreground"
           title={pull.title}
@@ -141,10 +133,10 @@ export const PullRow = memo(function PullRow({
           {pull.thread === null ? null : (
             <Badge
               size="base"
-              className="@max-lg/list:hidden"
+              className="inline-flex h-(--h-badge-base) w-fit shrink-0 items-center justify-center gap-1 rounded-full border-hairline border-border-2 bg-secondary px-2 text-xs font-normal whitespace-nowrap text-foreground [&_svg]:size-(--icon-sm) [&_svg]:shrink-0 [&_svg:first-of-type]:-ml-0.5 @max-lg/list:hidden"
               aria-label={`Open thread ${threadCode(pull.thread)}`}
             >
-              <ThreadGlyph className="size-3" />
+              <ThreadGlyph />
               {threadCode(pull.thread)}
             </Badge>
           )}

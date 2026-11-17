@@ -24,7 +24,6 @@ const pull = (overrides: Partial<PullCard>): PullCard => ({
   deletions: 7,
   author: "sam",
   authorAvatarUrl: "",
-  repoAvatarUrl: "",
   url: "https://github.com/acme/web/pull/128",
   headRef: "feat/dark-mode",
   baseRef: "main",
@@ -60,14 +59,13 @@ const renderRow = (card: PullCard) => {
 
 describe("PullRow", () => {
   it("prints the repository owner's avatar between the code and title", async () => {
-    renderRow(pull({ repoAvatarUrl: "https://avatars.example/u/1" }));
-    const avatar = await screen.findByRole("img", { name: "acme" });
-    expect(avatar.getAttribute("src")).toBe("https://avatars.example/u/1");
-  });
-
-  it("falls back to the owner's initial without an avatar", async () => {
-    renderRow(pull({}));
-    expect(await screen.findByText("a")).toBeTruthy();
+    const { container } = renderRow(pull({}));
+    await screen.findByText("Add dark mode to settings");
+    const row = container.querySelector("[data-pull-row]");
+    const cells = [...(row?.children ?? [])];
+    expect(cells[2]?.textContent).toBe("#128");
+    expect(cells[3]?.textContent).toBe("a");
+    expect(cells[4]?.textContent).toBe("Add dark mode to settings");
   });
 
   it("prints the project chip of the linked thread", async () => {
