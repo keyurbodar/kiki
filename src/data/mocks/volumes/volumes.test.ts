@@ -15,7 +15,9 @@ import {
   driveVolumesAtom,
   driveWrite,
 } from "../../atoms/drive.ts";
+import { ApiClient, makeApiClientLayer } from "../../client/ApiClient.ts";
 import { orgId, projects, viewer } from "../fixtures/world.ts";
+import { MockTransport } from "../MockServices.ts";
 import { shareId, versionId, volumeId } from "./fixtures.ts";
 import { digest, folderEntries } from "./index.ts";
 
@@ -152,6 +154,107 @@ describe("volumes mock", () => {
       );
       assert.strictEqual(listed.total, 3);
       assert.isTrue(listed.items.some((row) => row.id === shareId("spec")));
+    }),
+  );
+
+  it.effect("pages file history before a cursor", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const older = yield* AtomRegistry.getResult(
+        registry,
+        ApiClient.query("volumes", "fileVersions", {
+          params: { orgId: orgId as never, volumeId: web as never },
+          query: {
+            path: "specs/checkout-retry.md",
+            before: versionId("WEB2") as never,
+          },
+        }),
+      );
+      assert.deepStrictEqual(
+        older.map((row) => row.versionId),
+        [versionId("WEB1")],
+      );
+    }),
+  );
+
+  it.effect("refuses a share for a path that is not a file", () =>
+    Effect.gen(function* () {
+      const client = yield* ApiClient;
+      for (const path of ["missing.md", "specs"]) {
+        const error = yield* Effect.flip(
+          client.volumes.createShare({
+            params: { orgId: orgId as never, volumeId: web as never },
+            payload: { path },
+          }),
+        );
+        assert.strictEqual(error._tag, "capy/DriveSharePathNotFound");
+      }
+    }).pipe(Effect.provide(makeApiClientLayer(MockTransport))),
+  );
+
+  it.effect("creates a drive on first write and keeps UTF-8 and modes", () =>
+    Effect.gen(function* () {
+      const client = yield* ApiClient;
+      const scope = { projectId: projects.api.id as never };
+      const first = yield* client.volumes.write({
+        params: { orgId: orgId as never },
+        payload: {
+          scope,
+          expectedDigest: null,
+          changes: [{ path: "run.sh", contentBase64: "w6k=", mode: 420 }],
+        },
+      });
+      assert.strictEqual(first.entries[0]?.sizeBytes, 2);
+      const second = yield* client.volumes.write({
+        params: { orgId: orgId as never },
+        payload: {
+          scope,
+          expectedDigest: first.digest,
+          changes: [{ path: "run.sh", contentBase64: "w6k=", mode: 493 }],
+        },
+      });
+      assert.notStrictEqual(second.digest, first.digest);
+      const changes = yield* client.volumes.changes({
+        params: {
+          orgId: orgId as never,
+          volumeId: second.volumeId,
+          versionId: second.versionId,
+        },
+      });
+      assert.deepStrictEqual(
+        changes.changes.map((row) => [row.path, row.change]),
+        [["run.sh", "modified"]],
+      );
+      const file = yield* client.volumes.file({
+        params: {
+          orgId: orgId as never,
+          volumeId: second.volumeId,
+          versionId: second.versionId,
+          sha256: second.entries[0]?.sha256 ?? "",
+        },
+      });
+      assert.deepStrictEqual(file.type === "content" && file.content, "é");
+    }).pipe(Effect.provide(makeApiClientLayer(MockTransport))),
+  );
+
+  it.effect("filters the agent context preview by search", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const preview = (search: string) =>
+        AtomRegistry.getResult(
+          registry,
+          ApiClient.query("volumes", "agentContextPreview", {
+            params: { orgId },
+            query: { search },
+          }),
+        ) as Effect.Effect<{
+          sources: ReadonlyArray<unknown>;
+          availableFiles: ReadonlyArray<string>;
+        }>;
+      const matched = yield* preview("checkout");
+      assert.strictEqual(matched.sources.length, 1);
+      assert.isAbove(matched.availableFiles.length, 0);
+      assert.strictEqual((yield* preview("no-such-file")).sources.length, 0);
     }),
   );
 
