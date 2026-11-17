@@ -4,7 +4,7 @@ import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { SettingsConfirmDialog } from "@/features/settings/confirm-dialog";
 import { AddPasskeyDialog } from "@/features/settings/passkeys";
 import { Badge } from "@/primitives/badge";
-import { Button } from "@/primitives/button";
+import { Button, ButtonIcon } from "@/primitives/button";
 import { Card, CardListHeader } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
@@ -33,7 +33,9 @@ function RowMenu({ label, children }: { label: string; children: ReactNode }) {
       <MenuTrigger
         render={<Button variant="ghost" size="icon-sm" aria-label={label} />}
       >
-        <Icon name="settings-slider-hor" size="sm" />
+        <ButtonIcon>
+          <Icon name="settings-slider-hor" size="sm" />
+        </ButtonIcon>
       </MenuTrigger>
       <MenuContent align="end">{children}</MenuContent>
     </Menu>
@@ -259,7 +261,9 @@ export function SecurityPage({
                   }
                   onClick={() => setAddPasskey(true)}
                 >
-                  <Icon name="square-plus" size="sm" />
+                  <ButtonIcon>
+                    <Icon name="square-plus" size="sm" />
+                  </ButtonIcon>
                 </Button>
               </div>
             </CardListHeader>
