@@ -3,8 +3,10 @@ export {
   definePane,
   findPane,
   isRetiredPane,
+  keepsPaneParam,
   type PaneEntry,
   type PaneProps,
   panes,
   retiredPaneIds,
+  writtenPaneParams,
 } from "./registry";

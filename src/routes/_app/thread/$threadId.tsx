@@ -25,21 +25,13 @@ import {
 } from "@/features/thread/thread-view";
 import { useThreadTimeline } from "@/features/thread/timeline";
 import { useSideThreads } from "@/features/thread-panes/side-threads";
-import { findPane, isRetiredPane } from "@/features/thread-panes/thread-pane";
+import { findPane, keepsPaneParam } from "@/features/thread-panes/thread-pane";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/thread/$threadId")({
   validateSearch: searchParams(["pane"]),
   component: RouteComponent,
 });
-
-/**
- * Capy opens a thread with its chat alone; a pane the registry has not landed
- * renders nothing rather than guessing at another pane, and the ids we retired
- * (Capy has no such pane) are dropped from the URL instead of being kept.
- */
-const paneFor = (pane: string | undefined) =>
-  pane === undefined || isRetiredPane(pane) ? undefined : findPane(pane);
 
 export type ThreadRouteProps = {
   threadId: string;
@@ -75,7 +67,7 @@ export function ThreadRoute({
   );
   const [expanded, setExpanded] = useState(false);
   const sideThreads = useSideThreads(orgId ?? "", threadId);
-  const entry = paneFor(pane);
+  const entry = findPane(pane);
   const activeId = activeTabId(entry);
   return (
     <ThreadView
@@ -122,7 +114,12 @@ export function ThreadRoute({
   );
 }
 
-/** The thread on a wide screen, with the pane search param wired to the router. */
+/**
+ * The thread on a wide screen. The URL seeds the open pane once, and picking a
+ * pane keeps the URL in step with Capy's vocabulary: `overview`, `diffs` and
+ * `captain_issues` are written, `files` opens without a param, and a value we
+ * cannot open is rewritten off the URL.
+ */
 export function ThreadScreen({
   threadId,
   pane,
@@ -131,27 +128,44 @@ export function ThreadScreen({
   pane: string | undefined;
 }) {
   const navigate = useNavigate();
-  const retired = isRetiredPane(pane);
+  const [selection, setSelection] = useState(() => ({
+    threadId,
+    param: pane,
+    id: findPane(pane)?.id,
+  }));
+  const active =
+    selection.threadId === threadId && selection.param === pane
+      ? selection.id
+      : findPane(pane)?.id;
+  const stray = pane !== undefined && !keepsPaneParam(pane);
   useEffect(() => {
-    if (!retired) return;
+    if (!stray) return;
+    setSelection({ threadId, param: undefined, id: findPane(pane)?.id });
     void navigate({
       to: "/thread/$threadId",
       params: { threadId },
       search: {},
       replace: true,
     });
-  }, [retired, navigate, threadId]);
+  }, [stray, navigate, pane, threadId]);
   return (
     <ThreadRoute
       threadId={threadId}
-      pane={pane}
-      onSelectPane={(next) =>
+      pane={active}
+      onSelectPane={(next) => {
+        setSelection({
+          threadId,
+          param: next !== undefined && keepsPaneParam(next) ? next : undefined,
+          id: next,
+        });
+        if (next === undefined && pane === undefined) return;
         void navigate({
           to: "/thread/$threadId",
           params: { threadId },
-          search: next === undefined ? {} : { pane: next },
-        })
-      }
+          search:
+            next !== undefined && keepsPaneParam(next) ? { pane: next } : {},
+        });
+      }}
     />
   );
 }

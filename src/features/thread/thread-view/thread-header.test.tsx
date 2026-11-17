@@ -205,7 +205,16 @@ describe("thread route header", () => {
           ?.querySelector("[data-selected]"),
       ).not.toBeNull();
     });
-    expect(router.state.location.search).toEqual({ pane: "files" });
+    expect(router.state.location.search).toEqual({});
+    fireEvent.click(screen.getByText("Diffs"));
+    await waitFor(() => {
+      expect(
+        document
+          .querySelector('[data-pane-tab="diffs"]')
+          ?.querySelector("[data-selected]"),
+      ).not.toBeNull();
+    });
+    expect(router.state.location.search).toEqual({ pane: "diffs" });
     fireEvent.click(screen.getByText("Fix flaky checkout test"));
     await waitFor(() => {
       expect(
@@ -215,6 +224,35 @@ describe("thread route header", () => {
       ).not.toBeNull();
     });
     expect(router.state.location.search).toEqual({});
+  });
+
+  it("keeps the pane params Capy writes across a reload", async () => {
+    for (const param of ["overview", "diffs", "captain_issues"]) {
+      const router = await renderRoute(`/thread/jam_sample_0001?pane=${param}`);
+      await waitFor(() => {
+        expect(paneTab(param)?.querySelector("[data-selected]")).not.toBeNull();
+      });
+      expect(router.state.location.search).toEqual({ pane: param });
+      cleanup();
+    }
+  });
+
+  it("opens Files from its param and lands on a param-free URL", async () => {
+    const router = await renderRoute("/thread/jam_sample_0001?pane=files");
+    await waitFor(() => {
+      expect(paneTab("files")?.querySelector("[data-selected]")).not.toBeNull();
+    });
+    expect(router.state.location.search).toEqual({});
+  });
+
+  it("keeps a parameterised pane key it cannot open yet", async () => {
+    for (const param of ["browser:machine_01", "setup"]) {
+      const router = await renderRoute(`/thread/jam_sample_0001?pane=${param}`);
+      await waitForStrip();
+      expect(paneTab("chat")?.querySelector("[data-selected]")).not.toBeNull();
+      expect(router.state.location.search).toEqual({ pane: param });
+      cleanup();
+    }
   });
 
   it("opens the pane the URL names when Capy honours that param", async () => {
@@ -231,15 +269,14 @@ describe("thread route header", () => {
     expect(document.querySelectorAll("header").length).toBe(1);
   });
 
-  it("drops the pane params we invented, but not the ones Capy accepts", async () => {
-    const retired = await renderRoute("/thread/jam_sample_0001?pane=threads");
-    await waitForStrip();
-    expect(paneTab("chat")?.querySelector("[data-selected]")).not.toBeNull();
-    expect(retired.state.location.search).toEqual({});
-    cleanup();
-    await renderRoute("/thread/jam_sample_0001?pane=files");
-    await waitForStrip();
-    expect(paneTab("files")?.querySelector("[data-selected]")).not.toBeNull();
+  it("drops the pane params Capy does not keep", async () => {
+    for (const param of ["threads", "all-threads", "pull-requests", "bogus"]) {
+      const router = await renderRoute(`/thread/jam_sample_0001?pane=${param}`);
+      await waitForStrip();
+      expect(paneTab("chat")?.querySelector("[data-selected]")).not.toBeNull();
+      expect(router.state.location.search).toEqual({});
+      cleanup();
+    }
   });
 
   it("retires exactly the pane ids Capy has no pane for", () => {
