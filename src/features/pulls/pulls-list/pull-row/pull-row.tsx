@@ -3,7 +3,7 @@ import { memo } from "react";
 import { type PullCard, repoName } from "@/features/pulls/pulls-page/data/pull";
 import { pullCode, shortAge } from "@/features/pulls/pulls-page/model";
 import { Badge } from "@/primitives/badge";
-import { PullStateIcon, ThreadGlyph } from "./pull-icons";
+import { CheckGlyph, PullStateIcon, ThreadGlyph } from "./pull-icons";
 
 /** Thread code for the row badge: `WEB-12`, or `#12` outside a project. */
 export const threadCode = (thread: NonNullable<PullCard["thread"]>) =>
@@ -39,13 +39,62 @@ export function DiffStat({
   );
 }
 
+/** The row's selection checkbox, shown on hover or once a row is checked. */
+function RowCheckbox({
+  checked,
+  visible,
+  onCheck,
+}: {
+  checked: boolean;
+  visible: boolean;
+  onCheck: () => void;
+}) {
+  return (
+    <span
+      className={[
+        "flex w-4 shrink-0 items-center justify-center",
+        "opacity-0 transition-opacity duration-100 group-hover/row:opacity-100 focus-within:opacity-100",
+        "pointer-coarse:hidden",
+        checked || visible ? "opacity-100" : "",
+      ].join(" ")}
+    >
+      <button
+        type="button"
+        aria-label={checked ? "Deselect pull request" : "Select pull request"}
+        aria-pressed={checked}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onCheck();
+        }}
+        className="flex cursor-pointer items-center justify-center outline-none focus-visible:outline-ring-inset"
+      >
+        <span
+          data-checked={checked ? "" : undefined}
+          className="flex size-4 shrink-0 items-center justify-center rounded-(--radius-sm) border-hairline border-border-3 text-primary-foreground transition-colors duration-100 data-[checked]:border-transparent data-[checked]:bg-primary"
+        >
+          {checked ? <CheckGlyph className="size-3" /> : null}
+        </span>
+      </button>
+    </span>
+  );
+}
+
 /** One pull request row (Capy's pulls-list row). */
 export const PullRow = memo(function PullRow({
   pull,
   now,
+  selected,
+  checked,
+  selectionMode,
+  onCheck,
 }: {
   pull: PullCard;
   now: number;
+  selected: boolean;
+  checked: boolean;
+  selectionMode: boolean;
+  onCheck: () => void;
 }) {
   const owner = pull.repo.slice(0, pull.repo.indexOf("/"));
   return (
@@ -59,16 +108,25 @@ export const PullRow = memo(function PullRow({
         }}
         data-pull-row={pull.id}
         data-pull-url={pull.url}
+        data-selected={selected ? "" : undefined}
         className="flex h-11 items-center gap-2 rounded px-2 outline-none select-none transition-colors duration-hover hover:bg-section focus-visible:outline-ring-inset data-[selected]:bg-section"
       >
-        <span className="flex size-4 shrink-0 items-center justify-center">
+        <RowCheckbox
+          checked={checked}
+          visible={selectionMode}
+          onCheck={onCheck}
+        />
+        <span className="flex w-4 shrink-0 items-center justify-center">
           <PullStateIcon state={pull.state} />
         </span>
         <span className="w-(--pull-code-width) shrink-0 text-sm font-normal whitespace-nowrap text-muted-foreground-2 tabular-nums @max-lg/list:hidden">
           <span className="inline-block">{pullCode(pull)}</span>
         </span>
         <AuthorAvatar name={pull.author} src={pull.authorAvatarUrl} />
-        <span className="mask-fade-r min-w-0 flex-1 overflow-hidden text-sm font-medium whitespace-nowrap text-foreground">
+        <span
+          className="mask-fade-r min-w-0 flex-1 overflow-hidden text-sm font-medium whitespace-nowrap text-foreground"
+          title={pull.title}
+        >
           {pull.title}
         </span>
         <span className="hidden shrink-0 items-center gap-1.5 @lg/list:flex">

@@ -40,6 +40,9 @@ export interface PullsPagePrefs {
   readonly grouping: Grouping;
   readonly showEmptySections: boolean;
   readonly pinned: ReadonlyArray<string>;
+  readonly collapsedSections: ReadonlyArray<string>;
+  readonly search: string;
+  readonly searchOpen: boolean;
 }
 
 export const emptyFilters: PullFilters = {
@@ -91,6 +94,9 @@ export const defaultPrefs: PullsPagePrefs = {
   grouping: "state",
   showEmptySections: false,
   pinned: [],
+  collapsedSections: [],
+  search: "",
+  searchOpen: false,
 };
 
 export const stateOptions: ReadonlyArray<{ value: PullState; label: string }> =
