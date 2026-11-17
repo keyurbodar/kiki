@@ -7,7 +7,6 @@
   --trees-icon-width-override: calc(var(--spacing) * 3.5);
   --trees-item-padding-x-override: calc(var(--spacing) * 2);
   --capy-tree-indent: calc(var(--spacing) * 4);
-  --hairline: var(--border-width-hairline);
   --trees-bg-override: transparent;
   --capy-file-tree-surface: var(--panel);
   --trees-fg-override: var(--fg);

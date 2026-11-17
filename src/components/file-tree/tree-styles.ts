@@ -52,12 +52,12 @@ export const treeStyles = `
 }
 [data-item-section="spacing-item"],
 [data-item-section="spacing-item"] + [data-item-section="spacing-item"] {
-  width: var(--hairline);
+  width: var(--file-tree-indent-guide-w);
   opacity: 1;
   border-left: 0;
   background: var(--trees-indent-guide-bg);
   margin-left: calc(var(--trees-icon-width) / 2);
-  margin-right: calc(var(--capy-tree-indent) - var(--hairline) - var(--trees-icon-width) / 2);
+  margin-right: calc(var(--capy-tree-indent) - var(--file-tree-indent-guide-w) - var(--trees-icon-width) / 2);
   transform: none;
 }
 :host([data-tree-surface="popover"]) [data-file-tree-virtualized-scroll="true"],
