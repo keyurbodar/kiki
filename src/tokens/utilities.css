@@ -1,0 +1,77 @@
+/*
+ * Custom utilities Capy's stylesheet defines outside Tailwind's defaults, and
+ * the theme aliases they need. Values come from Capy's production stylesheet.
+ */
+
+@theme inline {
+  --shadow-plate: var(--sh-plate);
+  --shadow-overlay: var(--sh-overlay);
+  --shadow-row-open: var(--sh-row-open);
+}
+
+:root,
+[data-theme-preview] {
+  --border-hairline: 0.5px;
+  --mask-fade-ramp-default: 16px;
+  --mask-fade-ramp-toolbar: 24px;
+}
+
+@utility border-hairline {
+  border-width: var(--border-hairline);
+}
+
+@utility border-l-hairline {
+  border-left-width: var(--border-hairline);
+}
+
+@utility outline-ring-inset {
+  outline: 1px solid var(--focus-ring, var(--ring));
+  outline-offset: -1px;
+}
+
+@utility scrollbar-hide {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility mask-fade-r {
+  mask-image: linear-gradient(
+    to right,
+    black calc(100% - var(--mask-fade-ramp, var(--mask-fade-ramp-default))),
+    transparent 100%
+  );
+  @supports (animation-timeline: scroll()) {
+    mask-image: linear-gradient(
+      to right,
+      black calc(100% - var(--_mask-fade-right)),
+      transparent 100%
+    );
+    animation-name: _mask-fade-r;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(self inline);
+  }
+}
+
+@utility mask-fade-r-scroll {
+  mask-image: linear-gradient(
+    to right,
+    black calc(100% - var(--mask-fade-ramp, var(--mask-fade-ramp-default))),
+    transparent 100%
+  );
+  @variant md {
+    @supports (animation-timeline: scroll()) {
+      mask-image: linear-gradient(
+        to right,
+        black calc(100% - var(--_mask-fade-right)),
+        transparent 100%
+      );
+      animation-name: _mask-fade-r;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: scroll(self inline);
+    }
+  }
+}
