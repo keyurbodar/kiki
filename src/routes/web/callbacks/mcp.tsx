@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { McpCallback } from "@/features/onboarding/callback-surface";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/web/callbacks/mcp")({
@@ -8,7 +8,6 @@ export const Route = createFileRoute("/web/callbacks/mcp")({
 });
 
 function RouteComponent() {
-  return (
-    <RoutePlaceholder title="/web/callbacks/mcp" path="/web/callbacks/mcp" />
-  );
+  const search = Route.useSearch();
+  return <McpCallback input={search} />;
 }

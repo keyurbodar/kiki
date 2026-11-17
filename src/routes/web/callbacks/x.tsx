@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { XCallback } from "@/features/onboarding/callback-surface";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/web/callbacks/x")({
@@ -8,5 +8,6 @@ export const Route = createFileRoute("/web/callbacks/x")({
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="/web/callbacks/x" path="/web/callbacks/x" />;
+  const search = Route.useSearch();
+  return <XCallback input={search} />;
 }

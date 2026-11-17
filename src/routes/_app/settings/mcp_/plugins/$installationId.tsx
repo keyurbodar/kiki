@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { PluginPage } from "@/features/settings-mcp";
 
 export const Route = createFileRoute(
   "/_app/settings/mcp_/plugins/$installationId",
@@ -8,10 +8,6 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-  return (
-    <RoutePlaceholder
-      title="/settings/mcp/plugins/$installationId"
-      path="/settings/mcp/plugins/$installationId"
-    />
-  );
+  const { installationId } = Route.useParams();
+  return <PluginPage installationId={installationId} />;
 }
