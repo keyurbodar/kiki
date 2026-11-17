@@ -5,7 +5,7 @@ import {
   Visual,
 } from "@/components/markdown";
 
-/** Thread id that turns the diagram route into a dev-only fixture page (never in production builds). */
+/** Thread id that turns the diagram route into B6's fixture page (like /__tokens, kept for kiki-verify). */
 export const DIAGRAM_PREVIEW_ID = "__preview";
 
 const FLOW = `flowchart LR
@@ -88,7 +88,7 @@ const STATS = `<div>
 
 export type RichContentPreviewProps = { view: string; index: number };
 
-/** Dev-only fixture page for B6's rich content: /diagram/__preview/<mermaid|visual|window>/<index>. */
+/** Fixture page for B6's rich content: /diagram/__preview/<mermaid|visual|window>/<index>. */
 export function RichContentPreview({ view, index }: RichContentPreviewProps) {
   if (view === "window")
     return (

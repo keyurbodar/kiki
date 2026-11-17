@@ -14,7 +14,7 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
   const { threadId, messageId, index } = Route.useParams();
-  if (import.meta.env.DEV && threadId === DIAGRAM_PREVIEW_ID)
+  if (threadId === DIAGRAM_PREVIEW_ID)
     return <RichContentPreview view={messageId} index={Number(index)} />;
   if (!/^\d{1,4}$/.test(index) || !/^[A-Za-z0-9_-]{1,128}$/.test(messageId))
     return <NotFoundPage />;
