@@ -4,7 +4,6 @@ import { DateTime } from "effect";
 import { useState } from "react";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { Button } from "@/primitives/button";
-import { ScrollArea } from "@/primitives/scroll-area";
 import { useIsNarrow } from "@/primitives/sidebar";
 import { BuildingIcon, InboxIcon, ShareIcon, UserIcon } from "../icons";
 import { formatBytes, formatRelativeTime } from "../lib/format";
@@ -59,50 +58,42 @@ export function DrivePage() {
   };
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <ScrollArea
-        className="min-h-0 flex-1"
-        viewportClassName="overscroll-contain"
-      >
-        <DriveTopBar
-          title="Capy Drive"
-          search={{
-            value: search,
-            placeholder: "Search Capy Drive",
-            onValueChange: (value) => {
-              setSearch(value);
-              setPage(1);
-            },
-          }}
-          trailing={
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                render={<Link to="/drive/shared" />}
-              >
-                <ShareIcon className="size-(--icon-sm)" />
-                Shared
-              </Button>
-              <DriveDisplayMenu
-                ordering={ordering}
-                onOrdering={changeOrdering}
-              />
-            </>
-          }
+      <DriveTopBar
+        title="Capy Drive"
+        search={{
+          value: search,
+          placeholder: "Search Capy Drive",
+          onValueChange: (value) => {
+            setSearch(value);
+            setPage(1);
+          },
+        }}
+        trailing={
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              render={<Link to="/drive/shared" />}
+            >
+              <ShareIcon className="size-(--icon-sm)" />
+              Shared
+            </Button>
+            <DriveDisplayMenu ordering={ordering} onOrdering={changeOrdering} />
+          </>
+        }
+      />
+      {session.orgId !== undefined && (
+        <DriveDirectory
+          orgId={session.orgId}
+          orgName={session.orgName}
+          userId={session.userId}
+          ordering={ordering}
+          search={search}
+          page={page}
+          onPage={setPage}
+          narrow={narrow}
         />
-        {session.orgId !== undefined && (
-          <DriveDirectory
-            orgId={session.orgId}
-            orgName={session.orgName}
-            userId={session.userId}
-            ordering={ordering}
-            search={search}
-            page={page}
-            onPage={setPage}
-            narrow={narrow}
-          />
-        )}
-      </ScrollArea>
+      )}
     </div>
   );
 }
