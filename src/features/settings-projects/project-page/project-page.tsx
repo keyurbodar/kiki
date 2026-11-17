@@ -219,7 +219,11 @@ function ProjectSettings({
                     <Glyph name="share" className="size-(--icon-sm)" />
                     View threads
                   </MenuItem>
-                  <MenuItem onClick={() => setRenaming(true)}>
+                  <MenuItem
+                    onClick={() =>
+                      toast("Sharing arrives with the members editor")
+                    }
+                  >
                     <Glyph name="share" className="size-(--icon-sm)" />
                     Share
                   </MenuItem>
