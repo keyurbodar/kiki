@@ -38,6 +38,9 @@ describe("issue states data", () => {
     expect(
       decodeLabels({ labels: [{ id: "l", name: "Bug", color: "red" }] }),
     ).toEqual([{ id: "l", name: "Bug", color: "red" }]);
+    expect(
+      decodeLabels([{ id: "m", name: "Feature", color: "primary" }])[0]?.color,
+    ).toBe("blue");
     expect(decodeCounts({ counts: { a: 3, b: "bad" } })).toEqual({
       a: 3,
       b: 0,

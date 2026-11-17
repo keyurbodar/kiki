@@ -38,6 +38,7 @@ import {
   ResponsiveMenuSeparator,
   ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
+import { SettingsRow } from "@/primitives/settings-row";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { decodeLabels, type IssueLabel } from "../issue-states-page/data";
 
@@ -263,34 +264,30 @@ export function IssueLabelsSection() {
             <SkeletonPanel className="h-4 w-2/3" />
           </div>
         ) : labels.length === 0 ? (
-          <div className="flex flex-col gap-1 p-4">
-            <span className="text-sm font-medium text-foreground">
-              No labels yet
-            </span>
-            <span className="text-sm font-normal text-muted-foreground-2">
-              Add one here, or create one from an issue's label picker
-            </span>
-          </div>
+          <SettingsRow
+            label="No labels yet"
+            description="Add one here, or create one from an issue's label picker"
+          />
         ) : (
           labels.map((label) => (
-            <div
+            <SettingsRow
               key={label.id}
-              className="group/row flex items-center justify-between gap-6 p-4"
-            >
-              <span className="flex items-center gap-2.5">
-                <span className="flex size-(--icon-sm) items-center justify-center">
-                  <IssueLabelDot color={label.color} />
-                </span>
-                <span className="text-sm font-medium text-foreground">
+              label={
+                <span className="flex items-center gap-2.5">
+                  <span className="flex size-(--icon-sm) items-center justify-center">
+                    <IssueLabelDot color={label.color} />
+                  </span>
                   {label.name}
                 </span>
-              </span>
-              <LabelRowMenu
-                label={label}
-                onEdit={() => setEditor({ mode: "edit", label })}
-                onDelete={() => setDeleting(label)}
-              />
-            </div>
+              }
+              actions={
+                <LabelRowMenu
+                  label={label}
+                  onEdit={() => setEditor({ mode: "edit", label })}
+                  onDelete={() => setDeleting(label)}
+                />
+              }
+            />
           ))
         )}
       </Card>
