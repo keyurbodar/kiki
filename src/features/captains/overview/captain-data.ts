@@ -1,5 +1,6 @@
 import { Atom } from "effect/reactivity";
 import type { DriveEntry, DriveVolume } from "@/components/drive-file-pane";
+import { JamId, OrgId } from "@/data/api/schemas/ids";
 import { queryTimeToLive } from "@/data/atoms/conventions";
 import { ApiClient } from "@/data/client/ApiClient";
 
@@ -226,8 +227,8 @@ const crewQuery = Atom.family((value: string) => {
 const driveQuery = Atom.family((value: string) => {
   const { orgId, jamId } = split(value);
   return ApiClient.query("volumes", "list", {
-    params: { orgId },
-    query: { captainJamId: jamId, exactScope: "true" },
+    params: { orgId: OrgId.make(orgId) },
+    query: { captainJamId: JamId.make(jamId), exactScope: "true" },
     reactivityKeys: [`captain-drive:${jamId}`],
     timeToLive: queryTimeToLive,
   });
