@@ -18,6 +18,7 @@ import {
   sampleContextUsage,
   seedEvents,
 } from "./fixtures.ts";
+import { threadStateSeeds } from "./thread-states.ts";
 
 const text = (value: unknown): string | undefined =>
   typeof value === "string" && value.length > 0 ? value : undefined;
@@ -84,6 +85,9 @@ export const EventsMock = mockGroup("events", (handlers) =>
           const rows = (yield* Ref.get(eventsRef)).filter(
             (row) => row.jamId === params.jamId,
           );
+          const stateRows = threadStateSeeds.filter(
+            (row) => row.jamId === params.jamId,
+          );
           const offset = Number(text(input.offset) ?? 0);
           const limit = Number(text(input.limit) ?? rows.length);
           const page = rows.slice(
@@ -91,7 +95,7 @@ export const EventsMock = mockGroup("events", (handlers) =>
             Number.isFinite(limit) ? offset + limit : undefined,
           );
           return {
-            items: page,
+            items: [...page, ...stateRows],
             cursor: page.length > 0 ? page.at(-1)?.id : null,
             serverNow: DateTime.formatIso(minutesAgo(0)),
           };
@@ -119,7 +123,7 @@ export const EventsMock = mockGroup("events", (handlers) =>
       .handle("stream", ({ params, query }) => {
         const input = fields(query);
         const after = text(input.after);
-        const rows = seedEvents.filter(
+        const rows = [...seedEvents, ...threadStateSeeds].filter(
           (row) =>
             row.jamId === params.jamId &&
             (after === undefined || row.id > after),
