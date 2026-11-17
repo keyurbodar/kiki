@@ -8,9 +8,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsgo --noEmit",
-    "lint": "biome check .",
+    "lint": "biome check . && bun scripts/check-raw-values.ts",
     "format": "biome format --write .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:raw-values": "bun scripts/check-raw-values.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

@@ -1,9 +1,23 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="bg-background">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kiki</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <title>Capy</title>
+    <script>
+      try {
+        const d = document.documentElement;
+        const presets = ["absolutely", "bearded-oled", "catppuccin", "codex", "crimson-evernight", "everforest", "firecrawl", "github", "gruvbox", "hub", "linear", "notion", "one"];
+        const read = (key) => JSON.parse(localStorage.getItem(key) || "null");
+        const theme = read("capy-web:color-theme-v2");
+        if (theme?.kind === "preset" && presets.includes(theme.id)) d.dataset.colorTheme = theme.id;
+        const mode = read("capy-web:appearance")?.preferences?.mode || "system";
+        const dark = mode === "dark" || (mode === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+        d.classList.toggle("dark", dark);
+        d.style.colorScheme = dark ? "dark" : "light";
+        if (read("capy-web:diff-colors") === "blue-orange") d.dataset.diffColors = "blue-orange";
+      } catch {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

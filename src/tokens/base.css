@@ -1,0 +1,45 @@
+/* Document defaults and selection colours, as in Capy's base layer. */
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+    outline-color: color-mix(in oklab, var(--color-primary) 50%, transparent);
+  }
+
+  html {
+    overscroll-behavior: none;
+    height: 100dvh;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    height: 100dvh;
+    font-weight: var(--font-weight-normal);
+    font-size: var(--responsive-text-base);
+    overscroll-behavior-y: none;
+    overflow: hidden;
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    input,
+    textarea,
+    select,
+    [contenteditable="true"],
+    [data-slot="input"],
+    [data-slot="textarea"] {
+      /* biome-ignore lint/complexity/noImportantStyles: stops iOS zooming into focused fields, as in Capy */
+      font-size: 1rem !important;
+    }
+  }
+}
+
+::selection {
+  background: var(--color-primary-20);
+  color: var(--color-primary-ink);
+}
+
+::highlight(selection-quote) {
+  background: var(--color-primary-20);
+  color: var(--color-primary-ink);
+}
