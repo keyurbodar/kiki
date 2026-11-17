@@ -3,6 +3,19 @@ import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
 import { isoMinutesAgo } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
+  type AgentDriveState,
+  type AgentWriteChange,
+  agentContextPreview,
+  agentDriveScopeKey,
+  agentDriveSeed,
+  agentFileBySha,
+  agentManifest,
+  agentScopeByVolume,
+  agentVersionPrefix,
+  agentVolume,
+  applyAgentWrite,
+} from "./agent-drive.ts";
+import {
   agentContext,
   changes,
   type DriveShare,
@@ -26,6 +39,9 @@ export const VolumesMock = mockGroup("volumes", (handlers) =>
     const shareRef = yield* Ref.make<ReadonlyArray<DriveShare>>(shares);
     const versionRef = yield* Ref.make<ReadonlyArray<DriveVersion>>(versions);
     const archivedRef = yield* Ref.make<ReadonlyArray<string>>([]);
+    const agentDrive = yield* Ref.make<AgentDriveState>(agentDriveSeed);
+    const text = (value: unknown) =>
+      typeof value === "string" && value !== "" ? value : undefined;
 
     const share = (shareId: string) =>
       Effect.flatMap(Ref.get(shareRef), (rows) => {
@@ -60,6 +76,14 @@ export const VolumesMock = mockGroup("volumes", (handlers) =>
       )
       .handle("agentContextPreview", ({ params, query }) =>
         Effect.gen(function* () {
+          const projectId = text(query.projectId);
+          if (projectId !== undefined) {
+            return agentContextPreview(yield* Ref.get(agentDrive), {
+              projectId,
+              model: text(query.model),
+              captainJamId: text(query.captainJamId),
+            });
+          }
           const files = yield* Ref.get(driveFiles);
           const search = String(query.search ?? "").toLowerCase();
           return {
@@ -76,6 +100,16 @@ export const VolumesMock = mockGroup("volumes", (handlers) =>
       )
       .handle("list", ({ params, query }) =>
         Effect.gen(function* () {
+          if (query.exactScope === "true") {
+            const key = agentDriveScopeKey({
+              projectId: text(query.projectId),
+              userId: text(query.userId),
+              automationId: text(query.automationId),
+              captainJamId: text(query.captainJamId),
+            });
+            const files = (yield* Ref.get(agentDrive)).get(key);
+            return files === undefined ? [] : [agentVolume(key, files)];
+          }
           const files = yield* Ref.get(driveFiles);
           const prefix = String(query.path ?? "");
           const rows = files.filter((file) => file.path.startsWith(prefix));
@@ -99,6 +133,23 @@ export const VolumesMock = mockGroup("volumes", (handlers) =>
       .handle("write", ({ params, payload }) =>
         Effect.gen(function* () {
           const input = fields(payload);
+          if (Array.isArray(input.changes)) {
+            const scope = fields(input.scope);
+            const key = agentDriveScopeKey({
+              projectId: text(scope.projectId),
+              userId: text(scope.userId),
+              automationId: text(scope.automationId),
+              captainJamId: text(scope.captainJamId),
+            });
+            const next = yield* Ref.updateAndGet(agentDrive, (state) =>
+              applyAgentWrite(
+                state,
+                key,
+                input.changes as ReadonlyArray<AgentWriteChange>,
+              ),
+            );
+            return agentManifest(key, next.get(key) ?? new Map());
+          }
           const path = String(input.path ?? "notes/new-note.md");
           const file = {
             id: newId("file"),
@@ -270,6 +321,17 @@ export const VolumesMock = mockGroup("volumes", (handlers) =>
       )
       .handle("manifest", ({ params, query }) =>
         Effect.gen(function* () {
+          if (params.versionId.startsWith(agentVersionPrefix)) {
+            const state = yield* Ref.get(agentDrive);
+            const key = agentScopeByVolume(state, params.volumeId);
+            const files = key === undefined ? undefined : state.get(key);
+            if (key === undefined || files === undefined) {
+              return yield* Effect.die(
+                new Error(`volumes.agentDrive: no volume ${params.volumeId}`),
+              );
+            }
+            return agentManifest(key, files);
+          }
           const row = yield* version(params.versionId);
           const files = yield* Ref.get(driveFiles);
           return {
@@ -296,6 +358,18 @@ export const VolumesMock = mockGroup("volumes", (handlers) =>
       )
       .handle("file", ({ params }) =>
         Effect.gen(function* () {
+          if (params.versionId.startsWith(agentVersionPrefix)) {
+            const content = agentFileBySha(
+              yield* Ref.get(agentDrive),
+              params.sha256,
+            );
+            if (content === undefined) {
+              return yield* Effect.die(
+                new Error(`volumes.agentDrive: no file ${params.sha256}`),
+              );
+            }
+            return { type: "content", content };
+          }
           const row = yield* version(params.versionId);
           return {
             versionId: row.id,
