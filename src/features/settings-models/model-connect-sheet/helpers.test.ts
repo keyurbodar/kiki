@@ -390,6 +390,34 @@ describe("mergeDiscovered", () => {
     expect(once).toEqual([...drafted, { model: "acme/alpha" }]);
     expect(mergeDiscovered(once, [], [{ model: "acme/alpha" }])).toEqual(once);
   });
+  it("takes a changed endpoint's alias but keeps the draft's choices", () => {
+    const drafted = [
+      {
+        model: "acme/alpha",
+        providerModelId: "old-alias",
+        context: 32e3,
+        excluded: true,
+      },
+      { model: "acme-coder", name: "Acme Coder", providerModelId: "coder-1" },
+    ];
+    const found = [
+      { model: "acme/alpha", providerModelId: "new-alias", context: 64e3 },
+    ];
+    expect(mergeDiscovered(drafted, [], found)).toEqual([
+      {
+        model: "acme/alpha",
+        providerModelId: "new-alias",
+        context: 64e3,
+        excluded: true,
+      },
+      { model: "acme-coder", name: "Acme Coder", providerModelId: "coder-1" },
+    ]);
+    expect(mergeDiscovered(drafted, [], [{ model: "acme/alpha" }])[0]).toEqual({
+      model: "acme/alpha",
+      context: 32e3,
+      excluded: true,
+    });
+  });
   it("adds each default once and never drops the draft", () => {
     const drafted = [{ model: "acme-coder", name: "Acme Coder" }];
     const defaults = [{ model: "acme/*" }, { model: "zen/*" }];

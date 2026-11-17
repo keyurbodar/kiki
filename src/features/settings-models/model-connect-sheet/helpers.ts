@@ -582,13 +582,23 @@ export const mergeDiscovered = (
   defaults: ReadonlyArray<ModelSetting>,
   found: ReadonlyArray<ModelSetting>,
 ): Array<ModelSetting> => {
-  const known = new Set(current.map((m) => m.model));
+  const known = new Set<string>();
+  const kept = current.map((m): ModelSetting => {
+    known.add(m.model);
+    const discovered = found.find((f) => f.model === m.model);
+    if (m.name !== undefined || discovered === undefined) return m;
+    return {
+      ...m,
+      providerModelId: discovered.providerModelId,
+      context: discovered.context ?? m.context,
+    };
+  });
   const added = [...defaults, ...found].filter((m) => {
     if (known.has(m.model)) return false;
     known.add(m.model);
     return true;
   });
-  return [...current, ...added];
+  return [...kept, ...added];
 };
 
 export const pendingCompactAts = (
