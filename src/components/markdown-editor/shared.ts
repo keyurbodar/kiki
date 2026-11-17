@@ -23,3 +23,6 @@ export const preventMouseDown = (event: { preventDefault: () => void }) =>
 export const refocusEditor = (editor: { focus: () => void }) => {
   requestAnimationFrame(() => requestAnimationFrame(() => editor.focus()));
 };
+
+export const readLengthToken = (element: Element, name: string) =>
+  Number.parseFloat(getComputedStyle(element).getPropertyValue(name)) || 0;

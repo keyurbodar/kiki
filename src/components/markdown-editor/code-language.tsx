@@ -23,13 +23,17 @@ import {
   menuCheckClass,
   menuSearchInputClass,
   preventMouseDown,
+  readLengthToken,
   refocusEditor,
 } from "./shared";
 import { MarkdownEditorCodeLanguage } from "./slots";
 
-const BADGE_INSET = 4;
-
-type BadgeState = { top: number; left: number; language: string };
+type BadgeState = {
+  top: number;
+  left: number;
+  inset: number;
+  language: string;
+};
 
 const $readCodeBlock = () => {
   const selection = $getSelection();
@@ -78,6 +82,7 @@ export function CodeLanguagePlugin({
         const rect = element.getBoundingClientRect();
         const containerRect = container.getBoundingClientRect();
         setState({
+          inset: readLengthToken(container, "--markdown-editor-badge-inset"),
           top: rect.top - containerRect.top,
           left: rect.left - containerRect.left,
           language: current.language,
@@ -120,7 +125,7 @@ export function CodeLanguagePlugin({
   return (
     <MarkdownEditorCodeLanguage
       className="absolute"
-      style={{ top: state.top + BADGE_INSET, left: state.left + BADGE_INSET }}
+      style={{ top: state.top + state.inset, left: state.left + state.inset }}
     >
       <Menu
         open={open}

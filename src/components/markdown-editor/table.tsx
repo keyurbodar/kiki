@@ -1,3 +1,4 @@
+import { copyToClipboard } from "@lexical/clipboard";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
   $computeTableCellRectBoundary,
@@ -61,11 +62,10 @@ import {
   menuIconSlotClass,
   menuValueClass,
   preventMouseDown,
+  readLengthToken,
   refocusEditor,
 } from "./shared";
 import { MarkdownEditorTableMenu } from "./slots";
-
-const MENU_LIFT = 26;
 
 type TableAction = {
   label: string;
@@ -158,23 +158,45 @@ const DELETE_ACTIONS: ReadonlyArray<TableAction> = [
   },
 ];
 
-const $deleteSelectedLines = (event: KeyboardEvent | ClipboardEvent | null) => {
+type LineSelection = {
+  table: TableNode;
+  rect: {
+    minColumn: number;
+    maxColumn: number;
+    minRow: number;
+    maxRow: number;
+  };
+  anchor: { startRow: number; startColumn: number };
+  wholeRows: boolean;
+  wholeColumns: boolean;
+};
+
+const $getLineSelection = (): LineSelection | null => {
   const selection = $getSelection();
-  if (!$isTableSelection(selection)) return false;
+  if (!$isTableSelection(selection)) return null;
   const anchor = $getTableCellNodeFromLexicalNode(selection.anchor.getNode());
   const focus = $getTableCellNodeFromLexicalNode(selection.focus.getNode());
   const table = anchor === null ? null : $getCellTable(anchor);
-  if (anchor === null || focus === null || table === null) return false;
+  if (anchor === null || focus === null || table === null) return null;
   const [map, anchorCell, focusCell] = $computeTableMap(table, anchor, focus);
   const rect = $computeTableCellRectBoundary(map, anchorCell, focusCell);
   const wholeRows =
     rect.minColumn === 0 && rect.maxColumn === (map[0]?.length ?? 0) - 1;
   const wholeColumns = rect.minRow === 0 && rect.maxRow === map.length - 1;
-  if (!wholeRows && !wholeColumns) return false;
-  event?.preventDefault();
+  if (!wholeRows && !wholeColumns) return null;
+  return { table, rect, anchor: anchorCell, wholeRows, wholeColumns };
+};
+
+const $deleteLines = ({
+  table,
+  rect,
+  anchor,
+  wholeRows,
+  wholeColumns,
+}: LineSelection) => {
   if (wholeRows && wholeColumns) {
     $removeTable(table);
-    return true;
+    return;
   }
   const rows = table.getChildren().filter($isTableRowNode);
   if (wholeRows) {
@@ -194,19 +216,26 @@ const $deleteSelectedLines = (event: KeyboardEvent | ClipboardEvent | null) => {
   $normalizeTable(table);
   const row = table.getChildAtIndex(
     Math.min(
-      wholeRows ? rect.minRow : anchorCell.startRow,
+      wholeRows ? rect.minRow : anchor.startRow,
       table.getChildrenSize() - 1,
     ),
   );
   const cell = $isTableRowNode(row)
     ? row.getChildAtIndex(
         Math.min(
-          wholeRows ? anchorCell.startColumn : rect.minColumn,
+          wholeRows ? anchor.startColumn : rect.minColumn,
           row.getChildrenSize() - 1,
         ),
       )
     : null;
   if ($isTableCellNode(cell)) cell.selectStart();
+};
+
+const $deleteSelectedLines = (event: KeyboardEvent) => {
+  const lines = $getLineSelection();
+  if (lines === null) return false;
+  event.preventDefault();
+  $deleteLines(lines);
   return true;
 };
 
@@ -270,7 +299,20 @@ export function TableBehaviorPlugin() {
         ),
         editor.registerCommand(
           CUT_COMMAND,
-          () => $deleteSelectedLines(null),
+          (event) => {
+            if ($getLineSelection() === null) return false;
+            event?.preventDefault();
+            copyToClipboard(
+              editor,
+              event instanceof ClipboardEvent ? event : null,
+            ).then(() =>
+              editor.update(() => {
+                const lines = $getLineSelection();
+                if (lines !== null) $deleteLines(lines);
+              }),
+            );
+            return true;
+          },
           COMMAND_PRIORITY_CRITICAL,
         ),
         editor.registerNodeTransform(TableCellNodeClass, $keepCellParagraphs),
@@ -281,6 +323,7 @@ export function TableBehaviorPlugin() {
 }
 
 type MenuState = {
+  lift: number;
   top: number;
   right: number;
   column: number;
@@ -333,6 +376,7 @@ export function TableActionMenuPlugin({
         const tableRect = tableElement.getBoundingClientRect();
         const containerRect = container.getBoundingClientRect();
         setState({
+          lift: readLengthToken(container, "--markdown-editor-table-menu-lift"),
           top: tableRect.top - containerRect.top,
           right: containerRect.right - tableRect.right,
           column: current.column,
@@ -370,7 +414,7 @@ export function TableActionMenuPlugin({
   return (
     <MarkdownEditorTableMenu
       className="absolute"
-      style={{ top: state.top - MENU_LIFT, right: state.right }}
+      style={{ top: state.top - state.lift, right: state.right }}
     >
       <Menu
         open={open}

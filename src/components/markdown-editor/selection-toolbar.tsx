@@ -37,14 +37,11 @@ import {
   overlayLayerClass,
   overlaySurfaceClass,
   preventMouseDown,
+  readLengthToken,
   refocusEditor,
 } from "./shared";
 import { MarkdownEditorToolbar } from "./slots";
 import { ToolbarAction } from "./toolbar-action";
-
-const TOOLBAR_OFFSET = 8;
-const TOOLBAR_HALF_WIDTH = 140;
-const TOOLBAR_CLEARANCE = 52;
 
 const INLINE_FORMATS = ["bold", "italic", "strikethrough", "code"] as const;
 
@@ -57,7 +54,10 @@ type Placement = {
   bottom?: number;
 };
 
+export type ToolbarMetrics = { halfWidth: number; clearance: number };
+
 export type ToolbarState = Placement & {
+  offset: number;
   formats: InlineFormat[];
   link: boolean;
   block: BlockKind | null;
@@ -79,16 +79,17 @@ export const placeToolbar = (
   selection: DOMRect,
   container: DOMRect,
   scrollTop: number,
+  { halfWidth, clearance }: ToolbarMetrics,
 ): Placement => ({
   top: selection.top - container.top,
   left: Math.max(
-    TOOLBAR_HALF_WIDTH,
+    halfWidth,
     Math.min(
       selection.left - container.left + selection.width / 2,
-      container.width - TOOLBAR_HALF_WIDTH,
+      container.width - halfWidth,
     ),
   ),
-  below: selection.top - scrollTop < TOOLBAR_CLEARANCE,
+  below: selection.top - scrollTop < clearance,
   bottom: selection.bottom - container.top,
 });
 
@@ -116,9 +117,20 @@ const $readToolbar = (
           rect,
           container.getBoundingClientRect(),
           scrollContainerTop(container),
+          {
+            halfWidth: readLengthToken(
+              container,
+              "--markdown-editor-toolbar-half-width",
+            ),
+            clearance: readLengthToken(
+              container,
+              "--markdown-editor-toolbar-clearance",
+            ),
+          },
         );
   if (placement === null) return null;
   return {
+    offset: readLengthToken(container, "--markdown-editor-toolbar-offset"),
     top: placement.top,
     left: placement.left,
     below: placement.below,
@@ -240,8 +252,8 @@ export function SelectionToolbarPlugin({
       )}
       style={{
         top: state.below
-          ? (state.bottom ?? state.top) + TOOLBAR_OFFSET
-          : state.top - TOOLBAR_OFFSET,
+          ? (state.bottom ?? state.top) + state.offset
+          : state.top - state.offset,
         left: state.left,
       }}
     >

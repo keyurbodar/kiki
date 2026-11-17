@@ -47,7 +47,6 @@ import {
 } from "lexical";
 import {
   type ComponentProps,
-  type ReactNode,
   type Ref,
   useEffect,
   useEffectEvent,
@@ -136,19 +135,14 @@ export type MarkdownEditorHandle = {
   focus: () => void;
 };
 
-export type MarkdownEditorProps = Omit<
-  ComponentProps<"div">,
-  "onChange" | "placeholder" | "ref" | "children"
-> & {
+export type MarkdownEditorProps = ComponentProps<"div"> & {
   initialText?: string;
   stateKey?: string;
-  onChange?: () => void;
+  onTextChange?: () => void;
   onOpenFile?: (path: string) => void;
   contentClassName?: string;
   inset?: keyof typeof INSETS;
-  placeholder?: ReactNode;
-  autoFocus?: boolean;
-  ref?: Ref<MarkdownEditorHandle>;
+  editorRef?: Ref<MarkdownEditorHandle>;
 };
 
 const throwError = (error: Error) => {
@@ -200,7 +194,7 @@ const preventDecorationMouseDown = (event: MouseEvent) => {
 
 function MarkdownEditorSurface({
   stateKey,
-  onChange,
+  onTextChange,
   onOpenFile,
   className,
   contentClassName,
@@ -208,12 +202,19 @@ function MarkdownEditorSurface({
   placeholder,
   autoFocus,
   ref,
+  editorRef,
+  children,
   ...props
 }: Omit<MarkdownEditorProps, "initialText">) {
   const [editor] = useLexicalComposerContext();
   const containerRef = useRef<HTMLDivElement>(null);
   const insetClass = INSETS[inset];
-  const notifyChange = useEffectEvent(() => onChange?.());
+  const notifyChange = useEffectEvent(() => onTextChange?.());
+  const setContainer = (node: HTMLDivElement | null) => {
+    containerRef.current = node;
+    if (typeof ref === "function") ref(node);
+    else if (ref != null) ref.current = node;
+  };
 
   useEffect(() => {
     let stale = true;
@@ -331,7 +332,7 @@ function MarkdownEditorSurface({
   }, [editor, stateKey]);
 
   useImperativeHandle(
-    ref,
+    editorRef,
     () => ({
       getText: () => editor.read(() => $exportMarkdown($getRoot()).text),
       focus: () => editor.focus(),
@@ -340,7 +341,7 @@ function MarkdownEditorSurface({
   );
 
   return (
-    <div ref={containerRef} className={cn("relative", className)} {...props}>
+    <div ref={setContainer} className={cn("relative", className)} {...props}>
       <RichTextPlugin
         contentEditable={
           <div className={cn("w-full", insetClass, contentClassName)}>
@@ -389,6 +390,7 @@ function MarkdownEditorSurface({
       <CodeLanguagePlugin containerRef={containerRef} />
       <PreviewBlocksPlugin />
       <OnChangePlugin ignoreSelectionChange onChange={() => notifyChange()} />
+      {children}
     </div>
   );
 }

@@ -85,10 +85,21 @@ describe("helpers", () => {
 
   it("keeps the toolbar inside the container and flips it below near the top", () => {
     const container = new DOMRect(0, 100, 400, 600);
-    const near = placeToolbar(new DOMRect(10, 120, 20, 16), container, 100);
+    const metrics = { halfWidth: 140, clearance: 52 };
+    const near = placeToolbar(
+      new DOMRect(10, 120, 20, 16),
+      container,
+      100,
+      metrics,
+    );
     expect(near.left).toBe(140);
     expect(near.below).toBe(true);
-    const far = placeToolbar(new DOMRect(380, 400, 10, 16), container, 100);
+    const far = placeToolbar(
+      new DOMRect(380, 400, 10, 16),
+      container,
+      100,
+      metrics,
+    );
     expect(far.left).toBe(260);
     expect(far.below).toBe(false);
     expect(far.top).toBe(300);
@@ -128,7 +139,7 @@ describe("MarkdownEditor", () => {
     const text =
       "# Sample\n\n- [ ] first task\n- [x] second task\n\n| a | b |\n|---|---|\n| 1 | 2 |\n";
     await act(async () => {
-      render(<MarkdownEditor initialText={text} ref={ref} />);
+      render(<MarkdownEditor initialText={text} editorRef={ref} />);
     });
     const document = screen.getByRole("textbox", { name: "Document" });
     expect(document.getAttribute("data-markdown-editor")).toBe("");

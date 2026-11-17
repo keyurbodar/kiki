@@ -36,6 +36,11 @@
   --sidebar-pin-label-gap: 4px;
   --sidebar-section-gap: 12px;
   --sidebar-section-header: 28px;
+  --markdown-editor-toolbar-offset: 8px;
+  --markdown-editor-toolbar-half-width: 140px;
+  --markdown-editor-toolbar-clearance: 52px;
+  --markdown-editor-badge-inset: 4px;
+  --markdown-editor-table-menu-lift: 26px;
 }
 
 :root {

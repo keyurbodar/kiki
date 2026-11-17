@@ -31,6 +31,7 @@ import {
   $getSelection,
   $getState,
   $isElementNode,
+  $isParagraphNode,
   $isRangeSelection,
   $isTextNode,
   type ElementNode,
@@ -111,6 +112,12 @@ export const $getBlockKind = (): BlockKind | null => {
   return block === null || block.getType() === "paragraph" ? "paragraph" : null;
 };
 
+const isTextBlock = (node: LexicalNode | null): node is ElementNode =>
+  $isParagraphNode(node) ||
+  $isHeadingNode(node) ||
+  $isQuoteNode(node) ||
+  $isCodeNode(node);
+
 export const $setBlockKind = (kind: BlockKind) => {
   if (kind === "bullet" || kind === "number" || kind === "check") {
     $insertList(kind);
@@ -129,15 +136,18 @@ export const $setBlockKind = (kind: BlockKind) => {
   }
   const selection = $getSelection();
   if (!$isRangeSelection(selection)) return;
-  if ($getNearestNodeOfType(selection.anchor.getNode(), ListItemNode) !== null)
+  if (
+    selection
+      .getNodes()
+      .some((node) => $getNearestNodeOfType(node, ListItemNode) !== null)
+  )
     $removeList();
   const current = $getSelection();
   if (!$isRangeSelection(current)) return;
   const blocks = new Map<string, ElementNode>();
   for (const node of current.getNodes()) {
     const block = node.getTopLevelElement();
-    if ($isElementNode(block) && !$isListNode(block))
-      blocks.set(block.getKey(), block);
+    if (isTextBlock(block)) blocks.set(block.getKey(), block);
   }
   for (const block of blocks.values()) {
     const next =
