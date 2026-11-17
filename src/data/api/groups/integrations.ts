@@ -2,6 +2,20 @@ import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
 import { InferredMethod } from "../annotations.ts";
 import {
+  CompleteGitHubOAuthRequest,
+  CompleteLinearLinkRequest,
+  CompleteLinearOAuthRequest,
+  CompletePaperOAuthRequest,
+  CompleteSlackLinkRequest,
+  CompleteSlackOAuthRequest,
+  GitHubOAuthCompletion,
+  LinearLinkPreview,
+  LinearOAuthCompletion,
+  PaperOAuthCompletion,
+  SlackLinkPreview,
+  SlackOAuthCompletion,
+} from "../schemas/integrationOAuth.ts";
+import {
   GitHubInstallationConnection,
   GitHubUserConnection,
   GitHubWorkspaceConnection,
@@ -16,7 +30,7 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
   HttpApiEndpoint.post(
     "completeGitHubOAuth",
     "/integrations/github/oauth/complete",
-    { payload: Undecoded, success: Undecoded },
+    { payload: CompleteGitHubOAuthRequest, success: GitHubOAuthCompletion },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.get("getGitHubUser", "/integrations/github/user", {
     success: Schema.NullOr(GitHubUserConnection),
@@ -31,12 +45,12 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
   HttpApiEndpoint.post(
     "previewLinearLink",
     "/integrations/linear/links/preview",
-    { payload: Undecoded, success: Undecoded },
+    { payload: CompleteLinearLinkRequest, success: LinearLinkPreview },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
     "completeLinearOAuth",
     "/integrations/linear/oauth/complete",
-    { payload: Undecoded, success: Undecoded },
+    { payload: CompleteLinearOAuthRequest, success: LinearOAuthCompletion },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.get("getPaper", "/integrations/paper", {
     success: PaperStatus,
@@ -47,7 +61,7 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
   HttpApiEndpoint.post(
     "completePaperOAuth",
     "/integrations/paper/oauth/complete",
-    { payload: Undecoded, success: Undecoded },
+    { payload: CompletePaperOAuthRequest, success: PaperOAuthCompletion },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post("completeSlackLink", "/integrations/slack/links", {
     payload: Undecoded,
@@ -56,12 +70,12 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
   HttpApiEndpoint.post(
     "previewSlackLink",
     "/integrations/slack/links/preview",
-    { payload: Undecoded, success: Undecoded },
+    { payload: CompleteSlackLinkRequest, success: SlackLinkPreview },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
     "completeSlackOAuth",
     "/integrations/slack/oauth/complete",
-    { payload: Undecoded, success: Undecoded },
+    { payload: CompleteSlackOAuthRequest, success: SlackOAuthCompletion },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
     "disconnectGitHubDependencyReader",

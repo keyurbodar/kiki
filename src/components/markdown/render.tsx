@@ -115,7 +115,12 @@ function Anchor({ node, children, ...props }: WithNode<ComponentProps<"a">>) {
   const href = props.href;
   if (typeof chip === "string" && typeof href === "string")
     return (
-      <plugins.chip kind={chip} href={href} anchorProps={props}>
+      <plugins.chip
+        kind={chip}
+        href={href}
+        anchorProps={props}
+        interactive={interactive}
+      >
         {children}
       </plugins.chip>
     );
@@ -149,12 +154,12 @@ function Span({
   children,
   ...props
 }: WithNode<ComponentProps<"span">>) {
-  const { plugins } = useContext(MarkdownRenderContext);
+  const { plugins, interactive } = useContext(MarkdownRenderContext);
   const attributes = props as Record<string, unknown>;
   const mention = attributes["data-mention"];
   if (typeof mention === "string")
     return (
-      <plugins.chip kind="mention" value={mention}>
+      <plugins.chip kind="mention" value={mention} interactive={interactive}>
         {children}
       </plugins.chip>
     );
@@ -167,6 +172,7 @@ function Span({
         kind={kind}
         value={value}
         label={typeof label === "string" ? label : undefined}
+        interactive={interactive}
       />
     );
   return <span {...props}>{children}</span>;

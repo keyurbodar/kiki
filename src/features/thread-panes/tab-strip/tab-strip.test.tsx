@@ -131,6 +131,64 @@ describe("ThreadOptions", () => {
     expect(onOpen).toHaveBeenCalledWith({ kind: "setup" });
   });
 
+  it("scopes the Desktop tab to the owning thread, not the machine", () => {
+    const onOpen = vi.fn();
+    render(
+      <OpenMenu>
+        <ThreadOptions
+          {...base}
+          threadId="jam_1"
+          machines={[{ ...machine, device: false }]}
+          onOpen={onOpen}
+        />
+      </OpenMenu>,
+    );
+    const desktop = screen
+      .getAllByRole("menuitem")
+      .find((row) => row.textContent?.startsWith("Desktop"));
+    expect(desktop).toBeTruthy();
+    if (desktop === undefined) throw new Error("Desktop row missing");
+    fireEvent.click(desktop);
+    expect(onOpen).toHaveBeenCalledWith({
+      kind: "desktop",
+      jamId: "jam_1",
+      localIndex: null,
+    });
+  });
+
+  it("keeps category children when the section label matches the search", () => {
+    const onOpen = vi.fn();
+    render(
+      <OpenMenu>
+        <ThreadOptions
+          {...base}
+          threadId="jam_1"
+          machines={[]}
+          phones={[
+            {
+              machineId: "phone_1",
+              name: "Sample phone",
+              description: "Sample device",
+              state: "awake",
+            },
+          ]}
+          pulls={[
+            {
+              number: 7,
+              url: "https://github.com/acme/web/pull/7",
+              title: "Fix startup",
+            },
+          ]}
+          onOpen={onOpen}
+        />
+      </OpenMenu>,
+    );
+    const search = screen.getByRole("textbox", { name: "Search tabs" });
+    fireEvent.change(search, { target: { value: "phones" } });
+    fireEvent.click(screen.getByText("Phones"));
+    expect(screen.getByText("Sample phone")).toBeTruthy();
+  });
+
   it("toasts when a phone cannot be added", async () => {
     render(
       <OpenMenu>

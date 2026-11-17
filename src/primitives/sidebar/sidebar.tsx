@@ -105,6 +105,11 @@ export function useSidebarState() {
   return state;
 }
 
+/** Sidebar state, or null when rendered outside a SidebarProvider. */
+export function useSidebarStateOptional() {
+  return useContext(SidebarStateContext);
+}
+
 export function useSidebarOpenMobile() {
   const open = useContext(SidebarOpenMobileContext);
   if (open === null)

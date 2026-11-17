@@ -8,10 +8,18 @@ import {
 } from "./fixtures.ts";
 
 export type OrganizationRow = (typeof sampleOrganizations)[number];
+export type DomainDnsRecord = {
+  readonly host: string;
+  readonly type: string;
+  readonly value: string;
+};
+
 export type DomainRow = {
   readonly id: string;
   readonly domain: string;
   readonly verified: boolean;
+  readonly verification: string;
+  readonly dnsRecord: DomainDnsRecord | null;
   readonly ssoRequired: boolean;
   readonly createdAt: string;
   readonly verifiedAt: string | null;
