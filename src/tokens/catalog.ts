@@ -204,6 +204,7 @@ export const DURATIONS = [
   "fast",
   "crossfade-in",
   "sheet-exit-fade",
+  "waiting-in",
   "base",
   "halo",
   "sheet-exit",
