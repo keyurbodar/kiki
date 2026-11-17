@@ -85,7 +85,9 @@ export const ExploreMock = mockGroup("explore", (handlers) =>
               ? slugs
               : [...slugs, params.slug]
             : slugs.filter((slug) => slug !== params.slug),
-        ).pipe(Effect.map((slugs) => ({ hidden: slugs.includes(params.slug) }))),
+        ).pipe(
+          Effect.map((slugs) => ({ hidden: slugs.includes(params.slug) })),
+        ),
       )
       .handle("addSkill", ({ payload }) => {
         const listing = findSampleListing("skill", payload.slug);

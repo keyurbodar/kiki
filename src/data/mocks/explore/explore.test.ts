@@ -50,6 +50,29 @@ layer(makeApiClientLayer(MockTransport))("explore mocks", (it) => {
     }),
   );
 
+  it.effect("toggles theme visibility", () =>
+    Effect.gen(function* () {
+      const client = yield* ApiClient;
+      const slug = "debugging-playbook";
+      const before = yield* client.explore.themeVisibility({
+        params: { slug },
+      });
+      assert.strictEqual(before.hidden, false);
+      const hidden = yield* client.explore.setThemeVisibility({
+        params: { slug },
+        payload: { hidden: true },
+      });
+      assert.strictEqual(hidden.hidden, true);
+      const after = yield* client.explore.themeVisibility({ params: { slug } });
+      assert.strictEqual(after.hidden, true);
+      const shown = yield* client.explore.setThemeVisibility({
+        params: { slug },
+        payload: { hidden: false },
+      });
+      assert.strictEqual(shown.hidden, false);
+    }),
+  );
+
   it.effect("adds a skill and reports it as added", () =>
     Effect.gen(function* () {
       const client = yield* ApiClient;
