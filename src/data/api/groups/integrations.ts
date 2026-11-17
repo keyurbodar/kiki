@@ -1,16 +1,39 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
 import { InferredMethod } from "../annotations.ts";
+import {
+  CompleteGitHubOAuthRequest,
+  CompleteLinearLinkRequest,
+  CompleteLinearOAuthRequest,
+  CompletePaperOAuthRequest,
+  CompleteSlackLinkRequest,
+  CompleteSlackOAuthRequest,
+  GitHubOAuthCompletion,
+  LinearLinkPreview,
+  LinearOAuthCompletion,
+  PaperOAuthCompletion,
+  SlackLinkPreview,
+  SlackOAuthCompletion,
+} from "../schemas/integrationOAuth.ts";
+import {
+  GitHubInstallationConnection,
+  GitHubUserConnection,
+  GitHubWorkspaceConnection,
+  LinearConnection,
+  PaperStatus,
+  SlackConnection,
+  TailscaleConnection,
+} from "../schemas/integrations.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
   HttpApiEndpoint.post(
     "completeGitHubOAuth",
     "/integrations/github/oauth/complete",
-    { payload: Undecoded, success: Undecoded },
+    { payload: CompleteGitHubOAuthRequest, success: GitHubOAuthCompletion },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.get("getGitHubUser", "/integrations/github/user", {
-    success: Undecoded,
+    success: Schema.NullOr(GitHubUserConnection),
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.delete("disconnectGitHubUser", "/integrations/github/user", {
     success: Undecoded,
@@ -22,15 +45,15 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
   HttpApiEndpoint.post(
     "previewLinearLink",
     "/integrations/linear/links/preview",
-    { payload: Undecoded, success: Undecoded },
+    { payload: CompleteLinearLinkRequest, success: LinearLinkPreview },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
     "completeLinearOAuth",
     "/integrations/linear/oauth/complete",
-    { payload: Undecoded, success: Undecoded },
+    { payload: CompleteLinearOAuthRequest, success: LinearOAuthCompletion },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.get("getPaper", "/integrations/paper", {
-    success: Undecoded,
+    success: PaperStatus,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.delete("disconnectPaper", "/integrations/paper", {
     success: Undecoded,
@@ -38,7 +61,7 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
   HttpApiEndpoint.post(
     "completePaperOAuth",
     "/integrations/paper/oauth/complete",
-    { payload: Undecoded, success: Undecoded },
+    { payload: CompletePaperOAuthRequest, success: PaperOAuthCompletion },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post("completeSlackLink", "/integrations/slack/links", {
     payload: Undecoded,
@@ -47,12 +70,12 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
   HttpApiEndpoint.post(
     "previewSlackLink",
     "/integrations/slack/links/preview",
-    { payload: Undecoded, success: Undecoded },
+    { payload: CompleteSlackLinkRequest, success: SlackLinkPreview },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
     "completeSlackOAuth",
     "/integrations/slack/oauth/complete",
-    { payload: Undecoded, success: Undecoded },
+    { payload: CompleteSlackOAuthRequest, success: SlackOAuthCompletion },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
     "disconnectGitHubDependencyReader",
@@ -62,7 +85,10 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
   HttpApiEndpoint.get(
     "getGitHubInstallation",
     "/orgs/:orgId/integrations/github/installation",
-    { params: { orgId: Schema.String }, success: Undecoded },
+    {
+      params: { orgId: Schema.String },
+      success: Schema.NullOr(GitHubInstallationConnection),
+    },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.delete(
     "disconnectGitHubInstallation",
@@ -117,11 +143,14 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
   HttpApiEndpoint.get(
     "getGitHubWorkspace",
     "/orgs/:orgId/integrations/github/workspace",
-    { params: { orgId: Schema.String }, success: Undecoded },
+    {
+      params: { orgId: Schema.String },
+      success: Schema.NullOr(GitHubWorkspaceConnection),
+    },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.get("getLinear", "/orgs/:orgId/integrations/linear", {
     params: { orgId: Schema.String },
-    success: Undecoded,
+    success: Schema.NullOr(LinearConnection),
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.patch("updateLinear", "/orgs/:orgId/integrations/linear", {
     params: { orgId: Schema.String },
@@ -168,7 +197,7 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.get("getSlack", "/orgs/:orgId/integrations/slack", {
     params: { orgId: Schema.String },
-    success: Undecoded,
+    success: Schema.NullOr(SlackConnection),
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.patch("updateSlack", "/orgs/:orgId/integrations/slack", {
     params: { orgId: Schema.String },
@@ -276,7 +305,7 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.get("getTailscale", "/orgs/:orgId/integrations/tailscale", {
     params: { orgId: Schema.String },
-    success: Undecoded,
+    success: Schema.NullOr(TailscaleConnection),
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.put(
     "connectTailscale",

@@ -322,6 +322,7 @@ const issue = (
   options: {
     readonly projectId?: string;
     readonly assigneeId?: string | null;
+    readonly assigneeIds?: ReadonlyArray<string>;
     readonly labelIds?: ReadonlyArray<string>;
     readonly threadIds?: ReadonlyArray<string>;
     readonly pullIds?: ReadonlyArray<string>;
@@ -337,6 +338,8 @@ const issue = (
   stateId,
   projectId: options.projectId ?? projects.web.id,
   assigneeId: options.assigneeId ?? null,
+  assigneeIds:
+    options.assigneeIds ?? (options.assigneeId ? [options.assigneeId] : []),
   creatorId: people.alex.id,
   labelIds: options.labelIds ?? [],
   threadIds: options.threadIds ?? [],
@@ -365,6 +368,7 @@ export const issues = [
   }),
   issue(3, "Dark mode for settings", "ist_sample_in_review", {
     assigneeId: people.sam.id,
+    assigneeIds: [people.sam.id, people.priya.id],
     labelIds: ["lbl_sample_feature"],
     threadIds: [threads.darkMode.id],
     pullIds: ["pr_sample_128"],
@@ -766,6 +770,38 @@ export const driveFiles = [
 ] as const;
 
 /** Stable ids per collection so groups can cross-reference without importing each other. */
+/** Invitations the viewer received from other organizations. */
+export const myInvitations = [
+  {
+    id: "inv_sample_globex",
+    orgId: "org_sample_globex",
+    orgName: "Globex",
+    orgAvatarUrl: null as string | null,
+    inviterName: "Robin Park",
+    projectCount: 3,
+    invitedAt: isoMinutesAgo(day),
+  },
+  {
+    id: "inv_sample_initech",
+    orgId: "org_sample_initech",
+    orgName: "Initech",
+    orgAvatarUrl: null as string | null,
+    inviterName: "Dana Kim",
+    projectCount: 0,
+    invitedAt: isoMinutesAgo(3 * day),
+  },
+];
+
+/** Organizations the viewer can join through their verified email domain. */
+export const joinableOrganizations = [
+  {
+    orgId: "org_sample_umbrella",
+    orgName: "Umbrella Studio",
+    orgAvatarUrl: null as string | null,
+    projectCount: 1,
+  },
+];
+
 export const world = {
   org,
   people,
@@ -794,4 +830,6 @@ export const world = {
   presetThemeIds,
   models,
   driveFiles,
+  myInvitations,
+  joinableOrganizations,
 } as const;

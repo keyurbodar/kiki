@@ -9,8 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as Char91__captainDialogChar93RouteImport } from './routes/[__captain-dialog]'
+import { Route as Char91__chipsChar93RouteImport } from './routes/[__chips]'
+import { Route as Char91__composerChar93RouteImport } from './routes/[__composer]'
 import { Route as Char91__composerFooterChar93RouteImport } from './routes/[__composer-footer]'
-import { Route as Char91__p08Char93RouteImport } from './routes/[__p08]'
+import { Route as Char91__mediaLightboxChar93RouteImport } from './routes/[__media-lightbox]'
+import { Route as Char91__modelPickerChar93RouteImport } from './routes/[__model-picker]'
+import { Route as Char91__threadDeviceChar93RouteImport } from './routes/[__thread-device]'
 import { Route as Char91__tokensChar93RouteImport } from './routes/[__tokens]'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
@@ -172,17 +177,46 @@ import { Route as AppProjectProjectIdPullOwnerRepoPrNumberRouteImport } from './
 import { Route as AppSettingsProjectsProjectIdDevEnvironmentBuildsBuildIdRouteImport } from './routes/_app/settings/projects_/$projectId_/dev-environment_/builds/$buildId'
 import { Route as AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRouteImport } from './routes/_app/settings/projects_/$projectId_/dev-environment_/repositories/$owner/$repo'
 
+const Char91__captainDialogChar93Route =
+  Char91__captainDialogChar93RouteImport.update({
+    id: '/__captain-dialog',
+    path: '/__captain-dialog',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91__chipsChar93Route = Char91__chipsChar93RouteImport.update({
+  id: '/__chips',
+  path: '/__chips',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91__composerChar93Route = Char91__composerChar93RouteImport.update({
+  id: '/__composer',
+  path: '/__composer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char91__composerFooterChar93Route =
   Char91__composerFooterChar93RouteImport.update({
     id: '/__composer-footer',
     path: '/__composer-footer',
     getParentRoute: () => rootRouteImport,
   } as any)
-const Char91__p08Char93Route = Char91__p08Char93RouteImport.update({
-  id: '/__p08',
-  path: '/__p08',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const Char91__mediaLightboxChar93Route =
+  Char91__mediaLightboxChar93RouteImport.update({
+    id: '/__media-lightbox',
+    path: '/__media-lightbox',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91__modelPickerChar93Route =
+  Char91__modelPickerChar93RouteImport.update({
+    id: '/__model-picker',
+    path: '/__model-picker',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91__threadDeviceChar93Route =
+  Char91__threadDeviceChar93RouteImport.update({
+    id: '/__thread-device',
+    path: '/__thread-device',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const Char91__tokensChar93Route = Char91__tokensChar93RouteImport.update({
   id: '/__tokens',
   path: '/__tokens',
@@ -1056,8 +1090,13 @@ const AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/__captain-dialog': typeof Char91__captainDialogChar93Route
+  '/__chips': typeof Char91__chipsChar93Route
+  '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
-  '/__p08': typeof Char91__p08Char93Route
+  '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
+  '/__model-picker': typeof Char91__modelPickerChar93Route
+  '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
@@ -1218,8 +1257,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
+  '/__captain-dialog': typeof Char91__captainDialogChar93Route
+  '/__chips': typeof Char91__chipsChar93Route
+  '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
-  '/__p08': typeof Char91__p08Char93Route
+  '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
+  '/__model-picker': typeof Char91__modelPickerChar93Route
+  '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
@@ -1380,8 +1424,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteRouteWithChildren
   '/_auth': typeof AuthRouteRouteWithChildren
+  '/__captain-dialog': typeof Char91__captainDialogChar93Route
+  '/__chips': typeof Char91__chipsChar93Route
+  '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
-  '/__p08': typeof Char91__p08Char93Route
+  '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
+  '/__model-picker': typeof Char91__modelPickerChar93Route
+  '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
@@ -1545,8 +1594,13 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/__captain-dialog'
+    | '/__chips'
+    | '/__composer'
     | '/__composer-footer'
-    | '/__p08'
+    | '/__media-lightbox'
+    | '/__model-picker'
+    | '/__thread-device'
     | '/__tokens'
     | '/design'
     | '/desktop'
@@ -1707,8 +1761,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/__captain-dialog'
+    | '/__chips'
+    | '/__composer'
     | '/__composer-footer'
-    | '/__p08'
+    | '/__media-lightbox'
+    | '/__model-picker'
+    | '/__thread-device'
     | '/__tokens'
     | '/design'
     | '/desktop'
@@ -1868,8 +1927,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/_auth'
+    | '/__captain-dialog'
+    | '/__chips'
+    | '/__composer'
     | '/__composer-footer'
-    | '/__p08'
+    | '/__media-lightbox'
+    | '/__model-picker'
+    | '/__thread-device'
     | '/__tokens'
     | '/design'
     | '/desktop'
@@ -2033,8 +2097,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
+  Char91__captainDialogChar93Route: typeof Char91__captainDialogChar93Route
+  Char91__chipsChar93Route: typeof Char91__chipsChar93Route
+  Char91__composerChar93Route: typeof Char91__composerChar93Route
   Char91__composerFooterChar93Route: typeof Char91__composerFooterChar93Route
-  Char91__p08Char93Route: typeof Char91__p08Char93Route
+  Char91__mediaLightboxChar93Route: typeof Char91__mediaLightboxChar93Route
+  Char91__modelPickerChar93Route: typeof Char91__modelPickerChar93Route
+  Char91__threadDeviceChar93Route: typeof Char91__threadDeviceChar93Route
   Char91__tokensChar93Route: typeof Char91__tokensChar93Route
   DesignRoute: typeof DesignRoute
   DesktopRoute: typeof DesktopRoute
@@ -2061,6 +2130,27 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/__captain-dialog': {
+      id: '/__captain-dialog'
+      path: '/__captain-dialog'
+      fullPath: '/__captain-dialog'
+      preLoaderRoute: typeof Char91__captainDialogChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__chips': {
+      id: '/__chips'
+      path: '/__chips'
+      fullPath: '/__chips'
+      preLoaderRoute: typeof Char91__chipsChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__composer': {
+      id: '/__composer'
+      path: '/__composer'
+      fullPath: '/__composer'
+      preLoaderRoute: typeof Char91__composerChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/__composer-footer': {
       id: '/__composer-footer'
       path: '/__composer-footer'
@@ -2068,11 +2158,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91__composerFooterChar93RouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/__p08': {
-      id: '/__p08'
-      path: '/__p08'
-      fullPath: '/__p08'
-      preLoaderRoute: typeof Char91__p08Char93RouteImport
+    '/__media-lightbox': {
+      id: '/__media-lightbox'
+      path: '/__media-lightbox'
+      fullPath: '/__media-lightbox'
+      preLoaderRoute: typeof Char91__mediaLightboxChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__model-picker': {
+      id: '/__model-picker'
+      path: '/__model-picker'
+      fullPath: '/__model-picker'
+      preLoaderRoute: typeof Char91__modelPickerChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__thread-device': {
+      id: '/__thread-device'
+      path: '/__thread-device'
+      fullPath: '/__thread-device'
+      preLoaderRoute: typeof Char91__threadDeviceChar93RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/__tokens': {
@@ -3541,8 +3645,13 @@ const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   AuthRouteRoute: AuthRouteRouteWithChildren,
+  Char91__captainDialogChar93Route: Char91__captainDialogChar93Route,
+  Char91__chipsChar93Route: Char91__chipsChar93Route,
+  Char91__composerChar93Route: Char91__composerChar93Route,
   Char91__composerFooterChar93Route: Char91__composerFooterChar93Route,
-  Char91__p08Char93Route: Char91__p08Char93Route,
+  Char91__mediaLightboxChar93Route: Char91__mediaLightboxChar93Route,
+  Char91__modelPickerChar93Route: Char91__modelPickerChar93Route,
+  Char91__threadDeviceChar93Route: Char91__threadDeviceChar93Route,
   Char91__tokensChar93Route: Char91__tokensChar93Route,
   DesignRoute: DesignRoute,
   DesktopRoute: DesktopRoute,

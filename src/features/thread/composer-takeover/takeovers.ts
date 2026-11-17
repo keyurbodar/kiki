@@ -9,7 +9,8 @@ export type TakeoverKind =
   | "environment"
   | "desktop"
   | "terminal"
-  | "feedback";
+  | "feedback"
+  | "mcp-setup";
 
 export const takeoverKey = (kind: TakeoverKind, id: string) =>
   kind === "clarify" ? "conversation" : `${kind}:${id}`;

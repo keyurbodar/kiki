@@ -65,6 +65,13 @@ interface Row {
 }
 
 const rows = (value: unknown) => value as ReadonlyArray<Row>;
+const typed = (value: unknown) =>
+  value as {
+    readonly state?: string;
+    readonly configured?: boolean;
+    readonly connection?: unknown;
+    readonly teamMappings?: ReadonlyArray<{ readonly linearTeamId: string }>;
+  } | null;
 const row = (value: unknown) => value as Row;
 
 describe("integrations mock", () => {
@@ -107,13 +114,14 @@ describe("integrations mock", () => {
       for (const result of results) {
         assert.isDefined(result);
       }
-      assert.isTrue(row(results[0]).connected);
-      assert.isTrue(row(results[4]).connected);
-      assert.isTrue(row(results[5]).connected);
-      assert.isTrue(row(results[9]).connected);
-      assert.isTrue(row(results[10]).connected);
+      assert.strictEqual(typed(results[0])?.state, "connected");
+      assert.strictEqual(typed(results[4])?.state, "active");
+      assert.isNull(results[5]);
+      assert.isTrue(typed(results[9])?.configured);
+      assert.isNull(typed(results[9])?.connection);
+      assert.isNull(results[10]);
       assert.isTrue(row(results[15]).connected);
-      assert.isTrue(row(results[16]).connected);
+      assert.isNull(results[16]);
       assert.isTrue(rows(results[1]).length > 0);
       assert.isTrue(rows(results[2]).length > 0);
       assert.isTrue(rows(results[7]).length > 0);
@@ -151,7 +159,7 @@ describe("integrations mock", () => {
         slackAtom,
         { suspendOnWaiting: true },
       );
-      assert.isFalse(row(afterDisconnect).connected);
+      assert.isNull(afterDisconnect);
 
       const connect = ApiClient.mutation("integrations", "connectTailscale");
       registry.set(connect, {
@@ -166,8 +174,7 @@ describe("integrations mock", () => {
         tailscaleAtom,
         { suspendOnWaiting: true },
       );
-      assert.isTrue(row(afterConnect).connected);
-      assert.strictEqual(row(afterConnect).tailnet, "acme-two.example.com");
+      assert.strictEqual(typed(afterConnect)?.state, "active");
     }),
   );
 
@@ -277,12 +284,15 @@ describe("integrations mock", () => {
         payload: { teamId: "team_sample_api", autoLinkEnabled: true },
         reactivityKeys: [key],
       });
-      yield* AtomRegistry.getResult(registry, updateLinear);
+      const updatedLinear = yield* AtomRegistry.getResult(
+        registry,
+        updateLinear,
+      );
+      assert.strictEqual(row(updatedLinear).teamId, "team_sample_api");
       const linear = yield* AtomRegistry.getResult(registry, linearAtom, {
         suspendOnWaiting: true,
       });
-      assert.strictEqual(row(linear).teamId, "team_sample_api");
-      assert.isTrue(row(linear).autoLinkEnabled === true);
+      assert.isNull(linear);
 
       const updateSlack = ApiClient.mutation("integrations", "updateSlack");
       registry.set(updateSlack, {
@@ -293,12 +303,16 @@ describe("integrations mock", () => {
         },
         reactivityKeys: [key],
       });
-      yield* AtomRegistry.getResult(registry, updateSlack);
+      const updatedSlack = yield* AtomRegistry.getResult(registry, updateSlack);
+      assert.strictEqual(
+        row(updatedSlack).defaultChannelId,
+        "C_SAMPLE_INCIDENTS",
+      );
+      assert.isFalse(row(updatedSlack).notificationsEnabled === true);
       const slack = yield* AtomRegistry.getResult(registry, slackAtom, {
         suspendOnWaiting: true,
       });
-      assert.strictEqual(row(slack).defaultChannelId, "C_SAMPLE_INCIDENTS");
-      assert.isFalse(row(slack).notificationsEnabled === true);
+      assert.isNull(slack);
 
       const setAccess = ApiClient.mutation(
         "integrations",
@@ -443,14 +457,43 @@ describe("integrations mock", () => {
 
       return Effect.gen(function* () {
         for (const mutation of [
-          completeGitHubOAuth,
           completeLinearOAuth,
           completePaperOAuth,
           completeSlackOAuth,
         ]) {
-          registry.set(mutation, { payload: {} });
-          assert.isDefined(yield* AtomRegistry.getResult(registry, mutation));
+          registry.set(mutation, { payload: { state: "state_sample" } });
+          assert.strictEqual(
+            (yield* AtomRegistry.getResult(registry, mutation)).result,
+            "connected",
+          );
         }
+        registry.set(completeGitHubOAuth, {
+          payload: { state: "state_sample" },
+        });
+        assert.strictEqual(
+          (yield* AtomRegistry.getResult(registry, completeGitHubOAuth)).result,
+          "connected",
+        );
+
+        registry.set(completeSlackOAuth, {
+          payload: { state: "state_sample", error: "access_denied" },
+        });
+        assert.strictEqual(
+          (yield* AtomRegistry.getResult(registry, completeSlackOAuth, {
+            suspendOnWaiting: true,
+          })).result,
+          "denied",
+        );
+        registry.set(completeGitHubOAuth, {
+          payload: { state: "state_sample", code: "code_sample" },
+        });
+        const github = yield* AtomRegistry.getResult(
+          registry,
+          completeGitHubOAuth,
+          { suspendOnWaiting: true },
+        );
+        assert.strictEqual(github.orgId, orgId);
+        assert.strictEqual(github.returnTo, "settings");
 
         for (const mutation of [
           startLinearOAuth,
@@ -481,15 +524,30 @@ describe("integrations mock", () => {
           yield* AtomRegistry.getResult(registry, startGitHubUserOAuth),
         );
 
-        for (const mutation of [previewLinearLink, previewSlackLink]) {
-          registry.set(mutation, {
-            payload: { threadId: threads.darkMode.id },
-          });
-          assert.isTrue(
-            row(yield* AtomRegistry.getResult(registry, mutation)).valid ===
-              true,
-          );
-        }
+        registry.set(previewLinearLink, {
+          payload: { token: "link_token_sample" },
+        });
+        const linearPreview = yield* AtomRegistry.getResult(
+          registry,
+          previewLinearLink,
+        );
+        assert.strictEqual(linearPreview.orgName, world.org.name);
+        assert.strictEqual(linearPreview.externalUserName, "Alex Morgan");
+        assert.isString(linearPreview.externalUserId);
+        assert.strictEqual(linearPreview.workspaceName, "Acme sample");
+
+        registry.set(previewSlackLink, {
+          payload: { token: "link_token_sample" },
+        });
+        const slackPreview = yield* AtomRegistry.getResult(
+          registry,
+          previewSlackLink,
+        );
+        assert.strictEqual(slackPreview.orgName, world.org.name);
+        assert.strictEqual(slackPreview.externalUserName, "Alex Morgan");
+        assert.isString(slackPreview.externalUserId);
+        assert.strictEqual(slackPreview.workspaceName, "Acme sample");
+        assert.isString(slackPreview.avatarUrl);
 
         registry.set(linkGitHubInstallation, {
           params: org,
