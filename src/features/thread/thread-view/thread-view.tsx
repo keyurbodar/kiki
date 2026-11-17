@@ -64,8 +64,9 @@ export type ThreadViewProps = {
   takeover?: ComposerTakeoverProps;
 };
 
+/** The chat column beside an open pane: the container minus the pane's width, read from the token so a missing definition shows up instead of being guessed. */
 const chatColumnWithPane =
-  "w-[calc(100cqw_-_clamp(var(--container-xs),var(--right-panel-width,calc(var(--spacing)*130)),100cqw_-_var(--container-xs)))]";
+  "w-[calc(100cqw_-_clamp(var(--container-xs),var(--right-panel-width),100cqw_-_var(--container-xs)))]";
 
 type PendingRequest =
   | { kind: "clarify"; row: ClarifyRow }
