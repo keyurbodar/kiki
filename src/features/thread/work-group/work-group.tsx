@@ -49,7 +49,7 @@ export function WorkGroupPreview(props: WorkGroupPreviewProps) {
 }
 
 export function failureCount(row: WorkGroup) {
-  return row.failures.filter((failure) => failure.failed).length;
+  return row.failures;
 }
 
 export function workGroupState(row: WorkGroup) {

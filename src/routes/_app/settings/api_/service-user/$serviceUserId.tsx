@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { ServiceUserDetailPage } from "@/features/settings-integrations/api";
 
 export const Route = createFileRoute(
   "/_app/settings/api_/service-user/$serviceUserId",
@@ -8,10 +8,8 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
+  const { serviceUserId } = Route.useParams();
   return (
-    <RoutePlaceholder
-      title="/settings/api/service-user/$serviceUserId"
-      path="/settings/api/service-user/$serviceUserId"
-    />
+    <ServiceUserDetailPage key={serviceUserId} serviceUserId={serviceUserId} />
   );
 }

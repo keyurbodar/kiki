@@ -1,70 +1,80 @@
-import { Effect, Ref } from "effect";
-import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
-import { isoMinutesAgo } from "../fixtures/world.ts";
+import { DateTime, Effect, Ref } from "effect";
+import {
+  ApiKey,
+  ApiKeyId,
+  ApiKeyNotFound,
+  MintedApiKey,
+} from "../../api/schemas/api-keys.ts";
+import { UserId } from "../../api/schemas/ids.ts";
+import { newId } from "../db/MockDb.ts";
+import { fixtureNow } from "../fixtures/time.ts";
+import { viewer } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
-import { sampleKeyName, sampleKeyPrefix } from "./fixtures.ts";
+import { sampleServiceUsers } from "../serviceUsers/fixtures.ts";
+import { serviceKeys, tokenHintFor, worldKeys } from "./fixtures.ts";
+
+const releaseBot = sampleServiceUsers[0]?.id;
+
+export const sampleApiKeys = [
+  ...worldKeys,
+  ...(releaseBot === undefined ? [] : serviceKeys(releaseBot)),
+];
 
 export const ApiKeysMock = mockGroup("apiKeys", (handlers) =>
   Effect.gen(function* () {
-    const { apiKeys } = yield* MockDb;
+    const keys = yield* Ref.make<ReadonlyArray<ApiKey>>(sampleApiKeys);
 
-    const requireKey = (keyId: string) =>
-      Effect.flatMap(Ref.get(apiKeys), (rows) => {
-        const key = rows.find((row) => row.id === keyId);
-        return key ? Effect.succeed(key) : missing("apiKeys", keyId);
+    const update = (keyId: string, change: (key: ApiKey) => ApiKey) =>
+      Effect.gen(function* () {
+        const rows = yield* Ref.get(keys);
+        const current = rows.find((row) => row.id === keyId);
+        if (!current)
+          return yield* Effect.fail(
+            new ApiKeyNotFound({ keyId: ApiKeyId.make(keyId) }),
+          );
+        const next = change(current);
+        yield* Ref.set(
+          keys,
+          rows.map((row) => (row.id === keyId ? next : row)),
+        );
+        return next;
       });
 
     return handlers
+      .handle("list", () => Ref.get(keys))
       .handle("mint", ({ payload }) =>
         Effect.gen(function* () {
-          const input = fields(payload);
-          const key = {
-            id: newId("key"),
-            name:
-              typeof input.name === "string" && input.name.length > 0
-                ? input.name
-                : sampleKeyName,
-            prefix: sampleKeyPrefix,
-            createdBy:
-              typeof input.createdBy === "string"
-                ? input.createdBy
-                : "user_sample_alex",
-            createdAt: isoMinutesAgo(0),
-            lastUsedAt: isoMinutesAgo(0),
+          const id = newId("key") as ApiKeyId;
+          const plaintext = `capy_sample_${id}`;
+          const key = new ApiKey({
+            id,
+            name: payload.name,
+            tokenHint: tokenHintFor(plaintext),
+            principalKind:
+              payload.serviceUserId === undefined ? "human" : "service",
+            principalUserId: payload.serviceUserId ?? UserId.make(viewer.id),
+            expiresAt: payload.expiresAt ?? null,
             revokedAt: null,
-          };
-          yield* Ref.update(apiKeys, (rows) => [...rows, key]);
-          return key;
+            createdByUserId: UserId.make(viewer.id),
+            createdAt: fixtureNow,
+            privateProjects: [],
+          });
+          yield* Ref.update(keys, (rows) => [...rows, key]);
+          return new MintedApiKey({ key, plaintext });
         }),
       )
-      .handle("list", () => Ref.get(apiKeys))
       .handle("rename", ({ params, payload }) =>
-        Effect.gen(function* () {
-          yield* requireKey(params.keyId);
-          const input = fields(payload);
-          const name =
-            typeof input.name === "string" && input.name.length > 0
-              ? input.name
-              : sampleKeyName;
-          const rows = yield* Ref.get(apiKeys);
-          const updated = rows.map((row) =>
-            row.id === params.keyId ? { ...row, name } : row,
-          );
-          yield* Ref.set(apiKeys, updated);
-          return updated.find((row) => row.id === params.keyId);
-        }),
+        update(
+          params.keyId,
+          (key) => new ApiKey({ ...key, name: payload.name }),
+        ),
       )
       .handle("revoke", ({ params }) =>
-        Effect.gen(function* () {
-          yield* requireKey(params.keyId);
-          const revokedAt = isoMinutesAgo(0);
-          const rows = yield* Ref.get(apiKeys);
-          const updated = rows.map((row) =>
-            row.id === params.keyId ? { ...row, revokedAt } : row,
-          );
-          yield* Ref.set(apiKeys, updated);
-          return { ok: true, id: params.keyId, revokedAt };
-        }),
+        update(params.keyId, (key) =>
+          key.revokedAt === null
+            ? new ApiKey({ ...key, revokedAt: DateTime.nowUnsafe() })
+            : key,
+        ),
       );
   }),
 );

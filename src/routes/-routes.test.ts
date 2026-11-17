@@ -10,6 +10,8 @@ type Node = {
 const DEV_ONLY_ROUTES = new Set([
   "/__tokens",
   "/__composer-footer",
+  "/__composer",
+  "/__thread-device",
   "/__new-thread-selects",
 ]);
 
