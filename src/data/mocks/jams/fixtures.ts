@@ -11,8 +11,9 @@ import {
   type ThreadStatus,
 } from "../../api/schemas/thread.ts";
 import { minutesAgo } from "../fixtures/time.ts";
+import { isoMinutesAgo, threads, world } from "../fixtures/world.ts";
 
-const owner = UserId.make("user_sample_alex");
+const owner = UserId.make(world.people.alex.id);
 
 const thread = (options: {
   readonly id: string;
@@ -93,63 +94,309 @@ const thread = (options: {
 
 export const sampleThreads = [
   thread({
-    id: "jam_sample_0001",
-    number: 41,
-    title: "Fix flaky checkout test",
+    id: threads.checkoutTest.id,
+    number: threads.checkoutTest.number,
+    title: threads.checkoutTest.title,
     status: "working",
-    projectId: "proj_sample_web",
+    projectId: threads.checkoutTest.projectId,
     activeMinutesAgo: 2,
     preview: "Reproducing the timeout locally before changing the retry.",
     unread: true,
   }),
   thread({
-    id: "jam_sample_0002",
-    number: 40,
-    title: "Add dark mode to settings",
+    id: threads.darkMode.id,
+    number: threads.darkMode.number,
+    title: threads.darkMode.title,
     status: "waiting",
-    projectId: "proj_sample_web",
+    projectId: threads.darkMode.projectId,
     activeMinutesAgo: 25,
     pull: { number: 128, title: "Add dark mode to settings" },
   }),
   thread({
-    id: "jam_sample_0003",
-    number: 39,
-    title: "Paginate the orders endpoint",
+    id: threads.paginate.id,
+    number: threads.paginate.number,
+    title: threads.paginate.title,
     status: "idle",
-    projectId: "proj_sample_api",
+    projectId: threads.paginate.projectId,
     activeMinutesAgo: 90,
     pinned: true,
   }),
   thread({
-    id: "jam_sample_0004",
-    number: 38,
-    title: "Rate limit the public search API",
+    id: threads.rateLimit.id,
+    number: threads.rateLimit.number,
+    title: threads.rateLimit.title,
     status: "failed",
-    projectId: "proj_sample_api",
+    projectId: threads.rateLimit.projectId,
     activeMinutesAgo: 60 * 5,
   }),
   thread({
-    id: "jam_sample_0005",
-    number: 37,
-    title: "Write the getting started guide",
+    id: threads.gettingStarted.id,
+    number: threads.gettingStarted.number,
+    title: threads.gettingStarted.title,
     status: "idle",
-    projectId: "proj_sample_docs",
+    projectId: threads.gettingStarted.projectId,
     activeMinutesAgo: 60 * 26,
   }),
   thread({
-    id: "jam_sample_0006",
-    number: 36,
-    title: "Summarize last week's incidents",
+    id: threads.incidents.id,
+    number: threads.incidents.number,
+    title: threads.incidents.title,
     status: "idle",
-    projectId: null,
+    projectId: threads.incidents.projectId,
     activeMinutesAgo: 60 * 50,
   }),
   thread({
-    id: "jam_sample_0007",
-    number: 35,
-    title: "Upgrade the bundler",
+    id: threads.bundler.id,
+    number: threads.bundler.number,
+    title: threads.bundler.title,
     status: "archived",
-    projectId: "proj_sample_web",
+    projectId: threads.bundler.projectId,
     activeMinutesAgo: 60 * 24 * 9,
   }),
 ];
+
+export interface ThreadAccess {
+  readonly jamId: string;
+  readonly policy: "everyone" | "invite" | "org";
+  readonly memberIds: ReadonlyArray<string>;
+  readonly ownerId: string;
+  readonly joinPolicy: "anyone" | "members" | "invite";
+  readonly compactAt: string | null;
+  readonly unread: boolean;
+  readonly settled: boolean;
+  readonly subscribed: boolean;
+  readonly slack: {
+    readonly linked: boolean;
+    readonly active: boolean;
+    readonly channelId: string;
+    readonly channelName: string;
+  } | null;
+  readonly connection: {
+    readonly provider: string;
+    readonly modelId: string;
+    readonly status: "connected" | "needs_auth";
+    readonly retryCount: number;
+  };
+  readonly environment: Readonly<Record<string, string>>;
+  readonly asks: ReadonlyArray<{
+    readonly id: string;
+    readonly jamId: string;
+    readonly userId: string;
+    readonly state: "open" | "dismissed";
+    readonly prompt: string;
+    readonly createdAt: string;
+  }>;
+}
+
+export const accessTemplate = (jamId: string): ThreadAccess => ({
+  jamId,
+  policy: "invite",
+  memberIds: [world.people.alex.id, world.people.sam.id],
+  ownerId: world.people.alex.id,
+  joinPolicy: "members",
+  compactAt: null,
+  unread: false,
+  settled: false,
+  subscribed: true,
+  slack: null,
+  connection: {
+    provider: "openai",
+    modelId: world.models[2].id,
+    status: "connected",
+    retryCount: 0,
+  },
+  environment: {
+    API_BASE_URL: "https://api.example.com",
+    LOG_LEVEL: "info",
+  },
+  asks: [
+    {
+      id: `ask_${jamId}_1`,
+      jamId,
+      userId: world.people.alex.id,
+      state: "open",
+      prompt: "Should the retry wait for an explicit approval?",
+      createdAt: isoMinutesAgo(20),
+    },
+    {
+      id: `ask_${jamId}_2`,
+      jamId,
+      userId: world.people.sam.id,
+      state: "dismissed",
+      prompt: "Can we reuse the sandbox credentials?",
+      createdAt: isoMinutesAgo(90),
+    },
+  ],
+});
+
+export const sampleThreadAccess: ReadonlyArray<ThreadAccess> = [
+  {
+    ...accessTemplate(threads.checkoutTest.id),
+    unread: true,
+    slack: {
+      linked: true,
+      active: true,
+      channelId: "C_SAMPLE_WEB",
+      channelName: "web-releases",
+    },
+  },
+  {
+    ...accessTemplate(threads.darkMode.id),
+    ownerId: world.people.sam.id,
+    settled: true,
+  },
+  {
+    ...accessTemplate(threads.paginate.id),
+    compactAt: isoMinutesAgo(60 * 5),
+  },
+];
+
+export interface AccessRequest {
+  readonly id: string;
+  readonly jamId: string;
+  readonly userId: string;
+  readonly requesterId: string;
+  readonly status: string;
+  readonly createdAt: string;
+}
+
+export const sampleAccessRequests: ReadonlyArray<AccessRequest> = [
+  {
+    id: "req_sample_access_1",
+    jamId: threads.checkoutTest.id,
+    userId: world.people.priya.id,
+    requesterId: world.people.priya.id,
+    status: "pending",
+    createdAt: isoMinutesAgo(12),
+  },
+  {
+    id: "req_sample_access_2",
+    jamId: threads.darkMode.id,
+    userId: world.people.jordan.id,
+    requesterId: world.people.jordan.id,
+    status: "pending",
+    createdAt: isoMinutesAgo(70),
+  },
+];
+
+export interface ThreadCredits {
+  readonly jamId: string;
+  readonly amount: number;
+  readonly currency: string;
+  readonly state: string;
+  readonly reason: string;
+  readonly grantedBy: string;
+  readonly grantedAt: string;
+}
+
+export const sampleCredits: ReadonlyArray<ThreadCredits> = [
+  {
+    jamId: threads.checkoutTest.id,
+    amount: 2500,
+    currency: "USD",
+    state: "granted",
+    reason: "Follow-up on a flaky test",
+    grantedBy: world.people.sam.id,
+    grantedAt: isoMinutesAgo(30),
+  },
+];
+
+export const sampleConnectionUsage = [
+  {
+    provider: "openai",
+    modelId: world.models[2].id,
+    requests: 48,
+    inputTokens: 124_000,
+    outputTokens: 31_000,
+    costUsd: 1.42,
+    windowStart: isoMinutesAgo(60 * 24),
+    windowEnd: isoMinutesAgo(0),
+  },
+];
+
+export const sampleUsage = [
+  {
+    kind: "models",
+    label: "Model usage",
+    amount: 4.68,
+    currency: "USD",
+    unit: "usd",
+    limit: 25,
+    period: "current month",
+  },
+  {
+    kind: "agents",
+    label: "Agent runs",
+    amount: 16,
+    currency: null,
+    unit: "runs",
+    limit: 50,
+    period: "current month",
+  },
+];
+
+export const sampleAd = {
+  id: "ad_sample_checkout",
+  jamId: threads.checkoutTest.id,
+  headline: "Keep the release on track",
+  body: "Review the checkout retry before the next release window.",
+  cta: "Open thread",
+  url: "https://example.com/acme/checkout",
+  createdAt: isoMinutesAgo(60 * 6),
+};
+
+export const sampleFeedbackRequests = [
+  {
+    id: "fr_sample_1",
+    jamId: threads.checkoutTest.id,
+    toolCallId: "tool_sample_feedback_1",
+    state: "pending",
+    prompt: "Was the retry suggestion useful?",
+    createdAt: isoMinutesAgo(35),
+  },
+  {
+    id: "fr_sample_2",
+    jamId: threads.darkMode.id,
+    toolCallId: "tool_sample_feedback_2",
+    state: "pending",
+    prompt: "Does the settings page look right on mobile?",
+    createdAt: isoMinutesAgo(80),
+  },
+];
+
+export interface AdHocAsk {
+  readonly id: string;
+  readonly jamId: string;
+  readonly userId: string;
+  readonly state: "open" | "dismissed";
+  readonly prompt: string;
+  readonly createdAt: string;
+}
+
+export const sampleAdHocAsks: ReadonlyArray<AdHocAsk> = [
+  {
+    id: "ask_sample_org_1",
+    jamId: threads.checkoutTest.id,
+    userId: world.people.alex.id,
+    state: "open",
+    prompt: "Approve the production retry change?",
+    createdAt: isoMinutesAgo(18),
+  },
+  {
+    id: "ask_sample_org_2",
+    jamId: threads.paginate.id,
+    userId: world.people.jordan.id,
+    state: "dismissed",
+    prompt: "Should we cap the page size at one hundred?",
+    createdAt: isoMinutesAgo(45),
+  },
+];
+
+export const projectOf = (jamId: string) =>
+  sampleThreads.find((candidate) => candidate.id === jamId)?.projectId ?? null;
+
+export const threadIssuesOf = (jamId: string) =>
+  world.issues.filter((issue) => issue.threadIds.includes(jamId));
+
+export const threadPullsOf = (jamId: string) =>
+  world.pulls.filter((pull) => pull.threadId === jamId);
