@@ -49,7 +49,8 @@
           "border-radius"
         ],
         "[data-slot=picker-lab-rail]": [
-          "width"
+          "width",
+          "opacity"
         ],
         "[data-slot=menu-search-row] input": [
           "height",
@@ -73,6 +74,10 @@
         "[data-slot=menu-search-row] input": {
           "height": "28px",
           "font-size": "13px"
+        },
+        "[data-slot=picker-lab-rail]": {
+          "width": "37px",
+          "opacity": "0"
         }
       }
     },
