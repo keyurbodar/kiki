@@ -46,6 +46,7 @@ export type MockTables = {
   readonly [K in TableName]: Ref.Ref<ReadonlyArray<Row<K>>>;
 } & {
   readonly orgState: OrgState;
+  readonly hiddenThemes: Ref.Ref<ReadonlyArray<string>>;
 };
 
 let sequence = 0;
@@ -71,12 +72,14 @@ export class MockDb extends Context.Service<MockDb, MockTables>()(
         ),
       );
       const orgState = yield* makeOrgState;
+      const hiddenThemes = yield* Ref.make<ReadonlyArray<string>>([]);
       return MockDb.of({
         ...(Object.fromEntries(entries) as unknown as Omit<
           MockTables,
-          "orgState"
+          "orgState" | "hiddenThemes"
         >),
         orgState,
+        hiddenThemes,
       });
     }),
   );

@@ -1,5 +1,5 @@
 import { DateTime, Effect, Ref } from "effect";
-import { fields, newId } from "../db/MockDb.ts";
+import { fields, MockDb, newId } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
@@ -56,7 +56,7 @@ export const ExploreMock = mockGroup("explore", (handlers) =>
   Effect.gen(function* () {
     const reports = yield* Ref.make<ReadonlyArray<ReportReceipt>>([]);
     const skills = yield* Ref.make<ReadonlyArray<InstalledSkill>>([]);
-    const hiddenThemes = yield* Ref.make<ReadonlyArray<string>>([]);
+    const { hiddenThemes } = yield* MockDb;
 
     return handlers
       .handle("listings", ({ query }) => {
