@@ -24,7 +24,10 @@ export type DialogPageSpec = {
   footerClassName?: string;
 };
 
-export type DialogPagesProps<Page extends string = string> = {
+export type DialogPagesProps<Page extends string = string> = Omit<
+  ComponentProps<"div">,
+  "children"
+> & {
   page: Page;
   root: Page;
   pages: Record<Page, DialogPageSpec>;
@@ -60,10 +63,16 @@ export function DialogPages<Page extends string>({
   pages,
   onBack,
   backDisabled,
+  className,
+  ...props
 }: DialogPagesProps<Page>) {
   const current = pages[page];
   return (
-    <div data-slot="dialog-pages" className="contents">
+    <div
+      data-slot="dialog-pages"
+      className={cx("contents", className)}
+      {...props}
+    >
       <DialogHeader>
         <DialogTitle className="flex items-center gap-1">
           {page === root ? null : (

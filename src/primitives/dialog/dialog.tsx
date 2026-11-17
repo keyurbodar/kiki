@@ -1,6 +1,6 @@
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { cva, cx } from "class-variance-authority";
-import { type ComponentProps, isValidElement } from "react";
+import { type ComponentProps, isValidElement, type ReactNode } from "react";
 import { buttonVariants } from "@/primitives/button";
 
 const PASSWORD_MANAGER_TAG_PREFIXES = [
@@ -46,13 +46,15 @@ function withBaseClassName<State>(
     : cx(base, className);
 }
 
-function asChildRender(
+function asChildParts(
   asChild: boolean | undefined,
   render: unknown,
-  children: unknown,
+  children: ReactNode,
 ) {
-  if (render !== undefined) return render;
-  return asChild && isValidElement(children) ? children : undefined;
+  if (render === undefined && asChild && isValidElement(children)) {
+    return { render: children, children: null };
+  }
+  return { render, children };
 }
 
 export type DialogProps = ComponentProps<typeof BaseDialog.Root>;
@@ -86,12 +88,14 @@ export function DialogTrigger({
   children,
   ...props
 }: DialogTriggerProps) {
-  const element = asChildRender(asChild, render, children) as
-    | DialogTriggerProps["render"]
-    | undefined;
+  const parts = asChildParts(asChild, render, children);
   return (
-    <BaseDialog.Trigger data-slot="dialog-trigger" render={element} {...props}>
-      {element ? null : children}
+    <BaseDialog.Trigger
+      data-slot="dialog-trigger"
+      render={parts.render as DialogTriggerProps["render"]}
+      {...props}
+    >
+      {parts.children}
     </BaseDialog.Trigger>
   );
 }
@@ -122,6 +126,17 @@ export function DialogOverlay({
       {...props}
     />
   );
+}
+
+export const DialogPortal = BaseDialog.Portal;
+
+export type DialogPortalProps = ComponentProps<typeof BaseDialog.Portal>;
+
+export type DialogPopupProps = ComponentProps<typeof BaseDialog.Popup>;
+
+/** The bare popup without the panel surface, portal or backdrop, for full-bleed dialogs such as a media lightbox. */
+export function DialogPopup(props: DialogPopupProps) {
+  return <BaseDialog.Popup data-slot="dialog-content" {...props} />;
 }
 
 export const dialogContentClassName =
@@ -296,12 +311,14 @@ export function DialogClose({
   children,
   ...props
 }: DialogCloseProps) {
-  const element = asChildRender(asChild, render, children) as
-    | DialogCloseProps["render"]
-    | undefined;
+  const parts = asChildParts(asChild, render, children);
   return (
-    <BaseDialog.Close data-slot="dialog-close" render={element} {...props}>
-      {element ? null : children}
+    <BaseDialog.Close
+      data-slot="dialog-close"
+      render={parts.render as DialogCloseProps["render"]}
+      {...props}
+    >
+      {parts.children}
     </BaseDialog.Close>
   );
 }

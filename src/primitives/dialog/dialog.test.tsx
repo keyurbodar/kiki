@@ -9,6 +9,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogOverlay,
+  DialogPopup,
+  DialogPortal,
   DialogTitle,
   DialogTrigger,
   dialogOverlayVariants,
@@ -127,6 +129,39 @@ describe("Dialog", () => {
     const link = screen.getByText("Link trigger");
     expect(link.className).toBe("custom");
     expect(link.dataset.slot).toBe("dialog-trigger");
+  });
+
+  it("keeps children for an explicit render callback", () => {
+    render(
+      <Dialog>
+        <DialogTrigger render={(props) => <button {...props} />}>
+          Open
+        </DialogTrigger>
+      </Dialog>,
+    );
+    expect(screen.getByText("Open").dataset.slot).toBe("dialog-trigger");
+  });
+
+  it("renders a bare popup inside a portal for full-bleed dialogs", async () => {
+    render(
+      <Dialog defaultOpen>
+        <DialogPortal>
+          <DialogOverlay scrim="media" forceRender />
+          <DialogPopup className="fixed inset-0 z-(--z-overlay-content)">
+            Media
+          </DialogPopup>
+        </DialogPortal>
+      </Dialog>,
+    );
+    const popup = await screen.findByText("Media");
+    expect(popup.dataset.slot).toBe("dialog-content");
+    expect(popup.className).toBe("fixed inset-0 z-(--z-overlay-content)");
+    expect(popup.parentElement?.className ?? "").not.toContain(
+      "z-(--z-dialog)",
+    );
+    expect(
+      document.querySelector("[data-slot=dialog-overlay]")?.className,
+    ).toContain("bg-overlay-media");
   });
 
   it("sizes the title and spaces the body", () => {

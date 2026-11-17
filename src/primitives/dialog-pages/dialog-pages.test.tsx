@@ -75,6 +75,27 @@ describe("DialogPages", () => {
   });
 });
 
+it("forwards div attributes to the pages wrapper", () => {
+  render(
+    <Dialog defaultOpen>
+      <DialogContent>
+        <DialogPages
+          aria-label="Invite flow"
+          page="list"
+          root="list"
+          pages={pages}
+          onBack={() => {}}
+        />
+      </DialogContent>
+    </Dialog>,
+  );
+  const wrapper = document.querySelector<HTMLElement>(
+    "[data-slot=dialog-pages]",
+  );
+  expect(wrapper?.getAttribute("aria-label")).toBe("Invite flow");
+  expect(wrapper?.className).toBe("contents");
+});
+
 describe("DialogPage", () => {
   it("remounts its page when the key changes", () => {
     const { rerender } = render(<DialogPage pageKey="a">A</DialogPage>);
