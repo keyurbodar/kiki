@@ -1,0 +1,40 @@
+@reference "../../../styles.css";
+
+/* Lift the stub positioners above the dialog, until Menu and Popover take a z-index. */
+:has(> .new-issue-menu),
+body:has(.new-issue-dialog) :has(> [data-slot="popover-content"]) {
+  z-index: var(--z-dialog);
+}
+
+/* The shared due date picker's popover, until the Popover primitive is filled. */
+body:has(.new-issue-dialog) [data-slot="popover-content"] {
+  @apply flex max-h-[min(60dvh,var(--available-height))] flex-col overflow-hidden rounded-(--radius-overlay) border-hairline border-border-2 bg-popover text-foreground shadow-overlay outline-none;
+}
+
+body:has(.new-issue-dialog) [data-slot="popover-content"] > button {
+  @apply relative flex h-(--h-menu-row) w-full min-w-0 shrink-0 cursor-pointer items-center gap-2 rounded px-2 text-left text-sm font-normal text-foreground outline-none select-none hover:bg-popover-hover focus-visible:bg-popover-hover;
+}
+
+/* Menu rows inside this unit's menus, until the Menu primitive is filled. */
+.new-issue-menu [data-slot="menu-item"],
+.new-issue-menu [data-slot="menu-checkbox-item"] {
+  @apply relative flex h-(--h-menu-row) w-full min-w-0 cursor-pointer items-center gap-2 rounded px-2 text-left text-sm font-normal text-foreground outline-none select-none;
+}
+
+.new-issue-menu [data-slot="menu-item"][data-highlighted],
+.new-issue-menu [data-slot="menu-checkbox-item"][data-highlighted] {
+  @apply bg-popover-hover;
+}
+
+.new-issue-menu [data-slot="menu-item"][data-disabled],
+.new-issue-menu [data-slot="menu-checkbox-item"][data-disabled] {
+  @apply pointer-events-none opacity-50;
+}
+
+.new-issue-menu [data-slot="menu-separator"] {
+  @apply -mx-1 my-1 h-px shrink-0 bg-border-1;
+}
+
+.new-issue-menu [data-slot="menu-label"] {
+  @apply mt-1 flex items-center px-2 py-1 text-xs font-medium text-muted-foreground-2 first:mt-0;
+}
