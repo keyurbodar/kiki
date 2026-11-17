@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { VerifyEmailPage } from "@/features/auth/verify-email";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_auth/sign-in/verify")({
@@ -8,5 +8,6 @@ export const Route = createFileRoute("/_auth/sign-in/verify")({
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="Sign in" path="/sign-in/verify" />;
+  const { status } = Route.useSearch();
+  return <VerifyEmailPage status={status} returnTo="/sign-in" />;
 }

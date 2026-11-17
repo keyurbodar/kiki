@@ -84,7 +84,7 @@ export function WelcomePage({ redirectUrl }: WelcomePageProps) {
           </div>
         </div>
         <h1
-          className={`mt-7 max-w-72 text-center text-2xl font-medium text-balance text-foreground ${stepClass} ${stepDelay[1]}`}
+          className={`mt-7 max-w-72 text-center text-xl font-medium text-balance text-foreground ${stepClass} ${stepDelay[1]}`}
         >
           The best AI software engineer
         </h1>
