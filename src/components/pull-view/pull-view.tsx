@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { cx } from "@/components/activity-card";
 import { CapyMark } from "@/components/capy-logo";
+import { toCapyReview } from "@/components/activity";
 import { OverviewTab } from "@/components/overview-tab";
 import { DiffTab, type PullRef } from "@/components/diff-tab";
 import {
@@ -57,7 +58,6 @@ import {
   BranchIcon,
   Bubble2Icon,
   ChevronDownSmallIcon,
-  ChevronRightSmallIcon,
   CrossMediumIcon,
   DotGrid1x3HorizontalIcon,
   DraftIcon,
@@ -69,7 +69,6 @@ import {
 import {
   type Pull,
   type PullThreadRef,
-  toCapyReview,
   repoName,
   toThreadRefs,
 } from "./pull-model";
@@ -709,24 +708,29 @@ export function PullRail({ pull }: { pull: Pull }) {
     parsedReview === undefined
       ? undefined
       : {
-          threadId: null,
-          reviewedHeadSha: null,
+          threadId: parsedReview.threadId,
+          reviewedHeadSha: parsedReview.reviewedHeadSha,
           rounds: parsedReview.rounds.map((round) => ({
             status: round.status,
-            headSha: null,
+            headSha: round.headSha,
             title: round.title,
             failureMessage: round.failureMessage,
             failureReason: round.failureReason,
           })),
           findings: parsedReview.findings.map((finding) => ({
             id: finding.id,
-            status: finding.status === "open" ? "open" : "resolved",
+            status:
+              finding.status === "irrelevant"
+                ? "irrelevant"
+                : finding.status === "resolved"
+                  ? "resolved"
+                  : "open",
             kind: finding.kind === "note" ? "note" : "issue",
-            severity: null,
-            title: finding.kind,
-            body: "",
-            path: null,
-            line: null,
+            severity: finding.severity,
+            title: finding.title,
+            body: finding.body,
+            path: finding.path,
+            line: finding.line,
           })),
         };
   return (
