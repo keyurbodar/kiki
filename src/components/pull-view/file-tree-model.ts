@@ -27,10 +27,3 @@ export const toDiffFiles = (value: unknown): ReadonlyArray<DiffFile> => {
     ];
   });
 };
-
-export const filterFiles = (files: ReadonlyArray<DiffFile>, query: string) => {
-  const needle = query.trim().toLowerCase();
-  return needle === ""
-    ? files
-    : files.filter((file) => file.path.toLowerCase().includes(needle));
-};
