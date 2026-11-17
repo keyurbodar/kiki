@@ -147,8 +147,13 @@ export const lockAspect = (
     ? { width: next.height * ratio, height: next.height }
     : { width: next.width, height: next.width / ratio };
   const fit = Math.min(1, roomX / want.width, roomY / want.height);
-  const width = Math.max(MIN_CROP, want.width * fit);
-  const height = Math.max(MIN_CROP, want.height * fit);
+  const grow = Math.max(
+    1,
+    MIN_CROP / (want.width * fit),
+    MIN_CROP / (want.height * fit),
+  );
+  const width = want.width * fit * grow;
+  const height = want.height * fit * grow;
   return clampCrop({
     x: vertical ? cx - width / 2 : handle.includes("w") ? ax - width : ax,
     y: horizontal ? cy - height / 2 : handle.includes("n") ? ay - height : ay,

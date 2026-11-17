@@ -291,11 +291,15 @@ export function useMediaCommentSession({
     )
       .then(
         (prepared) =>
-          deliver(
-            prepared.map((entry) => entry.file),
-            prepared.map((entry) => entry.line),
-            mode,
-          ),
+          Promise.resolve()
+            .then(() =>
+              deliver(
+                prepared.map((entry) => entry.file),
+                prepared.map((entry) => entry.line),
+                mode,
+              ),
+            )
+            .catch(() => false),
         () => {
           toast.error("Could not prepare the frames");
           return false;
@@ -305,7 +309,8 @@ export function useMediaCommentSession({
         sendingRef.current = false;
         setSending(false);
         if (!delivered) return;
-        update((current) => current.filter((item) => !batch.includes(item)));
+        const sentIds = new Set(batch.map((item) => item.id));
+        update((current) => current.filter((item) => !sentIds.has(item.id)));
         for (const item of batch) frames.current.delete(item.id);
         reset();
         resume();

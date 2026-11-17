@@ -100,6 +100,7 @@ export function AnnotationPin({
   }
   return (
     <button
+      {...(props as ComponentProps<"button">)}
       ref={ref as Ref<HTMLButtonElement>}
       type="button"
       data-slot="annotation-pin"
@@ -581,7 +582,11 @@ export function AnnotationComposer({
                 onClose();
                 return;
               }
-              if (event.key === "Enter" && !event.shiftKey) {
+              if (
+                event.key === "Enter" &&
+                !event.shiftKey &&
+                !event.nativeEvent.isComposing
+              ) {
                 event.preventDefault();
                 submit();
               }

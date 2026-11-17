@@ -239,13 +239,22 @@ export const mediaCommentStore = {
   },
   subscribe: (listener: () => void) => {
     listeners.add(listener);
-    return () => listeners.delete(listener);
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== MEDIA_COMMENTS_KEY && event.key !== null) return;
+      queues = readQueues();
+      listener();
+    };
+    globalThis.addEventListener?.("storage", onStorage);
+    return () => {
+      listeners.delete(listener);
+      globalThis.removeEventListener?.("storage", onStorage);
+    };
   },
   update: (
     key: string,
     change: (items: MediaCommentDraft[]) => MediaCommentDraft[],
   ) => {
-    const current = mediaCommentStore.get();
+    const current = readQueues();
     const items = change(current[key]?.items ?? []);
     const next = { ...current };
     if (items.length === 0) delete next[key];

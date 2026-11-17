@@ -89,7 +89,10 @@ export function MediaCommentLightbox<Entry extends { key: string }>({
             active.media === null ? undefined : () => active.copyFrame(false),
         };
   const close =
-    composer !== undefined && session.items.length > 0 && !session.sending
+    composer !== undefined &&
+    session.sendable &&
+    session.items.length > 0 &&
+    !session.sending
       ? () => session.send("insert")
       : onClose;
   return (

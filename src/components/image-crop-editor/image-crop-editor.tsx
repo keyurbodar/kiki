@@ -140,10 +140,12 @@ function IconTooltipButton({
   label,
   icon,
   onClick,
+  disabled,
 }: {
   label: string;
   icon: "arrow-rotate-counter-clockwise" | "arrow-rotate-clockwise";
   onClick: () => void;
+  disabled?: boolean;
 }) {
   return (
     <Tooltip>
@@ -153,6 +155,7 @@ function IconTooltipButton({
             variant="ghost"
             size="icon-xs"
             aria-label={label}
+            disabled={disabled}
             onClick={onClick}
           >
             <Icon name={icon} />
@@ -202,7 +205,10 @@ export function ImageCropEditor({
         };
         setLoaded({ url, ...size });
         if (aspect === "square" && image.edit.crop === undefined)
-          setEdit((current) => ({ ...current, crop: squareCrop(size) }));
+          setEdit((current) => ({
+            ...current,
+            crop: squareCrop(rotatedSize(size, current.rotation)),
+          }));
       })
       .catch(() => {
         if (!alive) return;
@@ -401,11 +407,13 @@ export function ImageCropEditor({
       <IconTooltipButton
         label="Rotate left"
         icon="arrow-rotate-counter-clockwise"
+        disabled={animated}
         onClick={() => turn(3)}
       />
       <IconTooltipButton
         label="Rotate right"
         icon="arrow-rotate-clockwise"
+        disabled={animated}
         onClick={() => turn(1)}
       />
     </>
