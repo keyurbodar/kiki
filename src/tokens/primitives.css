@@ -65,6 +65,9 @@
   /* Space */
   --spacing: 0.25rem;
   --spacing-page-padding: var(--responsive-page-padding);
+  --spacing-hairline: 0.5px;
+  --spacing-switch-inset: 1.5px;
+  --border-width-hairline: 0.5px;
 
   /* Containers */
   --container-xs: 20rem;
