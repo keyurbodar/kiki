@@ -358,9 +358,14 @@ export const pullFilterChips = (
   filters: PullFilters,
   options: PullFilterOptions,
   onChange: (filters: PullFilters) => void,
+  base?: PullFilters,
 ): ReadonlyArray<FilterChipModel> => {
   const chips: Array<FilterChipModel> = [];
-  if (filters.states.length > 0) {
+  // Axes the active view already expresses are not chips, as in Capy's tabs.
+  const shown = (axis: keyof PullFilters) =>
+    base === undefined ||
+    JSON.stringify(base[axis]) !== JSON.stringify(filters[axis]);
+  if (filters.states.length > 0 && shown("states")) {
     const labels = filters.states.map(
       (state) =>
         stateOptions.find((option) => option.value === state)?.label ?? state,
@@ -423,15 +428,19 @@ export const pullFilterChips = (
     <ProjectGlyph />,
     options.projects,
   );
-  listChip(
-    "repos",
-    "Repository",
-    "repositories",
-    <PullRequestGlyph />,
-    options.repos.map((repo) => ({ id: repo, label: repoName(repo) })),
-  );
-  listChip("authors", "Author", "authors", <AuthorGlyph />, options.authors);
-  if (filters.captains.length > 0) {
+  if (shown("repos")) {
+    listChip(
+      "repos",
+      "Repository",
+      "repositories",
+      <PullRequestGlyph />,
+      options.repos.map((repo) => ({ id: repo, label: repoName(repo) })),
+    );
+  }
+  if (shown("authors")) {
+    listChip("authors", "Author", "authors", <AuthorGlyph />, options.authors);
+  }
+  if (filters.captains.length > 0 && shown("captains")) {
     chips.push({
       key: "captains",
       icon: <AuthorGlyph />,
@@ -444,7 +453,7 @@ export const pullFilterChips = (
       onRemove: () => onChange({ ...filters, captains: [] }),
     });
   }
-  if (filters.labels.length > 0) {
+  if (filters.labels.length > 0 && shown("labels")) {
     chips.push({
       key: "labels",
       icon: <ProjectGlyph />,
@@ -457,7 +466,7 @@ export const pullFilterChips = (
       onRemove: () => onChange({ ...filters, labels: [] }),
     });
   }
-  if (filters.thread !== null) {
+  if (filters.thread !== null && shown("thread")) {
     chips.push({
       key: "thread",
       icon: <ThreadGlyph />,
@@ -474,7 +483,7 @@ export const pullFilterChips = (
     icon: ReactNode,
   ) => {
     const range = filters[key];
-    if (range === null) return;
+    if (range === null || !shown(key)) return;
     chips.push({
       key,
       icon,
