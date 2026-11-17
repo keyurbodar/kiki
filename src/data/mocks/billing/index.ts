@@ -6,10 +6,15 @@ import {
   accountSeed,
   catalogSeed,
   invoiceSeed,
-  memberUsageSeed,
-  threadUsageSeed,
   usageSeed,
 } from "./fixtures.ts";
+import {
+  usageBreakdownFixture,
+  usageMembersFixture,
+  usageSeriesFixture,
+  usageSummaryFixture,
+  usageThreadsFixture,
+} from "./usage-fixtures.ts";
 
 const stringField = (
   input: Record<string, unknown>,
@@ -38,15 +43,13 @@ export const BillingMock = mockGroup("billing", (handlers) =>
       .handle("get", () => Ref.get(account))
       .handle("catalog", () => Effect.succeed(catalogSeed))
       .handle("listInvoices", () => Ref.get(invoices))
-      .handle("usage", () => Effect.succeed(usageSeed))
-      .handle("usageBreakdown", () =>
-        Ref.get(account).pipe(Effect.as(usageSeed.breakdown)),
-      )
+      .handle("usage", () => Effect.succeed(usageSummaryFixture))
+      .handle("usageBreakdown", () => Effect.succeed(usageBreakdownFixture))
       .handle("usageHeatmap", () => Effect.succeed(usageSeed.heatmap))
-      .handle("usageLeaderboard", () => Effect.succeed(usageSeed.leaderboard))
-      .handle("usageMemberEntries", () => Effect.succeed(memberUsageSeed))
-      .handle("usageSeries", () => Effect.succeed(usageSeed.series))
-      .handle("usageThreads", () => Effect.succeed(threadUsageSeed))
+      .handle("usageLeaderboard", () => Effect.succeed(usageMembersFixture))
+      .handle("usageMemberEntries", () => Effect.succeed(usageMembersFixture))
+      .handle("usageSeries", () => Effect.succeed(usageSeriesFixture))
+      .handle("usageThreads", () => Effect.succeed(usageThreadsFixture))
       .handle("updateAutoReload", ({ payload }) =>
         Effect.gen(function* () {
           const input = fields(payload);
