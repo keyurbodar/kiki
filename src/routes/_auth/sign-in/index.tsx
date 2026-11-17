@@ -1,12 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { SignInPage } from "@/features/auth/sign-in";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_auth/sign-in/")({
-  validateSearch: searchParams(["continue", "email", "passkey", "ticket"]),
+  validateSearch: searchParams([
+    "continue",
+    "email",
+    "passkey",
+    "ticket",
+    "redirect_url",
+  ]),
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="Sign in" path="/sign-in" />;
+  const search = Route.useSearch();
+  return (
+    <SignInPage
+      key={search.continue}
+      prefillEmail={search.email}
+      redirectUrl={search.redirect_url}
+      ticket={search.ticket}
+      initialStep={search.continue}
+      passkeyIntent={search.passkey}
+    />
+  );
 }

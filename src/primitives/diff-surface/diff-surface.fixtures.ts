@@ -1,0 +1,2 @@
+export const SAMPLE_PATCH =
+  "diff --git a/src/app/main.ts b/src/app/main.ts\nindex 1111111..2222222 100644\n--- a/src/app/main.ts\n+++ b/src/app/main.ts\n@@ -1,3 +1,4 @@\n const a = 1;\n-const b = 2;\n+const b = 3;\n+const c = 4;\n export { a };\ndiff --git a/README.md b/README.md\nnew file mode 100644\nindex 0000000..3333333\n--- /dev/null\n+++ b/README.md\n@@ -0,0 +1,2 @@\n+# Sample\n+Hello\n";
