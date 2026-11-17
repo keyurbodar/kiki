@@ -1,3 +1,76 @@
+import { Effect, Ref } from "effect";
+import { fields } from "../db/MockDb.ts";
 import { mockGroup } from "../mockGroup.ts";
+import { sampleReviewSettings, sampleSelfPolicy } from "./fixtures.ts";
 
-export const ReviewsMock = mockGroup("reviews");
+const text = (value: unknown) =>
+  typeof value === "string" && value.length > 0 ? value : undefined;
+
+const flag = (value: unknown, fallback: boolean) =>
+  typeof value === "boolean" ? value : fallback;
+
+export const ReviewsMock = mockGroup("reviews", (handlers) =>
+  Effect.gen(function* () {
+    const settings = yield* Ref.make(
+      sampleReviewSettings.map((row) => ({ ...row })),
+    );
+    const selfPolicy = yield* Ref.make({ ...sampleSelfPolicy });
+
+    return handlers
+      .handle("listSettings", () => Ref.get(settings))
+      .handle("configure", ({ payload }) =>
+        Effect.gen(function* () {
+          const input = fields(payload);
+          const repo = text(input.repo);
+          if (repo === undefined) {
+            return yield* Effect.die(
+              new Error("reviews.configure: repo is required"),
+            );
+          }
+          let updated: (typeof sampleReviewSettings)[number] | undefined;
+          yield* Ref.update(settings, (rows) =>
+            rows.map((row) => {
+              if (row.repo !== repo) return row;
+              updated = {
+                ...row,
+                autoReview: flag(input.autoReview, row.autoReview),
+                postInvestigate: flag(
+                  input.postInvestigate,
+                  row.postInvestigate,
+                ),
+                postNotes: flag(input.postNotes, row.postNotes),
+                postStatusCheck: flag(
+                  input.postStatusCheck,
+                  row.postStatusCheck,
+                ),
+                postingThreshold:
+                  text(input.postingThreshold) ?? row.postingThreshold,
+                projectId:
+                  input.projectId === null
+                    ? null
+                    : (text(input.projectId) ?? row.projectId),
+              };
+              return updated;
+            }),
+          );
+          if (updated === undefined) {
+            return yield* Effect.die(
+              new Error(`reviews.configure: no settings for ${repo}`),
+            );
+          }
+          return updated;
+        }),
+      )
+      .handle("getSelfAuthorPolicy", () => Ref.get(selfPolicy))
+      .handle("setSelfAuthorPolicy", ({ payload }) =>
+        Effect.gen(function* () {
+          const reviewed = flag(fields(payload).reviewed, false);
+          yield* Ref.set(selfPolicy, {
+            ...sampleSelfPolicy,
+            selfReviewed: reviewed,
+          });
+          return yield* Ref.get(selfPolicy);
+        }),
+      );
+  }),
+);

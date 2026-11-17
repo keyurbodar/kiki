@@ -1,437 +1,426 @@
-import { Effect, Ref } from "effect";
-import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
-import { threads as worldThreads } from "../fixtures/world.ts";
-import { mockGroup } from "../mockGroup.ts";
+import { DateTime, Effect, Ref } from "effect";
+import { ThreadOrganizationNotFound } from "../../api/schemas/errors.ts";
+import type { JamId } from "../../api/schemas/ids.ts";
+import { JamBatchResult, ThreadCard } from "../../api/schemas/thread.ts";
 import {
-  boardColumns,
-  type FolderDetail,
-  folderDetails,
-  pinnedThreads,
-  type TagAssignment,
-  type TagDetail,
-  tagDetails,
-  threadTagAssignments,
-} from "./fixtures.ts";
+  AssignedThreadTag,
+  FolderBoardSection,
+  FolderItemsResult,
+  TagAssignResult,
+} from "../../api/schemas/threadOrganization.ts";
+import { MockDb, newId, type Row } from "../db/MockDb.ts";
+import { fixtureNow } from "../fixtures/time.ts";
+import { viewer, world } from "../fixtures/world.ts";
+import { sampleThreads } from "../jams/fixtures.ts";
+import { mockGroup } from "../mockGroup.ts";
+import { toFolder, toFolderItem, toTag } from "./fixtures.ts";
 
-const updateFolder = (
-  folders: ReadonlyArray<FolderDetail>,
-  id: string,
-  change: (folder: FolderDetail) => FolderDetail,
-) => folders.map((folder) => (folder.id === id ? change(folder) : folder));
+const maxTagsPerThread = 10;
+
+const knownThread = (jamId: string) =>
+  Object.values(world.threads).some((thread) => thread.id === jamId);
+
+const now = () => DateTime.formatIso(fixtureNow);
 
 export const ThreadOrganizationMock = mockGroup(
   "threadOrganization",
   (handlers) =>
     Effect.gen(function* () {
-      const { members } = yield* MockDb;
-      const folders = yield* Ref.make<ReadonlyArray<FolderDetail>>(
-        structuredClone(folderDetails),
-      );
-      const tags = yield* Ref.make<ReadonlyArray<TagDetail>>(
-        structuredClone(tagDetails),
-      );
-      const assignments = yield* Ref.make<ReadonlyArray<TagAssignment>>(
-        structuredClone(threadTagAssignments),
-      );
-      const pinned = yield* Ref.make<ReadonlyArray<string>>(
-        structuredClone(pinnedThreads),
-      );
+      const {
+        threadFolders,
+        threadFolderItems,
+        threadTags,
+        threadTagAssignments,
+        threadPins,
+      } = yield* MockDb;
 
-      const folderOrMissing = (id: string) =>
+      const folderRow = (id: string) =>
         Effect.gen(function* () {
-          const rows = yield* Ref.get(folders);
-          const folder = rows.find((row) => row.id === id);
-          if (!folder) return yield* missing("threadFolders", id);
-          return folder;
+          const row = (yield* Ref.get(threadFolders)).find(
+            (folder) => folder.id === id,
+          );
+          if (!row) return yield* new ThreadOrganizationNotFound();
+          return row;
         });
 
-      const tagOrMissing = (id: string) =>
+      const tagRow = (id: string) =>
         Effect.gen(function* () {
-          const rows = yield* Ref.get(tags);
-          const tag = rows.find((row) => row.id === id);
-          if (!tag) return yield* missing("threadTags", id);
-          return tag;
+          const row = (yield* Ref.get(threadTags)).find((tag) => tag.id === id);
+          if (!row) return yield* new ThreadOrganizationNotFound();
+          return row;
         });
 
-      const memberOrMissing = (id: string) =>
+      const updateFolder = (
+        id: string,
+        change: (row: Row<"threadFolders">) => Row<"threadFolders">,
+      ) =>
         Effect.gen(function* () {
-          const rows = yield* Ref.get(members);
-          if (!rows.some((row) => row.id === id)) {
-            return yield* missing("members", id);
-          }
-          return id;
+          const current = yield* folderRow(id);
+          const updated = { ...change(current), updatedAt: now() };
+          yield* Ref.update(threadFolders, (rows) =>
+            rows.map((row) => (row.id === id ? updated : row)),
+          );
+          return toFolder(updated);
         });
+
+      const updateTag = (
+        id: string,
+        change: (row: Row<"threadTags">) => Row<"threadTags">,
+      ) =>
+        Effect.gen(function* () {
+          const current = yield* tagRow(id);
+          const updated = change(current);
+          yield* Ref.update(threadTags, (rows) =>
+            rows.map((row) => (row.id === id ? updated : row)),
+          );
+          return toTag(updated);
+        });
+
+      const folderItems = (folder: Row<"threadFolders">) =>
+        Effect.gen(function* () {
+          return (yield* Ref.get(threadFolderItems))
+            .filter((item) => item.folderId === folder.id)
+            .toSorted((a, b) => a.position - b.position)
+            .map((item) => toFolderItem(item, folder));
+        });
+
+      const outcomes = (jamIds: ReadonlyArray<JamId>) =>
+        jamIds.map((jamId) => ({
+          jamId,
+          outcome: knownThread(jamId)
+            ? ("ok" as const)
+            : ("not_found" as const),
+        }));
+
+      const visibleFolders = Effect.gen(function* () {
+        return (yield* Ref.get(threadFolders)).toSorted(
+          (a, b) => a.position - b.position,
+        );
+      });
 
       return handlers
         .handle("manifest", () =>
-          Effect.gen(function* () {
-            const rows = yield* Ref.get(folders);
-            return rows
-              .filter((folder) => !folder.hidden)
-              .map((folder) => ({
-                id: folder.id,
-                name: folder.name,
-                position: folder.position,
-                access: folder.access,
-                ownerId: folder.ownerId,
-                itemCount: folder.itemIds.length,
-              }));
-          }),
+          visibleFolders.pipe(Effect.map((rows) => rows.map(toFolder))),
         )
         .handle("createFolder", ({ payload }) =>
           Effect.gen(function* () {
-            const input = fields(payload);
-            const firstMember = (yield* Ref.get(members))[0];
-            const ownerId = String(input.ownerId ?? firstMember?.id ?? "");
-            if (ownerId) yield* memberOrMissing(ownerId);
-            const folder: FolderDetail = {
+            const rows = yield* Ref.get(threadFolders);
+            const row: Row<"threadFolders"> = {
               id: newId("fld"),
-              name: String(input.name ?? "New folder"),
-              position: (yield* Ref.get(folders)).length,
-              access: String(input.access ?? "members"),
+              name: payload.name,
+              position: rows.length,
+              visibility: payload.visibility,
+              section: payload.section ?? "threads",
+              ownerUserId: viewer.id,
               hidden: false,
-              ownerId,
-              sharedWith: [],
-              itemIds: [],
-              createdAt: folderDetails[0]?.createdAt ?? "",
+              memberIds: [],
+              createdAt: now(),
+              updatedAt: now(),
             };
-            yield* Ref.update(folders, (rows) => [...rows, folder]);
-            return folder;
+            yield* Ref.set(threadFolders, [...rows, row]);
+            return toFolder(row);
           }),
         )
         .handle("renameFolder", ({ params, payload }) =>
-          Effect.gen(function* () {
-            const current = yield* folderOrMissing(params.folderId);
-            const input = fields(payload);
-            const updated = {
-              ...current,
-              name: String(input.name ?? current.name),
-            };
-            yield* Ref.update(folders, (rows) =>
-              updateFolder(rows, current.id, () => updated),
-            );
-            return updated;
-          }),
+          updateFolder(params.folderId, (row) => ({
+            ...row,
+            name: payload.name,
+          })),
         )
-        .handle("deleteFolder", ({ params }) =>
+        .handle("reorderFolders", ({ payload }) =>
           Effect.gen(function* () {
-            yield* folderOrMissing(params.folderId);
-            yield* Ref.update(folders, (rows) =>
-              rows.filter((folder) => folder.id !== params.folderId),
-            );
-            return { ok: true };
-          }),
-        )
-        .handle("setFolderAccess", ({ params, payload }) =>
-          Effect.gen(function* () {
-            const current = yield* folderOrMissing(params.folderId);
-            const input = fields(payload);
-            const updated = {
-              ...current,
-              access: String(input.access ?? current.access),
-            };
-            yield* Ref.update(folders, (rows) =>
-              updateFolder(rows, current.id, () => updated),
-            );
-            return updated;
+            const order: ReadonlyArray<string> = payload.folderIds;
+            const rank = (id: string) =>
+              order.includes(id) ? order.indexOf(id) : order.length;
+            const rows = (yield* visibleFolders)
+              .toSorted((a, b) => rank(a.id) - rank(b.id))
+              .map((row, position) => ({ ...row, position }));
+            yield* Ref.set(threadFolders, rows);
+            return rows.map(toFolder);
           }),
         )
         .handle("setFolderHidden", ({ params, payload }) =>
-          Effect.gen(function* () {
-            const current = yield* folderOrMissing(params.folderId);
-            const input = fields(payload);
-            const updated = {
-              ...current,
-              hidden: typeof input.hidden === "boolean" ? input.hidden : true,
-            };
-            yield* Ref.update(folders, (rows) =>
-              updateFolder(rows, current.id, () => updated),
-            );
-            return updated;
-          }),
-        )
-        .handle("addToFolder", ({ params, payload }) =>
-          Effect.gen(function* () {
-            const current = yield* folderOrMissing(params.folderId);
-            const input = fields(payload);
-            const id = String(input.threadId ?? input.id ?? "");
-            if (!id) {
-              return yield* Effect.die(
-                new Error("threadOrganization.addToFolder: missing threadId"),
-              );
-            }
-            const updated = {
-              ...current,
-              itemIds: current.itemIds.includes(id)
-                ? current.itemIds
-                : [...current.itemIds, id],
-            };
-            yield* Ref.update(folders, (rows) =>
-              updateFolder(rows, current.id, () => updated),
-            );
-            return updated;
-          }),
-        )
-        .handle("removeFromFolder", ({ params, query }) =>
-          Effect.gen(function* () {
-            const current = yield* folderOrMissing(params.folderId);
-            const id = String(query.threadId ?? query.id ?? "");
-            const updated = {
-              ...current,
-              itemIds: current.itemIds.filter((item) => item !== id),
-            };
-            yield* Ref.update(folders, (rows) =>
-              updateFolder(rows, current.id, () => updated),
-            );
-            return updated;
-          }),
-        )
-        .handle("reorderFolderItems", ({ params, payload }) =>
-          Effect.gen(function* () {
-            const current = yield* folderOrMissing(params.folderId);
-            const input = fields(payload);
-            const ids = Array.isArray(input.itemIds)
-              ? input.itemIds.map(String)
-              : current.itemIds;
-            const updated = { ...current, itemIds: ids };
-            yield* Ref.update(folders, (rows) =>
-              updateFolder(rows, current.id, () => updated),
-            );
-            return updated;
-          }),
-        )
-        .handle("leaveFolder", ({ params }) =>
-          Effect.gen(function* () {
-            const current = yield* folderOrMissing(params.folderId);
-            return { ok: true, folderId: current.id, left: true };
-          }),
+          updateFolder(params.folderId, (row) => ({
+            ...row,
+            hidden: payload.hidden,
+          })),
         )
         .handle("shareFolder", ({ params, payload }) =>
-          Effect.gen(function* () {
-            const current = yield* folderOrMissing(params.folderId);
-            const input = fields(payload);
-            const memberId = String(input.memberId ?? input.userId ?? "");
-            yield* memberOrMissing(memberId);
-            const updated = {
-              ...current,
-              sharedWith: current.sharedWith.includes(memberId)
-                ? current.sharedWith
-                : [...current.sharedWith, memberId],
-            };
-            yield* Ref.update(folders, (rows) =>
-              updateFolder(rows, current.id, () => updated),
-            );
-            return updated;
-          }),
+          updateFolder(params.folderId, (row) => ({
+            ...row,
+            visibility: "shared",
+            memberIds: [
+              ...row.memberIds,
+              ...payload.userIds.filter((id) => !row.memberIds.includes(id)),
+            ],
+          })),
         )
-        .handle("unshareFolder", ({ params, query }) =>
-          Effect.gen(function* () {
-            const current = yield* folderOrMissing(params.folderId);
-            const memberId = String(query.memberId ?? query.userId ?? "");
-            const updated = {
-              ...current,
-              sharedWith: current.sharedWith.filter((id) => id !== memberId),
-            };
-            yield* Ref.update(folders, (rows) =>
-              updateFolder(rows, current.id, () => updated),
-            );
-            return updated;
-          }),
+        .handle("unshareFolder", ({ params, payload }) =>
+          updateFolder(params.folderId, (row) => ({
+            ...row,
+            memberIds: row.memberIds.filter(
+              (id) => !(payload.userIds as ReadonlyArray<string>).includes(id),
+            ),
+          })),
+        )
+        .handle("leaveFolder", ({ params }) =>
+          updateFolder(params.folderId, (row) => ({
+            ...row,
+            memberIds: row.memberIds.filter((id) => id !== viewer.id),
+          })).pipe(Effect.asVoid),
+        )
+        .handle("setFolderAccess", ({ params, payload }) =>
+          updateFolder(params.folderId, (row) => ({
+            ...row,
+            visibility: payload.visibility,
+          })),
         )
         .handle("setFolderOwner", ({ params, payload }) =>
+          updateFolder(params.folderId, (row) => ({
+            ...row,
+            ownerUserId: payload.userId,
+          })),
+        )
+        .handle("deleteFolder", ({ params }) =>
           Effect.gen(function* () {
-            const current = yield* folderOrMissing(params.folderId);
-            const input = fields(payload);
-            const ownerId = String(input.ownerId ?? "");
-            yield* memberOrMissing(ownerId);
-            const updated = { ...current, ownerId };
-            yield* Ref.update(folders, (rows) =>
-              updateFolder(rows, current.id, () => updated),
+            yield* folderRow(params.folderId);
+            yield* Ref.update(threadFolders, (rows) =>
+              rows.filter((row) => row.id !== params.folderId),
             );
-            return updated;
+            yield* Ref.update(threadFolderItems, (rows) =>
+              rows.filter((row) => row.folderId !== params.folderId),
+            );
           }),
         )
         .handle("board", () =>
           Effect.gen(function* () {
-            const rows = yield* Ref.get(folders);
-            return boardColumns.map((column) => ({
-              ...column,
-              folders: rows
-                .filter((folder) => column.folderIds.includes(folder.id))
-                .map((folder) => ({
-                  id: folder.id,
-                  name: folder.name,
-                  itemCount: folder.itemIds.length,
-                })),
-            }));
-          }),
-        )
-        .handle("reorderFolders", ({ payload }) =>
-          Effect.gen(function* () {
-            const input = fields(payload);
-            const order = Array.isArray(input.folderIds)
-              ? input.folderIds.map(String)
-              : [];
-            const rows = yield* Ref.get(folders);
-            const reordered = rows
-              .toSorted(
-                (a, b) =>
-                  (order.indexOf(a.id) === -1
-                    ? rows.indexOf(a)
-                    : order.indexOf(a.id)) -
-                  (order.indexOf(b.id) === -1
-                    ? rows.indexOf(b)
-                    : order.indexOf(b.id)),
-              )
-              .map((folder, index) => ({ ...folder, position: index }));
-            yield* Ref.set(folders, reordered);
-            return reordered.map((folder) => ({
-              id: folder.id,
-              name: folder.name,
-              position: folder.position,
-            }));
-          }),
-        )
-        .handle("tagsForThread", ({ params }) =>
-          Effect.gen(function* () {
-            const allTags = yield* Ref.get(tags);
-            const rows = yield* Ref.get(assignments);
-            const tagIds = rows
-              .filter((row) => row.jamId === params.jamId)
-              .map((row) => row.tagId);
-            const result = tagIds.flatMap((id) => {
-              const tag = allTags.find((row) => row.id === id);
-              return tag ? [tag] : [];
-            });
-            if (result.length === 0) {
-              const known = Object.values(worldThreads).some(
-                (thread) => thread.id === params.jamId,
+            const items = yield* Ref.get(threadFolderItems);
+            const pins = yield* Ref.get(threadPins);
+            const tags = yield* Ref.get(threadTagAssignments);
+            const card = (jamId: string) => {
+              const found = sampleThreads.find((thread) => thread.id === jamId);
+              if (!found) return [];
+              return [
+                new ThreadCard({
+                  ...found,
+                  pinned: pins.some((pin) => pin.jamId === jamId),
+                  tagIds: found.tagIds.concat(
+                    tags
+                      .filter((tag) => tag.jamId === jamId)
+                      .map((tag) => tag.tagId as (typeof found.tagIds)[number]),
+                  ),
+                }),
+              ];
+            };
+            return (yield* visibleFolders)
+              .filter((row) => !row.hidden)
+              .map(
+                (row) =>
+                  new FolderBoardSection({
+                    folder: toFolder(row),
+                    items: items
+                      .filter((item) => item.folderId === row.id)
+                      .toSorted((a, b) => a.position - b.position)
+                      .flatMap((item) => card(item.jamId)),
+                  }),
               );
-              if (!known)
-                return yield* Effect.die(
-                  new Error(`threadOrganization: no thread ${params.jamId}`),
-                );
-            }
-            return result;
+          }),
+        )
+        .handle("addToFolder", ({ params, payload }) =>
+          Effect.gen(function* () {
+            const folder = yield* folderRow(params.folderId);
+            const results = outcomes(payload.jamIds);
+            const rows = yield* Ref.get(threadFolderItems);
+            const added = results
+              .filter(
+                (result) =>
+                  result.outcome === "ok" &&
+                  !rows.some(
+                    (row) =>
+                      row.folderId === folder.id && row.jamId === result.jamId,
+                  ),
+              )
+              .map((result, index) => ({
+                folderId: folder.id,
+                jamId: result.jamId as string,
+                position:
+                  rows.filter((row) => row.folderId === folder.id).length +
+                  index,
+              }));
+            yield* Ref.set(threadFolderItems, [...rows, ...added]);
+            return new FolderItemsResult({
+              items: yield* folderItems(folder),
+              outcomes: results,
+            });
+          }),
+        )
+        .handle("removeFromFolder", ({ params, payload }) =>
+          Effect.gen(function* () {
+            const folder = yield* folderRow(params.folderId);
+            const removed: ReadonlyArray<string> = payload.jamIds;
+            yield* Ref.update(threadFolderItems, (rows) =>
+              rows.filter(
+                (row) =>
+                  !(row.folderId === folder.id && removed.includes(row.jamId)),
+              ),
+            );
+            return new FolderItemsResult({
+              items: yield* folderItems(folder),
+              outcomes: outcomes(payload.jamIds),
+            });
+          }),
+        )
+        .handle("reorderFolderItems", ({ params, payload }) =>
+          Effect.gen(function* () {
+            const folder = yield* folderRow(params.folderId);
+            const order: ReadonlyArray<string> = payload.jamIds;
+            const rank = (id: string) =>
+              order.includes(id) ? order.indexOf(id) : order.length;
+            const rows = yield* Ref.get(threadFolderItems);
+            const reordered = rows
+              .filter((row) => row.folderId === folder.id)
+              .toSorted((a, b) => rank(a.jamId) - rank(b.jamId))
+              .map((row, position) => ({ ...row, position }));
+            yield* Ref.set(threadFolderItems, [
+              ...rows.filter((row) => row.folderId !== folder.id),
+              ...reordered,
+            ]);
+            return yield* folderItems(folder);
           }),
         )
         .handle("pin", ({ payload }) =>
           Effect.gen(function* () {
-            const input = fields(payload);
-            const id = String(input.jamId ?? input.threadId ?? "");
-            if (!id)
-              return yield* Effect.die(
-                new Error("threadOrganization.pin: missing jamId"),
-              );
-            yield* Ref.update(pinned, (rows) =>
-              rows.includes(id) ? rows : [...rows, id],
-            );
-            return { ok: true, pinned: yield* Ref.get(pinned) };
+            const results = outcomes(payload.jamIds);
+            yield* Ref.update(threadPins, (rows) => [
+              ...rows,
+              ...results
+                .filter(
+                  (result) =>
+                    result.outcome === "ok" &&
+                    !rows.some((row) => row.jamId === result.jamId),
+                )
+                .map((result) => ({ jamId: result.jamId as string })),
+            ]);
+            return new JamBatchResult({ outcomes: results });
           }),
         )
         .handle("unpin", ({ payload }) =>
           Effect.gen(function* () {
-            const input = fields(payload);
-            const id = String(input.jamId ?? input.threadId ?? "");
-            yield* Ref.update(pinned, (rows) =>
-              rows.filter((row) => row !== id),
+            const removed: ReadonlyArray<string> = payload.jamIds;
+            yield* Ref.update(threadPins, (rows) =>
+              rows.filter((row) => !removed.includes(row.jamId)),
             );
-            return { ok: true, pinned: yield* Ref.get(pinned) };
+            return new JamBatchResult({ outcomes: outcomes(payload.jamIds) });
           }),
         )
-        .handle("assignTag", ({ params, payload }) =>
+        .handle("listTags", ({ query }) =>
           Effect.gen(function* () {
-            const current = yield* tagOrMissing(params.tagId);
-            const input = fields(payload);
-            const jamId = String(
-              input.jamId ?? input.threadId ?? worldThreads.checkoutTest.id,
-            );
-            const rows = yield* Ref.get(assignments);
-            if (
-              !rows.some(
-                (row) => row.jamId === jamId && row.tagId === current.id,
-              )
-            ) {
-              yield* Ref.set(assignments, [
-                ...rows,
-                { jamId, tagId: current.id },
-              ]);
-            }
-            return { ok: true, jamId, tag: current };
-          }),
-        )
-        .handle("unassignTag", ({ params, query }) =>
-          Effect.gen(function* () {
-            const current = yield* tagOrMissing(params.tagId);
-            const jamId = String(
-              query.jamId ?? query.threadId ?? worldThreads.checkoutTest.id,
-            );
-            yield* Ref.update(assignments, (rows) =>
-              rows.filter(
-                (row) => !(row.jamId === jamId && row.tagId === current.id),
-              ),
-            );
-            return { ok: true, jamId, tag: current };
-          }),
-        )
-        .handle("listTags", () =>
-          Effect.gen(function* () {
-            const rows = yield* Ref.get(tags);
-            return rows.filter((tag) => tag.deletedAt === null);
+            const deleted = query.deleted === "true";
+            return (yield* Ref.get(threadTags))
+              .filter((row) => row.deleted === deleted)
+              .map(toTag);
           }),
         )
         .handle("createTag", ({ payload }) =>
           Effect.gen(function* () {
-            const input = fields(payload);
-            const tag: TagDetail = {
+            const row: Row<"threadTags"> = {
               id: newId("tag"),
-              name: String(input.name ?? "New tag"),
-              color: String(input.color ?? "default"),
-              deletedAt: null,
-              usageCount: 0,
+              name: payload.name,
+              color: payload.color,
+              deleted: false,
+              createdAt: now(),
             };
-            yield* Ref.update(tags, (rows) => [...rows, tag]);
-            return tag;
+            yield* Ref.update(threadTags, (rows) => [...rows, row]);
+            return toTag(row);
           }),
         )
         .handle("updateTag", ({ params, payload }) =>
-          Effect.gen(function* () {
-            const current = yield* tagOrMissing(params.tagId);
-            const input = fields(payload);
-            const updated: TagDetail = {
-              ...current,
-              name: typeof input.name === "string" ? input.name : current.name,
-              color:
-                typeof input.color === "string" ? input.color : current.color,
-            };
-            yield* Ref.update(tags, (rows) =>
-              rows.map((tag) => (tag.id === current.id ? updated : tag)),
-            );
-            return updated;
-          }),
+          updateTag(params.tagId, (row) => ({
+            ...row,
+            name: payload.name ?? row.name,
+            color: payload.color ?? row.color,
+          })),
         )
         .handle("deleteTag", ({ params }) =>
           Effect.gen(function* () {
-            const current = yield* tagOrMissing(params.tagId);
-            const deletedAt = folderDetails[0]?.createdAt ?? "";
-            const updated: TagDetail = { ...current, deletedAt };
-            yield* Ref.update(tags, (rows) =>
-              rows.map((tag) => (tag.id === current.id ? updated : tag)),
+            yield* updateTag(params.tagId, (row) => ({
+              ...row,
+              deleted: true,
+            }));
+            yield* Ref.update(threadTagAssignments, (rows) =>
+              rows.filter((row) => row.tagId !== params.tagId),
             );
-            yield* Ref.update(assignments, (rows) =>
-              rows.filter((row) => row.tagId !== current.id),
-            );
-            return { ok: true };
           }),
         )
         .handle("restoreTag", ({ params }) =>
+          updateTag(params.tagId, (row) => ({ ...row, deleted: false })),
+        )
+        .handle("tagsForThread", ({ params }) =>
           Effect.gen(function* () {
-            const current = yield* tagOrMissing(params.tagId);
-            const updated: TagDetail = { ...current, deletedAt: null };
-            yield* Ref.update(tags, (rows) =>
-              rows.map((tag) => (tag.id === current.id ? updated : tag)),
+            if (!knownThread(params.jamId)) {
+              return yield* new ThreadOrganizationNotFound();
+            }
+            const assigned = (yield* Ref.get(threadTagAssignments))
+              .filter((row) => row.jamId === params.jamId)
+              .map((row) => row.tagId);
+            return (yield* Ref.get(threadTags))
+              .filter((row) => !row.deleted && assigned.includes(row.id))
+              .map((row) => {
+                const tag = toTag(row);
+                return new AssignedThreadTag({
+                  id: tag.id,
+                  name: tag.name,
+                  color: tag.color,
+                });
+              });
+          }),
+        )
+        .handle("assignTag", ({ params, payload }) =>
+          Effect.gen(function* () {
+            const tag = yield* tagRow(params.tagId);
+            const rows = yield* Ref.get(threadTagAssignments);
+            const results = payload.jamIds.map((jamId) => {
+              if (!knownThread(jamId)) {
+                return { jamId, outcome: "not_found" as const };
+              }
+              const count = rows.filter((row) => row.jamId === jamId).length;
+              return {
+                jamId,
+                outcome:
+                  count >= maxTagsPerThread
+                    ? ("limit" as const)
+                    : ("ok" as const),
+              };
+            });
+            yield* Ref.set(threadTagAssignments, [
+              ...rows,
+              ...results
+                .filter(
+                  (result) =>
+                    result.outcome === "ok" &&
+                    !rows.some(
+                      (row) =>
+                        row.jamId === result.jamId && row.tagId === tag.id,
+                    ),
+                )
+                .map((result) => ({
+                  jamId: result.jamId as string,
+                  tagId: tag.id,
+                })),
+            ]);
+            return new TagAssignResult({ outcomes: results });
+          }),
+        )
+        .handle("unassignTag", ({ params, payload }) =>
+          Effect.gen(function* () {
+            const tag = yield* tagRow(params.tagId);
+            const removed: ReadonlyArray<string> = payload.jamIds;
+            yield* Ref.update(threadTagAssignments, (rows) =>
+              rows.filter(
+                (row) => !(row.tagId === tag.id && removed.includes(row.jamId)),
+              ),
             );
-            return updated;
+            return new JamBatchResult({ outcomes: outcomes(payload.jamIds) });
           }),
         );
     }),
