@@ -63,9 +63,7 @@ function SidebarTriggerRail() {
         visible ? "w-(--h-control-sm) -mr-1 opacity-100" : "mr-0 w-0 opacity-0",
       )}
     >
-      {/* 28×28 like Capy's back button: the icon-sm width loses to the
-          primitive's `w-fit`, so it is stated here as well. */}
-      <SidebarTrigger className="w-(--h-control-sm)!" />
+      <SidebarTrigger />
     </span>
   );
 }

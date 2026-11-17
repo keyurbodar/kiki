@@ -20,13 +20,7 @@ export const threadHeaderClassName = cx(
   "border-b-hairline border-border-1",
 );
 
-/**
- * The bar's controls are 28×28 (Capy's `Close sidebar`, `Open a tab`, `Thread
- * options`, `Expand pane`), which the shared `icon-sm` size cannot guarantee on
- * its own: its `size-*` loses to the primitive's `w-fit`, so the button falls
- * back to its icon's width. Same override the sidebar's icon buttons carry.
- */
-const headerIconButton = "w-(--h-control-sm)!";
+/** The bar's controls are 28×28 (Capy's `Open a tab`, `Thread options`, `Expand pane`). */
 
 export type ThreadHeaderProps = {
   threadId: string;
@@ -81,7 +75,6 @@ export function ThreadHeader({
                       <Button
                         variant="ghost"
                         size="icon-sm"
-                        className={headerIconButton}
                         aria-label="Thread options"
                       >
                         <Icon name="dot-grid-1x3-horizontal" size="sm" />
@@ -109,7 +102,6 @@ export function ThreadHeader({
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  className={headerIconButton}
                   aria-label={expanded ? "Collapse pane" : "Expand pane"}
                   aria-pressed={expanded}
                   onClick={onToggleExpand}

@@ -98,7 +98,7 @@ describe("ThreadHeader", () => {
     renderHeader({});
     for (const name of ["Open a tab", "Thread options", "Expand pane"]) {
       expect(screen.getByRole("button", { name }).className).toContain(
-        "w-(--h-control-sm)!",
+        "size-(--h-control-sm)",
       );
     }
   });
@@ -195,20 +195,26 @@ describe("thread route header", () => {
     expect(screen.getByRole("button", { name: "Open a tab" })).toBeTruthy();
   });
 
-  it("opens a pane from the tab strip without rewriting the URL", async () => {
-    await renderRoute("/thread/jam_sample_0001");
+  it("opens a pane from the tab strip and keeps the URL in step", async () => {
+    const router = await renderRoute("/thread/jam_sample_0001");
     fireEvent.click(await screen.findByText("Files"));
-    expect(
-      document
-        .querySelector('[data-pane-tab="files"]')
-        ?.querySelector("[data-selected]"),
-    ).not.toBeNull();
+    await waitFor(() => {
+      expect(
+        document
+          .querySelector('[data-pane-tab="files"]')
+          ?.querySelector("[data-selected]"),
+      ).not.toBeNull();
+    });
+    expect(router.state.location.search).toEqual({ pane: "files" });
     fireEvent.click(screen.getByText("Fix flaky checkout test"));
-    expect(
-      document
-        .querySelector('[data-pane-tab="chat"]')
-        ?.querySelector("[data-selected]"),
-    ).not.toBeNull();
+    await waitFor(() => {
+      expect(
+        document
+          .querySelector('[data-pane-tab="chat"]')
+          ?.querySelector("[data-selected]"),
+      ).not.toBeNull();
+    });
+    expect(router.state.location.search).toEqual({});
   });
 
   it("opens the pane the URL names when Capy honours that param", async () => {
@@ -226,10 +232,10 @@ describe("thread route header", () => {
   });
 
   it("drops the pane params we invented, but not the ones Capy accepts", async () => {
-    await renderRoute("/thread/jam_sample_0001?pane=threads");
+    const retired = await renderRoute("/thread/jam_sample_0001?pane=threads");
     await waitForStrip();
     expect(paneTab("chat")?.querySelector("[data-selected]")).not.toBeNull();
-    expect(paneTab("threads")?.querySelector("[data-selected]")).toBeNull();
+    expect(retired.state.location.search).toEqual({});
     cleanup();
     await renderRoute("/thread/jam_sample_0001?pane=files");
     await waitForStrip();

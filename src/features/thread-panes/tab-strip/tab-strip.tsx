@@ -203,7 +203,6 @@ function PlusMenu({ options }: PlusMenuProps) {
             data-track-owner="features/thread/pane/tab-strip.tsx#PlusMenu:Button[Open a tab]"
             variant="ghost"
             size="icon-sm"
-            className="w-(--h-control-sm)!"
             aria-label="Open a tab"
           >
             <PlusGlyph />
