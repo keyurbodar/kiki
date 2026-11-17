@@ -56,7 +56,8 @@ export const livePullRequest = (
   return live.find(
     (candidate) =>
       candidate.number === reference.number &&
-      (repo === undefined || candidate.repo === repo),
+      (repo === undefined ||
+        candidate.repo.toLowerCase() === repo.toLowerCase()),
   );
 };
 

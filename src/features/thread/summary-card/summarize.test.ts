@@ -96,6 +96,17 @@ describe("summarizeTurn", () => {
     );
   });
 
+  it("matches live pull requests regardless of repository casing", () => {
+    const mixedCase = {
+      kind: "pr" as const,
+      number: 12,
+      url: "https://github.com/Acme/Web/pull/12",
+    };
+    expect(summarizeTurn(turn({ prs: [mixedCase] }), [live])).toBe(
+      "Merged web#12",
+    );
+  });
+
   it("keys live pull requests by repository as well as number", () => {
     const api = {
       kind: "pr" as const,
