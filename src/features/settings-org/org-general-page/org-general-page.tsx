@@ -191,7 +191,7 @@ function OrgGeneral({
                 size="sm"
                 value={name}
                 aria-label="Organization name"
-                className="w-56"
+                className="w-56!"
                 disabled={!isAdmin}
                 title={adminReason}
                 onChange={(event) => setNameDraft(event.target.value)}
@@ -208,7 +208,7 @@ function OrgGeneral({
               description="For support and API requests"
             >
               <CopyField
-                className="w-56"
+                className="w-56!"
                 size="sm"
                 value={organization.id}
                 label="organization ID"
