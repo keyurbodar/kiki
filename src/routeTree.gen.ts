@@ -15,6 +15,7 @@ import { Route as Char91__composerChar93RouteImport } from './routes/[__composer
 import { Route as Char91__composerFooterChar93RouteImport } from './routes/[__composer-footer]'
 import { Route as Char91__mediaLightboxChar93RouteImport } from './routes/[__media-lightbox]'
 import { Route as Char91__modelPickerChar93RouteImport } from './routes/[__model-picker]'
+import { Route as Char91__p08Char93RouteImport } from './routes/[__p08]'
 import { Route as Char91__threadDeviceChar93RouteImport } from './routes/[__thread-device]'
 import { Route as Char91__tokensChar93RouteImport } from './routes/[__tokens]'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
@@ -211,6 +212,11 @@ const Char91__modelPickerChar93Route =
     path: '/__model-picker',
     getParentRoute: () => rootRouteImport,
   } as any)
+const Char91__p08Char93Route = Char91__p08Char93RouteImport.update({
+  id: '/__p08',
+  path: '/__p08',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char91__threadDeviceChar93Route =
   Char91__threadDeviceChar93RouteImport.update({
     id: '/__thread-device',
@@ -1096,6 +1102,7 @@ export interface FileRoutesByFullPath {
   '/__composer-footer': typeof Char91__composerFooterChar93Route
   '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
   '/__model-picker': typeof Char91__modelPickerChar93Route
+  '/__p08': typeof Char91__p08Char93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
@@ -1263,6 +1270,7 @@ export interface FileRoutesByTo {
   '/__composer-footer': typeof Char91__composerFooterChar93Route
   '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
   '/__model-picker': typeof Char91__modelPickerChar93Route
+  '/__p08': typeof Char91__p08Char93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
@@ -1430,6 +1438,7 @@ export interface FileRoutesById {
   '/__composer-footer': typeof Char91__composerFooterChar93Route
   '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
   '/__model-picker': typeof Char91__modelPickerChar93Route
+  '/__p08': typeof Char91__p08Char93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
@@ -1600,6 +1609,7 @@ export interface FileRouteTypes {
     | '/__composer-footer'
     | '/__media-lightbox'
     | '/__model-picker'
+    | '/__p08'
     | '/__thread-device'
     | '/__tokens'
     | '/design'
@@ -1767,6 +1777,7 @@ export interface FileRouteTypes {
     | '/__composer-footer'
     | '/__media-lightbox'
     | '/__model-picker'
+    | '/__p08'
     | '/__thread-device'
     | '/__tokens'
     | '/design'
@@ -1933,6 +1944,7 @@ export interface FileRouteTypes {
     | '/__composer-footer'
     | '/__media-lightbox'
     | '/__model-picker'
+    | '/__p08'
     | '/__thread-device'
     | '/__tokens'
     | '/design'
@@ -2103,6 +2115,7 @@ export interface RootRouteChildren {
   Char91__composerFooterChar93Route: typeof Char91__composerFooterChar93Route
   Char91__mediaLightboxChar93Route: typeof Char91__mediaLightboxChar93Route
   Char91__modelPickerChar93Route: typeof Char91__modelPickerChar93Route
+  Char91__p08Char93Route: typeof Char91__p08Char93Route
   Char91__threadDeviceChar93Route: typeof Char91__threadDeviceChar93Route
   Char91__tokensChar93Route: typeof Char91__tokensChar93Route
   DesignRoute: typeof DesignRoute
@@ -2170,6 +2183,13 @@ declare module '@tanstack/react-router' {
       path: '/__model-picker'
       fullPath: '/__model-picker'
       preLoaderRoute: typeof Char91__modelPickerChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__p08': {
+      id: '/__p08'
+      path: '/__p08'
+      fullPath: '/__p08'
+      preLoaderRoute: typeof Char91__p08Char93RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/__thread-device': {
@@ -3651,6 +3671,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91__composerFooterChar93Route: Char91__composerFooterChar93Route,
   Char91__mediaLightboxChar93Route: Char91__mediaLightboxChar93Route,
   Char91__modelPickerChar93Route: Char91__modelPickerChar93Route,
+  Char91__p08Char93Route: Char91__p08Char93Route,
   Char91__threadDeviceChar93Route: Char91__threadDeviceChar93Route,
   Char91__tokensChar93Route: Char91__tokensChar93Route,
   DesignRoute: DesignRoute,
