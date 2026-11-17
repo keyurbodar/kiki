@@ -50,7 +50,9 @@ describe("filter query grammar", () => {
       values: ["a/b", "c d"],
     });
     expect(merged).toEqual([{ key: "repo", values: ["a/b", "c d"] }]);
-    expect(formatFilterToken(merged[0])).toBe('repo:a/b,"c d"');
+    expect(formatFilterToken({ key: "repo", values: ["a/b", "c d"] })).toBe(
+      'repo:a/b,"c d"',
+    );
     expect(removeFilterValue(merged, "repo", "a/b")).toEqual([
       { key: "repo", values: ["c d"] },
     ]);
