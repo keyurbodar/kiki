@@ -2,17 +2,17 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { toCapyReview } from "@/components/activity";
 import { cx } from "@/components/activity-card";
 import { CapyMark } from "@/components/capy-logo";
-import { toCapyReview } from "@/components/activity";
-import { OverviewTab } from "@/components/overview-tab";
 import { DiffTab, type PullRef } from "@/components/diff-tab";
+import { OverviewTab } from "@/components/overview-tab";
+import { PullViewTab } from "@/components/pull-view-tab";
 import {
-  ReviewSection,
   type CapyReview,
   type ReviewFinding,
+  ReviewSection,
 } from "@/components/review-section";
-import { PullViewTab } from "@/components/pull-view-tab";
 import { Button } from "@/primitives/button";
 import {
   Dialog,
@@ -41,8 +41,8 @@ import {
   pullReactivityKeys,
   pullReviewAtom,
   pullThreadsAtom,
-  requestReviewAtom,
   reopenPullAtom,
+  requestReviewAtom,
   setDraftAtom,
 } from "./atoms";
 import { copyText } from "./clipboard";
