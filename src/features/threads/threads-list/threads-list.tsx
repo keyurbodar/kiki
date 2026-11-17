@@ -352,7 +352,6 @@ export function ThreadsList({
             <section
               key={section.id}
               data-section={section.id}
-              role="group"
               aria-label={section.label}
               className={cx("relative flow-root", index > 0 && "mt-1")}
               onDragOver={(event) => {
