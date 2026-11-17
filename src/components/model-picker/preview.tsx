@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Button } from "@/primitives/button";
 import { defaultSelection, type ModelSelection } from "./catalog";
 import { ModelPicker } from "./model-picker";
 import { sampleCatalog } from "./sample-catalog";
@@ -62,6 +63,17 @@ export function ModelPickerPreview() {
             entries={sampleCatalog}
             value={{ ...defaultSelection, modelId: "missing/model" }}
           />
+          <div data-preview="child-trigger">
+            <ModelPicker
+              entries={sampleCatalog}
+              value={value}
+              onChange={setValue}
+            >
+              <Button variant="ghost" size="xs" aria-label="Automation model">
+                Default model
+              </Button>
+            </ModelPicker>
+          </div>
         </div>
       </div>
     </div>

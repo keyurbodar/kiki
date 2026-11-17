@@ -86,6 +86,21 @@
       "capture": {
         "[aria-label=Model]": ["height", "font-size", "border-radius"]
       }
+    },
+    {
+      "id": "model-picker-child-trigger",
+      "route": "/__model-picker",
+      "state": "a consumer's own element renders as the trigger",
+      "viewport": "1440x900",
+      "steps": [
+        ["click", "[data-preview=child-trigger] button"],
+        ["wait", "[data-slot=popover-content]"],
+        ["press", "ArrowDown"],
+        ["wait", "[data-slot=picker-lab-card]"]
+      ],
+      "capture": {
+        "[data-preview=child-trigger] button": ["height", "font-size"]
+      }
     }
   ]
 }

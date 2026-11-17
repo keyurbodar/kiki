@@ -3,6 +3,7 @@ import { AsyncResult } from "effect/reactivity";
 import {
   type ComponentProps,
   Fragment,
+  isValidElement,
   type PointerEvent,
   type ReactElement,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -1389,7 +1390,9 @@ export function ModelPicker({
     route === undefined
       ? ""
       : selectionSummary(route.entry, effort, resolveModes(route.entry, value));
-  const triggerButton = trigger ?? (
+  const customTrigger =
+    trigger ?? (isValidElement(children) ? children : undefined);
+  const triggerButton = customTrigger ?? (
     <Button
       variant="ghost"
       size="sm"
