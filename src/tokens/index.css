@@ -8,6 +8,7 @@
 @import "./primitives.css";
 @import "./semantic.css";
 @import "./components.css";
+@import "./markdown.css";
 @import "./themes/default.css";
 @import "./themes/presets.css";
 @import "./motion.css";
