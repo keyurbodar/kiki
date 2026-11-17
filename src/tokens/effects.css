@@ -14,6 +14,15 @@
     transparent 25%,
     rgb(0 0 0 / 0.45) 100%
   );
+  --effect-fabric-mask-image:
+    radial-gradient(
+      ellipse 150% 135% at 50% 110%,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0) 42%,
+      rgba(0, 0, 0, 0.45) 66%,
+      rgba(0, 0, 0, 1) 92%
+    ),
+    linear-gradient(rgb(0 0 0 / var(--fabric-unmask)) 0 0);
 }
 
 [data-slot="background-effect"][data-effect="grain"] {

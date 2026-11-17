@@ -45,6 +45,7 @@ import { motion } from "@/lib/motion";
 import { SidebarTrigger } from "@/primitives/sidebar";
 import { HomeWelcome, type HomeWelcomeProject } from "../home-welcome";
 import { ProjectEnvironmentHint } from "../project-environment-hint";
+import { FabricBackdrop } from "./fabric-backdrop";
 import { useStartThread } from "./use-start-thread";
 
 export type HomePageProps = ComponentProps<"div"> & {
@@ -117,6 +118,7 @@ function HomePageBody({
   ...props
 }: HomePageBodyProps) {
   const { open, isNarrow } = useSidebarState();
+  const shellRef = useRef<HTMLDivElement>(null);
   const { preferences } = useAppearance();
   const background = preferences.background;
   const [pickedProjectId, setPickedProjectId] = useState<string>();
@@ -161,12 +163,14 @@ function HomePageBody({
 
   return (
     <div
+      ref={shellRef}
       className={cn(
         "relative flex min-h-0 flex-1 flex-col overflow-clip",
         className,
       )}
       {...props}
     >
+      <FabricBackdrop panelRef={shellRef} />
       {isNarrow || !open ? (
         <div
           data-track-owner="features/home/home-page.tsx#HomePage:SidebarTrigger.1"

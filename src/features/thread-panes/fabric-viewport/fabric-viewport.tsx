@@ -2,17 +2,8 @@ import type { ComponentProps } from "react";
 
 export type FabricViewportHostProps = ComponentProps<"div">;
 
-export function FabricViewportHost({
-  className,
-  ...props
-}: FabricViewportHostProps) {
-  return (
-    <div
-      data-slot="fabric-viewport-host"
-      className={`relative flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-background ${className ?? ""}`}
-      {...props}
-    />
-  );
+export function FabricViewportHost({ ...props }: FabricViewportHostProps) {
+  return <div data-slot="fabric-viewport-host" {...props} />;
 }
 
 export function constrainViewportScale(
