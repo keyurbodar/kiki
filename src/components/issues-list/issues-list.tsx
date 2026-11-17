@@ -85,6 +85,36 @@ export const compareIssues =
     }
   };
 
+/** The rows the list draws: state filters, closed sub-issues, sub-issue folding, then order. */
+export const visibleIssues = (
+  issues: ReadonlyArray<IssueSummary>,
+  filters: Pick<IssueFilters, "stateIds" | "stateNot" | "hideClosedSubIssues">,
+  display: Pick<IssueDisplay, "order" | "direction" | "subIssues">,
+  states: ReadonlyArray<IssueState>,
+) => {
+  const closedStateIds = new Set(
+    states.filter((state) => state.type === "closed").map((state) => state.id),
+  );
+  const matching = issues
+    .filter((issue) => stateVisible(filters, issue.stateId))
+    .filter(
+      (issue) =>
+        !filters.hideClosedSubIssues ||
+        issue.parentIssueId === null ||
+        !closedStateIds.has(issue.stateId),
+    );
+  const matchingIds = new Set(matching.map((issue) => issue.id));
+  const folded =
+    display.subIssues === "collapsed"
+      ? matching.filter(
+          (issue) =>
+            issue.parentIssueId === null ||
+            !matchingIds.has(issue.parentIssueId),
+        )
+      : matching;
+  return folded.toSorted(compareIssues(display, states));
+};
+
 export type IssueGroup = {
   readonly key: string;
   readonly label: string;
@@ -485,25 +515,12 @@ export function IssuesList({
         ))}
       </div>
     );
-  const closedStateIds = new Set(
-    states.filter((state) => state.type === "closed").map((state) => state.id),
-  );
-  const visible = issues
-    .filter((issue) => stateVisible(filters, issue.stateId))
-    .filter(
-      (issue) =>
-        !filters.hideClosedSubIssues ||
-        issue.parentIssueId === null ||
-        !closedStateIds.has(issue.stateId),
-    )
-    .toSorted(compareIssues(display, states));
+  const visible = visibleIssues(issues, filters, display, states);
   const groups = groupIssues(visible, display.grouping, {
     states: states.filter((state) => stateVisible(filters, state.id)),
     projectNames,
   });
-  const anyOpenIssue = groups.some(
-    (group) => !group.closed && group.issues.length > 0,
-  );
+  const anyIssue = groups.some((group) => group.issues.length > 0);
   const order = groups.flatMap((group) => group.issues);
   const onCheck =
     checked === undefined || onCheckedChange === undefined
@@ -530,7 +547,7 @@ export function IssuesList({
         };
   return (
     <div className="@container/list flex flex-col gap-1 px-2 pt-1 [--issue-code-width:max-content]">
-      {anyOpenIssue ? null : (
+      {anyIssue ? null : (
         <div className="flex items-center justify-center py-16 text-sm font-normal text-muted-foreground-2">
           {emptyText}
         </div>

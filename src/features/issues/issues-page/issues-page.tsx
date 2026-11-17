@@ -30,6 +30,7 @@ import {
   issuePriorities,
 } from "@/data/api/schemas/issue";
 import { queryTimeToLive, reactivityKeys } from "@/data/atoms/conventions";
+import { issueStatesAtom } from "@/data/atoms/issues";
 import { projectsAtom } from "@/data/atoms/projects";
 import { currentUserAtom } from "@/data/atoms/session";
 import { ApiClient } from "@/data/client/ApiClient";
@@ -167,6 +168,12 @@ export function IssuesPage() {
   const mentions = useAtomValue(issueCountAtom(`${org}|mentionCount`));
   const currentUser = useAtomValue(currentUserAtom);
   const projects = useAtomValue(projectsAtom(org));
+  const statesAtomInstance = issueStatesAtom(org);
+  const statesResult = useAtomValue(statesAtomInstance);
+  const refreshStates = useAtomRefresh(statesAtomInstance);
+  const statesFailed = AsyncResult.isFailure(statesResult);
+  const statesPending =
+    AsyncResult.isInitial(statesResult) || AsyncResult.isWaiting(statesResult);
   const states = useIssueStates(orgId);
   const labels = useIssueLabels(orgId);
   const issues = AsyncResult.isSuccess(list) ? list.value.issues : undefined;
@@ -224,7 +231,10 @@ export function IssuesPage() {
         )}
         <HeaderButton
           label="Search issues"
-          onClick={() => setSearchOpen(!searchOpen)}
+          onClick={() => {
+            if (searchOpen) setSearch("");
+            setSearchOpen(!searchOpen);
+          }}
         >
           <SearchGlyph />
         </HeaderButton>
@@ -259,7 +269,7 @@ export function IssuesPage() {
             <IssuesList
               orgId={orgId}
               issues={issues}
-              states={states.length === 0 ? undefined : states}
+              states={statesPending ? undefined : states}
               filters={filters}
               display={display}
               projectNames={Object.fromEntries(
@@ -267,8 +277,11 @@ export function IssuesPage() {
               )}
               now={now}
               emptyText={issueEmptyText(viewOfFilters(filters), search.trim())}
-              failed={AsyncResult.isFailure(list)}
-              onRetry={refresh}
+              failed={AsyncResult.isFailure(list) || statesFailed}
+              onRetry={() => {
+                refresh();
+                refreshStates();
+              }}
               checked={checked}
               onCheckedChange={setChecked}
             />
