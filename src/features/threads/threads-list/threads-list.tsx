@@ -14,6 +14,7 @@ import {
 } from "@/primitives/context-menu";
 import { MenuItem, MenuSeparator } from "@/primitives/menu";
 import { ScrollArea } from "@/primitives/scroll-area";
+import { SkeletonPulse } from "@/primitives/skeleton-panel";
 import {
   formatAge,
   type ProjectSummary,
@@ -37,10 +38,9 @@ const skeletonSections = [
 /** Loading placeholder: three sections of grey bars, as Capy draws it. */
 export function ThreadsListSkeleton() {
   return (
-    <div
-      role="status"
+    <SkeletonPulse
+      label="Loading threads"
       aria-label="Loading threads"
-      data-slot="skeleton-panel"
       className="flex flex-col px-2 pt-1"
     >
       {skeletonSections.map((section, index) => (
@@ -76,7 +76,7 @@ export function ThreadsListSkeleton() {
           ))}
         </div>
       ))}
-    </div>
+    </SkeletonPulse>
   );
 }
 
