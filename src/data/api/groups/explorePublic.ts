@@ -1,5 +1,6 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { ExploreIndex, ExploreListingsQuery } from "../schemas/explore.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class ExplorePublicGroup extends HttpApiGroup.make("explorePublic").add(
@@ -8,8 +9,8 @@ export class ExplorePublicGroup extends HttpApiGroup.make("explorePublic").add(
     success: Undecoded,
   }),
   HttpApiEndpoint.get("listings", "/explore/listings", {
-    query: UndecodedQuery,
-    success: Undecoded,
+    query: ExploreListingsQuery,
+    success: ExploreIndex,
   }),
   HttpApiEndpoint.get("listing", "/explore/listings/:kind/:slug", {
     params: { kind: Schema.String, slug: Schema.String },

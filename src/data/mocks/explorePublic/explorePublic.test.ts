@@ -45,18 +45,31 @@ describe("explorePublic mock", () => {
     }),
   );
 
-  it.effect("lists public listings without an org id", () =>
+  it.effect("serves Capy's ExploreIndex without an org id", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
-      const listings = yield* AtomRegistry.getResult(registry, listingsAtom);
-      const rows = listings as ReadonlyArray<ListingSummary>;
-      assert.isAbove(rows.length, 0);
-      assert.isTrue(rows.every((row) => row.icon.url.startsWith("https://")));
+      const index = yield* AtomRegistry.getResult(registry, listingsAtom);
+      assert.isAbove(index.cards.length, 0);
+      assert.deepStrictEqual(index.added, []);
       assert.isTrue(
-        rows.some((row) => row.kind === "plugin") &&
-          rows.some((row) => row.kind === "skill") &&
-          rows.some((row) => row.kind === "theme"),
+        index.cards.some((card) => card.kind === "plugin") &&
+          index.cards.some((card) => card.kind === "skill") &&
+          index.cards.some((card) => card.kind === "theme"),
       );
+    }),
+  );
+
+  it.effect("filters the index by kind and search text", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const index = yield* AtomRegistry.getResult(
+        registry,
+        ApiClient.query("explorePublic", "listings", {
+          query: { kind: "plugin", q: "deploy" },
+        }),
+      );
+      assert.isAbove(index.cards.length, 0);
+      assert.isTrue(index.cards.every((card) => card.kind === "plugin"));
     }),
   );
 
