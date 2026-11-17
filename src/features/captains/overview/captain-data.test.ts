@@ -122,13 +122,33 @@ describe("drive", () => {
     assert.isNull(toCaptainDrive({}));
   });
 
-  it("shows the newest files first, capped", () => {
-    const { shown, total } = recentDriveFiles(drive?.files ?? [], 2);
+  it("shows the newest files first, capped, keeping undated files reachable", () => {
+    const withUndated = [
+      ...(drive?.files ?? []),
+      {
+        path: "undated.md",
+        volume: drive?.volume ?? {
+          id: "vol_1",
+          namespace: "artifacts",
+          name: "artifacts",
+          headVersionId: "ver_1",
+        },
+        versionId: "ver_1",
+        sha256: "abc",
+        sizeBytes: 1,
+        updatedAt: null,
+      },
+    ];
+    const { shown, total } = recentDriveFiles(withUndated, 2);
     assert.deepStrictEqual(
       shown.map((f) => f.path),
       ["b.md", "c.md"],
     );
-    assert.strictEqual(total, 3);
+    assert.strictEqual(total, 4);
+    assert.deepStrictEqual(
+      recentDriveFiles(withUndated, 4).shown.map((f) => f.path),
+      ["b.md", "c.md", "notes/a.md", "undated.md"],
+    );
   });
 
   it("knows when the overview has content", () => {
