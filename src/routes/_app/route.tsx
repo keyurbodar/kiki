@@ -2,6 +2,7 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { CrashSurface } from "@/components/crash-surface";
 import { NotFoundPage } from "@/components/not-found-page";
 import { AppLayout } from "@/features/shell/app-layout";
+import { Toaster } from "@/primitives/toaster";
 
 export const Route = createFileRoute("/_app")({
   component: AppRoute,
@@ -11,9 +12,12 @@ export const Route = createFileRoute("/_app")({
 
 function AppRoute() {
   return (
-    <AppLayout>
-      <Outlet />
-    </AppLayout>
+    <>
+      <AppLayout>
+        <Outlet />
+      </AppLayout>
+      <Toaster />
+    </>
   );
 }
 

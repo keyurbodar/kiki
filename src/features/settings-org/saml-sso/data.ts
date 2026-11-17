@@ -123,7 +123,9 @@ export const decodeAllowedDomain = (value: unknown): AllowedDomain => {
     verification:
       r.verification === "dns" || r.verification === "email"
         ? r.verification
-        : "pending",
+        : r.verified === true
+          ? "dns"
+          : "pending",
     dnsRecord:
       dns === null
         ? null
@@ -148,8 +150,11 @@ const decodeConnection = (value: unknown): SsoConnection | null => {
     provider: str(r.provider, "saml") as SsoProvider,
     domain: str(r.domain),
     domainId: str(r.domainId),
-    state: str(r.state, "draft") as SsoConnectionState,
-    configured: bool(r.configured),
+    state: str(
+      r.state,
+      r.connected === true ? "active" : "draft",
+    ) as SsoConnectionState,
+    configured: bool(r.configured) || r.connected === true,
     testedAt: date(r.testedAt),
     serviceProvider:
       sp === null

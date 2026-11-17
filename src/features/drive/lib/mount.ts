@@ -1,6 +1,9 @@
 /** What a drive page shows: one scope, as Capy's `DriveDetailPage` mounts it. */
+export const driveScopes = ["organization", "personal"] as const;
+export type DriveScope = (typeof driveScopes)[number];
+
 export type DriveMount =
-  | { readonly kind: "directory"; readonly scope: "organization" | "personal" }
+  | { readonly kind: "directory"; readonly scope: DriveScope }
   | { readonly kind: "captain"; readonly jamId: string }
   | { readonly kind: "automation"; readonly automationId: string }
   | {

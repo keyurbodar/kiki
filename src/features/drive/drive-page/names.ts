@@ -54,7 +54,10 @@ export function useDriveNames(
       id: project.id as string,
       name: project.name,
     })),
-    captains: namedRows(captains),
+    captains: (captains ?? []).map((captain) => ({
+      id: captain.id,
+      name: captain.face.name,
+    })),
     automations: namedRows(automations),
   };
 }

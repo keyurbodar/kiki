@@ -1,3 +1,4 @@
+import { Field } from "@base-ui/react/field";
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useEffect, useRef, useState } from "react";
@@ -33,6 +34,7 @@ import {
   DialogTitle,
 } from "@/primitives/dialog";
 import { Input } from "@/primitives/input";
+import { Label } from "@/primitives/label";
 import {
   Menu,
   MenuContent,
@@ -51,14 +53,30 @@ export interface NewPullInput {
   readonly draft: boolean;
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function FieldGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-xs font-medium text-muted-foreground-1">
-        {label}
-      </span>
+    <Field.Root className="flex flex-col gap-1.5">
+      <Label>{label}</Label>
       {children}
-    </div>
+    </Field.Root>
+  );
+}
+
+/** A repository's initial, as Capy shows its owner avatar when none is available. */
+function RepoAvatar({ fullName }: { fullName: string }) {
+  return (
+    <span
+      aria-hidden
+      className="relative flex size-4 shrink-0 items-center justify-center overflow-hidden rounded bg-secondary text-[0.5rem] font-medium text-muted-foreground-1 uppercase"
+    >
+      {fullName.slice(0, 1)}
+    </span>
   );
 }
 
@@ -102,13 +120,11 @@ export function RepositoryPicker({
           />
         }
       >
-        {value === undefined ? null : (
-          <PullRequestGlyph className="size-(--icon-sm)" />
-        )}
+        {value === undefined ? null : <RepoAvatar fullName={value.fullName} />}
         <span className="min-w-0 truncate">
           {value === undefined ? "Select repository" : value.fullName}
         </span>
-        <ChevronDownGlyph className="ml-auto size-(--icon-xs)" />
+        <ChevronDownGlyph className="ml-auto size-(--icon-sm) shrink-0 text-muted-foreground-3" />
       </MenuTrigger>
       <MenuContent align="start" className="w-72">
         <MenuSearchRow>
@@ -200,7 +216,7 @@ export function BranchPicker({
         <span className="min-w-0 truncate">
           {value === "" ? "Select branch" : value}
         </span>
-        <ChevronDownGlyph className="ml-auto size-(--icon-xs)" />
+        <ChevronDownGlyph className="ml-auto size-(--icon-sm) shrink-0 text-muted-foreground-3" />
       </MenuTrigger>
       <MenuContent align="start" className="w-64">
         {repo === undefined ? null : (
@@ -313,15 +329,15 @@ export function NewPullDialog({
             </div>
           ) : (
             <>
-              <Field label="Repository">
+              <FieldGroup label="Repository">
                 <RepositoryPicker
                   repos={repos}
                   value={repo}
                   onChange={setRepoName}
                 />
-              </Field>
+              </FieldGroup>
               <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="Base branch">
+                <FieldGroup label="Base branch">
                   <BranchPicker
                     orgId={orgId}
                     repo={repo}
@@ -329,8 +345,8 @@ export function NewPullDialog({
                     label="Base branch"
                     onChange={setBase}
                   />
-                </Field>
-                <Field label="Head branch">
+                </FieldGroup>
+                <FieldGroup label="Head branch">
                   <BranchPicker
                     orgId={orgId}
                     repo={repo}
@@ -341,9 +357,9 @@ export function NewPullDialog({
                       if (!titleEdited) setTitle(branch);
                     }}
                   />
-                </Field>
+                </FieldGroup>
               </div>
-              <Field label="Title">
+              <FieldGroup label="Title">
                 <Input
                   aria-label="Title"
                   value={title}
@@ -353,8 +369,8 @@ export function NewPullDialog({
                     setTitle(event.target.value);
                   }}
                 />
-              </Field>
-              <Field label="Description">
+              </FieldGroup>
+              <FieldGroup label="Description">
                 <Textarea
                   aria-label="Description"
                   placeholder="Describe the changes"
@@ -362,7 +378,7 @@ export function NewPullDialog({
                   value={body}
                   onChange={(event) => setBody(event.target.value)}
                 />
-              </Field>
+              </FieldGroup>
               <span className="flex items-center gap-2 text-sm text-foreground">
                 <Checkbox
                   aria-label="Create as draft"

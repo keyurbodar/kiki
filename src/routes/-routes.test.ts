@@ -13,6 +13,7 @@ const DEV_ONLY_ROUTES = new Set([
   "/__composer",
   "/__thread-device",
   "/__media-lightbox",
+  "/__chips",
 ]);
 
 function countRoutes(node: Node): number {

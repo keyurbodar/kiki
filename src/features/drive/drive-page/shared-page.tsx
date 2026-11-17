@@ -22,6 +22,7 @@ import {
   MenuSeparator,
   MenuTrigger,
 } from "@/primitives/menu";
+import { useIsNarrow } from "@/primitives/sidebar";
 import { ShareIcon } from "../icons";
 import { formatRelativeTime } from "../lib/format";
 import { targetRoute } from "../lib/mount";
@@ -37,7 +38,6 @@ import {
 import { DriveTopBar } from "./drive-top-bar";
 import { useDriveNames } from "./names";
 import { resultValue, useDriveSession } from "./session";
-import { useNarrow } from "./use-narrow";
 
 export const shareVisibilities = [
   {
@@ -140,7 +140,7 @@ export function SharedPage() {
           <span className="flex min-w-0 items-center gap-1.5">
             <Link
               to="/drive"
-              className="min-w-0 truncate rounded font-medium text-muted-foreground-2 outline-none transition-colors duration-100 hover:text-foreground focus-visible:outline-ring-inset"
+              className="min-w-0 truncate rounded font-medium text-muted-foreground-2 outline-none transition-colors duration-hover hover:text-foreground focus-visible:outline-ring-inset"
             >
               Capy Drive
             </Link>
@@ -186,7 +186,7 @@ function SharedList({
   const [page, setPage] = useState(1);
   const result = useAtomValue(driveOrgSharesAtom(orgId, page));
   const names = useDriveNames(orgId, orgName, userId);
-  const narrow = useNarrow();
+  const narrow = useIsNarrow();
   const directory = resultValue(result);
   if (directory === undefined) {
     return AsyncResult.isFailure(result) ? (
@@ -230,8 +230,8 @@ function SharedList({
         <DirectoryTable
           columns={
             narrow
-              ? "minmax(0,1fr) minmax(6rem,auto) auto"
-              : "minmax(0,3fr) minmax(0,1.4fr) minmax(7rem,auto) minmax(0,1.2fr) minmax(6rem,auto) auto"
+              ? "minmax(0,1fr) minmax(min-content,auto) auto"
+              : "minmax(0,3fr) minmax(0,1.4fr) minmax(min-content,auto) minmax(0,1.2fr) minmax(min-content,auto) auto"
           }
         >
           <DirectoryTableHeader>
