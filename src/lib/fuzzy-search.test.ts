@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { filterItems, matchText, normalizeQuery, rankItems } from "./fuzzy-search";
+import {
+  filterItems,
+  matchText,
+  normalizeQuery,
+  rankItems,
+} from "./fuzzy-search";
 
 describe("fuzzy-search", () => {
   it("normalizes queries", () => {

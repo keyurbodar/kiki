@@ -30,8 +30,8 @@ const isWordChar = (char: string | undefined) =>
 
 const isWordStart = (text: string, index: number) => {
   if (index === 0) return true;
-  const previous = text[index - 1];
-  const current = text[index];
+  const previous = text.charAt(index - 1);
+  const current = text.charAt(index);
   if (!isWordChar(previous)) return true;
   if (/\p{Lu}/u.test(current) && /\p{Ll}/u.test(previous)) return true;
   return /\p{N}/u.test(current) !== /\p{N}/u.test(previous);
@@ -61,9 +61,10 @@ const matchToken = (
     };
   const hits = indexesOf(lower, token);
   if (hits.length === 0) return undefined;
+  const first = hits[0] ?? 0;
   const wordHit = hits.find((i) => isWordStart(text, i));
   const tier: MatchTier =
-    hits[0] === 0
+    first === 0
       ? "prefix"
       : wordHit === undefined
         ? token.length >= 2
@@ -71,7 +72,7 @@ const matchToken = (
           : "fuzzy"
         : "word";
   if (tier === "fuzzy") return undefined;
-  const start = tier === "word" ? (wordHit as number) : hits[0];
+  const start = tier === "word" && wordHit !== undefined ? wordHit : first;
   return {
     tier,
     score: tierScore[tier] + closeness(token, text, start),
@@ -91,9 +92,9 @@ const matchFuzzy = (
   while (q < query.length) {
     let start = -1;
     for (
-      let i = lower.indexOf(query[q], from);
+      let i = lower.indexOf(query.charAt(q), from);
       i !== -1;
-      i = lower.indexOf(query[q], i + 1)
+      i = lower.indexOf(query.charAt(q), i + 1)
     )
       if (isWordStart(text, i)) {
         start = i;
@@ -101,7 +102,7 @@ const matchFuzzy = (
       }
     if (start === -1) return undefined;
     let end = start;
-    while (q < query.length && lower[end] === query[q]) {
+    while (q < query.length && lower.charAt(end) === query.charAt(q)) {
       end += 1;
       q += 1;
     }
@@ -119,7 +120,7 @@ const matchFuzzy = (
     score:
       tierScore.fuzzy +
       Math.max(0, 60 - runs.length * 15) +
-      Math.round(closeness(query, text, runs[0].start) / 2),
+      Math.round(closeness(query, text, runs[0]?.start ?? 0) / 2),
     ranges: runs,
   };
 };
@@ -146,7 +147,9 @@ export const matchText = (text: string, query: string): Match | undefined => {
   if (normalized === "" || text === "") return undefined;
   const lower = text.toLowerCase();
   if (lower.length !== text.length)
-    return lower.includes(normalized) ? matchText(lower, normalized) : undefined;
+    return lower.includes(normalized)
+      ? matchText(lower, normalized)
+      : undefined;
   return (
     matchToken(text, lower, normalized) ??
     matchWords(text, lower, normalized) ??
@@ -179,7 +182,9 @@ const matchAcrossFields = (
       field < primary
         ? tierScore.word
         : Math.round(tierScore.word * secondaryFieldWeight),
-    ranges: found.filter((h) => h.field === field).flatMap((h) => h.match.ranges),
+    ranges: found
+      .filter((h) => h.field === field)
+      .flatMap((h) => h.match.ranges),
     field,
   };
 };
