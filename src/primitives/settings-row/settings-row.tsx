@@ -1,6 +1,7 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentProps, ReactNode } from "react";
+import { Icon } from "@/primitives/icon";
 
 const cx = (...parts: Array<string | false | null | undefined>) =>
   parts.filter(Boolean).join(" ");
@@ -192,24 +193,14 @@ export function SettingsRowLink({
       </div>
       <div className="flex shrink-0 items-center gap-2">
         {children}
-        <svg
-          aria-hidden
-          data-icon="chevron-right-small"
-          viewBox="0 0 24 24"
-          fill="none"
+        <Icon
+          name="chevron-right-small"
+          size={null}
           className={cx(
             "size-(--icon-sm) shrink-0 text-muted-foreground-3",
             chevron === "wide" && "max-sm:hidden",
           )}
-        >
-          <path
-            d="M10 16L12.9393 13.0607C13.5251 12.4749 13.5251 11.5251 12.9393 10.9393L10 8"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        />
       </div>
     </Link>
   );
