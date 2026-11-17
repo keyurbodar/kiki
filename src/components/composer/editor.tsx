@@ -58,6 +58,7 @@ import {
   useImperativeHandle,
   useRef,
 } from "react";
+import { cn } from "@/lib/cn";
 import { $caretOffset, $restoreCaret } from "./caret";
 import { CommandPlugin } from "./command-plugin";
 import {
@@ -111,8 +112,22 @@ export const COMPOSER_THEME: EditorThemeClasses = {
   },
 };
 
-export const EDITOR_CLASS =
-  "max-h-56 min-h-6 w-full overflow-y-auto overscroll-contain p-1 text-base font-normal text-foreground outline-none md:scroll-fade-y md:supports-[animation-timeline:scroll()]:scrollbar-hide whitespace-pre-wrap [overflow-wrap:anywhere]";
+export type ComposerFieldHeight = "single" | "multi";
+
+const EDITOR_BASE_CLASS =
+  "max-h-56 w-full overflow-y-auto overscroll-contain p-1 text-base font-normal text-foreground outline-none md:scroll-fade-y md:supports-[animation-timeline:scroll()]:scrollbar-hide whitespace-pre-wrap [overflow-wrap:anywhere]";
+
+export const EDITOR_FIELD_HEIGHT_CLASS: Record<ComposerFieldHeight, string> = {
+  single: "min-h-6",
+  multi: "min-h-16",
+};
+
+export const editorFieldClass = (
+  fieldHeight: ComposerFieldHeight = "single",
+  extra?: string,
+) => cn(EDITOR_BASE_CLASS, EDITOR_FIELD_HEIGHT_CLASS[fieldHeight], extra);
+
+export const EDITOR_CLASS = editorFieldClass();
 
 export type ComposerEditorHandle = {
   submit: (delivery?: ComposerDelivery) => void;
@@ -162,6 +177,7 @@ export type ComposerEditorProps = {
   onEmptyChange?: (empty: boolean) => void;
   handleRef?: Ref<ComposerEditorHandle>;
   editorClassName?: string;
+  fieldHeight?: ComposerFieldHeight;
 };
 
 type Point = { type: "text" | "element"; key: string; offset: number };
@@ -350,6 +366,7 @@ function EditorBody(props: ComposerEditorProps) {
     onEmptyChange,
     handleRef,
     editorClassName,
+    fieldHeight = "single",
   } = props;
   const [editor] = useLexicalComposerContext();
   const touchOnly = useTouchOnly();
@@ -959,11 +976,7 @@ function EditorBody(props: ComposerEditorProps) {
         contentEditable={
           <ContentEditable
             aria-label={ariaLabel}
-            className={
-              editorClassName
-                ? `${EDITOR_CLASS} ${editorClassName}`
-                : EDITOR_CLASS
-            }
+            className={editorFieldClass(fieldHeight, editorClassName)}
           />
         }
         placeholder={
