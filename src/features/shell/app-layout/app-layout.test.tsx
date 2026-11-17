@@ -42,5 +42,7 @@ it("hosts the page inside the sidebar panel", async () => {
 it("hosts the settings sidebar panel on settings routes", async () => {
   const { container } = await renderAt("/settings/general");
   expect(container.querySelector("[data-slot=sidebar-wrapper]")).not.toBeNull();
-  expect(container.querySelector("[data-slot=settings-sidebar]")).not.toBeNull();
+  expect(
+    container.querySelector("[data-slot=settings-sidebar]"),
+  ).not.toBeNull();
 });
