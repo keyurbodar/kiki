@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   availableScopes,
+  changedPatchFiles,
   defaultScope,
   filterTurns,
   groupTurns,
+  patchTotals,
   pickTurn,
   rangeLabel,
   turnTitle,
@@ -68,5 +70,29 @@ describe("diffs-view logic", () => {
       through: "e1",
     });
     expect(rangeLabel(0, 1, 2)).toBe("Turns 1–2 of 2");
+  });
+});
+
+describe("changedPatchFiles", () => {
+  const response = {
+    files: [
+      {
+        path: "src/checkout/retry.ts",
+        diff: "@@ -1 +1 @@\n-old\n+new",
+        additionCount: 1,
+        deletionCount: 1,
+      },
+      { path: "src/checkout/unchanged.ts", diff: "--- a/\n+++ b/" },
+    ],
+  };
+
+  it("keeps only changed paths with patches and counts", () => {
+    const files = changedPatchFiles(
+      response,
+      new Set(["src/checkout/retry.ts"]),
+    );
+    expect(files).toHaveLength(1);
+    expect(files[0].patch).toContain("+new");
+    expect(patchTotals(files)).toEqual({ additions: 1, deletions: 1 });
   });
 });

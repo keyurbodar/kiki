@@ -8,9 +8,9 @@ import {
   CollapseAllButton,
   DiffDisplayMenu,
   DiffFilesMenu,
-  type DiffToolbarFile,
 } from "@/components/diff-toolbar";
 import { ApiClient } from "@/data/client/ApiClient";
+import { DiffBodyCard } from "@/features/thread/diff-body";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import {
@@ -28,6 +28,7 @@ import {
   type DiffTurn,
   defaultScope,
   filterTurns,
+  patchTotals,
   pickTurn,
   rangeLabel,
   scopeLabels,
@@ -134,42 +135,6 @@ function asTurns(value: unknown): DiffTurn[] {
       },
     ];
   });
-}
-
-function asFiles(value: unknown): DiffToolbarFile[] {
-  if (typeof value !== "object" || value === null) return [];
-  const files = (value as Record<string, unknown>).files;
-  if (!Array.isArray(files)) return [];
-  return files.flatMap((entry) => {
-    if (typeof entry !== "object" || entry === null) return [];
-    const file = entry as Record<string, unknown>;
-    return typeof file.path === "string"
-      ? [{ path: file.path, additions: 0, deletions: 0 }]
-      : [];
-  });
-}
-
-function asTotals(value: unknown) {
-  if (typeof value !== "object" || value === null) {
-    return { additions: 0, deletions: 0 };
-  }
-  const files = (value as Record<string, unknown>).files;
-  const entries = Array.isArray(files) ? files : [];
-  return entries.reduce(
-    (totals, entry) => {
-      if (typeof entry !== "object" || entry === null) return totals;
-      const file = entry as Record<string, unknown>;
-      return {
-        additions:
-          totals.additions +
-          (typeof file.additionCount === "number" ? file.additionCount : 0),
-        deletions:
-          totals.deletions +
-          (typeof file.deletionCount === "number" ? file.deletionCount : 0),
-      };
-    },
-    { additions: 0, deletions: 0 },
-  );
 }
 
 function ScopeMenu({
@@ -336,10 +301,16 @@ export function DiffsView({ threadId }: DiffsViewProps) {
     asTurns(AsyncResult.isSuccess(turnsResult) ? turnsResult.value : undefined),
   );
   const scopes = availableScopes(turns);
-  const files = asFiles(AsyncResult.isSuccess(patch) ? patch.value : undefined);
-  const totals = asTotals(
-    AsyncResult.isSuccess(patch) ? patch.value : undefined,
+  const changedPaths = new Set(
+    (status.value as { changes?: Array<{ path: string }> }).changes?.map(
+      (change) => change.path,
+    ) ?? [],
   );
+  const files = changedPatchFiles(
+    AsyncResult.isSuccess(patch) ? patch.value : undefined,
+    changedPaths,
+  );
+  const totals = patchTotals(files);
   const scope = defaultScope(scopes, turns, choice);
   const changeScope = (next: DiffScope) => {
     setChoice(next);
@@ -407,7 +378,13 @@ export function DiffsView({ threadId }: DiffsViewProps) {
               file.path === activePath && "bg-accent",
             )}
           >
-            <span className="text-xs text-muted-foreground-2">{file.path}</span>
+            {file.patch === null ? (
+              <span className="text-xs text-muted-foreground-2">
+                {file.path}
+              </span>
+            ) : (
+              <DiffBodyCard patch={file.patch} path={file.path} />
+            )}
           </div>
         ))}
       </div>

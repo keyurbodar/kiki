@@ -1,15 +1,15 @@
-import { useAtomSet, useAtomValue } from "@effect/atom-react";
-import { Atom } from "effect/reactivity";
-import { ApiClient } from "@/data/client/ApiClient";
+import { useSyncExternalStore } from "react";
+import {
+  appearanceActions,
+  type DiffColors,
+  type DiffStyle,
+  getAppearance,
+} from "@/features/settings-appearance/model/appearance-store";
 
-export type DiffStyle = "unified" | "split";
-export type DiffColors = "red-green" | "blue-orange";
-
-export type DiffPreferences = {
-  diffStyle: DiffStyle;
-  diffColors: DiffColors;
-  diffWrap: boolean;
-};
+export type {
+  DiffColors,
+  DiffStyle,
+} from "@/features/settings-appearance/model/appearance-store";
 
 export const diffStyleLabels: Record<DiffStyle, string> = {
   unified: "Unified",
@@ -21,36 +21,37 @@ export const diffColorLabels: Record<DiffColors, string> = {
   "blue-orange": "Blue/orange",
 };
 
-export const diffPreferencesAtom = Atom.make<DiffPreferences>({
-  diffStyle: "unified",
-  diffColors: "red-green",
-  diffWrap: false,
-}).pipe(Atom.keepAlive);
+const subscribe = (listener: () => void) => {
+  const media = globalThis.matchMedia?.("(prefers-color-scheme: dark)");
+  const onChange = () => listener();
+  media?.addEventListener("change", onChange);
+  return () => media?.removeEventListener("change", onChange);
+};
 
-const updateClientAppearance = ApiClient.mutation(
-  "users",
-  "updateClientAppearance",
-);
+const getDiffWrap = () => false;
 
-/**
- * Diff display preferences, saved to the client appearance the way Capy's
- * `updateAppearance` does. The local value updates at once and rolls back
- * when the save fails, so callers only toast.
- */
+/** Diff display preferences come from the same store Capy's appearance uses. */
 export function useDiffPreferences() {
-  const preferences = useAtomValue(diffPreferencesAtom);
-  const setPreferences = useAtomSet(diffPreferencesAtom);
-  const save = useAtomSet(updateClientAppearance, { mode: "promise" });
-  const updateAppearance = (patch: Partial<DiffPreferences>) => {
-    const previous = preferences;
-    setPreferences({ ...previous, ...patch });
-    return save({ payload: patch }).then(
-      () => undefined,
-      (error: unknown) => {
-        setPreferences(previous);
-        throw error;
-      },
-    );
+  useSyncExternalStore(subscribe, getAppearance, getAppearance);
+  const appearance = getAppearance();
+  return {
+    preferences: {
+      diffStyle: appearance.preferences.diffStyle,
+      diffColors: appearance.diffColors,
+      diffWrap: getDiffWrap(),
+    },
+    updateAppearance: (
+      patch: Partial<{
+        diffStyle: DiffStyle;
+        diffColors: DiffColors;
+        diffWrap: boolean;
+      }>,
+    ) => {
+      if (patch.diffStyle !== undefined)
+        appearanceActions.updatePreferences({ diffStyle: patch.diffStyle });
+      if (patch.diffColors !== undefined)
+        appearanceActions.setDiffColors(patch.diffColors);
+      return Promise.resolve();
+    },
   };
-  return { preferences, updateAppearance };
 }

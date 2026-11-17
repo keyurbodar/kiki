@@ -1,6 +1,6 @@
-import { useAtomValue } from "@effect/atom-react";
+import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useState } from "react";
 import { ApiClient } from "@/data/client/ApiClient";
 import { DiffBodyCard } from "@/features/thread/diff-body";
 import { Button } from "@/primitives/button";
@@ -110,18 +110,16 @@ export function LocalDiffsView({ target }: { target: LocalDiffTarget }) {
   const params = { orgId: target.orgId, jamId: target.jamId };
   const status = useAtomValue(statusAtom(params));
   const patch = useAtomValue(patchAtom(params));
-  const [attempt, setAttempt] = useState(0);
   const [activePath, setActivePath] = useState<string>();
+  const refreshStatus = useAtomRefresh(statusAtom(params));
+  const refreshPatch = useAtomRefresh(patchAtom(params));
 
-  useEffect(() => {
-    if (attempt === 0) return;
-    const timer = setTimeout(() => setAttempt(0), 0);
-    return () => clearTimeout(timer);
-  }, [attempt]);
-
-  const changed = readChanged(
-    AsyncResult.isSuccess(status) ? status.value : undefined,
-  );
+  if (!AsyncResult.isSuccess(status)) {
+    return (
+      <EmptyState line="Local diff unavailable" sub="Loading local changes" />
+    );
+  }
+  const changed = readChanged(status.value);
   if (changed.length === 0) {
     return (
       <EmptyState
@@ -159,7 +157,10 @@ export function LocalDiffsView({ target }: { target: LocalDiffTarget }) {
                 variant="ghost"
                 size="icon-xs"
                 aria-label="Refresh"
-                onClick={() => setAttempt((value) => value + 1)}
+                onClick={() => {
+                  refreshStatus();
+                  refreshPatch();
+                }}
               >
                 <Icon name="arrow-rotate-clockwise" />
               </Button>

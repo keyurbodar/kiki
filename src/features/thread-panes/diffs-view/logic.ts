@@ -144,3 +144,45 @@ export function filesForScope(
     return diffCategory(file.path) === scope.scope;
   });
 }
+
+export type PatchFile = DiffToolbarFile & {
+  patch?: string | null;
+  repo?: string;
+};
+
+/** Keep only changed files from the patch response, with their counts. */
+export function changedPatchFiles(
+  value: unknown,
+  changedPaths: ReadonlySet<string>,
+): PatchFile[] {
+  if (typeof value !== "object" || value === null) return [];
+  const files = (value as Record<string, unknown>).files;
+  if (!Array.isArray(files)) return [];
+  return files.flatMap((entry) => {
+    if (typeof entry !== "object" || entry === null) return [];
+    const file = entry as Record<string, unknown>;
+    if (typeof file.path !== "string" || !changedPaths.has(file.path))
+      return [];
+    const patch = typeof file.diff === "string" ? file.diff : null;
+    return [
+      {
+        path: file.path,
+        patch,
+        additions:
+          typeof file.additionCount === "number" ? file.additionCount : 0,
+        deletions:
+          typeof file.deletionCount === "number" ? file.deletionCount : 0,
+      },
+    ];
+  });
+}
+
+export function patchTotals(files: ReadonlyArray<PatchFile>) {
+  return files.reduce(
+    (totals, file) => ({
+      additions: totals.additions + (file.additions ?? 0),
+      deletions: totals.deletions + (file.deletions ?? 0),
+    }),
+    { additions: 0, deletions: 0 },
+  );
+}

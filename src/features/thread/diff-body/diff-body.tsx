@@ -56,9 +56,17 @@ export function DiffBodyCard({
 
   useEffect(() => {
     const readSelection = () => {
-      const text = window.getSelection()?.toString() ?? "";
-      const range = window.getSelection()?.getRangeAt(0);
-      if (text.length === 0 || range === undefined || range === null) {
+      const element = bodyRef.current;
+      const current = window.getSelection();
+      const text = current?.toString() ?? "";
+      const range = current?.rangeCount ? current.getRangeAt(0) : undefined;
+      if (
+        text.length === 0 ||
+        range === undefined ||
+        element === null ||
+        !element.contains(range.startContainer) ||
+        !element.contains(range.endContainer)
+      ) {
         setSelection(undefined);
         return;
       }
