@@ -1,15 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { ThisDevicePage } from "@/features/settings-integrations/devices";
 
 export const Route = createFileRoute("/_app/settings/devices_/this")({
-  component: RouteComponent,
+  component: ThisDevicePage,
 });
-
-function RouteComponent() {
-  return (
-    <RoutePlaceholder
-      title="/settings/devices/this"
-      path="/settings/devices/this"
-    />
-  );
-}
