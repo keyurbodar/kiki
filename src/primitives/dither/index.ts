@@ -1,6 +1,6 @@
-export { DitherCover, type DitherCoverProps } from "./dither-cover";
 export { DitherFill, type DitherFillProps } from "./dither-fill";
 export { DitherShader, type DitherShaderProps } from "./dither-shader";
+export { lightenHex, SHADER_TRANSPARENT } from "./shader-colors";
 export {
   monochrome,
   resolveShaderColor,
