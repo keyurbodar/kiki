@@ -43,11 +43,9 @@ export function DiffStat({
 export const PullRow = memo(function PullRow({
   pull,
   now,
-  multirepo,
 }: {
   pull: PullCard;
   now: number;
-  multirepo: boolean;
 }) {
   const owner = pull.repo.slice(0, pull.repo.indexOf("/"));
   return (
@@ -67,7 +65,7 @@ export const PullRow = memo(function PullRow({
           <PullStateIcon state={pull.state} />
         </span>
         <span className="w-(--pull-code-width) shrink-0 text-sm font-normal whitespace-nowrap text-muted-foreground-2 tabular-nums @max-lg/list:hidden">
-          <span className="inline-block">{pullCode(pull, multirepo)}</span>
+          <span className="inline-block">{pullCode(pull)}</span>
         </span>
         <AuthorAvatar name={pull.author} src={pull.authorAvatarUrl} />
         <span className="mask-fade-r min-w-0 flex-1 overflow-hidden text-sm font-medium whitespace-nowrap text-foreground">

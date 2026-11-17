@@ -353,20 +353,22 @@ export const emptyText = (
   searching: boolean,
   total: number,
   filtered: boolean,
+  openView = false,
 ) =>
   searching
     ? "No matching pull requests"
     : total === 0 && !filtered
-      ? "No pull requests yet"
+      ? openView
+        ? "No open pull requests"
+        : "No pull requests yet"
       : "No pull requests match these filters";
 
 /** Chip value text: up to two names, else "N things". */
 export const summarize = (names: ReadonlyArray<string>, noun: string) =>
   names.length <= 2 ? names.join(", ") : `${names.length} ${noun}`;
 
-/** Row code: `#12`, or `web#12` when the list spans several repos. */
-export const pullCode = (pull: PullCard, multirepo: boolean) =>
-  multirepo ? `${repoName(pull.repo)}#${pull.number}` : `#${pull.number}`;
+/** Row code the list prints: `#12`, as Capy's rows do (its `Ir` also prefixes the repo when the list spans several, which this list does not). */
+export const pullCode = (pull: PullCard) => `#${pull.number}`;
 
 const minute = 60 * 1000;
 

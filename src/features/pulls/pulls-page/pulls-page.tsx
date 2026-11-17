@@ -159,7 +159,6 @@ function PullsPageFor({ orgId }: { orgId: string }) {
     prefs.savedViews.find((view) => view.id === activeKey)?.filters;
   const dirty = activeView === undefined || !sameFilters(activeView, filters);
   const chips = pullFilterChips(filters, options, setFilters);
-  const multirepo = options.repos.length > 1;
 
   const onCreate = (input: NewPullInput) =>
     createPull({
@@ -297,11 +296,16 @@ function PullsPageFor({ orgId }: { orgId: string }) {
               text={
                 AsyncResult.isFailure(result)
                   ? "Action failed"
-                  : emptyText(false, pulls.length, hasFilters(filters))
+                  : emptyText(
+                      false,
+                      pulls.length,
+                      hasFilters(filters),
+                      activeKey === "open",
+                    )
               }
             />
           ) : (
-            <PullsList sections={sections} now={now} multirepo={multirepo} />
+            <PullsList sections={sections} now={now} />
           )}
         </div>
       </div>

@@ -258,8 +258,7 @@ describe("pull sections", () => {
 
 describe("pull labels", () => {
   it("formats codes, summaries, ages and empty copy", () => {
-    expect(pullCode(pull({ number: 12 }), false)).toBe("#12");
-    expect(pullCode(pull({ number: 12 }), true)).toBe("web#12");
+    expect(pullCode(pull({ number: 12 }))).toBe("#12");
     expect(summarize(["Ready", "Draft"], "states")).toBe("Ready, Draft");
     expect(summarize(["a", "b", "c", "d"], "states")).toBe("4 states");
     expect(shortAge(now - 5 * 60 * 1000, now)).toBe("5m");
@@ -270,5 +269,10 @@ describe("pull labels", () => {
       "No pull requests match these filters",
     );
     expect(emptyText(true, 3, false)).toBe("No matching pull requests");
+    expect(emptyText(false, 0, false, true)).toBe("No open pull requests");
+    expect(emptyText(false, 0, false, false)).toBe("No pull requests yet");
+    expect(emptyText(false, 0, true, true)).toBe(
+      "No pull requests match these filters",
+    );
   });
 });
