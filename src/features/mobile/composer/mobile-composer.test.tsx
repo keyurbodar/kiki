@@ -1,120 +1,184 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { useState } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  composerMenuFor,
-  filterCommands,
-  filterMentions,
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
+import { createRef } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import type { ComposerHandle } from "@/components/composer";
+import { resolveCommandRows } from "@/components/composer/command-rows";
+import { resolveMentionState } from "@/components/composer/mention-rows";
+import {
+  composerCommands,
   MobileComposer,
-  type MobileComposerProps,
+  mentionCategories,
+  mentionSources,
 } from "./index";
 
 afterEach(cleanup);
 
-function Harness(props: Partial<MobileComposerProps>) {
-  const [value, setValue] = useState("");
-  return (
-    <MobileComposer
-      value={value}
-      onValueChange={setValue}
-      onSend={() => {}}
-      {...props}
-    />
+const settle = () => new Promise((resolve) => setTimeout(resolve, 50));
+
+const commandRows = (
+  term: string,
+  onRun: (command: unknown) => void = () => {},
+) =>
+  resolveCommandRows({
+    commands: composerCommands((command) => onRun(command)),
+    picker: undefined,
+    skills: mentionSources().find((source) => source.kind === "skill"),
+    skillsMode: false,
+    skillItems: [],
+    term,
+  }).rows;
+
+const commandNames = (term: string) =>
+  commandRows(term).flatMap((row) =>
+    row.type === "command" ? [row.command.name] : [],
   );
+
+const mentionState = (term: string) => {
+  const state = resolveMentionState(mentionSources(), null, term);
+  if (state instanceof Promise)
+    throw new Error("mention sources resolve synchronously");
+  return state;
+};
+
+const mentionLabels = (term: string) =>
+  mentionState(term).rows.flatMap((row) =>
+    row.type === "category" ? [row.source.label] : [],
+  );
+
+async function open() {
+  const ref = createRef<ComposerHandle>();
+  render(<MobileComposer ref={ref} onSend={() => {}} onCommand={() => {}} />);
+  const editor = await screen.findByLabelText("Message");
+  const type = async (text: string) => {
+    act(() => ref.current?.typeCharacter(text));
+    await settle();
+  };
+  return { ref, editor, type };
 }
 
-const type = (text: string) =>
-  fireEvent.change(screen.getByLabelText("Message"), {
-    target: { value: text },
-  });
-
-describe("composerMenuFor", () => {
-  it("opens commands on a leading slash word", () => {
-    expect(composerMenuFor("/")).toEqual({ kind: "command", query: "" });
-    expect(composerMenuFor("/fo")).toEqual({ kind: "command", query: "fo" });
-    expect(composerMenuFor("/fork now").kind).toBe("none");
-    expect(composerMenuFor("a /x").kind).toBe("none");
-  });
-
-  it("opens mentions on a trailing @ word", () => {
-    expect(composerMenuFor("@")).toEqual({
-      kind: "mention",
-      query: "",
-      start: 0,
-    });
-    expect(composerMenuFor("ask @Pe")).toEqual({
-      kind: "mention",
-      query: "Pe",
-      start: 4,
-    });
-    expect(composerMenuFor("mail@x").kind).toBe("none");
-  });
-
-  it("filters commands and mentions by label", () => {
-    expect(filterCommands("fork").map((c) => c.id)).toEqual([
+describe("phone composer commands", () => {
+  it("lists every command after /, with skills last", () => {
+    expect(commandNames("")).toEqual([
+      "plan",
+      "model",
+      "reasoning",
+      "fast",
+      "new",
+      "subscriber",
+      "compact",
+      "side",
       "fork",
       "fork-summary",
     ]);
-    expect(filterMentions("pull").map((c) => c.id)).toEqual(["pulls"]);
+    expect(commandRows("").at(-1)).toEqual({
+      type: "skills",
+      source: expect.objectContaining({ label: "Skills" }),
+    });
+  });
+
+  it("filters on the typed word", () => {
+    expect(commandNames("fork")).toEqual(["fork", "fork-summary"]);
+    expect(commandNames("new")).toEqual(["new", "side"]);
+  });
+
+  it("opens the command menu on /", async () => {
+    const { type } = await open();
+    await type("/");
+    const menu = document.querySelector('[data-slot="composer-command-menu"]');
+    expect(menu?.textContent).toContain("Plan mode");
+    expect(menu?.textContent).toContain("/fork-summary");
+    expect(menu?.textContent).toContain("Skills");
+  });
+});
+
+describe("phone composer mentions", () => {
+  it("lists every @ category with its description", () => {
+    expect(mentionLabels("")).toEqual(
+      mentionCategories.map((category) => category.label),
+    );
+    expect(mentionState("").rows[1]).toEqual({
+      type: "category",
+      source: expect.objectContaining({
+        category: "captains",
+        description: "Hand work to a Captain and its crew",
+      }),
+    });
+  });
+
+  it("narrows to the category that matches the typed word", () => {
+    expect(mentionLabels("pull")).toEqual(["Pull requests"]);
+  });
+
+  it("opens the mention menu on @ and closes it on Escape", async () => {
+    const { editor, type } = await open();
+    await type("see @");
+    const menu = document.querySelector('[data-slot="composer-mention-menu"]');
+    expect(menu?.textContent).toContain("Captains");
+    expect(menu?.textContent).toContain("Hand work to a Captain and its crew");
+    fireEvent.keyDown(editor, { key: "Escape" });
+    expect(
+      document.querySelector('[data-slot="composer-mention-menu"]'),
+    ).toBeNull();
   });
 });
 
 describe("MobileComposer", () => {
-  it("shows voice alone when empty, and send once there is text", () => {
-    const onSend = vi.fn();
-    render(<Harness onSend={onSend} />);
+  it("renders the shared composer with the phone's triggers", async () => {
+    render(
+      <MobileComposer
+        onSend={() => {}}
+        addMenu={<button type="button">Add</button>}
+        modelMenu={<button type="button">Model</button>}
+      />,
+    );
+    expect(document.querySelector('[data-slot="composer"]')).toBeTruthy();
+    expect(await screen.findByLabelText("Message")).toBeTruthy();
     expect(screen.getByLabelText("Voice input")).toBeTruthy();
     expect(screen.queryByLabelText("Send")).toBeNull();
-    type("hello ");
-    fireEvent.click(screen.getByLabelText("Send"));
-    expect(onSend).toHaveBeenCalledWith("hello");
-    expect(
-      (screen.getByLabelText("Message") as HTMLTextAreaElement).value,
-    ).toBe("");
+    expect(screen.getByRole("button", { name: "Add" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Model" })).toBeTruthy();
   });
 
-  it("shows stop while the agent works", () => {
-    const onStop = vi.fn();
-    render(<Harness working onStop={onStop} />);
-    fireEvent.click(screen.getByLabelText("Stop run"));
-    expect(onStop).toHaveBeenCalled();
-  });
-
-  it("lists slash commands and runs the highlighted one on Enter", () => {
+  it("runs the highlighted command on Enter", async () => {
     const onCommand = vi.fn();
-    render(<Harness onCommand={onCommand} />);
-    type("/");
-    const menu = screen.getByRole("listbox", { name: "Commands" });
-    expect(menu.closest("[data-slot=composer-command-menu]")).toBeTruthy();
-    expect(screen.getAllByRole("option")[0]?.textContent).toContain(
-      "Plan mode",
+    const ref = createRef<ComposerHandle>();
+    render(
+      <MobileComposer ref={ref} onSend={() => {}} onCommand={onCommand} />,
     );
-    fireEvent.keyDown(screen.getByLabelText("Message"), { key: "ArrowDown" });
-    fireEvent.keyDown(screen.getByLabelText("Message"), { key: "Enter" });
+    const editor = await screen.findByLabelText("Message");
+    act(() => ref.current?.typeCharacter("/"));
+    await settle();
+    fireEvent.keyDown(editor, { key: "ArrowDown" });
+    fireEvent.keyDown(editor, { key: "Enter" });
     expect(onCommand).toHaveBeenCalledWith(
       expect.objectContaining({ id: "model" }),
     );
-    expect(screen.queryByRole("listbox")).toBeNull();
+    expect(
+      document.querySelector('[data-slot="composer-command-menu"]'),
+    ).toBeNull();
   });
 
-  it("lists mention categories and closes on Escape", () => {
-    const onMention = vi.fn();
-    render(<Harness onMention={onMention} />);
-    type("see @");
-    expect(
-      screen
-        .getByRole("listbox", { name: "Mentions" })
-        .closest("[data-slot=composer-mention-menu]"),
-    ).toBeTruthy();
-    fireEvent.click(screen.getByText("Captains"));
-    expect(onMention).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "captains" }),
-    );
-    expect(
-      (screen.getByLabelText("Message") as HTMLTextAreaElement).value,
-    ).toBe("see ");
-    type("see @");
-    fireEvent.keyDown(screen.getByLabelText("Message"), { key: "Escape" });
-    expect(screen.queryByRole("listbox")).toBeNull();
+  it("sends the trimmed draft and clears it", async () => {
+    const onSend = vi.fn();
+    const ref = createRef<ComposerHandle>();
+    render(<MobileComposer ref={ref} onSend={onSend} />);
+    await screen.findByLabelText("Message");
+    act(() => ref.current?.typeCharacter("hello "));
+    fireEvent.click(await screen.findByLabelText("Send"));
+    expect(onSend).toHaveBeenCalledWith("hello");
+    expect(ref.current?.getPayload().text).toBe("");
+  });
+
+  it("stops the run while the agent works", async () => {
+    const onStop = vi.fn();
+    render(<MobileComposer onSend={() => {}} working onStop={onStop} />);
+    fireEvent.click(await screen.findByLabelText("Stop run"));
+    expect(onStop).toHaveBeenCalled();
   });
 });
