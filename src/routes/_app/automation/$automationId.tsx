@@ -1,12 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { AutomationEditorPage } from "@/features/automations/automation-editor";
 
 export const Route = createFileRoute("/_app/automation/$automationId")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  return (
-    <RoutePlaceholder title="Automation" path="/automation/$automationId" />
-  );
+  const { automationId } = Route.useParams();
+  return <AutomationEditorPage automationId={automationId} />;
 }
