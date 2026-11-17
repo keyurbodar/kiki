@@ -1271,12 +1271,12 @@ export const eventPass = (
   }
   const desktopRequests = new Map<string, "done" | "expired">();
   for (const event of ordered) {
-    if (
-      event.kind !== "notification" ||
-      event.payload.ref?.kind !== "desktop_request"
-    )
-      continue;
-    const id = event.payload.ref.id;
+    if (event.kind !== "notification") continue;
+    const id =
+      event.payload.ref?.kind === "desktop_request"
+        ? event.payload.ref.id
+        : event.payload.desktopRequest?.toolCallId;
+    if (id === undefined) continue;
     if (event.payload.key === "desktop_request_done")
       desktopRequests.set(id, "done");
     if (

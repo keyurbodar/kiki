@@ -177,6 +177,32 @@ const failureKey = (toolName: string, args: unknown) =>
  * Failed tool calls in a group, not counting a failure the agent later retried
  * with the same call successfully.
  */
+export const failureEntries = (
+  rows: ReadonlyArray<Row>,
+): ReadonlyArray<{ readonly key: string; readonly failed: boolean }> =>
+  rows.flatMap((row) => {
+    if (!isTool(row) || row.result === undefined) return [];
+    if (row.toolName !== "execute")
+      return [
+        {
+          key: failureKey(row.toolName, row.args),
+          failed: row.phase === "failed",
+        },
+      ];
+    const calls = programEntries(row);
+    return [
+      ...calls.map((call) => ({
+        key: failureKey(call.toolName, call.args),
+        failed: call.phase === "failed",
+      })),
+      {
+        key: failureKey(row.toolName, row.args),
+        failed:
+          row.result.isError && !calls.some((call) => call.phase === "failed"),
+      },
+    ];
+  });
+
 export const countFailures = (rows: ReadonlyArray<Row>): number =>
   rows
     .flatMap((row) => {
@@ -630,7 +656,7 @@ export const groupRows = (
           activeMs: previous.activeMs + (activeMs > 0 ? activeMs : gapMs),
           entries: merged as never,
           chunks: chunksOf(merged, expandedIds),
-          failures: countFailures(merged) as never,
+          failures: failureEntries(merged),
           waiting: waitingOf(merged),
         };
         pending.length = 0;
@@ -645,7 +671,7 @@ export const groupRows = (
         eventId: first.eventId,
         createdAt: first.createdAt,
         activeMs: activeMs > 0 ? activeMs : gapMs,
-        failures: countFailures(entries) as never,
+        failures: failureEntries(entries),
         entries: entries as never,
         chunks: chunksOf(entries, expandedIds),
         live: open !== undefined,

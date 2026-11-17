@@ -55,16 +55,23 @@ const handOff = (live: LiveTurn, events: ReadonlyArray<EventRow>): LiveTurn => {
       event.kind === "tool_result" ? [event.payload.toolCallId as string] : [],
     ),
   );
-  const calls = liveToolCallIds(live);
+  const ids = new Set(
+    [
+      ...liveToolCallIds(live),
+      ...live.response.flatMap((part) =>
+        part.type === "text" || part.type === "reasoning" ? [part.id] : [],
+      ),
+    ].filter((id) => id.length > 0),
+  );
   const stored =
-    calls.length === 0 ||
+    ids.size === 0 ||
     events.some(
       (event) =>
         event.kind === "assistant" &&
-        event.payload.blocks.some(
-          (block) =>
-            block.type === "tool_use" && calls.includes(block.toolCallId),
-        ),
+        (ids.has(event.id) ||
+          event.payload.blocks.some(
+            (block) => "id" in block && ids.has(block.id),
+          )),
     );
   if (!stored) return live;
   return {
@@ -72,6 +79,17 @@ const handOff = (live: LiveTurn, events: ReadonlyArray<EventRow>): LiveTurn => {
     children: new Map([...live.children].filter(([id]) => !results.has(id))),
   };
 };
+
+/** A jam_event hint: updates and deletes affect existing ids, so refetch without the `after` cursor. */
+export const hintScope = (hint: {
+  readonly table: string;
+  readonly changedColumns: ReadonlyArray<string>;
+}) => ({
+  refetch: hint.table === "jam_event",
+  affectedIds: hint.changedColumns.filter((column) =>
+    /^[0-9A-Z]{26}$/.test(column),
+  ),
+});
 
 export const historyLoaded = (
   feed: ThreadFeed,

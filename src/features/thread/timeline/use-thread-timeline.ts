@@ -15,6 +15,7 @@ import {
   decodeEventPage,
   decodeRealtimeFrame,
   emptyFeed,
+  hintScope,
   historyLoaded,
   newerLoaded,
   newestEventId,
@@ -89,11 +90,15 @@ export const threadSyncAtom = Atom.family((key: string) =>
             const action = applyRealtime(feed, message, jamId, new Date());
             if (action.kind === "delta") get.set(feedAtom, action.feed);
             if (action.kind !== "refetch") return;
-            const after = newestEventId(get(feedAtom));
-            const page = yield* fetchPage(
-              key,
-              after === undefined ? {} : { after },
-            );
+            const current = get(feedAtom);
+            const hint =
+              message.type === "hint" ? hintScope(message) : undefined;
+            const after =
+              hint?.changedColumns.length === 0
+                ? newestEventId(current)
+                : undefined;
+            const query = after === undefined ? {} : { after };
+            const page = yield* fetchPage(key, query);
             get.set(feedAtom, newerLoaded(get(feedAtom), page));
           }),
         ),
