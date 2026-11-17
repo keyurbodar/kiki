@@ -57,6 +57,7 @@ describe("github mock", () => {
           "acme/shared",
           "acme/docs",
           "acme/legacy-site",
+          "keyurbodar/xin",
         ],
       );
       assert.isTrue(repos.every((repo) => typeof repo.private === "boolean"));

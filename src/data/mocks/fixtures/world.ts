@@ -154,6 +154,13 @@ export const repos = [
     private: true,
     language: "PHP",
   },
+  {
+    id: "repo_sample_xin",
+    fullName: "keyurbodar/xin",
+    defaultBranch: "main",
+    private: false,
+    language: "TypeScript",
+  },
 ] as const;
 
 export const branches = [
@@ -414,6 +421,26 @@ export const issues = [
 
 export type PullState = "draft" | "ready" | "merged" | "closed";
 
+/**
+ * The pull the parity captures open at `/pull/keyurbodar/xin/118`. Its detail
+ * rows live in `pulls/fixtures.ts`; this row only carries what the list and the
+ * by-number lookup need.
+ */
+export const xinPull = {
+  id: "pr_sample_118",
+  repo: "keyurbodar/xin",
+  number: 118,
+  title: "Charge retries against a time budget",
+  state: "ready" as PullState,
+  authorId: people.sam.id,
+  headRef: "refactor/retry-budget",
+  baseRef: "main",
+  additions: 80,
+  deletions: 24,
+  threadId: null,
+  updatedAt: isoMinutesAgo(35),
+} as const;
+
 export const pulls = [
   {
     id: "pr_sample_128",
@@ -485,6 +512,7 @@ export const pulls = [
     threadId: null,
     updatedAt: isoMinutesAgo(12 * day),
   },
+  xinPull,
 ] as const;
 
 export const machines = [
