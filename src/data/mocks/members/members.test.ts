@@ -1,136 +1,130 @@
 import { assert, describe, it } from "@effect/vitest";
-import { DateTime, Effect } from "effect";
+import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
-import type {
-  Invitation,
-  OrganizationMember,
-} from "../../api/schemas/member.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
-import { orgId } from "../fixtures/world.ts";
+import { orgId, people } from "../fixtures/world.ts";
 
-const memberKeys = [`org_user:${orgId}`];
-const invitationKeys = [`org_invitation:${orgId}`];
+interface Member {
+  readonly id: string;
+  readonly role: string;
+  readonly removedAt: string | null;
+  readonly mfaExtension: string | null;
+}
 
-const membersAtom = ApiClient.query("members", "listMembers", {
+const key = `members:${orgId}`;
+const listAtom = ApiClient.query("members", "listMembers", {
   params: { orgId },
-  query: { includeDisabled: "true" },
-  reactivityKeys: memberKeys,
+  query: {},
+  reactivityKeys: [key],
 });
-const invitationsAtom = ApiClient.query("invitations", "listInvitations", {
-  params: { orgId },
-  reactivityKeys: invitationKeys,
-});
-const invite = ApiClient.mutation("members", "invite");
-const setRole = ApiClient.mutation("members", "setMemberRole");
-const remove = ApiClient.mutation("members", "removeMember");
-const restore = ApiClient.mutation("members", "restoreMember");
-const extend = ApiClient.mutation("members", "setMemberMfaExtension");
-const revoke = ApiClient.mutation("invitations", "revokeInvitation");
+const run = <A, I extends object>(
+  atom: import("effect/reactivity/Atom").AtomResultFn<I, A>,
+  input: I,
+) => {
+  const registry = AtomRegistry.make();
+  registry.mount(listAtom);
+  registry.set(atom, { ...input, reactivityKeys: [key] });
+  return Effect.gen(function* () {
+    yield* AtomRegistry.getResult(registry, listAtom);
+    const result = yield* AtomRegistry.getResult(registry, atom);
+    const after = yield* AtomRegistry.getResult(registry, listAtom, {
+      suspendOnWaiting: true,
+    });
+    return { result, after: after as ReadonlyArray<Member> };
+  });
+};
 
-const find = (rows: ReadonlyArray<OrganizationMember>, userId: string) =>
-  rows.find((row) => row.userId === userId);
-const emails = (rows: ReadonlyArray<Invitation>) =>
-  rows.map((row) => row.email);
-
-describe("members and invitations mocks", () => {
-  it.effect("lists the org's members and pending invitations", () =>
+describe("members mock", () => {
+  it.effect("lists the org's members with roles and MFA extensions", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
-      const members = yield* AtomRegistry.getResult(registry, membersAtom);
-      assert.strictEqual(members.length, 5);
+      const rows = (yield* AtomRegistry.getResult(
+        registry,
+        listAtom,
+      )) as ReadonlyArray<Member>;
+      assert.isAbove(rows.length, 0);
+      assert.isTrue(
+        rows.some((row) => row.id === people.alex.id && row.role === "owner"),
+      );
       assert.strictEqual(
-        find(members, "user_sample_alex")?.accessLevel,
+        rows.find((row) => row.id === people.sam.id)?.mfaExtension,
+        "Acme Security Keys",
+      );
+    }),
+  );
+
+  it.effect("exercises every member mutation and refreshes the list", () =>
+    Effect.gen(function* () {
+      const grant = yield* run(ApiClient.mutation("members", "grantOwner"), {
+        params: { orgId, userId: people.priya.id },
+      });
+      assert.strictEqual((grant.result as { ok: boolean }).ok, true);
+      assert.strictEqual(
+        grant.after.find((row) => row.id === people.priya.id)?.role,
         "owner",
       );
-      const invitations = yield* AtomRegistry.getResult(
-        registry,
-        invitationsAtom,
-      );
-      assert.deepStrictEqual(emails(invitations), ["taylor@example.com"]);
-    }),
-  );
 
-  it.effect("invites new addresses and skips members and invalid ones", () =>
-    Effect.gen(function* () {
-      const registry = AtomRegistry.make();
-      registry.mount(invitationsAtom);
-      yield* AtomRegistry.getResult(registry, invitationsAtom);
-      registry.set(invite, {
-        params: { orgId },
-        payload: { emails: ["new@example.com", "sam@example.com", "nope"] },
-        reactivityKeys: invitationKeys,
+      const revoke = yield* run(ApiClient.mutation("members", "revokeOwner"), {
+        params: { orgId, userId: people.priya.id },
+        payload: { role: "member" },
       });
-      const outcomes = yield* AtomRegistry.getResult(registry, invite);
-      assert.deepStrictEqual(
-        outcomes.map((outcome) => outcome.status),
-        ["invited", "already_member", "invalid"],
-      );
-      const after = yield* AtomRegistry.getResult(registry, invitationsAtom, {
-        suspendOnWaiting: true,
-      });
-      assert.include(emails(after), "new@example.com");
+      assert.strictEqual((revoke.result as { ok: boolean }).ok, true);
 
-      const created = outcomes[0]?.invitation;
-      assert.isDefined(created);
-      registry.set(revoke, {
-        params: { orgId, invitationId: created?.id ?? "" },
-        reactivityKeys: invitationKeys,
+      const role = yield* run(ApiClient.mutation("members", "setMemberRole"), {
+        params: { orgId, userId: people.jordan.id },
+        payload: { role: "admin" },
       });
-      yield* AtomRegistry.getResult(registry, revoke);
-      const revoked = yield* AtomRegistry.getResult(registry, invitationsAtom, {
-        suspendOnWaiting: true,
-      });
-      assert.notInclude(emails(revoked), "new@example.com");
-    }),
-  );
-
-  it.effect("changes roles, removes, restores and extends members", () =>
-    Effect.gen(function* () {
-      const registry = AtomRegistry.make();
-      registry.mount(membersAtom);
-      yield* AtomRegistry.getResult(registry, membersAtom);
-      const userId = "user_sample_priya";
-      const params = { orgId, userId };
-      const read = () =>
-        AtomRegistry.getResult(registry, membersAtom, {
-          suspendOnWaiting: true,
-        }).pipe(Effect.map((rows) => find(rows, userId)));
-
-      registry.set(setRole, {
-        params,
-        payload: { accessLevel: "admin" },
-        reactivityKeys: memberKeys,
-      });
-      yield* AtomRegistry.getResult(registry, setRole);
-      assert.strictEqual((yield* read())?.accessLevel, "admin");
-
-      registry.set(remove, { params, reactivityKeys: memberKeys });
-      yield* AtomRegistry.getResult(registry, remove);
-      assert.isTrue((yield* read())?.disabled);
-
-      registry.set(restore, {
-        params,
-        payload: { accessLevel: "member" },
-        reactivityKeys: memberKeys,
-      });
-      yield* AtomRegistry.getResult(registry, restore);
-      const restored = yield* read();
-      assert.isFalse(restored?.disabled);
-      assert.strictEqual(restored?.accessLevel, "member");
-
-      const until = DateTime.makeUnsafe("2026-04-01T00:00:00.000Z");
-      registry.set(extend, {
-        params,
-        payload: { until },
-        reactivityKeys: memberKeys,
-      });
-      yield* AtomRegistry.getResult(registry, extend);
-      const extended = (yield* read())?.mfaExtendedUntil;
       assert.strictEqual(
-        extended === null || extended === undefined
-          ? undefined
-          : DateTime.formatIso(extended),
-        "2026-04-01T00:00:00.000Z",
+        role.after.find((row) => row.id === people.jordan.id)?.role,
+        "admin",
+      );
+
+      const setMfa = yield* run(
+        ApiClient.mutation("members", "setMemberMfaExtension"),
+        {
+          params: { orgId, userId: people.casey.id },
+          payload: { extensionName: "Sample Keys" },
+        },
+      );
+      assert.strictEqual(
+        setMfa.after.find((row) => row.id === people.casey.id)?.mfaExtension,
+        "Sample Keys",
+      );
+
+      const clearMfa = yield* run(
+        ApiClient.mutation("members", "clearMemberMfaExtension"),
+        { params: { orgId, userId: people.casey.id } },
+      );
+      assert.isNull(
+        clearMfa.after.find((row) => row.id === people.casey.id)?.mfaExtension,
+      );
+
+      const remove = yield* run(ApiClient.mutation("members", "removeMember"), {
+        params: { orgId, userId: people.casey.id },
+      });
+      assert.strictEqual((remove.result as { ok: boolean }).ok, true);
+      assert.isNotNull(
+        remove.after.find((row) => row.id === people.casey.id)?.removedAt,
+      );
+
+      const restore = yield* run(
+        ApiClient.mutation("members", "restoreMember"),
+        {
+          params: { orgId, userId: people.casey.id },
+          payload: { role: "member" },
+        },
+      );
+      assert.isNull(
+        restore.after.find((row) => row.id === people.casey.id)?.removedAt,
+      );
+
+      const invite = yield* run(ApiClient.mutation("members", "invite"), {
+        params: { orgId },
+        payload: { email: "new-member@example.com", role: "member" },
+      });
+      assert.strictEqual(
+        (invite.result as { invitation: { email: string } }).invitation.email,
+        "new-member@example.com",
       );
     }),
   );

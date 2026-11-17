@@ -1,0 +1,87 @@
+{
+  "matrix": {
+    "theme": ["default"],
+    "scheme": ["dark", "light"]
+  },
+  "defaults": {
+    "maxMismatch": 100
+  },
+  "targets": [
+    {
+      "id": "p25-sortable-list",
+      "route": "/__p25",
+      "state": "list at rest, first row hovered",
+      "steps": [["hover", "[data-drop-settle=Alpha]"]],
+      "capture": {
+        "[data-slot=sortable-handle]": [],
+        "[data-slot=sortable-list]": []
+      },
+      "expect": {
+        "[data-slot=sortable-list]": {
+          "display": "flex",
+          "flex-direction": "column"
+        },
+        "[data-slot=sortable-handle]": {
+          "width": "24px",
+          "height": "24px",
+          "display": "grid",
+          "cursor": "grab",
+          "touch-action": "none",
+          "color": "var(--muted-foreground-3)"
+        }
+      }
+    },
+    {
+      "id": "p25-color-picker",
+      "route": "/__p25",
+      "state": "picker open",
+      "steps": [
+        ["click", "button[aria-label='Pick accent color']"],
+        ["wait", "[data-slot=color-picker]"]
+      ],
+      "capture": {
+        ".color-picker__swatch": [],
+        ".color-picker__picker": [],
+        ".react-colorful__saturation-pointer": [],
+        ".react-colorful__hue-pointer": [],
+        ".react-colorful__hue": [],
+        ".color-picker__input": []
+      },
+      "expect": {
+        ".color-picker__swatch": {
+          "width": "var(--icon-base)",
+          "height": "var(--icon-base)",
+          "border-top-width": "0.5px",
+          "border-top-color": "var(--border-3)",
+          "border-top-left-radius": "var(--radius-inner)"
+        },
+        ".color-picker__picker": {
+          "gap": "8px",
+          "flex-grow": "0",
+          "flex-shrink": "0"
+        },
+        ".react-colorful__saturation": {
+          "border-bottom-width": "0px",
+          "border-top-left-radius": "var(--radius)"
+        },
+        ".react-colorful__saturation-pointer": {
+          "width": "var(--icon-sm)",
+          "border-top-width": "2px",
+          "border-top-color": "var(--fg)"
+        },
+        ".react-colorful__hue": {
+          "height": "var(--icon-base)",
+          "margin-top": "2px"
+        },
+        ".react-colorful__hue-pointer": {
+          "width": "var(--icon-lg)",
+          "border-top-width": "3px",
+          "border-top-color": "var(--overlay-fg)"
+        },
+        ".color-picker__input": {
+          "font-variant-numeric": "tabular-nums"
+        }
+      }
+    }
+  ]
+}

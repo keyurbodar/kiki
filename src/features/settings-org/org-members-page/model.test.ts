@@ -1,6 +1,7 @@
 import { DateTime } from "effect";
 import { describe, expect, it } from "vitest";
 import { UserId } from "@/data/api/schemas/ids";
+import type { MemberRow } from "@/data/api/schemas/member";
 import {
   Invitation,
   InviteOutcome,
@@ -22,6 +23,7 @@ import {
   parseEmails,
   roleArticle,
   roleItemDisabled,
+  isRemoved,
   sortRows,
   summarizeInvites,
 } from "./model";
@@ -124,10 +126,8 @@ describe("filtering", () => {
   });
 
   it("only lists disabled members as inactive", () => {
-    expect(matchesInactive(member(), "", "all")).toBe(false);
-    expect(matchesInactive(member({ disabled: true }), "alex", "all")).toBe(
-      true,
-    );
+    expect(matchesInactive(row({ isRemoved: false }), "", "all")).toBe(false);
+    expect(matchesInactive(row({ isRemoved: true }), "alex", "all")).toBe(true);
   });
 });
 
@@ -176,6 +176,27 @@ describe("sorting", () => {
   });
 });
 
+const row = (overrides: Partial<MemberRow> = {}): MemberRow => ({
+  id: "user_sample_alex",
+  firstName: "Alex",
+  lastName: "Morgan",
+  email: "alex@example.com",
+  githubLogin: "alex-sample",
+  role: "owner",
+  joinedAt: "2026-01-05T00:00:00.000Z" as MemberRow["joinedAt"],
+  removedAt: null,
+  isRemoved: false,
+  mfaExtension: null,
+  ...overrides,
+});
+
+describe("member rows", () => {
+  it("recognizes a removed member from the mock row", () => {
+    expect(isRemoved(row())).toBe(false);
+    expect(isRemoved(row({ isRemoved: true }))).toBe(true);
+  });
+});
+
 describe("roles", () => {
   it("uses the right article", () => {
     expect(roleArticle("member")).toBe("a member");
@@ -184,9 +205,9 @@ describe("roles", () => {
   });
 
   it("keeps owner changes to owners and never demotes the last owner", () => {
-    const owner = member({ accessLevel: "owner" });
-    expect(roleItemDisabled("owner", member(), false, false)).toBe(true);
-    expect(roleItemDisabled("admin", member(), false, false)).toBe(false);
+    const owner = row({ role: "owner" });
+    expect(roleItemDisabled("owner", row({ role: "member" }), false, false)).toBe(true);
+    expect(roleItemDisabled("admin", row({ role: "member" }), false, false)).toBe(false);
     expect(roleItemDisabled("admin", owner, true, true)).toBe(true);
     expect(roleItemDisabled("admin", owner, true, false)).toBe(false);
   });

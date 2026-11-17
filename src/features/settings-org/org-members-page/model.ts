@@ -1,8 +1,11 @@
 import { DateTime } from "effect";
-import type {
+import { UserId } from "@/data/api/schemas/ids";
+import {
   Invitation,
-  InviteOutcome,
   OrganizationMember,
+  type InvitationRow,
+  type InviteOutcome,
+  type MemberRow,
 } from "@/data/api/schemas/member";
 import type { AccessLevel } from "@/data/api/schemas/organization";
 
@@ -53,6 +56,23 @@ const joinedFormat = new Intl.DateTimeFormat(undefined, {
 
 /** Capy's member display name: first and last name, else the email. */
 export const displayName = (member: {
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+  readonly id?: string;
+}) =>
+  [member.firstName, member.lastName]
+    .flatMap((part) =>
+      part === null || part === undefined || part.trim() === ""
+        ? []
+        : [part.trim()],
+    )
+    .join(" ") ||
+  member.email ||
+  member.id ||
+  "";
+
+export const legacyDisplayName = (member: {
   firstName: string | null;
   lastName: string | null;
   email: string | null;
@@ -63,16 +83,20 @@ export const displayName = (member: {
     )
     .join(" ") || member.email;
 
-export const memberName = (member: OrganizationMember) =>
-  displayName(member) ?? member.userId;
+export const memberName = (member: OrganizationMember | MemberRow) =>
+  "userId" in member
+    ? (legacyDisplayName(member) ?? member.userId)
+    : displayName(member);
 
-export const toDate = (value: DateTime.DateTime) =>
-  new Date(DateTime.toEpochMillis(value));
+export const toDate = (value: DateTime.DateTime | string) =>
+  typeof value === "string"
+    ? new Date(value)
+    : new Date(DateTime.toEpochMillis(value));
 
 export const formatShortDate = (date: Date) =>
   date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 
-export const formatJoined = (value: DateTime.DateTime) =>
+export const formatJoined = (value: DateTime.DateTime | string) =>
   joinedFormat.format(toDate(value));
 
 /** Whether a member already meets the org's two-step requirement. */
@@ -81,10 +105,20 @@ export const meetsMfa = (member: OrganizationMember, level: MfaLevel) =>
   member.passkeyTrusted ||
   (level === "any" && member.mfaEnabled);
 
+export const isRemoved = (member: MemberRow) =>
+  member.isRemoved || member.removedAt !== null;
+
 /** The member's own deadline extension, when it runs past `after`. */
-export const extensionAfter = (member: OrganizationMember, after: number) => {
-  if (member.mfaExtendedUntil === null) return undefined;
-  const until = toDate(member.mfaExtendedUntil);
+export const extensionAfter = (
+  member: OrganizationMember | MemberRow,
+  after: number,
+) => {
+  const raw =
+    "mfaExtendedUntil" in member
+      ? member.mfaExtendedUntil
+      : member.mfaExtension;
+  if (raw === null) return undefined;
+  const until = toDate(raw);
   return until.getTime() > after ? until : undefined;
 };
 
@@ -120,17 +154,26 @@ export const sortRows = <T>(
     return direction === "ascending" ? order : -order;
   });
 
-export const memberSortValue = (member: OrganizationMember, key: SortKey) => {
+export const memberSortValue = (
+  member: OrganizationMember | MemberRow,
+  key: SortKey,
+) => {
   if (key === "name") return memberName(member);
   if (key === "email") return member.email ?? "";
-  if (key === "status") return roleRank[member.accessLevel];
-  return DateTime.toEpochMillis(member.createdAt);
+  if (key === "status")
+    return roleRank[rowAccessLevel(member) as AccessLevel];
+  return toDate(
+    "createdAt" in member ? member.createdAt : member.joinedAt,
+  ).getTime();
 };
 
-export const invitationSortValue = (invitation: Invitation, key: SortKey) => {
+export const invitationSortValue = (
+  invitation: Invitation | InvitationRow,
+  key: SortKey,
+) => {
   if (key === "name" || key === "email") return invitation.email;
   if (key === "status") return "Invited";
-  return DateTime.toEpochMillis(invitation.createdAt);
+  return toDate(invitation.createdAt).getTime();
 };
 
 export const nextSort = (current: SortState, key: SortKey): SortState => ({
@@ -144,31 +187,30 @@ export const nextSort = (current: SortState, key: SortKey): SortState => ({
 const normalized = (query: string) => query.trim().toLowerCase();
 
 export const matchesMember = (
-  member: OrganizationMember,
+  member: OrganizationMember | MemberRow,
   query: string,
   role: RoleFilter,
-  mfaLevel: MfaLevel,
+  _mfaLevel: MfaLevel,
 ) =>
   (role === "all" ||
-    member.accessLevel === role ||
-    (role === "neither" && !meetsMfa(member, mfaLevel))) &&
-  `${displayName(member) ?? ""} ${member.email ?? ""}`
+    ("accessLevel" in member ? member.accessLevel : member.role) === role) &&
+  `${memberName(member)} ${member.email ?? ""}`
     .toLowerCase()
     .includes(normalized(query));
 
 export const matchesInactive = (
-  member: OrganizationMember,
+  member: MemberRow,
   query: string,
   role: RoleFilter,
 ) =>
-  member.disabled &&
-  (role === "all" || member.accessLevel === role) &&
-  `${displayName(member) ?? ""} ${member.email ?? ""}`
+  isRemoved(member) &&
+  (role === "all" || member.role === role) &&
+  `${memberName(member)} ${member.email ?? ""}`
     .toLowerCase()
     .includes(normalized(query));
 
 export const matchesInvitation = (
-  invitation: Invitation,
+  invitation: Invitation | InvitationRow,
   query: string,
   role: RoleFilter,
 ) =>
@@ -194,14 +236,18 @@ export const roleArticle = (role: AccessLevel) =>
 /** Whether the "Set role" item for `role` is disabled for this member. */
 export const roleItemDisabled = (
   role: AccessLevel,
-  member: OrganizationMember,
+  member: OrganizationMember | MemberRow,
   viewerIsOwner: boolean,
   lastOwner: boolean,
-) =>
-  (role !== member.accessLevel &&
-    (role === "owner" || member.accessLevel === "owner") &&
-    !viewerIsOwner) ||
-  (lastOwner && role !== "owner");
+) => {
+  const access = rowAccessLevel(member);
+  return (
+    (role !== access &&
+      (role === "owner" || access === "owner") &&
+      !viewerIsOwner) ||
+    (lastOwner && role !== "owner")
+  );
+};
 
 /** Capy's API error text when the server sent one, else the fallback. */
 export const errorMessage = (error: unknown, fallback: string) => {
@@ -215,3 +261,38 @@ export const errorMessage = (error: unknown, fallback: string) => {
     ? message
     : fallback;
 };
+
+export const rowAccessLevel = (member: OrganizationMember | MemberRow) =>
+  "accessLevel" in member ? member.accessLevel : member.role;
+
+export const rowCreatedAt = (member: OrganizationMember | MemberRow) =>
+  toDate("createdAt" in member ? member.createdAt : member.joinedAt);
+
+export const fromMemberRow = (row: MemberRow) =>
+  new OrganizationMember({
+    userId: UserId.make(row.id),
+    email: row.email,
+    firstName: row.firstName,
+    lastName: row.lastName,
+    imageUrl: null,
+    accessLevel: row.role as OrganizationMember["accessLevel"],
+    disabled: isRemoved(row),
+    createdAt: DateTime.fromDateUnsafe(rowCreatedAt(row)),
+    githubLogin: row.githubLogin,
+    mfaEnabled: false,
+    enterpriseSso: false,
+    passkeyTrusted: false,
+    mfaExtendedUntil:
+      row.mfaExtension === null
+        ? null
+        : DateTime.fromDateUnsafe(toDate(row.mfaExtension)),
+  });
+
+export const fromInvitationRow = (row: InvitationRow) =>
+  new Invitation({
+    id: row.id,
+    email: row.email,
+    invitedByUserId: UserId.make(row.invitedBy),
+    expiresAt: DateTime.fromDateUnsafe(toDate(row.expiresAt)),
+    createdAt: DateTime.fromDateUnsafe(toDate(row.createdAt)),
+  });

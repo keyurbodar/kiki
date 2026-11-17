@@ -1,10 +1,38 @@
 import { Schema } from "effect";
+
+const DateTimeString = Schema.String;
+
 import { withDefault } from "./defaults.ts";
 import { OrgId, Timestamp, UserId } from "./ids.ts";
 import { AccessLevel } from "./organization.ts";
 
 export const NonOwnerAccessLevel = Schema.Literals(["member", "admin"]);
 export type NonOwnerAccessLevel = typeof NonOwnerAccessLevel.Type;
+
+export class MemberRow extends Schema.Class<MemberRow>("MemberRow")({
+  id: Schema.String,
+  firstName: Schema.String,
+  lastName: Schema.String,
+  email: Schema.String,
+  githubLogin: Schema.String,
+  role: Schema.String,
+  joinedAt: DateTimeString,
+  removedAt: Schema.NullOr(DateTimeString),
+  isRemoved: Schema.Boolean,
+  mfaExtension: Schema.NullOr(DateTimeString),
+}) {}
+
+export class InvitationRow extends Schema.Class<InvitationRow>("InvitationRow")(
+  {
+    id: Schema.String,
+    email: Schema.String,
+    role: AccessLevel,
+    invitedBy: Schema.String,
+    createdAt: DateTimeString,
+    expiresAt: DateTimeString,
+    status: Schema.optional(Schema.String),
+  },
+) {}
 
 export class OrganizationMember extends Schema.Class<OrganizationMember>(
   "OrganizationMember",

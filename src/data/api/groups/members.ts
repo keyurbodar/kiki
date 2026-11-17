@@ -1,21 +1,13 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
-import {
-  InviteMembersRequest,
-  InviteOutcome,
-  OrganizationMember,
-  RestoreMemberRequest,
-  RevokeOwnerRequest,
-  SetMemberRoleRequest,
-  SetMfaExtensionRequest,
-} from "../schemas/member.ts";
+import { MemberRow } from "../schemas/member.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class MembersGroup extends HttpApiGroup.make("members").add(
   HttpApiEndpoint.get("listMembers", "/orgs/:orgId/members", {
     params: { orgId: Schema.String },
     query: UndecodedQuery,
-    success: Schema.Array(OrganizationMember),
+    success: Schema.Array(MemberRow),
   }),
   HttpApiEndpoint.post(
     "grantOwner",
@@ -30,7 +22,7 @@ export class MembersGroup extends HttpApiGroup.make("members").add(
     "/orgs/:orgId/members/:userId/mfa-extension",
     {
       params: { orgId: Schema.String, userId: Schema.String },
-      payload: SetMfaExtensionRequest,
+      payload: Undecoded,
       success: Undecoded,
     },
   ),
@@ -51,7 +43,7 @@ export class MembersGroup extends HttpApiGroup.make("members").add(
     "/orgs/:orgId/members/:userId/restore",
     {
       params: { orgId: Schema.String, userId: Schema.String },
-      payload: RestoreMemberRequest,
+      payload: Undecoded,
       success: Undecoded,
     },
   ),
@@ -60,18 +52,18 @@ export class MembersGroup extends HttpApiGroup.make("members").add(
     "/orgs/:orgId/members/:userId/revoke-owner",
     {
       params: { orgId: Schema.String, userId: Schema.String },
-      payload: RevokeOwnerRequest,
+      payload: Undecoded,
       success: Undecoded,
     },
   ),
   HttpApiEndpoint.put("setMemberRole", "/orgs/:orgId/members/:userId/role", {
     params: { orgId: Schema.String, userId: Schema.String },
-    payload: SetMemberRoleRequest,
+    payload: Undecoded,
     success: Undecoded,
   }),
   HttpApiEndpoint.post("invite", "/orgs/:orgId/members/invite", {
     params: { orgId: Schema.String },
-    payload: InviteMembersRequest,
-    success: Schema.Array(InviteOutcome),
+    payload: Undecoded,
+    success: Undecoded,
   }),
 ) {}

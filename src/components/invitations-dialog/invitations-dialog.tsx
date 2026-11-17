@@ -210,8 +210,16 @@ export function InvitationsTable({
   );
 }
 
-const resultValue = <A,>(result: AsyncResult.AsyncResult<A, unknown>) =>
-  AsyncResult.isSuccess(result) ? result.value : undefined;
+const resultList = <A,>(result: AsyncResult.AsyncResult<unknown, unknown>): ReadonlyArray<A> | undefined => {
+  if (!AsyncResult.isSuccess(result)) return undefined;
+  const value = result.value;
+  if (Array.isArray(value)) return value as ReadonlyArray<A>;
+  if (value !== null && typeof value === "object" && "invitations" in value) {
+    const list = (value as { invitations: unknown }).invitations;
+    if (Array.isArray(list)) return list as ReadonlyArray<A>;
+  }
+  return undefined;
+};
 
 const joinedName = (value: unknown, fallback: string) =>
   typeof value === "object" &&
@@ -233,16 +241,40 @@ const failureText = (error: unknown, fallback: string) =>
     ? error.message
     : fallback;
 
-export type InvitationsDialogProps = Record<string, never>;
+export type InvitationsDialogProps = {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+};
 
 /** Capy's Invitations dialog: accept an invitation or join an org through your email domain. */
-export function InvitationsDialog(_props: InvitationsDialogProps) {
+export function InvitationsDialog(props: InvitationsDialogProps) {
+  const [fallbackOpen, setFallbackOpen] = useState(false);
+  return (
+    <StandaloneInvitationsDialog
+      controlledOpen={props.open ?? fallbackOpen}
+      onControlledOpenChange={props.onOpenChange ?? setFallbackOpen}
+    />
+  );
+}
+
+function StandaloneInvitationsDialog({
+  controlledOpen,
+  onControlledOpenChange,
+}: {
+  controlledOpen: boolean;
+  onControlledOpenChange: (open: boolean) => void;
+}) {
   const [open, setOpen] = useAtom(invitationsDialogOpenAtom);
+  const activeOpen = controlledOpen || open;
+  const setActiveOpen = (next: boolean) => {
+    onControlledOpenChange(next);
+    setOpen(next);
+  };
   const navigate = useNavigate();
   const invitationsResult = useAtomValue(myInvitationsAtom);
   const organizationsResult = useAtomValue(joinableOrganizationsAtom);
-  const invitations = resultValue(invitationsResult);
-  const organizations = resultValue(organizationsResult);
+  const invitations = resultList<MyInvitation>(invitationsResult);
+  const organizations = resultList<JoinableOrganization>(organizationsResult);
   const refreshInvitations = useAtomRefresh(myInvitationsAtom);
   const refreshJoinable = useAtomRefresh(joinableOrganizationsAtom);
   const refreshOrganizations = useAtomRefresh(organizationsAtom);
@@ -259,7 +291,7 @@ export function InvitationsDialog(_props: InvitationsDialogProps) {
   const joined = (organization: unknown, fallbackName: string) => {
     refreshAll();
     toast.success(`Joined ${joinedName(organization, fallbackName)}`);
-    setOpen(false);
+    setActiveOpen(false);
     void navigate({ to: "/new" });
   };
 
@@ -293,7 +325,7 @@ export function InvitationsDialog(_props: InvitationsDialogProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={activeOpen} onOpenChange={setActiveOpen}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Invitations</DialogTitle>

@@ -5,7 +5,13 @@ import { type FormEvent, memo, useState } from "react";
 import { toast } from "sonner";
 import { SettingsPage } from "@/components/settings-page";
 import type { OrgId } from "@/data/api/schemas/ids";
-import type { Invitation, OrganizationMember } from "@/data/api/schemas/member";
+import type {
+  Invitation,
+  InvitationRow as InvitationRowData,
+  InviteOutcome,
+  MemberRow as MemberRowData,
+  OrganizationMember,
+} from "@/data/api/schemas/member";
 import type {
   AccessLevel,
   Organization,
@@ -68,6 +74,8 @@ import { Textarea } from "@/primitives/textarea";
 import {
   assignableRoles,
   defaultSort,
+  fromInvitationRow,
+  fromMemberRow,
   type ExtendDays,
   errorMessage,
   extendedDeadline,
@@ -97,6 +105,13 @@ import {
   toDate,
 } from "./model";
 
+const outcomeList = (value: unknown): ReadonlyArray<InviteOutcome> =>
+  Array.isArray(value)
+    ? (value as ReadonlyArray<InviteOutcome>)
+    : value !== null && typeof value === "object" && "invitations" in value
+      ? ((value as { invitations: ReadonlyArray<InviteOutcome> }).invitations ?? [])
+      : [];
+
 const columns =
   "minmax(0,3fr) minmax(0,2fr) minmax(6rem,auto) minmax(5.5rem,auto) auto";
 
@@ -110,14 +125,35 @@ const valueOr = <A,>(
   fallback: A,
 ) => (AsyncResult.isSuccess(result) ? result.value : fallback);
 
-const noMembers: ReadonlyArray<OrganizationMember> = [];
-const noInvitations: ReadonlyArray<Invitation> = [];
+const matchesInactiveRow = (member: OrganizationMember, query: string, role: RoleFilter) =>
+  matchesInactive(
+    {
+      id: member.userId,
+      firstName: member.firstName ?? "",
+      lastName: member.lastName ?? "",
+      email: member.email ?? "",
+      githubLogin: member.githubLogin ?? "",
+      role: member.accessLevel,
+      joinedAt: "",
+      removedAt: null,
+      isRemoved: true,
+      mfaExtension: null,
+    },
+    query,
+    role,
+  );
+
+const formatJoinedMember = (member: OrganizationMember | MemberRowData) =>
+  formatJoined("createdAt" in member ? member.createdAt : member.joinedAt);
+
+const noRows: ReadonlyArray<MemberRowData> = [];
+const noInvitationRows: ReadonlyArray<InvitationRowData> = [];
 
 function RowActionsIcon() {
   return <Icon name="dot-grid-1x3-horizontal" />;
 }
 
-type MemberRowProps = {
+type MemberViewProps = {
   member: OrganizationMember;
   owners: number;
   isAdmin: boolean;
@@ -149,7 +185,7 @@ const MemberRow = memo(function MemberRow({
   onRemove,
   onExtend,
   onClearExtension,
-}: MemberRowProps) {
+}: MemberViewProps) {
   const needsMfa = mfaRequired && !meetsMfa(member, mfaLevel);
   const deadline = needsMfa
     ? extensionAfter(member, Math.max(Date.now(), mfaEnforceAt?.getTime() ?? 0))
@@ -210,7 +246,7 @@ const MemberRow = memo(function MemberRow({
           </Badge>
         )}
       </TableCell>
-      <TableCell>{formatJoined(member.createdAt)}</TableCell>
+      <TableCell>{formatJoined(formatJoinedMember(member))}</TableCell>
       <TableCell className="justify-end">
         <Menu>
           <MenuTrigger
@@ -268,7 +304,7 @@ const MemberRow = memo(function MemberRow({
             <MenuItem
               intent="danger"
               disabled={removeDisabled}
-              onClick={() => onRemove(member)}
+              onClick={() => onRemove(member as OrganizationMember)}
             >
               Remove from organization
             </MenuItem>
@@ -279,7 +315,7 @@ const MemberRow = memo(function MemberRow({
   );
 });
 
-type InvitationRowProps = {
+type InviteViewRowProps = {
   invitation: Invitation;
   canRevoke: boolean;
   revoking: boolean;
@@ -291,7 +327,7 @@ function InvitationRow({
   canRevoke,
   revoking,
   onRevoke,
-}: InvitationRowProps) {
+}: InviteViewRowProps) {
   return (
     <TableRow>
       <TableCell className="gap-2.5">
@@ -357,7 +393,7 @@ function InactiveMemberRows({
   const restore = useAtomSet(restoreMemberAtom, { mode: "promise" });
   const [restoring, setRestoring] = useState<string | null>(null);
   const rows = sortRows(
-    members.filter((member) => matchesInactive(member, query, role)),
+    members.filter((member) => member.disabled && matchesInactiveRow(member, query, role)),
     (member) =>
       sort.key === "status" ? "Inactive" : memberSortValue(member, sort.key),
     sort.direction,
@@ -406,7 +442,7 @@ function InactiveMemberRows({
             <TableCell>
               <Badge color="neutral">Inactive</Badge>
             </TableCell>
-            <TableCell>{formatJoined(member.createdAt)}</TableCell>
+            <TableCell>{formatJoined(formatJoinedMember(member))}</TableCell>
             <TableCell className="justify-end">
               <Menu>
                 <MenuTrigger
@@ -607,8 +643,8 @@ function InviteMembersDialog({
       payload: { emails: list },
       reactivityKeys: memberReactivityKeys.invitations(orgId),
     })
-      .then((outcomes) => {
-        const { sent, skipped } = summarizeInvites(outcomes);
+      .then((result) => {
+        const { sent, skipped } = summarizeInvites(outcomeList(result));
         if (sent > 0) {
           toast.success(
             sent === 1 ? "Invitation sent" : `${sent} invitations sent`,
@@ -713,11 +749,19 @@ function OrgMembersContent({
   onViewerRoleChanged,
 }: OrgMembersContentProps) {
   const orgId = organization.id;
-  const members = valueOr(useAtomValue(orgMembersAtom(orgId)), noMembers);
-  const invitations = valueOr(
-    useAtomValue(orgInvitationsAtom(orgId)),
-    noInvitations,
+  const memberRows: ReadonlyArray<MemberRowData> = valueOr(
+    useAtomValue(orgMembersAtom(orgId)),
+    noRows,
   );
+  const invitationResult = useAtomValue(orgInvitationsAtom(orgId));
+  const invitationRows: ReadonlyArray<InvitationRowData> =
+    AsyncResult.isSuccess(invitationResult) &&
+    "invitations" in (invitationResult.value as object)
+      ? ((invitationResult.value as { invitations: ReadonlyArray<InvitationRowData> })
+          .invitations ?? [])
+      : valueOr(invitationResult as never, noInvitationRows);
+  const members: ReadonlyArray<OrganizationMember> = memberRows.map(fromMemberRow);
+  const invitations: ReadonlyArray<Invitation> = invitationRows.map(fromInvitationRow);
   const setRole = useAtomSet(setMemberRoleAtom, { mode: "promise" });
   const removeMember = useAtomSet(removeMemberAtom, { mode: "promise" });
   const grantOwner = useAtomSet(grantOwnerAtom, { mode: "promise" });
@@ -988,7 +1032,7 @@ function OrgMembersContent({
             {isAdmin && (
               <InactiveMemberRows
                 orgId={orgId}
-                members={members}
+                members={memberRows.map(fromMemberRow)}
                 query={query}
                 role={role}
                 isOwner={isOwner}

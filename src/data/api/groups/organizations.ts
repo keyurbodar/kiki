@@ -2,18 +2,17 @@ import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
 import { Forbidden } from "../schemas/errors.ts";
 import { OrgId } from "../schemas/ids.ts";
-import { JoinableOrganization, MyInvitation } from "../schemas/member.ts";
 import { Organization } from "../schemas/organization.ts";
 import { Undecoded } from "../undecoded.ts";
 
 export class OrganizationsGroup extends HttpApiGroup.make("organizations").add(
   HttpApiEndpoint.get("listMyInvitations", "/me/invitations", {
-    success: Schema.Array(MyInvitation),
+    success: Undecoded,
   }),
   HttpApiEndpoint.get(
     "listJoinableOrganizations",
     "/me/joinable-organizations",
-    { success: Schema.Array(JoinableOrganization) },
+    { success: Undecoded },
   ),
   HttpApiEndpoint.get("list", "/organizations", {
     success: Schema.Array(Organization),
