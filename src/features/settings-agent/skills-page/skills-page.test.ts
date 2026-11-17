@@ -40,6 +40,7 @@ const scope = (key: string, captain?: string): AgentScope => ({
   title: key,
   audience: key,
   scope: {},
+  part: "org",
   filtersKey: key,
   ...(captain === undefined ? {} : { captain }),
 });

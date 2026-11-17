@@ -1,10 +1,10 @@
 import { Button } from "@/primitives/button";
+import { Icon } from "@/primitives/icon";
 import { MenuContent, MenuTrigger } from "@/primitives/menu";
 import {
   ResponsiveMenu,
   ResponsiveMenuItem,
 } from "@/primitives/responsive-menu";
-import { CheckmarkIcon, ChevronDownSmallIcon } from "./icons";
 import { ProjectGlyph, type ScopeProject } from "./project-glyph";
 
 /** Capy's menu-item icon slot and label classes. */
@@ -30,7 +30,7 @@ export function ProjectMenu({
           <Button variant="ghost" size="sm" aria-label="Project">
             <ProjectGlyph project={value} className="size-(--icon-sm)" />
             {value.name}
-            <ChevronDownSmallIcon />
+            <Icon name="chevron-down-small" />
           </Button>
         }
       />
@@ -45,7 +45,10 @@ export function ProjectMenu({
             </span>
             <span className={menuItemLabelClass}>{project.name}</span>
             {project.id === value.id && (
-              <CheckmarkIcon className="ml-auto size-(--icon-sm) shrink-0 text-foreground" />
+              <Icon
+                name="checkmark-1"
+                className="ml-auto size-(--icon-sm) shrink-0 text-foreground"
+              />
             )}
           </ResponsiveMenuItem>
         ))}

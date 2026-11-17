@@ -3,6 +3,7 @@ import { Option } from "effect";
 import { AsyncResult, Atom } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
 import {
+  type AgentContextPartKind,
   type Captain,
   captainsAtom,
   type DriveScope,
@@ -10,7 +11,7 @@ import {
 } from "@/data/atoms/agent-context";
 import { projectsAtom } from "@/data/atoms/projects";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
-import { BuildingsIcon, UserIcon } from "./icons";
+import { Icon } from "@/primitives/icon";
 import {
   CaptainAvatar,
   ProjectGlyph,
@@ -26,6 +27,8 @@ export type AgentScope = {
   title: string;
   audience: string;
   scope: DriveScope;
+  /** Capy's context-part kind for this scope's instructions line. */
+  part: AgentContextPartKind;
   filtersKey: string;
   captain?: string;
   readOnly?: boolean;
@@ -76,7 +79,8 @@ export const buildAgentScopes = ({
       "org",
       {},
       {
-        icon: <BuildingsIcon />,
+        part: "org",
+        icon: <Icon name="buildings" />,
         name: orgName,
         kind: "Organization",
         title: "Organization instructions",
@@ -90,6 +94,7 @@ export const buildAgentScopes = ({
             "project",
             { projectId: project.id },
             {
+              part: "project",
               icon: <ProjectGlyph project={project} />,
               name: project.name,
               kind: "Project",
@@ -105,7 +110,8 @@ export const buildAgentScopes = ({
             "user",
             { userId },
             {
-              icon: <UserIcon />,
+              part: "user",
+              icon: <Icon name="user" />,
               name: "You",
               kind: "Every project",
               title: "Your instructions",
@@ -120,7 +126,8 @@ export const buildAgentScopes = ({
             "project-user",
             { projectId: project.id, userId },
             {
-              icon: <UserIcon />,
+              part: "project-user",
+              icon: <Icon name="user" />,
               name: `You in ${project.name}`,
               kind: "Only you, only here",
               title: `Your instructions in ${project.name}`,
@@ -137,6 +144,7 @@ export const buildAgentScopes = ({
           `captain:${captain.id}`,
           { captainJamId: captain.id },
           {
+            part: "captain",
             icon: <CaptainAvatar captain={captain} size="xs" />,
             name: captain.name,
             kind: "Captain",

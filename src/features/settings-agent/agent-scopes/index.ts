@@ -1,5 +1,4 @@
 export * from "./drive-authoring";
-export * from "./icons";
 export * from "./project-glyph";
 export * from "./project-menu";
 export * from "./scope-editor";

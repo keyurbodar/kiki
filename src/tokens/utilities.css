@@ -7,6 +7,7 @@
   --shadow-plate: var(--sh-plate);
   --shadow-overlay: var(--sh-overlay);
   --shadow-row-open: var(--sh-row-open);
+  --shadow-composer: var(--sh-composer);
 }
 
 :root,
@@ -64,5 +65,32 @@
       animation-fill-mode: both;
       animation-timeline: scroll(self inline);
     }
+  }
+}
+
+/* Added by the composer (B4): values from Capy's production stylesheet. */
+
+@theme inline {
+  --shadow-composer: var(--sh-composer);
+}
+
+@theme static {
+  --spacing-code-inline-x: 3px;
+  --h-menu-group-label: 22px;
+}
+
+@utility scroll-fade-y {
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black var(--_scroll-fade-top),
+    black calc(100% - var(--_scroll-fade-bottom)),
+    transparent
+  );
+  @supports (animation-timeline: scroll()) {
+    animation-name: _scroll-fade-y;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(self);
   }
 }

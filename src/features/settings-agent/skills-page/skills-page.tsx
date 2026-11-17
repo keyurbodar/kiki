@@ -9,6 +9,7 @@ import {
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import { Card, CardListHeader } from "@/primitives/card";
+import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import { MenuContent, MenuTrigger } from "@/primitives/menu";
 import {
@@ -18,15 +19,11 @@ import {
 import { SettingsRow } from "@/primitives/settings-row";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import {
-  ChevronRightSmallIcon,
-  CrossIcon,
   menuItemIconClass,
   menuItemLabelClass,
-  PlusIcon,
   ProjectMenu,
   readSkillMeta,
   resultValue,
-  SearchIcon,
   useAgentScopes,
   useVolumeFile,
 } from "../agent-scopes";
@@ -91,7 +88,7 @@ function ListHeader({
             title={search.placeholder}
             onClick={() => setSearching(true)}
           >
-            <SearchIcon />
+            <Icon name="magnifying-glass" />
           </Button>
         )}
         {open && (
@@ -105,7 +102,7 @@ function ListHeader({
               setSearching(false);
             }}
           >
-            <CrossIcon />
+            <Icon name="cross-medium" />
           </Button>
         )}
         {action}
@@ -169,7 +166,10 @@ function SkillRow({
           <Badge size="xs">Replaced by {skill.hiddenBy.name}</Badge>
         )
       )}
-      <ChevronRightSmallIcon className="size-(--icon-sm) shrink-0 text-muted-foreground-3" />
+      <Icon
+        name="chevron-right-small"
+        className="size-(--icon-sm) shrink-0 text-muted-foreground-3"
+      />
     </SettingsRow>
   );
 }
@@ -245,7 +245,7 @@ export function SkillsPage() {
                       title="New skill"
                       disabled={loading}
                     >
-                      <PlusIcon />
+                      <Icon name="plus-medium" />
                     </Button>
                   }
                 />

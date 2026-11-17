@@ -3,15 +3,15 @@ import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
 import { SettingsSection } from "@/components/settings-page";
 import {
-  type AgentContextPart,
-  type AgentContextPartKind,
   agentContextPreviewAtom,
   agentContextPreviewKey,
   agentModelsAtom,
   captainsAtom,
+  driveScopesFilesAtom,
 } from "@/data/atoms/agent-context";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
+import { Icon } from "@/primitives/icon";
 import { MenuContent, MenuTrigger } from "@/primitives/menu";
 import {
   ResponsiveMenu,
@@ -20,23 +20,27 @@ import {
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
+  type AgentScope,
   CaptainAvatar,
-  CheckmarkIcon,
-  ChevronDownSmallIcon,
   menuItemIconClass,
   resultValue,
-  type ScopeProject,
-  UserIcon,
   useAgentOrg,
 } from "../agent-scopes";
+import {
+  localPreviewParts,
+  localUsed,
+  type PreviewPart,
+} from "./preview-parts";
 import { formatTokens, tokensOf, windowShare } from "./tokens";
+
+export * from "./preview-parts";
 
 const cx = (...parts: Array<string | false | null | undefined>) =>
   parts.filter(Boolean).join(" ");
 
 const pageSize = 5;
 
-export const partColor: Record<AgentContextPartKind, string> = {
+export const partColor: Record<PreviewPart["kind"], string> = {
   org: "bg-chart-1",
   project: "bg-chart-2",
   repo: "bg-chart-3",
@@ -47,7 +51,7 @@ export const partColor: Record<AgentContextPartKind, string> = {
 };
 
 /** Which parts show, and where: instructions first, deferred repo files paged, the rest last. */
-export const groupParts = (parts: ReadonlyArray<AgentContextPart>) => {
+export const groupParts = (parts: ReadonlyArray<PreviewPart>) => {
   const shown = parts.filter(
     (part) => part.chars > 0 || part.kind === "skills",
   );
@@ -93,7 +97,7 @@ function PickMenu({
           >
             {current?.icon}
             {current?.label ?? label}
-            <ChevronDownSmallIcon />
+            <Icon name="chevron-down-small" />
           </Button>
         }
       />
@@ -109,7 +113,10 @@ function PickMenu({
             <span className={menuItemIconClass}>{option.icon}</span>
             <span className="truncate">{option.label}</span>
             {option.value === value && (
-              <CheckmarkIcon className="size-(--icon-sm) shrink-0 text-foreground" />
+              <Icon
+                name="checkmark-1"
+                className="size-(--icon-sm) shrink-0 text-foreground"
+              />
             )}
           </ResponsiveMenuItem>
         ))}
@@ -118,7 +125,7 @@ function PickMenu({
   );
 }
 
-function PartRow({ part }: { part: AgentContextPart }) {
+function PartRow({ part }: { part: PreviewPart }) {
   const deferred = part.deferred === true;
   const cut = !deferred && part.loaded < part.chars;
   const file = part.file.split("/").at(-1);
@@ -162,15 +169,18 @@ function PartRow({ part }: { part: AgentContextPart }) {
 }
 
 /** Capy's AgentContextPreview: what loads before a thread's first message. */
-export function AgentContextPreview({ project }: { project: ScopeProject }) {
+export function AgentContextPreview({
+  project,
+  scopes,
+}: {
+  project: { id: string; name: string };
+  scopes: ReadonlyArray<AgentScope>;
+}) {
   const { orgId } = useAgentOrg();
   const crews = (
     resultValue(useAtomValue(captainsAtom(orgId ?? ""))) ?? []
   ).filter((captain) => captain.projectId === project.id);
-  const models = (resultValue(useAtomValue(agentModelsAtom)) ?? []).filter(
-    (model, index, all) =>
-      all.findIndex((other) => other.id === model.id) === index,
-  );
+  const models = resultValue(useAtomValue(agentModelsAtom)) ?? [];
   const [previewAs, setPreviewAs] = useState("you");
   const [modelId, setModelId] = useState<string>();
   const [visible, setVisible] = useState(pageSize);
@@ -179,23 +189,45 @@ export function AgentContextPreview({ project }: { project: ScopeProject }) {
     models.find((candidate) => candidate.id === modelId) ??
     models.find((candidate) => candidate.defaultFavorite) ??
     models[0];
-  const atom = agentContextPreviewAtom(
+  const previewed = scopes.filter(
+    (scope) => scope.captain === undefined || scope.part === "captain",
+  );
+  const included = previewed.filter(
+    (scope) =>
+      scope.part !== "captain" ||
+      (crew !== undefined && scope.key === `captain:${crew.id}`),
+  );
+  const filesResult = useAtomValue(
+    driveScopesFilesAtom(included.map((scope) => scope.filtersKey).join("\n")),
+  );
+  const files = resultValue(filesResult) ?? [];
+  const serverAtom = agentContextPreviewAtom(
     agentContextPreviewKey(orgId ?? "", {
       projectId: project.id,
       model: model?.id,
       captainJamId: crew?.id,
     }),
   );
-  const result = useAtomValue(atom);
-  const retry = useAtomRefresh(atom);
-  const preview = resultValue(result);
-  const failed = preview === undefined && AsyncResult.isFailure(result);
-  const { shown, deferred, loaded, rest } = groupParts(preview?.parts ?? []);
-  const tokens = preview === undefined ? 0 : tokensOf(preview.used);
-  const share =
-    preview === undefined ? 0 : windowShare(tokens, preview.contextWindow);
+  const serverResult = useAtomValue(serverAtom);
+  const retry = useAtomRefresh(serverAtom);
+  const server = resultValue(serverResult);
+  const filesReady = included.length > 0 && files.length === included.length;
+  const local =
+    filesReady && model !== undefined
+      ? localPreviewParts(included, files)
+      : undefined;
+  const parts: ReadonlyArray<PreviewPart> | undefined = server?.parts ?? local;
+  const used = server?.used ?? (local === undefined ? 0 : localUsed(local));
+  const contextWindow = model?.contextWindow ?? server?.contextWindow ?? 0;
+  const tokens = tokensOf(used);
+  const share = windowShare(tokens, contextWindow);
+  const failed =
+    parts === undefined &&
+    AsyncResult.isFailure(serverResult) &&
+    AsyncResult.isFailure(filesResult);
+  const { shown, deferred, loaded, rest } = groupParts(parts ?? []);
   const asOptions: PickOption[] = [
-    { value: "you", label: "As you", icon: <UserIcon /> },
+    { value: "you", label: "As you", icon: <Icon name="user" /> },
     ...crews.map((captain) => ({
       value: captain.id,
       label: `As ${captain.name} crew`,
@@ -239,33 +271,31 @@ export function AgentContextPreview({ project }: { project: ScopeProject }) {
           </div>
         ) : (
           <div className="flex flex-col gap-2 px-4 py-3">
-            {preview === undefined ? (
+            {parts === undefined ? (
               <SkeletonPanel className="h-4 w-56" />
             ) : (
               <span className="truncate text-sm tabular-nums">
                 <span className="font-medium text-foreground">
                   About {formatTokens(tokens)} tokens
                 </span>
-                {model !== undefined && (
+                {model !== undefined && contextWindow > 0 && (
                   <span className="text-muted-foreground-2">
                     , {share < 0.1 ? "under 0.1" : Number(share.toFixed(1))}% of
-                    the {formatTokens(preview.contextWindow)} context window
+                    the {formatTokens(contextWindow)} context window
                   </span>
                 )}
               </span>
             )}
             <div className="flex h-1.5 w-full gap-px overflow-hidden rounded-full bg-secondary">
-              {preview !== undefined &&
-                preview.used > 0 &&
+              {parts !== undefined &&
+                used > 0 &&
                 shown
                   .filter((part) => part.loaded > 0)
                   .map((part) => (
                     <div
                       key={part.kind + part.label}
                       className={cx("h-full", partColor[part.kind])}
-                      style={{
-                        width: `${(part.loaded / preview.used) * 100}%`,
-                      }}
+                      style={{ width: `${(part.loaded / used) * 100}%` }}
                     />
                   ))}
             </div>
@@ -273,7 +303,7 @@ export function AgentContextPreview({ project }: { project: ScopeProject }) {
         )}
         {!failed && (
           <div className="flex flex-col py-1">
-            {preview === undefined
+            {parts === undefined
               ? [0, 1, 2, 3].map((index) => (
                   <div key={index} className="flex h-8 items-center px-4">
                     <SkeletonPanel className="h-3.5 w-48" />

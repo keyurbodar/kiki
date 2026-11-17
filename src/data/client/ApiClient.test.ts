@@ -4,17 +4,16 @@ import { KikiApi } from "../api/Api.ts";
 import { InferredMethod } from "../api/annotations.ts";
 import { OrgId, ProjectId } from "../api/schemas/ids.ts";
 import { MockTransport } from "../mocks/MockServices.ts";
-import { notImplementedStatus } from "../mocks/mockGroup.ts";
 import { ApiClient, makeApiClientLayer } from "./ApiClient.ts";
 
 const orgId = OrgId.make("org_sample_acme");
 
 describe("KikiApi", () => {
-  it("declares all 61 groups and 709 endpoints", () => {
+  it("declares all 61 groups and 711 endpoints", () => {
     const groups = Object.values(KikiApi.groups);
     const endpoints = groups.flatMap((group) => Object.keys(group.endpoints));
     assert.strictEqual(groups.length, 61);
-    assert.strictEqual(endpoints.length, 709);
+    assert.strictEqual(endpoints.length, 711);
   });
 
   it("marks the methods api.md had to infer", () => {
@@ -121,17 +120,6 @@ layer(makeApiClientLayer(MockTransport))(
           archived.items.map((thread) => thread.status),
           ["archived"],
         );
-      }),
-    );
-
-    it.effect("answers unfilled endpoints with 501 Not Implemented", () =>
-      Effect.gen(function* () {
-        const client = yield* ApiClient;
-        const error = yield* client.automations
-          .list({ params: { orgId }, query: {} })
-          .pipe(Effect.flip);
-        assert.strictEqual(error._tag, "HttpClientError");
-        assert.include(String(error), `(${notImplementedStatus} GET`);
       }),
     );
   },

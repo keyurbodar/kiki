@@ -1,5 +1,5 @@
 import type { Captain } from "@/data/atoms/agent-context";
-import { InboxIcon, LayersIcon } from "./icons";
+import { Icon } from "@/primitives/icon";
 
 export type ScopeProject = {
   id: string;
@@ -11,7 +11,7 @@ export type ScopeProject = {
 const cx = (...parts: Array<string | false | null | undefined>) =>
   parts.filter(Boolean).join(" ");
 
-/** Capy's ProjectIcon: the project logo, else its folder glyph. */
+/** Capy's ProjectIcon: the project's own logo, else its repository glyph. */
 export function ProjectGlyph({
   project,
   className,
@@ -31,10 +31,11 @@ export function ProjectGlyph({
         )}
       />
     );
-  return project.repos.length > 1 ? (
-    <LayersIcon className={className} />
-  ) : (
-    <InboxIcon className={className} />
+  return (
+    <Icon
+      name={project.repos.length > 1 ? "square-behind-square-2" : "box-2"}
+      className={className}
+    />
   );
 }
 

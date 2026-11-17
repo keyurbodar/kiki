@@ -1,12 +1,14 @@
 import { Effect, Schema } from "effect";
 import { Atom } from "effect/reactivity";
+import { VolumeId, VolumeVersionId } from "../api/schemas/drive.ts";
+import { OrgId } from "../api/schemas/ids.ts";
 import { ApiClient } from "../client/ApiClient.ts";
 import { queryTimeToLive } from "./conventions.ts";
 
 /**
  * Drive scopes, scope files and the agent context preview, as Capy's
- * Instructions and Skills settings read them. The `volumes` endpoints are still
- * `Undecoded` in the group, so these atoms decode Capy's shapes themselves.
+ * Instructions and Skills settings read them. The `volumes` endpoints answer
+ * Capy's shapes as plain JSON, so these atoms decode them.
  */
 
 export const DriveScope = Schema.Struct({
@@ -75,21 +77,41 @@ export const AgentContextPart = Schema.Struct({
 });
 export type AgentContextPart = typeof AgentContextPart.Type;
 
+/** One line of "Loaded before the first message". */
+export type ContextPart = AgentContextPart;
+
+/** Capy's preview payload. The mock still answers a provisional shape, so every field is optional and a payload without `parts` decodes to undefined. */
 export const AgentContextPreview = Schema.Struct({
-  modelId: Schema.String,
-  contextWindow: Schema.Number,
-  used: Schema.Number,
-  parts: Schema.Array(AgentContextPart),
+  modelId: Schema.optional(Schema.String),
+  contextWindow: Schema.optional(Schema.Number),
+  used: Schema.optional(Schema.Number),
+  parts: Schema.optional(Schema.Array(AgentContextPart)),
 });
-export type AgentContextPreview = typeof AgentContextPreview.Type;
+
+export type CapyAgentContextPreview = {
+  modelId: string | undefined;
+  contextWindow: number;
+  used: number;
+  parts: ReadonlyArray<ContextPart>;
+};
 
 export const AgentModel = Schema.Struct({
   id: Schema.String,
-  name: Schema.String,
+  name: Schema.optional(Schema.String),
+  label: Schema.optional(Schema.String),
   provider: Schema.String,
+  contextWindow: Schema.optional(Schema.Number),
   defaultFavorite: Schema.optional(Schema.Boolean),
 });
 export type AgentModel = typeof AgentModel.Type;
+
+export type ModelOption = {
+  id: string;
+  name: string;
+  provider: string;
+  contextWindow: number | undefined;
+  defaultFavorite: boolean;
+};
 
 export const Captain = Schema.Struct({
   id: Schema.String,
@@ -170,7 +192,7 @@ const restOf = (key: string) => key.slice(key.indexOf("|") + 1);
 
 const volumesQuery = Atom.family((key: string) =>
   ApiClient.query("volumes", "list", {
-    params: { orgId: orgOf(key) },
+    params: { orgId: OrgId.make(orgOf(key)) },
     query: JSON.parse(restOf(key)) as Record<string, string>,
     reactivityKeys: [driveReactivityKey(orgOf(key))],
     timeToLive: queryTimeToLive,
@@ -180,7 +202,11 @@ const volumesQuery = Atom.family((key: string) =>
 const manifestQuery = Atom.family((key: string) => {
   const [orgId = "", volumeId = "", versionId = ""] = key.split("|");
   return ApiClient.query("volumes", "manifest", {
-    params: { orgId, volumeId, versionId },
+    params: {
+      orgId: OrgId.make(orgId),
+      volumeId: VolumeId.make(volumeId),
+      versionId: VolumeVersionId.make(versionId),
+    },
     query: {},
     reactivityKeys: [driveReactivityKey(orgId)],
     timeToLive: queryTimeToLive,
@@ -217,7 +243,7 @@ export const driveScopeFilesAtom = Atom.family((key: string) =>
   ),
 );
 
-/** Several scopes' files at once, keyed by their `driveScopeFilesKey`s joined with newlines; a scope that fails reads as undefined. */
+/** Several scopes' files at once, keyed by their keys joined with newlines; a scope that fails reads as undefined. */
 export const driveScopesFilesAtom = Atom.family((keys: string) =>
   Atom.make((get) =>
     Effect.forEach(
@@ -236,7 +262,12 @@ const fileQuery = Atom.family((key: string) => {
   const [orgId = "", volumeId = "", versionId = "", sha256 = ""] =
     key.split("|");
   return ApiClient.query("volumes", "file", {
-    params: { orgId, volumeId, versionId, sha256 },
+    params: {
+      orgId: OrgId.make(orgId),
+      volumeId: VolumeId.make(volumeId),
+      versionId: VolumeVersionId.make(versionId),
+      sha256,
+    },
     timeToLive: queryTimeToLive,
   });
 });
@@ -253,7 +284,7 @@ export const driveFileAtom = Atom.family((key: string) =>
 
 const previewQuery = Atom.family((key: string) =>
   ApiClient.query("volumes", "agentContextPreview", {
-    params: { orgId: orgOf(key) },
+    params: { orgId: OrgId.make(orgOf(key)) },
     query: JSON.parse(restOf(key)) as Record<string, string>,
     reactivityKeys: [driveReactivityKey(orgOf(key))],
     timeToLive: queryTimeToLive,
@@ -276,12 +307,22 @@ export const agentContextPreviewKey = (
     ),
   )}`;
 
-/** Capy's "Loaded before the first message" breakdown, keyed by `agentContextPreviewKey`. */
+/** Capy's own breakdown when the endpoint answers it; undefined until then. Keyed by `agentContextPreviewKey`. */
 export const agentContextPreviewAtom = Atom.family((key: string) =>
   Atom.make((get) =>
-    get
-      .result(previewQuery(key))
-      .pipe(Effect.flatMap(decode(AgentContextPreview))),
+    get.result(previewQuery(key)).pipe(
+      Effect.flatMap(decode(AgentContextPreview)),
+      Effect.map((preview): CapyAgentContextPreview | undefined =>
+        preview.parts === undefined || preview.contextWindow === undefined
+          ? undefined
+          : {
+              modelId: preview.modelId,
+              contextWindow: preview.contextWindow,
+              used: preview.used ?? 0,
+              parts: preview.parts,
+            },
+      ),
+    ),
   ),
 );
 
@@ -291,15 +332,33 @@ const modelsQuery = ApiClient.query("models", "list", {
   timeToLive: queryTimeToLive,
 });
 
+/** Capy's model catalog; the mock answers `{ models: [...] }`. */
 export const agentModelsAtom = Atom.make((get) =>
-  get
-    .result(modelsQuery)
-    .pipe(Effect.flatMap(decode(Schema.Array(AgentModel)))),
+  get.result(modelsQuery).pipe(
+    Effect.flatMap(decode(Schema.Struct({ models: Schema.Array(AgentModel) }))),
+    Effect.map(
+      ({ models }): ReadonlyArray<ModelOption> =>
+        models.flatMap((model) => {
+          const name = model.name ?? model.label;
+          return name === undefined
+            ? []
+            : [
+                {
+                  id: model.id,
+                  name,
+                  provider: model.provider,
+                  contextWindow: model.contextWindow,
+                  defaultFavorite: model.defaultFavorite === true,
+                },
+              ];
+        }),
+    ),
+  ),
 );
 
 const captainsQuery = Atom.family((orgId: string) =>
   ApiClient.query("captains", "list", {
-    params: { orgId },
+    params: { orgId: OrgId.make(orgId) },
     query: {},
     reactivityKeys: [`captain:${orgId}`],
     timeToLive: queryTimeToLive,

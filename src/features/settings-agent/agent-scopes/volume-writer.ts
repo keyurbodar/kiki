@@ -1,11 +1,27 @@
 import { useAtomSet } from "@effect/atom-react";
 import { toast } from "sonner";
+import { AutomationId } from "@/data/api/schemas/drive";
+import { JamId, ProjectId, UserId } from "@/data/api/schemas/ids";
 import {
   type DriveScope,
   driveReactivityKey,
   driveWriteAtom,
 } from "@/data/atoms/agent-context";
 import { useAgentOrg } from "./use-agent-scopes";
+
+/** Brands a plain scope for the write payload. */
+const brandScope = (scope: DriveScope) => ({
+  ...(scope.projectId === undefined
+    ? {}
+    : { projectId: ProjectId.make(scope.projectId) }),
+  ...(scope.userId === undefined ? {} : { userId: UserId.make(scope.userId) }),
+  ...(scope.automationId === undefined
+    ? {}
+    : { automationId: AutomationId.make(scope.automationId) }),
+  ...(scope.captainJamId === undefined
+    ? {}
+    : { captainJamId: JamId.make(scope.captainJamId) }),
+});
 
 export type VolumeChange =
   | { path: string; content: string }
@@ -66,7 +82,11 @@ export function useVolumeWriter({
       ? Promise.resolve(false)
       : write({
           params: { orgId },
-          payload: { scope, expectedDigest: headDigest, changes },
+          payload: {
+            scope: brandScope(scope),
+            expectedDigest: headDigest,
+            changes,
+          },
           reactivityKeys: [driveReactivityKey(orgId)],
         }).then(
           () => {

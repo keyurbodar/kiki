@@ -8,6 +8,7 @@ import {
 } from "@/data/atoms/agent-context";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
+import { Icon } from "@/primitives/icon";
 import { SettingsRow } from "@/primitives/settings-row";
 import {
   SideSheet,
@@ -20,7 +21,6 @@ import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { AgentContextPreview } from "../agent-context-preview";
 import {
   type AgentScope,
-  ChevronRightSmallIcon,
   DraftEditor,
   EditorSkeleton,
   LoadedEditor,
@@ -196,7 +196,10 @@ function ScopeFileRow({
         highlighted={open}
         onClick={() => onOpenChange(true)}
       >
-        <ChevronRightSmallIcon className="size-(--icon-sm) shrink-0 text-muted-foreground-3" />
+        <Icon
+          name="chevron-right-small"
+          className="size-(--icon-sm) shrink-0 text-muted-foreground-3"
+        />
       </SettingsRow>
       {open && (
         <ScopeFileSheet
@@ -247,7 +250,9 @@ export function InstructionsPage() {
           ))}
         </Card>
       </SettingsSection>
-      {project !== undefined && <AgentContextPreview project={project} />}
+      {project !== undefined && (
+        <AgentContextPreview project={project} scopes={scopes} />
+      )}
     </SettingsPage>
   );
 }

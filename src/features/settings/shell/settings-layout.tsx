@@ -1,5 +1,5 @@
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ComponentType, type ReactNode, useEffect, useState } from "react";
 import { AppTopBar } from "@/components/app-top-bar";
 import {
   SettingsSidebar,
@@ -8,7 +8,7 @@ import {
 } from "@/components/settings-sidebar";
 import { UserMenu } from "@/components/user-menu";
 import { Button } from "@/primitives/button";
-import { Sheet, SheetContent, SheetOverlay } from "@/primitives/sheet";
+import { Sheet, SheetContent } from "@/primitives/sheet";
 import {
   settingsNav,
   settingsNavGroups,
@@ -93,9 +93,17 @@ function SidebarToggle({ onClick }: { onClick: () => void }) {
   );
 }
 
+export type SettingsMobileSheetProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  searchContext?: SettingsSearchContext;
+};
+
 export type SettingsLayoutProps = {
   children?: ReactNode;
   searchContext?: SettingsSearchContext;
+  /** Replaces the built-in phone navigation sheet (D8's MobileSettingsSheet). */
+  MobileSheet?: ComponentType<SettingsMobileSheetProps>;
 };
 
 /**
@@ -106,6 +114,7 @@ export type SettingsLayoutProps = {
 export function SettingsLayout({
   children,
   searchContext,
+  MobileSheet,
 }: SettingsLayoutProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const hash = useRouterState({ select: (s) => s.location.hash });
@@ -196,19 +205,23 @@ export function SettingsLayout({
           </div>
         </main>
       </div>
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetOverlay className="fixed inset-0 z-(--z-drawer) bg-overlay" />
-        <SheetContent
-          aria-label="Navigation"
-          className="fixed inset-y-0 left-0 z-(--z-drawer) flex w-[88%] flex-col bg-chrome pt-(--safe-top) pb-(--safe-bottom) outline-none"
-        >
-          <SettingsSidebarPanel
-            searchContext={searchContext}
-            trigger={<SidebarToggle onClick={() => setMobileOpen(false)} />}
-            onNavigate={() => setMobileOpen(false)}
-          />
-        </SheetContent>
-      </Sheet>
+      {MobileSheet ? (
+        <MobileSheet
+          open={mobileOpen}
+          onOpenChange={setMobileOpen}
+          searchContext={searchContext}
+        />
+      ) : (
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetContent aria-label="Navigation">
+            <SettingsSidebarPanel
+              searchContext={searchContext}
+              trigger={<SidebarToggle onClick={() => setMobileOpen(false)} />}
+              onNavigate={() => setMobileOpen(false)}
+            />
+          </SheetContent>
+        </Sheet>
+      )}
     </div>
   );
 }

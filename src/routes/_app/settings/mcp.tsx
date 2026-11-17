@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { McpAndPluginsPage } from "@/features/settings-mcp";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/settings/mcp")({
@@ -8,5 +8,6 @@ export const Route = createFileRoute("/_app/settings/mcp")({
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="/settings/mcp" path="/settings/mcp" />;
+  const { github } = Route.useSearch();
+  return <McpAndPluginsPage github={github} />;
 }

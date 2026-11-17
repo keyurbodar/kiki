@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { PublishThemePage } from "@/features/settings-appearance/theme-publish";
 
 export const Route = createFileRoute(
   "/_app/settings/appearance_/themes_/$themeId",
@@ -8,10 +8,6 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-  return (
-    <RoutePlaceholder
-      title="/settings/appearance/themes/$themeId"
-      path="/settings/appearance/themes/$themeId"
-    />
-  );
+  const { themeId } = Route.useParams();
+  return <PublishThemePage themeId={themeId} />;
 }
