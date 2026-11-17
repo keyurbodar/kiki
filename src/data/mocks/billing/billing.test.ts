@@ -103,6 +103,26 @@ describe("billing mock", () => {
     }),
   );
 
+  it.effect("serves the mock-only machine-hour allowance with usage", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const usage = (yield* AtomRegistry.getResult(
+        registry,
+        ApiClient.query("billing", "usage", {
+          params,
+          query: {},
+          reactivityKeys: [key],
+        }),
+      )) as {
+        readonly machineHourAllowance: number;
+        readonly machineHoursConsumed: number;
+      };
+      assert.isAbove(usage.machineHourAllowance, 0);
+      assert.isAbove(usage.machineHoursConsumed, 0);
+      assert.isAtMost(usage.machineHoursConsumed, usage.machineHourAllowance);
+    }),
+  );
+
   it.effect("refreshes account and invoices after mutations", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();

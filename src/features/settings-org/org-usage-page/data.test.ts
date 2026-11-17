@@ -32,6 +32,17 @@ describe("org usage decoding", () => {
     const summary = decodeUsageSummary({ period: { start: "a", end: "b" } });
     expect(summary.balance).toBeNull();
     expect(summary.included).toEqual([]);
+    expect(summary.machineHourAllowance).toBeNull();
+    expect(summary.machineHoursConsumed).toBeNull();
+  });
+
+  it("decodes the mock-only machine-hour allowance", () => {
+    const summary = decodeUsageSummary({
+      machineHourAllowance: 30_000,
+      machineHoursConsumed: 29_875,
+    });
+    expect(summary.machineHourAllowance).toBe(30_000);
+    expect(summary.machineHoursConsumed).toBe(29_875);
   });
 
   it("decodes bucketed series with their route split", () => {

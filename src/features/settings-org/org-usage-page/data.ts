@@ -22,6 +22,8 @@ const strOrNull = (value: unknown) =>
   typeof value === "string" ? value : null;
 const num = (value: unknown, fallback = 0) =>
   typeof value === "number" && Number.isFinite(value) ? value : fallback;
+const numOrNull = (value: unknown) =>
+  typeof value === "number" && Number.isFinite(value) ? value : null;
 const bool = (value: unknown) => value === true;
 const list = (value: unknown): ReadonlyArray<unknown> =>
   Array.isArray(value) ? value : [];
@@ -87,6 +89,8 @@ export const decodeUsageSummary = (value: unknown): UsageSummary => {
             unlimited: bool(balance.unlimited),
           },
     included: list(summary.included).map(decodeIncluded),
+    machineHourAllowance: numOrNull(summary.machineHourAllowance),
+    machineHoursConsumed: numOrNull(summary.machineHoursConsumed),
   };
 };
 

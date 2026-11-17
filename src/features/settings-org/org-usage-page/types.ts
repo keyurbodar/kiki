@@ -26,6 +26,15 @@ export type UsageSummary = {
     resetsAt?: string | null;
     breakdown?: ReadonlyArray<{ key: string; count: number; amount: number }>;
   }>;
+  /**
+   * Mock-only until a real endpoint carries them: the org's machine-hour
+   * allowance for the cycle and the machine hours spent against it, in the
+   * unit of `UsageThreadRow.machineHours`. Null when the payload omits them,
+   * which is what a real backend does today. See the note on `billing.usage`
+   * in `src/data/api/groups/billing.ts`.
+   */
+  machineHourAllowance: number | null;
+  machineHoursConsumed: number | null;
 };
 
 export type UsageBreakdownEntry = {
