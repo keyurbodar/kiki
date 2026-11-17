@@ -101,4 +101,67 @@ describe("Button", () => {
       .querySelector("[data-slot=button-icon]");
     expect(icon?.querySelector("[data-slot=dot-grid-icon]")).not.toBeNull();
   });
+
+  it("sizes icon buttons to the control square, not their content", () => {
+    for (const [size, token] of [
+      ["icon-xs", "xs"],
+      ["icon-sm", "sm"],
+      ["icon-base", "base"],
+    ] as const) {
+      const classes = buttonVariants({ size });
+      expect(classes).toContain(`size-(--h-control-${token})`);
+      expect(classes.split(" ")).not.toContain("w-fit");
+    }
+    // No width utility in the shared base, or it would out-order the size
+    // variants in Tailwind's output and shrink icon buttons to their glyph.
+    expect(buttonVariants({})).not.toMatch(/\bw-(fit|auto|full)\b/);
+  });
+
+  it("renders the element the caller asks for and keeps their props", () => {
+    render(
+      <Button render={<a href="/threads" />} className="custom">
+        Threads
+      </Button>,
+    );
+    const link = screen.getByRole("link", { name: "Threads" });
+    expect(link.dataset.slot).toBe("button");
+    expect(link.getAttribute("href")).toBe("/threads");
+    expect(link.className).toContain("custom");
+  });
+
+  it("shows the loading label instead of its children", () => {
+    render(
+      <Button loading loadingLabel="Saving">
+        <ButtonIcon>
+          <svg data-testid="glyph" />
+        </ButtonIcon>
+        Save
+      </Button>,
+    );
+    const button = screen.getByRole("button");
+    expect(button.textContent).toBe("Saving");
+    expect(button.querySelector("[data-slot=button-icon]")).toBeNull();
+    expect(button.querySelector("[data-slot=dot-grid-icon]")).not.toBeNull();
+  });
+
+  it("margins a trailing icon on the right", () => {
+    render(
+      <Button>
+        Next
+        <ButtonIcon side="trailing">
+          <svg data-testid="trail" />
+        </ButtonIcon>
+      </Button>,
+    );
+    expect(screen.getByTestId("trail").parentElement?.className).toContain(
+      "-mr-0.5",
+    );
+  });
+
+  it("leaves an idle button enabled and unannounced", () => {
+    render(<Button>Run</Button>);
+    const button = screen.getByRole("button");
+    expect(button).toHaveProperty("disabled", false);
+    expect(button.getAttribute("aria-busy")).toBeNull();
+  });
 });

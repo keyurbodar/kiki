@@ -18,7 +18,7 @@ const iconMargins =
 
 export const buttonVariants = cva(
   [
-    "cursor-pointer relative inline-flex items-center justify-center w-fit shrink-0 whitespace-nowrap rounded [text-box-trim:trim-both] text-nowrap",
+    "cursor-pointer relative inline-flex items-center justify-center shrink-0 whitespace-nowrap rounded [text-box-trim:trim-both] text-nowrap",
     "border-hairline border-transparent font-medium",
     motion.hover,
     motion.focusRing,
