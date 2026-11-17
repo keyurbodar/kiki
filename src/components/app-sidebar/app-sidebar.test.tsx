@@ -80,11 +80,16 @@ describe("AppSidebar", () => {
     ).toBe(false);
   });
 
-  it("sizes the footer page links as square icon buttons", async () => {
+  it("pins the header icon buttons to the control square", async () => {
     await renderSidebar();
-    const link = screen.getByRole("link", { name: "Threads" });
-    expect(link.className).toContain("size-(--h-control-sm)");
-    expect(link.className).not.toContain("px-2.5");
+    for (const name of ["Search", "Close sidebar"]) {
+      expect(screen.getByRole("button", { name }).className).toContain(
+        "w-(--h-control-sm)!",
+      );
+    }
+    expect(
+      screen.getByRole("link", { name: "New thread" }).className,
+    ).toContain("w-(--h-control-sm)!");
   });
 
   it("keeps the footer account trigger on one line", async () => {
