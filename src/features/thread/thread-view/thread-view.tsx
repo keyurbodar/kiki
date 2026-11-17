@@ -7,12 +7,16 @@ import type { ClarifyAnswer } from "@/features/thread/clarify-takeover";
 import {
   ComposerTakeover,
   type ComposerTakeoverProps,
-  pendingClarify,
-  pendingEnvironmentRequest,
   takeoverKey,
 } from "@/features/thread/composer-takeover";
 import { JamChat } from "@/features/thread/jam-chat";
 import { ChatSkeleton } from "./chat-skeleton";
+
+type ClarifyRow = Extract<TimelineRow, { type: "clarify" }>;
+type EnvironmentRequestRow = Extract<
+  TimelineRow,
+  { type: "environment-request" }
+>;
 
 export type ThreadTakeoverHandlers = {
   orgId?: string | undefined;
@@ -26,6 +30,13 @@ export type ThreadViewProps = {
   /** Where answers and dismissals go; the view owns the local dismissal state. */
   handlers: ThreadTakeoverHandlers;
   loading?: boolean;
+  loadingOlder?: boolean;
+  hasOlder?: boolean;
+  onLoadOlder?: () => void;
+  /** The clarify card the composer answers, from the row builder. */
+  pendingAsk?: ClarifyRow | undefined;
+  /** The newest unfulfilled environment request, from the row builder. */
+  pendingEnvironment?: EnvironmentRequestRow | undefined;
   topBar?: ReactNode;
   pane?: ReactNode;
   /** Replaces the composer when no request is waiting on an answer. */
@@ -38,27 +49,23 @@ const chatColumnWithPane =
   "w-[calc(100cqw_-_clamp(var(--container-xs),var(--right-panel-width,calc(var(--spacing)*130)),100cqw_-_var(--container-xs)))]";
 
 type PendingRequest =
-  | { kind: "clarify"; row: Extract<TimelineRow, { type: "clarify" }> }
-  | {
-      kind: "environment";
-      row: Extract<TimelineRow, { type: "environment-request" }>;
-    };
+  | { kind: "clarify"; row: ClarifyRow }
+  | { kind: "environment"; row: EnvironmentRequestRow };
 
-/** The newest request still waiting on the person, oldest unsolved request first in Capy. */
+/** Capy answers one request at a time: the newest one still waiting. */
 function pendingRequest(
-  rows: readonly TimelineRow[],
+  ask: ClarifyRow | undefined,
+  environment: EnvironmentRequestRow | undefined,
 ): PendingRequest | undefined {
-  const clarify = pendingClarify(rows);
-  const environment = pendingEnvironmentRequest(rows);
-  if (clarify === undefined) {
+  if (ask === undefined) {
     return environment === undefined
       ? undefined
       : { kind: "environment", row: environment };
   }
-  if (environment === undefined) return { kind: "clarify", row: clarify };
-  return environment.createdAt >= clarify.createdAt
+  if (environment === undefined) return { kind: "clarify", row: ask };
+  return environment.createdAt >= ask.createdAt
     ? { kind: "environment", row: environment }
-    : { kind: "clarify", row: clarify };
+    : { kind: "clarify", row: ask };
 }
 
 function takeoverProps(
@@ -95,6 +102,11 @@ export function ThreadView({
   rows,
   handlers,
   loading = false,
+  loadingOlder = false,
+  hasOlder = false,
+  onLoadOlder,
+  pendingAsk,
+  pendingEnvironment,
   topBar,
   pane,
   composer,
@@ -106,7 +118,10 @@ export function ThreadView({
   const hide = (key: string) =>
     setHidden((current) => new Set(current).add(key));
 
-  const request = takeover === undefined ? pendingRequest(rows) : undefined;
+  const request =
+    takeover === undefined
+      ? pendingRequest(pendingAsk, pendingEnvironment)
+      : undefined;
   let active: ComposerTakeoverProps | undefined = takeover;
   if (active === undefined && request !== undefined) {
     const key = takeoverKey(request.kind, request.row.id);
@@ -114,6 +129,8 @@ export function ThreadView({
       active = takeoverProps(request, threadId, handlers, () => hide(key));
     }
   }
+
+  const empty = !loading && rows.length === 0;
 
   return (
     <div className="@container flex h-full min-h-0 min-w-0 flex-1">
@@ -126,8 +143,33 @@ export function ThreadView({
         <AppTopBar>{topBar}</AppTopBar>
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
           <div className="relative min-h-0 flex-1">
-            <JamChat jamId={threadId} rows={rows} initialLoading={loading} />
+            <JamChat
+              jamId={threadId}
+              rows={rows}
+              initialLoading={loading}
+              onStartReached={hasOlder ? onLoadOlder : undefined}
+              header={
+                loadingOlder ? (
+                  <p
+                    data-slot="chat-loading-older"
+                    className="py-2 text-center text-xs text-muted-foreground-2"
+                  >
+                    Loading older messages
+                  </p>
+                ) : undefined
+              }
+            />
             {loading && rows.length === 0 && <ChatSkeleton />}
+            {empty && (
+              <div
+                data-slot="thread-empty"
+                className="pointer-events-none absolute inset-0 flex items-center justify-center px-4"
+              >
+                <p className="text-sm text-muted-foreground-2">
+                  No messages yet
+                </p>
+              </div>
+            )}
           </div>
           <div className="min-h-0 px-4 pb-[calc(var(--spacing)+var(--safe-bottom))]">
             <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col justify-end">
