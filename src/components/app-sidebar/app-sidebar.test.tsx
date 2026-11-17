@@ -83,13 +83,14 @@ describe("AppSidebar", () => {
   it("pins the header icon buttons to the control square", async () => {
     await renderSidebar();
     for (const name of ["Search", "Close sidebar"]) {
-      expect(screen.getByRole("button", { name }).className).toContain(
-        "w-(--h-control-sm)!",
-      );
+      const className = screen.getByRole("button", { name }).className;
+      expect(className).toContain("size-(--h-control-sm)");
+      expect(className).not.toContain("w-fit");
+      expect(className).not.toContain("w-(--h-control-sm)!");
     }
-    expect(
-      screen.getByRole("link", { name: "New thread" }).className,
-    ).toContain("w-(--h-control-sm)!");
+    const newThread = screen.getByRole("link", { name: "New thread" });
+    expect(newThread.className).toContain("size-(--h-control-sm)");
+    expect(newThread.className).not.toContain("w-fit");
   });
 
   it("keeps the footer account trigger on one line", async () => {

@@ -4,7 +4,7 @@ export const cx = (...classes: Array<string | false | null | undefined>) =>
 export const hairlineBorder = "border-hairline border-transparent";
 
 const buttonBase = cx(
-  "cursor-pointer relative inline-flex items-center justify-center w-fit shrink-0 whitespace-nowrap rounded [text-box-trim:trim-both] text-nowrap",
+  "cursor-pointer relative inline-flex items-center justify-center shrink-0 whitespace-nowrap rounded [text-box-trim:trim-both] text-nowrap",
   hairlineBorder,
   "font-medium",
   "transition-colors duration-hover outline-none select-none",
@@ -25,7 +25,7 @@ const segmented =
   "bg-transparent text-[var(--intent-text,var(--segmented-foreground))] hover:text-[var(--intent-text-hover,var(--fg))] active:brightness-97 data-[selected]:bg-[var(--intent-bg,var(--card))] data-[selected]:text-[var(--intent-text-hover,var(--fg))] data-[selected]:shadow-card";
 
 const iconSm =
-  "size-(--h-control-sm) w-(--h-control-sm)! [&_svg:not([class*='size-'])]:size-(--icon-sm)";
+  "size-(--h-control-sm) [&_svg:not([class*='size-'])]:size-(--icon-sm)";
 
 const svgEdges = "[&_svg:first-of-type]:-ml-0.5 [&_svg:last-of-type]:-mr-0.5";
 
@@ -36,7 +36,7 @@ export const bareIconSmButton = cx(buttonBase, bare, iconSm);
 export const barLinkButton = cx(
   buttonBase,
   ghost,
-  "h-(--h-control-sm) text-xs [&_svg:not([class*='size-'])]:size-(--icon-sm)",
+  "h-(--h-control-sm) w-fit text-xs [&_svg:not([class*='size-'])]:size-(--icon-sm)",
   svgEdges,
   "gap-1 px-1.5 md:px-2",
 );
@@ -46,7 +46,7 @@ export const segmentedXsButton = cx(
   segmented,
   "h-(--h-control-xs) text-xs gap-1.5 [&_svg:not([class*='size-'])]:size-(--icon-xs)",
   svgEdges,
-  "w-6.5! px-0!",
+  "w-6.5 px-0!",
 );
 
 export const menuIconSlot =

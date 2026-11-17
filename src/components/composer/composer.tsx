@@ -308,7 +308,7 @@ export function Composer({
       intent="accent"
       size="icon-sm"
       aria-label={submitLabel}
-      className="w-(--h-control-sm)! select-none [-webkit-touch-callout:none]"
+      className="select-none [-webkit-touch-callout:none]"
       disabled={disabled || blockedByUpload || submitLocked}
       onClick={() => handle.current?.submit()}
       onPointerDown={(event) => {
@@ -357,7 +357,6 @@ export function Composer({
           intent="accent"
           size="icon-sm"
           aria-label="Stop run"
-          className="w-(--h-control-sm)!"
           aria-busy={stop.pending || undefined}
           disabled={stop.disabled || stop.pending}
           onClick={stop.onStop}
