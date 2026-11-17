@@ -1,0 +1,83 @@
+{
+  "matrix": {
+    "scheme": ["dark", "light"]
+  },
+  "defaults": {
+    "maxMismatch": 100
+  },
+  "targets": [
+    {
+      "id": "media-lightbox-open",
+      "route": "/__media-lightbox",
+      "state": "lightbox open, 3 images, first shown",
+      "viewport": "1440x900",
+      "capture": {
+        "[data-slot=\"lightbox-actions\"]": [],
+        "[data-slot=\"pan-zoom-controls\"]": [],
+        "[data-slot=\"lightbox-strip\"]": [],
+        "button[aria-label=\"Close preview\"]": [],
+        "button[aria-label=\"Next item\"]": []
+      },
+      "expect": {
+        "[data-slot=\"lightbox-actions\"]": {
+          "display": "flex",
+          "justify-content": "flex-end",
+          "gap": "8px",
+          "pointer-events": "none"
+        },
+        "[data-slot=\"pan-zoom-controls\"]": {
+          "position": "absolute",
+          "bottom": "12px",
+          "left": "12px",
+          "background-color": "var(--popover)",
+          "border-radius": "var(--radius)",
+          "display": "flex"
+        },
+        "[data-slot=\"lightbox-strip\"]": {
+          "position": "absolute",
+          "display": "flex",
+          "overflow-x": "auto",
+          "scrollbar-width": "none"
+        }
+      }
+    },
+    {
+      "id": "media-lightbox-zoom",
+      "route": "/__media-lightbox",
+      "state": "zoomed in twice, 156%",
+      "viewport": "1440x900",
+      "steps": [
+        ["click", "button[aria-label=\"Zoom in\"]"],
+        ["click", "button[aria-label=\"Zoom in\"]"]
+      ],
+      "capture": {
+        "[data-slot=\"pan-zoom-controls\"]": [],
+        "img": []
+      },
+      "expect": {
+        "[data-slot=\"pan-zoom-controls\"]": {
+          "background-color": "var(--popover)"
+        }
+      }
+    },
+    {
+      "id": "media-lightbox-next",
+      "route": "/__media-lightbox",
+      "state": "second item shown from the strip",
+      "viewport": "1440x900",
+      "steps": [["click", "button[aria-label=\"Show sit.svg\"]"]],
+      "capture": {
+        "[data-slot=\"lightbox-strip\"]": []
+      }
+    },
+    {
+      "id": "media-lightbox-single",
+      "route": "/__media-lightbox?items=1",
+      "state": "one item: no strip, no arrows, no counter",
+      "viewport": "1440x900",
+      "capture": {
+        "[data-slot=\"lightbox-actions\"]": []
+      }
+    }
+  ]
+}
