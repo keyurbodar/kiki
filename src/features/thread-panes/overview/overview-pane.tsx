@@ -2,6 +2,7 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { useMemo } from "react";
 import { toast } from "sonner";
+import { CAPY_ILLUSTRATIONS } from "@/assets/brand";
 import {
   OverviewSection,
   overviewPullSortAtom,
@@ -43,6 +44,8 @@ import {
   TaskRow,
   TodoRow,
 } from "./rows";
+
+const sailUrl = CAPY_ILLUSTRATIONS.sail;
 
 export type OverviewPaneProps = PaneProps;
 
@@ -97,7 +100,7 @@ export function OverviewBody({
         <SurfaceStack
           mark={
             <img
-              src="/src/features/onboarding/onboarding/art/sail.svg"
+              src={sailUrl}
               alt="Overview is empty"
               className="h-24 select-none"
             />
