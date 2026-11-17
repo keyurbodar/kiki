@@ -80,6 +80,14 @@
         "[data-slot=sidebar-content] header button[aria-label=\"Close sidebar\"]": {
           "width": "28px",
           "height": "28px"
+        },
+        "[data-slot=sidebar-content] header [data-slot=sidebar-mode] > button:nth-of-type(1)": {
+          "width": "26px",
+          "height": "24px"
+        },
+        "[data-slot=sidebar-content] header [data-slot=sidebar-mode] > button:nth-of-type(2)": {
+          "width": "26px",
+          "height": "24px"
         }
       },
       "variants": {
