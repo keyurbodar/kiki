@@ -6,11 +6,7 @@ import {
   ActivityLineMember,
 } from "@/features/thread/activity-line";
 import { ActivityRow } from "@/features/thread/activity-row";
-import {
-  ElapsedFor,
-  LiveStatus,
-  useElapsedMs,
-} from "@/features/thread/live-status";
+import { ElapsedFor, useElapsedMs } from "@/features/thread/live-status";
 import { TimelineRow } from "@/features/thread/timeline-row";
 import { ShimmerText } from "@/primitives/shimmer-text";
 
@@ -74,10 +70,10 @@ function Clock({ row }: { row: WorkGroup }) {
   const failures = failureCount(row);
   if (ms < 1000 && failures === 0) return null;
   return (
-    <span className="shrink-0 whitespace-pre">
+    <>
       {ms >= 1000 && <ElapsedFor ms={ms} />}
       {failures > 0 && `, ${failures} failed`}
-    </span>
+    </>
   );
 }
 
@@ -87,18 +83,19 @@ export function WorkGroup({ row }: WorkGroupProps) {
   const [expanded, setExpanded] = useState(row.expanded);
   const state = workGroupState(row);
   const label = (
-    <LiveStatus
-      lead=""
-      word={
+    <span className="flex min-w-0 items-baseline tabular-nums">
+      <span className="min-w-0 truncate">
         <ShimmerText
           data-state={row.live ? "live" : "rest"}
           className="text-shimmer"
         >
           {state}
         </ShimmerText>
-      }
-      clock={<Clock row={row} />}
-    />
+      </span>
+      <span className="shrink-0 whitespace-pre">
+        <Clock row={row} />
+      </span>
+    </span>
   );
   const showPanel = expanded || row.live;
   return (
