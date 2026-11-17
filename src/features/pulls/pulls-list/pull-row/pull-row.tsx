@@ -11,16 +11,20 @@ export const threadCode = (thread: NonNullable<PullCard["thread"]>) =>
     ? `#${thread.number}`
     : `${thread.projectCode}-${thread.number}`;
 
-export function AuthorAvatar({ name, src }: { name: string; src: string }) {
-  return src === "" ? (
-    <span
-      aria-hidden
-      className="flex size-4 shrink-0 items-center justify-center rounded-full bg-secondary text-[0.5625rem] font-medium text-muted-foreground-1 uppercase"
-    >
-      {name.slice(0, 1)}
+/** The repository owner's avatar, as Capy's rows print it before the title. */
+export function RepoAvatar({ owner, src }: { owner: string; src: string }) {
+  return (
+    <span className="relative flex size-4 shrink-0 items-center justify-center overflow-hidden rounded bg-secondary text-[0.5rem] font-medium text-muted-foreground-1 uppercase">
+      {src === "" ? (
+        <span aria-hidden>{owner.slice(0, 1)}</span>
+      ) : (
+        <img
+          alt={owner}
+          src={src}
+          className="absolute inset-0 size-full object-cover"
+        />
+      )}
     </span>
-  ) : (
-    <img alt="" src={src} className="size-4 shrink-0 rounded-full" />
   );
 }
 
@@ -87,6 +91,7 @@ export const PullRow = memo(function PullRow({
   selected,
   checked,
   selectionMode,
+  codePrefix = "",
   onCheck,
 }: {
   pull: PullCard;
@@ -94,6 +99,7 @@ export const PullRow = memo(function PullRow({
   selected: boolean;
   checked: boolean;
   selectionMode: boolean;
+  codePrefix?: string;
   onCheck: () => void;
 }) {
   const owner = pull.repo.slice(0, pull.repo.indexOf("/"));
@@ -121,10 +127,10 @@ export const PullRow = memo(function PullRow({
         </span>
         <span className="w-(--pull-code-width) shrink-0 text-sm font-normal whitespace-nowrap text-muted-foreground-2 tabular-nums @max-lg/list:hidden">
           <span className="inline-block" data-pull-code-measure>
-            {pullCode(pull)}
+            {pullCode(pull, codePrefix)}
           </span>
         </span>
-        <AuthorAvatar name={pull.author} src={pull.authorAvatarUrl} />
+        <RepoAvatar owner={owner} src={pull.repoAvatarUrl} />
         <span
           className="mask-fade-r min-w-0 flex-1 overflow-hidden text-sm font-medium whitespace-nowrap text-foreground"
           title={pull.title}
@@ -135,7 +141,7 @@ export const PullRow = memo(function PullRow({
           {pull.thread === null ? null : (
             <Badge
               size="base"
-              className="@max-xl/list:hidden"
+              className="@max-lg/list:hidden"
               aria-label={`Open thread ${threadCode(pull.thread)}`}
             >
               <ThreadGlyph className="size-3" />

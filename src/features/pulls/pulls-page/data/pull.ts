@@ -37,6 +37,7 @@ export interface PullCard {
   readonly deletions: number;
   readonly author: string;
   readonly authorAvatarUrl: string;
+  readonly repoAvatarUrl: string;
   readonly url: string;
   readonly headRef: string;
   readonly baseRef: string;
@@ -121,6 +122,8 @@ export const decodePull = (value: unknown): PullCard | undefined => {
     deletions: num(fields.deletions) ?? 0,
     author: str(fields.author) ?? str(fields.authorLogin) ?? "",
     authorAvatarUrl: str(fields.authorAvatarUrl) ?? "",
+    repoAvatarUrl:
+      str(fields.repoAvatarUrl) ?? str(fields.ownerAvatarUrl) ?? "",
     url: str(fields.url) ?? `https://github.com/${repo}/pull/${number}`,
     headRef: str(fields.headRef) ?? "",
     baseRef: str(fields.baseRef) ?? "",

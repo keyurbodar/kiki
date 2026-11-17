@@ -12,6 +12,7 @@ import {
   ViewTab,
   ViewToolbar,
 } from "@/components/view-toolbar";
+import { captainsAtom } from "@/data/atoms/captains";
 import { projectsAtom } from "@/data/atoms/projects";
 import { organizationsAtom } from "@/data/atoms/session";
 import {
@@ -65,6 +66,16 @@ const projectOptions = (value: unknown) =>
     ? value.flatMap((project) =>
         typeof project?.id === "string" && typeof project?.name === "string"
           ? [{ id: project.id as string, label: project.name as string }]
+          : [],
+      )
+    : [];
+
+const captainOptions = (value: unknown) =>
+  Array.isArray(value)
+    ? value.flatMap((captain) =>
+        typeof captain?.id === "string" &&
+        typeof captain?.face?.name === "string"
+          ? [{ id: captain.id as string, label: captain.face.name as string }]
           : [],
       )
     : [];
@@ -175,6 +186,7 @@ function PullsPageFor({ orgId }: { orgId: string }) {
     pullsPagesAtom(orgId, toListRequest(emptyFilters, "", now, pageLimit)),
   );
   const projects = useAtomValue(projectsAtom(orgId as never));
+  const captains = useAtomValue(captainsAtom(orgId as never));
   const createPull = useAtomSet(createPullAtom, { mode: "promise" });
 
   const pulls = AsyncResult.isSuccess(result) ? result.value : [];
@@ -188,10 +200,12 @@ function PullsPageFor({ orgId }: { orgId: string }) {
       authors: [...new Set(everyPull.map((pull) => pull.author))]
         .sort()
         .map((login) => ({ id: login, label: login })),
-      captains: [],
+      captains: AsyncResult.isSuccess(captains)
+        ? captainOptions(captains.value)
+        : [],
       labels: [],
     }),
-    [projects, everyPull],
+    [projects, captains, everyPull],
   );
   const sections = useMemo(
     () => buildSections(pulls, prefs, searching, now),
@@ -209,8 +223,8 @@ function PullsPageFor({ orgId }: { orgId: string }) {
       params: { orgId },
       payload: {
         repo: input.repo.fullName,
-        base: input.baseBranch,
-        head: input.headBranch,
+        baseRef: input.baseBranch,
+        headRef: input.headBranch,
         title: input.title,
         body: input.body === "" ? undefined : input.body,
         draft: input.draft,

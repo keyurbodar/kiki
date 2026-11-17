@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { cx } from "@/components/view-toolbar";
 import type { PullSection } from "@/features/pulls/pulls-page/model";
+import { codePrefixes } from "@/features/pulls/pulls-page/model";
 import {
   Collapsible,
   CollapsiblePanel,
@@ -76,6 +77,9 @@ export function PullsList({
     ...sections.flatMap((section) =>
       section.members.map((pull) => 1 + String(pull.number).length),
     ),
+  );
+  const prefixes = codePrefixes(
+    sections.flatMap((section) => section.members.map((pull) => pull.repo)),
   );
   const observerRef = useRef<ResizeObserver | null>(null);
   const attachList = useCallback((root: HTMLDivElement | null) => {
@@ -181,6 +185,7 @@ export function PullsList({
                           selected={selectedId === pull.id}
                           checked={checked.includes(pull.id)}
                           selectionMode={selectionMode}
+                          codePrefix={prefixes.get(pull.repo) ?? ""}
                           onCheck={() =>
                             setChecked((current) =>
                               current.includes(pull.id)
