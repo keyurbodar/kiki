@@ -73,7 +73,7 @@ function MemoryTopBar({
   return (
     <header
       data-slot="app-top-bar"
-      className="flex min-h-11 shrink-0 items-center gap-2 border-b-[0.5px] border-border-1 bg-panel px-2"
+      className="flex min-h-11 shrink-0 items-center gap-2 border-b-hairline border-border-1 bg-panel px-2"
     >
       {back}
       <span className="mask-fade-r min-w-0 flex-1 truncate text-sm font-medium text-foreground">
@@ -809,7 +809,7 @@ export function MemoryPage({ search }: { search: MemoryLocation }) {
                   </Button>
                 </div>
               ) : list === undefined ? (
-                <div className="flex flex-col divide-y-[0.5px] divide-border-1 border-t-[0.5px] border-border-1">
+                <div className="flex flex-col divide-y-hairline divide-border-1 border-t-hairline border-border-1">
                   {skeletonRows.map((width) => (
                     <div
                       key={width}
