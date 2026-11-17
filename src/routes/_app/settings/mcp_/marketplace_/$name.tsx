@@ -1,15 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { PluginAddPage } from "@/features/settings-mcp";
 
 export const Route = createFileRoute("/_app/settings/mcp_/marketplace_/$name")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  return (
-    <RoutePlaceholder
-      title="/settings/mcp/marketplace/$name"
-      path="/settings/mcp/marketplace/$name"
-    />
-  );
+  const { name } = Route.useParams();
+  return <PluginAddPage name={name} />;
 }
