@@ -36,11 +36,17 @@
   --text-sm--line-height: 1.25;
   --text-sm--letter-spacing: -0.01em;
   --text-base: var(--responsive-text-base);
+  --text-base--line-height: 1.2;
   --text-base--letter-spacing: -0.02em;
   --text-lg: var(--responsive-text-lg);
+  --text-lg--line-height: 1.2;
   --text-lg--letter-spacing: -0.02em;
   --text-xl: var(--responsive-text-xl);
+  --text-xl--line-height: 1.2;
+  --text-xl--letter-spacing: -0.02em;
   --text-2xl: var(--responsive-text-2xl);
+  --text-2xl--line-height: 1.2;
+  --text-2xl--letter-spacing: -0.025em;
   --text-3xl: 1.875rem;
   --text-3xl--line-height: calc(2.25 / 1.875);
   --text-4xl: 2.25rem;
