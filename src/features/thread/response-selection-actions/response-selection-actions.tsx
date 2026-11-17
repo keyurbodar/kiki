@@ -10,8 +10,8 @@ import { Button } from "@/primitives/button";
 import {
   Menu,
   MenuActionItem,
-  type MenuProps,
   MenuContent,
+  type MenuProps,
   MenuTrigger,
 } from "@/primitives/menu";
 

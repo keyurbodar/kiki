@@ -1,5 +1,5 @@
 import { type ComponentProps, useEffect, useRef, useState } from "react";
-import type { ReasoningMode } from "@/data/events";
+import type { ReasoningMode as ReasoningModeSchema } from "@/data/events";
 import { Button } from "@/primitives/button";
 import { MenuSeparator } from "@/primitives/menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
@@ -7,6 +7,8 @@ import { useMessageActions } from "./context";
 import { cx } from "./cx";
 import { formatMessageStamp } from "./format";
 import { CheckIcon, ClockIcon, CopyIcon } from "./icons";
+
+type ReasoningMode = typeof ReasoningModeSchema.Type;
 
 export type MessageFooterProps = ComponentProps<"div"> & {
   touch?: boolean;
@@ -163,7 +165,9 @@ export function MessageMeta({
           <span className="truncate">
             {[
               modelId,
-              reasoningMode === undefined ? undefined : REASONING_LABELS[reasoningMode],
+              reasoningMode === undefined
+                ? undefined
+                : REASONING_LABELS[reasoningMode],
               mode === undefined ? undefined : MODE_LABELS[mode],
             ]
               .filter((part) => part !== undefined)

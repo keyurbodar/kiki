@@ -37,7 +37,11 @@ function blocks(text: string) {
   }));
 }
 
-const withDefinitions = (section: string, definitions: Definition[], raws: Map<Definition, string>) => {
+const withDefinitions = (
+  section: string,
+  definitions: Definition[],
+  raws: Map<Definition, string>,
+) => {
   const used = definitions.filter((d) =>
     section.toLowerCase().includes(`[${d.identifier}]`),
   );

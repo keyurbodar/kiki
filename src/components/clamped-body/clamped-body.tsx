@@ -108,10 +108,12 @@ export function ClampedBody({
         limit.current = maxHeight;
       } else {
         const block =
-          content.querySelector<HTMLElement>("p, li, pre, h1, h2, h3, h4, h5, h6") ??
-          content;
+          content.querySelector<HTMLElement>(
+            "p, li, pre, h1, h2, h3, h4, h5, h6",
+          ) ?? content;
         limit.current =
-          maxHeight.lines * Number.parseFloat(getComputedStyle(block).lineHeight);
+          maxHeight.lines *
+          Number.parseFloat(getComputedStyle(block).lineHeight);
       }
       setOverflows(content.getBoundingClientRect().height > limit.current + 1);
     };
@@ -147,12 +149,16 @@ export function ClampedBody({
         if (start?.selected) return;
         if (
           start !== null &&
-          Math.abs(event.clientX - start.x) + Math.abs(event.clientY - start.y) >
+          Math.abs(event.clientX - start.x) +
+            Math.abs(event.clientY - start.y) >
             DRAG_TOLERANCE
         ) {
           return;
         }
-        if (event.target instanceof Element && event.target.closest(INTERACTIVE)) {
+        if (
+          event.target instanceof Element &&
+          event.target.closest(INTERACTIVE)
+        ) {
           return;
         }
         const selection = window.getSelection();

@@ -46,7 +46,10 @@ const inlinePlain = (text: string) =>
           ? [part.trim()]
           : [
               part
-                .replace(/<((?:https?|mailto):[^>\s]+|[^@>\s]+@[^>\s]+)>/gi, "$1")
+                .replace(
+                  /<((?:https?|mailto):[^>\s]+|[^@>\s]+@[^>\s]+)>/gi,
+                  "$1",
+                )
                 .replace(/<\/?[a-z][^>]*>/gi, " ")
                 .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
                 .replace(/!?\[([^\]]*)\]\[[^\]]*\]/g, "$1")
@@ -99,10 +102,21 @@ export function quotePlainText(markdown: string): string {
         if (state.fence === undefined) {
           if (fence !== undefined) return { ...state, fence, table: false };
           if (isTableRule(line)) return { ...state, table: true };
-          if (line.includes("|") && (state.table || isTableRule(lines[i + 1] ?? ""))) {
-            return { ...state, table: true, parts: [...state.parts, ...tableCells(line)] };
+          if (
+            line.includes("|") &&
+            (state.table || isTableRule(lines[i + 1] ?? ""))
+          ) {
+            return {
+              ...state,
+              table: true,
+              parts: [...state.parts, ...tableCells(line)],
+            };
           }
-          return { ...state, table: false, parts: [...state.parts, linePlain(line)] };
+          return {
+            ...state,
+            table: false,
+            parts: [...state.parts, linePlain(line)],
+          };
         }
         if (
           fence !== undefined &&
@@ -159,7 +173,9 @@ export function parseReply(
 const QUOTE_LABEL_MAX = 48;
 
 /** Prepends a reply excerpt to an outgoing message, the inverse of parseReply. */
-export function buildReply<T extends { text: string; mentions: readonly Mention[] }>(
+export function buildReply<
+  T extends { text: string; mentions: readonly Mention[] },
+>(
   message: T,
   target: { eventId: string; rowId: string; section: number; text: string },
 ): T & { mentions: Mention[] } {

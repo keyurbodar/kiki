@@ -1,8 +1,8 @@
 import type { ComponentProps } from "react";
+import { ClampedBody } from "@/components/clamped-body";
 import { Markdown } from "@/components/markdown";
 import type { UserMessageRow as UserMessageRowSchema } from "@/data/events";
 import { MessageHeader } from "@/features/thread/agent-message";
-import { ClampedBody } from "@/components/clamped-body";
 import {
   actorName,
   CopyMessageButton,
@@ -26,7 +26,10 @@ const CLAMP_MIN_CHARS = 420;
 const CLAMP_MIN_LINES = 9;
 
 /** Whether a message is long enough to collapse behind Show more. */
-export function needsClamp(text: string, clampHeight?: number | { lines: number }) {
+export function needsClamp(
+  text: string,
+  clampHeight?: number | { lines: number },
+) {
   return (
     clampHeight !== undefined ||
     text.length > CLAMP_MIN_CHARS ||
@@ -117,14 +120,16 @@ export function UserMessage({
     </MessageFooter>
   );
 
-  const text = (
-    <Markdown className="whitespace-pre-wrap">{body}</Markdown>
-  );
+  const text = <Markdown className="whitespace-pre-wrap">{body}</Markdown>;
 
   return (
     <div
       data-slot="user-message"
-      className={cx("group/message flex min-w-0 flex-col gap-1.5 py-2", align, className)}
+      className={cx(
+        "group/message flex min-w-0 flex-col gap-1.5 py-2",
+        align,
+        className,
+      )}
       {...props}
     >
       {!mine && (
@@ -151,7 +156,12 @@ export function UserMessage({
         )}
       >
         {(body !== "" || reply !== undefined) && (
-          <div className={cx("relative flex max-w-full min-w-0 flex-col gap-1.5", align)}>
+          <div
+            className={cx(
+              "relative flex max-w-full min-w-0 flex-col gap-1.5",
+              align,
+            )}
+          >
             {reply !== undefined && (
               <ReplyQuote
                 rowId={reply.rowId}
@@ -161,7 +171,8 @@ export function UserMessage({
               />
             )}
             {body !== "" &&
-              (onToggleExpanded === undefined || !needsClamp(body, clampHeight) ? (
+              (onToggleExpanded === undefined ||
+              !needsClamp(body, clampHeight) ? (
                 <div className={BUBBLE}>{text}</div>
               ) : (
                 <ClampedBody
