@@ -1,5 +1,5 @@
 import { cx } from "class-variance-authority";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { AppTopBar } from "@/components/app-top-bar";
 import { Composer } from "@/components/composer";
 import type { TimelineRow } from "@/data/events";
@@ -7,6 +7,11 @@ import {
   ComposerFooter,
   MachineTrigger,
 } from "@/features/composer/composer-footer";
+import {
+  AttachmentSourceProvider,
+  apiAttachmentSource,
+  pendingAttachmentSource,
+} from "@/features/thread/attachment-gallery";
 import type { ClarifyAnswer } from "@/features/thread/clarify-takeover";
 import {
   ComposerTakeover,
@@ -100,7 +105,15 @@ function takeoverProps(
   }
 }
 
-/** The thread screen: top bar, chat timeline and composer, with an optional pane on the right. */
+/**
+ * Capy's attachment source is mounted for the chat list and every open pane,
+ * so both resolve URLs through the same API-backed provider.
+ */
+const attachmentSourceFor = (orgId: string | undefined, jamId: string) =>
+  orgId === undefined
+    ? pendingAttachmentSource
+    : apiAttachmentSource(orgId, jamId);
+
 export function ThreadView({
   threadId,
   rows,
@@ -135,6 +148,10 @@ export function ThreadView({
   }
 
   const empty = !loading && rows.length === 0;
+  const attachmentSource = useMemo(
+    () => attachmentSourceFor(handlers.orgId, threadId),
+    [handlers.orgId, threadId],
+  );
 
   return (
     <div className="@container flex h-full min-h-0 min-w-0 flex-1">
@@ -191,9 +208,11 @@ export function ThreadView({
         </div>
       </div>
       {pane !== undefined && (
-        <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
-          {pane}
-        </div>
+        <AttachmentSourceProvider source={attachmentSource}>
+          <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
+            {pane}
+          </div>
+        </AttachmentSourceProvider>
       )}
     </div>
   );
