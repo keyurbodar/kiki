@@ -12,7 +12,7 @@ let canvas: CanvasRenderingContext2D | null | undefined;
 export const toHex = (color: string): string | undefined => {
   canvas ??= document.createElement("canvas").getContext("2d");
   if (!canvas) return undefined;
-  canvas.fillStyle = "#000000";
+  canvas.fillStyle = "black";
   canvas.fillStyle = color;
   const value = String(canvas.fillStyle);
   return /^#[0-9a-f]{6}$/i.test(value) ? value.toLowerCase() : undefined;

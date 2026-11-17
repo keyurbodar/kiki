@@ -7,7 +7,9 @@ import {
   useAppearance,
 } from "../model/appearance-store";
 import { SelectField } from "../select-field";
-import { SettingsCard, SettingsField } from "../settings-kit";
+import { SettingsSection } from "@/components/settings-page";
+import { Card } from "@/primitives/card";
+import { SettingsRow } from "@/primitives/settings-row";
 import { ThemePreview, type ThemePreviewSource } from "../theme-preview";
 
 const MODES: ReadonlyArray<{ value: ColorMode; label: string }> = [
@@ -33,10 +35,9 @@ const modeButton =
 export function ModeCard() {
   const { preferences, syncMode, colorTheme } = useAppearance();
   return (
-    <section className="flex flex-col gap-3">
-      <div className="-mx-4 flex flex-col gap-3">
-        <SettingsCard>
-          <SettingsField id="theme" label="Mode" wrap>
+    <SettingsSection>
+        <Card rows>
+          <SettingsRow id="theme" label="Mode" wrapValue>
             <div role="group" aria-label="Mode" className="flex min-w-0 gap-4">
               {MODES.map((mode) => (
                 <button
@@ -74,8 +75,8 @@ export function ModeCard() {
                 </button>
               ))}
             </div>
-          </SettingsField>
-          <SettingsField
+          </SettingsRow>
+          <SettingsRow
             id="appearance-sync"
             label="Appearance sync"
             description={
@@ -96,9 +97,8 @@ export function ModeCard() {
                 }
               }}
             />
-          </SettingsField>
-        </SettingsCard>
-      </div>
-    </section>
+          </SettingsRow>
+        </Card>
+    </SettingsSection>
   );
 }

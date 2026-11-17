@@ -29,7 +29,9 @@ import {
 } from "../model/appearance-store";
 import { RangeField } from "../range-field";
 import { SelectField } from "../select-field";
-import { SettingsCard, SettingsField, SettingsSection } from "../settings-kit";
+import { SettingsSection } from "@/components/settings-page";
+import { Card } from "@/primitives/card";
+import { SettingsRow } from "@/primitives/settings-row";
 
 const ADJUSTMENTS: ReadonlyArray<{
   key: keyof BackgroundAdjustments;
@@ -50,8 +52,9 @@ const WALLPAPER_TYPES = ["image/jpeg", "image/png", "image/webp"];
 interface Wallpaper {
   readonly id: string;
   readonly name: string;
-  readonly contentType: string;
+  readonly mimeType?: string;
   readonly url?: string;
+  readonly thumbnailUrl?: string;
 }
 
 const errorMessage = (error: unknown, fallback: string) =>
@@ -185,7 +188,7 @@ function BackgroundControls() {
         </div>
       </div>
       {ADJUSTMENTS.map(({ key, label, max, unit }) => (
-        <SettingsField key={key} label={label}>
+        <SettingsRow key={key} label={label}>
           <RangeField
             label={label}
             value={appearance[key]}
@@ -196,7 +199,7 @@ function BackgroundControls() {
               if (draft !== null) commit(draft);
             }}
           />
-        </SettingsField>
+        </SettingsRow>
       ))}
       <div className="flex justify-end p-4">
         <Button
@@ -224,18 +227,19 @@ function WallpaperTile({
   const remove = useAtomSet(removeWallpaperAtom, { mode: "promise" });
   const [removing, setRemoving] = useState(false);
   const { preferences } = useAppearance();
+  const image = wallpaper.thumbnailUrl ?? wallpaper.url;
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
       <button
         type="button"
         aria-label={`Use ${wallpaper.name} as the dashboard background`}
-        disabled={wallpaper.url === undefined || removing}
+        disabled={image === undefined || removing}
         onClick={() => {
-          if (wallpaper.url === undefined) return;
+          if (image === undefined) return;
           appearanceActions.updatePreferences({
             background: {
               name: wallpaper.name,
-              url: wallpaper.url,
+              url: image,
               appearance:
                 preferences.background?.appearance ??
                 DEFAULT_BACKGROUND_ADJUSTMENTS,
@@ -244,8 +248,8 @@ function WallpaperTile({
         }}
         className="aspect-video w-full cursor-pointer overflow-hidden rounded-md border-[length:--spacing(0.125)] border-border-2 bg-muted outline-none transition-opacity duration-100 hover:opacity-90 focus-visible:outline-ring-inset disabled:cursor-default"
       >
-        {wallpaper.url === undefined ? null : (
-          <img src={wallpaper.url} alt="" className="size-full object-cover" />
+        {image === undefined ? null : (
+          <img src={image} alt="" className="size-full object-cover" />
         )}
       </button>
       <span className="flex min-w-0 items-center gap-1">
@@ -296,7 +300,7 @@ function WallpaperSyncRows() {
     : undefined;
   return (
     <>
-      <SettingsField
+      <SettingsRow
         label="Account wallpapers"
         description={
           background !== null && !supported
@@ -315,7 +319,7 @@ function WallpaperSyncRows() {
               payload: {
                 name: background.name.slice(0, 60),
                 url: background.url,
-                contentType: contentType ?? "image/png",
+                mimeType: contentType ?? "image/png",
               },
               reactivityKeys: [wallpapersKey()],
             })
@@ -333,7 +337,7 @@ function WallpaperSyncRows() {
           <CloudUploadIcon />
           Save current
         </Button>
-      </SettingsField>
+      </SettingsRow>
       <div className="p-4">
         {wallpapers === undefined ? (
           AsyncResult.isFailure(result) ? (
@@ -370,15 +374,15 @@ export function BackgroundSection() {
   const { preferences } = useAppearance();
   return (
     <SettingsSection title="Background">
-      <SettingsCard>
-        <SettingsField
+      <Card rows>
+        <SettingsRow
           id="home-background"
           label="Dashboard background"
           description="Custom image or gif for home dashboard"
         >
           <HomeBackgroundControl />
-        </SettingsField>
-        <SettingsField id="background-effect" label="Background effect">
+        </SettingsRow>
+        <SettingsRow id="background-effect" label="Background effect">
           <SelectField<BackgroundEffect>
             label="Background effect"
             className="w-32"
@@ -386,10 +390,10 @@ export function BackgroundSection() {
             items={BACKGROUND_EFFECT_LABELS}
             onChange={(effect) => appearanceActions.updatePreferences({ effect })}
           />
-        </SettingsField>
+        </SettingsRow>
         <BackgroundControls />
         <WallpaperSyncRows />
-      </SettingsCard>
+      </Card>
     </SettingsSection>
   );
 }

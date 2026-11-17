@@ -1,5 +1,4 @@
 import { useAtomSet } from "@effect/atom-react";
-import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -16,8 +15,7 @@ import {
 } from "@/primitives/collapsible";
 import { Input } from "@/primitives/input";
 import { Label } from "@/primitives/label";
-import { SettingsRowLink } from "@/primitives/settings-row";
-import { ChevronDownIcon, ChevronRightIcon, PlusIcon } from "../icons";
+import { ChevronDownIcon, PlusIcon } from "../icons";
 import {
   appearanceActions,
   colorThemeKey,
@@ -38,9 +36,11 @@ import {
   selfReferences,
   type ThemeColors,
 } from "../model/palette";
-import { readPresetPalette } from "../model/preset-palette";
+import { readPresetPalette, toHex } from "../model/preset-palette";
 import { useThemeOptions, useUserThemes } from "../model/theme-options";
-import { SettingsCard, SettingsField, SettingsSection } from "../settings-kit";
+import { SettingsSection } from "@/components/settings-page";
+import { Card } from "@/primitives/card";
+import { SettingsRow, SettingsRowLink } from "@/primitives/settings-row";
 import { ThemeGrid } from "../theme-grid";
 
 const SIDES: ReadonlyArray<PaletteSide> = ["light", "dark"];
@@ -81,7 +81,7 @@ function ColorRow({
   const id = `theme-color-${colorKey}`;
   const label = COLOR_LABELS[colorKey];
   return (
-    <SettingsField
+    <SettingsRow
       label={<Label htmlFor={id}>{label}</Label>}
       description={
         invalid
@@ -118,7 +118,7 @@ function ColorRow({
           <input
             type="color"
             className="sr-only"
-            value={hex ?? "#000000"}
+            value={hex ?? toHex("black") ?? ""}
             disabled={disabled}
             onChange={(event) => onFieldChange(event.currentTarget.value)}
           />
@@ -136,7 +136,7 @@ function ColorRow({
           onChange={(event) => onFieldChange(event.currentTarget.value)}
         />
       </div>
-    </SettingsField>
+    </SettingsRow>
   );
 }
 
@@ -149,7 +149,6 @@ export function ThemeSection() {
   const updateTheme = useAtomSet(updateThemeAtom, { mode: "promise" });
   const removeTheme = useAtomSet(removeThemeAtom, { mode: "promise" });
   const reactivityKeys = [userThemeKey()];
-  const navigate = useNavigate();
 
   const isCopy = colorTheme.kind !== "custom";
   const label = colorThemeLabel(colorTheme);
@@ -346,7 +345,7 @@ export function ThemeSection() {
           </Button>
         }
       >
-        <SettingsCard className="@container">
+        <Card rows className="@container">
           <ThemeGrid
             options={options}
             value={sourceKey}
@@ -356,7 +355,7 @@ export function ThemeSection() {
           />
           {colorTheme.kind === "custom" ? (
             <>
-              <SettingsField label={<Label htmlFor="theme-name">Name</Label>}>
+              <SettingsRow label={<Label htmlFor="theme-name">Name</Label>}>
                 <Input
                   id="theme-name"
                   size="sm"
@@ -365,33 +364,16 @@ export function ThemeSection() {
                   maxLength={40}
                   onChange={(event) => setName(event.currentTarget.value)}
                 />
-              </SettingsField>
+              </SettingsRow>
               <SettingsRowLink
-                href={`/settings/appearance/themes/${colorTheme.id}`}
-                onClick={(event) => {
-                  event.preventDefault();
-                  void navigate({
-                    to: "/settings/appearance/themes/$themeId",
-                    params: { themeId: colorTheme.id },
-                  });
-                }}
-                className="flex items-center justify-between gap-6 p-4 transition-colors duration-100 outline-none select-none hover:bg-card-hover focus-visible:outline-ring-inset"
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex min-w-0 flex-col gap-0.5">
-                    <div className="text-sm font-medium text-foreground">
-                      Submit to Explore
-                    </div>
-                    <div className="font-normal text-muted-foreground-2 text-sm">
-                      {source?.listingVersionId ? "Added from Explore" : "Explore listing"}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <ChevronRightIcon className="size-(--icon-sm) shrink-0 text-muted-foreground-3" />
-                </div>
-              </SettingsRowLink>
-              <SettingsField
+                to="/settings/appearance/themes/$themeId"
+                params={{ themeId: colorTheme.id }}
+                label="Submit to Explore"
+                description={
+                  source?.listingVersionId ? "Added from Explore" : "Explore listing"
+                }
+              />
+              <SettingsRow
                 label="Delete theme"
                 description={`Removes ${colorTheme.name} from your themes`}
               >
@@ -404,10 +386,10 @@ export function ThemeSection() {
                 >
                   Delete
                 </Button>
-              </SettingsField>
+              </SettingsRow>
             </>
           ) : null}
-        </SettingsCard>
+        </Card>
       </SettingsSection>
       <SettingsSection
         title="Colors"
@@ -432,7 +414,7 @@ export function ThemeSection() {
           </div>
         }
       >
-        <SettingsCard>{MAIN_KEYS.map(colorRow)}</SettingsCard>
+        <Card rows>{MAIN_KEYS.map(colorRow)}</Card>
         {brokenSides.length > 0 ? (
           <p role="alert" className="px-4 text-sm text-destructive">
             Check the colors in the {brokenSides.join(" and ")} palette
@@ -447,34 +429,19 @@ export function ThemeSection() {
           </div>
           <CollapsiblePanel>
             <div className="pt-3">
-              <SettingsCard>{ADVANCED_KEYS.map(colorRow)}</SettingsCard>
+              <Card rows>{ADVANCED_KEYS.map(colorRow)}</Card>
             </div>
           </CollapsiblePanel>
         </Collapsible>
       </SettingsSection>
       <SettingsSection title="Explore">
-        <SettingsCard>
+        <Card rows>
           <SettingsRowLink
-            href="/settings/appearance/themes"
-            onClick={(event) => {
-              event.preventDefault();
-              void navigate({ to: "/settings/appearance/themes" });
-            }}
-            className="flex items-center justify-between gap-6 p-4 transition-colors duration-100 outline-none select-none hover:bg-card-hover focus-visible:outline-ring-inset"
-          >
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="flex min-w-0 flex-col gap-0.5">
-                <div className="text-sm font-medium text-foreground">Your themes</div>
-                <div className="font-normal text-muted-foreground-2 text-sm">
-                  Submit your themes to Explore and follow their review
-                </div>
-              </div>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <ChevronRightIcon className="size-(--icon-sm) shrink-0 text-muted-foreground-3" />
-            </div>
-          </SettingsRowLink>
-        </SettingsCard>
+            to="/settings/appearance/themes"
+            label="Your themes"
+            description="Submit your themes to Explore and follow their review"
+          />
+        </Card>
       </SettingsSection>
     </>
   );

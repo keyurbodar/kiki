@@ -34,8 +34,14 @@ export const themeOptionLabel = (option: ThemeOption) =>
     : COLOR_THEME_LABELS[option.kind === "preset" ? option.id : "default"];
 
 export const userThemesFrom = (value: unknown): ReadonlyArray<UserTheme> => {
-  const themes = (value as { themes?: ReadonlyArray<UserTheme> } | null)?.themes;
-  return Array.isArray(themes) ? themes : [];
+  const themes = Array.isArray(value)
+    ? value
+    : (value as { themes?: unknown } | null)?.themes;
+  return Array.isArray(themes)
+    ? (themes as ReadonlyArray<UserTheme>).filter(
+        (theme) => theme.light !== undefined && theme.dark !== undefined,
+      )
+    : [];
 };
 
 export function useUserThemes(): ReadonlyArray<UserTheme> | undefined {
