@@ -443,7 +443,6 @@ describe("integrations mock", () => {
 
       return Effect.gen(function* () {
         for (const mutation of [
-          completeGitHubOAuth,
           completeLinearOAuth,
           completePaperOAuth,
           completeSlackOAuth,
@@ -454,6 +453,13 @@ describe("integrations mock", () => {
             "connected",
           );
         }
+        registry.set(completeGitHubOAuth, {
+          payload: { state: "state_sample" },
+        });
+        assert.strictEqual(
+          (yield* AtomRegistry.getResult(registry, completeGitHubOAuth)).result,
+          "connected",
+        );
 
         registry.set(completeSlackOAuth, {
           payload: { state: "state_sample", error: "access_denied" },
@@ -504,22 +510,30 @@ describe("integrations mock", () => {
           yield* AtomRegistry.getResult(registry, startGitHubUserOAuth),
         );
 
-        for (const mutation of [previewLinearLink, previewSlackLink]) {
-          registry.set(mutation, { payload: { token: "link_token_sample" } });
-          const preview = yield* AtomRegistry.getResult(registry, mutation);
-          assert.strictEqual(preview.orgName, world.org.name);
-          assert.strictEqual(preview.externalUserName, "Alex Morgan");
-          assert.isString(preview.externalUserId);
-          assert.strictEqual(preview.workspaceName, "Acme sample");
-        }
+        registry.set(previewLinearLink, {
+          payload: { token: "link_token_sample" },
+        });
+        const linearPreview = yield* AtomRegistry.getResult(
+          registry,
+          previewLinearLink,
+        );
+        assert.strictEqual(linearPreview.orgName, world.org.name);
+        assert.strictEqual(linearPreview.externalUserName, "Alex Morgan");
+        assert.isString(linearPreview.externalUserId);
+        assert.strictEqual(linearPreview.workspaceName, "Acme sample");
+
         registry.set(previewSlackLink, {
           payload: { token: "link_token_sample" },
         });
-        assert.isString(
-          (yield* AtomRegistry.getResult(registry, previewSlackLink, {
-            suspendOnWaiting: true,
-          })).avatarUrl,
+        const slackPreview = yield* AtomRegistry.getResult(
+          registry,
+          previewSlackLink,
         );
+        assert.strictEqual(slackPreview.orgName, world.org.name);
+        assert.strictEqual(slackPreview.externalUserName, "Alex Morgan");
+        assert.isString(slackPreview.externalUserId);
+        assert.strictEqual(slackPreview.workspaceName, "Acme sample");
+        assert.isString(slackPreview.avatarUrl);
 
         registry.set(linkGitHubInstallation, {
           params: org,
