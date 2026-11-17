@@ -107,21 +107,24 @@ describe("ScrollArea", () => {
     expect(root.hasAttribute("data-scroll-start")).toBe(false);
   });
 
-  it("falls back to a plain nested viewport below md", () => {
-    stubNarrow(true);
-    const { container } = render(
-      <ScrollArea>
-        <ScrollAreaViewport className="size-full">
-          <p>Row</p>
-        </ScrollAreaViewport>
-      </ScrollArea>,
-    );
-    const viewports = container.querySelectorAll(
-      "[data-slot=scroll-area-viewport]",
-    );
-    expect(viewports).toHaveLength(2);
-    for (const viewport of viewports)
-      expect(viewport.hasAttribute("data-id")).toBe(false);
+  it("keeps one viewport per scroll area when a screen nests its own", () => {
+    for (const narrow of [true, false]) {
+      stubNarrow(narrow);
+      const { container, unmount } = render(
+        <ScrollArea>
+          <ScrollAreaViewport className="nested-probe">
+            <p>Row</p>
+          </ScrollAreaViewport>
+        </ScrollArea>,
+      );
+      expect(
+        container.querySelectorAll("[data-slot=scroll-area-viewport]"),
+      ).toHaveLength(1);
+      const nested = container.querySelector(".nested-probe");
+      expect(nested?.hasAttribute("data-slot")).toBe(false);
+      expect(nested?.textContent).toBe("Row");
+      unmount();
+    }
   });
 
   it("leaves the desktop viewport to Base UI", () => {
