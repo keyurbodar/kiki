@@ -85,3 +85,35 @@ describe("onboarding mock", () => {
     }),
   );
 });
+
+describe("onboarding steps", () => {
+  it.effect(
+    "uses Capy's setup-card step ids so the card shows every step",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        const status = (yield* AtomRegistry.getResult(
+          registry,
+          ApiClient.query("onboarding", "status", {
+            params: { orgId },
+          }),
+        )) as {
+          steps: ReadonlyArray<{ id: string; completed: boolean }>;
+          completedCount: number;
+        };
+        assert.deepStrictEqual(
+          status.steps.map((step) => step.id),
+          [
+            "connect-github",
+            "connect-slack",
+            "invite-teammate",
+            "set-up-environment",
+            "ship-pr",
+          ],
+        );
+        assert.strictEqual(status.steps.length, 5);
+        assert.isTrue(status.steps[0]?.completed);
+        assert.strictEqual(status.completedCount, 1);
+      }),
+  );
+});
