@@ -4,11 +4,9 @@ import {
   createContext,
   type ReactNode,
   useContext,
-  useId,
   useMemo,
 } from "react";
 import { MarkdownChip } from "@/components/markdown-chips";
-import { CodeBlock } from "./code-block";
 import { MarkdownGallery, MarkdownVideo } from "./markdown";
 import { MarkdownMermaid } from "./mermaid";
 import type { MarkdownTreeTransform } from "./pipeline";
