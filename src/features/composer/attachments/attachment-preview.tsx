@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import {
   Dialog,
-  DialogContent,
   DialogOverlay,
+  DialogPopup,
+  DialogPortal,
   DialogTitle,
 } from "@/primitives/dialog";
 
@@ -53,28 +54,31 @@ export function AttachmentPreview({
   if (item === undefined) return null;
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogOverlay className="fixed inset-0 z-(--z-overlay-content) bg-overlay-media" />
-      <DialogContent
-        className="fixed inset-0 z-(--z-overlay-content) flex items-center justify-center p-6 outline-none"
-        onKeyDown={(event) => {
-          if (event.key === "ArrowRight" && index < items.length - 1)
-            onIndexChange(index + 1);
-          if (event.key === "ArrowLeft" && index > 0) onIndexChange(index - 1);
-        }}
-      >
-        <DialogTitle className="sr-only">{item.label}</DialogTitle>
-        {item.kind === "image" ? (
-          <img
-            crossOrigin="anonymous"
-            src={item.url}
-            alt={item.label}
-            draggable={false}
-            className="max-h-full max-w-full object-contain"
-          />
-        ) : (
-          <VideoPreview file={item.file} label={item.label} />
-        )}
-      </DialogContent>
+      <DialogPortal>
+        <DialogOverlay scrim="media" forceRender />
+        <DialogPopup
+          className="fixed inset-0 z-(--z-overlay-content) flex items-center justify-center p-6 outline-none"
+          onKeyDown={(event) => {
+            if (event.key === "ArrowRight" && index < items.length - 1)
+              onIndexChange(index + 1);
+            if (event.key === "ArrowLeft" && index > 0)
+              onIndexChange(index - 1);
+          }}
+        >
+          <DialogTitle className="sr-only">{item.label}</DialogTitle>
+          {item.kind === "image" ? (
+            <img
+              crossOrigin="anonymous"
+              src={item.url}
+              alt={item.label}
+              draggable={false}
+              className="max-h-full max-w-full object-contain"
+            />
+          ) : (
+            <VideoPreview file={item.file} label={item.label} />
+          )}
+        </DialogPopup>
+      </DialogPortal>
     </Dialog>
   );
 }

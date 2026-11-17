@@ -586,14 +586,77 @@ export const automations = [
 ] as const;
 
 export const threadFolders = [
-  { id: "fld_sample_release", name: "Release", position: 0 },
-  { id: "fld_sample_research", name: "Research", position: 1 },
+  {
+    id: "fld_sample_release",
+    name: "Release",
+    position: 0,
+    visibility: "shared",
+    section: "threads",
+    ownerUserId: people.alex.id,
+    hidden: false,
+    memberIds: [people.sam.id, people.priya.id] as ReadonlyArray<string>,
+    createdAt: isoMinutesAgo(14 * day),
+    updatedAt: isoMinutesAgo(2 * day),
+  },
+  {
+    id: "fld_sample_research",
+    name: "Research",
+    position: 1,
+    visibility: "private",
+    section: "threads",
+    ownerUserId: people.alex.id,
+    hidden: false,
+    memberIds: [] as ReadonlyArray<string>,
+    createdAt: isoMinutesAgo(6 * day),
+    updatedAt: isoMinutesAgo(6 * day),
+  },
+] as const;
+
+export const threadFolderItems = [
+  {
+    folderId: "fld_sample_release",
+    jamId: threads.checkoutTest.id,
+    position: 0,
+  },
+  { folderId: "fld_sample_release", jamId: threads.darkMode.id, position: 1 },
+  { folderId: "fld_sample_release", jamId: threads.bundler.id, position: 2 },
+  { folderId: "fld_sample_research", jamId: threads.incidents.id, position: 0 },
 ] as const;
 
 export const threadTags = [
-  { id: "tag_sample_frontend", name: "frontend", color: "primary" },
-  { id: "tag_sample_backend", name: "backend", color: "info" },
-  { id: "tag_sample_urgent", name: "urgent", color: "danger" },
+  {
+    id: "tag_sample_frontend",
+    name: "frontend",
+    color: "primary",
+    deleted: false,
+    createdAt: isoMinutesAgo(30 * day),
+  },
+  {
+    id: "tag_sample_backend",
+    name: "backend",
+    color: "blue",
+    deleted: false,
+    createdAt: isoMinutesAgo(30 * day),
+  },
+  {
+    id: "tag_sample_urgent",
+    name: "urgent",
+    color: "destructive",
+    deleted: false,
+    createdAt: isoMinutesAgo(20 * day),
+  },
+] as const;
+
+export const threadTagAssignments = [
+  { jamId: threads.checkoutTest.id, tagId: "tag_sample_frontend" },
+  { jamId: threads.checkoutTest.id, tagId: "tag_sample_urgent" },
+  { jamId: threads.darkMode.id, tagId: "tag_sample_frontend" },
+  { jamId: threads.paginate.id, tagId: "tag_sample_backend" },
+] as const;
+
+export const threadPins = [
+  { jamId: threads.paginate.id },
+  { jamId: threads.checkoutTest.id },
 ] as const;
 
 export const mcpServers = [
@@ -722,7 +785,10 @@ export const world = {
   devices,
   automations,
   threadFolders,
+  threadFolderItems,
   threadTags,
+  threadTagAssignments,
+  threadPins,
   mcpServers,
   apiKeys,
   presetThemeIds,
