@@ -117,6 +117,8 @@ export const THEME_VARIABLES = [
 ] as const;
 
 export const TEXT_SIZES = [
+  "avatar-xs",
+  "avatar-sm",
   "count-chip",
   "plan-chip",
   "2xs",
