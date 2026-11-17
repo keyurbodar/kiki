@@ -3,6 +3,8 @@ import type { SVGProps } from "react";
 import type { IconId } from "./icon-ids";
 import spriteUrl from "./sprite.svg?url";
 
+const ICON_GRID = 24;
+
 const iconVariants = cva("shrink-0", {
   variants: {
     size: {
@@ -12,7 +14,6 @@ const iconVariants = cva("shrink-0", {
       lg: "size-(--icon-lg)",
     },
   },
-  defaultVariants: { size: "base" },
 });
 
 export type IconProps = Omit<SVGProps<SVGSVGElement>, "children"> &
@@ -29,7 +30,11 @@ export function Icon({ name, label, size, className, ...props }: IconProps) {
       data-icon={name}
       aria-hidden={label === undefined}
       role={label === undefined ? undefined : "img"}
+      width={ICON_GRID}
+      height={ICON_GRID}
+      viewBox={`0 0 ${ICON_GRID} ${ICON_GRID}`}
       fill="none"
+      xmlns="http://www.w3.org/2000/svg"
       className={iconVariants({ size, className })}
       {...props}
     >
