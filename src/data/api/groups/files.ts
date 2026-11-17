@@ -1,0 +1,55 @@
+import { Schema } from "effect";
+import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { Undecoded, UndecodedQuery } from "../undecoded.ts";
+
+export class FilesGroup extends HttpApiGroup.make("files").add(
+  HttpApiEndpoint.post("upload", "/orgs/:orgId/files", {
+    params: { orgId: Schema.String },
+    payload: Undecoded,
+    success: Undecoded,
+  }),
+  HttpApiEndpoint.post("pendingPreview", "/orgs/:orgId/files/:fileId/preview", {
+    params: { orgId: Schema.String, fileId: Schema.String },
+    success: Undecoded,
+  }),
+  HttpApiEndpoint.put("write", "/orgs/:orgId/jams/:jamId/files/:fileId", {
+    params: {
+      orgId: Schema.String,
+      jamId: Schema.String,
+      fileId: Schema.String,
+    },
+    payload: Undecoded,
+    success: Undecoded,
+  }),
+  HttpApiEndpoint.get("url", "/orgs/:orgId/jams/:jamId/files/:fileId/url", {
+    params: {
+      orgId: Schema.String,
+      jamId: Schema.String,
+      fileId: Schema.String,
+    },
+    query: UndecodedQuery,
+    success: Undecoded,
+  }),
+  HttpApiEndpoint.get(
+    "versions",
+    "/orgs/:orgId/jams/:jamId/files/:fileId/versions",
+    {
+      params: {
+        orgId: Schema.String,
+        jamId: Schema.String,
+        fileId: Schema.String,
+      },
+      success: Undecoded,
+    },
+  ),
+  HttpApiEndpoint.get("read", "/orgs/:orgId/jams/:jamId/machine-file", {
+    params: { orgId: Schema.String, jamId: Schema.String },
+    query: UndecodedQuery,
+    success: Undecoded,
+  }),
+  HttpApiEndpoint.put("writeMachine", "/orgs/:orgId/jams/:jamId/machine-file", {
+    params: { orgId: Schema.String, jamId: Schema.String },
+    payload: Undecoded,
+    success: Undecoded,
+  }),
+) {}
