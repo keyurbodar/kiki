@@ -1,0 +1,44 @@
+/*
+ * Interaction and loading layer on top of src/tokens (motion.css, effects.css).
+ * Only the rules Capy's stylesheet defines outside Tailwind's core live here;
+ * everything else is core Tailwind with token utilities (see README.md).
+ */
+
+@utility focus-gutter {
+  margin-inline: calc(var(--spacing) * -1);
+  padding-inline: var(--spacing);
+}
+
+@layer components {
+  .dot-grid[data-state="working"] [data-dot],
+  .dot-grid[data-state="waiting"] [data-dot],
+  .dot-grid:is([data-state="needs-you"], [data-state="failed"]) [data-dot] {
+    opacity: 0.25;
+  }
+
+  @media (resolution <= 1dppx) {
+    .dot-grid [data-dot] {
+      shape-rendering: crispEdges;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dot-grid[data-state="working"] [data-ring="0"],
+    .dot-grid[data-state="working"] [data-ring="1"],
+    .dot-grid[data-state="working"] [data-ring="2"] {
+      opacity: 1;
+    }
+
+    .dot-grid[data-state="waiting"] [data-dot] {
+      opacity: 0.25;
+    }
+
+    .dot-grid[data-state="waiting"] [data-row="middle"] {
+      opacity: 0.6;
+    }
+
+    .dot-grid:is([data-state="needs-you"], [data-state="failed"]) [data-dot] {
+      opacity: 0.85;
+    }
+  }
+}

@@ -1,14 +1,7 @@
 import { Atom } from "effect/reactivity";
 import type { OrgId } from "../api/schemas/ids.ts";
 import { ApiClient } from "../client/ApiClient.ts";
-import { queryTimeToLive } from "./conventions.ts";
-
-export const issueReactivityKeys = {
-  issues: (orgId: string) => `issues:${orgId}`,
-  issue: (orgId: string, code: string) => `issue:${orgId}/${code}`,
-  states: (orgId: string) => `issue-states:${orgId}`,
-  labels: (orgId: string) => `issue-labels:${orgId}`,
-} as const;
+import { queryTimeToLive, reactivityKeys } from "./conventions.ts";
 
 export const issueKey = (orgId: OrgId, code: string) => `${orgId}/${code}`;
 
@@ -22,8 +15,8 @@ const issueQuery = Atom.family((key: string) => {
   return ApiClient.query("issues", "get", {
     params: { orgId, code },
     reactivityKeys: [
-      issueReactivityKeys.issue(orgId, code),
-      issueReactivityKeys.issues(orgId),
+      reactivityKeys.issue(orgId, code),
+      reactivityKeys.issues(orgId),
     ],
     timeToLive: queryTimeToLive,
   });
@@ -36,7 +29,7 @@ export const issueAtom = (orgId: OrgId, code: string) =>
 export const issueStatesAtom = Atom.family((orgId: OrgId) =>
   ApiClient.query("issues", "states", {
     params: { orgId },
-    reactivityKeys: [issueReactivityKeys.states(orgId)],
+    reactivityKeys: [reactivityKeys.issueStates(orgId)],
     timeToLive: queryTimeToLive,
   }),
 );
@@ -44,7 +37,7 @@ export const issueStatesAtom = Atom.family((orgId: OrgId) =>
 export const issueLabelsAtom = Atom.family((orgId: OrgId) =>
   ApiClient.query("issue-labels", "labels", {
     params: { orgId },
-    reactivityKeys: [issueReactivityKeys.labels(orgId)],
+    reactivityKeys: [reactivityKeys.issueLabels(orgId)],
     timeToLive: queryTimeToLive,
   }),
 );
@@ -53,7 +46,7 @@ const issueListQuery = Atom.family((orgId: OrgId) =>
   ApiClient.query("issues", "list", {
     params: { orgId },
     query: {},
-    reactivityKeys: [issueReactivityKeys.issues(orgId)],
+    reactivityKeys: [reactivityKeys.issues(orgId)],
     timeToLive: queryTimeToLive,
   }),
 );
