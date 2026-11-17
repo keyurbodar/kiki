@@ -18,3 +18,12 @@ const threadsQuery = Atom.family((key: string) => {
 
 export const threadsAtom = (orgId: OrgId, projectId?: ProjectId) =>
   threadsQuery(threadListKey(orgId, projectId));
+
+export const archivedThreadsAtom = Atom.family((orgId: OrgId) =>
+  ApiClient.query("jams", "list", {
+    params: { orgId },
+    query: { archived: "only" },
+    reactivityKeys: [reactivityKeys.threads(orgId)],
+    timeToLive: queryTimeToLive,
+  }),
+);
