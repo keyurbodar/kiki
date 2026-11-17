@@ -435,8 +435,8 @@ export function Composer({
       <div
         className={
           editorClassName
-            ? `min-h-16 p-1 text-base font-normal text-muted-foreground-3 ${editorClassName}`
-            : "min-h-16 p-1 text-base font-normal text-muted-foreground-3"
+            ? `min-h-6 p-1 text-base font-normal text-muted-foreground-3 ${editorClassName}`
+            : "min-h-6 p-1 text-base font-normal text-muted-foreground-3"
         }
       >
         {placeholder}
