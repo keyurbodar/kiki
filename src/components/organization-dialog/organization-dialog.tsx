@@ -13,15 +13,13 @@ import { AvatarEditor } from "@/components/avatar-editor";
 import { ChoiceRow, ChoiceRowGroup } from "@/components/choice-row";
 import { OrgId } from "@/data/api/schemas/ids";
 import {
-  acceptInvitationAtom,
-  joinByDomainAtom,
-} from "@/data/atoms/invitations";
-import {
   createOrganizationAtom,
   joinableOrganizationsAtom,
   myInvitationsAtom,
 } from "@/data/atoms/onboarding";
 import {
+  acceptInvitationAtom,
+  joinByDomainAtom,
   presignOrganizationAvatarAtom,
   updateOrganizationAvatarAtom,
 } from "@/data/atoms/organizations";
