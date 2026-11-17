@@ -80,6 +80,54 @@ export const parseTokens = (text: string) => {
 export const stripWhitespace = (text: string) =>
   text.replace(/[\p{White_Space}\u180e\u200b-\u200f\u2060\ufeff]/gu, "");
 
+const field = (raw: unknown, key: string) =>
+  raw !== null && typeof raw === "object"
+    ? (raw as Record<string, unknown>)[key]
+    : undefined;
+
+const readModel = (raw: unknown): DiscoveredModel | undefined => {
+  const id = field(raw, "providerModelId") ?? field(raw, "id");
+  if (typeof id !== "string") return undefined;
+  const match = field(raw, "match");
+  const model = field(match, "model");
+  const entryId = field(match, "entryId");
+  const name = field(raw, "name") ?? field(raw, "label");
+  const context = field(raw, "context");
+  return {
+    providerModelId: id,
+    name: typeof name === "string" ? name : undefined,
+    context: typeof context === "number" ? context : undefined,
+    match:
+      typeof model === "string" && typeof entryId === "string"
+        ? { model, entryId }
+        : undefined,
+  };
+};
+
+export const readDiscovery = (raw: unknown): DiscoverResponse => {
+  if (Array.isArray(raw))
+    return {
+      outcome: "listed",
+      models: raw.flatMap((row) => readModel(row) ?? []),
+    };
+  const outcome = field(raw, "outcome");
+  const models = field(raw, "models");
+  const message = field(raw, "message");
+  return {
+    outcome:
+      outcome === "unlisted" ||
+      outcome === "rejected" ||
+      outcome === "unreachable"
+        ? outcome
+        : "listed",
+    message: typeof message === "string" ? message : undefined,
+    models: Array.isArray(models)
+      ? models.flatMap((row) => readModel(row) ?? [])
+      : [],
+    wire: field(raw, "wire") as WireState | undefined,
+  };
+};
+
 const noticeLabels: Record<NoticeFeature, string> = {
   strict: "strict tool schemas",
   custom: "freeform tool input",

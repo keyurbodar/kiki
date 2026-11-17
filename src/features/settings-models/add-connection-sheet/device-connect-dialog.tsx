@@ -22,20 +22,15 @@ import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { pollDeviceAtom, startDeviceAtom } from "../model-routing/atoms.ts";
 import { serviceTitle } from "../model-routing/routing.ts";
+import {
+  type DeviceAttempt,
+  type DevicePoll,
+  readDeviceAttempt,
+  readDevicePoll,
+} from "./device-attempt.ts";
 
 const cx = (...parts: Array<string | false | null | undefined>) =>
   parts.filter(Boolean).join(" ");
-
-type DeviceAttempt = {
-  readonly attemptId: string;
-  readonly userCode: string;
-  readonly verificationUri: string;
-  readonly intervalSeconds: number;
-};
-
-type DevicePoll = {
-  readonly status: "pending" | "connected" | "denied" | "expired" | "failed";
-};
 
 const codexSwitch =
   "In ChatGPT Settings → Security, turn on device code authorization for Codex";
@@ -133,7 +128,7 @@ export function DeviceConnectDialog({
       params: { service },
       query: credentialId === undefined ? {} : { credentialId },
     })
-      .then((raw) => setAttempt(raw as DeviceAttempt))
+      .then((raw) => setAttempt(readDeviceAttempt(raw)))
       .catch(() => setError("Could not start the login"));
   }, [service, credentialId, startDevice]);
   const startedFor = useRef<string | null>(null);
@@ -151,7 +146,7 @@ export function DeviceConnectDialog({
       pollDevice({ params: { attemptId: attempt.attemptId } })
         .then((raw) => {
           if (stopped) return;
-          const { status } = raw as DevicePoll;
+          const { status } = readDevicePoll(raw);
           if (status === "pending") timer = setTimeout(poll, delay);
           else if (status === "connected") connected.current();
           else setError(pollFailure(status));

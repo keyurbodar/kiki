@@ -319,7 +319,20 @@ describe("routing lists", () => {
         },
       ],
     });
-    expect(routing.seats[0]?.expiresAt).toBeInstanceOf(Date);
-    expect(routing.seats[0]?.plan).toBeUndefined();
+    expect(routing?.seats[0]?.expiresAt).toBeInstanceOf(Date);
+    expect(routing?.seats[0]?.plan).toBeUndefined();
+  });
+
+  it("defaults the lists a payload leaves out", () => {
+    const routing = decodeRouting({ small: "a", medium: "b", large: "c" });
+    expect(routing).toEqual({
+      admin: false,
+      seats: [],
+      credentials: [],
+      routes: [],
+      settings: [],
+    });
+    expect(decodeRouting(null)).toBeUndefined();
+    expect(decodeRouting([])).toBeUndefined();
   });
 });

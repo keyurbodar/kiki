@@ -84,7 +84,6 @@ import {
   cleanHeaders,
   customIdProblem,
   type DiscoveredModel,
-  type DiscoverResponse,
   type Discovery,
   directTicks,
   draftHeaders,
@@ -95,6 +94,7 @@ import {
   mergeDiscovered,
   pendingCompactAts,
   readDaybreak,
+  readDiscovery,
   readMediaCheck,
   servedCount,
   shortDate,
@@ -488,7 +488,7 @@ export function ConnectSheet({
           });
           return;
         }
-        const result = exit.value as DiscoverResponse;
+        const result = readDiscovery(exit.value);
         if (result.outcome === "rejected") {
           setProblem({
             field: "key",
@@ -623,7 +623,7 @@ export function ConnectSheet({
     })
       .then((exit) => {
         const result = Exit.isSuccess(exit)
-          ? (exit.value as DiscoverResponse)
+          ? readDiscovery(exit.value)
           : undefined;
         if (result?.outcome === "unreachable") {
           toast.error(
