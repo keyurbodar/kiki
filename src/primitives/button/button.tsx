@@ -23,6 +23,7 @@ export const buttonVariants = cva(
     motion.hover,
     motion.focusRing,
     "select-none",
+    "desktop-no-drag",
     motion.touchTarget,
     motion.disabled,
     "[&_svg]:pointer-events-none [&_svg]:shrink-0",
