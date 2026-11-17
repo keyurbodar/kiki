@@ -67,7 +67,7 @@ export function AppearanceMenuItems() {
             </span>
             {option.label}
             {mode === option.value ? (
-              <CheckmarkIcon className={"ml-auto " + menuCheckClassName} />
+              <CheckmarkIcon className={`ml-auto ${menuCheckClassName}`} />
             ) : null}
           </ResponsiveMenuItem>
         ))}
@@ -91,7 +91,7 @@ export function AppearanceMenuItems() {
             </span>
             <span className={menuLabelClassName}>{colorThemeLabel(theme)}</span>
             {sameColorTheme(displayed, theme) ? (
-              <CheckmarkIcon className={"ml-auto " + menuCheckClassName} />
+              <CheckmarkIcon className={`ml-auto ${menuCheckClassName}`} />
             ) : null}
           </ResponsiveMenuItem>
         ))}
