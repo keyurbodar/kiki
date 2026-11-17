@@ -59,11 +59,11 @@ describe("accessStatusLine", () => {
 describe("byAccessOrder", () => {
   it("ranks requested before granted before the rest, newest first within a rank", () => {
     const rows = [
-      { status: "denied", requestedAt: ago(10_000) },
-      { status: "granted", requestedAt: ago(20_000) },
-      { status: "requested", requestedAt: ago(30_000) },
-      { status: "granted", requestedAt: ago(5_000) },
-      { status: "requested", requestedAt: ago(1_000) },
+      { status: "denied", requestedAt: ago(10_000), resolvedAt: null },
+      { status: "granted", requestedAt: ago(20_000), resolvedAt: null },
+      { status: "requested", requestedAt: ago(30_000), resolvedAt: null },
+      { status: "granted", requestedAt: ago(5_000), resolvedAt: null },
+      { status: "requested", requestedAt: ago(1_000), resolvedAt: null },
     ] as const;
     expect([...rows].sort(byAccessOrder).map((row) => row.status)).toEqual([
       "requested",

@@ -133,7 +133,7 @@ describe("costHues and rowHues", () => {
     const widest = sorted
       .map((hue, i) => ({
         hue,
-        gap: (sorted[i + 1] ?? sorted[0] + 360) - hue,
+        gap: (sorted[i + 1] ?? (sorted[0] ?? 0) + 360) - hue,
       }))
       .reduce((best, next) => (next.gap > best.gap ? next : best));
     expect(eleven[10]).toBe((widest.hue + widest.gap / 2) % 360);
