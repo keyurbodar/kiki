@@ -1,3 +1,11 @@
+/**
+ * The guard answers one question: does this class token produce a CSS rule?
+ * It cannot tell a component class Capy defines from a utility composition
+ * Capy writes inline, so a token this file reports as unstyled may be inert in
+ * Capy too rather than a rule we never ported. Check the bundle before
+ * inventing a rule: `diff-comment-discussion` was reported that way and is
+ * composed as utilities on both sides, so the honest fix there was nothing.
+ */
 export type ClassCandidate = {
   token: string;
   line: number;
