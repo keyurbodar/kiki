@@ -7,7 +7,6 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetOverlay,
   SheetTitle,
 } from "@/primitives/sheet";
 import { pluginMutation } from "../model/atoms.ts";
@@ -76,7 +75,6 @@ export function GitHubPluginSheet({
 
   return (
     <Sheet open={open} onOpenChange={changeOpen}>
-      <SheetOverlay />
       <SheetContent>
         <form onSubmit={submit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">

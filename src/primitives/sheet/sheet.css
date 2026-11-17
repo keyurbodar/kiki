@@ -1,0 +1,24 @@
+/*
+ * ui/sheet and ui/side-sheet rules from Capy's production stylesheet that
+ * select these primitives by data-slot rather than through utilities.
+ */
+
+@layer base {
+  [data-slot="sheet-content"][hidden] {
+    visibility: hidden;
+    translate: -100%;
+    display: flex !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="sheet-content"],
+  [data-slot="side-sheet-content"] {
+    translate: 0 !important;
+  }
+}
+
+[data-slot="sheet-content"],
+[data-slot="sheet-overlay"] {
+  -webkit-app-region: no-drag;
+}

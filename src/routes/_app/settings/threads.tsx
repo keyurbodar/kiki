@@ -1,12 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { ThreadsSettingsPage } from "@/features/settings-agent/threads";
 
 export const Route = createFileRoute("/_app/settings/threads")({
-  component: RouteComponent,
+  component: ThreadsSettingsPage,
 });
-
-function RouteComponent() {
-  return (
-    <RoutePlaceholder title="/settings/threads" path="/settings/threads" />
-  );
-}

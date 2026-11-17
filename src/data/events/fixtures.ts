@@ -690,7 +690,7 @@ export const makeThreadFixtures = (options: FixtureOptions = {}) => {
       ...rowBase("work_1", 9_000),
       type: "work-group",
       activeMs: 64_000,
-      failures: [],
+      failures: 0,
       entries: [toolActivity],
       chunks: [],
       live: false,

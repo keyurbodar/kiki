@@ -119,10 +119,19 @@ const mutationEndpoints = [
   ],
   ["addMembers", { params: projectParams, payload: { memberIds: [memberId] } }],
   ["setOwner", { params: projectParams, payload: { ownerId: memberId } }],
-  ["replaceRepos", { params: projectParams, payload: { repos: [repoName] } }],
+  [
+    "replaceRepos",
+    {
+      params: projectParams,
+      payload: { repos: [{ repoFullName: repoName, baseBranch: "main" }] },
+    },
+  ],
   [
     "addRepos",
-    { params: projectParams, payload: { repos: [repos[1].fullName] } },
+    {
+      params: projectParams,
+      payload: { repos: [{ repoFullName: repos[1].fullName }] },
+    },
   ],
   [
     "setRepoMode",
@@ -133,13 +142,20 @@ const mutationEndpoints = [
   ],
   [
     "replaceDependencyRepos",
-    { params: projectParams, payload: { repos: [repoName] } },
+    {
+      params: projectParams,
+      payload: {
+        repos: [
+          { repoFullName: repoName, githubRepoId: null, installationId: 1 },
+        ],
+      },
+    },
   ],
   [
     "replaceSetup",
     {
       params: projectParams,
-      payload: { instruction: "Run tests", script: "bun test" },
+      payload: { machineSize: "medium", repositories: [] },
     },
   ],
   ["updateSetup", { params: projectParams, payload: { machineSize: "large" } }],
@@ -151,7 +167,7 @@ const mutationEndpoints = [
   ],
   [
     "setSnapshotSmallerTiers",
-    { params: projectParams, payload: { smallerTiers: true } },
+    { params: projectParams, payload: { buildSmallerTiers: true } },
   ],
   ["setAccess", { params: projectParams, payload: { access: "private" } }],
 ] as const;
@@ -194,8 +210,10 @@ describe("projects mock", () => {
       assert.isTrue(rows(listed).length > 0);
       assert.isTrue(rows(listed).some((row) => row.id === projectId));
 
-      const directory = yield* get(registry, atoms, "settingsDirectory");
-      assert.isTrue(rows(directory).some((row) => row.id === projectId));
+      const directory = record(
+        yield* get(registry, atoms, "settingsDirectory"),
+      );
+      assert.isTrue(rows(directory.items).some((row) => row.id === projectId));
 
       const list = yield* get(registry, atoms, "list");
       assert.isTrue(rows(list).some((row) => row.id === projectId));
@@ -228,14 +246,15 @@ describe("projects mock", () => {
         rows(yield* get(registry, atoms, "searchGithubAuthors")).length > 0,
       );
       assert.isTrue(
-        record(yield* get(registry, atoms, "getSetup")).projectId === projectId,
+        rows(record(yield* get(registry, atoms, "getSetup")).repositories)
+          .length > 0,
       );
       assert.isTrue(
         rows(yield* get(registry, atoms, "listSetupVersions")).length > 0,
       );
       assert.isTrue(
-        record(yield* get(registry, atoms, "getSnapshotConfig")).projectId ===
-          projectId,
+        record(yield* get(registry, atoms, "getSnapshotConfig")).configured ===
+          true,
       );
       assert.isTrue(
         rows(yield* get(registry, atoms, "listSnapshotBuilds")).length > 0,
@@ -378,7 +397,7 @@ describe("projects mock", () => {
 
         yield* runMutation(registry, "replaceSetup", {
           params: projectParams,
-          payload: { instruction: "Build and test", script: "bun run test" },
+          payload: { machineSize: "medium", repositories: [] },
         });
         yield* runMutation(registry, "updateSetup", {
           params: projectParams,

@@ -1,0 +1,94 @@
+{
+  "matrix": {
+    "theme": ["default"],
+    "scheme": ["dark", "light"]
+  },
+  "targets": [
+    {
+      "id": "mermaid-blocks",
+      "route": "/diagram/__preview/mermaid/0",
+      "viewport": "1440x900",
+      "steps": [["wait", "[data-slot=markdown-mermaid-diagram] svg"]],
+      "capture": {
+        "[data-component=markdown-mermaid]": [],
+        "[data-slot=markdown-code-header]": [],
+        "[data-slot=markdown-mermaid-error]": []
+      },
+      "expect": {
+        "[data-component=markdown-mermaid]": {
+          "border-top-width": "0.5px",
+          "border-top-color": "var(--border-1)",
+          "border-radius": "8px",
+          "background-color": "var(--panel)"
+        },
+        "[data-slot=markdown-code-header]": {
+          "height": "32px",
+          "padding-left": "12px",
+          "padding-right": "6px"
+        },
+        "[data-slot=markdown-mermaid-error]": {
+          "color": "var(--muted-foreground-1)",
+          "padding-top": "8px",
+          "white-space": "nowrap"
+        }
+      }
+    },
+    {
+      "id": "mermaid-dialog",
+      "route": "/diagram/__preview/mermaid/0",
+      "state": "expanded",
+      "viewport": "1440x900",
+      "steps": [
+        ["wait", "[data-slot=markdown-mermaid-diagram] svg"],
+        ["click", "button[aria-label=Expand]"],
+        ["wait", "[data-slot=mermaid-stage]"]
+      ],
+      "expect": {
+        "[data-slot=mermaid-stage]": {
+          "background-color": "var(--panel)",
+          "border-radius": "8px",
+          "margin-left": "20px",
+          "margin-top": "12px",
+          "margin-bottom": "16px"
+        },
+        "[data-slot=pan-zoom-controls]": {
+          "left": "12px",
+          "bottom": "12px",
+          "border-top-width": "0.5px"
+        }
+      }
+    },
+    {
+      "id": "diagram-window",
+      "route": "/diagram/__preview/window/0",
+      "viewport": "960x640",
+      "steps": [["wait", "[data-slot=mermaid-stage] svg"]],
+      "expect": {
+        "[data-slot=diagram-window] > header": {
+          "height": "40px",
+          "border-bottom-width": "0.5px",
+          "padding-left": "12px",
+          "padding-right": "8px"
+        },
+        "[data-slot=diagram-window]": {
+          "background-color": "var(--bg)"
+        },
+        "[data-slot=mermaid-stage]": {
+          "background-color": "var(--panel)"
+        }
+      }
+    },
+    {
+      "id": "visuals",
+      "route": "/diagram/__preview/visual/0",
+      "viewport": "1440x900",
+      "steps": [["wait", "[data-slot=visual] iframe"], ["wait", "500"]],
+      "expect": {
+        "[data-slot=visual]": {
+          "padding-bottom": "8px",
+          "display": "flex"
+        }
+      }
+    }
+  ]
+}
