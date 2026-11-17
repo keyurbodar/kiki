@@ -47,6 +47,8 @@ import {
   useIssueLabels,
   useIssueStates,
 } from "@/features/issues/issue-pickers";
+import { RightPanel, RightPanelGroup } from "@/primitives/right-panel";
+import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
 import { SidebarTrigger, useSidebarState } from "@/primitives/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 
@@ -214,107 +216,115 @@ export function IssuesPage() {
     setChecked(new Map());
   };
   return (
-    <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
-      <header className="sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center border-b-hairline border-border-1 bg-panel px-2">
-        <span
-          inert={triggerShown ? undefined : true}
-          className={
-            "ease-out-quint flex shrink-0 items-center overflow-hidden transition-[width,margin,opacity] duration-base motion-reduce:transition-none " +
-            (triggerShown
-              ? "w-(--h-control-sm) opacity-100 -mr-1"
-              : "mr-0 w-0 opacity-0")
-          }
-        >
-          <SidebarTrigger />
-        </span>
-        {searchOpen ? (
-          <span className="ml-2.5 flex min-w-0 flex-1 items-center gap-1.5">
-            <SearchGlyph className="size-(--icon-base) shrink-0 text-icon-muted" />
-            <input
-              className="min-w-0 flex-1 bg-transparent text-sm font-medium text-foreground outline-none placeholder:text-muted-foreground-3"
-              aria-label="Search issues"
-              placeholder="Search issues"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key !== "Escape") return;
-                setSearch("");
-                setSearchOpen(false);
-              }}
-            />
-          </span>
-        ) : (
-          <h1 className="ml-2.5 min-w-0 truncate text-sm font-medium text-foreground">
-            Issues
-          </h1>
-        )}
-        <div className="ml-auto flex shrink-0 items-center gap-1.5 pl-2">
-          <HeaderButton
-            label={searchOpen ? "Close search" : "Search"}
-            onClick={() => {
-              if (searchOpen) setSearch("");
-              setSearchOpen(!searchOpen);
-            }}
+    <RightPanelGroup className="min-w-0 flex-1">
+      <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center border-b-hairline border-border-1 bg-panel px-2">
+          <span
+            inert={triggerShown ? undefined : true}
+            className={
+              "ease-out-quint flex shrink-0 items-center overflow-hidden transition-[width,margin,opacity] duration-base motion-reduce:transition-none " +
+              (triggerShown
+                ? "w-(--h-control-sm) opacity-100 -mr-1"
+                : "mr-0 w-0 opacity-0")
+            }
           >
-            {searchOpen ? <CloseGlyph /> : <SearchGlyph />}
-          </HeaderButton>
-          <HeaderButton label="New issue">
-            <PlusGlyph />
-          </HeaderButton>
-        </div>
-      </header>
-      <IssuesToolbar
-        filters={filters}
-        sources={sources}
-        display={display}
-        assignedCount={
-          AsyncResult.isSuccess(assigned)
-            ? countOf(assigned.value, "open")
-            : undefined
-        }
-        mentionCount={
-          AsyncResult.isSuccess(mentions)
-            ? countOf(mentions.value, "mentions")
-            : undefined
-        }
-        onFilters={changeFilters}
-        onDisplay={setDisplay}
-      />
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="flex min-h-full flex-col pb-16">
-          {orgId === undefined ? (
-            <div className="flex items-center justify-center py-16 text-sm font-normal text-muted-foreground-2">
-              No organization selected
-            </div>
+            <SidebarTrigger />
+          </span>
+          {searchOpen ? (
+            <span className="ml-2.5 flex min-w-0 flex-1 items-center gap-1.5">
+              <SearchGlyph className="size-(--icon-base) shrink-0 text-icon-muted" />
+              <input
+                className="min-w-0 flex-1 bg-transparent text-sm font-medium text-foreground outline-none placeholder:text-muted-foreground-3"
+                aria-label="Search issues"
+                placeholder="Search issues"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key !== "Escape") return;
+                  setSearch("");
+                  setSearchOpen(false);
+                }}
+              />
+            </span>
           ) : (
-            <IssuesList
-              orgId={orgId}
-              issues={issues}
-              states={statesPending ? undefined : states}
-              filters={filters}
-              display={display}
-              projectNames={Object.fromEntries(
-                projectList.map((project) => [project.id, project.name]),
-              )}
-              now={now}
-              emptyText={issueEmptyText(viewOfFilters(filters), search.trim())}
-              failed={AsyncResult.isFailure(list) || statesFailed}
-              onRetry={() => {
-                refresh();
-                refreshStates();
-              }}
-              checked={checked}
-              onCheckedChange={setChecked}
-            />
+            <h1 className="ml-2.5 min-w-0 truncate text-sm font-medium text-foreground">
+              Issues
+            </h1>
           )}
-        </div>
-      </div>
-      {checked.size > 0 ? (
-        <IssuesBulkBar
-          checked={checked}
-          onClear={() => setChecked(new Map())}
+          <div className="ml-auto flex shrink-0 items-center gap-1.5 pl-2">
+            <HeaderButton
+              label={searchOpen ? "Close search" : "Search"}
+              onClick={() => {
+                if (searchOpen) setSearch("");
+                setSearchOpen(!searchOpen);
+              }}
+            >
+              {searchOpen ? <CloseGlyph /> : <SearchGlyph />}
+            </HeaderButton>
+            <HeaderButton label="New issue">
+              <PlusGlyph />
+            </HeaderButton>
+          </div>
+        </header>
+        <IssuesToolbar
+          filters={filters}
+          sources={sources}
+          display={display}
+          assignedCount={
+            AsyncResult.isSuccess(assigned)
+              ? countOf(assigned.value, "open")
+              : undefined
+          }
+          mentionCount={
+            AsyncResult.isSuccess(mentions)
+              ? countOf(mentions.value, "mentions")
+              : undefined
+          }
+          onFilters={changeFilters}
+          onDisplay={setDisplay}
         />
-      ) : null}
-    </div>
+        <ScrollArea className="min-h-0 flex-1">
+          <ScrollAreaViewport>
+            <div className="flex min-h-full flex-col pb-16">
+              {orgId === undefined ? (
+                <div className="flex items-center justify-center py-16 text-sm font-normal text-muted-foreground-2">
+                  No organization selected
+                </div>
+              ) : (
+                <IssuesList
+                  orgId={orgId}
+                  issues={issues}
+                  states={statesPending ? undefined : states}
+                  filters={filters}
+                  display={display}
+                  projectNames={Object.fromEntries(
+                    projectList.map((project) => [project.id, project.name]),
+                  )}
+                  now={now}
+                  emptyText={issueEmptyText(
+                    viewOfFilters(filters),
+                    search.trim(),
+                  )}
+                  failed={AsyncResult.isFailure(list) || statesFailed}
+                  onRetry={() => {
+                    refresh();
+                    refreshStates();
+                  }}
+                  checked={checked}
+                  onCheckedChange={setChecked}
+                />
+              )}
+            </div>
+          </ScrollAreaViewport>
+        </ScrollArea>
+        {checked.size > 0 ? (
+          <IssuesBulkBar
+            checked={checked}
+            onClear={() => setChecked(new Map())}
+          />
+        ) : null}
+      </div>
+      <RightPanel open={false} />
+    </RightPanelGroup>
   );
 }
