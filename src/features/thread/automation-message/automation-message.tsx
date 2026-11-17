@@ -1,7 +1,7 @@
 import { type ComponentProps, type ReactNode, useState } from "react";
-import { CardIcon } from "@/components/diff-cards/cards";
 import { formatEventTime } from "@/features/thread/setup-failure-card";
 import { Button } from "@/primitives/button";
+import { Icon } from "@/primitives/icon";
 
 export const AUTOMATION_FALLBACK_NAME = "Automation";
 
@@ -60,7 +60,7 @@ export function AutomationMessage({
         className="flex max-w-full min-w-0 items-center gap-1.5 text-xs leading-4"
       >
         <span className="flex size-4 shrink-0 items-center justify-center">
-          <CardIcon name="calendar-clock" className="size-4" />
+          <Icon name="calendar-clock" className="size-4" />
         </span>
         <span className="min-w-0 text-pretty">
           <span className="font-medium text-foreground">{title}</span>

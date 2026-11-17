@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { CardIcon, type CardIconName } from "./card-icons";
+import { Icon, type IconId } from "@/primitives/icon";
 
 export type PullRequestState =
   | "ready"
@@ -9,7 +9,7 @@ export type PullRequestState =
   | "failed"
   | "closed";
 
-const STATE: Record<PullRequestState, { icon: CardIconName; tone: string }> = {
+const STATE: Record<PullRequestState, { icon: IconId; tone: string }> = {
   ready: { icon: "pull-request", tone: "text-success" },
   pending: { icon: "pull-request", tone: "text-warning-fg" },
   draft: { icon: "draft", tone: "text-muted-foreground-2" },
@@ -19,7 +19,7 @@ const STATE: Record<PullRequestState, { icon: CardIconName; tone: string }> = {
 };
 
 export type PullRequestStateIconProps = Omit<
-  ComponentProps<typeof CardIcon>,
+  ComponentProps<typeof Icon>,
   "name"
 > & { state: PullRequestState };
 
@@ -30,7 +30,7 @@ export function PullRequestStateIcon({
 }: PullRequestStateIconProps) {
   const { icon, tone } = STATE[state];
   return (
-    <CardIcon
+    <Icon
       name={icon}
       className={["size-3 shrink-0", tone, className].filter(Boolean).join(" ")}
       {...props}

@@ -1,5 +1,4 @@
 import type { ComponentProps } from "react";
-import { CardIcon } from "@/components/diff-cards/cards";
 import { Icon } from "@/primitives/icon";
 
 export type DriveReference = {
@@ -66,7 +65,7 @@ export function DriveReferenceCards({
               </span>
             </span>
             {open !== undefined && (
-              <CardIcon
+              <Icon
                 name="square-arrow-top-right"
                 className="size-(--icon-sm) shrink-0 text-icon-muted opacity-0 transition-opacity duration-fast group-hover:opacity-100 group-focus-visible:opacity-100"
               />

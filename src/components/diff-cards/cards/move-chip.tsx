@@ -1,4 +1,4 @@
-import { CardIcon } from "./card-icons";
+import { Icon } from "@/primitives/icon";
 
 export type DiffMoveSide = "origin" | "destination";
 
@@ -41,7 +41,7 @@ export function MoveChip({ metadata, onJump, lineJumps }: MoveChipProps) {
   const { move, at } = metadata;
   const content = (
     <>
-      <CardIcon name="arrow-up-right" className="diff-move-chip-icon" />
+      <Icon name="arrow-up-right" className="diff-move-chip-icon" />
       <span className="diff-move-chip-label">{moveChipLabel(move, at)}</span>
       <span className="diff-move-chip-count">· {move.lineCount} lines</span>
     </>

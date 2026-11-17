@@ -1,9 +1,9 @@
 import { Menu as BaseMenu } from "@base-ui/react/menu";
 import { type ComponentProps, useState } from "react";
 import { toast } from "sonner";
-import { CardIcon } from "@/components/diff-cards/cards";
 import { ThreadStatus } from "@/components/thread-status";
 import { Button } from "@/primitives/button";
+import { Icon } from "@/primitives/icon";
 import {
   ResponsiveMenu,
   ResponsiveMenuItem,
@@ -117,7 +117,7 @@ export function CrewAsksMenu({
           dismiss(item.asks);
         }}
       >
-        <CardIcon name="cross-medium" />
+        <Icon name="cross-medium" />
       </Button>
     );
     return touch ? (
@@ -168,7 +168,7 @@ export function CrewAsksMenu({
             />
           }
         >
-          <CardIcon name="bubble-question" />
+          <Icon name="bubble-question" />
           <span aria-hidden className="@max-[34rem]/footer:hidden">
             {label}
           </span>

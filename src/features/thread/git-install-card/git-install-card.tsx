@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { CardIcon } from "@/components/diff-cards/cards";
 import { AttentionCard } from "@/features/thread/attention-card";
 import { Button } from "@/primitives/button";
+import { Icon } from "@/primitives/icon";
 
 export type GitInstallResult =
   | { installed: true }
@@ -94,7 +94,7 @@ export function GitInstallCard({
     return (
       <AttentionCard
         status="done"
-        icon={<CardIcon name="console" />}
+        icon={<Icon name="console" />}
         className="mb-2"
         title="Git for Windows installed"
         description="Send another message to continue"
@@ -104,7 +104,7 @@ export function GitInstallCard({
     <AttentionCard
       status="pending"
       className="mb-2"
-      icon={<CardIcon name="console" />}
+      icon={<Icon name="console" />}
       title="Install Git for Windows to continue"
       description={
         state === "opened"

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { CardIcon } from "@/components/diff-cards/cards";
 import { Alert, AlertDescription, AlertTitle } from "@/primitives/alert";
 import { Button, ButtonIcon } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
@@ -68,7 +67,7 @@ export function SetupFailureAlert({
             {onOpenSetup !== undefined && (
               <Button size="sm" onClick={onOpenSetup}>
                 Open in Setup
-                <CardIcon name="arrow-up-right" className="size-(--icon-sm)" />
+                <Icon name="arrow-up-right" className="size-(--icon-sm)" />
               </Button>
             )}
           </div>
@@ -109,7 +108,7 @@ export function SetupFailureCard(props: SetupFailureCardProps) {
           <span className="min-w-0 truncate">
             {`${setupOutcomeLabel(setup)} · ${formatEventTime(setup.outcome.at)}`}
           </span>
-          <CardIcon
+          <Icon
             name="chevron-right-small"
             className={["size-(--icon-xs) shrink-0", open && "rotate-90"]
               .filter(Boolean)

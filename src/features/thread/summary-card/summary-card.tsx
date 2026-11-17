@@ -1,10 +1,7 @@
 import type { ComponentProps, MouseEvent, ReactNode } from "react";
-import {
-  CardIcon,
-  DiffStat,
-  PullRequestStateIcon,
-} from "@/components/diff-cards/cards";
+import { DiffStat, PullRequestStateIcon } from "@/components/diff-cards/cards";
 import { Card } from "@/primitives/card";
+import { Icon } from "@/primitives/icon";
 import {
   pullRequestLabel,
   type SummaryLivePullRequest,
@@ -41,7 +38,7 @@ export function PullRequestRow({
     >
       <span className={ROW_MARK}>
         {live === undefined ? (
-          <CardIcon
+          <Icon
             name="pull-request"
             className="size-(--icon-xs) shrink-0 text-muted-foreground-2"
           />
@@ -82,7 +79,7 @@ export function PortRow({
   const content = (
     <>
       <span className={ROW_MARK}>
-        <CardIcon
+        <Icon
           name="globe"
           className="size-(--icon-xs) shrink-0 text-muted-foreground-2"
         />
