@@ -1,0 +1,68 @@
+{
+  "defaults": {
+    "maxMismatch": 2
+  },
+  "matrix": {
+    "theme": ["default"],
+    "scheme": ["dark", "light"]
+  },
+  "targets": [
+    {
+      "id": "sidebar-threads",
+      "route": "/new",
+      "state": "sidebar in threads mode",
+      "viewport": "1600x1000",
+      "variants": {
+        "default/dark": {
+          "frame": "GGMp1Jv-KO"
+        }
+      },
+      "expect": {
+        "[data-slot=sidebar-container]": {
+          "width": "240px"
+        }
+      }
+    },
+    {
+      "id": "threads-route",
+      "route": "/threads",
+      "state": "threads page with sidebar",
+      "viewport": "1440x818",
+      "variants": {
+        "default/dark": {
+          "frame": "Kw10bSGbwB"
+        }
+      }
+    },
+    {
+      "id": "sidebar-captains",
+      "route": "/new",
+      "state": "sidebar in captains mode",
+      "viewport": "1600x1000",
+      "steps": [
+        ["click", "[data-slot=sidebar-mode] button[aria-label=Captains]"],
+        ["wait", "500"]
+      ],
+      "variants": {
+        "default/dark": {
+          "frame": "yFGVwHDK8e"
+        }
+      }
+    },
+    {
+      "id": "thread-options-menu",
+      "route": "/new",
+      "state": "thread options menu open",
+      "viewport": "1600x1000",
+      "steps": [
+        ["click", "button[aria-label='Thread options']"],
+        ["wait", "[role=menu]"]
+      ],
+      "variants": {
+        "default/dark": {
+          "frame": "izFo50wDlq"
+        }
+      }
+    }
+  ]
+}
