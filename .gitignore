@@ -25,3 +25,11 @@ MACHINE.md
 # OS / editor
 .DS_Store
 *.log
+# Agent scratch dirs (written inside worktrees, not source)
+.agents/
+.claude/
+.codex/
+.cursor/
+.gemini/
+.continue/
+MACHINE.md
