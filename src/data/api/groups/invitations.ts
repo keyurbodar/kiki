@@ -1,5 +1,6 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { Invitation } from "../schemas/member.ts";
 import { Undecoded } from "../undecoded.ts";
 
 export class InvitationsGroup extends HttpApiGroup.make("invitations").add(
@@ -10,7 +11,7 @@ export class InvitationsGroup extends HttpApiGroup.make("invitations").add(
   ),
   HttpApiEndpoint.get("listInvitations", "/orgs/:orgId/invitations", {
     params: { orgId: Schema.String },
-    success: Undecoded,
+    success: Schema.Array(Invitation),
   }),
   HttpApiEndpoint.post(
     "revokeInvitation",
