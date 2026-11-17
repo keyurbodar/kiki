@@ -235,7 +235,11 @@ describe("automation editor fields", () => {
         id: string;
         description: string | null;
         prompt: string;
-        triggers: ReadonlyArray<{ type?: string; cron?: string; timezone?: string }>;
+        triggers: ReadonlyArray<{
+          type?: string;
+          cron?: string;
+          timezone?: string;
+        }>;
         threadMode: string;
         singleJamId: string | null;
         runAsKind: string;
