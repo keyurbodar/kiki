@@ -118,6 +118,24 @@ export type WaitingSource = {
   label?: string;
 };
 
+const DOT_GRID = [3, 7, 11].flatMap((y) => [3, 7, 11].map((x) => [x, y]));
+
+/** Capy's waiting marker leads with a 3x3 grid of dots in the primary ink. */
+function DotGrid() {
+  return (
+    <svg
+      aria-hidden
+      fill="currentColor"
+      viewBox="0 0 14 14"
+      className="dot-grid mr-1 inline-block size-(--icon-sm) shrink-0 align-[-0.2em] text-primary-ink"
+    >
+      {DOT_GRID.map(([cx, cy]) => (
+        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={1} />
+      ))}
+    </svg>
+  );
+}
+
 export type WaitingMarkerProps = Omit<ComponentProps<"div">, "children"> & {
   sources?: readonly WaitingSource[];
   needsYou?: boolean;
@@ -148,13 +166,11 @@ export function WaitingMarker({
           needsYou
             ? "font-medium text-foreground"
             : "font-normal text-muted-foreground-2",
-          enter && "animate-crossfade-in",
+          enter &&
+            "motion-safe:transition-opacity motion-safe:duration-waiting-in motion-safe:delay-waiting-in motion-safe:ease-out-quint motion-safe:starting:opacity-0",
         )}
       >
-        <span
-          aria-hidden
-          className="mr-1 inline-block align-[-0.2em] size-(--icon-sm) rounded-full bg-(--primary-soft)"
-        />
+        <DotGrid />
         {sources.length === 0
           ? needsYou
             ? "Needs you"
