@@ -21,6 +21,8 @@ export type MessageActor = { name: string; imageUrl?: string | null };
 export type MessageActions = {
   now?: number;
   viewerUserId?: string;
+  /** Name replies to this thread's agent quote, e.g. a Captain's name. */
+  agentName?: string;
   resolveActor?: (actor: Actor) => MessageActor;
   rowActors?: ReadonlyMap<string, Actor>;
   automationName?: (automationId: string) => string | undefined;
