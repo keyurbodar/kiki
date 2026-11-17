@@ -70,7 +70,10 @@ function Row({ label, trailing, panel: body, defaultOpen }: RowProps) {
   if (body === undefined) {
     return (
       <Collapsible data-closed="">
-        <div className={rowStatic}>{label}</div>
+        <div className={rowStatic}>
+          {label}
+          {trailing}
+        </div>
       </Collapsible>
     );
   }
