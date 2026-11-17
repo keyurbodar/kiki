@@ -2,7 +2,6 @@ import { useRouterState } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import { type ReactNode, useEffect } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
-import { SettingsSidebar } from "@/components/settings-sidebar";
 import { Card } from "@/primitives/card";
 import { Sheet, SheetContent } from "@/primitives/sheet";
 import {
@@ -16,7 +15,14 @@ import {
 
 export type AppLayoutProps = { children: ReactNode; banner?: ReactNode };
 
+export const SETTINGS_PATH = "/settings";
+
+const selectPathname = (state: { location: { pathname: string } }) =>
+  state.location.pathname;
+
 export function AppLayout({ children, banner }: AppLayoutProps) {
+  const pathname = useRouterState({ select: selectPathname });
+  if (pathname.startsWith(SETTINGS_PATH)) return children;
   return (
     <SidebarProvider>
       <div className="group/shell flex min-w-0 flex-1 flex-col">
@@ -28,19 +34,12 @@ export function AppLayout({ children, banner }: AppLayoutProps) {
   );
 }
 
-const selectPathname = (state: { location: { pathname: string } }) =>
-  state.location.pathname;
-
 function AppShellBody({ children, banner }: AppLayoutProps) {
   const { open, isNarrow } = useSidebarState();
   const openMobile = useSidebarOpenMobile();
   const { setOpenMobile, toggle } = useSidebarActions();
   const pathname = useRouterState({ select: selectPathname });
-  const nav = pathname.startsWith("/settings") ? (
-    <SettingsSidebar />
-  ) : (
-    <AppSidebar />
-  );
+  const nav = <AppSidebar />;
 
   useSidebarShortcut(toggle);
   useEffect(() => {
