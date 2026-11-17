@@ -1,0 +1,38 @@
+{
+  "matrix": {
+    "theme": ["default"],
+    "scheme": ["dark", "light"]
+  },
+  "targets": [
+    {
+      "id": "p08-tooltip",
+      "route": "/__p08?mode={scheme}",
+      "state": "Tooltip specimen, both tooltips open",
+      "viewport": "900x240",
+      "capture": {
+        "[data-slot=tooltip-content]": [],
+        "[data-slot=tooltip-content] [data-slot=kbd]": []
+      },
+      "expect": {
+        "[data-slot=tooltip-content]": {
+          "max-width": "320px",
+          "padding-top": "4px",
+          "padding-left": "8px",
+          "border-top-width": "1px",
+          "border-top-color": "var(--border-2)",
+          "border-top-left-radius": "6px",
+          "font-size": "12px",
+          "font-weight": "500",
+          "text-wrap": "balance",
+          "color": "var(--foreground)"
+        },
+        "[data-slot=tooltip-content] [data-slot=kbd]": {
+          "height": "16px",
+          "border-top-left-radius": "3px",
+          "background-color": "var(--secondary)",
+          "font-size": "12px"
+        }
+      }
+    }
+  ]
+}

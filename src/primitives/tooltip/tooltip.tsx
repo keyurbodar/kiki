@@ -6,8 +6,12 @@ import { Kbd } from "@/primitives/kbd";
 
 export type TooltipProviderProps = ComponentProps<typeof BaseTooltip.Provider>;
 
-export function TooltipProvider(props: TooltipProviderProps) {
-  return <BaseTooltip.Provider {...props} />;
+export function TooltipProvider({
+  delay = 300,
+  timeout = 1000,
+  ...props
+}: TooltipProviderProps) {
+  return <BaseTooltip.Provider delay={delay} timeout={timeout} {...props} />;
 }
 
 export const Tooltip = BaseTooltip.Root;
