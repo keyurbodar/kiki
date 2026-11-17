@@ -117,9 +117,11 @@ describe("model picker catalog", () => {
   it("keeps the remembered route, then the requested id", () => {
     const opus = groupAt(0);
     expect(preferredRoute(opus, {}).kind).toBe("plan");
-    expect(
-      preferredRoute(opus, { [opus.key]: opus.routes[1].entry.id }).kind,
-    ).toBe("credits");
+    const credits = opus.routes.find((route) => route.kind === "credits");
+    if (credits === undefined) throw new Error("expected a credits route");
+    expect(preferredRoute(opus, { [opus.key]: credits.entry.id }).kind).toBe(
+      "credits",
+    );
     expect(preferredRoute(opus, {}, "anthropic/claude-opus-5-5").entry.id).toBe(
       "anthropic/claude-opus-5-5",
     );
