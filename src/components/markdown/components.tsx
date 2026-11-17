@@ -1,0 +1,149 @@
+import {
+  type ComponentProps,
+  type ComponentType,
+  createContext,
+  type ReactNode,
+  useContext,
+  useId,
+  useMemo,
+} from "react";
+import { MarkdownChip } from "@/components/markdown-chips";
+import { CodeBlock } from "./code-block";
+import { MarkdownGallery, MarkdownVideo } from "./markdown";
+import type { MarkdownTreeTransform } from "./pipeline";
+
+export type MarkdownMermaidProps = { text: string; complete: boolean };
+
+export type MarkdownFenceProps = {
+  text: string;
+  language: string;
+  complete: boolean;
+};
+
+export type MarkdownChipRenderProps = {
+  /** Chip kind, e.g. file, path, pull_request, issue, thread, mention. */
+  kind: string;
+  /** Chip value for span chips (data-chip-value / data-mention). */
+  value?: string;
+  label?: string;
+  /** Set for link chips (anchors a tree transform marked with data-chip). */
+  href?: string;
+  anchorProps?: ComponentProps<"a">;
+  children?: ReactNode;
+};
+
+/**
+ * The renderer's plug-in points. Sibling packages swap their entry in
+ * `defaultMarkdownComponents` (one line each) or scope an override with
+ * <MarkdownComponentsProvider>.
+ */
+export type MarkdownComponents = {
+  /** ```mermaid fences. */
+  mermaid: ComponentType<MarkdownMermaidProps>;
+  /** Other fence languages with a custom renderer, keyed by language. */
+  fences: Readonly<Record<string, ComponentType<MarkdownFenceProps>>>;
+  /** Runs of image-only paragraphs (Markdown gallery prop). */
+  gallery: ComponentType<{ children?: ReactNode }>;
+  /** Video paragraphs (image or bare link pointing at a video file). */
+  video: ComponentType<ComponentProps<"video">>;
+  image: ComponentType<ComponentProps<"img">>;
+  /** Chip-able references: anchors and spans carrying data-chip. */
+  chip: ComponentType<MarkdownChipRenderProps>;
+  /** hast passes run on every parsed block, e.g. chip detection. */
+  transforms: readonly MarkdownTreeTransform[];
+};
+
+function DefaultMermaid({ text, complete }: MarkdownMermaidProps) {
+  const key = useId();
+  return (
+    <CodeBlock
+      text={text}
+      language="mermaid"
+      complete={complete}
+      blockKey={key}
+    />
+  );
+}
+
+function DefaultGallery({ children }: { children?: ReactNode }) {
+  return <MarkdownGallery>{children}</MarkdownGallery>;
+}
+
+function DefaultVideo(props: ComponentProps<"video">) {
+  return (
+    <MarkdownVideo>
+      <video {...props} />
+    </MarkdownVideo>
+  );
+}
+
+function DefaultImage(props: ComponentProps<"img">) {
+  return <img loading="lazy" {...props} alt={props.alt ?? ""} />;
+}
+
+function DefaultChip({
+  kind,
+  value,
+  label,
+  href,
+  anchorProps,
+  children,
+}: MarkdownChipRenderProps) {
+  if (href !== undefined)
+    return (
+      <a
+        {...anchorProps}
+        href={href}
+        data-chip={kind}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {children}
+      </a>
+    );
+  return (
+    <MarkdownChip data-chip={kind} data-chip-value={value}>
+      {label ?? children}
+    </MarkdownChip>
+  );
+}
+
+export const defaultMarkdownComponents: MarkdownComponents = {
+  mermaid: DefaultMermaid,
+  fences: {},
+  gallery: DefaultGallery,
+  video: DefaultVideo,
+  image: DefaultImage,
+  chip: DefaultChip,
+  transforms: [],
+};
+
+const MarkdownComponentsContext = createContext<MarkdownComponents>(
+  defaultMarkdownComponents,
+);
+
+export function MarkdownComponentsProvider({
+  value,
+  children,
+}: {
+  value: Partial<MarkdownComponents>;
+  children?: ReactNode;
+}) {
+  const parent = useContext(MarkdownComponentsContext);
+  const merged = useMemo(
+    () => ({
+      ...parent,
+      ...value,
+      fences: { ...parent.fences, ...value.fences },
+    }),
+    [parent, value],
+  );
+  return (
+    <MarkdownComponentsContext.Provider value={merged}>
+      {children}
+    </MarkdownComponentsContext.Provider>
+  );
+}
+
+export const useMarkdownComponents = () =>
+  useContext(MarkdownComponentsContext);
