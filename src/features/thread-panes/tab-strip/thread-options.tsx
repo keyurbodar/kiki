@@ -121,6 +121,8 @@ export type ThreadOptionsProps = {
   title?: string;
   /** Keys of every tab already open, which get a check mark. */
   openIds: ReadonlySet<string>;
+  /** Owning thread id, used by desktop and scoped pane tabs. */
+  threadId?: string;
   /** Set for a captain, whose menu lists its crew instead of diffs. */
   crew?: readonly CrewThread[];
   pulls?: readonly PullEntry[];
@@ -387,6 +389,8 @@ function CrewRow({ thread, openCheck, onOpen }: CrewRowProps) {
 }
 
 type MachineRowsProps = {
+  /** Owning thread: desktop tabs are scoped to it, not to the machine. */
+  rootJamId: string;
   machine: MachineEntry;
   query: string;
   openCheck: (tab: PaneTab) => ReactNode;
@@ -399,6 +403,7 @@ type MachineRowsProps = {
 
 /** The thread's machine: services, terminals, new terminal and desktop. */
 function MachineRows({
+  rootJamId,
   machine,
   query,
   openCheck,
@@ -421,7 +426,7 @@ function MachineRows({
   );
   const desktop: PaneTab = {
     kind: "desktop",
-    jamId: machine.machineId,
+    jamId: rootJamId,
     localIndex: null,
   };
   const launch = (command: CommandEntry) => {
@@ -605,6 +610,7 @@ function MachineRows({
 /** Everything the open-a-tab menu lists for a thread, with search. */
 export function ThreadOptions({
   title,
+  threadId = "",
   openIds,
   crew,
   pulls = [],
@@ -647,11 +653,17 @@ export function ThreadOptions({
       tab: { kind: "side_thread", jamId: thread.id } as PaneTab,
       label: thread.title ?? "Side thread",
     }))
-    .filter((row) => match(row.label));
+    .filter(
+      (row) => match("side threads") || match(row.label),
+    );
   const newSide =
     onNewSideThread !== undefined && match("new side thread", "side thread");
   const showSide = query === "" || newSide || sideRows.length > 0;
-  const pullRows = pulls.filter((pull) => match(`#${pull.number}`, pull.title));
+  const pullRows = pulls.filter(
+    (pull) =>
+      (captain && match("pull requests")) ||
+      match(`#${pull.number}`, pull.title),
+  );
   const members = (crew ?? []).filter((thread) => !thread.archived);
   const crewRows = members.filter((thread) =>
     query === ""
@@ -682,8 +694,9 @@ export function ThreadOptions({
   const machineRows = machines.filter(
     (machine) => query === "" || machineMatches(machine),
   );
-  const phoneRows = (phones ?? []).filter((phone) =>
-    match(phone.name, phone.description, "phone"),
+  const phoneRows = (phones ?? []).filter(
+    (phone) =>
+      match("phones") || match(phone.name, phone.description, "phone"),
   );
   const phoneModels = PHONE_MODELS.filter((phone) =>
     match(phone.label, "phone"),
@@ -875,6 +888,7 @@ export function ThreadOptions({
       {machineRows.map((machine) => (
         <MachineRows
           key={machine.machineId}
+          rootJamId={threadId}
           machine={machine}
           query={match(machine.statusLabel) ? "" : query}
           openCheck={openCheck}
