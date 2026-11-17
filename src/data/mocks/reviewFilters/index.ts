@@ -1,63 +1,62 @@
-import { Effect, Ref } from "effect";
-import { fields, MockDb, newId } from "../db/MockDb.ts";
-import { isoMinutesAgo, viewer } from "../fixtures/world.ts";
+import { DateTime, Effect, Ref } from "effect";
+import { fields, newId } from "../db/MockDb.ts";
+import { minutesAgo } from "../fixtures/time.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
-  type FilterRule,
-  type IgnorePath,
+  type ReviewFilterRule,
+  type ReviewIgnorePaths,
+  sampleFilterRules,
   sampleIgnorePaths,
-  sampleRules,
 } from "./fixtures.ts";
 
-type Repo = { readonly id: string; readonly fullName: string };
+const text = (value: unknown) =>
+  typeof value === "string" && value.length > 0 ? value : undefined;
 
-const text = (value: unknown, fallback: string) =>
-  typeof value === "string" && value.length > 0 ? value : fallback;
+const arrayOfText = (value: unknown): ReadonlyArray<string> =>
+  Array.isArray(value)
+    ? value.filter(
+        (item): item is string => typeof item === "string" && item.length > 0,
+      )
+    : [];
 
-const flag = (value: unknown, fallback: boolean) =>
-  typeof value === "boolean" ? value : fallback;
-
-const stringList = (value: unknown) =>
-  Array.isArray(value) ? value.filter((id) => typeof id === "string") : [];
-
-const patterns = (input: Record<string, unknown>) =>
-  typeof input.patterns === "string"
-    ? [input.patterns]
-    : typeof input.path === "string"
-      ? [input.path]
-      : stringList(input.paths ?? input.patterns);
-
-const withRepoNames = (row: IgnorePath, repos: ReadonlyArray<Repo>) => ({
-  ...row,
-  repoNames: row.repoIds.map(
-    (id) => repos.find((repo) => repo.id === id)?.fullName ?? id,
-  ),
-});
+const conditions = (
+  value: unknown,
+): ReadonlyArray<ReviewFilterRule["conditions"][number]> =>
+  Array.isArray(value)
+    ? value.flatMap((item) => {
+        const row = fields(item);
+        const field = text(row.field);
+        if (
+          field !== "label" &&
+          field !== "base_branch" &&
+          field !== "title_or_body" &&
+          field !== "author"
+        ) {
+          return [];
+        }
+        return [
+          {
+            field,
+            not: row.not === true,
+            values: arrayOfText(row.values),
+          },
+        ];
+      })
+    : [];
 
 export const ReviewFiltersMock = mockGroup("reviewFilters", (handlers) =>
   Effect.gen(function* () {
-    const { repos } = yield* MockDb;
-    const ignorePaths = yield* Ref.make<ReadonlyArray<IgnorePath>>([
+    const rules = yield* Ref.make<ReadonlyArray<ReviewFilterRule>>([
+      ...sampleFilterRules,
+    ]);
+    const ignorePaths = yield* Ref.make<ReadonlyArray<ReviewIgnorePaths>>([
       ...sampleIgnorePaths,
     ]);
-    const rules = yield* Ref.make<ReadonlyArray<FilterRule>>([...sampleRules]);
-
-    const findIgnorePath = (id: string) =>
-      Effect.gen(function* () {
-        const rows = yield* Ref.get(ignorePaths);
-        const row = rows.find((item) => item.id === id);
-        if (!row) {
-          return yield* Effect.die(
-            new Error(`reviewFilters.ignorePaths: no row ${id}`),
-          );
-        }
-        return row;
-      });
 
     const findRule = (id: string) =>
       Effect.gen(function* () {
         const rows = yield* Ref.get(rules);
-        const row = rows.find((item) => item.id === id);
+        const row = rows.find((candidate) => candidate.id === id);
         if (!row) {
           return yield* Effect.die(
             new Error(`reviewFilters.rules: no row ${id}`),
@@ -66,135 +65,93 @@ export const ReviewFiltersMock = mockGroup("reviewFilters", (handlers) =>
         return row;
       });
 
-    const rowRepos = () => Ref.get(repos);
+    const findIgnorePaths = (id: string) =>
+      Effect.gen(function* () {
+        const rows = yield* Ref.get(ignorePaths);
+        const row = rows.find((candidate) => candidate.id === id);
+        if (!row) {
+          return yield* Effect.die(
+            new Error(`reviewFilters.ignorePaths: no row ${id}`),
+          );
+        }
+        return row;
+      });
 
     return handlers
-      .handle("listIgnorePaths", () =>
+      .handle("listRules", () =>
         Effect.gen(function* () {
-          const rows = yield* Ref.get(ignorePaths);
-          const allRepos = yield* rowRepos();
-          return rows.map((row) => withRepoNames(row, allRepos));
-        }),
-      )
-      .handle("createIgnorePaths", ({ payload }) =>
-        Effect.gen(function* () {
-          const input = fields(payload);
-          const created = patterns(input).map(
-            (pattern): IgnorePath => ({
-              id: newId("ignore"),
-              pattern,
-              enabled: flag(input.enabled, true),
-              repoIds: stringList(input.repoIds),
-              note: text(input.note, "Ignored path"),
-              createdAt: isoMinutesAgo(0),
-              createdBy: viewer.id,
-            }),
-          );
-          yield* Ref.update(ignorePaths, (rows) => [...rows, ...created]);
-          const allRepos = yield* rowRepos();
-          return created.map((row) => withRepoNames(row, allRepos));
-        }),
-      )
-      .handle("updateIgnorePaths", ({ params, payload }) =>
-        Effect.gen(function* () {
-          const current = yield* findIgnorePath(params.id);
-          const input = fields(payload);
-          const updated = {
-            ...current,
-            ...(input.pattern === undefined
-              ? {}
-              : { pattern: text(input.pattern, current.pattern) }),
-            ...(input.enabled === undefined
-              ? {}
-              : { enabled: flag(input.enabled, current.enabled) }),
-            ...(input.repoIds === undefined
-              ? {}
-              : { repoIds: stringList(input.repoIds) }),
-            ...(input.note === undefined
-              ? {}
-              : { note: text(input.note, current.note) }),
+          return {
+            rules: yield* Ref.get(rules),
+            repositories: sampleFilterRules.map((row) => ({
+              githubRepoId: row.githubRepoId,
+              repo: row.repo,
+            })),
+            repositoryConditionsEnabled: true,
           };
-          yield* Ref.update(ignorePaths, (rows) =>
-            rows.map((row) => (row.id === current.id ? updated : row)),
-          );
-          const allRepos = yield* rowRepos();
-          return withRepoNames(updated, allRepos);
         }),
       )
-      .handle("deleteIgnorePaths", ({ params }) =>
-        Effect.gen(function* () {
-          yield* findIgnorePath(params.id);
-          yield* Ref.update(ignorePaths, (rows) =>
-            rows.filter((row) => row.id !== params.id),
-          );
-          return { ok: true, id: params.id };
-        }),
-      )
-      .handle("listRules", () => Ref.get(rules))
       .handle("createRule", ({ payload }) =>
         Effect.gen(function* () {
           const input = fields(payload);
-          const rule: FilterRule = {
-            id: newId("filter"),
-            name: text(input.name, "New filter rule"),
-            enabled: flag(input.enabled, true),
-            match: text(input.match, "contains") as FilterRule["match"],
-            target: text(input.target, "title") as FilterRule["target"],
-            value: text(input.value, ""),
-            action: text(input.action, "comment") as FilterRule["action"],
-            note: text(input.note, ""),
-            createdAt: isoMinutesAgo(0),
-            createdBy: viewer.id,
+          const repo = text(input.repo);
+          if (repo === undefined) {
+            return yield* Effect.die(
+              new Error("reviewFilters.createRule: repo is required"),
+            );
+          }
+          const timestamp = DateTime.formatIso(minutesAgo(0));
+          const row: ReviewFilterRule = {
+            id: newId("rfilt"),
+            repo,
+            githubRepoId: 1003,
+            conditions: conditions(input.conditions),
+            repositoryCondition:
+              fields(input.repositoryCondition).repoIds === undefined
+                ? null
+                : {
+                    not: fields(input.repositoryCondition).not === true,
+                    repoIds: arrayOfText(
+                      fields(input.repositoryCondition).repoIds,
+                    ).map(Number),
+                  },
+            skipped: false,
+            source: "manual",
+            createdByUserId: null,
+            createdByName: null,
+            createdAt: timestamp,
+            updatedAt: timestamp,
           };
-          yield* Ref.update(rules, (rows) => [...rows, rule]);
-          return rule;
+          yield* Ref.update(rules, (rows) => [...rows, row]);
+          return row;
         }),
       )
       .handle("updateRule", ({ params, payload }) =>
         Effect.gen(function* () {
           const current = yield* findRule(params.id);
           const input = fields(payload);
-          const updated = {
+          const repositoryCondition = text(input.repositoryCondition)
+            ? current.repositoryCondition
+            : fields(input.repositoryCondition).repoIds === undefined
+              ? null
+              : {
+                  not: fields(input.repositoryCondition).not === true,
+                  repoIds: arrayOfText(
+                    fields(input.repositoryCondition).repoIds,
+                  ).map(Number),
+                };
+          const updated: ReviewFilterRule = {
             ...current,
-            ...(input.name === undefined
-              ? {}
-              : { name: text(input.name, current.name) }),
-            ...(input.enabled === undefined
-              ? {}
-              : { enabled: flag(input.enabled, current.enabled) }),
-            ...(input.match === undefined
-              ? {}
-              : {
-                  match: text(
-                    input.match,
-                    current.match,
-                  ) as FilterRule["match"],
-                }),
-            ...(input.target === undefined
-              ? {}
-              : {
-                  target: text(
-                    input.target,
-                    current.target,
-                  ) as FilterRule["target"],
-                }),
-            ...(input.value === undefined
-              ? {}
-              : { value: text(input.value, current.value) }),
-            ...(input.action === undefined
-              ? {}
-              : {
-                  action: text(
-                    input.action,
-                    current.action,
-                  ) as FilterRule["action"],
-                }),
-            ...(input.note === undefined
-              ? {}
-              : { note: text(input.note, current.note) }),
+            repo: text(input.repo) ?? current.repo,
+            conditions:
+              input.conditions === undefined
+                ? current.conditions
+                : conditions(input.conditions),
+            repositoryCondition,
+            skipped: false,
+            updatedAt: DateTime.formatIso(minutesAgo(0)),
           };
           yield* Ref.update(rules, (rows) =>
-            rows.map((row) => (row.id === current.id ? updated : row)),
+            rows.map((row) => (row.id === params.id ? updated : row)),
           );
           return updated;
         }),
@@ -205,7 +162,67 @@ export const ReviewFiltersMock = mockGroup("reviewFilters", (handlers) =>
           yield* Ref.update(rules, (rows) =>
             rows.filter((row) => row.id !== params.id),
           );
-          return { ok: true, id: params.id };
+          return { id: params.id, deleted: true };
+        }),
+      )
+      .handle("listIgnorePaths", () =>
+        Effect.gen(function* () {
+          return { ignorePaths: yield* Ref.get(ignorePaths) };
+        }),
+      )
+      .handle("createIgnorePaths", ({ payload }) =>
+        Effect.gen(function* () {
+          const input = fields(payload);
+          const repo = text(input.repo);
+          if (repo === undefined) {
+            return yield* Effect.die(
+              new Error("reviewFilters.createIgnorePaths: repo is required"),
+            );
+          }
+          const timestamp = DateTime.formatIso(minutesAgo(0));
+          const row: ReviewIgnorePaths = {
+            id: newId("rpath"),
+            repo,
+            githubRepoId: 1003,
+            patterns: arrayOfText(input.patterns),
+            skipped: false,
+            source: "manual",
+            createdByUserId: null,
+            createdByName: null,
+            createdAt: timestamp,
+            updatedAt: timestamp,
+          };
+          yield* Ref.update(ignorePaths, (rows) => [...rows, row]);
+          return row;
+        }),
+      )
+      .handle("updateIgnorePaths", ({ params, payload }) =>
+        Effect.gen(function* () {
+          const current = yield* findIgnorePaths(params.id);
+          const input = fields(payload);
+          const updated: ReviewIgnorePaths = {
+            ...current,
+            repo: text(input.repo) ?? current.repo,
+            patterns:
+              input.patterns === undefined
+                ? current.patterns
+                : arrayOfText(input.patterns),
+            skipped: false,
+            updatedAt: DateTime.formatIso(minutesAgo(0)),
+          };
+          yield* Ref.update(ignorePaths, (rows) =>
+            rows.map((row) => (row.id === params.id ? updated : row)),
+          );
+          return updated;
+        }),
+      )
+      .handle("deleteIgnorePaths", ({ params }) =>
+        Effect.gen(function* () {
+          yield* findIgnorePaths(params.id);
+          yield* Ref.update(ignorePaths, (rows) =>
+            rows.filter((row) => row.id !== params.id),
+          );
+          return { id: params.id, deleted: true };
         }),
       );
   }),

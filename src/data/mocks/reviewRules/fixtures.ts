@@ -1,65 +1,66 @@
-import { DateTime } from "effect";
-import { minutesAgo } from "../fixtures/time.ts";
 import { isoMinutesAgo, people, repos } from "../fixtures/world.ts";
 
 export interface ReviewRule {
   readonly id: string;
-  readonly name: string;
-  readonly description: string;
-  readonly enabled: boolean;
-  readonly priority: "low" | "medium" | "high";
-  readonly action: "comment" | "request_changes" | "approve";
-  readonly repoIds: ReadonlyArray<string>;
-  readonly authorIds: ReadonlyArray<string>;
-  readonly instruction: string;
+  readonly body: string;
+  readonly scopes: ReadonlyArray<string>;
+  readonly file: string | null;
+  readonly status: string;
+  readonly source: string;
+  readonly sourceRef: string | null;
+  readonly createdByUserId: string | null;
+  readonly createdByName: string | null;
+  readonly firedCount: number;
+  readonly lastFired: {
+    readonly repo: string;
+    readonly prNumber: number;
+    readonly at: string;
+  } | null;
   readonly createdAt: string;
   readonly updatedAt: string;
-  readonly createdBy: string;
 }
 
-export const sampleRules: ReadonlyArray<ReviewRule> = [
-  {
-    id: "rr_sample_checkout",
-    name: "Checkout regression guard",
-    description: "Watch payment and retry paths in the web app.",
-    enabled: true,
-    priority: "high",
-    action: "request_changes",
-    repoIds: [repos[0].id],
-    authorIds: [],
-    instruction: "Verify retries, timeouts and order totals before approving.",
-    createdAt: isoMinutesAgo(12 * 24 * 60),
-    updatedAt: isoMinutesAgo(4 * 60),
-    createdBy: people.sam.id,
-  },
-  {
-    id: "rr_sample_api_contract",
-    name: "API contract check",
-    description: "Flag breaking changes to the orders endpoint.",
-    enabled: true,
-    priority: "medium",
-    action: "comment",
-    repoIds: [repos[1].id, repos[2].id],
-    authorIds: [people.jordan.id],
-    instruction: "Call out renamed fields and removed query parameters.",
-    createdAt: isoMinutesAgo(6 * 24 * 60),
-    updatedAt: isoMinutesAgo(2 * 24 * 60),
-    createdBy: people.alex.id,
-  },
-  {
-    id: "rr_sample_docs",
-    name: "Docs freshness",
-    description: "Remind authors to update the getting started guide.",
-    enabled: false,
-    priority: "low",
-    action: "comment",
-    repoIds: [repos[3].id],
-    authorIds: [],
-    instruction: "Check whether the quickstart still matches the API.",
-    createdAt: isoMinutesAgo(20 * 24 * 60),
-    updatedAt: isoMinutesAgo(10 * 24 * 60),
-    createdBy: people.priya.id,
-  },
-];
+const rule = (
+  id: string,
+  body: string,
+  scopes: ReadonlyArray<string>,
+  file: string | null,
+  status: string,
+  firedCount: number,
+): ReviewRule => ({
+  id,
+  body,
+  scopes,
+  file,
+  status,
+  source: "org",
+  sourceRef: null,
+  createdByUserId: people.alex.id,
+  createdByName: `${people.alex.firstName} ${people.alex.lastName}`,
+  firedCount,
+  lastFired:
+    firedCount > 0
+      ? { repo: repos[0]!.fullName, prNumber: 213, at: isoMinutesAgo(60) }
+      : null,
+  createdAt: isoMinutesAgo(60 * 24),
+  updatedAt: isoMinutesAgo(60),
+});
 
-export const updatedAt = () => DateTime.formatIso(minutesAgo(0));
+export const sampleReviewRules: ReadonlyArray<ReviewRule> = [
+  rule(
+    "rrule_sample_checkout",
+    "Explain retry limits when reviewing changes to the checkout flow.",
+    [repos[0]!.fullName],
+    null,
+    "active",
+    4,
+  ),
+  rule(
+    "rrule_sample_docs",
+    "Check that public API changes include documentation updates.",
+    ["*"],
+    "docs/**/*.md",
+    "inactive",
+    0,
+  ),
+];

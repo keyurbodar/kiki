@@ -1,45 +1,43 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { AtomRegistry as Registry } from "effect/reactivity";
+import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId } from "../fixtures/world.ts";
 
+interface BotHealth {
+  readonly login: string;
+  readonly status: string;
+  readonly lastSeenAt: string;
+  readonly suggestion: string | null;
+}
+
 const key = `feedback-bot-health:${orgId}`;
-const healthAtom = ApiClient.query("feedback-bot-health", "feedbackBotHealth", {
-  params: { orgId },
-  query: {},
-  reactivityKeys: [key],
-});
+const healthAtom = (logins: ReadonlyArray<string>) =>
+  ApiClient.query("feedback-bot-health", "feedbackBotHealth", {
+    params: { orgId },
+    query: { logins },
+    reactivityKeys: [key],
+  });
 
 describe("feedback-bot-health mock", () => {
-  it.effect("lists bot health", () =>
+  it.effect("reports bot health and filters by login", () =>
     Effect.gen(function* () {
-      const registry = Registry.make();
-      const rows = (yield* Registry.getResult(
+      const registry = AtomRegistry.make();
+      const rows = (yield* AtomRegistry.getResult(
         registry,
-        healthAtom,
-      )) as ReadonlyArray<{
-        botId: string;
-        status: string;
-        successRate: number;
-      }>;
+        healthAtom([]),
+      )) as ReadonlyArray<BotHealth>;
       assert.isAbove(rows.length, 0);
-      assert.isTrue(rows.every((row) => row.successRate > 0));
-      assert.isTrue(rows.some((row) => row.status === "healthy"));
+      assert.isString(rows[0]!.status);
+      assert.isString(rows[0]!.lastSeenAt);
 
-      const filtered = ApiClient.query(
-        "feedback-bot-health",
-        "feedbackBotHealth",
-        { params: { orgId }, query: { botId: rows[0]!.botId } },
-      );
-      const one = (yield* Registry.getResult(
+      const filtered = (yield* AtomRegistry.getResult(
         registry,
-        filtered,
-      )) as ReadonlyArray<{ botId: string }>;
-      assert.deepStrictEqual(
-        one.map((row) => row.botId),
-        [rows[0]!.botId],
-      );
+        healthAtom(["capy-notes-sample"]),
+      )) as ReadonlyArray<BotHealth>;
+      assert.equal(filtered.length, 1);
+      assert.equal(filtered[0]!.status, "stale");
+      assert.isString(filtered[0]!.suggestion);
     }),
   );
 });

@@ -1,155 +1,114 @@
-import { Effect, Ref } from "effect";
-import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
-import { isoMinutesAgo, viewer } from "../fixtures/world.ts";
+import { DateTime, Effect, Ref } from "effect";
+import { fields, newId } from "../db/MockDb.ts";
+import { minutesAgo } from "../fixtures/time.ts";
 import { mockGroup } from "../mockGroup.ts";
-import { type ReviewRule, sampleRules, updatedAt } from "./fixtures.ts";
+import { type ReviewRule, sampleReviewRules } from "./fixtures.ts";
 
-const text = (value: unknown, fallback: string) =>
-  typeof value === "string" && value.length > 0 ? value : fallback;
+const text = (value: unknown) =>
+  typeof value === "string" && value.length > 0 ? value : undefined;
 
-const flag = (value: unknown, fallback: boolean) =>
-  typeof value === "boolean" ? value : fallback;
-
-const stringList = (value: unknown) =>
-  Array.isArray(value) ? value.filter((id) => typeof id === "string") : [];
-
-const patchRule = (input: Record<string, unknown>, current: ReviewRule) => ({
-  ...current,
-  ...(input.name === undefined ? {} : { name: text(input.name, current.name) }),
-  ...(input.description === undefined
-    ? {}
-    : { description: text(input.description, current.description) }),
-  ...(input.enabled === undefined
-    ? {}
-    : { enabled: flag(input.enabled, current.enabled) }),
-  ...(input.priority === undefined
-    ? {}
-    : {
-        priority: text(
-          input.priority,
-          current.priority,
-        ) as ReviewRule["priority"],
-      }),
-  ...(input.action === undefined
-    ? {}
-    : { action: text(input.action, current.action) as ReviewRule["action"] }),
-  ...(input.repoIds === undefined
-    ? {}
-    : { repoIds: stringList(input.repoIds) }),
-  ...(input.authorIds === undefined
-    ? {}
-    : { authorIds: stringList(input.authorIds) }),
-  ...(input.instruction === undefined
-    ? {}
-    : { instruction: text(input.instruction, current.instruction) }),
-  updatedAt: updatedAt(),
-});
-
-const withRepoNames = (
-  rule: ReviewRule,
-  repos: ReadonlyArray<{ readonly id: string; readonly fullName: string }>,
-) => ({
-  ...rule,
-  repoNames: rule.repoIds.map(
-    (id) => repos.find((repo) => repo.id === id)?.fullName ?? id,
-  ),
-});
+const strings = (value: unknown): ReadonlyArray<string> | undefined => {
+  if (!Array.isArray(value)) return undefined;
+  const values = value.filter(
+    (item): item is string => typeof item === "string" && item.length > 0,
+  );
+  return values.length > 0 ? values : undefined;
+};
 
 export const ReviewRulesMock = mockGroup("reviewRules", (handlers) =>
   Effect.gen(function* () {
-    const db = yield* MockDb;
-    const rules = yield* Ref.make<ReadonlyArray<ReviewRule>>([...sampleRules]);
+    const rules = yield* Ref.make<ReadonlyArray<ReviewRule>>([
+      ...sampleReviewRules,
+    ]);
 
-    const find = (id: string) =>
+    const findRule = (id: string) =>
       Effect.gen(function* () {
         const rows = yield* Ref.get(rules);
-        const rule = rows.find((row) => row.id === id);
-        if (!rule) {
-          return yield* Effect.die(
-            new Error(`reviewRules.rules: no row ${id}`),
-          );
+        const row = rows.find((candidate) => candidate.id === id);
+        if (!row) {
+          return yield* Effect.die(new Error(`reviewRules: no rule ${id}`));
         }
-        return rule;
-      });
-
-    const findMember = (id: string) =>
-      Effect.gen(function* () {
-        const people = yield* Ref.get(db.members);
-        const member = people.find((row) => row.id === id);
-        if (!member) return yield* missing("members", id);
-        return member;
+        return row;
       });
 
     return handlers
       .handle("list", ({ query }) =>
         Effect.gen(function* () {
+          const input = fields(query);
+          const repo = text(input.repo);
           const rows = yield* Ref.get(rules);
-          const repos = yield* Ref.get(db.repos);
-          const search = typeof query.search === "string" ? query.search : "";
-          const enabled =
-            typeof query.enabled === "string" ? query.enabled : "";
-          return rows
-            .filter((row) =>
-              row.name.toLowerCase().includes(search.toLowerCase()),
-            )
-            .filter((row) => !enabled || String(row.enabled) === enabled)
-            .map((row) => withRepoNames(row, repos));
+          return {
+            rules: rows.filter(
+              (row) =>
+                repo === undefined ||
+                row.scopes.includes(repo) ||
+                row.scopes.includes("*"),
+            ),
+            nextCursor: null,
+          };
+        }),
+      )
+      .handle("get", ({ params }) =>
+        Effect.gen(function* () {
+          const row = yield* findRule(params.id);
+          return { rule: row };
         }),
       )
       .handle("create", ({ payload }) =>
         Effect.gen(function* () {
           const input = fields(payload);
-          const authorId = text(input.authorId, viewer.id);
-          if (authorId !== viewer.id) yield* findMember(authorId);
-          const now = isoMinutesAgo(0);
-          const rule: ReviewRule = {
+          const body = text(input.body);
+          if (body === undefined) {
+            return yield* Effect.die(
+              new Error("reviewRules.create: body is required"),
+            );
+          }
+          const timestamp = DateTime.formatIso(minutesAgo(0));
+          const row: ReviewRule = {
             id: newId("rrule"),
-            name: text(input.name, "New review rule"),
-            description: text(input.description, "The default review rule."),
-            enabled: flag(input.enabled, true),
-            priority: text(input.priority, "normal") as ReviewRule["priority"],
-            action: text(input.action, "comment") as ReviewRule["action"],
-            repoIds: stringList(input.repoIds),
-            authorIds: stringList(input.authorIds),
-            instruction: text(
-              input.instruction,
-              "Review the changes carefully.",
-            ),
-            createdAt: now,
-            updatedAt: now,
-            createdBy: authorId,
+            body,
+            scopes: strings(input.scopes) ?? ["*"],
+            file: text(input.file) ?? null,
+            status: text(input.status) ?? "active",
+            source: "manual",
+            sourceRef: null,
+            createdByUserId: null,
+            createdByName: null,
+            firedCount: 0,
+            lastFired: null,
+            createdAt: timestamp,
+            updatedAt: timestamp,
           };
-          yield* Ref.update(rules, (current) => [...current, rule]);
-          const repos = yield* Ref.get(db.repos);
-          return withRepoNames(rule, repos);
-        }),
-      )
-      .handle("get", ({ params }) =>
-        Effect.gen(function* () {
-          const rule = yield* find(params.id);
-          const repos = yield* Ref.get(db.repos);
-          const author = yield* findMember(rule.createdBy).pipe(Effect.orDie);
-          return { ...withRepoNames(rule, repos), createdByUser: author };
+          yield* Ref.update(rules, (rows) => [...rows, row]);
+          return { rule: row };
         }),
       )
       .handle("update", ({ params, payload }) =>
         Effect.gen(function* () {
-          const current = yield* find(params.id);
-          const updated = patchRule(fields(payload), current);
+          const current = yield* findRule(params.id);
+          const input = fields(payload);
+          const updated: ReviewRule = {
+            ...current,
+            body: text(input.body) ?? current.body,
+            scopes: strings(input.scopes) ?? current.scopes,
+            file:
+              input.file === null ? null : (text(input.file) ?? current.file),
+            status: text(input.status) ?? current.status,
+            updatedAt: DateTime.formatIso(minutesAgo(0)),
+          };
           yield* Ref.update(rules, (rows) =>
-            rows.map((row) => (row.id === current.id ? updated : row)),
+            rows.map((row) => (row.id === params.id ? updated : row)),
           );
-          const repos = yield* Ref.get(db.repos);
-          return withRepoNames(updated, repos);
+          return { id: params.id, rule: updated, deleted: false };
         }),
       )
       .handle("remove", ({ params }) =>
         Effect.gen(function* () {
-          yield* find(params.id);
+          yield* findRule(params.id);
           yield* Ref.update(rules, (rows) =>
             rows.filter((row) => row.id !== params.id),
           );
-          return { ok: true, id: params.id };
+          return { id: params.id, rule: null, deleted: true };
         }),
       );
   }),

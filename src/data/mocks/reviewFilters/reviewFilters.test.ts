@@ -1,162 +1,118 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { type AtomRegistry, AtomRegistry as Registry } from "effect/reactivity";
+import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
-import { orgId, repos } from "../fixtures/world.ts";
+import { orgId } from "../fixtures/world.ts";
+
+interface Row {
+  readonly id: string;
+  readonly repo: string;
+  readonly patterns?: ReadonlyArray<string>;
+  readonly conditions?: ReadonlyArray<{ readonly field: string }>;
+}
 
 const key = `reviewFilters:${orgId}`;
-const ignoreAtom = ApiClient.query("reviewFilters", "listIgnorePaths", {
-  params: { orgId },
-  reactivityKeys: [key],
-});
 const rulesAtom = ApiClient.query("reviewFilters", "listRules", {
   params: { orgId },
   reactivityKeys: [key],
 });
-
-interface IgnorePath {
-  readonly id: string;
-  readonly pattern: string;
-  readonly repoNames: ReadonlyArray<string>;
-}
-interface FilterRule {
-  readonly id: string;
-  readonly name: string;
-  readonly enabled: boolean;
-}
-
-const patterns = (value: unknown) =>
-  (value as ReadonlyArray<IgnorePath>).map((row) => row.pattern);
-const names = (value: unknown) =>
-  (value as ReadonlyArray<FilterRule>).map((row) => row.name);
-const run = (
-  registry: AtomRegistry.AtomRegistry,
-  atom: unknown,
-  input: object,
-) => {
-  const writable = atom as { set: (value: object) => void };
-  registry.set(writable as never, { ...input, reactivityKeys: [key] });
-  return Registry.getResult(registry, writable as never) as Effect.Effect<
-    unknown,
-    never,
-    never
-  >;
-};
+const pathsAtom = ApiClient.query("reviewFilters", "listIgnorePaths", {
+  params: { orgId },
+  reactivityKeys: [key],
+});
+const createRule = ApiClient.mutation("reviewFilters", "createRule");
+const updateRule = ApiClient.mutation("reviewFilters", "updateRule");
+const deleteRule = ApiClient.mutation("reviewFilters", "deleteRule");
+const createPaths = ApiClient.mutation("reviewFilters", "createIgnorePaths");
+const updatePaths = ApiClient.mutation("reviewFilters", "updateIgnorePaths");
+const deletePaths = ApiClient.mutation("reviewFilters", "deleteIgnorePaths");
 
 describe("reviewFilters mock", () => {
-  it.effect("lists both kinds of filters", () =>
+  it.effect("serves rules and ignore paths", () =>
     Effect.gen(function* () {
-      const registry = Registry.make();
-      const ignores = (yield* Registry.getResult(
-        registry,
-        ignoreAtom,
-      )) as ReadonlyArray<IgnorePath>;
-      const rules = (yield* Registry.getResult(
-        registry,
-        rulesAtom,
-      )) as ReadonlyArray<FilterRule>;
-      assert.isAbove(ignores.length, 0);
-      assert.include(ignores[0]!.repoNames, repos[0].fullName);
-      assert.isAbove(rules.length, 0);
+      const registry = AtomRegistry.make();
+      const rules = (yield* AtomRegistry.getResult(registry, rulesAtom)) as {
+        rules: ReadonlyArray<Row>;
+        repositories: ReadonlyArray<unknown>;
+      };
+      assert.isAbove(rules.rules.length, 0);
+      assert.isAbove(rules.repositories.length, 0);
+      const paths = (yield* AtomRegistry.getResult(registry, pathsAtom)) as {
+        ignorePaths: ReadonlyArray<Row>;
+      };
+      assert.isAbove(paths.ignorePaths.length, 0);
+      assert.isAbove(paths.ignorePaths[0]!.patterns!.length, 0);
     }),
   );
 
-  it.effect("refreshes ignore paths and rules after mutations", () =>
+  it.effect("applies rule and ignore-path mutations", () =>
     Effect.gen(function* () {
-      const registry = Registry.make();
-      registry.mount(ignoreAtom);
-      registry.mount(rulesAtom);
-      yield* Registry.getResult(registry, ignoreAtom);
-      yield* Registry.getResult(registry, rulesAtom);
-
-      const createdPath = (yield* run(
-        registry,
-        ApiClient.mutation("reviewFilters", "createIgnorePaths"),
-        {
-          params: { orgId },
-          payload: { patterns: ["build/cache/**"], repoIds: [repos[0].id] },
+      const registry = AtomRegistry.make();
+      registry.set(createRule, {
+        params: { orgId },
+        payload: {
+          repo: "acme/web",
+          conditions: [{ field: "label", not: false, values: ["skip-review"] }],
         },
-      )) as ReadonlyArray<IgnorePath>;
-      assert.include(
-        patterns(
-          yield* Registry.getResult(registry, ignoreAtom, {
-            suspendOnWaiting: true,
-          }),
-        ),
-        "build/cache/**",
-      );
-
-      yield* run(
-        registry,
-        ApiClient.mutation("reviewFilters", "updateIgnorePaths"),
-        {
-          params: { orgId, id: createdPath[0]!.id },
-          payload: { pattern: "dist/cache/**", enabled: false },
-        },
-      );
-      const updatedPaths = (yield* Registry.getResult(registry, ignoreAtom, {
-        suspendOnWaiting: true,
-      })) as ReadonlyArray<IgnorePath>;
-      assert.include(patterns(updatedPaths), "dist/cache/**");
-      assert.notInclude(patterns(updatedPaths), "build/cache/**");
-
-      yield* run(
-        registry,
-        ApiClient.mutation("reviewFilters", "deleteIgnorePaths"),
-        {
-          params: { orgId, id: createdPath[0]!.id },
-        },
-      );
-      assert.notInclude(
-        patterns(
-          yield* Registry.getResult(registry, ignoreAtom, {
-            suspendOnWaiting: true,
-          }),
-        ),
-        "dist/cache/**",
-      );
-
-      const createdRule = (yield* run(
-        registry,
-        ApiClient.mutation("reviewFilters", "createRule"),
-        {
-          params: { orgId },
-          payload: { name: "Flag debug logs", value: "console.log" },
-        },
-      )) as FilterRule;
-      assert.include(
-        names(
-          yield* Registry.getResult(registry, rulesAtom, {
-            suspendOnWaiting: true,
-          }),
-        ),
-        "Flag debug logs",
-      );
-
-      yield* run(registry, ApiClient.mutation("reviewFilters", "updateRule"), {
-        params: { orgId, id: createdRule.id },
-        payload: { name: "Flag console logs" },
+        reactivityKeys: [key],
       });
-      assert.include(
-        names(
-          yield* Registry.getResult(registry, rulesAtom, {
-            suspendOnWaiting: true,
-          }),
-        ),
-        "Flag console logs",
-      );
+      const created = (yield* AtomRegistry.getResult(
+        registry,
+        createRule,
+      )) as Row;
+      assert.isString(created.id);
+      assert.equal(created.conditions![0]!.field, "label");
 
-      yield* run(registry, ApiClient.mutation("reviewFilters", "deleteRule"), {
-        params: { orgId, id: createdRule.id },
+      registry.set(updateRule, {
+        params: { orgId, id: created.id },
+        payload: { conditions: [] },
+        reactivityKeys: [key],
       });
-      assert.notInclude(
-        names(
-          yield* Registry.getResult(registry, rulesAtom, {
-            suspendOnWaiting: true,
-          }),
-        ),
-        "Flag console logs",
-      );
+      const updated = (yield* AtomRegistry.getResult(
+        registry,
+        updateRule,
+      )) as Row;
+      assert.equal(updated.conditions!.length, 0);
+
+      registry.set(createPaths, {
+        params: { orgId },
+        payload: { repo: "acme/web", patterns: ["dist/**"] },
+        reactivityKeys: [key],
+      });
+      const createdPaths = (yield* AtomRegistry.getResult(
+        registry,
+        createPaths,
+      )) as Row;
+      assert.include(createdPaths.patterns!, "dist/**");
+
+      registry.set(updatePaths, {
+        params: { orgId, id: createdPaths.id },
+        payload: { patterns: ["build/**"] },
+        reactivityKeys: [key],
+      });
+      const updatedPaths = (yield* AtomRegistry.getResult(
+        registry,
+        updatePaths,
+      )) as Row;
+      assert.include(updatedPaths.patterns!, "build/**");
+
+      registry.set(deleteRule, {
+        params: { orgId, id: created.id },
+        reactivityKeys: [key],
+      });
+      registry.set(deletePaths, {
+        params: { orgId, id: createdPaths.id },
+        reactivityKeys: [key],
+      });
+      const deleted = (yield* AtomRegistry.getResult(registry, deleteRule)) as {
+        deleted: boolean;
+      };
+      assert.isTrue(deleted.deleted);
+      const deletedPaths = (yield* AtomRegistry.getResult(
+        registry,
+        deletePaths,
+      )) as { deleted: boolean };
+      assert.isTrue(deletedPaths.deleted);
     }),
   );
 });

@@ -1,34 +1,25 @@
-import { DateTime } from "effect";
-import { minutesAgo } from "../fixtures/time.ts";
-import {
-  isoMinutesAgo,
-  org,
-  people,
-  projects,
-  repos,
-} from "../fixtures/world.ts";
+import { isoMinutesAgo, people, repos } from "../fixtures/world.ts";
 
-export const sampleSelfAuthorPolicy = {
-  allowSelfReview: false,
-  requireReviewFromOwner: true,
-  updatedAt: isoMinutesAgo(2 * 24 * 60),
-  updatedBy: people.alex.id,
-} as const;
+export const sampleSelfPolicy = {
+  selfLogin: people.alex.githubLogin,
+  selfReviewed: false,
+};
 
-export const sampleSettings = {
-  organizationId: org.id,
-  autoReviewEnabled: true,
-  reviewOnDraft: false,
-  dismissStaleReviews: true,
-  reviewerCount: 2,
-  model: "anthropic/claude-sonnet",
-  instructions: "Check checkout and API changes for regressions.",
-  updatedAt: isoMinutesAgo(3 * 24 * 60),
-  updatedBy: people.sam.id,
-} as const;
+const reviewSetting = (repo: string, autoReview: boolean, offset: number) => ({
+  repo,
+  billingOrgId: null as string | null,
+  heldByCaller: false,
+  autoReview,
+  postingThreshold: "always",
+  postInvestigate: true,
+  postNotes: true,
+  postStatusCheck: true,
+  projectId: null as string | null,
+  memorySelection: { kind: "none" },
+  updatedAt: isoMinutesAgo(offset),
+});
 
-export const sampleProjects = projects;
-export const sampleRepos = repos;
-export const sampleReviewerIds = [people.sam.id, people.priya.id];
-
-export const updatedAt = () => DateTime.formatIso(minutesAgo(0));
+export const sampleReviewSettings = [
+  reviewSetting(repos[0]!.fullName, true, 18),
+  reviewSetting(repos[1]!.fullName, false, 42),
+];

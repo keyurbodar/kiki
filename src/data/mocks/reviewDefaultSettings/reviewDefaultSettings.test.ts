@@ -1,67 +1,45 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { type AtomRegistry, AtomRegistry as Registry } from "effect/reactivity";
+import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
-import { orgId, projects } from "../fixtures/world.ts";
+import { orgId } from "../fixtures/world.ts";
+
+interface Defaults {
+  readonly tier: string | null;
+  readonly incrementalTier: string | null;
+  readonly effectiveTier: string | null;
+}
 
 const key = `reviewDefaultSettings:${orgId}`;
-const defaultsAtom = ApiClient.query("reviewDefaultSettings", "getOrg", {
+const getAtom = ApiClient.query("reviewDefaultSettings", "getOrg", {
   params: { orgId },
   reactivityKeys: [key],
 });
 const setOrg = ApiClient.mutation("reviewDefaultSettings", "setOrg");
 
-const run = (
-  registry: AtomRegistry.AtomRegistry,
-  atom: unknown,
-  input: object,
-) => {
-  const writable = atom as { set: (value: object) => void };
-  registry.set(writable as never, { ...input, reactivityKeys: [key] });
-  return Registry.getResult(registry, writable as never) as Effect.Effect<
-    unknown,
-    never,
-    never
-  >;
-};
-
 describe("reviewDefaultSettings mock", () => {
-  it.effect("returns the org defaults", () =>
+  it.effect("reads and updates org review defaults", () =>
     Effect.gen(function* () {
-      const registry = Registry.make();
-      const defaults = (yield* Registry.getResult(registry, defaultsAtom)) as {
-        defaultProject: { id: string };
-        reviewerCount: number;
-      };
-      assert.equal(defaults.defaultProject.id, projects.web.id);
-      assert.isAbove(defaults.reviewerCount, 0);
-    }),
-  );
+      const registry = AtomRegistry.make();
+      const initial = (yield* AtomRegistry.getResult(
+        registry,
+        getAtom,
+      )) as Defaults;
+      assert.isString(initial.tier);
+      assert.isString(initial.effectiveTier);
 
-  it.effect("refreshes defaults after setOrg", () =>
-    Effect.gen(function* () {
-      const registry = Registry.make();
-      registry.mount(defaultsAtom);
-      yield* Registry.getResult(registry, defaultsAtom);
-
-      yield* run(registry, setOrg, {
+      registry.set(setOrg, {
         params: { orgId },
-        payload: {
-          reviewerCount: 3,
-          defaultProjectId: projects.api.id,
-          instruction: "Focus on API compatibility.",
-        },
+        payload: { tier: "thorough", incrementalTier: "quick" },
+        reactivityKeys: [key],
       });
-      const defaults = (yield* Registry.getResult(registry, defaultsAtom, {
-        suspendOnWaiting: true,
-      })) as {
-        reviewerCount: number;
-        defaultProject: { id: string };
-        instruction: string;
-      };
-      assert.equal(defaults.reviewerCount, 3);
-      assert.equal(defaults.defaultProject.id, projects.api.id);
-      assert.equal(defaults.instruction, "Focus on API compatibility.");
+      const updated = (yield* AtomRegistry.getResult(
+        registry,
+        setOrg,
+      )) as Defaults;
+      assert.equal(updated.tier, "thorough");
+      assert.equal(updated.effectiveTier, "thorough");
+      assert.equal(updated.incrementalTier, "quick");
     }),
   );
 });

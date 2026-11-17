@@ -1,76 +1,82 @@
-import { DateTime } from "effect";
-import { minutesAgo } from "../fixtures/time.ts";
 import { isoMinutesAgo, people, repos } from "../fixtures/world.ts";
 
-export interface IgnorePath {
-  readonly id: string;
-  readonly pattern: string;
-  readonly enabled: boolean;
-  readonly repoIds: ReadonlyArray<string>;
-  readonly note: string;
-  readonly createdAt: string;
-  readonly createdBy: string;
+export interface FilterCondition {
+  readonly field: "label" | "base_branch" | "title_or_body" | "author";
+  readonly not: boolean;
+  readonly values: ReadonlyArray<string>;
 }
 
-export interface FilterRule {
-  readonly id: string;
-  readonly name: string;
-  readonly enabled: boolean;
-  readonly match: "contains" | "equals" | "regex";
-  readonly target: "title" | "body" | "file" | "author";
-  readonly value: string;
-  readonly action: "skip" | "comment" | "request_changes";
-  readonly note: string;
-  readonly createdAt: string;
-  readonly createdBy: string;
+export interface RepositoryCondition {
+  readonly not: boolean;
+  readonly repoIds: ReadonlyArray<number>;
 }
 
-export const sampleIgnorePaths: ReadonlyArray<IgnorePath> = [
+export interface ReviewFilterRule {
+  readonly id: string;
+  readonly repo: string;
+  readonly githubRepoId: number | null;
+  readonly conditions: ReadonlyArray<FilterCondition>;
+  readonly repositoryCondition: RepositoryCondition | null;
+  readonly skipped: boolean;
+  readonly source: "manual";
+  readonly createdByUserId: string | null;
+  readonly createdByName: string | null;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface ReviewIgnorePaths {
+  readonly id: string;
+  readonly repo: string;
+  readonly githubRepoId: number | null;
+  readonly patterns: ReadonlyArray<string>;
+  readonly skipped: boolean;
+  readonly source: "manual";
+  readonly createdByUserId: string | null;
+  readonly createdByName: string | null;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+const created = () => ({
+  skipped: false,
+  source: "manual" as const,
+  createdByUserId: people.alex.id,
+  createdByName: `${people.alex.firstName} ${people.alex.lastName}`,
+  createdAt: isoMinutesAgo(60 * 24),
+  updatedAt: isoMinutesAgo(60),
+});
+
+export const sampleFilterRules: ReadonlyArray<ReviewFilterRule> = [
   {
-    id: "ip_sample_generated",
-    pattern: "generated/**",
-    enabled: true,
-    repoIds: [repos[0].id],
-    note: "Generated client code",
-    createdAt: isoMinutesAgo(9 * 24 * 60),
-    createdBy: people.sam.id,
+    ...created(),
+    id: "rfilt_sample_dependabot",
+    repo: repos[0]!.fullName,
+    githubRepoId: 1001,
+    conditions: [
+      { field: "author", not: false, values: ["dependabot-sample"] },
+    ],
+    repositoryCondition: null,
   },
   {
-    id: "ip_sample_snapshots",
-    pattern: "**/*.snap",
-    enabled: true,
-    repoIds: [],
-    note: "Test snapshots",
-    createdAt: isoMinutesAgo(4 * 24 * 60),
-    createdBy: people.priya.id,
+    ...created(),
+    id: "rfilt_sample_release",
+    repo: repos[1]!.fullName,
+    githubRepoId: 1002,
+    conditions: [
+      { field: "label", not: false, values: ["skip-review"] },
+      { field: "base_branch", not: true, values: ["release"] },
+    ],
+    repositoryCondition: { not: false, repoIds: [1002] },
   },
 ];
 
-export const sampleRules: ReadonlyArray<FilterRule> = [
+export const sampleIgnorePaths: ReadonlyArray<ReviewIgnorePaths> = [
   {
-    id: "fr_sample_wip",
-    name: "Skip work in progress",
-    enabled: true,
-    match: "contains",
-    target: "title",
-    value: "WIP:",
-    action: "skip",
-    note: "Do not review drafts before the title is updated.",
-    createdAt: isoMinutesAgo(8 * 24 * 60),
-    createdBy: people.alex.id,
-  },
-  {
-    id: "fr_sample_lockfile",
-    name: "Comment on lockfile changes",
-    enabled: false,
-    match: "equals",
-    target: "file",
-    value: "bun.lock",
-    action: "comment",
-    note: "Ask whether dependency changes are intentional.",
-    createdAt: isoMinutesAgo(5 * 24 * 60),
-    createdBy: people.jordan.id,
+    ...created(),
+    id: "rpath_sample_lockfile",
+    repo: repos[0]!.fullName,
+    githubRepoId: 1001,
+    patterns: ["**/bun.lock", "**/*.generated.ts"],
   },
 ];
-
-export const updatedAt = () => DateTime.formatIso(minutesAgo(0));
