@@ -29,7 +29,11 @@ describe("sign-in methods", () => {
         ...sampleSecurity,
         passwordEnabled: true,
         externalAccounts: [
-          { provider: "github", login: "alex", linkedAt: new Date() },
+          {
+            provider: "github",
+            emailAddress: "alex@example.com",
+            verified: true,
+          },
         ],
       }),
     ).toBe(3);
