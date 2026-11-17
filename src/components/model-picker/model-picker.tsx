@@ -285,6 +285,7 @@ export function ModelPicker({
   align = "start",
   also,
   composer = false,
+  children,
   className,
   ...props
 }: ModelPickerProps) {
