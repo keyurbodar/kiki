@@ -29,8 +29,7 @@ import {
   type IssueSummary,
   issuePriorities,
 } from "@/data/api/schemas/issue";
-import { queryTimeToLive } from "@/data/atoms/conventions";
-import { issueReactivityKeys } from "@/data/atoms/issues";
+import { queryTimeToLive, reactivityKeys } from "@/data/atoms/conventions";
 import { projectsAtom } from "@/data/atoms/projects";
 import { currentUserAtom } from "@/data/atoms/session";
 import { ApiClient } from "@/data/client/ApiClient";
@@ -58,7 +57,7 @@ const issueListAtom = Atom.family((key: string) => {
   return ApiClient.query("issues", "list", {
     params: { orgId },
     query: JSON.parse(query) as never,
-    reactivityKeys: [issueReactivityKeys.issues(orgId)],
+    reactivityKeys: [reactivityKeys.issues(orgId)],
     timeToLive: queryTimeToLive,
   });
 });
@@ -71,7 +70,7 @@ const issueCountAtom = Atom.family((key: string) => {
     {
       params: { orgId },
       query: {},
-      reactivityKeys: [issueReactivityKeys.issues(orgId)],
+      reactivityKeys: [reactivityKeys.issues(orgId)],
       timeToLive: queryTimeToLive,
     },
   );

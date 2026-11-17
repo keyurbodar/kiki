@@ -1,5 +1,6 @@
 import { useAtomSet } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
+import { DateTime } from "effect";
 import { type ReactNode, useState } from "react";
 import { toast } from "sonner";
 import type { OrgId } from "@/data/api/schemas/ids";
@@ -8,7 +9,8 @@ import type {
   IssueState,
   IssueSummary,
 } from "@/data/api/schemas/issue";
-import { issueReactivityKeys, updateIssueAtom } from "@/data/atoms/issues";
+import { reactivityKeys } from "@/data/atoms/conventions";
+import { updateIssueAtom } from "@/data/atoms/issues";
 import {
   IssueLabelDot,
   IssuePriorityIcon,
@@ -34,8 +36,8 @@ const priorityRank: Record<IssuePriority, number> = {
 };
 
 /** Capy's minified age: "now", "56m", "2h", "1d", "3w", "2mo", "1y". */
-export const shortAge = (iso: string, now: number) => {
-  const minutes = Math.max(0, Math.floor((now - Date.parse(iso)) / 60_000));
+export const shortAge = (at: DateTime.Utc, now: number) => {
+  const minutes = Math.max(0, Math.floor((now - DateTime.toEpochMillis(at)) / 60_000));
   if (minutes < 1) return "now";
   if (minutes < 60) return `${minutes}m`;
   const hours = Math.floor(minutes / 60);
@@ -56,12 +58,17 @@ export const compareIssues =
     const dir = display.direction === "asc" ? 1 : -1;
     const position = (issue: IssueSummary) =>
       states.find((state) => state.id === issue.stateId)?.position ?? 0;
-    const updated = Date.parse(b.updatedAt) - Date.parse(a.updatedAt);
+    const updated =
+      DateTime.toEpochMillis(b.updatedAt) - DateTime.toEpochMillis(a.updatedAt);
     switch (display.order) {
       case "title":
         return dir * a.title.localeCompare(b.title);
       case "created":
-        return dir * (Date.parse(a.createdAt) - Date.parse(b.createdAt));
+        return (
+          dir *
+          (DateTime.toEpochMillis(a.createdAt) -
+            DateTime.toEpochMillis(b.createdAt))
+        );
       case "updated":
         return -dir * updated;
       case "due":
@@ -208,8 +215,8 @@ function IssueStatusMenu({
                 params: { orgId, code: issue.code },
                 payload: { stateId },
                 reactivityKeys: [
-                  issueReactivityKeys.issue(orgId, issue.code),
-                  issueReactivityKeys.issues(orgId),
+                  reactivityKeys.issue(orgId, issue.code),
+                  reactivityKeys.issues(orgId),
                 ],
               }).catch(() => toast.error("Could not change the status"))
             }
