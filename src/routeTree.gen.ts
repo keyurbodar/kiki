@@ -20,7 +20,6 @@ import { Route as Char91__threadDeviceChar93RouteImport } from './routes/[__thre
 import { Route as Char91__tokensChar93RouteImport } from './routes/[__tokens]'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
-import { Route as DesignRouteImport } from './routes/design'
 import { Route as DesktopRouteImport } from './routes/desktop'
 import { Route as DitherCoverRouteImport } from './routes/dither-cover'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
@@ -235,11 +234,6 @@ const AppRouteRoute = AppRouteRouteImport.update({
 } as any)
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DesignRoute = DesignRouteImport.update({
-  id: '/design',
-  path: '/design',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DesktopRoute = DesktopRouteImport.update({
@@ -1106,7 +1100,6 @@ export interface FileRoutesByFullPath {
   '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
-  '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
   '/dither-cover': typeof DitherCoverRoute
   '/onboarding': typeof OnboardingRoute
@@ -1274,7 +1267,6 @@ export interface FileRoutesByTo {
   '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
-  '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
   '/dither-cover': typeof DitherCoverRoute
   '/onboarding': typeof OnboardingRoute
@@ -1442,7 +1434,6 @@ export interface FileRoutesById {
   '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
-  '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
   '/dither-cover': typeof DitherCoverRoute
   '/onboarding': typeof OnboardingRoute
@@ -1613,7 +1604,6 @@ export interface FileRouteTypes {
     | '/__new-thread-selects'
     | '/__thread-device'
     | '/__tokens'
-    | '/design'
     | '/desktop'
     | '/dither-cover'
     | '/onboarding'
@@ -1781,7 +1771,6 @@ export interface FileRouteTypes {
     | '/__new-thread-selects'
     | '/__thread-device'
     | '/__tokens'
-    | '/design'
     | '/desktop'
     | '/dither-cover'
     | '/onboarding'
@@ -1948,7 +1937,6 @@ export interface FileRouteTypes {
     | '/__new-thread-selects'
     | '/__thread-device'
     | '/__tokens'
-    | '/design'
     | '/desktop'
     | '/dither-cover'
     | '/onboarding'
@@ -2119,7 +2107,6 @@ export interface RootRouteChildren {
   Char91__newThreadSelectsChar93Route: typeof Char91__newThreadSelectsChar93Route
   Char91__threadDeviceChar93Route: typeof Char91__threadDeviceChar93Route
   Char91__tokensChar93Route: typeof Char91__tokensChar93Route
-  DesignRoute: typeof DesignRoute
   DesktopRoute: typeof DesktopRoute
   DitherCoverRoute: typeof DitherCoverRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -2219,13 +2206,6 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/design': {
-      id: '/design'
-      path: '/design'
-      fullPath: '/design'
-      preLoaderRoute: typeof DesignRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/desktop': {
@@ -3675,7 +3655,6 @@ const rootRouteChildren: RootRouteChildren = {
   Char91__newThreadSelectsChar93Route: Char91__newThreadSelectsChar93Route,
   Char91__threadDeviceChar93Route: Char91__threadDeviceChar93Route,
   Char91__tokensChar93Route: Char91__tokensChar93Route,
-  DesignRoute: DesignRoute,
   DesktopRoute: DesktopRoute,
   DitherCoverRoute: DitherCoverRoute,
   OnboardingRoute: OnboardingRoute,

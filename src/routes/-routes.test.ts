@@ -37,7 +37,7 @@ async function resolve(path: string) {
 
 describe("route contract", () => {
   it("registers every app route from the parity map", () => {
-    expect(countRoutes(routeTree as Node)).toBe(159);
+    expect(countRoutes(routeTree as Node)).toBe(158);
   });
 
   it.each([
