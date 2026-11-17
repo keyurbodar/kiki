@@ -1,6 +1,6 @@
 import type { ComponentProps, ReactNode } from "react";
 import { Card, CardListHeader } from "@/primitives/card";
-import { cx } from "./settings-kit";
+import { cx } from "./cx";
 
 /** Capy's settings card with hairline row dividers (Card variant default, rows). */
 export function CardList({ className, ...props }: ComponentProps<"div">) {
@@ -64,7 +64,11 @@ export function StatusDot({
   return (
     <span
       aria-hidden="true"
-      className={cx("size-1.5 shrink-0 rounded-full", dotColor[color], className)}
+      className={cx(
+        "size-1.5 shrink-0 rounded-full",
+        dotColor[color],
+        className,
+      )}
     />
   );
 }

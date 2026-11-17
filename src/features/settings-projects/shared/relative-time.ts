@@ -1,3 +1,5 @@
+import { DateTime } from "effect";
+
 const second = 1000;
 const minute = 60 * second;
 const hour = 60 * minute;
@@ -7,12 +9,16 @@ const year = 365 * day;
 
 /** Capy's relative time label: "just now", "23m ago", "1w ago", "in 2d". */
 export function formatRelative(
-  date: Date | number,
+  date: Date | number | DateTime.DateTime,
   options: { readonly now?: number; readonly minified?: boolean } = {},
 ) {
   const delta =
     (options.now ?? Date.now()) -
-    (typeof date === "number" ? date : date.getTime());
+    (typeof date === "number"
+      ? date
+      : date instanceof Date
+        ? date.getTime()
+        : DateTime.toEpochMillis(date));
   const abs = Math.abs(delta);
   if (abs < 5 * second) return options.minified ? "now" : "just now";
   const amount =
