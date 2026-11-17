@@ -1,9 +1,12 @@
+import { useAtomValue } from "@effect/atom-react";
 import {
   LegendList,
   type LegendListRef,
   type ViewToken,
 } from "@legendapp/list/react";
 import { cx } from "class-variance-authority";
+import { Option } from "effect";
+import { AsyncResult } from "effect/reactivity";
 import {
   type ComponentProps,
   createContext,
@@ -14,7 +17,17 @@ import {
   useRef,
   useState,
 } from "react";
+import {
+  organizationsAtom,
+  resolveActiveOrgId,
+  selectedOrgIdAtom,
+} from "@/data/atoms/session";
 import type { TimelineRow as TimelineRowData } from "@/data/events";
+import {
+  AttachmentSourceProvider,
+  apiAttachmentSource,
+  pendingAttachmentSource,
+} from "@/features/thread/attachment-gallery/attachment-source";
 import { TimelineRow } from "@/features/thread/timeline-row";
 import { ChatScrollPill } from "./chat-scroll-pill";
 import { ChatStamp } from "./chat-stamp";
@@ -86,6 +99,17 @@ export function JamChat({
   ...props
 }: JamChatProps) {
   const listRef = useRef<LegendListRef>(null);
+  const selectedOrgId = useAtomValue(selectedOrgIdAtom);
+  const organizations = useAtomValue(organizationsAtom);
+  const attachmentSource = useMemo(() => {
+    const orgId = resolveActiveOrgId(
+      Option.getOrUndefined(AsyncResult.value(organizations)) ?? [],
+      selectedOrgId,
+    );
+    return orgId === undefined || jamId === undefined
+      ? pendingAttachmentSource
+      : apiAttachmentSource(orgId, jamId);
+  }, [jamId, organizations, selectedOrgId]);
   const gaps = useMemo(() => computeRowGaps(rows), [rows]);
   const context = useMemo(() => ({ gaps, now }), [gaps, now]);
   const [atEnd, setAtEnd] = useState(true);
@@ -117,32 +141,34 @@ export function JamChat({
       style={hidden ? { ...style, visibility: "hidden" } : style}
       {...props}
     >
-      <RowContext.Provider value={context}>
-        <LegendList
-          ref={listRef}
-          data={rows as TimelineRowData[]}
-          dataKey={jamId}
-          keyExtractor={rowKey}
-          getItemType={itemType}
-          renderItem={renderRow}
-          estimatedItemSize={ESTIMATED_ROW_SIZE}
-          drawDistance={DRAW_DISTANCE}
-          initialScrollAtEnd
-          maintainScrollAtEnd
-          maintainVisibleContentPosition
-          onScroll={handleScroll}
-          onViewableItemsChanged={handleViewable}
-          onStartReached={onStartReached}
-          className={chatScroller}
-          ListHeaderComponent={
-            <div>
-              {header}
-              <div className="h-3" />
-            </div>
-          }
-          ListFooterComponent={<div className="pb-8 max-md:pb-7" />}
-        />
-      </RowContext.Provider>
+      <AttachmentSourceProvider source={attachmentSource}>
+        <RowContext.Provider value={context}>
+          <LegendList
+            ref={listRef}
+            data={rows as TimelineRowData[]}
+            dataKey={jamId}
+            keyExtractor={rowKey}
+            getItemType={itemType}
+            renderItem={renderRow}
+            estimatedItemSize={ESTIMATED_ROW_SIZE}
+            drawDistance={DRAW_DISTANCE}
+            initialScrollAtEnd
+            maintainScrollAtEnd
+            maintainVisibleContentPosition
+            onScroll={handleScroll}
+            onViewableItemsChanged={handleViewable}
+            onStartReached={onStartReached}
+            className={chatScroller}
+            ListHeaderComponent={
+              <div>
+                {header}
+                <div className="h-3" />
+              </div>
+            }
+            ListFooterComponent={<div className="pb-8 max-md:pb-7" />}
+          />
+        </RowContext.Provider>
+      </AttachmentSourceProvider>
       {children}
       <ChatScrollPill
         visible={showPill}
