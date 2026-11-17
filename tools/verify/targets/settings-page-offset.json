@@ -11,7 +11,7 @@
       "id": "settings-general",
       "route": "/settings/general",
       "viewport": "1440x818",
-      "variants": { "default/dark": { "frame": "n3bw5hbvGQ" } }
+      "variants": { "default/dark": { "frame": "n3bw5bhvGQ" } }
     }
   ]
 }
