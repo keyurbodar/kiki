@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import type { ComponentProps, MouseEvent, ReactNode } from "react";
+import { toast } from "sonner";
 import {
   Glyph,
   ProjectChip,
@@ -11,6 +12,12 @@ import {
 import { NeedsYouDot, ThreadStatusIcon } from "@/components/thread-status";
 import { Button } from "@/primitives/button";
 import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuTrigger,
+} from "@/primitives/context-menu";
+import { Icon } from "@/primitives/icon";
+import {
   PreviewCard,
   PreviewCardContent,
   PreviewCardTrigger,
@@ -18,6 +25,7 @@ import {
 import {
   ResponsiveMenu,
   ResponsiveMenuContent,
+  ResponsiveMenuItem,
   ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
@@ -29,6 +37,11 @@ export type SidebarThreadRowActions = {
   onSettle?: () => void;
   onUnsettle?: () => void;
   onArchive?: () => void;
+  onUnarchive?: () => void;
+  onMarkRead?: () => void;
+  onMarkUnread?: () => void;
+  onDelete?: () => void;
+  onCopyLink?: () => void;
   menu?: ReactNode;
 };
 
@@ -162,6 +175,93 @@ function ThreadRowActions({
   );
 }
 
+const menuIconClassName =
+  "flex size-4 shrink-0 items-center justify-center text-icon-muted";
+
+const copyThreadLink = async (threadId: string) => {
+  const url = `${window.location.origin}/thread/${threadId}`;
+  try {
+    await navigator.clipboard.writeText(url);
+    toast.success("Link copied");
+  } catch {
+    toast.error("Could not copy the link");
+  }
+};
+
+function ThreadRowContextMenu({
+  thread,
+  actions,
+}: {
+  thread: SidebarThread;
+  actions?: SidebarThreadRowActions;
+}) {
+  return (
+    <ContextMenuContent className="w-52">
+      <ResponsiveMenuItem
+        data-track-owner="shared/sidebar-threads.tsx#ThreadMenuItems:ResponsiveMenuItem[Open in new tab]"
+        onClick={() => window.open(`/thread/${thread.id}`, "_blank")}
+      >
+        <span className={menuIconClassName}>
+          <Icon name="square-arrow-top-right" size="sm" />
+        </span>
+        Open in new tab
+      </ResponsiveMenuItem>
+      <ResponsiveMenuItem
+        data-track-owner="shared/sidebar-threads.tsx#ThreadMenuItems:ResponsiveMenuItem[Copy link]"
+        onClick={() => {
+          if (actions?.onCopyLink === undefined) void copyThreadLink(thread.id);
+          else actions.onCopyLink();
+        }}
+      >
+        <span className={menuIconClassName}>
+          <Icon name="chain-link-1" size="sm" />
+        </span>
+        Copy link
+      </ResponsiveMenuItem>
+      {actions?.onMarkRead === undefined || !thread.hasUnreads ? null : (
+        <ResponsiveMenuItem onClick={actions.onMarkRead}>
+          <span className={menuIconClassName}>
+            <Icon name="checkmark-1" size="sm" />
+          </span>
+          Mark as read
+        </ResponsiveMenuItem>
+      )}
+      {actions?.onMarkUnread === undefined || thread.hasUnreads ? null : (
+        <ResponsiveMenuItem onClick={actions.onMarkUnread}>
+          <span className={menuIconClassName}>
+            <Icon name="circle-dashed" size="sm" />
+          </span>
+          Mark as unread
+        </ResponsiveMenuItem>
+      )}
+      {actions?.onArchive === undefined ? null : (
+        <ResponsiveMenuItem onClick={actions.onArchive}>
+          <span className={menuIconClassName}>
+            <Icon name="archive" size="sm" />
+          </span>
+          Archive
+        </ResponsiveMenuItem>
+      )}
+      {actions?.onUnarchive === undefined ? null : (
+        <ResponsiveMenuItem onClick={actions.onUnarchive}>
+          <span className={menuIconClassName}>
+            <Icon name="archive" size="sm" />
+          </span>
+          Unarchive
+        </ResponsiveMenuItem>
+      )}
+      {actions?.onDelete === undefined ? null : (
+        <ResponsiveMenuItem intent="danger" onClick={actions.onDelete}>
+          <span className={menuIconClassName}>
+            <Icon name="trash-can" size="sm" />
+          </span>
+          Delete
+        </ResponsiveMenuItem>
+      )}
+    </ContextMenuContent>
+  );
+}
+
 export function SidebarThreadRow({
   thread,
   project,
@@ -248,51 +348,61 @@ export function SidebarThreadRow({
       className={cx("group/thread relative block", className)}
       {...props}
     >
-      <PreviewCard>
-        <PreviewCardTrigger
-          render={
-            <Link to="/thread/$threadId" params={{ threadId: thread.id }} />
-          }
-          data-slot="sidebar-thread-row"
-          data-thread-preview=""
-          data-sidebar-target={thread.id}
-          aria-current={active ? "page" : undefined}
-          className={cx(
-            "group/row flex gap-2.5 rounded px-2 outline-none select-none [-webkit-touch-callout:none]",
-            slim ? "h-8 items-center" : "h-13 items-start py-1.5",
-            "transition-colors duration-100 focus-visible:outline-ring-inset",
-            active
-              ? "bg-card shadow-row-open"
-              : "group-hover/thread:bg-secondary",
-          )}
-        >
-          {slim ? (
-            <>
-              {title}
-              <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
-                {needsYou ? <NeedsYouDot /> : statusMark}
-                {age}
-              </span>
-            </>
-          ) : (
-            <span className="flex min-w-0 flex-1 flex-col gap-1">
-              <span className="flex h-5 min-w-0 items-center gap-2">
+      <ContextMenu>
+        <PreviewCard>
+          <PreviewCardTrigger
+            render={
+              <ContextMenuTrigger
+                render={
+                  <Link
+                    to="/thread/$threadId"
+                    params={{ threadId: thread.id }}
+                  />
+                }
+              />
+            }
+            data-slot="sidebar-thread-row"
+            data-thread-preview=""
+            data-sidebar-target={thread.id}
+            aria-current={active ? "page" : undefined}
+            className={cx(
+              "group/row flex gap-2.5 rounded px-2 outline-none select-none [-webkit-touch-callout:none]",
+              slim ? "h-8 items-center" : "h-13 items-start py-1.5",
+              "transition-colors duration-100 focus-visible:outline-ring-inset",
+              active
+                ? "bg-card shadow-row-open"
+                : "group-hover/thread:bg-secondary",
+            )}
+          >
+            {slim ? (
+              <>
                 {title}
-                {needsYou && ask === undefined ? <NeedsYouDot /> : statusMark}
-                {age}
+                <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+                  {needsYou ? <NeedsYouDot /> : statusMark}
+                  {age}
+                </span>
+              </>
+            ) : (
+              <span className="flex min-w-0 flex-1 flex-col gap-1">
+                <span className="flex h-5 min-w-0 items-center gap-2">
+                  {title}
+                  {needsYou && ask === undefined ? <NeedsYouDot /> : statusMark}
+                  {age}
+                </span>
+                <span className="@container flex h-4 min-w-0 items-center gap-1.5 text-xs text-muted-foreground-2">
+                  {meta}
+                </span>
               </span>
-              <span className="@container flex h-4 min-w-0 items-center gap-1.5 text-xs text-muted-foreground-2">
-                {meta}
-              </span>
-            </span>
+            )}
+          </PreviewCardTrigger>
+          {preview === undefined ? null : (
+            <PreviewCardContent side="right" align="start">
+              {preview}
+            </PreviewCardContent>
           )}
-        </PreviewCardTrigger>
-        {preview === undefined ? null : (
-          <PreviewCardContent side="right" align="start">
-            {preview}
-          </PreviewCardContent>
-        )}
-      </PreviewCard>
+        </PreviewCard>
+        <ThreadRowContextMenu thread={thread} actions={actions} />
+      </ContextMenu>
       {actions === undefined ? null : (
         <ThreadRowActions slim={slim} active={active} actions={actions} />
       )}

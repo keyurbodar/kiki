@@ -170,3 +170,33 @@ describe("buildSidebarThreadsView preview data", () => {
     expect(row?.age).toBe("1h");
   });
 });
+
+describe("sidebar row menu", () => {
+  it("opens Capy's row menu on right-click and opens the thread in a new tab", async () => {
+    const openSpy = vi.spyOn(window, "open").mockReturnValue(null);
+    await renderAt(<Harness sidebarSource={source([thread()])} />);
+    fireEvent.contextMenu(rowLink());
+    expect(await screen.findByText("Open in new tab")).toBeTruthy();
+    expect(screen.getByText("Copy link")).toBeTruthy();
+    fireEvent.click(screen.getByText("Open in new tab"));
+    expect(openSpy).toHaveBeenCalledWith("/thread/jam_sample_2", "_blank");
+    openSpy.mockRestore();
+  });
+
+  it("opens nothing when the right-click misses a row", async () => {
+    await renderAt(<Harness sidebarSource={source([thread()])} />);
+    const list = document.querySelector("[role=list]");
+    if (list === null) throw new Error("no list");
+    fireEvent.contextMenu(list);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(screen.queryByText("Open in new tab")).toBeNull();
+  });
+});
+
+describe("sidebar thread list scroll area", () => {
+  it("scrolls the list through the scroll-area primitive", async () => {
+    await renderAt(<Harness sidebarSource={source([thread()])} />);
+    const list = document.querySelector("[role=list]");
+    expect(list?.closest("[data-slot=scroll-area-viewport]")).not.toBeNull();
+  });
+});
