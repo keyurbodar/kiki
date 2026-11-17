@@ -40,7 +40,7 @@ type LightboxEntry = {
 };
 
 export type MediaLightboxSlots<Entry extends LightboxEntry> = {
-  entries: Entry[];
+  entries: readonly Entry[];
   index: number;
   onIndexChange: (index: number) => void;
   onClose: () => void;
