@@ -185,7 +185,9 @@ export function DiffSelectionToolbar({
       ref={ref}
       data-slot="selection-toolbar"
       className="fixed z-(--z-overlay-content) flex items-center gap-0.5 rounded-(--radius-overlay) border-hairline border-border-2 bg-popover p-1 shadow-overlay"
-      style={position === undefined ? { visibility: "hidden" } : { ...position }}
+      style={
+        position === undefined ? { visibility: "hidden" } : { ...position }
+      }
       onPointerUp={(event) => event.stopPropagation()}
     >
       {commentButton}
