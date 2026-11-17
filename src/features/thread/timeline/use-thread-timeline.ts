@@ -115,17 +115,17 @@ export const loadOlderAtom = Atom.family((key: string) =>
   timelineRuntime.fn<void>()((_, get) =>
     Effect.gen(function* () {
       const feedAtom = threadFeedAtom(key);
-      const feed = get.once(feedAtom);
+      const feed = get(feedAtom);
       if (feed.olderCursor === null || feed.loadingOlder) return;
       get.set(feedAtom, { ...feed, loadingOlder: true });
       const page = yield* fetchPage(key, { before: feed.olderCursor }).pipe(
         Effect.tapError(() =>
           Effect.sync(() =>
-            get.set(feedAtom, { ...get.once(feedAtom), loadingOlder: false }),
+            get.set(feedAtom, { ...get(feedAtom), loadingOlder: false }),
           ),
         ),
       );
-      get.set(feedAtom, olderLoaded(get.once(feedAtom), page));
+      get.set(feedAtom, olderLoaded(get(feedAtom), page));
     }),
   ),
 );
