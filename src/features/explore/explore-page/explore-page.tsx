@@ -3,14 +3,16 @@ import { Link } from "@tanstack/react-router";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import type { ReactNode } from "react";
+import type { ExploreCard } from "@/data/api/schemas/explore";
 import { exploreIndexAtom } from "@/data/atoms/explore";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { ExploreFrame } from "../explore-frame";
-import { ListingIcon, ListingRow } from "../listing-card";
+import { type ListingCard, ListingIcon, ListingRow } from "../listing-card";
 import { ThemeBrowse } from "../theme-browse";
+import type { ThemeListingCard } from "../theme-detail";
 import peerArt from "./assets/peer.svg";
 import {
   type ExploreKind,
@@ -156,6 +158,56 @@ function matchesSearch(
   );
 }
 
+const toDate = (value: unknown): Date | null =>
+  value instanceof Date ? value : null;
+
+const toListingCard = (card: ExploreCard | ThemeListingCard): ListingCard => ({
+  kind: card.kind,
+  slug: card.slug,
+  displayName: card.displayName,
+  description: card.description,
+  maker: card.maker === null ? null : { name: card.maker.name },
+  builtIn:
+    card.builtIn !== null &&
+    typeof card.builtIn === "object" &&
+    "settingsPath" in card.builtIn
+      ? { settingsPath: String(card.builtIn.settingsPath) }
+      : null,
+  repository: "repository" in card ? card.repository : null,
+  stars: "stars" in card ? card.stars : null,
+  starsCheckedAt: "starsCheckedAt" in card ? toDate(card.starsCheckedAt) : null,
+  adds: card.adds,
+  theme:
+    card.theme === null
+      ? null
+      : { light: card.theme.light, dark: card.theme.dark },
+});
+
+const toThemeListingCard = (card: ExploreCard): ThemeListingCard => ({
+  kind: card.kind,
+  slug: card.slug,
+  versionId: card.versionId,
+  displayName: card.displayName,
+  description: card.description,
+  source: card.source === "user" ? "user" : "capy",
+  builtIn: card.builtIn,
+  maker: card.maker === null ? null : { name: card.maker.name },
+  adds: card.adds,
+  version: card.version,
+  updatedAt: toDate(card.updatedAt) ?? new Date(0),
+  featuredRank: card.featuredRank,
+  theme:
+    card.theme === null
+      ? null
+      : {
+          light: card.theme.light,
+          dark: card.theme.dark,
+          ...(card.theme.wallpaper === undefined
+            ? {}
+            : { wallpaper: card.theme.wallpaper }),
+        },
+});
+
 export function ExplorePage({ kind, search, onSearch }: ExplorePageProps) {
   const result = useAtomValue(exploreIndexAtom);
   const index = Option.getOrUndefined(AsyncResult.value(result));
@@ -201,19 +253,15 @@ export function ExplorePage({ kind, search, onSearch }: ExplorePageProps) {
       )
     ) : kind === "theme" ? (
       <ThemeBrowse
-        cards={cards.map((card) => ({
-          ...card,
-          source:
-            card.source === "user" ? ("user" as const) : ("capy" as const),
-        }))}
+        cards={cards.map(toThemeListingCard)}
         search={{ q: search.q, page: search.page }}
         onSearch={(next) => onSearch({ ...search, ...next })}
-        icon={(card) => <ListingIcon card={card} size="xs" />}
+        icon={(card) => <ListingIcon card={toListingCard(card)} size="xs" />}
       />
     ) : (
       <div className={gridClassName}>
         {cards.map((card) => (
-          <ListingRow key={card.slug} card={card} />
+          <ListingRow key={card.slug} card={toListingCard(card)} />
         ))}
       </div>
     );

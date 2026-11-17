@@ -20,7 +20,8 @@ function RouteComponent() {
       search={search}
       onSearch={(next) =>
         void navigate({
-          search: { ...next, tab: search.tab },
+          to: "/explore",
+          search: { ...search, ...next },
           replace: next.q !== search.q,
           resetScroll: false,
         })

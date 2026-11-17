@@ -65,7 +65,10 @@ export function ExploreFrame({ crumbs, trailing }: ExploreFrameProps) {
   );
 }
 
-export type SignInLinkProps = ButtonVariants & { readonly children: ReactNode };
+export type SignInLinkProps = ButtonVariants & {
+  readonly className?: string;
+  readonly children: ReactNode;
+};
 
 export function SignInLink({
   variant = "solid",
