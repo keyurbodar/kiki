@@ -2,6 +2,7 @@ import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import type { ComposerPayload } from "@/components/composer";
+import type { MachineSize } from "@/components/plan-picker/plan-catalog";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { reactivityKeys } from "@/data/atoms/conventions";
 import { ApiClient } from "@/data/client/ApiClient";
@@ -13,6 +14,8 @@ export type StartThreadTarget = {
   orgId: OrgId;
   projectId?: string;
   payload: ComposerPayload;
+  /** The machine size the footer's menu picked; the project's default when absent. */
+  machineSize?: MachineSize;
 };
 
 /** The id of a jam the A3 client returned undecoded. */
@@ -40,19 +43,25 @@ export function useStartThread() {
     mode: "promise",
   });
 
-  return async ({ orgId, projectId, payload }: StartThreadTarget) => {
+  return async ({
+    orgId,
+    projectId,
+    payload,
+    machineSize,
+  }: StartThreadTarget) => {
     const title = draftTitle(payload.text);
+    const body = machineSize === undefined ? { title } : { title, machineSize };
     try {
       const created =
         projectId === undefined
           ? await createProjectless({
               params: { orgId },
-              payload: { title },
+              payload: body,
               reactivityKeys: [reactivityKeys.threads(orgId)],
             })
           : await create({
               params: { orgId, projectId },
-              payload: { title },
+              payload: body,
               reactivityKeys: [reactivityKeys.threads(orgId)],
             });
       const threadId = jamIdOf(created);
