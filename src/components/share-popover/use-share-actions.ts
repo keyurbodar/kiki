@@ -1,6 +1,8 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import type { OrgId } from "@/data/api/schemas/ids";
+import { driveShareIdOf } from "./drive-ids";
 import { revokeShareAtom, updateShareAtom } from "./share-data";
 import {
   isPending,
@@ -33,7 +35,7 @@ export interface ShareActions {
 export function useShareActions(
   shares: ReadonlyArray<ShareState>,
   onChanged: (change: ShareChange) => void,
-  orgIdOverride?: string,
+  orgIdOverride?: OrgId,
 ): ShareActions {
   const activeOrgId = useActiveOrgId();
   const orgId = orgIdOverride ?? activeOrgId;
@@ -50,10 +52,11 @@ export function useShareActions(
   }, [shares]);
 
   const send = (shareId: string, to: ShareVisibility) => {
-    if (orgId === undefined) return;
+    const driveShareId = driveShareIdOf(shareId);
+    if (orgId === undefined || driveShareId === undefined) return;
     inFlight.current.add(shareId);
     update({
-      params: { orgId, shareId },
+      params: { orgId, shareId: driveShareId },
       payload: { visibility: to },
       reactivityKeys,
     }).then(
@@ -106,9 +109,10 @@ export function useShareActions(
       if (!inFlight.current.has(share.id)) send(share.id, to);
     },
     remove: (share) => {
-      if (orgId === undefined || removing) return;
+      const driveShareId = driveShareIdOf(share.id);
+      if (orgId === undefined || driveShareId === undefined || removing) return;
       setRemoving(true);
-      revoke({ params: { orgId, shareId: share.id }, reactivityKeys })
+      revoke({ params: { orgId, shareId: driveShareId }, reactivityKeys })
         .then(
           () => {
             onChanged("removed");

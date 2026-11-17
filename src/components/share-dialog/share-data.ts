@@ -2,6 +2,7 @@ import { useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult, Atom } from "effect/reactivity";
 import { useMemo } from "react";
+import { JamId, OrgId } from "@/data/api/schemas/ids";
 import { queryTimeToLive, reactivityKeys } from "@/data/atoms/conventions";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
 import { ApiClient } from "@/data/client/ApiClient";
@@ -140,7 +141,7 @@ const splitKey = (key: string) => key.split("/") as [string, string];
 export const threadShareAtom = Atom.family((key: string) => {
   const [orgId, jamId] = splitKey(key);
   return ApiClient.query("jams", "get", {
-    params: { orgId, jamId },
+    params: { orgId: OrgId.make(orgId), jamId: JamId.make(jamId) },
     reactivityKeys: [`jam:${jamId}`, `jam_participant:${jamId}`],
     timeToLive: queryTimeToLive,
   });
@@ -149,7 +150,7 @@ export const threadShareAtom = Atom.family((key: string) => {
 export const threadAccessRequestsAtom = Atom.family((key: string) => {
   const [orgId, jamId] = splitKey(key);
   return ApiClient.query("jams", "threadAccessRequests", {
-    params: { orgId, jamId },
+    params: { orgId: OrgId.make(orgId), jamId: JamId.make(jamId) },
     reactivityKeys: accessRequestKeys(jamId),
     timeToLive: queryTimeToLive,
   });
@@ -157,7 +158,7 @@ export const threadAccessRequestsAtom = Atom.family((key: string) => {
 
 export const orgMembersAtom = Atom.family((orgId: string) =>
   ApiClient.query("members", "listMembers", {
-    params: { orgId },
+    params: { orgId: OrgId.make(orgId) },
     query: {},
     reactivityKeys: [`member:${orgId}`],
     timeToLive: queryTimeToLive,
@@ -167,7 +168,7 @@ export const orgMembersAtom = Atom.family((orgId: string) =>
 export const foldersAtom = Atom.family((key: string) => {
   const [orgId, viewerId] = splitKey(key);
   return ApiClient.query("threadOrganization", "manifest", {
-    params: { orgId },
+    params: { orgId: OrgId.make(orgId) },
     reactivityKeys: folderKeys(orgId, viewerId === "" ? undefined : viewerId),
     timeToLive: queryTimeToLive,
   });

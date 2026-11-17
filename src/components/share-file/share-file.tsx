@@ -7,11 +7,14 @@ import { AppTopBar } from "@/components/app-top-bar";
 import { CapyLogo, CapyMark } from "@/components/capy-logo";
 import { Markdown } from "@/components/markdown";
 import {
+  driveShareIdOf,
   type ShareChange,
   ShareOsIcon,
   SharePanel,
   useShareActions,
 } from "@/components/share-popover";
+import type { DriveShareId } from "@/data/api/schemas/drive";
+import { OrgId } from "@/data/api/schemas/ids";
 import { currentUserAtom } from "@/data/atoms/session";
 import { ApiClient } from "@/data/client/ApiClient";
 import { Button } from "@/primitives/button";
@@ -46,14 +49,14 @@ const value = <A, E>(result: AsyncResult.AsyncResult<A, E>) =>
 const failed = <A, E>(result: AsyncResult.AsyncResult<A, E>) =>
   AsyncResult.isFailure(result) && Option.isNone(AsyncResult.value(result));
 
-export const publicShareAtom = Atom.family((shareId: string) =>
+export const publicShareAtom = Atom.family((shareId: DriveShareId) =>
   ApiClient.query("volumes", "publicShare", {
     params: { shareId },
     timeToLive: "1 minute",
   }),
 );
 
-export const memberShareAtom = Atom.family((shareId: string) =>
+export const memberShareAtom = Atom.family((shareId: DriveShareId) =>
   ApiClient.query("volumes", "readShare", {
     params: { shareId },
     reactivityKeys: [`drive-share-view:${shareId}`],
@@ -218,7 +221,7 @@ export function ShareControl({
       if (change === "removed") setOpen(false);
       onChanged(change);
     },
-    member.orgId,
+    OrgId.make(member.orgId),
   );
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -500,8 +503,9 @@ export function ShareFile({
   const user = useAtomValue(currentUserAtom);
   const isLoaded = !AsyncResult.isInitial(user) || value(user) !== undefined;
   const isSignedIn = value(user) !== undefined;
-  const publicAtom = publicShareAtom(shareId);
-  const memberAtom = memberShareAtom(shareId);
+  const viewId = driveShareIdOf(shareId);
+  const publicAtom = publicShareAtom(viewId ?? ("" as DriveShareId));
+  const memberAtom = memberShareAtom(viewId ?? ("" as DriveShareId));
   const publicResult = useAtomValue(publicAtom);
   const memberResult = useAtomValue(memberAtom);
   const retryPublic = useAtomRefresh(publicAtom);

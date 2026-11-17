@@ -2,9 +2,12 @@ import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useEffect, useState } from "react";
+import type { VolumeId } from "@/data/api/schemas/drive";
+import type { OrgId } from "@/data/api/schemas/ids";
 import { Button } from "@/primitives/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
+import { volumeIdOf } from "./drive-ids";
 import { ShareOsIcon } from "./icons";
 import {
   createShareAtom,
@@ -24,7 +27,11 @@ export interface SharePopoverProps {
 
 export function SharePopover({ volume, path, disabled }: SharePopoverProps) {
   const orgId = useActiveOrgId();
-  const sharesAtom = volumeSharesAtom(`${orgId ?? ""}/${volume.id}`);
+  const volumeId = volumeIdOf(volume.id);
+  const sharesAtom = volumeSharesAtom(
+    orgId ?? ("" as OrgId),
+    volumeId ?? ("" as VolumeId),
+  );
   const result = useAtomValue(sharesAtom);
   const refresh = useAtomRefresh(sharesAtom);
   const value = Option.getOrUndefined(AsyncResult.value(result));
@@ -40,11 +47,11 @@ export function SharePopover({ volume, path, disabled }: SharePopoverProps) {
   });
 
   const createLink = () => {
-    if (orgId === undefined || creating) return;
+    if (orgId === undefined || volumeId === undefined || creating) return;
     setCreating(true);
     setFailed(undefined);
     create({
-      params: { orgId, volumeId: volume.id },
+      params: { orgId, volumeId },
       payload: { path },
       reactivityKeys: shareReactivityKeys(orgId),
     })

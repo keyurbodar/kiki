@@ -1,4 +1,6 @@
 import { Atom } from "effect/reactivity";
+import type { DriveShareId, VolumeId } from "@/data/api/schemas/drive";
+import type { OrgId } from "@/data/api/schemas/ids";
 import { ApiClient } from "@/data/client/ApiClient";
 import type { ShareVisibility } from "./share-visibility";
 
@@ -77,9 +79,13 @@ export const decodeSharePage = (value: unknown): DriveSharePage => {
 };
 
 const shareKey = (orgId: string) => `drive-share:${orgId}`;
+const keyed = (value: unknown) => JSON.stringify(value);
 
-export const volumeSharesAtom = Atom.family((key: string) => {
-  const [orgId, volumeId] = key.split("/") as [string, string];
+const volumeSharesFamily = Atom.family((key: string) => {
+  const { orgId, volumeId } = JSON.parse(key) as {
+    orgId: OrgId;
+    volumeId: VolumeId;
+  };
   return ApiClient.query("volumes", "listShares", {
     params: { orgId, volumeId },
     reactivityKeys: [shareKey(orgId)],
@@ -87,8 +93,11 @@ export const volumeSharesAtom = Atom.family((key: string) => {
   });
 });
 
-export const orgSharesAtom = Atom.family((key: string) => {
-  const [orgId, page] = key.split("/") as [string, string];
+export const volumeSharesAtom = (orgId: OrgId, volumeId: VolumeId) =>
+  volumeSharesFamily(keyed({ orgId, volumeId }));
+
+const orgSharesFamily = Atom.family((key: string) => {
+  const { orgId, page } = JSON.parse(key) as { orgId: OrgId; page: number };
   return ApiClient.query("volumes", "listOrgShares", {
     params: { orgId },
     query: { page },
@@ -97,6 +106,11 @@ export const orgSharesAtom = Atom.family((key: string) => {
   });
 });
 
+export const orgSharesAtom = (orgId: OrgId, page = 1) =>
+  orgSharesFamily(keyed({ orgId, page }));
+
 export const createShareAtom = ApiClient.mutation("volumes", "createShare");
+
+export type { DriveShareId };
 export const updateShareAtom = ApiClient.mutation("volumes", "updateShare");
 export const revokeShareAtom = ApiClient.mutation("volumes", "revokeShare");

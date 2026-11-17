@@ -1,5 +1,6 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useEffect } from "react";
+import { OrgId, ThreadFolderId, UserId } from "@/data/api/schemas/ids";
 import { Button } from "@/primitives/button";
 import { AccessRows } from "./access-rows";
 import { appOrigin, CopyLinkButton } from "./copy-link-button";
@@ -62,12 +63,16 @@ export function ShareFolderBody({
   const toggle = (userId: string, add: boolean) => {
     if (orgId === undefined) return;
     const base = {
-      params: { orgId, folderId: folder.id },
+      params: {
+        orgId: OrgId.make(orgId),
+        folderId: ThreadFolderId.make(folder.id),
+      },
       reactivityKeys: folderKeys(orgId, viewerId),
     };
-    const addPerson = () => share({ ...base, payload: { userIds: [userId] } });
+    const addPerson = () =>
+      share({ ...base, payload: { userIds: [UserId.make(userId)] } });
     const removePerson = () =>
-      unshare({ ...base, query: { userIds: [userId] } });
+      unshare({ ...base, payload: { userIds: [UserId.make(userId)] } });
     void run({
       work: add ? addPerson : removePerson,
       success: add ? `${nameOf(userId)} added` : `${nameOf(userId)} removed`,
@@ -79,7 +84,10 @@ export function ShareFolderBody({
   const changeVisibility = (next: Visibility) => {
     if (orgId === undefined || next === visibility) return;
     const base = {
-      params: { orgId, folderId: folder.id },
+      params: {
+        orgId: OrgId.make(orgId),
+        folderId: ThreadFolderId.make(folder.id),
+      },
       reactivityKeys: folderKeys(orgId, viewerId),
     };
     const claims = next === "private" && unowned;
