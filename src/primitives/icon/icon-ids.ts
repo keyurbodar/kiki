@@ -349,15 +349,6 @@ export const ICON_IDS = [
   "webhooks",
   "window-app",
   "x",
-  "cross-small",
-  "trash-can",
-  "bubble-plus",
-  "square-behind-square-2",
-  "chain-link-1",
-  "arrow-inbox",
-  "arrow-rotate-counter-clockwise",
-  "arrow-rotate-clockwise",
-  "arrow-undo-up",
 ] as const;
 
 export type IconId = (typeof ICON_IDS)[number];
@@ -716,16 +707,6 @@ export const ICON_KEYWORDS: Record<IconId, string> = {
   webhooks: "webhooks",
   "window-app": "window-app, browser, app, desktop",
   x: "x",
-  "cross-small": "cross-small, crossed small, delete, remove",
-  "trash-can": "trash-can, delete, remove, garbage, waste",
-  "bubble-plus": "bubble-plus, comment, feedback",
-  "square-behind-square-2": "square-behind-square-2, copy 2, layers, pages",
-  "chain-link-1": "chain-link-1,url",
-  "arrow-inbox": "arrow-inbox, download, file, down, save",
-  "arrow-rotate-counter-clockwise":
-    "arrow-rotate-counter-clockwise, rotate-left",
-  "arrow-rotate-clockwise": "arrow-rotate-clockwise, rotate-right",
-  "arrow-undo-up": "arrow-undo-up, back, top",
 };
 
 const iconIds: ReadonlySet<string> = new Set(ICON_IDS);
