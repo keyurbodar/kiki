@@ -45,6 +45,8 @@ import {
   useIssueLabels,
   useIssueStates,
 } from "@/features/issues/issue-pickers";
+import { MobileIssueList } from "@/features/mobile/lists/issues";
+import { useIsNarrow } from "@/features/mobile/use-mobile";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 
 const splitKey = (key: string) => {
@@ -158,6 +160,7 @@ export function IssuesPage() {
     new Map(),
   );
   const [now] = useState(() => Date.now());
+  const narrow = useIsNarrow();
   const org = orgId ?? ("" as OrgId);
   const listKey = `${org}|${JSON.stringify(issueListQuery(filters, search, localDate(now)))}`;
   const listAtom = issueListAtom(listKey);
@@ -265,6 +268,24 @@ export function IssuesPage() {
             <div className="flex items-center justify-center py-16 text-sm font-normal text-muted-foreground-2">
               No organization selected
             </div>
+          ) : narrow ? (
+            <MobileIssueList
+              orgId={orgId}
+              issues={issues}
+              states={statesPending ? undefined : states}
+              filters={filters}
+              display={display}
+              projectNames={Object.fromEntries(
+                projectList.map((project) => [project.id, project.name]),
+              )}
+              now={now}
+              emptyText={issueEmptyText(viewOfFilters(filters), search.trim())}
+              failed={AsyncResult.isFailure(list) || statesFailed}
+              onRetry={() => {
+                refresh();
+                refreshStates();
+              }}
+            />
           ) : (
             <IssuesList
               orgId={orgId}

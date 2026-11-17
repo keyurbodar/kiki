@@ -34,6 +34,8 @@ import {
   threadOrganizationKeys,
 } from "@/data/atoms/threadOrganization";
 import { allThreadsAtom } from "@/data/atoms/threads";
+import { MobileThreadList } from "@/features/mobile/lists/threads";
+import { useIsNarrow } from "@/features/mobile/use-mobile";
 import { Button } from "@/primitives/button";
 import {
   Dialog,
@@ -199,6 +201,7 @@ export function ThreadsPageView({
   now,
 }: ThreadsPageViewProps) {
   const navigate = useNavigate();
+  const narrow = useIsNarrow();
   const [saving, setSaving] = useState(false);
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [checked, setChecked] = useState<ReadonlySet<string>>(new Set());
@@ -384,27 +387,44 @@ export function ThreadsPageView({
         onOpenChange={setCreatingFolder}
         onCreate={(name) => onCreateFolder?.(name)}
       />
-      <ThreadsList
-        sections={sections}
-        projects={projectMap}
-        modelName={modelName}
-        groupedByProject={state.grouping === "project"}
-        now={now}
-        loading={loading}
-        emptyText={emptyText({ failed, searching: false, filters })}
-        checked={checked}
-        onCheckedChange={setChecked}
-        icons={listIcons}
-        footer={
-          failed && onRetry !== undefined ? (
-            <div className="flex justify-center pb-3">
-              <Button variant="ghost" size="sm" onClick={onRetry}>
-                Retry loading threads
-              </Button>
-            </div>
-          ) : null
-        }
-      />
+      {narrow ? (
+        <MobileThreadList
+          sections={sections}
+          projects={projectMap}
+          modelName={modelName}
+          groupedByProject={state.grouping === "project"}
+          now={now}
+          loading={loading}
+          emptyText={emptyText({ failed, searching: false, filters })}
+          checked={checked}
+          onCheckedChange={setChecked}
+          icons={listIcons}
+          failed={failed}
+          onRetry={onRetry}
+        />
+      ) : (
+        <ThreadsList
+          sections={sections}
+          projects={projectMap}
+          modelName={modelName}
+          groupedByProject={state.grouping === "project"}
+          now={now}
+          loading={loading}
+          emptyText={emptyText({ failed, searching: false, filters })}
+          checked={checked}
+          onCheckedChange={setChecked}
+          icons={listIcons}
+          footer={
+            failed && onRetry !== undefined ? (
+              <div className="flex justify-center pb-3">
+                <Button variant="ghost" size="sm" onClick={onRetry}>
+                  Retry loading threads
+                </Button>
+              </div>
+            ) : null
+          }
+        />
+      )}
     </div>
   );
 }

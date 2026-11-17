@@ -11,3 +11,12 @@ One directory per unit. A unit directory holds its component, its tests and an `
 - `home/`: `MobileHome` (the /new layout on phones) and `MobileNewThread` (wired to the projects atom).
 - `sheets/`: bottom drawers for project, add to message and model.
 - `edge-swipe/`: parity note and test; Capy has no edge-swipe handler.
+
+## Units (D8c)
+
+- `lists/`: the threads, issues and pulls lists on phones. Rows are the desktop
+  rows (`ThreadRow`, `IssueRow`), whose own container queries drop the code
+  column, badges and due chips at this width; the units add `MobileListSection`
+  (the Collapsible primitive's trigger and height-animated panel) and render
+  only below `--breakpoint-md` through `useIsNarrow`. `MobilePullList` carries
+  its own `MobilePullRow` until the pulls list lands.
