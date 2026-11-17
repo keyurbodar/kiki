@@ -1,7 +1,10 @@
 import { cleanup, render } from "@testing-library/react";
+import type { Schema } from "effect";
 import { afterEach, expect, it } from "vitest";
-import type { ActivityRow as ActivityRowData } from "@/data/events";
+import type { ActivityRow as ActivityRowSchema } from "@/data/events";
 import { ActivityRow } from "./activity-row";
+
+type ActivityRowData = Schema.Schema.Type<typeof ActivityRowSchema>;
 
 afterEach(cleanup);
 
