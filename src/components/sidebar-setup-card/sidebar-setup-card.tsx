@@ -19,6 +19,8 @@ import {
   setupVisible,
 } from "./setup-steps";
 
+const SETUP_ROW_LIMIT = 4;
+
 export type SidebarSetupCardProps = ComponentProps<"div">;
 
 export function SidebarSetupCard({
@@ -38,6 +40,8 @@ export function SidebarSetupCard({
     : undefined;
   const steps = parsed === undefined ? [] : setupSteps(parsed);
   const visible = steps.filter((step) => !step.done);
+  const rows = visible.slice(0, SETUP_ROW_LIMIT);
+  const next = visible[0];
   const show = setupVisible(parsed);
   const activeStep = steps.find((step) => step.id === active);
   if (!show || orgId === undefined) return null;
@@ -94,7 +98,7 @@ export function SidebarSetupCard({
           </span>
         </div>
         <ul className="-mx-1 mt-1.5 flex flex-col">
-          {visible.map((step) => (
+          {rows.map((step) => (
             <li key={step.id}>
               <button
                 data-track-owner="shared/sidebar-setup-card.tsx#SetupBody:button.1"
@@ -111,6 +115,15 @@ export function SidebarSetupCard({
             </li>
           ))}
         </ul>
+        {next?.action !== undefined && (
+          <Button
+            data-track-owner="shared/sidebar-setup-card.tsx#SetupBody:Button.1"
+            className="mt-2 w-full"
+            onClick={() => setActive(next.id)}
+          >
+            {next.action}
+          </Button>
+        )}
       </section>
       <Dialog
         open={active !== null}

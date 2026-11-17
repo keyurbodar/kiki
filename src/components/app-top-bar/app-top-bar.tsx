@@ -1,5 +1,6 @@
 import { cx } from "class-variance-authority";
 import type { ComponentProps, ReactNode } from "react";
+import { desktopBridge } from "@/lib/desktop-bridge";
 import { SidebarTrigger, useSidebarStateOptional } from "@/primitives/sidebar";
 
 export type AppTopBarProps = Omit<ComponentProps<"header">, "title"> & {
@@ -27,6 +28,7 @@ export function AppTopBar({
       {...props}
       className={cx(
         className ?? BAR_CLASS,
+        desktopBridge() !== undefined && "desktop-drag-region",
         title !== undefined && "border-b-hairline border-border-1",
       )}
     >

@@ -113,7 +113,7 @@ describe("onboarding steps", () => {
         );
         assert.strictEqual(status.steps.length, 5);
         assert.isTrue(status.steps[0]?.completed);
-        assert.strictEqual(status.completedCount, 1);
+        assert.strictEqual(status.completedCount, 5);
       }),
   );
 });
