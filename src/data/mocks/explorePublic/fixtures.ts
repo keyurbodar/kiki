@@ -73,6 +73,59 @@ const trackerSkillNames = [
   ["tracker-replays", "Review session replays for an issue"],
 ] as const;
 
+const warehouseSkillNames = [
+  [
+    "warehouse-query",
+    "Query warehouse tables with the SQL API. Use when asked for numbers from a table, to check a schema, or to trace a failing pipeline",
+  ],
+  [
+    "warehouse-schema",
+    "Inspect and change table schemas, including column types and partitioning",
+  ],
+] as const;
+
+const docsSkillNames = [
+  [
+    "docs-draft",
+    "Draft and restructure documentation pages. Use when asked to write a guide, tighten an explanation, or split a long page",
+  ],
+  [
+    "docs-publish",
+    "Publish a documentation page and set its navigation position",
+  ],
+] as const;
+
+const designSkillNames = [
+  [
+    "design-frames",
+    "List frames and components, read their tokens, and leave comments on a frame",
+  ],
+  [
+    "design-contrast",
+    "Check a palette pair for contrast and suggest the nearest passing value",
+  ],
+] as const;
+
+const billingSkillNames = [
+  ["billing-invoices", "Look up invoices and refunds for a customer"],
+  [
+    "billing-subscriptions",
+    "Inspect and change subscription state, including trials and cancellations",
+  ],
+] as const;
+
+const tasksSkillNames = [
+  ["tasks-triage", "Create and triage issues, set labels and priority"],
+  ["tasks-standup", "Summarize what moved since yesterday and what is blocked"],
+] as const;
+
+const releaseSkillNames = [
+  [
+    "release-changelog",
+    "Draft a changelog entry from merged pull requests since the last release",
+  ],
+] as const;
+
 const oauthServer = (
   displayName: string,
   url: string,
@@ -230,6 +283,125 @@ export const sampleListings: ReadonlyArray<ExploreListing> = [
     ),
     setup: null,
     versions: [firstListing("plv_sample_tracker_140", "1.4.0", 41)],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "data-warehouse",
+      displayName: "Data Warehouse",
+      description: "Query tables, manage schemas, and inspect pipelines",
+      repository: "initech/warehouse-plugin",
+      version: "2.2.0",
+      versionId: "plv_sample_warehouse_220",
+      category: "database",
+      featuredRank: 1,
+      stars: 3_120,
+      starsCheckedAt: minutesAgo(3 * day),
+    }),
+    content: pluginContent(
+      warehouseSkillNames,
+      oauthServer("Data Warehouse", "https://mcp.initech.example/mcp"),
+      "initech/warehouse-plugin",
+    ),
+    setup: null,
+    versions: [firstListing("plv_sample_warehouse_220", "2.2.0", 12)],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "docs-writer",
+      displayName: "Docs Writer",
+      description: "Draft, restructure, and publish documentation pages",
+      repository: "acme/docs-plugin",
+      version: "1.1.3",
+      versionId: "plv_sample_docs_113",
+      category: "docs",
+      firstListedAt: minutesAgo(9 * day),
+    }),
+    content: pluginContent(
+      docsSkillNames,
+      oauthServer("Docs Writer", "https://mcp.acme.example/docs/mcp"),
+      "acme/docs-plugin",
+    ),
+    setup: null,
+    versions: [firstListing("plv_sample_docs_113", "1.1.3", 26)],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "design-review",
+      displayName: "Design Review",
+      description: "Comment on frames, list components, and check contrast",
+      repository: "globex/design-plugin",
+      version: "0.9.4",
+      versionId: "plv_sample_design_094",
+      category: "design",
+      featuredRank: 2,
+    }),
+    content: pluginContent(
+      designSkillNames,
+      oauthServer("Design Review", "https://mcp.globex.example/design/mcp"),
+      "globex/design-plugin",
+    ),
+    setup: null,
+    versions: [firstListing("plv_sample_design_094", "0.9.4", 5)],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "billing-ops",
+      displayName: "Billing Ops",
+      description: "Inspect invoices, refunds, and subscription state",
+      repository: "northwind/billing-plugin",
+      version: "3.0.1",
+      versionId: "plv_sample_billing_301",
+      category: "payments",
+    }),
+    content: pluginContent(
+      billingSkillNames,
+      oauthServer("Billing Ops", "https://mcp.northwind.example/billing/mcp"),
+      "northwind/billing-plugin",
+    ),
+    setup: null,
+    versions: [firstListing("plv_sample_billing_301", "3.0.1", 33)],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "task-board",
+      displayName: "Task Board",
+      description: "Create and triage issues, track standups, close loops",
+      repository: "initech/tasks-plugin",
+      version: "1.6.0",
+      versionId: "plv_sample_tasks_160",
+      category: "productivity",
+    }),
+    content: pluginContent(
+      tasksSkillNames,
+      oauthServer("Task Board", "https://mcp.initech.example/tasks/mcp"),
+      "initech/tasks-plugin",
+    ),
+    setup: null,
+    versions: [firstListing("plv_sample_tasks_160", "1.6.0", 18)],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "release-notes",
+      displayName: "Release Notes",
+      description: "Draft and publish changelog entries for a release",
+      repository: "acme/release-plugin",
+      version: "1.0.0",
+      versionId: "plv_sample_release_100",
+      category: "other",
+    }),
+    content: pluginContent(
+      releaseSkillNames,
+      oauthServer("Release Notes", "https://mcp.acme.example/release/mcp"),
+      "acme/release-plugin",
+    ),
+    setup: null,
+    versions: [firstListing("plv_sample_release_100", "1.0.0", 21)],
   }),
   new ExploreListing({
     card: card({
