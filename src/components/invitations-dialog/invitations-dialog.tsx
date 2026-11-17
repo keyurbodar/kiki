@@ -8,17 +8,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { AsyncResult, Atom } from "effect/reactivity";
 import { useState } from "react";
 import { toast } from "sonner";
-import type {
-  JoinableOrganization,
-  MyInvitation,
-} from "@/data/api/schemas/member";
-import { acceptInvitationAtom, joinByDomainAtom } from "@/data/atoms/members";
-import {
-  joinableOrganizationsAtom,
-  myInvitationsAtom,
-} from "@/data/atoms/onboarding";
 import { organizationsAtom } from "@/data/atoms/session";
-import { Avatar } from "@/primitives/avatar";
 import { Button } from "@/primitives/button";
 import {
   Dialog,
@@ -30,28 +20,72 @@ import {
 } from "@/primitives/dialog";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { Table, TableCell, TableGroup, TableRow } from "@/primitives/table";
+import {
+  acceptInvitationAtom,
+  decodeJoinableOrganizations,
+  decodeMyInvitations,
+  type JoinableOrganizationView,
+  joinableOrganizationsAtom,
+  joinByDomainAtom,
+  joinedName,
+  type MyInvitationView,
+  myInvitationsAtom,
+} from "./data";
 
 /** Whether the Invitations dialog is open; anything can open it. */
 export const invitationsDialogOpenAtom = Atom.make(false).pipe(Atom.keepAlive);
 
-export const invitationProjectCount = (count: number) =>
-  count === 0
+export const invitationProjectCount = (value: number) =>
+  value === 0
     ? "no projects yet"
-    : `${count} ${count === 1 ? "project" : "projects"}`;
+    : `${value} ${value === 1 ? "project" : "projects"}`;
 
 /** "invite:<id>" or "domain:<orgId>" while that row is joining. */
 export type InvitationsAccepting = string | null;
 
 export type InvitationsTableProps = {
-  invitations: ReadonlyArray<MyInvitation> | undefined;
+  invitations: ReadonlyArray<MyInvitationView> | undefined;
   invitationsFailed?: boolean;
-  organizations: ReadonlyArray<JoinableOrganization> | undefined;
+  organizations: ReadonlyArray<JoinableOrganizationView> | undefined;
   organizationsFailed: boolean;
   onRetry: () => void;
   accepting: InvitationsAccepting;
-  onAccept: (invitation: MyInvitation) => void;
-  onJoin: (organization: JoinableOrganization) => void;
+  onAccept: (invitation: MyInvitationView) => void;
+  onJoin: (organization: JoinableOrganizationView) => void;
 };
+
+const initials = (name: string) => {
+  const words = name
+    .trim()
+    .split(/\s+/)
+    .filter((word) => word.length > 0);
+  const first = words[0]?.[0] ?? "";
+  const last = words.length > 1 ? (words[words.length - 1]?.[0] ?? "") : "";
+  return `${first}${last}`.toUpperCase();
+};
+
+/** Capy's Avatar at `xs`, local until `src/primitives/avatar` lands. */
+function OrgAvatar({ src, name }: { src: string | null; name: string }) {
+  if (src !== null && src !== "")
+    return (
+      <span className="relative flex size-4 shrink-0 items-center justify-center overflow-hidden rounded bg-secondary">
+        <img
+          src={src}
+          alt={name}
+          className="absolute inset-0 size-full object-cover"
+        />
+      </span>
+    );
+  return (
+    <span
+      role="img"
+      aria-label={name}
+      className="flex size-4 shrink-0 items-center justify-center rounded bg-muted text-2xs font-medium text-foreground"
+    >
+      {initials(name)}
+    </span>
+  );
+}
 
 function JoinButton({
   id,
@@ -88,7 +122,7 @@ function OrgCell({
 }) {
   return (
     <TableCell className="gap-2.5">
-      <Avatar src={avatarUrl} name={name} size="xs" />
+      <OrgAvatar src={avatarUrl} name={name} />
       <span className="flex min-w-0 flex-col gap-0.5">
         <span className="truncate text-sm font-medium text-foreground">
           {name}
@@ -118,6 +152,16 @@ function MessageRow({
   );
 }
 
+function SkeletonRow({ className }: { className: string }) {
+  return (
+    <TableRow interactive={false}>
+      <TableCell className="col-span-full">
+        <SkeletonPanel className={className} />
+      </TableCell>
+    </TableRow>
+  );
+}
+
 /** Capy's InvitationsTable: pending invitations, then orgs open to your email domain. */
 export function InvitationsTable({
   invitations,
@@ -137,11 +181,7 @@ export function InvitationsTable({
           Could not load your invitations
         </MessageRow>
       ) : invitations === undefined ? (
-        <TableRow interactive={false}>
-          <TableCell className="col-span-full">
-            <SkeletonPanel className="h-3 w-2/3" />
-          </TableCell>
-        </TableRow>
+        <SkeletonRow className="h-3 w-2/3" />
       ) : invitations.length === 0 ? (
         <TableRow interactive={false}>
           <TableCell className="col-span-full justify-center">
@@ -180,11 +220,7 @@ export function InvitationsTable({
               Could not load organizations to join
             </MessageRow>
           ) : organizations === undefined ? (
-            <TableRow interactive={false}>
-              <TableCell className="col-span-full">
-                <SkeletonPanel className="h-3 w-1/2" />
-              </TableCell>
-            </TableRow>
+            <SkeletonRow className="h-3 w-1/2" />
           ) : (
             organizations.map((organization) => (
               <TableRow key={organization.orgId}>
@@ -210,27 +246,6 @@ export function InvitationsTable({
   );
 }
 
-const resultList = <A,>(
-  result: AsyncResult.AsyncResult<unknown, unknown>,
-): ReadonlyArray<A> | undefined => {
-  if (!AsyncResult.isSuccess(result)) return undefined;
-  const value = result.value;
-  if (Array.isArray(value)) return value as ReadonlyArray<A>;
-  if (value !== null && typeof value === "object" && "invitations" in value) {
-    const list = (value as { invitations: unknown }).invitations;
-    if (Array.isArray(list)) return list as ReadonlyArray<A>;
-  }
-  return undefined;
-};
-
-const joinedName = (value: unknown, fallback: string) =>
-  typeof value === "object" &&
-  value !== null &&
-  "name" in value &&
-  typeof value.name === "string"
-    ? value.name
-    : fallback;
-
 const failureText = (error: unknown, fallback: string) =>
   typeof error === "object" &&
   error !== null &&
@@ -249,34 +264,32 @@ export type InvitationsDialogProps = {
 };
 
 /** Capy's Invitations dialog: accept an invitation or join an org through your email domain. */
-export function InvitationsDialog(props: InvitationsDialogProps) {
-  const [fallbackOpen, setFallbackOpen] = useState(false);
-  return (
-    <StandaloneInvitationsDialog
-      controlledOpen={props.open ?? fallbackOpen}
-      onControlledOpenChange={props.onOpenChange ?? setFallbackOpen}
-    />
-  );
-}
-
-function StandaloneInvitationsDialog({
-  controlledOpen,
-  onControlledOpenChange,
-}: {
-  controlledOpen: boolean;
-  onControlledOpenChange: (open: boolean) => void;
-}) {
-  const [open, setOpen] = useAtom(invitationsDialogOpenAtom);
-  const activeOpen = controlledOpen || open;
-  const setActiveOpen = (next: boolean) => {
-    onControlledOpenChange(next);
-    setOpen(next);
-  };
+export function InvitationsDialog({
+  open: controlledOpen,
+  onOpenChange: onControlledOpenChange,
+}: InvitationsDialogProps) {
   const navigate = useNavigate();
+  const [atomOpen, setAtomOpen] = useAtom(invitationsDialogOpenAtom);
+  const [localOpen, setLocalOpen] = useState(false);
+  const open = controlledOpen ?? (atomOpen || localOpen);
+  const setOpen = (next: boolean) => {
+    setAtomOpen(next);
+    setLocalOpen(next);
+    onControlledOpenChange?.(next);
+  };
+
   const invitationsResult = useAtomValue(myInvitationsAtom);
   const organizationsResult = useAtomValue(joinableOrganizationsAtom);
-  const invitations = resultList<MyInvitation>(invitationsResult);
-  const organizations = resultList<JoinableOrganization>(organizationsResult);
+  const invitations = decodeMyInvitations(
+    AsyncResult.isSuccess(invitationsResult)
+      ? invitationsResult.value
+      : undefined,
+  );
+  const organizations = decodeJoinableOrganizations(
+    AsyncResult.isSuccess(organizationsResult)
+      ? organizationsResult.value
+      : undefined,
+  );
   const refreshInvitations = useAtomRefresh(myInvitationsAtom);
   const refreshJoinable = useAtomRefresh(joinableOrganizationsAtom);
   const refreshOrganizations = useAtomRefresh(organizationsAtom);
@@ -293,11 +306,11 @@ function StandaloneInvitationsDialog({
   const joined = (organization: unknown, fallbackName: string) => {
     refreshAll();
     toast.success(`Joined ${joinedName(organization, fallbackName)}`);
-    setActiveOpen(false);
+    setOpen(false);
     void navigate({ to: "/new" });
   };
 
-  const onAccept = (invitation: MyInvitation) => {
+  const onAccept = (invitation: MyInvitationView) => {
     setAccepting(`invite:${invitation.id}`);
     accept({ params: { invitationId: invitation.id } })
       .then((organization) => joined(organization, invitation.orgName))
@@ -310,7 +323,7 @@ function StandaloneInvitationsDialog({
       .finally(() => setAccepting(null));
   };
 
-  const onJoin = (organization: JoinableOrganization) => {
+  const onJoin = (organization: JoinableOrganizationView) => {
     setAccepting(`domain:${organization.orgId}`);
     join({ params: { orgId: organization.orgId } })
       .then((result) => joined(result, organization.orgName))
@@ -327,7 +340,7 @@ function StandaloneInvitationsDialog({
   };
 
   return (
-    <Dialog open={activeOpen} onOpenChange={setActiveOpen}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Invitations</DialogTitle>

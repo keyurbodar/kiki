@@ -1,18 +1,20 @@
 import { cx } from "class-variance-authority";
 import { useState } from "react";
 
+/*
+ * Local stand-in for Capy's ui/avatar: `src/primitives/avatar` belongs to the
+ * primitives package, so this page keeps its own copy until that lands.
+ */
+
 const avatarSizes = {
-  "2xs": "size-2.5 rounded-(--radius-inner) text-[0.4375rem]",
-  xs: "size-4 text-[0.5rem]",
-  sm: "size-6 text-[0.625rem]",
-  base: "size-8 text-xs",
-  lg: "size-16 rounded-md text-lg",
+  xs: "size-4 text-2xs",
+  sm: "size-6 text-2xs",
 } as const;
 
-export type AvatarSize = keyof typeof avatarSizes;
+export type MemberAvatarSize = keyof typeof avatarSizes;
 
 /** Capy's two-letter initials: first letters of the first and last words. */
-export const avatarInitials = (name: string) => {
+export const initials = (name: string) => {
   const words = name
     .trim()
     .split(/\s+/)
@@ -22,15 +24,14 @@ export const avatarInitials = (name: string) => {
   return `${first}${last}`.toUpperCase();
 };
 
-export type AvatarProps = {
+export type MemberAvatarProps = {
   src?: string | null;
   name: string;
-  size?: AvatarSize;
-  className?: string;
+  size?: MemberAvatarSize;
 };
 
-/** Capy's ui/avatar: the image while it loads, initials on a muted tile otherwise. */
-export function Avatar({ src, name, size = "sm", className }: AvatarProps) {
+/** The image while it loads, initials on a muted tile otherwise. */
+export function MemberAvatar({ src, name, size = "sm" }: MemberAvatarProps) {
   const [failed, setFailed] = useState(false);
   if (src != null && src !== "" && !failed)
     return (
@@ -38,7 +39,6 @@ export function Avatar({ src, name, size = "sm", className }: AvatarProps) {
         className={cx(
           "relative flex shrink-0 items-center justify-center overflow-hidden rounded bg-secondary",
           avatarSizes[size],
-          className,
         )}
       >
         <img
@@ -56,10 +56,9 @@ export function Avatar({ src, name, size = "sm", className }: AvatarProps) {
       className={cx(
         "flex shrink-0 items-center justify-center rounded bg-muted font-medium text-foreground",
         avatarSizes[size],
-        className,
       )}
     >
-      {avatarInitials(name)}
+      {initials(name)}
     </span>
   );
 }

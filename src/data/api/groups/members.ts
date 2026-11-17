@@ -1,13 +1,12 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
-import { MemberRow } from "../schemas/member.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class MembersGroup extends HttpApiGroup.make("members").add(
   HttpApiEndpoint.get("listMembers", "/orgs/:orgId/members", {
     params: { orgId: Schema.String },
     query: UndecodedQuery,
-    success: Schema.Array(MemberRow),
+    success: Undecoded,
   }),
   HttpApiEndpoint.post(
     "grantOwner",

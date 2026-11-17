@@ -1,19 +1,18 @@
-import { DateTime } from "effect";
 import { describe, expect, it } from "vitest";
-import { UserId } from "@/data/api/schemas/ids";
-import type { MemberRow } from "@/data/api/schemas/member";
+import type { InvitationView, MemberView } from "./data";
 import {
-  Invitation,
-  InviteOutcome,
-  OrganizationMember,
-} from "@/data/api/schemas/member";
+  decodeInvitation,
+  decodeInvitations,
+  decodeInviteOutcomes,
+  decodeMember,
+  decodeMembers,
+} from "./data";
 import {
   displayName,
   errorMessage,
   extendedDeadline,
   extensionAfter,
   invitationSortValue,
-  isRemoved,
   matchesInactive,
   matchesInvitation,
   matchesMember,
@@ -28,38 +27,124 @@ import {
   summarizeInvites,
 } from "./model";
 
-const member = (overrides: Partial<OrganizationMember> = {}) =>
-  new OrganizationMember({
-    userId: UserId.make("user_sample_alex"),
-    email: "alex@example.com",
-    firstName: "Alex",
-    lastName: "Morgan",
-    imageUrl: null,
-    accessLevel: "member",
-    disabled: false,
-    createdAt: DateTime.makeUnsafe("2026-01-05T00:00:00.000Z"),
-    githubLogin: null,
-    mfaEnabled: false,
-    enterpriseSso: false,
-    passkeyTrusted: false,
-    mfaExtendedUntil: null,
-    ...overrides,
+const member = (overrides: Partial<MemberView> = {}): MemberView => ({
+  userId: "user_sample_alex",
+  email: "alex@example.com",
+  firstName: "Alex",
+  lastName: "Morgan",
+  imageUrl: null,
+  accessLevel: "member",
+  disabled: false,
+  createdAt: new Date("2026-01-05T00:00:00.000Z"),
+  githubLogin: null,
+  mfaEnabled: false,
+  enterpriseSso: false,
+  passkeyTrusted: false,
+  mfaExtendedUntil: null,
+  ...overrides,
+});
+
+const invitation = (email: string): InvitationView => ({
+  id: `inv_${email}`,
+  email,
+  invitedByUserId: "user_sample_sam",
+  createdAt: new Date("2026-01-20T00:00:00.000Z"),
+  expiresAt: new Date("2026-02-01T00:00:00.000Z"),
+});
+
+describe("decoding rows", () => {
+  it("reads Capy's member shape", () => {
+    expect(
+      decodeMember({
+        userId: "user_sample_priya",
+        email: "priya@example.com",
+        firstName: "Priya",
+        lastName: "Shah",
+        imageUrl: null,
+        accessLevel: "admin",
+        disabled: false,
+        createdAt: "2026-01-05T00:00:00.000Z",
+        githubLogin: "priya-sample",
+        mfaEnabled: true,
+        enterpriseSso: false,
+        passkeyTrusted: false,
+        mfaExtendedUntil: null,
+      }),
+    ).toMatchObject({
+      userId: "user_sample_priya",
+      accessLevel: "admin",
+      mfaEnabled: true,
+      createdAt: new Date("2026-01-05T00:00:00.000Z"),
+    });
   });
 
-const invitation = (email: string) =>
-  new Invitation({
-    id: `inv_${email}`,
-    email,
-    invitedByUserId: UserId.make("user_sample_sam"),
-    expiresAt: DateTime.makeUnsafe("2026-02-01T00:00:00.000Z"),
-    createdAt: DateTime.makeUnsafe("2026-01-20T00:00:00.000Z"),
+  it("reads the mock's plain member row", () => {
+    const decoded = decodeMember({
+      id: "user_sample_casey",
+      firstName: "Casey",
+      lastName: "Nguyen",
+      email: "casey@example.com",
+      githubLogin: "casey-sample",
+      role: "member",
+      joinedAt: "2026-02-01T00:00:00.000Z",
+      removedAt: "2026-02-10T00:00:00.000Z",
+      isRemoved: true,
+      mfaExtension: "2026-04-01T00:00:00.000Z",
+    });
+    expect(decoded).toMatchObject({
+      userId: "user_sample_casey",
+      accessLevel: "member",
+      disabled: true,
+      mfaExtendedUntil: new Date("2026-04-01T00:00:00.000Z"),
+    });
   });
+
+  it("falls back to a member role and epoch for junk", () => {
+    expect(decodeMember(null)).toMatchObject({
+      userId: "",
+      accessLevel: "member",
+      createdAt: new Date(0),
+    });
+    expect(decodeMember({ role: "superuser" }).accessLevel).toBe("member");
+  });
+
+  it("reads invitations from an array or the map shape", () => {
+    const row = {
+      id: "inv_sample_taylor",
+      email: "taylor@example.com",
+      invitedBy: "user_sample_sam",
+      createdAt: "2026-02-01T00:00:00.000Z",
+      expiresAt: "2026-02-08T00:00:00.000Z",
+    };
+    expect(decodeInvitations([row])).toHaveLength(1);
+    expect(decodeInvitations({ invitations: [row], history: [] })).toHaveLength(
+      1,
+    );
+    expect(decodeInvitation(row).invitedByUserId).toBe("user_sample_sam");
+    expect(decodeMembers({ members: [] })).toEqual([]);
+  });
+
+  it("labels invite outcomes and defaults unknown ones to invited", () => {
+    expect(
+      decodeInviteOutcomes({
+        ok: true,
+        invitations: [{ email: "new@example.com", role: "member" }],
+      }),
+    ).toEqual([{ email: "new@example.com", status: "invited" }]);
+    expect(
+      decodeInviteOutcomes([
+        { email: "a@example.com", status: "already_member" },
+        { email: "nope", status: "invalid" },
+      ]).map((outcome) => outcome.status),
+    ).toEqual(["already_member", "invalid"]);
+  });
+});
 
 describe("member names", () => {
   it("joins trimmed first and last names, falling back to email then id", () => {
-    expect(displayName(member({ firstName: " Alex ", lastName: "" }))).toBe(
-      "Alex",
-    );
+    expect(
+      displayName({ firstName: " Alex ", lastName: "", email: null }),
+    ).toBe("Alex");
     expect(memberName(member({ firstName: null, lastName: null }))).toBe(
       "alex@example.com",
     );
@@ -78,14 +163,11 @@ describe("two-step", () => {
   });
 
   it("only reports an extension that runs past the cutoff", () => {
-    const until = DateTime.makeUnsafe("2026-03-10T00:00:00.000Z");
-    const extended = member({ mfaExtendedUntil: until });
-    expect(
-      extensionAfter(extended, Date.parse("2026-03-01T00:00:00.000Z")),
-    ).toEqual(new Date("2026-03-10T00:00:00.000Z"));
-    expect(
-      extensionAfter(extended, Date.parse("2026-03-11T00:00:00.000Z")),
-    ).toBeUndefined();
+    const extended = member({ mfaExtendedUntil: new Date("2026-03-10") });
+    expect(extensionAfter(extended, Date.parse("2026-03-01"))).toEqual(
+      new Date("2026-03-10"),
+    );
+    expect(extensionAfter(extended, Date.parse("2026-03-11"))).toBeUndefined();
   });
 
   it("extends from the org deadline when it is still ahead, else from now", () => {
@@ -103,8 +185,9 @@ describe("two-step", () => {
 });
 
 describe("filtering", () => {
+  const admin = member({ accessLevel: "admin" });
+
   it("matches name or email case-insensitively within the role filter", () => {
-    const admin = member({ accessLevel: "admin" });
     expect(matchesMember(admin, "  MORGAN ", "all", "any")).toBe(true);
     expect(matchesMember(admin, "example", "admin", "any")).toBe(true);
     expect(matchesMember(admin, "", "owner", "any")).toBe(false);
@@ -116,6 +199,9 @@ describe("filtering", () => {
     expect(
       matchesMember(member({ mfaEnabled: true }), "", "neither", "any"),
     ).toBe(false);
+    expect(
+      matchesMember(member({ passkeyTrusted: true }), "", "neither", "passkey"),
+    ).toBe(false);
   });
 
   it("shows invitations only for all and member filters", () => {
@@ -126,26 +212,28 @@ describe("filtering", () => {
   });
 
   it("only lists disabled members as inactive", () => {
-    expect(matchesInactive(row({ isRemoved: false }), "", "all")).toBe(false);
-    expect(matchesInactive(row({ isRemoved: true }), "alex", "all")).toBe(true);
+    expect(matchesInactive(member(), "", "all")).toBe(false);
+    expect(matchesInactive(member({ disabled: true }), "alex", "all")).toBe(
+      true,
+    );
   });
 });
 
 describe("sorting", () => {
   const owner = member({
-    userId: UserId.make("o"),
+    userId: "o",
     firstName: "Zed",
     accessLevel: "owner",
   });
   const admin = member({
-    userId: UserId.make("a"),
+    userId: "a",
     firstName: "Bea",
     accessLevel: "admin",
   });
-  const plain = member({ userId: UserId.make("m"), firstName: "Ann" });
+  const plain = member({ userId: "m", firstName: "Ann" });
 
   it("orders status by rank and breaks ties by name ascending", () => {
-    const other = member({ userId: UserId.make("m2"), firstName: "Abe" });
+    const other = member({ userId: "m2", firstName: "Abe" });
     const rows = sortRows(
       [plain, owner, other, admin],
       (row) => memberSortValue(row, "status"),
@@ -176,27 +264,6 @@ describe("sorting", () => {
   });
 });
 
-const row = (overrides: Partial<MemberRow> = {}): MemberRow => ({
-  id: "user_sample_alex",
-  firstName: "Alex",
-  lastName: "Morgan",
-  email: "alex@example.com",
-  githubLogin: "alex-sample",
-  role: "owner",
-  joinedAt: "2026-01-05T00:00:00.000Z" as MemberRow["joinedAt"],
-  removedAt: null,
-  isRemoved: false,
-  mfaExtension: null,
-  ...overrides,
-});
-
-describe("member rows", () => {
-  it("recognizes a removed member from the mock row", () => {
-    expect(isRemoved(row())).toBe(false);
-    expect(isRemoved(row({ isRemoved: true }))).toBe(true);
-  });
-});
-
 describe("roles", () => {
   it("uses the right article", () => {
     expect(roleArticle("member")).toBe("a member");
@@ -205,13 +272,9 @@ describe("roles", () => {
   });
 
   it("keeps owner changes to owners and never demotes the last owner", () => {
-    const owner = row({ role: "owner" });
-    expect(
-      roleItemDisabled("owner", row({ role: "member" }), false, false),
-    ).toBe(true);
-    expect(
-      roleItemDisabled("admin", row({ role: "member" }), false, false),
-    ).toBe(false);
+    const owner = member({ accessLevel: "owner" });
+    expect(roleItemDisabled("owner", member(), false, false)).toBe(true);
+    expect(roleItemDisabled("admin", member(), false, false)).toBe(false);
     expect(roleItemDisabled("admin", owner, true, true)).toBe(true);
     expect(roleItemDisabled("admin", owner, true, false)).toBe(false);
   });
@@ -227,13 +290,11 @@ describe("invites", () => {
   });
 
   it("counts sent invitations and labels skipped addresses", () => {
-    const outcome = (email: string, status: InviteOutcome["status"]) =>
-      new InviteOutcome({ email, status, invitation: null });
     expect(
       summarizeInvites([
-        outcome("a@x.com", "invited"),
-        outcome("b@x.com", "already_member"),
-        outcome("nope", "invalid"),
+        { email: "a@x.com", status: "invited" },
+        { email: "b@x.com", status: "already_member" },
+        { email: "nope", status: "invalid" },
       ]),
     ).toEqual({
       sent: 1,
