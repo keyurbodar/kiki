@@ -405,7 +405,10 @@ export function SidebarThreads({
         aria-hidden
         className="scroll-divider-t max-md:hidden [--scroll-divider-timeline:--threads-scroll]"
       />
-      <ScrollArea className="min-h-0 flex-1 [scroll-timeline:--threads-scroll]">
+      <ScrollArea
+        className="min-h-0 flex-1"
+        viewportClassName="[scroll-timeline:--threads-scroll]"
+      >
         <SidebarRowPopups
           threads={rowMenuThreads}
           actions={rowActions}

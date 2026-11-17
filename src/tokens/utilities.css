@@ -36,6 +36,29 @@
   }
 }
 
+/*
+ * The sticky hairline that appears under a scrolled header. It fades in over
+ * the first --scroll-divider-ramp of the timeline the caller names in
+ * --scroll-divider-timeline; without one it follows the nearest scroller.
+ */
+@utility scroll-divider-t {
+  z-index: 1;
+  background: var(--border-1);
+  opacity: 0;
+  flex: 0 0 auto;
+  height: 1px;
+  margin-bottom: -1px;
+  position: sticky;
+  top: 0px;
+  @supports (animation-timeline: scroll()) {
+    animation-name: _scroll-divider-t;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: var(--scroll-divider-timeline, scroll(nearest block));
+    animation-range: 0 var(--scroll-divider-ramp, 12px);
+  }
+}
+
 @utility mask-fade-r {
   mask-image: linear-gradient(
     to right,
