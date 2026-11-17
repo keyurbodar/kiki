@@ -10,6 +10,12 @@ const dollars = new Intl.NumberFormat("en-US", {
 export const formatCredits = (credits: number) =>
   dollars.format(credits / CREDITS_PER_DOLLAR);
 
+/** A chip's amount; an amount that has not loaded yet reads as an em dash. */
+export const formatCost = (credits: number | null | undefined) =>
+  credits === null || credits === undefined || !Number.isFinite(credits)
+    ? "—"
+    : formatCredits(credits);
+
 export const isVisibleCredits = (credits: number) =>
   formatCredits(credits) !== formatCredits(0);
 
