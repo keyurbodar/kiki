@@ -9,7 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+<<<<<<< HEAD
 import { Route as Char91__composerChar93RouteImport } from './routes/[__composer]'
+=======
+>>>>>>> 7f6dc25b (T08: regenerate the route tree after the rebase)
 import { Route as Char91__composerFooterChar93RouteImport } from './routes/[__composer-footer]'
 import { Route as Char91__threadDeviceChar93RouteImport } from './routes/[__thread-device]'
 import { Route as Char91__tokensChar93RouteImport } from './routes/[__tokens]'
@@ -173,11 +176,14 @@ import { Route as AppProjectProjectIdPullOwnerRepoPrNumberRouteImport } from './
 import { Route as AppSettingsProjectsProjectIdDevEnvironmentBuildsBuildIdRouteImport } from './routes/_app/settings/projects_/$projectId_/dev-environment_/builds/$buildId'
 import { Route as AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRouteImport } from './routes/_app/settings/projects_/$projectId_/dev-environment_/repositories/$owner/$repo'
 
+<<<<<<< HEAD
 const Char91__composerChar93Route = Char91__composerChar93RouteImport.update({
   id: '/__composer',
   path: '/__composer',
   getParentRoute: () => rootRouteImport,
 } as any)
+=======
+>>>>>>> 7f6dc25b (T08: regenerate the route tree after the rebase)
 const Char91__composerFooterChar93Route =
   Char91__composerFooterChar93RouteImport.update({
     id: '/__composer-footer',
@@ -1063,7 +1069,10 @@ const AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+<<<<<<< HEAD
   '/__composer': typeof Char91__composerChar93Route
+=======
+>>>>>>> 7f6dc25b (T08: regenerate the route tree after the rebase)
   '/__composer-footer': typeof Char91__composerFooterChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
@@ -1226,7 +1235,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
+<<<<<<< HEAD
   '/__composer': typeof Char91__composerChar93Route
+=======
+>>>>>>> 7f6dc25b (T08: regenerate the route tree after the rebase)
   '/__composer-footer': typeof Char91__composerFooterChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
@@ -1389,7 +1401,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteRouteWithChildren
   '/_auth': typeof AuthRouteRouteWithChildren
+<<<<<<< HEAD
   '/__composer': typeof Char91__composerChar93Route
+=======
+>>>>>>> 7f6dc25b (T08: regenerate the route tree after the rebase)
   '/__composer-footer': typeof Char91__composerFooterChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
@@ -1555,7 +1570,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+<<<<<<< HEAD
     | '/__composer'
+=======
+>>>>>>> 7f6dc25b (T08: regenerate the route tree after the rebase)
     | '/__composer-footer'
     | '/__thread-device'
     | '/__tokens'
@@ -1718,7 +1736,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+<<<<<<< HEAD
     | '/__composer'
+=======
+>>>>>>> 7f6dc25b (T08: regenerate the route tree after the rebase)
     | '/__composer-footer'
     | '/__thread-device'
     | '/__tokens'
@@ -1880,7 +1901,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/_auth'
+<<<<<<< HEAD
     | '/__composer'
+=======
+>>>>>>> 7f6dc25b (T08: regenerate the route tree after the rebase)
     | '/__composer-footer'
     | '/__thread-device'
     | '/__tokens'
@@ -2046,7 +2070,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
+<<<<<<< HEAD
   Char91__composerChar93Route: typeof Char91__composerChar93Route
+=======
+>>>>>>> 7f6dc25b (T08: regenerate the route tree after the rebase)
   Char91__composerFooterChar93Route: typeof Char91__composerFooterChar93Route
   Char91__threadDeviceChar93Route: typeof Char91__threadDeviceChar93Route
   Char91__tokensChar93Route: typeof Char91__tokensChar93Route
@@ -2075,6 +2102,7 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+<<<<<<< HEAD
     '/__composer': {
       id: '/__composer'
       path: '/__composer'
@@ -2082,6 +2110,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91__composerChar93RouteImport
       parentRoute: typeof rootRouteImport
     }
+=======
+>>>>>>> 7f6dc25b (T08: regenerate the route tree after the rebase)
     '/__composer-footer': {
       id: '/__composer-footer'
       path: '/__composer-footer'
@@ -3562,7 +3592,10 @@ const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   AuthRouteRoute: AuthRouteRouteWithChildren,
+<<<<<<< HEAD
   Char91__composerChar93Route: Char91__composerChar93Route,
+=======
+>>>>>>> 7f6dc25b (T08: regenerate the route tree after the rebase)
   Char91__composerFooterChar93Route: Char91__composerFooterChar93Route,
   Char91__threadDeviceChar93Route: Char91__threadDeviceChar93Route,
   Char91__tokensChar93Route: Char91__tokensChar93Route,
