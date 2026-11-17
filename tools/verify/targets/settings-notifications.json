@@ -1,0 +1,11 @@
+{
+  "defaults": { "maxMismatch": 100 },
+  "targets": [
+    {
+      "id": "settings-notifications",
+      "route": "/settings/notifications",
+      "viewport": "1440x818",
+      "variants": { "default/dark": { "frame": "W-8s6LsNeN" } }
+    }
+  ]
+}

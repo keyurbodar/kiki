@@ -2,11 +2,12 @@ import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
-import { devices, orgId } from "../fixtures/world.ts";
+import { devices, orgId, people, viewer } from "../fixtures/world.ts";
 
 interface Subscription {
   readonly id: string;
   readonly deviceId: string;
+  readonly ownerId: string;
   readonly enabled: boolean;
 }
 interface PushState {
@@ -43,6 +44,24 @@ describe("push mock", () => {
       assert.include(
         state.subscriptions.map((row) => row.deviceId),
         devices[0].id,
+      );
+    }),
+  );
+
+  it.effect("lists only the signed-in user's subscriptions", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const state = (yield* AtomRegistry.getResult(
+        registry,
+        getAtom,
+      )) as PushState;
+      assert.isAbove(state.subscriptions.length, 0);
+      assert.isTrue(
+        state.subscriptions.every((row) => row.ownerId === viewer.id),
+      );
+      assert.notInclude(
+        state.subscriptions.map((row) => row.ownerId),
+        people.sam.id,
       );
     }),
   );
