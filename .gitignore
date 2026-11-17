@@ -1,4 +1,5 @@
 node_modules/
+.bun/
 dist/
 build/
 *.tsbuildinfo
@@ -11,6 +12,11 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+
+# Instabox VM provisioning
+MACHINE.md
+.agents/
+.claude/
 
 # Env
 .env
