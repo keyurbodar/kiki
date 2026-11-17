@@ -383,7 +383,6 @@ export function ThreadsPageView({
                 className="pointer-events-none absolute left-1.5 text-muted-foreground-2"
               />
               <FilterSearch
-                // biome-ignore lint/a11y/noAutofocus: the field only exists once the search control is pressed
                 autoFocus
                 search={search}
                 aria-label="Search threads"
