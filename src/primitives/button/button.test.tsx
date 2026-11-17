@@ -4,7 +4,13 @@ import { Button, ButtonIcon, buttonVariants } from "./button";
 
 beforeEach(() => {
   Element.prototype.animate = vi.fn(
-    () => ({ play() {}, pause() {}, cancel() {} }) as unknown as Animation,
+    () =>
+      ({
+        play() {},
+        pause() {},
+        cancel() {},
+        finished: Promise.resolve(),
+      }) as unknown as Animation,
   );
 });
 afterEach(cleanup);
