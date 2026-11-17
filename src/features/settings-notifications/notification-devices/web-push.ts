@@ -8,7 +8,9 @@ export function pushSupport(): PushSupport {
     return "unsupported";
   if ("serviceWorker" in navigator && "PushManager" in window)
     return "supported";
-  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  const ios =
+    /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+    (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
   const standalone = window.matchMedia("(display-mode: standalone)").matches;
   return ios && !standalone ? "install" : "unsupported";
 }

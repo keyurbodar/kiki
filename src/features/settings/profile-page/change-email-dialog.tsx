@@ -104,24 +104,16 @@ export function ChangeEmailDialog(props: ChangeEmailDialogProps) {
             <span className="text-foreground">{props.pendingEmail}</span>
           </p>
           <div className="flex flex-col gap-1.5">
-            <OtpInput>
-              <input
-                // biome-ignore lint/a11y/noAutofocus: Capy focuses the code field when the step opens
-                autoFocus
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={6}
-                aria-label="Verification code"
-                aria-invalid={error !== null}
-                disabled={busy !== null}
-                value={props.code}
-                onChange={(e) => {
-                  const code = e.target.value.replace(/\D/g, "").slice(0, 6);
-                  props.onCodeChange(code);
-                  if (code.length === 6) props.onConfirm(code);
-                }}
-              />
-            </OtpInput>
+            <OtpInput
+              value={props.code}
+              onChange={(code) => {
+                props.onCodeChange(code);
+                if (code.length === 6) props.onConfirm(code);
+              }}
+              autoFocus
+              invalid={error !== null}
+              disabled={busy !== null}
+            />
             <FieldError>{error}</FieldError>
           </div>
           <Button
