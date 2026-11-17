@@ -653,9 +653,7 @@ export function ThreadOptions({
       tab: { kind: "side_thread", jamId: thread.id } as PaneTab,
       label: thread.title ?? "Side thread",
     }))
-    .filter(
-      (row) => match("side threads") || match(row.label),
-    );
+    .filter((row) => match("side threads") || match(row.label));
   const newSide =
     onNewSideThread !== undefined && match("new side thread", "side thread");
   const showSide = query === "" || newSide || sideRows.length > 0;
@@ -695,8 +693,7 @@ export function ThreadOptions({
     (machine) => query === "" || machineMatches(machine),
   );
   const phoneRows = (phones ?? []).filter(
-    (phone) =>
-      match("phones") || match(phone.name, phone.description, "phone"),
+    (phone) => match("phones") || match(phone.name, phone.description, "phone"),
   );
   const phoneModels = PHONE_MODELS.filter((phone) =>
     match(phone.label, "phone"),

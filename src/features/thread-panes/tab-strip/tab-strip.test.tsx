@@ -143,7 +143,9 @@ describe("ThreadOptions", () => {
         />
       </OpenMenu>,
     );
-    const desktop = screen.getAllByRole("menuitem").find((row) => row.textContent?.startsWith("Desktop"));
+    const desktop = screen
+      .getAllByRole("menuitem")
+      .find((row) => row.textContent?.startsWith("Desktop"));
     expect(desktop).toBeTruthy();
     if (desktop === undefined) throw new Error("Desktop row missing");
     fireEvent.click(desktop);
@@ -170,7 +172,13 @@ describe("ThreadOptions", () => {
               state: "awake",
             },
           ]}
-          pulls={[{ number: 7, url: "https://github.com/acme/web/pull/7", title: "Fix startup" }]}
+          pulls={[
+            {
+              number: 7,
+              url: "https://github.com/acme/web/pull/7",
+              title: "Fix startup",
+            },
+          ]}
           onOpen={onOpen}
         />
       </OpenMenu>,
