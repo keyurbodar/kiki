@@ -7,7 +7,6 @@ import {
   DeviceCodeNotFound,
   DeviceCodePreview,
   DeviceCodeResolution,
-  DeviceId,
   DeviceNotFound,
   LookupDeviceCodeRequest,
   RenameDeviceRequest,
@@ -16,7 +15,6 @@ import {
   SetDeviceComputerUseAccessRequest,
   SetDeviceDescriptionRequest,
 } from "../schemas/devices.ts";
-import { OrgId } from "../schemas/ids.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class DevicesGroup extends HttpApiGroup.make("devices").add(
@@ -43,17 +41,17 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     success: Undecoded,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.get("list", "/orgs/:orgId/devices", {
-    params: { orgId: OrgId },
+    params: { orgId: Schema.String },
     success: Schema.Array(Device),
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.patch("rename", "/orgs/:orgId/devices/:deviceId", {
-    params: { orgId: OrgId, deviceId: DeviceId },
+    params: { orgId: Schema.String, deviceId: Schema.String },
     payload: RenameDeviceRequest,
     success: Device,
     error: DeviceNotFound,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.post("setAccess", "/orgs/:orgId/devices/:deviceId/access", {
-    params: { orgId: OrgId, deviceId: DeviceId },
+    params: { orgId: Schema.String, deviceId: Schema.String },
     payload: SetDeviceAccessRequest,
     success: Device,
     error: DeviceNotFound,
@@ -114,7 +112,10 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     "activeThreads",
     "/orgs/:orgId/devices/:deviceId/active-threads",
     {
-      params: { orgId: Schema.String, deviceId: Schema.String },
+      params: {
+        orgId: Schema.String,
+        deviceId: Schema.String,
+      },
       success: Undecoded,
     },
   ).annotate(InferredMethod, true),
@@ -122,7 +123,10 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     "setAgentAccess",
     "/orgs/:orgId/devices/:deviceId/agent-access",
     {
-      params: { orgId: OrgId, deviceId: DeviceId },
+      params: {
+        orgId: Schema.String,
+        deviceId: Schema.String,
+      },
       payload: SetDeviceAgentAccessRequest,
       success: Device,
       error: DeviceNotFound,
@@ -132,7 +136,10 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     "listAgentAccess",
     "/orgs/:orgId/devices/:deviceId/agent-access",
     {
-      params: { orgId: Schema.String, deviceId: Schema.String },
+      params: {
+        orgId: Schema.String,
+        deviceId: Schema.String,
+      },
       success: Undecoded,
     },
   ).annotate(InferredMethod, true),
@@ -177,7 +184,10 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     "findCheckouts",
     "/orgs/:orgId/devices/:deviceId/checkouts/find",
     {
-      params: { orgId: Schema.String, deviceId: Schema.String },
+      params: {
+        orgId: Schema.String,
+        deviceId: Schema.String,
+      },
       payload: Undecoded,
       success: Undecoded,
     },
@@ -186,7 +196,10 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     "setComputerUseAccess",
     "/orgs/:orgId/devices/:deviceId/computer-use",
     {
-      params: { orgId: OrgId, deviceId: DeviceId },
+      params: {
+        orgId: Schema.String,
+        deviceId: Schema.String,
+      },
       payload: SetDeviceComputerUseAccessRequest,
       success: Device,
       error: DeviceNotFound,
@@ -233,7 +246,10 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     "setDescription",
     "/orgs/:orgId/devices/:deviceId/description",
     {
-      params: { orgId: OrgId, deviceId: DeviceId },
+      params: {
+        orgId: Schema.String,
+        deviceId: Schema.String,
+      },
       payload: SetDeviceDescriptionRequest,
       success: Device,
       error: DeviceNotFound,
@@ -243,7 +259,10 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     "browseFolders",
     "/orgs/:orgId/devices/:deviceId/folders",
     {
-      params: { orgId: Schema.String, deviceId: Schema.String },
+      params: {
+        orgId: Schema.String,
+        deviceId: Schema.String,
+      },
       query: UndecodedQuery,
       success: Undecoded,
     },
@@ -252,7 +271,10 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     "linkFolder",
     "/orgs/:orgId/devices/:deviceId/folders/link",
     {
-      params: { orgId: Schema.String, deviceId: Schema.String },
+      params: {
+        orgId: Schema.String,
+        deviceId: Schema.String,
+      },
       payload: Undecoded,
       success: Undecoded,
     },
@@ -261,7 +283,10 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     "unlinkFolder",
     "/orgs/:orgId/devices/:deviceId/folders/unlink",
     {
-      params: { orgId: Schema.String, deviceId: Schema.String },
+      params: {
+        orgId: Schema.String,
+        deviceId: Schema.String,
+      },
       payload: Undecoded,
       success: Undecoded,
     },
@@ -270,7 +295,10 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     "setProjectCheckout",
     "/orgs/:orgId/devices/:deviceId/project-checkout",
     {
-      params: { orgId: Schema.String, deviceId: Schema.String },
+      params: {
+        orgId: Schema.String,
+        deviceId: Schema.String,
+      },
       payload: Undecoded,
       success: Undecoded,
     },
@@ -279,7 +307,10 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     "clearProjectCheckout",
     "/orgs/:orgId/devices/:deviceId/project-checkout/clear",
     {
-      params: { orgId: Schema.String, deviceId: Schema.String },
+      params: {
+        orgId: Schema.String,
+        deviceId: Schema.String,
+      },
       payload: Undecoded,
       success: Undecoded,
     },
@@ -333,13 +364,16 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     "pullRefresh",
     "/orgs/:orgId/devices/:deviceId/pulls/refresh",
     {
-      params: { orgId: Schema.String, deviceId: Schema.String },
+      params: {
+        orgId: Schema.String,
+        deviceId: Schema.String,
+      },
       query: UndecodedQuery,
       success: Undecoded,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post("revoke", "/orgs/:orgId/devices/:deviceId/revoke", {
-    params: { orgId: OrgId, deviceId: DeviceId },
+    params: { orgId: Schema.String, deviceId: Schema.String },
     success: Device,
     error: DeviceNotFound,
   }).annotate(InferredMethod, true),
@@ -347,7 +381,10 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     "workspaceIndex",
     "/orgs/:orgId/devices/:deviceId/workspace-index",
     {
-      params: { orgId: Schema.String, deviceId: Schema.String },
+      params: {
+        orgId: Schema.String,
+        deviceId: Schema.String,
+      },
       query: UndecodedQuery,
       success: Undecoded,
     },
@@ -358,7 +395,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     success: Undecoded,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.post("codeApprove", "/orgs/:orgId/devices/code/approve", {
-    params: { orgId: OrgId },
+    params: { orgId: Schema.String },
     payload: ApproveDeviceCodeRequest,
     success: DeviceCodeResolution,
     error: DeviceCodeNotFound,
@@ -367,7 +404,10 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     "listProjectCheckouts",
     "/orgs/:orgId/projects/:projectId/device-checkouts",
     {
-      params: { orgId: Schema.String, projectId: Schema.String },
+      params: {
+        orgId: Schema.String,
+        projectId: Schema.String,
+      },
       success: Undecoded,
     },
   ).annotate(InferredMethod, true),
@@ -375,7 +415,10 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     "listThreadAgentAccess",
     "/orgs/:orgId/threads/:threadId/agent-access",
     {
-      params: { orgId: Schema.String, threadId: Schema.String },
+      params: {
+        orgId: Schema.String,
+        threadId: Schema.String,
+      },
       success: Undecoded,
     },
   ).annotate(InferredMethod, true),

@@ -3,7 +3,7 @@ import {
   DeviceCodeNotFound,
   DeviceCodePreview,
   DeviceCodeResolution,
-  type DeviceId,
+  DeviceId,
   DeviceNotFound,
 } from "../../api/schemas/devices.ts";
 import { MockDb, newId } from "../db/MockDb.ts";
@@ -29,17 +29,19 @@ export const DevicesMock = mockGroup("devices", (handlers) =>
     });
     const codes = yield* Ref.make({ ...pendingCodes });
 
-    const read = (deviceId: DeviceId) =>
+    const read = (deviceId: string) =>
       Effect.gen(function* () {
         const row = (yield* Ref.get(devices)).find((r) => r.id === deviceId);
         const extra = (yield* Ref.get(details))[deviceId];
         if (row === undefined || extra === undefined) {
-          return yield* Effect.fail(new DeviceNotFound({ deviceId }));
+          return yield* Effect.fail(
+            new DeviceNotFound({ deviceId: DeviceId.make(deviceId) }),
+          );
         }
         return toDevice(row, extra);
       });
 
-    const patchDetails = (deviceId: DeviceId, patch: Partial<DeviceDetails>) =>
+    const patchDetails = (deviceId: string, patch: Partial<DeviceDetails>) =>
       Effect.gen(function* () {
         yield* read(deviceId);
         yield* Ref.update(details, (all) => {
@@ -52,7 +54,7 @@ export const DevicesMock = mockGroup("devices", (handlers) =>
       });
 
     const patchRow = (
-      deviceId: DeviceId,
+      deviceId: string,
       patch: { name?: string; sharedWithOrg?: boolean },
     ) =>
       Effect.gen(function* () {

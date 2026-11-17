@@ -4,7 +4,7 @@ import {
   ServiceUserDetail,
   ServiceUserNotFound,
 } from "../../api/schemas/api-keys.ts";
-import { type ServiceUserId, UserId } from "../../api/schemas/ids.ts";
+import { ServiceUserId, UserId } from "../../api/schemas/ids.ts";
 import { MockDb, newId } from "../db/MockDb.ts";
 import { fixtureNow } from "../fixtures/time.ts";
 import { viewer } from "../fixtures/world.ts";
@@ -23,18 +23,22 @@ export const ServiceUsersMock = mockGroup("serviceUsers", (handlers) =>
     const users =
       yield* Ref.make<ReadonlyArray<ServiceUserDetail>>(sampleServiceUsers);
 
-    const find = (serviceUserId: ServiceUserId) =>
+    const find = (serviceUserId: string) =>
       Ref.get(users).pipe(
         Effect.map((rows) => rows.find((row) => row.id === serviceUserId)),
         Effect.flatMap((row) =>
           row === undefined
-            ? Effect.fail(new ServiceUserNotFound({ serviceUserId }))
+            ? Effect.fail(
+                new ServiceUserNotFound({
+                  serviceUserId: ServiceUserId.make(serviceUserId),
+                }),
+              )
             : Effect.succeed(row),
         ),
       );
 
     const update = (
-      serviceUserId: ServiceUserId,
+      serviceUserId: string,
       change: Partial<ConstructorParameters<typeof ServiceUserDetail>[0]>,
     ) =>
       Effect.gen(function* () {

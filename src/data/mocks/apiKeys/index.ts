@@ -1,7 +1,7 @@
 import { DateTime, Effect, Ref } from "effect";
 import {
   ApiKey,
-  type ApiKeyId,
+  ApiKeyId,
   ApiKeyNotFound,
   MintedApiKey,
 } from "../../api/schemas/api-keys.ts";
@@ -24,11 +24,14 @@ export const ApiKeysMock = mockGroup("apiKeys", (handlers) =>
   Effect.gen(function* () {
     const keys = yield* Ref.make<ReadonlyArray<ApiKey>>(sampleApiKeys);
 
-    const update = (keyId: ApiKeyId, change: (key: ApiKey) => ApiKey) =>
+    const update = (keyId: string, change: (key: ApiKey) => ApiKey) =>
       Effect.gen(function* () {
         const rows = yield* Ref.get(keys);
         const current = rows.find((row) => row.id === keyId);
-        if (!current) return yield* Effect.fail(new ApiKeyNotFound({ keyId }));
+        if (!current)
+          return yield* Effect.fail(
+            new ApiKeyNotFound({ keyId: ApiKeyId.make(keyId) }),
+          );
         const next = change(current);
         yield* Ref.set(
           keys,

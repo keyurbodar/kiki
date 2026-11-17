@@ -11,17 +11,16 @@ import {
   SetServiceUserSubscriptionRequest,
   UpdateServiceUserRequest,
 } from "../schemas/api-keys.ts";
-import { OrgId, ServiceUserId } from "../schemas/ids.ts";
 
-const params = { orgId: OrgId, serviceUserId: ServiceUserId };
+const params = { orgId: Schema.String, serviceUserId: Schema.String };
 
 export class ServiceUsersGroup extends HttpApiGroup.make("serviceUsers").add(
   HttpApiEndpoint.get("list", "/orgs/:orgId/service-users", {
-    params: { orgId: OrgId },
+    params: { orgId: Schema.String },
     success: Schema.Array(ServiceUser),
   }),
   HttpApiEndpoint.post("create", "/orgs/:orgId/service-users", {
-    params: { orgId: OrgId },
+    params: { orgId: Schema.String },
     payload: CreateServiceUserRequest,
     success: ServiceUserDetail,
     error: [Forbidden, InvalidRequest, ServiceUserNotFound],

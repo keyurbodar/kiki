@@ -1,25 +1,24 @@
+import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
 import { InferredMethod } from "../annotations.ts";
 import {
   CloudAccess,
   CloudAccessTarget,
-  CloudAccessTargetId,
   CreateCloudAccessTargetRequest,
   UpdateCloudAccessTargetRequest,
 } from "../schemas/cloud-access.ts";
-import { OrgId } from "../schemas/ids.ts";
 import { IntegrationMutationResult } from "../schemas/integrations.ts";
 
 export class CloudAccessGroup extends HttpApiGroup.make("cloud-access").add(
   HttpApiEndpoint.get("getCloudAccess", "/orgs/:orgId/cloud-access", {
-    params: { orgId: OrgId },
+    params: { orgId: Schema.String },
     success: CloudAccess,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
     "createCloudAccessTarget",
     "/orgs/:orgId/cloud-access/targets",
     {
-      params: { orgId: OrgId },
+      params: { orgId: Schema.String },
       payload: CreateCloudAccessTargetRequest,
       success: CloudAccessTarget,
     },
@@ -28,7 +27,10 @@ export class CloudAccessGroup extends HttpApiGroup.make("cloud-access").add(
     "updateCloudAccessTarget",
     "/orgs/:orgId/cloud-access/targets/:targetId",
     {
-      params: { orgId: OrgId, targetId: CloudAccessTargetId },
+      params: {
+        orgId: Schema.String,
+        targetId: Schema.String,
+      },
       payload: UpdateCloudAccessTargetRequest,
       success: CloudAccessTarget,
     },
@@ -37,7 +39,10 @@ export class CloudAccessGroup extends HttpApiGroup.make("cloud-access").add(
     "deleteCloudAccessTarget",
     "/orgs/:orgId/cloud-access/targets/:targetId",
     {
-      params: { orgId: OrgId, targetId: CloudAccessTargetId },
+      params: {
+        orgId: Schema.String,
+        targetId: Schema.String,
+      },
       success: IntegrationMutationResult,
     },
   ).annotate(InferredMethod, true),
@@ -45,7 +50,10 @@ export class CloudAccessGroup extends HttpApiGroup.make("cloud-access").add(
     "checkCloudAccessTarget",
     "/orgs/:orgId/cloud-access/targets/:targetId/check",
     {
-      params: { orgId: OrgId, targetId: CloudAccessTargetId },
+      params: {
+        orgId: Schema.String,
+        targetId: Schema.String,
+      },
       success: CloudAccessTarget,
     },
   ).annotate(InferredMethod, true),
