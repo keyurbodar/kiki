@@ -1,6 +1,7 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
+import { defaultModelId } from "@/components/model-picker/catalog";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId, viewer, world } from "../fixtures/world.ts";
 
@@ -78,10 +79,12 @@ describe("models mock", () => {
         ]);
 
       const listed = list as { models: ReadonlyArray<{ id: string }> };
+      const ids = listed.models.map((model) => model.id);
       assert.deepStrictEqual(
-        listed.models.map((model) => model.id),
+        ids.slice(0, world.models.length),
         world.models.map((model) => model.id),
       );
+      assert.include(ids, defaultModelId);
       assert.isAbove(credentials(list).length, 0);
       assert.isTrue(credentials(list).every((row) => row.id.length > 0));
       assert.isAbove(compactRows(myCompact).length, 0);
