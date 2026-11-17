@@ -13,7 +13,7 @@ const row = (live: boolean, expanded = false) =>
     createdAt: at(0),
     type: "work-group",
     activeMs: 247_000,
-    failures: [{ key: "a", failed: true }],
+    failures: 1,
     chunks: [],
     live,
     expanded,

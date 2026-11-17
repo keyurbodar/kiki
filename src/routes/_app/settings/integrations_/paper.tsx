@@ -1,17 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { PaperIntegrationPage } from "@/features/settings-integrations/integrations";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/settings/integrations_/paper")({
   validateSearch: searchParams(["paper"]),
-  component: RouteComponent,
+  component: PaperIntegrationPage,
 });
-
-function RouteComponent() {
-  return (
-    <RoutePlaceholder
-      title="/settings/integrations/paper"
-      path="/settings/integrations/paper"
-    />
-  );
-}

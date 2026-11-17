@@ -223,7 +223,11 @@ describe("mcp mock", () => {
       const done = yield* Registry.getResult(registry, completeOAuth as any, {
         suspendOnWaiting: true,
       });
-      assert.isTrue((done as { connected: boolean }).connected);
+      assert.strictEqual((done as { result: string }).result, "connected");
+      assert.strictEqual(
+        (done as { destination: string }).destination,
+        "/settings/mcp",
+      );
 
       registry.set(probeDraft, {
         params: { orgId },
