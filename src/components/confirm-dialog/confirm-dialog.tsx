@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
-import type { ButtonVariants } from "@/primitives/button";
-import { Button } from "@/primitives/button";
+import { Button, type ButtonVariants } from "@/primitives/button";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +13,7 @@ export type ConfirmDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: ReactNode;
-  description?: ReactNode;
+  description: ReactNode;
   confirmLabel: ReactNode;
   intent?: ButtonVariants["intent"];
   onConfirm: () => void;
@@ -37,6 +36,7 @@ export function ConfirmDialog({
   disabled = false,
   loadingLabel,
   closeOnConfirm = true,
+  nested = false,
 }: ConfirmDialogProps) {
   return (
     <Dialog
@@ -45,13 +45,15 @@ export function ConfirmDialog({
         if (!loading) onOpenChange(next);
       }}
     >
-      <DialogContent>
+      <DialogContent data-nested-backdrop={nested || undefined}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
+        <div className="pb-2" />
         <DialogFooter>
           <Button
+            data-track-owner="shared/confirm-dialog.tsx#ConfirmDialog:Button[Cancel]"
             variant="ghost"
             disabled={loading}
             onClick={() => onOpenChange(false)}
@@ -59,6 +61,7 @@ export function ConfirmDialog({
             Cancel
           </Button>
           <Button
+            data-track-owner="shared/confirm-dialog.tsx#ConfirmDialog:Button.1"
             intent={intent}
             disabled={disabled || loading}
             aria-busy={loading || undefined}

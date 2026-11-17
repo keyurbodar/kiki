@@ -1,18 +1,23 @@
 import { DateTime } from "effect";
-import { JamId, ProjectId } from "../../api/schemas/ids.ts";
+import {
+  IssueCommentId,
+  IssueEventId,
+  IssueId,
+  IssueLabelId,
+  IssueStateId,
+  JamId,
+  ProjectId,
+  PullRequestId,
+} from "../../api/schemas/ids.ts";
 import {
   IssueAccess,
   IssueActor,
   type IssueColor,
   IssueComment,
-  IssueCommentId,
   IssueDetail,
   type IssueDueDate,
   IssueEvent,
-  IssueEventId,
-  IssueId,
   IssueLabel,
-  IssueLabelId,
   IssueLabelList,
   IssuePullLink,
   IssuePullRef,
@@ -22,16 +27,14 @@ import {
   IssueRelationRef,
   IssueState,
   type IssueStateIcon,
-  IssueStateId,
   IssueStateList,
   type IssueStatus,
   IssueSummary,
   IssueThreadLink,
   IssueViewer,
-  PullId,
 } from "../../api/schemas/issue.ts";
 import type { Row } from "../db/MockDb.ts";
-import { people, threads, viewer } from "../fixtures/world.ts";
+import { isoMinutesAgo, people, threads, viewer } from "../fixtures/world.ts";
 
 /**
  * Issue page fixtures (D1b). The shared world (fixtures/world.ts) stores issues
@@ -93,7 +96,9 @@ const fallbackStyle = {
 } as const;
 
 const styleOf = (state: WorldState) =>
-  stateOverrides[state.id] ?? stateStyle[state.category] ?? fallbackStyle;
+  (state.category === "started" ? stateOverrides[state.id] : undefined) ??
+  stateStyle[state.category] ??
+  fallbackStyle;
 
 export const statusOfState = (state: WorldState) => styleOf(state).status;
 
@@ -157,7 +162,7 @@ export interface IssueExtra {
   readonly comments: ReadonlyArray<{
     readonly authorId: string;
     readonly body: string;
-    readonly minutesAgo: number;
+    readonly createdAt: string;
   }>;
 }
 
@@ -173,7 +178,7 @@ export const issueExtras: Record<string, IssueExtra> = {
       {
         authorId: people.sam.id,
         body: "Release notes draft is in the docs folder.",
-        minutesAgo: 120,
+        createdAt: isoMinutesAgo(120),
       },
     ],
   },
@@ -191,7 +196,7 @@ export const issueExtras: Record<string, IssueExtra> = {
       {
         authorId: people.alex.id,
         body: "Seen again on main this morning. Logs attached to the thread.",
-        minutesAgo: 45,
+        createdAt: isoMinutesAgo(45),
       },
     ],
   },
@@ -378,7 +383,7 @@ export const toIssueDetail = (world: IssueWorld, row: WorldIssue) => {
       .map(
         (pull) =>
           new IssuePullLink({
-            pullId: PullId.make(pull.id),
+            pullId: PullRequestId.make(pull.id),
             repoFullName: pull.repo,
             prNumber: pull.number,
             title: pull.title,
@@ -413,9 +418,7 @@ export const toIssueDetail = (world: IssueWorld, row: WorldIssue) => {
           replyToCommentId: null,
           author: personActor(comment.authorId),
           body: comment.body,
-          createdAt: DateTime.subtract(timestamp(row.updatedAt), {
-            minutes: comment.minutesAgo - 1,
-          }),
+          createdAt: timestamp(comment.createdAt),
           editedAt: null,
         }),
     ),

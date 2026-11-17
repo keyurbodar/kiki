@@ -414,7 +414,12 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
       .handle("review", ({ params }) =>
         Effect.gen(function* () {
           yield* findPull(params.pullId);
-          return { ...pullReview, pullId: params.pullId };
+          const rows = yield* Ref.get(findings);
+          return {
+            ...pullReview,
+            pullId: params.pullId,
+            findings: rows.filter((row) => row.pullId === params.pullId),
+          };
         }),
       )
       .handle("requestReview", ({ params, payload }) =>
