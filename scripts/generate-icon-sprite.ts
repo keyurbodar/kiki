@@ -141,10 +141,16 @@ const stroked = (glyph: Glyph) =>
 const collected = new Map<string, Glyph[]>();
 for (const file of readdirSync(chunkDir).sort()) {
   if (!file.endsWith(".js")) continue;
-  for (const [name, glyphs] of glyphsIn(readFileSync(join(chunkDir, file), "utf8"))) {
+  for (const [name, glyphs] of glyphsIn(
+    readFileSync(join(chunkDir, file), "utf8"),
+  )) {
     const existing = collected.get(name) ?? [];
     for (const glyph of glyphs) {
-      if (!existing.some((known) => render(known.children) === render(glyph.children))) {
+      if (
+        !existing.some(
+          (known) => render(known.children) === render(glyph.children),
+        )
+      ) {
         existing.push(glyph);
       }
     }
@@ -158,7 +164,9 @@ for (const [name, glyphs] of collected) {
   // the one with more elements is the plain glyph and the sparser one is the
   // outline, which is how Capy's own sprite pairs them.
   const ordered = [...glyphs].sort(
-    (a, b) => Number(stroked(a) > 0) - Number(stroked(b) > 0) || b.children.length - a.children.length,
+    (a, b) =>
+      Number(stroked(a) > 0) - Number(stroked(b) > 0) ||
+      b.children.length - a.children.length,
   );
   named.set(name, ordered[0]);
   if (ordered.length > 1) named.set(`${name}-outline`, ordered[1]);
@@ -167,10 +175,11 @@ for (const [name, glyphs] of collected) {
   }
 }
 
-const names = [...named.keys()].sort();
-const symbols = names.map(
-  (name) =>
-    `  <symbol id="${name}" viewBox="0 0 24 24" fill="none">${render(named.get(name)!.children)}</symbol>`,
+const entries = [...named.entries()].sort(([a], [b]) => (a < b ? -1 : 1));
+const names = entries.map(([name]) => name);
+const symbols = entries.map(
+  ([name, glyph]) =>
+    `  <symbol id="${name}" viewBox="0 0 24 24" fill="none">${render(glyph.children)}</symbol>`,
 );
 
 const sprite = [
@@ -189,8 +198,9 @@ const idsSource = [
   "export type IconId = (typeof ICON_IDS)[number];",
   "",
   "export const ICON_KEYWORDS: Record<IconId, string> = {",
-  ...names.map(
-    (name) => `  ${JSON.stringify(name)}: ${JSON.stringify(named.get(name)!.label)},`,
+  ...entries.map(
+    ([name, glyph]) =>
+      `  ${JSON.stringify(name)}: ${JSON.stringify(glyph.label)},`,
   ),
   "};",
   "",
