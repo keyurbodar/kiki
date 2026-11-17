@@ -30,6 +30,7 @@
     "@lexical/react": "^0.53.0",
     "@lexical/rich-text": "^0.53.0",
     "@lexical/table": "^0.53.0",
+    "@paper-design/shaders-react": "0.0.80",
     "@pierre/diffs": "^1.6.4",
     "@pierre/trees": "^1.0.0",
     "@tanstack/react-router": "^1.170.46",
