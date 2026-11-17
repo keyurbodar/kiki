@@ -341,7 +341,7 @@ export function IssueRow({
           onCheck={(shift) => onCheck(issue, shift)}
         />
       )}
-      <span className="flex size-5 shrink-0 items-center justify-center">
+      <span className="flex size-4 shrink-0 items-center justify-center">
         <IssueStatusMenu issue={issue} orgId={orgId} state={state} />
       </span>
       {hidden("id") ? null : (
@@ -358,7 +358,7 @@ export function IssueRow({
               : "shrink-0 ") +
             (unread
               ? "font-semibold text-foreground"
-              : "font-normal text-muted-foreground-1")
+              : "font-normal text-foreground/80 dark:text-muted-foreground-1")
           }
         >
           {issue.title}

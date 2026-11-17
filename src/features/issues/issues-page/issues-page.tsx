@@ -22,6 +22,7 @@ import {
   IssuesToolbar,
   PlusGlyph,
   SearchGlyph,
+  CloseGlyph,
 } from "@/components/issues-toolbar";
 import type { OrgId } from "@/data/api/schemas/ids";
 import {
@@ -45,6 +46,7 @@ import {
   useIssueLabels,
   useIssueStates,
 } from "@/features/issues/issue-pickers";
+import { SidebarTrigger, useSidebarState } from "@/primitives/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 
 const splitKey = (key: string) => {
@@ -158,6 +160,8 @@ export function IssuesPage() {
     new Map(),
   );
   const [now] = useState(() => Date.now());
+  const { open: sidebarOpen, isNarrow } = useSidebarState();
+  const triggerShown = isNarrow || !sidebarOpen;
   const org = orgId ?? ("" as OrgId);
   const listKey = `${org}|${JSON.stringify(issueListQuery(filters, search, localDate(now)))}`;
   const listAtom = issueListAtom(listKey);
@@ -210,37 +214,53 @@ export function IssuesPage() {
   };
   return (
     <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
-      <header className="flex h-11 shrink-0 items-center gap-2 border-b-hairline border-border-1 px-3">
+      <header className="sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center border-b-hairline border-border-1 bg-panel px-2">
+        <span
+          inert={triggerShown ? undefined : true}
+          className={
+            "ease-out-quint flex shrink-0 items-center overflow-hidden transition-[width,margin,opacity] duration-base motion-reduce:transition-none " +
+            (triggerShown
+              ? "w-(--h-control-sm) opacity-100 -mr-1"
+              : "mr-0 w-0 opacity-0")
+          }
+        >
+          <SidebarTrigger className="size-(--h-control-sm)!" />
+        </span>
         {searchOpen ? (
-          <input
-            className="h-(--h-control-sm) min-w-0 flex-1 bg-transparent text-sm font-normal text-foreground outline-none placeholder:text-muted-foreground-3"
-            aria-label="Search issues"
-            placeholder="Search issues"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key !== "Escape") return;
-              setSearch("");
-              setSearchOpen(false);
-            }}
-          />
+          <span className="ml-2.5 flex min-w-0 flex-1 items-center gap-1.5">
+            <SearchGlyph className="size-(--icon-base) shrink-0 text-icon-muted" />
+            <input
+              className="min-w-0 flex-1 bg-transparent text-sm font-medium text-foreground outline-none placeholder:text-muted-foreground-3"
+              aria-label="Search issues"
+              placeholder="Search issues"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key !== "Escape") return;
+                setSearch("");
+                setSearchOpen(false);
+              }}
+            />
+          </span>
         ) : (
-          <h1 className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+          <h1 className="ml-2.5 min-w-0 truncate text-sm font-medium text-foreground">
             Issues
           </h1>
         )}
-        <HeaderButton
-          label="Search issues"
-          onClick={() => {
-            if (searchOpen) setSearch("");
-            setSearchOpen(!searchOpen);
-          }}
-        >
-          <SearchGlyph />
-        </HeaderButton>
-        <HeaderButton label="New issue">
-          <PlusGlyph />
-        </HeaderButton>
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 pl-2">
+          <HeaderButton
+            label={searchOpen ? "Close search" : "Search"}
+            onClick={() => {
+              if (searchOpen) setSearch("");
+              setSearchOpen(!searchOpen);
+            }}
+          >
+            {searchOpen ? <CloseGlyph /> : <SearchGlyph />}
+          </HeaderButton>
+          <HeaderButton label="New issue">
+            <PlusGlyph />
+          </HeaderButton>
+        </div>
       </header>
       <IssuesToolbar
         filters={filters}
