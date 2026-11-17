@@ -656,7 +656,7 @@ export const groupRows = (
           activeMs: previous.activeMs + (activeMs > 0 ? activeMs : gapMs),
           entries: merged as never,
           chunks: chunksOf(merged, expandedIds),
-          failures: failureEntries(merged),
+          failures: countFailures(merged),
           waiting: waitingOf(merged),
         };
         pending.length = 0;
@@ -671,7 +671,7 @@ export const groupRows = (
         eventId: first.eventId,
         createdAt: first.createdAt,
         activeMs: activeMs > 0 ? activeMs : gapMs,
-        failures: failureEntries(entries),
+        failures: countFailures(entries),
         entries: entries as never,
         chunks: chunksOf(entries, expandedIds),
         live: open !== undefined,

@@ -94,7 +94,7 @@ export const threadSyncAtom = Atom.family((key: string) =>
             const hint =
               message.type === "hint" ? hintScope(message) : undefined;
             const after =
-              hint?.changedColumns.length === 0
+              hint?.affectedIds.length === 0
                 ? newestEventId(current)
                 : undefined;
             const query = after === undefined ? {} : { after };
