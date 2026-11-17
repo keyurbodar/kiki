@@ -1,3 +1,7 @@
+import { DateTime } from "effect";
+import { CaptainCard } from "../../api/schemas/captain.ts";
+import { JamId, ProjectId, UserId } from "../../api/schemas/ids.ts";
+import type { Row } from "../db/MockDb.ts";
 import { isoMinutesAgo, people, projects } from "../fixtures/world.ts";
 
 export const sampleImages = [
@@ -32,3 +36,65 @@ export const promoteProjects = [
   projects.api,
   projects.docs,
 ] as const;
+
+const captainAvatars = ["capy-avatar-1", "capy-avatar-2", "capy-avatar-3"];
+
+export const captainCard = (captain: Row<"captains">, index: number) => {
+  const createdAt = DateTime.makeUnsafe(captain.createdAt);
+  return new CaptainCard({
+    id: JamId.make(captain.id),
+    primaryMachine: undefined,
+    title: captain.name,
+    titleCustom: true,
+    status: "idle",
+    archived: false,
+    archivedIdleDays: null,
+    threadNumber: null,
+    userId: UserId.make(captain.ownerId),
+    userType: "human",
+    takenFromUserId: null,
+    takenFromUserType: null,
+    origin: "web",
+    projectId: ProjectId.make(captain.projectId),
+    slackChannel: null,
+    linearIssue: null,
+    pinned: false,
+    settledAt: undefined,
+    section: undefined,
+    member: true,
+    subscribed: true,
+    personal: false,
+    tagIds: [],
+    importing: false,
+    lastModelId: null,
+    pulls: [],
+    createdAt,
+    updatedAt: createdAt,
+    lastActivityAt: createdAt,
+    preview: null,
+    sortActivityAt: createdAt,
+    hasUnreads: false,
+    mentionCount: 0,
+    owed: false,
+    needsYou: false,
+    ask: null,
+    crewNeedsYou: 0,
+    participated: true,
+    crewMentionCount: 0,
+    needsYouEventId: null,
+    captain: undefined,
+    crewCount: captain.crew.length,
+    automation: undefined,
+    pullCount: 0,
+    pullStates: [],
+    face: {
+      name: captain.name,
+      avatar: {
+        kind: "preset",
+        value: captainAvatars[index % captainAvatars.length] ?? "capy-avatar-1",
+        background: "#ffffff",
+      },
+      description: captain.description,
+    },
+  });
+};

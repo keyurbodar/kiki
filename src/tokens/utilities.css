@@ -21,11 +21,6 @@
   outline-offset: -1px;
 }
 
-@utility focus-gutter {
-  margin-inline: -0.25rem;
-  padding-inline: 0.25rem;
-}
-
 @utility scrollbar-hide {
   scrollbar-width: none;
   &::-webkit-scrollbar {
