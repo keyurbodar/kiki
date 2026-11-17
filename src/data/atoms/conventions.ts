@@ -9,4 +9,8 @@ export const reactivityKeys = {
   threads: (orgId: string) => `threads:${orgId}`,
   threadOrganization: (orgId: string) => `threadOrganization:${orgId}`,
   captains: (orgId: string) => `captains:${orgId}`,
+  issues: (orgId: string) => `issues:${orgId}`,
+  issue: (orgId: string, code: string) => `issue:${orgId}/${code}`,
+  issueStates: (orgId: string) => `issue-states:${orgId}`,
+  issueLabels: (orgId: string) => `issue-labels:${orgId}`,
 } as const;
