@@ -1,76 +1,102 @@
 import { RegistryProvider } from "@effect/atom-react";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { CompactAtDialog } from "./compact-at-dialog";
+import {
+  MoveToOrganizationDialog,
+  RenameSeatDialog,
+} from "./connection-dialogs";
 import { ModelsPage } from "./models-page";
 
 afterEach(cleanup);
 
-function renderPage() {
-  render(
-    <RegistryProvider>
-      <ModelsPage />
-    </RegistryProvider>,
-  );
-}
+const close = vi.fn();
 
 describe("/settings/models", () => {
-  it("shows Capy's page copy and the default-model rows", async () => {
-    renderPage();
-    expect(await screen.findByRole("heading", { name: "Models" })).toBeTruthy();
+  it("renders Capy's page copy and every section header", async () => {
+    render(
+      <RegistryProvider>
+        <ModelsPage />
+      </RegistryProvider>,
+    );
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Models" }),
+    ).toBeTruthy();
     expect(
       screen.getByText(
         "For each model, a thread runs on the first subscription or key below that serves it",
       ),
     ).toBeTruthy();
     expect(screen.getByText("Default models")).toBeTruthy();
+    expect(screen.getByText("Your connections")).toBeTruthy();
     expect(
-      screen.getByText("The model a thread starts on when nobody picks one"),
+      screen.getByText("Threads you own run on these first, in this order"),
     ).toBeTruthy();
+    expect(screen.getByText("Organization connections")).toBeTruthy();
     expect(
-      screen.getByText("Set by your pick in the home composer"),
-    ).toBeTruthy();
-    expect(
-      screen.getByText("Used for threads you start from Slack"),
-    ).toBeTruthy();
-    expect(
-      screen.getByText("Used for threads started from Linear issues"),
-    ).toBeTruthy();
-    expect(
-      screen.getByText("For members without a web default, and service users"),
+      screen.getByText(
+        "What a thread does when the subscription or key serving its model is out of usage",
+      ),
     ).toBeTruthy();
   });
 
-  it("renders the three dialogs owned by this package", async () => {
-    const close = vi.fn();
-    const save = vi.fn().mockResolvedValue(undefined);
+  it("mounts both connection card headers and the models table", async () => {
     render(
       <RegistryProvider>
-        <ModelsPage
-          compactAtRequest={{
-            scope: "user",
-            entry: {
-              id: "anthropic/claude-opus",
-              name: "Claude Opus 5.5",
-              provider: "anthropic",
-              efforts: ["low", "medium", "high"],
-              context: 200_000,
-            },
-          }}
-          renameRequest={{
-            service: "claude-code",
-            credentialId: "cred_sample",
-            label: "Sample subscription",
-          }}
-          moveRequest={{ name: "Sample key", credentialId: "cred_sample" }}
-          onCloseDialog={close}
-          onSaveCompactAt={save}
-          onRename={save}
-          onMove={save}
-        />
+        <ModelsPage />
       </RegistryProvider>,
     );
-    expect(await screen.findByText("Compact at (your threads)")).toBeTruthy();
+    expect(
+      (await screen.findAllByText("No connections")).length,
+    ).toBeGreaterThan(0);
+    expect(
+      document.querySelectorAll("[data-slot=card-list-header]").length,
+    ).toBe(2);
+    expect(screen.getByRole("table", { name: "Models" })).toBeTruthy();
+  });
+});
+
+describe("models-page dialogs", () => {
+  it("renders the compact-at dialog for the user scope", () => {
+    render(
+      <CompactAtDialog
+        entry={{
+          id: "anthropic/claude-opus",
+          name: "Claude Opus 5.5",
+          provider: "anthropic",
+          efforts: ["low", "medium", "high"],
+          context: 200_000,
+        }}
+        scope="user"
+        value={undefined}
+        onClose={close}
+        onSave={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Compact at (your threads)")).toBeTruthy();
+    expect(
+      screen.getByText("Organization default is 160,000, up to 200,000 tokens"),
+    ).toBeTruthy();
+  });
+
+  it("renders the rename and move dialogs with Capy's titles", () => {
+    render(
+      <RenameSeatDialog
+        service="claude-code"
+        label="Sample subscription"
+        onClose={close}
+        onRename={vi.fn()}
+      />,
+    );
     expect(screen.getByText("Rename Claude Code subscription")).toBeTruthy();
+    cleanup();
+    render(
+      <MoveToOrganizationDialog
+        name="Sample key"
+        onClose={close}
+        onMove={vi.fn()}
+      />,
+    );
     expect(
       screen.getByText("Move Sample key to the organization"),
     ).toBeTruthy();
