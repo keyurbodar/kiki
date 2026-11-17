@@ -1,0 +1,40 @@
+import { isoMinutesAgo, people, projects, threads } from "../fixtures/world.ts";
+
+export const sampleBots = [
+  {
+    id: "bot_sample_review",
+    name: "Review assistant",
+    key: "review",
+    description: "Answers questions about pull request reviews.",
+    model: "anthropic/claude-sonnet",
+    status: "active",
+    projectIds: [projects.web.id, projects.api.id],
+    ownerId: people.sam.id,
+    threadIds: [threads.checkoutTest.id, threads.darkMode.id],
+    createdAt: isoMinutesAgo(20 * 24 * 60),
+  },
+  {
+    id: "bot_sample_docs",
+    name: "Docs helper",
+    key: "docs",
+    description: "Points people at the getting started guide.",
+    model: "google/gemini",
+    status: "active",
+    projectIds: [projects.docs.id],
+    ownerId: people.priya.id,
+    threadIds: [threads.gettingStarted.id],
+    createdAt: isoMinutesAgo(12 * 24 * 60),
+  },
+  {
+    id: "bot_sample_release",
+    name: "Release notes bot",
+    key: "release",
+    description: "Collects release notes from linked issues and pulls.",
+    model: "openai/gpt",
+    status: "paused",
+    projectIds: [projects.web.id],
+    ownerId: people.alex.id,
+    threadIds: [threads.bundler.id],
+    createdAt: isoMinutesAgo(6 * 24 * 60),
+  },
+] as const;
