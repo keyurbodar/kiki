@@ -12,28 +12,29 @@ import {
   turnTitle,
 } from "./logic";
 
-const turns: DiffTurn[] = [
-  {
-    eventId: "e1",
-    repos: [{ repo: "acme/web", scopes: ["turn"] }],
-    additions: 3,
-    deletions: 1,
-    title: "First turn\nwith detail",
-  },
-  {
-    eventId: "e2",
-    repos: [{ repo: "acme/web", scopes: ["pr-preview"] }],
-    additions: 5,
-    deletions: 2,
-    title: "Second turn",
-  },
-];
+const firstTurn: DiffTurn = {
+  eventId: "e1",
+  repos: [{ repo: "acme/web", scopes: ["turn"] }],
+  additions: 3,
+  deletions: 1,
+  title: "First turn\nwith detail",
+};
+
+const secondTurn: DiffTurn = {
+  eventId: "e2",
+  repos: [{ repo: "acme/web", scopes: ["pr-preview"] }],
+  additions: 5,
+  deletions: 2,
+  title: "Second turn",
+};
+
+const turns: DiffTurn[] = [firstTurn, secondTurn];
 
 describe("diffs-view logic", () => {
   it("groups per-event repo rows into turns", () => {
     const grouped = groupTurns([
-      turns[0]!,
-      { ...turns[0]!, repos: [{ repo: "acme/api", scopes: ["turn"] }] },
+      firstTurn,
+      { ...firstTurn, repos: [{ repo: "acme/api", scopes: ["turn"] }] },
     ]);
     expect(grouped).toHaveLength(1);
     expect(grouped[0]?.repos).toHaveLength(2);
@@ -58,7 +59,7 @@ describe("diffs-view logic", () => {
     expect(filterTurns(turns, "turn 1").map((entry) => entry.index)).toEqual([
       0,
     ]);
-    expect(turnTitle(turns[0]!, 0)).toBe("First turn");
+    expect(turnTitle(firstTurn, 0)).toBe("First turn");
   });
 
   it("extends the range on shift-click", () => {
@@ -95,5 +96,10 @@ describe("changedPatchFiles", () => {
     expect(files).toHaveLength(1);
     expect(files[0]?.patch).toContain("+new");
     expect(patchTotals(files)).toEqual({ additions: 1, deletions: 1 });
+  });
+
+  it("ignores a response without files", () => {
+    expect(changedPatchFiles(undefined, new Set(["a"]))).toEqual([]);
+    expect(changedPatchFiles({}, new Set(["a"]))).toEqual([]);
   });
 });

@@ -1,3 +1,11 @@
+import {
+  type CSSProperties,
+  type ReactNode,
+  type Ref,
+  useLayoutEffect,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { Button } from "@/primitives/button";
@@ -24,16 +32,24 @@ export type DiffSelectionToolbarProps = {
   commentAction?: DiffSelectionAction;
   onCopy?: () => void;
   copy?: DiffSelectionAction;
-  actions?: React.ReactNode;
+  actions?: ReactNode;
   actionsWidth?: number;
   side?: "above" | "below";
   align?: "center" | "start" | "end";
   bottom?: number;
   container?: Element;
-  ref?: React.Ref<HTMLDivElement>;
+  ref?: Ref<HTMLDivElement>;
 };
 
 const copyFailed = () => toast.error("Could not copy");
+
+/** The toolbar portals into the document, so it renders only after mount. */
+const useIsClient = () =>
+  useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
 
 /**
  * Where the floating toolbar sits: prefer the requested side of the selection,
@@ -121,18 +137,21 @@ export function DiffSelectionToolbar({
   };
   const label = copy?.label ?? "Copy";
   const runCopy = copy?.run ?? copySelection;
-  const position =
-    typeof document === "undefined"
-      ? { top: 0 }
-      : selectionToolbarPosition({
-          selection,
-          actionsWidth,
-          side,
-          align,
-          bottom,
-          viewportWidth: window.innerWidth,
-          viewportHeight: window.innerHeight,
-        });
+  const isClient = useIsClient();
+  const [position, setPosition] = useState<CSSProperties>();
+  useLayoutEffect(() => {
+    setPosition(
+      selectionToolbarPosition({
+        selection,
+        actionsWidth,
+        side,
+        align,
+        bottom,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+      }),
+    );
+  }, [selection, actionsWidth, side, align, bottom]);
   const comment = (
     <Button
       variant="ghost"
@@ -148,7 +167,13 @@ export function DiffSelectionToolbar({
       comment
     ) : (
       <>
-        <span title={position.top < selection.rect.top ? "top" : "bottom"}>
+        <span
+          title={
+            position !== undefined && position.top < selection.rect.top
+              ? "top"
+              : "bottom"
+          }
+        >
           {comment}
         </span>
         <span className="sr-only">{commentAction.label}</span>
@@ -159,7 +184,7 @@ export function DiffSelectionToolbar({
       ref={ref}
       data-slot="selection-toolbar"
       className="fixed z-(--z-overlay-content) flex items-center gap-0.5 rounded-(--radius-overlay) border-hairline border-border-2 bg-popover p-1 shadow-overlay"
-      style={position}
+      style={position ?? { visibility: "hidden" }}
       onPointerUp={(event) => event.stopPropagation()}
     >
       {commentButton}
@@ -174,5 +199,5 @@ export function DiffSelectionToolbar({
       {actions}
     </div>
   );
-  return createPortal(bar, container ?? document.body);
+  return isClient ? createPortal(bar, container ?? document.body) : null;
 }

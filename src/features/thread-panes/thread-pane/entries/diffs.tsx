@@ -4,6 +4,6 @@ import { definePane } from "../registry";
 export const entry = definePane({
   id: "diffs",
   label: "Diffs",
-  order: 3,
+  order: 30,
   component: DiffsView,
 });
