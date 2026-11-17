@@ -37,7 +37,10 @@ const priorityRank: Record<IssuePriority, number> = {
 
 /** Capy's minified age: "now", "56m", "2h", "1d", "3w", "2mo", "1y". */
 export const shortAge = (at: DateTime.Utc, now: number) => {
-  const minutes = Math.max(0, Math.floor((now - DateTime.toEpochMillis(at)) / 60_000));
+  const minutes = Math.max(
+    0,
+    Math.floor((now - DateTime.toEpochMillis(at)) / 60_000),
+  );
   if (minutes < 1) return "now";
   if (minutes < 60) return `${minutes}m`;
   const hours = Math.floor(minutes / 60);
