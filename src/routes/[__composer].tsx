@@ -1,10 +1,12 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useRef } from "react";
 import {
   Composer,
   type ComposerCommand,
+  type ComposerHandle,
   type MentionItem,
   type MentionSource,
+  PlusMenu,
 } from "@/components/composer";
 import { Icon } from "@/primitives/icon";
 import { applyColorMode, type ColorMode } from "@/tokens/theme";
@@ -105,10 +107,21 @@ const commands: ComposerCommand[] = [
 function ComposerHarness() {
   const { mode } = Route.useSearch();
   useLayoutEffect(() => applyColorMode(mode), [mode]);
+  const composer = useRef<ComposerHandle>(null);
   return (
     <div className="flex min-h-dvh w-full items-start justify-center bg-background p-(--spacing-page-padding) font-sans text-foreground">
       <div className="w-full max-w-(--container-3xl)" data-harness="composer">
         <Composer
+          ref={composer}
+          leftControls={
+            <PlusMenu
+              sources={sources}
+              onPickCategory={(category) =>
+                composer.current?.typeCharacter(`@${category}:`)
+              }
+              onAttach={() => undefined}
+            />
+          }
           sources={sources}
           commands={commands}
           onSubmit={() => true}
