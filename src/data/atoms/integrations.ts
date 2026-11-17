@@ -70,3 +70,8 @@ export const mobileConnectionAtom = Atom.family((orgId: OrgId) =>
     timeToLive: "1 minute",
   }),
 );
+
+export const startGitHubInstallationAtom = ApiClient.mutation(
+  "integrations",
+  "startGitHubInstallation",
+);

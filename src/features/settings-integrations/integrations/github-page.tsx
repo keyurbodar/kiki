@@ -1,3 +1,4 @@
+import { useAtomSet } from "@effect/atom-react";
 import { useState } from "react";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import type {
@@ -9,6 +10,7 @@ import {
   githubInstallationAtom,
   githubUserAtom,
   githubWorkspaceAtom,
+  startGitHubInstallationAtom,
 } from "@/data/atoms/integrations";
 import { Badge } from "@/primitives/badge";
 import { Button, ButtonIcon } from "@/primitives/button";
@@ -18,7 +20,7 @@ import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import { SettingsRow } from "@/primitives/settings-row";
 import { useActiveOrgId, useResultValue } from "../shared";
 import { GitHubIcon } from "./brand-icons";
-import { IntegrationConnectedStrip } from "./connect-state";
+import { IntegrationConnectedStrip, IntegrationIntro } from "./connect-state";
 import { DotsIcon, SearchIcon } from "./github-icons";
 
 const pageSize = 25;
@@ -98,10 +100,53 @@ export function GitHubIntegrationPage() {
       icon={<GitHubIcon />}
       iconTile="brand"
     >
-      <IntegrationConnectedStrip provider="github" />
-      <AccountSection />
-      {orgId !== undefined && <OrgSections orgId={orgId} />}
+      {orgId === undefined ? (
+        <>
+          <IntegrationIntro
+            provider="github"
+            icon={<GitHubIcon />}
+            overview="Install the app to give Capy your repositories, pull requests, CI, and review callbacks"
+            label="Install GitHub app"
+            disabled
+          />
+          <AccountSection />
+        </>
+      ) : (
+        <GitHubContent orgId={orgId} />
+      )}
     </SettingsPage>
+  );
+}
+
+function GitHubContent({
+  orgId,
+}: {
+  orgId: Parameters<typeof githubWorkspaceAtom>[0];
+}) {
+  const installation = useResultValue(githubInstallationAtom(orgId));
+  const user = useResultValue(githubUserAtom);
+  const install = useAtomSet(startGitHubInstallationAtom, {
+    mode: "promise",
+  });
+  const notInstalled = installation === null && user === null;
+  return (
+    <>
+      {notInstalled ? (
+        <IntegrationIntro
+          provider="github"
+          icon={<GitHubIcon />}
+          overview="Install the app to give Capy your repositories, pull requests, CI, and review callbacks"
+          label="Install GitHub app"
+          onClick={() => {
+            void install({ params: { orgId }, query: {} });
+          }}
+        />
+      ) : (
+        <IntegrationConnectedStrip provider="github" />
+      )}
+      <AccountSection />
+      <OrgSections orgId={orgId} />
+    </>
   );
 }
 
