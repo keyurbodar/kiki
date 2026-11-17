@@ -43,9 +43,12 @@ export {
 export {
   anchorKey,
   type DiffRow,
+  type DiffRowsOptions,
   diffNotes,
   diffRows,
   fileStats,
   rowKey,
+  runKey,
+  unchangedLabel,
 } from "./rows";
 export { type PullDiffState, readyDiff, usePullDiff } from "./use-pull-diff";

@@ -5,16 +5,54 @@ import {
 
 export type DiffRow =
   | { type: "hunk"; header: string }
-  | { type: "line"; row: HunkRow };
+  | { type: "line"; row: HunkRow }
+  | { type: "run"; key: string; rows: ReadonlyArray<HunkRow> };
 
-export const diffRows = (patch: string): DiffRow[] => {
+export type DiffRowsOptions = {
+  expandedRuns?: ReadonlySet<string>;
+  pinnedLines?: ReadonlySet<string>;
+};
+
+const minRunRows = 3;
+
+export const unchangedLabel = (count: number) =>
+  count === 1 ? "1 unchanged line" : `${count} unchanged lines`;
+
+export const runKey = (rows: ReadonlyArray<HunkRow>) =>
+  rows[0] === undefined ? "" : rowKey(rows[0]);
+
+export const diffRows = (
+  patch: string,
+  { expandedRuns = new Set(), pinnedLines = new Set() }: DiffRowsOptions = {},
+): DiffRow[] => {
   const rows: DiffRow[] = [];
   for (const chunk of patch.split(/(?=^@@ )/m)) {
     const header = chunk.split("\n", 1)[0] ?? "";
     if (!header.startsWith("@@")) continue;
     rows.push({ type: "hunk", header });
-    for (const row of parseHunkRows(chunk.replace(/\n$/, "")))
-      rows.push({ type: "line", row });
+    let run: HunkRow[] = [];
+    const flush = () => {
+      const key = runKey(run);
+      const visible =
+        run.length < minRunRows ||
+        expandedRuns.has(key) ||
+        run.some((row) => pinnedLines.has(rowKey(row)));
+      if (run.length > 0)
+        rows.push(
+          ...(visible
+            ? run.map((row) => ({ type: "line" as const, row }))
+            : [{ type: "run" as const, key, rows: run }]),
+        );
+      run = [];
+    };
+    for (const row of parseHunkRows(chunk.replace(/\n$/, ""))) {
+      if (row.marker === " ") run.push(row);
+      else {
+        flush();
+        rows.push({ type: "line", row });
+      }
+    }
+    flush();
   }
   return rows;
 };

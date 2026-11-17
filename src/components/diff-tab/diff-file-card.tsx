@@ -1,5 +1,5 @@
 import { cx } from "class-variance-authority";
-import { Fragment, type ReactNode } from "react";
+import { Fragment, type ReactNode, useMemo, useState } from "react";
 import {
   CommentMarkers,
   type MarkerComment,
@@ -7,13 +7,14 @@ import {
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import type { DiffFile } from "./model";
-import { diffRows, rowKey } from "./rows";
+import { diffRows, rowKey, unchangedLabel } from "./rows";
 
 export type DiffFileCardProps = {
   file: DiffFile;
   domId: string;
   collapsed: boolean;
   onCollapsedChange: (path: string, collapsed: boolean) => void;
+  collapsible?: boolean;
   trailing?: ReactNode;
   lineComments?: ReadonlyMap<string, ReadonlyArray<MarkerComment>>;
   fileComments?: ReadonlyArray<MarkerComment>;
@@ -33,6 +34,7 @@ export function DiffFileCard({
   domId,
   collapsed,
   onCollapsedChange,
+  collapsible = true,
   trailing,
   lineComments,
   fileComments = [],
@@ -43,7 +45,18 @@ export function DiffFileCard({
   const slash = file.path.lastIndexOf("/");
   const directory = slash === -1 ? "" : file.path.slice(0, slash + 1);
   const name = file.path.slice(slash + 1);
-  const rows = file.patch === null ? [] : diffRows(file.patch);
+  const [expandedRuns, setExpandedRuns] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const pinnedLines = useMemo(
+    () => new Set(lineComments?.keys() ?? []),
+    [lineComments],
+  );
+  const rows =
+    file.patch === null
+      ? []
+      : diffRows(file.patch, { expandedRuns, pinnedLines });
+  const open = collapsible ? !collapsed : true;
   const rowKeys = new Set(
     rows.flatMap((entry) => (entry.type === "line" ? [rowKey(entry.row)] : [])),
   );
@@ -66,25 +79,27 @@ export function DiffFileCard({
       <header
         className={cx(
           "@container/file-header flex min-h-9 items-center gap-1.5 py-1 pr-1.5 pl-1",
-          !collapsed && "border-b-hairline border-border-1",
+          open && "border-b-hairline border-border-1",
         )}
       >
-        <Button
-          variant="ghost"
-          size="icon-xs"
-          aria-label={collapsed ? "Expand file" : "Collapse file"}
-          aria-expanded={!collapsed}
-          onClick={() => onCollapsedChange(file.path, !collapsed)}
-        >
-          <Icon
-            name="chevron-right"
-            size="sm"
-            className={cx(
-              "text-icon-muted transition-transform duration-hover",
-              !collapsed && "rotate-90",
-            )}
-          />
-        </Button>
+        {collapsible && (
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            aria-label={collapsed ? "Expand file" : "Collapse file"}
+            aria-expanded={open}
+            onClick={() => onCollapsedChange(file.path, !collapsed)}
+          >
+            <Icon
+              name="chevron-right"
+              size="sm"
+              className={cx(
+                "text-icon-muted transition-transform duration-hover",
+                open && "rotate-90",
+              )}
+            />
+          </Button>
+        )}
         <span className="min-w-0 flex-1 truncate text-sm" title={file.path}>
           <span className="text-muted-foreground-2">{directory}</span>
           <span className="font-medium text-foreground">{name}</span>
@@ -107,7 +122,7 @@ export function DiffFileCard({
         </span>
         {trailing}
       </header>
-      {!collapsed && (
+      {open && (
         <div data-slot="diff-file-body" className="flex flex-col">
           {blockComments.length > 0 && (
             <div className="flex flex-col gap-2 border-b-hairline border-border-1 p-2">
@@ -152,6 +167,26 @@ export function DiffFileCard({
                             className="px-3 py-0.5 whitespace-pre"
                           >
                             {entry.header}
+                          </td>
+                        </tr>
+                      );
+                    if (entry.type === "run")
+                      return (
+                        <tr key={`run-${entry.key}`}>
+                          <td colSpan={5} className="p-0">
+                            <button
+                              type="button"
+                              data-slot="diff-unchanged-run"
+                              aria-expanded={false}
+                              onClick={() =>
+                                setExpandedRuns((current) =>
+                                  new Set(current).add(entry.key),
+                                )
+                              }
+                              className="w-full cursor-pointer bg-secondary px-3 py-0.5 text-left text-muted-foreground-2 transition-colors duration-hover hover:text-foreground"
+                            >
+                              {unchangedLabel(entry.rows.length)}
+                            </button>
                           </td>
                         </tr>
                       );

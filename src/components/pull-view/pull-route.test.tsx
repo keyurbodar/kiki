@@ -4,7 +4,13 @@ import {
   createRouter,
   RouterProvider,
 } from "@tanstack/react-router";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { routeTree } from "@/routeTree.gen";
 
@@ -43,18 +49,33 @@ describe("/pull/keyurbodar/xin/118", () => {
     ).toBeTruthy();
   });
 
-  it("lists the changed files on the diff tab", async () => {
+  it("opens one file body at a time on the page host", async () => {
     await renderPull(`${pullPath}?tab=diff`);
-    const card = await waitFor(() => {
-      const node = document.querySelector<HTMLElement>(
-        '[data-diff-file="src/retry/budget.ts"]',
-      );
-      if (node === null) throw new Error("no diff card for budget.ts");
+    const first = await waitFor(() => {
+      const node = document.querySelector<HTMLElement>("[data-diff-file]");
+      if (node === null) throw new Error("no diff card");
       return node;
     });
-    expect(card.textContent).toContain("budget.ts");
+    expect(first.textContent).toContain("budget.ts");
+    expect(document.querySelectorAll("[data-diff-file]").length).toBe(1);
     expect(
-      document.querySelectorAll("[data-diff-file]").length,
-    ).toBeGreaterThan(1);
+      document.querySelectorAll('[data-slot="diff-file-body"]').length,
+    ).toBe(1);
+  });
+
+  it("collapses a long unchanged run to Capy's line", async () => {
+    await renderPull(`${pullPath}?tab=diff`);
+    const run = await waitFor(() => {
+      const node = document.querySelector<HTMLElement>(
+        '[data-slot="diff-unchanged-run"]',
+      );
+      if (node === null) throw new Error("no collapsed unchanged run");
+      return node;
+    });
+    expect(run.textContent).toMatch(/^\d+ unchanged lines$/);
+    fireEvent.click(run);
+    await waitFor(() => {
+      expect(run.isConnected).toBe(false);
+    });
   });
 });
