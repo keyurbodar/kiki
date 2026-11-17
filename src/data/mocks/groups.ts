@@ -43,6 +43,7 @@ import { PaperMock } from "./paper/index.ts";
 import { PluginsMock } from "./plugins/index.ts";
 import { ProjectsMock } from "./projects/index.ts";
 import { PromotionsMock } from "./promotions/index.ts";
+import { PullGuidesMock } from "./pullGuides/index.ts";
 import { PullsMock } from "./pulls/index.ts";
 import { PushMock } from "./push/index.ts";
 import { ReferralsMock } from "./referrals/index.ts";
@@ -106,6 +107,7 @@ export const MockGroups = Layer.mergeAll(
   PluginsMock,
   ProjectsMock,
   PromotionsMock,
+  PullGuidesMock,
   PullsMock,
   PushMock,
   ReferralsMock,
