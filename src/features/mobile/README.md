@@ -7,7 +7,7 @@ One directory per unit. A unit directory holds its component, its tests and an `
 ## Units (D8a)
 
 - `use-mobile/`: `useIsNarrow` (below `--breakpoint-md`, Capy's `(max-width: 767px)`) and `useIsTouch` (`(hover: none) and (pointer: coarse)`).
-- `shell/`: `MobileNavigationProvider` / `useMobileNavigation`, `MobileShell` (sidebar inside the left `Navigation` sheet on narrow screens), `MobileSidebarTrigger`, `MobileTopBar`.
+- `shell/`: `MobileSidebarTrigger` and `MobileTopBar`. The narrow wrapper chain (`sidebar-wrapper` > `sidebar-panel` > `main`) and the left `Navigation` sheet come from B1's `AppLayout`, exactly as in Capy's narrow DOM; the trigger drives B1's `openMobile` state, so there is one sheet.
 - `home/`: `MobileHome` (the /new layout on phones) and `MobileNewThread` (wired to the projects atom).
 - `sheets/`: bottom drawers for project, add to message and model.
-- `edge-swipe/`: parity note; Capy has no edge-swipe handler.
+- `edge-swipe/`: parity note and test; Capy has no edge-swipe handler.

@@ -9,17 +9,15 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   filterModelSections,
   MobileAddSheet,
-  MobileNavigationProvider,
   MobileProjectSheet,
-  MobileShell,
   MobileSidebarTrigger,
   matchesQuery,
   narrowQuery,
   touchQuery,
   useIsNarrow,
   useIsTouch,
-  useMobileNavigation,
 } from "@/features/mobile";
+import { SidebarProvider } from "@/features/shell/sidebar-container";
 
 type FakeList = {
   matches: boolean;
@@ -45,6 +43,7 @@ const setMatches = (key: string, matches: boolean) => {
 };
 
 beforeAll(() => {
+  document.documentElement.style.setProperty("--breakpoint-md", "768px");
   vi.stubGlobal("matchMedia", (query: string) => {
     const list = listFor(query);
     return {
@@ -74,24 +73,6 @@ function Probe() {
   );
 }
 
-function NavigationState() {
-  const { open, setOpen } = useMobileNavigation();
-  return (
-    <button type="button" onClick={() => setOpen(true)}>
-      {open ? "open" : "closed"}
-    </button>
-  );
-}
-
-function OpenSidebar() {
-  const { setOpen } = useMobileNavigation();
-  return (
-    <button type="button" onClick={() => setOpen(true)}>
-      menu
-    </button>
-  );
-}
-
 describe("mobile detection", () => {
   it("builds the narrow query from the md breakpoint token", () => {
     document.documentElement.style.setProperty("--breakpoint-md", "768px");
@@ -108,103 +89,21 @@ describe("mobile detection", () => {
   });
 });
 
-describe("mobile navigation", () => {
-  it("throws outside its provider", () => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(() => render(<NavigationState />)).toThrow(
-      "useMobileNavigation must be inside MobileNavigationProvider",
-    );
-  });
-
-  it("toggles from the sidebar trigger and labels it", () => {
+describe("mobile sidebar trigger", () => {
+  it("opens and closes the shell's navigation sheet state", () => {
     setMatches("narrow", true);
     render(
-      <MobileNavigationProvider>
+      <SidebarProvider>
         <MobileSidebarTrigger />
-      </MobileNavigationProvider>,
+      </SidebarProvider>,
     );
     const trigger = screen.getByRole("button", { name: "Open sidebar" });
     expect(trigger.getAttribute("aria-pressed")).toBe("false");
     fireEvent.click(trigger);
-    expect(
-      screen
-        .getByRole("button", { name: "Close sidebar" })
-        .getAttribute("aria-pressed"),
-    ).toBe("true");
-  });
-
-  it("closes when the route key changes", () => {
-    setMatches("narrow", true);
-    const { rerender } = render(
-      <MobileNavigationProvider closeKey="/new">
-        <NavigationState />
-      </MobileNavigationProvider>,
-    );
-    fireEvent.click(screen.getByText("closed"));
-    expect(screen.getByText("open")).toBeTruthy();
-    rerender(
-      <MobileNavigationProvider closeKey="/threads">
-        <NavigationState />
-      </MobileNavigationProvider>,
-    );
-    expect(screen.getByText("closed")).toBeTruthy();
-  });
-
-  it("closes when the viewport widens", () => {
-    setMatches("narrow", true);
-    render(
-      <MobileNavigationProvider>
-        <NavigationState />
-      </MobileNavigationProvider>,
-    );
-    fireEvent.click(screen.getByText("closed"));
-    setMatches("narrow", false);
-    expect(screen.getByText("closed")).toBeTruthy();
-  });
-
-  it("renders the sidebar in the Navigation sheet only on narrow screens", () => {
-    render(
-      <MobileNavigationProvider>
-        <MobileShell sidebar={<nav>sidebar</nav>}>
-          <OpenSidebar />
-        </MobileShell>
-      </MobileNavigationProvider>,
-    );
-    fireEvent.click(screen.getByText("menu"));
-    expect(screen.queryByText("sidebar")).toBeNull();
-    setMatches("narrow", true);
-    fireEvent.click(screen.getByText("menu"));
-    expect(screen.getByRole("dialog", { name: "Navigation" })).toBeTruthy();
-    expect(screen.getByText("sidebar")).toBeTruthy();
-  });
-
-  it("keeps the navigation sheet closed on a left-edge swipe", () => {
-    setMatches("narrow", true);
-    setMatches(touchQuery, true);
-    render(
-      <MobileNavigationProvider>
-        <MobileShell sidebar={<nav>sidebar</nav>}>
-          <main>thread</main>
-        </MobileShell>
-      </MobileNavigationProvider>,
-    );
-    const main = screen.getByText("thread");
-    fireEvent.pointerDown(main, {
-      pointerType: "touch",
-      clientX: 2,
-      clientY: 400,
-    });
-    fireEvent.pointerMove(main, {
-      pointerType: "touch",
-      clientX: 300,
-      clientY: 400,
-    });
-    fireEvent.pointerUp(main, {
-      pointerType: "touch",
-      clientX: 300,
-      clientY: 400,
-    });
-    expect(screen.queryByText("sidebar")).toBeNull();
+    const close = screen.getByRole("button", { name: "Close sidebar" });
+    expect(close.getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(close);
+    expect(screen.getByRole("button", { name: "Open sidebar" })).toBeTruthy();
   });
 });
 
