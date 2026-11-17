@@ -1,6 +1,7 @@
 import { Checkbox as BaseCheckbox } from "@base-ui/react/checkbox";
 import { cx } from "class-variance-authority";
 import type { ComponentProps } from "react";
+import { motion } from "@/lib/motion";
 import { Icon } from "@/primitives/icon";
 
 const checkboxBoxClassName =
@@ -15,9 +16,9 @@ export function Checkbox({ className, ...props }: CheckboxProps) {
       className={(state) =>
         cx(
           checkboxBoxClassName,
-          "cursor-pointer outline-none",
-          "focus-visible:outline-ring-inset",
-          "pointer-coarse:after:absolute pointer-coarse:after:top-1/2 pointer-coarse:after:left-1/2 pointer-coarse:after:size-full pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11 pointer-coarse:after:-translate-x-1/2 pointer-coarse:after:-translate-y-1/2",
+          "cursor-pointer",
+          motion.focusRing,
+          motion.touchTarget,
           "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-55",
           typeof className === "function" ? className(state) : className,
         )
