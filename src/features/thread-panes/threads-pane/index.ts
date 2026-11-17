@@ -28,3 +28,4 @@ export {
   showsSideThreadsPage,
   sideThreadEntries,
 } from "./side-threads-page";
+export { SideThreadsPane } from "./side-threads-pane";
