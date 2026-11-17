@@ -1,4 +1,7 @@
-import type { ErrorRow as ErrorRowData } from "@/data/events";
+import { ErrorRow as ErrorRowSchema } from "@/data/events";
+import type { Schema } from "effect";
+
+type ErrorRowData = Schema.Schema.Type<typeof ErrorRowSchema>;
 import { Alert, AlertDescription, AlertTitle } from "@/primitives/alert";
 import { Button } from "@/primitives/button";
 

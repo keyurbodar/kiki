@@ -1,6 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { expect, it } from "vitest";
-import type { MarkerRow } from "@/data/events";
+import { MarkerRow as MarkerRowSchema } from "@/data/events";
+import type { Schema } from "effect";
+
+type MarkerRow = Schema.Schema.Type<typeof MarkerRowSchema>;
 import { MarkerDivider } from "@/features/thread/markers";
 import { entry as clusterEntry } from "./entries/cluster";
 import { entry as errorEntry } from "./entries/error";

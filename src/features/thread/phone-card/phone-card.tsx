@@ -1,4 +1,7 @@
-import type { PhoneCardRow as PhoneCardRowData } from "@/data/events";
+import { PhoneCardRow as PhoneCardRowSchema } from "@/data/events";
+import type { Schema } from "effect";
+
+type PhoneCardRowData = Schema.Schema.Type<typeof PhoneCardRowSchema>;
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 

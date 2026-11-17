@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import type { VisualRow as VisualRowData } from "@/data/events";
+import { VisualRow as VisualRowSchema } from "@/data/events";
+import type { Schema } from "effect";
+
+type VisualRowData = Schema.Schema.Type<typeof VisualRowSchema>;
 
 export type VisualRowProps = {
   row: VisualRowData;

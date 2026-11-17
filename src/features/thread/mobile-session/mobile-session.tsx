@@ -1,4 +1,7 @@
-import type { MobileSessionRow as MobileSessionRowData } from "@/data/events";
+import { MobileSessionRow as MobileSessionRowSchema } from "@/data/events";
+import type { Schema } from "effect";
+
+type MobileSessionRowData = Schema.Schema.Type<typeof MobileSessionRowSchema>;
 import { Icon } from "@/primitives/icon";
 
 export type MobileSessionProps = {

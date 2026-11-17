@@ -1,6 +1,9 @@
 import { cx } from "class-variance-authority";
 import type { ReactNode } from "react";
-import type { UpdateRow as UpdateRowData } from "@/data/events";
+import { UpdateRow as UpdateRowSchema } from "@/data/events";
+import type { Schema } from "effect";
+
+type UpdateRowData = Schema.Schema.Type<typeof UpdateRowSchema>;
 import { Button } from "@/primitives/button";
 import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@/primitives/collapsible";
 import { Icon, type IconId } from "@/primitives/icon";

@@ -1,5 +1,8 @@
 import { expect, it } from "vitest";
-import type { UpdateRow } from "@/data/events";
+import { UpdateRow as UpdateRowSchema } from "@/data/events";
+import type { Schema } from "effect";
+
+type UpdateRow = Schema.Schema.Type<typeof UpdateRowSchema>;
 import { clusterSummary } from "./cluster-row";
 
 const base = {

@@ -1,6 +1,10 @@
 import { cx } from "class-variance-authority";
 import type { ComponentProps } from "react";
-import type { ClusterRow as ClusterRowData, UpdateRow } from "@/data/events";
+import { ClusterRow as ClusterRowSchema, UpdateRow as UpdateRowSchema } from "@/data/events";
+import type { Schema } from "effect";
+
+type ClusterRowData = Schema.Schema.Type<typeof ClusterRowSchema>;
+type UpdateRow = Schema.Schema.Type<typeof UpdateRowSchema>;
 import { UpdateRow as UpdateLine } from "@/features/thread/update-row";
 import { Icon } from "@/primitives/icon";
 
