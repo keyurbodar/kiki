@@ -1,12 +1,7 @@
 {
   "matrix": {
-    "theme": [
-      "default"
-    ],
-    "scheme": [
-      "dark",
-      "light"
-    ]
+    "theme": ["default"],
+    "scheme": ["dark", "light"]
   },
   "defaults": {
     "maxMismatch": 2
@@ -28,13 +23,8 @@
           "height",
           "padding-top"
         ],
-        "[data-slot=sidebar-content] footer nav": [
-          "width",
-          "height"
-        ],
-        "[data-slot=sidebar-content] header": [
-          "height"
-        ],
+        "[data-slot=sidebar-content] footer nav": ["width", "height"],
+        "[data-slot=sidebar-content] header": ["height"],
         "[data-slot=sidebar-content] header button[aria-label=\"Search\"]": [
           "width",
           "height"
