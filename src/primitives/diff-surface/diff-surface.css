@@ -1,0 +1,39 @@
+.diff-surface {
+  --diffs-gap-block: 0rem;
+  --diffs-font-family: var(--font-mono);
+  --diffs-header-font-family: var(--font-sans);
+  --diffs-font-size: var(--text-code-block);
+  --diffs-line-height: 1.2;
+  --diffs-bg-context-override: var(--card);
+  --diffs-bg-context-gutter-override: var(--card);
+  --diffs-bg-separator-override: var(--card);
+  --diffs-addition-color-override: var(--diff-add);
+  --diffs-deletion-color-override: var(--diff-del);
+  --diffs-bg-addition-override: var(--diff-add);
+  --diffs-bg-deletion-override: var(--diff-del);
+  --diffs-bg-addition-emphasis-override: var(--diff-add-emphasis);
+  --diffs-bg-deletion-emphasis-override: var(--diff-del-emphasis);
+  --diff-gutter-utility-size: var(--h-control-xs);
+  --diff-gutter-utility-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M3.00195 7.00002C3.00195 5.34317 4.3451 4.00002 6.00195 4.00002L18.0019 4C19.6588 4 21.002 5.34314 21.002 7V15.0358C21.002 16.6926 19.6588 18.0357 18.002 18.0358L15.3757 18.0358C15.1427 18.0358 14.9171 18.1171 14.7377 18.2657L11.9977 20.5358L9.29398 18.2694C9.11393 18.1185 8.8865 18.0358 8.65157 18.0358H6.00195C4.3451 18.0358 3.00195 16.6926 3.00195 15.0358L3.00195 7.00002Z' stroke='black' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.diff-line-probe {
+  visibility: hidden;
+  pointer-events: none;
+  font-family: var(--diffs-font-family);
+  font-size: var(--diffs-font-size);
+  line-height: var(--diffs-line-height);
+  white-space: pre;
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.diff-surface > [tabindex] {
+  overflow-y: auto;
+}
+
+.diff-surface diffs-container {
+  background-color: var(--card);
+}
