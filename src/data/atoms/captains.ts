@@ -1,8 +1,18 @@
 import { Atom } from "effect/reactivity";
 import type { OrgId } from "../api/schemas/ids.ts";
 import { ApiClient } from "../client/ApiClient.ts";
-import { queryTimeToLive } from "./conventions.ts";
+import { queryTimeToLive, reactivityKeys } from "./conventions.ts";
 
+export const captainsAtom = Atom.family((orgId: OrgId) =>
+  ApiClient.query("captains", "list", {
+    params: { orgId },
+    query: {},
+    reactivityKeys: [reactivityKeys.captains(orgId)],
+    timeToLive: queryTimeToLive,
+  }),
+);
+
+/** Capy's reactivity keys for Captain rows, the library images and their folders. */
 export const captainReactivityKeys = {
   library: (orgId: string) => `captain_library_image:${orgId}`,
   captain: (id: string) => `captain:${id}`,
@@ -14,21 +24,12 @@ export const captainReactivityKeys = {
   threadFolderItem: (orgId: string) => `thread_folder_item:${orgId}`,
 } as const;
 
-export const captainsAtom = Atom.family((orgId: OrgId) =>
-  ApiClient.query("captains", "list", {
-    params: { orgId },
-    query: {},
-    reactivityKeys: [captainReactivityKeys.captain(orgId)],
-    timeToLive: queryTimeToLive,
-  }),
-);
-
 export const captainLibraryAtom = Atom.family((orgId: OrgId) =>
   ApiClient.query("captains", "listLibrary", {
     params: { orgId },
     reactivityKeys: [
       captainReactivityKeys.library(orgId),
-      captainReactivityKeys.captain(orgId),
+      reactivityKeys.captains(orgId),
     ],
     timeToLive: queryTimeToLive,
   }),

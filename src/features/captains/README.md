@@ -4,6 +4,6 @@ Owner: D4. Scope: captain overview, chat identity, avatars.
 
 One directory per unit. A unit directory holds its component, its tests and an `index.ts`. Route files under `src/routes/` import from here; nothing here imports from `src/routes/`. See [CONTRIBUTING.md](../../../CONTRIBUTING.md).
 
-Stub units with their final data-slot names: `chat-identity`.
-
-`dialogs` (H03): the Captain dialog (create, promote, edit, demote, delete), the avatar popover and editor (Capy presets, emoji, private and shared images, background palette), `CaptainAvatar`, the crew device select and the demoted dialog. The dev-only `/__captain-dialog?mode=dark|light` route renders the create dialog.
+- `chat-identity`: a captain's avatar (library image, or its initial), used in thread rows and the sidebar.
+- `dialogs`: the Captain dialog (create, promote, edit, demote, delete) with its description, demote and delete pages, the avatar popover and editor (Capy presets, emoji, private and shared library images, background palette), `CaptainAvatar`, `CrewDeviceSelect` and the demoted dialog. The dev-only `/__captain-dialog?mode=dark|light` route renders the create dialog.
+- `captain-overview`: the captain's issue sections ("Needs you", "In progress") in the thread overview pane (Capy's `shared/issues/captain-overview`). It's presentational: the thread overview pane passes issues in.
