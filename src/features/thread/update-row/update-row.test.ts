@@ -10,12 +10,12 @@ const rowFrom = (value: unknown) => Schema.decodeUnknownSync(UpdateRowSchema)(va
 
 const base = {
   id: "update:1",
-  eventId: "01J0000000000000000000000",
-  createdAt: new Date(0),
+  eventId: "01J0000000000000000000000Z",
+  createdAt: new Date(0).toISOString(),
 };
 
 it("labels review updates from their issue count", () => {
-  const row: UpdateRow = rowFrom({ ...base, type: "update", kind: "review", prNumber: 12, issues: 2 };
+  const row: UpdateRow = rowFrom({ ...base, type: "update", kind: "review", prNumber: 12, issues: 2 });
   expect(updateLabel(row)).toBe("Review left 2 issues on PR #12");
   expect(updateStatus(row)).toBe("attention");
   expect(updateSource(row)).toBe("review");

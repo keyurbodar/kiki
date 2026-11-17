@@ -10,8 +10,8 @@ const rowFrom = (value: unknown) => Schema.decodeUnknownSync(UpdateRowSchema)(va
 
 const base = {
   id: "update:1",
-  eventId: "01J0000000000000000000000",
-  createdAt: new Date(0),
+  eventId: "01J0000000000000000000000Z",
+  createdAt: new Date(0).toISOString(),
 };
 
 const task = (): UpdateRow => rowFrom({
