@@ -354,7 +354,7 @@ export const CaptainsMock = mockGroup("captains", (handlers) =>
           const input = fields(payload);
           const rows = yield* Ref.get(threadFolders);
           const folder = rows.find(
-            (row) => row.id === asString(input.folderId ?? input.folder_id),
+            (row) => row.id === asString(input.folderId),
           );
           const source = folder ?? rows[0];
           if (!source) {
@@ -380,7 +380,7 @@ export const CaptainsMock = mockGroup("captains", (handlers) =>
         Effect.gen(function* () {
           const input = fields(payload);
           const thread = yield* findThread(
-            asText(input.threadId ?? input.thread_id, threads.checkoutTest.id),
+            asText(input.threadId, threads.checkoutTest.id),
           );
           const project = promoteProjects.find(
             (row) => row.id === thread.projectId,
