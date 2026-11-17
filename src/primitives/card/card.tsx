@@ -89,7 +89,7 @@ export type CardListHeaderSearch = {
   placeholder: string;
 };
 
-export type CardListHeaderProps = Omit<ComponentProps<"div">, "children"> & {
+export type CardListHeaderProps = ComponentProps<"div"> & {
   label?: ReactNode;
   action?: ReactNode;
   search?: CardListHeaderSearch;
@@ -102,6 +102,7 @@ export function CardListHeader({
   search,
   tools,
   className,
+  children,
   ...props
 }: CardListHeaderProps) {
   const [searching, setSearching] = useState(false);
@@ -115,6 +116,7 @@ export function CardListHeader({
       )}
       {...props}
     >
+      {children}
       <span className="min-w-0 flex-1 text-sm font-medium text-foreground">
         {searchOpen ? (
           <Input
