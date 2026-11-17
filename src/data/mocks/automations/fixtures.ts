@@ -1,4 +1,4 @@
-import { isoMinutesAgo, threads } from "../fixtures/world.ts";
+import { isoMinutesAgo, people, threads } from "../fixtures/world.ts";
 
 export interface AutomationRun {
   readonly id: string;
@@ -127,4 +127,86 @@ export const defaultUsage: AutomationUsage = {
   succeededRuns: 0,
   failedRuns: 0,
   tokensUsed: 0,
+};
+
+/**
+ * The fields the automation editor reads but the shared `world.automations`
+ * rows don't carry. Seeded for every sample automation so the editor opens
+ * with real instructions rather than blanks.
+ */
+export interface AutomationDetails {
+  readonly description: string | null;
+  readonly prompt: string;
+  readonly triggers: ReadonlyArray<Record<string, unknown>>;
+  readonly threadMode: "new" | "single";
+  readonly singleJamId: string | null;
+  readonly runAsKind: "human" | "service";
+  readonly runAsId: string;
+  readonly slackImpersonation: boolean;
+  readonly quietSlackPosts: boolean;
+  readonly model: { readonly id: string; readonly reasoning: string } | null;
+  readonly maxRunsPerDay: number | null;
+  readonly machineSize: string | null;
+  readonly organize: {
+    readonly pin?: boolean;
+    readonly folders?: ReadonlyArray<string>;
+    readonly tags?: ReadonlyArray<string>;
+  } | null;
+  readonly creator: string;
+  readonly creatorUserId: string;
+  readonly updatedAt: string;
+}
+
+const detail = (
+  prompt: string,
+  options: {
+    readonly description?: string;
+    readonly schedule?: { readonly cron: string; readonly timezone: string };
+    readonly event?: string;
+    readonly enabledFor?: string;
+  } = {},
+): AutomationDetails => ({
+  description: options.description ?? null,
+  prompt,
+  triggers:
+    options.schedule !== undefined
+      ? [{ type: "schedule", ...options.schedule }]
+      : [{ type: "github", event: options.event ?? "pull_request.opened" }],
+  threadMode: "new",
+  singleJamId: null,
+  runAsKind: "human",
+  runAsId: people.sam.id,
+  slackImpersonation: false,
+  quietSlackPosts: false,
+  model: null,
+  maxRunsPerDay: null,
+  machineSize: null,
+  organize: null,
+  creator: "Sam Rivera",
+  creatorUserId: people.sam.id,
+  updatedAt: isoMinutesAgo(options.enabledFor ? 7 * 60 : 60 * 24),
+});
+
+export const automationDetails: Readonly<Record<string, AutomationDetails>> = {
+  auto_sample_deps: detail(
+    "Check the web app's dependencies for advisories, open a thread per finding and link the pull request that fixes it.",
+    {
+      description: "Runs nightly against acme/web.",
+      schedule: { cron: "0 2 * * *", timezone: "UTC" },
+    },
+  ),
+  auto_sample_changelog: detail(
+    "Collect the merged pull requests since the last release and write the changelog entry in the docs project.",
+    {
+      description: "Every Monday morning.",
+      schedule: { cron: "0 9 * * 1", timezone: "UTC" },
+    },
+  ),
+  auto_sample_pr_followup: detail(
+    "When a pull request merges, comment the release checklist on the linked issue and tag its assignee.",
+    {
+      description: "Paused while the release stabilises.",
+      event: "pull_request.merged",
+    },
+  ),
 };
