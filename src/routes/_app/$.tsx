@@ -6,5 +6,9 @@ export const Route = createFileRoute("/_app/$")({
   beforeLoad: () => {
     throw notFound();
   },
-  notFoundComponent: NotFoundPage,
+  notFoundComponent: NotFoundRoute,
 });
+
+function NotFoundRoute() {
+  return <NotFoundPage />;
+}
