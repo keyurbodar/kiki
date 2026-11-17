@@ -321,7 +321,7 @@ export function DiffsView({ threadId }: DiffsViewProps) {
   if (files.length === 0) {
     return (
       <div className="flex min-h-0 flex-1 flex-col">
-        <Toolbar>Diffs</Toolbar>
+        <Toolbar />
         <EmptyState
           line="No changes yet"
           sub="Diffs show up here as Capy works"
