@@ -16,10 +16,7 @@ function ExternalLink({
       variant="link"
       size="auto-sm"
       className="mt-2"
-      render={
-        // biome-ignore lint/a11y/useAnchorContent: Button renders the children into the anchor
-        <a href={href} target="_blank" rel="noopener noreferrer" />
-      }
+      render={<a href={href} target="_blank" rel="noopener noreferrer" />}
     >
       {children}
     </Button>
@@ -53,7 +50,6 @@ export function TailscaleSetup() {
           variant="link"
           size="auto-sm"
           render={
-            // biome-ignore lint/a11y/useAnchorContent: Button renders the children into the anchor
             <a
               href={integrationDocsUrl("tailscale")}
               target="_blank"

@@ -57,7 +57,6 @@ export function IntegrationMetaStrip({
               variant="bare"
               size="auto-sm"
               render={
-                // biome-ignore lint/a11y/useAnchorContent: Button renders the children into the anchor
                 <a
                   href={integrationDocsUrl(provider)}
                   target="_blank"
@@ -95,7 +94,6 @@ export function IntegrationConnectedStrip({
                 variant="ghost"
                 size="base"
                 render={
-                  // biome-ignore lint/a11y/useAnchorContent: Button renders the children into the anchor
                   <a
                     href={integrationDocsUrl(provider)}
                     target="_blank"
@@ -189,7 +187,6 @@ export function IntegrationIntro({
                 size="auto-sm"
                 className="self-start"
                 render={
-                  // biome-ignore lint/a11y/useAnchorContent: Button renders the children into the anchor
                   <a
                     href={integrationDocsUrl(provider)}
                     target="_blank"
