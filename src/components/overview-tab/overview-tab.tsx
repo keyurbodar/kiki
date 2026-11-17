@@ -450,16 +450,8 @@ function LabelOptions({
 }) {
   const orgId = usePullOrgId();
   const result = resultValue(useAtomValue(pullLabelsAtom(orgId, pull.id)));
-  if (result === undefined) {
-    return (
-      <span className="flex h-(--h-menu-row) items-center justify-center gap-2 px-2 text-sm text-muted-foreground-2">
-        <Icon name="progress-50" size="sm" className="animate-spin" />
-        Loading labels
-      </span>
-    );
-  }
-  const labels = toLabels(result).filter((label) =>
-    label.name.toLowerCase().includes(query.toLowerCase()),
+  const labels = (result === undefined ? pull.labels : toLabels(result)).filter(
+    (label) => label.name.toLowerCase().includes(query.toLowerCase()),
   );
   if (labels.length === 0) {
     return (

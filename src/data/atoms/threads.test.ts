@@ -3,11 +3,26 @@ import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
 import { OrgId } from "../api/schemas/ids.ts";
 import { ApiClient } from "../client/ApiClient.ts";
-import { allThreadsAtom, listAllThreads, threadsAtom } from "./threads.ts";
+import {
+  allThreadsAtom,
+  listAllThreads,
+  nextCursor,
+  threadsAtom,
+} from "./threads.ts";
 
 const orgId = OrgId.make("org_sample_acme");
 
-describe("allThreadsAtom", () => {
+describe("thread page cursor", () => {
+  it("stops on a null cursor, an empty page or a cursor already seen", () => {
+    const page = { items: [1], cursor: "a" };
+    assert.strictEqual(nextCursor(page, new Set()), "a");
+    assert.strictEqual(nextCursor({ ...page, cursor: null }, new Set()), null);
+    assert.strictEqual(nextCursor({ items: [], cursor: "a" }, new Set()), null);
+    assert.strictEqual(nextCursor(page, new Set(["a"])), null);
+  });
+});
+
+describe("listAllThreads", () => {
   it.effect("follows the cursor past the first page", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
@@ -21,7 +36,7 @@ describe("allThreadsAtom", () => {
           listAllThreads(orgId, {
             archived: false,
             excludeFiled: false,
-            limit: 2,
+            pageSize: 2,
           }),
         ),
       );
