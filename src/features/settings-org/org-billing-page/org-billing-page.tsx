@@ -246,9 +246,7 @@ function InvoiceRow({ invoice }: { invoice: BillingInvoice }) {
         ) : invoice.status === "open" ? (
           <span className="text-xs font-normal text-warning-fg">Unpaid</span>
         ) : (
-          <Badge size="sm" color="neutral">
-            {capitalize(invoice.status)}
-          </Badge>
+          <Badge size="sm">{capitalize(invoice.status)}</Badge>
         )}
       </td>
       <td className="text-right text-sm font-medium text-foreground tabular-nums">
