@@ -1,15 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { DeviceDetailPage } from "@/features/settings-integrations/devices";
 
 export const Route = createFileRoute("/_app/settings/devices_/$deviceId")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  return (
-    <RoutePlaceholder
-      title="/settings/devices/$deviceId"
-      path="/settings/devices/$deviceId"
-    />
-  );
+  const { deviceId } = Route.useParams();
+  return <DeviceDetailPage deviceId={deviceId} />;
 }

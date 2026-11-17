@@ -1,15 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { CloudCredentialsPage } from "@/features/settings-integrations/cloud-credentials";
 
 export const Route = createFileRoute("/_app/settings/cloud-credentials")({
-  component: RouteComponent,
+  component: CloudCredentialsPage,
 });
-
-function RouteComponent() {
-  return (
-    <RoutePlaceholder
-      title="/settings/cloud-credentials"
-      path="/settings/cloud-credentials"
-    />
-  );
-}
