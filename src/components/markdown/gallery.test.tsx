@@ -70,6 +70,20 @@ describe("MarkdownGallery", () => {
     );
   });
 
+  it("opens the clicked image, not the first one with the same src", () => {
+    const onOpen = vi.fn();
+    render(
+      <MarkdownMediaProvider value={{ onOpen }}>
+        <MarkdownGallery>
+          <img src="/same.png" alt="First" />
+          <img src="/same.png" alt="Second" />
+        </MarkdownGallery>
+      </MarkdownMediaProvider>,
+    );
+    fireEvent.click(screen.getByAltText("Second"));
+    expect(onOpen.mock.calls[0]?.[1]).toBe(1);
+  });
+
   it("shows image-unavailable for a broken image", () => {
     const { container } = render(<MarkdownGallery>{imgs(2)}</MarkdownGallery>);
     fireEvent.error(screen.getByAltText("Shot 0"));

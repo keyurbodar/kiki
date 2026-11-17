@@ -153,6 +153,14 @@ export function MarkdownGallery({
     const found = srcOf(node);
     return found === undefined ? [] : [{ kind: "image" as const, ...found }];
   });
+  // Position in `media` per item, so repeat images of the same src open themselves.
+  const mediaIndex: number[] = [];
+  for (const node of items)
+    mediaIndex.push(
+      srcOf(node) === undefined
+        ? -1
+        : mediaIndex.filter((at) => at >= 0).length,
+    );
 
   const content = (index: number) =>
     failed.has(index) ? <ImageUnavailable /> : items[index];
@@ -164,9 +172,7 @@ export function MarkdownGallery({
         open === undefined || failed.has(index)
           ? undefined
           : () => {
-              const at = media.findIndex(
-                (m) => m.src === srcOf(items[index])?.src,
-              );
+              const at = mediaIndex[index] ?? -1;
               if (at >= 0) open(media, at);
             },
       "data-gallery-index": index,
