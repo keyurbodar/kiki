@@ -1,0 +1,731 @@
+import { DateTime } from "effect";
+import { fixtureNow } from "./time.ts";
+
+/**
+ * One coherent fake organization that every mock group draws from. Records are
+ * plain JSON so they can back endpoints whose schemas are still `Undecoded`.
+ * Ids match the decoded fixtures in organizations/, users/, projects/ and jams/.
+ */
+
+export const isoMinutesAgo = (minutes: number) =>
+  DateTime.formatIso(DateTime.subtract(fixtureNow, { minutes }));
+
+const hour = 60;
+const day = 24 * hour;
+
+export const orgId = "org_sample_acme";
+export const otherOrgId = "org_sample_lab";
+
+export const org = {
+  id: orgId,
+  name: "Acme",
+  slug: "acme",
+  issuePrefix: "ACME",
+  domain: "example.com",
+  createdAt: isoMinutesAgo(90 * day),
+} as const;
+
+export type Role = "owner" | "admin" | "member";
+
+export interface Person {
+  readonly id: string;
+  readonly firstName: string;
+  readonly lastName: string;
+  readonly email: string;
+  readonly githubLogin: string;
+  readonly role: Role;
+  readonly joinedAt: string;
+}
+
+const person = (
+  firstName: string,
+  lastName: string,
+  role: Role,
+  joinedDaysAgo: number,
+): Person => ({
+  id: `user_sample_${firstName.toLowerCase()}`,
+  firstName,
+  lastName,
+  email: `${firstName.toLowerCase()}@example.com`,
+  githubLogin: `${firstName.toLowerCase()}-sample`,
+  role,
+  joinedAt: isoMinutesAgo(joinedDaysAgo * day),
+});
+
+export const people = {
+  alex: person("Alex", "Morgan", "owner", 90),
+  sam: person("Sam", "Rivera", "admin", 80),
+  priya: person("Priya", "Shah", "member", 45),
+  jordan: person("Jordan", "Lee", "member", 20),
+  casey: person("Casey", "Nguyen", "member", 3),
+} as const;
+
+export const viewer = people.alex;
+export const members: ReadonlyArray<Person> = Object.values(people);
+
+export const pendingInvitations = [
+  {
+    id: "inv_sample_taylor",
+    email: "taylor@example.com",
+    role: "member" as Role,
+    invitedBy: people.sam.id,
+    createdAt: isoMinutesAgo(2 * day),
+    expiresAt: isoMinutesAgo(-5 * day),
+  },
+];
+
+export const serviceUsers = [
+  {
+    id: "svc_sample_release",
+    name: "Release bot",
+    description: "Tags releases and writes the changelog.",
+    createdBy: people.sam.id,
+    createdAt: isoMinutesAgo(30 * day),
+  },
+];
+
+export interface ProjectRef {
+  readonly id: string;
+  readonly code: string;
+  readonly name: string;
+  readonly repos: ReadonlyArray<string>;
+}
+
+export const projects = {
+  web: {
+    id: "proj_sample_web",
+    code: "WEB",
+    name: "Web app",
+    repos: ["acme/web"],
+  },
+  api: {
+    id: "proj_sample_api",
+    code: "API",
+    name: "API",
+    repos: ["acme/api", "acme/shared"],
+  },
+  docs: {
+    id: "proj_sample_docs",
+    code: "DOC",
+    name: "Docs",
+    repos: ["acme/docs"],
+  },
+  old: {
+    id: "proj_sample_old",
+    code: "OLD",
+    name: "Legacy site",
+    repos: ["acme/legacy-site"],
+  },
+} as const satisfies Record<string, ProjectRef>;
+
+export const repos = [
+  {
+    id: "repo_sample_web",
+    fullName: "acme/web",
+    defaultBranch: "main",
+    private: true,
+    language: "TypeScript",
+  },
+  {
+    id: "repo_sample_api",
+    fullName: "acme/api",
+    defaultBranch: "main",
+    private: true,
+    language: "Go",
+  },
+  {
+    id: "repo_sample_shared",
+    fullName: "acme/shared",
+    defaultBranch: "main",
+    private: true,
+    language: "TypeScript",
+  },
+  {
+    id: "repo_sample_docs",
+    fullName: "acme/docs",
+    defaultBranch: "main",
+    private: false,
+    language: "MDX",
+  },
+  {
+    id: "repo_sample_legacy",
+    fullName: "acme/legacy-site",
+    defaultBranch: "master",
+    private: true,
+    language: "PHP",
+  },
+] as const;
+
+export const branches = [
+  "main",
+  "feat/dark-mode",
+  "fix/checkout-timeout",
+  "chore/bundler-upgrade",
+] as const;
+
+/** Threads already decoded in jams/fixtures.ts, by number. */
+export const threads = {
+  checkoutTest: {
+    id: "jam_sample_0001",
+    number: 41,
+    title: "Fix flaky checkout test",
+    projectId: projects.web.id,
+  },
+  darkMode: {
+    id: "jam_sample_0002",
+    number: 40,
+    title: "Add dark mode to settings",
+    projectId: projects.web.id,
+  },
+  paginate: {
+    id: "jam_sample_0003",
+    number: 39,
+    title: "Paginate the orders endpoint",
+    projectId: projects.api.id,
+  },
+  rateLimit: {
+    id: "jam_sample_0004",
+    number: 38,
+    title: "Rate limit the public search API",
+    projectId: projects.api.id,
+  },
+  gettingStarted: {
+    id: "jam_sample_0005",
+    number: 37,
+    title: "Write the getting started guide",
+    projectId: projects.docs.id,
+  },
+  incidents: {
+    id: "jam_sample_0006",
+    number: 36,
+    title: "Summarize last week's incidents",
+    projectId: null,
+  },
+  bundler: {
+    id: "jam_sample_0007",
+    number: 35,
+    title: "Upgrade the bundler",
+    projectId: projects.web.id,
+  },
+} as const;
+
+export const captains = [
+  {
+    id: "jam_sample_cap1",
+    name: "Release captain",
+    alias: "release",
+    description: "Runs the weekly web release and its follow-ups.",
+    ownerId: people.alex.id,
+    projectId: projects.web.id,
+    crew: [threads.checkoutTest.id, threads.darkMode.id, threads.bundler.id],
+    createdAt: isoMinutesAgo(14 * day),
+  },
+  {
+    id: "jam_sample_cap2",
+    name: "Docs captain",
+    alias: "docs",
+    description: "Keeps the public docs in step with the API.",
+    ownerId: people.priya.id,
+    projectId: projects.docs.id,
+    crew: [threads.gettingStarted.id],
+    createdAt: isoMinutesAgo(6 * day),
+  },
+] as const;
+
+export type IssueStateCategory =
+  | "backlog"
+  | "unstarted"
+  | "started"
+  | "completed"
+  | "canceled";
+
+export const issueStates = [
+  {
+    id: "ist_sample_needs_you",
+    name: "Needs you",
+    category: "started",
+    color: "warning",
+    position: 0,
+    isDefault: false,
+  },
+  {
+    id: "ist_sample_in_review",
+    name: "In review",
+    category: "started",
+    color: "info",
+    position: 1,
+    isDefault: false,
+  },
+  {
+    id: "ist_sample_in_progress",
+    name: "In progress",
+    category: "started",
+    color: "primary",
+    position: 2,
+    isDefault: false,
+  },
+  {
+    id: "ist_sample_waiting",
+    name: "Waiting",
+    category: "started",
+    color: "default",
+    position: 3,
+    isDefault: false,
+  },
+  {
+    id: "ist_sample_todo",
+    name: "Todo",
+    category: "unstarted",
+    color: "default",
+    position: 4,
+    isDefault: true,
+  },
+  {
+    id: "ist_sample_backlog",
+    name: "Backlog",
+    category: "backlog",
+    color: "default",
+    position: 5,
+    isDefault: false,
+  },
+  {
+    id: "ist_sample_done",
+    name: "Done",
+    category: "completed",
+    color: "success",
+    position: 6,
+    isDefault: true,
+  },
+  {
+    id: "ist_sample_canceled",
+    name: "Canceled",
+    category: "canceled",
+    color: "default",
+    position: 7,
+    isDefault: false,
+  },
+] as const satisfies ReadonlyArray<
+  { category: IssueStateCategory } & Record<string, unknown>
+>;
+
+export const issueLabels = [
+  { id: "lbl_sample_bug", name: "Bug", color: "danger" },
+  { id: "lbl_sample_feature", name: "Feature", color: "primary" },
+  { id: "lbl_sample_docs", name: "Docs", color: "success" },
+  { id: "lbl_sample_perf", name: "Performance", color: "warning" },
+] as const;
+
+const issue = (
+  number: number,
+  title: string,
+  stateId: (typeof issueStates)[number]["id"],
+  options: {
+    readonly projectId?: string;
+    readonly assigneeId?: string | null;
+    readonly labelIds?: ReadonlyArray<string>;
+    readonly threadIds?: ReadonlyArray<string>;
+    readonly pullIds?: ReadonlyArray<string>;
+    readonly parentNumber?: number;
+    readonly priority?: "urgent" | "high" | "normal" | "low";
+    readonly updatedMinutesAgo: number;
+  },
+) => ({
+  id: `iss_sample_${number}`,
+  number,
+  code: `${org.issuePrefix}-${number}`,
+  title,
+  stateId,
+  projectId: options.projectId ?? projects.web.id,
+  assigneeId: options.assigneeId ?? null,
+  creatorId: people.alex.id,
+  labelIds: options.labelIds ?? [],
+  threadIds: options.threadIds ?? [],
+  pullIds: options.pullIds ?? [],
+  parentCode: options.parentNumber
+    ? `${org.issuePrefix}-${options.parentNumber}`
+    : null,
+  priority: options.priority ?? "normal",
+  createdAt: isoMinutesAgo(options.updatedMinutesAgo + 3 * day),
+  updatedAt: isoMinutesAgo(options.updatedMinutesAgo),
+});
+
+export const issues = [
+  issue(1, "Web release 2.4", "ist_sample_in_progress", {
+    assigneeId: people.alex.id,
+    priority: "high",
+    updatedMinutesAgo: 30,
+  }),
+  issue(2, "Checkout test times out on CI", "ist_sample_in_progress", {
+    assigneeId: people.alex.id,
+    labelIds: ["lbl_sample_bug"],
+    threadIds: [threads.checkoutTest.id],
+    parentNumber: 1,
+    priority: "high",
+    updatedMinutesAgo: 2,
+  }),
+  issue(3, "Dark mode for settings", "ist_sample_in_review", {
+    assigneeId: people.sam.id,
+    labelIds: ["lbl_sample_feature"],
+    threadIds: [threads.darkMode.id],
+    pullIds: ["pr_sample_128"],
+    parentNumber: 1,
+    updatedMinutesAgo: 25,
+  }),
+  issue(4, "Pick a default page size for orders", "ist_sample_needs_you", {
+    projectId: projects.api.id,
+    assigneeId: people.alex.id,
+    threadIds: [threads.paginate.id],
+    updatedMinutesAgo: 90,
+  }),
+  issue(5, "Search API rate limit", "ist_sample_waiting", {
+    projectId: projects.api.id,
+    assigneeId: people.jordan.id,
+    labelIds: ["lbl_sample_perf"],
+    threadIds: [threads.rateLimit.id],
+    updatedMinutesAgo: 5 * hour,
+  }),
+  issue(6, "Getting started guide", "ist_sample_todo", {
+    projectId: projects.docs.id,
+    assigneeId: people.priya.id,
+    labelIds: ["lbl_sample_docs"],
+    threadIds: [threads.gettingStarted.id],
+    updatedMinutesAgo: 26 * hour,
+  }),
+  issue(7, "Move images to the CDN", "ist_sample_backlog", {
+    labelIds: ["lbl_sample_perf"],
+    priority: "low",
+    updatedMinutesAgo: 8 * day,
+  }),
+  issue(8, "Bundler upgrade", "ist_sample_done", {
+    assigneeId: people.casey.id,
+    threadIds: [threads.bundler.id],
+    pullIds: ["pr_sample_119"],
+    updatedMinutesAgo: 9 * day,
+  }),
+  issue(9, "Retire the legacy site", "ist_sample_canceled", {
+    projectId: projects.old.id,
+    updatedMinutesAgo: 30 * day,
+  }),
+];
+
+export type PullState = "draft" | "ready" | "merged" | "closed";
+
+export const pulls = [
+  {
+    id: "pr_sample_128",
+    repo: "acme/web",
+    number: 128,
+    title: "Add dark mode to settings",
+    state: "ready" as PullState,
+    authorId: people.sam.id,
+    headRef: "feat/dark-mode",
+    baseRef: "main",
+    additions: 42,
+    deletions: 7,
+    threadId: threads.darkMode.id,
+    updatedAt: isoMinutesAgo(25),
+  },
+  {
+    id: "pr_sample_131",
+    repo: "acme/web",
+    number: 131,
+    title: "Retry checkout on gateway timeouts",
+    state: "draft" as PullState,
+    authorId: people.alex.id,
+    headRef: "fix/checkout-timeout",
+    baseRef: "main",
+    additions: 18,
+    deletions: 3,
+    threadId: threads.checkoutTest.id,
+    updatedAt: isoMinutesAgo(4),
+  },
+  {
+    id: "pr_sample_119",
+    repo: "acme/web",
+    number: 119,
+    title: "Upgrade the bundler",
+    state: "merged" as PullState,
+    authorId: people.casey.id,
+    headRef: "chore/bundler-upgrade",
+    baseRef: "main",
+    additions: 310,
+    deletions: 268,
+    threadId: threads.bundler.id,
+    updatedAt: isoMinutesAgo(9 * day),
+  },
+  {
+    id: "pr_sample_57",
+    repo: "acme/api",
+    number: 57,
+    title: "Cursor pagination for orders",
+    state: "ready" as PullState,
+    authorId: people.jordan.id,
+    headRef: "feat/orders-cursor",
+    baseRef: "main",
+    additions: 96,
+    deletions: 12,
+    threadId: threads.paginate.id,
+    updatedAt: isoMinutesAgo(80),
+  },
+  {
+    id: "pr_sample_12",
+    repo: "acme/docs",
+    number: 12,
+    title: "Draft quickstart",
+    state: "closed" as PullState,
+    authorId: people.priya.id,
+    headRef: "docs/quickstart",
+    baseRef: "main",
+    additions: 120,
+    deletions: 0,
+    threadId: null,
+    updatedAt: isoMinutesAgo(12 * day),
+  },
+] as const;
+
+export const machines = [
+  {
+    id: "machine_sample_cloud1",
+    kind: "cloud",
+    name: "Cloud machine",
+    size: "large",
+    status: "running",
+    threadId: threads.checkoutTest.id,
+    createdAt: isoMinutesAgo(3 * hour),
+  },
+  {
+    id: "machine_sample_cloud2",
+    kind: "cloud",
+    name: "Cloud machine",
+    size: "medium",
+    status: "sleeping",
+    threadId: threads.darkMode.id,
+    createdAt: isoMinutesAgo(day),
+  },
+  {
+    id: "machine_sample_cloud3",
+    kind: "cloud",
+    name: "Cloud machine",
+    size: "large",
+    status: "stopped",
+    threadId: threads.bundler.id,
+    createdAt: isoMinutesAgo(10 * day),
+  },
+] as const;
+
+export const devices = [
+  {
+    id: "machine_sample_laptop",
+    kind: "device",
+    name: "alex-laptop",
+    os: "macos",
+    arch: "arm64",
+    cores: 10,
+    memoryGb: 32,
+    ownerId: people.alex.id,
+    online: true,
+    lastSeenAt: isoMinutesAgo(1),
+    sharedWithOrg: false,
+  },
+  {
+    id: "machine_sample_buildbox",
+    kind: "device",
+    name: "build-box",
+    os: "linux",
+    arch: "x86_64",
+    cores: 16,
+    memoryGb: 64,
+    ownerId: people.sam.id,
+    online: true,
+    lastSeenAt: isoMinutesAgo(3),
+    sharedWithOrg: true,
+  },
+  {
+    id: "machine_sample_desktop",
+    kind: "device",
+    name: "jordan-desktop",
+    os: "windows",
+    arch: "x86_64",
+    cores: 8,
+    memoryGb: 16,
+    ownerId: people.jordan.id,
+    online: false,
+    lastSeenAt: isoMinutesAgo(2 * day),
+    sharedWithOrg: false,
+  },
+] as const;
+
+export const automations = [
+  {
+    id: "auto_sample_deps",
+    name: "Nightly dependency check",
+    projectId: projects.web.id,
+    enabled: true,
+    trigger: { kind: "schedule", cron: "0 2 * * *", timezone: "UTC" },
+    ownerId: people.sam.id,
+    lastRunAt: isoMinutesAgo(7 * hour),
+  },
+  {
+    id: "auto_sample_changelog",
+    name: "Weekly changelog",
+    projectId: projects.docs.id,
+    enabled: true,
+    trigger: { kind: "schedule", cron: "0 9 * * 1", timezone: "UTC" },
+    ownerId: people.priya.id,
+    lastRunAt: isoMinutesAgo(day),
+  },
+  {
+    id: "auto_sample_pr_followup",
+    name: "Follow up on merged PRs",
+    projectId: projects.api.id,
+    enabled: false,
+    trigger: { kind: "event", event: "pull_request.merged" },
+    ownerId: people.alex.id,
+    lastRunAt: null,
+  },
+] as const;
+
+export const threadFolders = [
+  { id: "fld_sample_release", name: "Release", position: 0 },
+  { id: "fld_sample_research", name: "Research", position: 1 },
+] as const;
+
+export const threadTags = [
+  { id: "tag_sample_frontend", name: "frontend", color: "primary" },
+  { id: "tag_sample_backend", name: "backend", color: "info" },
+  { id: "tag_sample_urgent", name: "urgent", color: "danger" },
+] as const;
+
+export const mcpServers = [
+  {
+    id: "mcp_sample_errors",
+    key: "errors",
+    name: "Error tracker",
+    url: "https://mcp.example.com/errors",
+    transport: "http",
+    status: "connected",
+  },
+  {
+    id: "mcp_sample_docs",
+    key: "docs",
+    name: "Docs search",
+    url: "https://mcp.example.com/docs",
+    transport: "http",
+    status: "needs_auth",
+  },
+] as const;
+
+export const apiKeys = [
+  {
+    id: "key_sample_ci",
+    name: "CI",
+    prefix: "capy_sk_ab12",
+    createdBy: people.sam.id,
+    createdAt: isoMinutesAgo(40 * day),
+    lastUsedAt: isoMinutesAgo(hour),
+    revokedAt: null,
+  },
+  {
+    id: "key_sample_old",
+    name: "Old script",
+    prefix: "capy_sk_9f3e",
+    createdBy: people.alex.id,
+    createdAt: isoMinutesAgo(80 * day),
+    lastUsedAt: isoMinutesAgo(50 * day),
+    revokedAt: isoMinutesAgo(45 * day),
+  },
+] as const;
+
+/** Capy's preset theme ids (parity map, scope decision 6). Custom themes are invented here. */
+export const presetThemeIds = [
+  "absolutely",
+  "bearded-oled",
+  "catppuccin",
+  "codex",
+  "crimson-evernight",
+  "everforest",
+  "firecrawl",
+  "github",
+  "gruvbox",
+  "hub",
+  "linear",
+  "notion",
+  "one",
+] as const;
+
+export const models = [
+  {
+    id: "anthropic/claude-opus",
+    label: "Claude Opus",
+    provider: "anthropic",
+    tier: "peak",
+  },
+  {
+    id: "anthropic/claude-sonnet",
+    label: "Claude Sonnet",
+    provider: "anthropic",
+    tier: "excellent",
+  },
+  { id: "openai/gpt", label: "GPT", provider: "openai", tier: "peak" },
+  {
+    id: "google/gemini",
+    label: "Gemini",
+    provider: "google",
+    tier: "excellent",
+  },
+] as const;
+
+export const driveFiles = [
+  {
+    id: "file_sample_spec",
+    path: "specs/checkout-retry.md",
+    size: 4_812,
+    mimeType: "text/markdown",
+    updatedAt: isoMinutesAgo(3 * hour),
+    updatedBy: people.alex.id,
+  },
+  {
+    id: "file_sample_chart",
+    path: "reports/latency-week-9.png",
+    size: 182_340,
+    mimeType: "image/png",
+    updatedAt: isoMinutesAgo(day),
+    updatedBy: people.jordan.id,
+  },
+  {
+    id: "file_sample_notes",
+    path: "notes/release-2.4.md",
+    size: 1_204,
+    mimeType: "text/markdown",
+    updatedAt: isoMinutesAgo(30),
+    updatedBy: people.sam.id,
+  },
+] as const;
+
+/** Stable ids per collection so groups can cross-reference without importing each other. */
+export const world = {
+  org,
+  people,
+  members,
+  pendingInvitations,
+  serviceUsers,
+  projects,
+  repos,
+  branches,
+  threads,
+  captains,
+  issueStates,
+  issueLabels,
+  issues,
+  pulls,
+  machines,
+  devices,
+  automations,
+  threadFolders,
+  threadTags,
+  mcpServers,
+  apiKeys,
+  presetThemeIds,
+  models,
+  driveFiles,
+} as const;
