@@ -1,4 +1,4 @@
-import { CaptainIssuesPane } from "@/features/thread-panes/threads-pane";
+import { CaptainIssuesPane } from "@/features/thread-panes/captain-issues-pane";
 import { definePane } from "../registry";
 
 export const entry = definePane({

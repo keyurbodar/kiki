@@ -7,7 +7,10 @@ import {
 } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Menu, MenuContent } from "@/primitives/menu";
+import {
+  ResponsiveMenu,
+  ResponsiveMenuContent,
+} from "@/primitives/responsive-menu";
 import { TabStrip } from "./tab-strip";
 import {
   EntriesPageBody,
@@ -26,13 +29,26 @@ afterEach(() => {
   toastError.mockReset();
 });
 
+/** The open-a-tab menu as the strip mounts it: open, with its level stack. */
 function OpenMenu({ children }: { children: ReactNode }) {
   return (
-    <Menu open>
-      <MenuContent>{children}</MenuContent>
-    </Menu>
+    <ResponsiveMenu open>
+      <ResponsiveMenuContent>{children}</ResponsiveMenuContent>
+    </ResponsiveMenu>
   );
 }
+
+const pushedPage = () =>
+  document.querySelector<HTMLElement>(
+    '[data-slot="responsive-menu-level"][data-nav="push"]',
+  );
+
+/** The pushed page's back row, which returns the menu to its item list. */
+const backRow = () => {
+  const row = pushedPage()?.querySelector<HTMLElement>('[role="menuitem"]');
+  if (row === null || row === undefined) throw new Error("no pushed page");
+  fireEvent.click(row);
+};
 
 const machine: MachineEntry = {
   machineId: "machine_1",
@@ -233,6 +249,107 @@ describe("ThreadOptions", () => {
     await waitFor(() =>
       expect(toastError).toHaveBeenCalledWith("Could not launch Seed"),
     );
+  });
+});
+
+describe("EntriesPage", () => {
+  const sideThreads = [
+    { id: "jam_side1", title: "Stub the payment gateway" },
+    { id: "jam_side2", title: "Add a retry budget" },
+  ];
+
+  it("replaces the menu's item list in place instead of opening a submenu", () => {
+    render(
+      <OpenMenu>
+        <ThreadOptions {...base} sideThreads={sideThreads} />
+      </OpenMenu>,
+    );
+    const list = document.querySelector('[data-slot="responsive-menu-level"]');
+    fireEvent.click(screen.getByText("Side threads"));
+
+    const page = pushedPage();
+    expect(page).not.toBeNull();
+    expect(list?.className).toContain("hidden");
+    expect(page?.querySelector('[role="menuitem"]')?.textContent).toBe(
+      "Side threads",
+    );
+    expect(
+      page?.contains(screen.getByPlaceholderText("Search side threads")),
+    ).toBe(true);
+    expect(page?.textContent).toContain("Stub the payment gateway");
+    expect(page?.textContent).toContain("Add a retry budget");
+  });
+
+  it("searches inside the page and says when nothing matches", () => {
+    render(
+      <OpenMenu>
+        <ThreadOptions {...base} sideThreads={sideThreads} />
+      </OpenMenu>,
+    );
+    fireEvent.click(screen.getByText("Side threads"));
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Search side threads" }),
+      { target: { value: "retry" } },
+    );
+    const page = pushedPage();
+    expect(page?.textContent).toContain("Add a retry budget");
+    expect(page?.textContent).not.toContain("Stub the payment gateway");
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Search side threads" }),
+      { target: { value: "zzz" } },
+    );
+    expect(page?.textContent).toContain("No matches");
+  });
+
+  it("goes back to the item list from the page's back row", () => {
+    render(
+      <OpenMenu>
+        <ThreadOptions {...base} sideThreads={sideThreads} />
+      </OpenMenu>,
+    );
+    const list = document.querySelector('[data-slot="responsive-menu-level"]');
+    fireEvent.click(screen.getByText("Side threads"));
+    expect(pushedPage()?.querySelector('[role="menuitem"]')?.textContent).toBe(
+      "Side threads",
+    );
+    backRow();
+    expect(pushedPage()).toBeNull();
+    expect(list?.className).not.toContain("hidden");
+  });
+
+  it("opens All threads and Pull requests as pages of the same menu", () => {
+    render(
+      <OpenMenu>
+        <ThreadOptions
+          {...base}
+          title={undefined}
+          crew={[{ id: "jam_9", title: "Fix the flaky test" }]}
+          pulls={[{ number: 7, url: "https://github.com/acme/web/pull/7" }]}
+        />
+      </OpenMenu>,
+    );
+    fireEvent.click(screen.getByText("All threads"));
+    expect(pushedPage()?.textContent).toContain("Fix the flaky test");
+    backRow();
+    fireEvent.click(screen.getByText("Pull requests"));
+    const page = pushedPage();
+    expect(page?.textContent).toContain("#7");
+    expect(
+      page?.contains(screen.getByPlaceholderText("Search pull requests")),
+    ).toBe(true);
+  });
+
+  it("says the page is empty when the list has no rows", () => {
+    render(
+      <OpenMenu>
+        <ThreadOptions {...base} title={undefined} crew={[]} pulls={[]} />
+      </OpenMenu>,
+    );
+    fireEvent.click(screen.getByText("All threads"));
+    expect(pushedPage()?.textContent).toContain("No all threads");
+    backRow();
+    fireEvent.click(screen.getByText("Pull requests"));
+    expect(pushedPage()?.textContent).toContain("No pull requests");
   });
 });
 

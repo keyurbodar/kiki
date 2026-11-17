@@ -9,7 +9,10 @@ import {
   MenuSub,
   MenuSubTrigger,
 } from "@/primitives/menu";
-import { ResponsiveMenuItem } from "@/primitives/responsive-menu";
+import {
+  ResponsiveMenuItem,
+  ResponsiveMenuPage,
+} from "@/primitives/responsive-menu";
 import {
   menuCheck,
   menuChevron,
@@ -218,11 +221,16 @@ export type EntriesPageProps = {
   children: (query: string) => ReactNode[];
 };
 
-/** A submenu row with a count that opens a searchable, paged list. */
+/**
+ * A row with a count that opens a searchable, paged list *in place*: the same
+ * menu surface swaps its item list for the page, the way Capy's tab menu does
+ * for All threads, Pull requests, Side threads, Commands and Phones.
+ */
 export function EntriesPage({ icon, label, count, ...body }: EntriesPageProps) {
   return (
-    <MenuSub>
-      <MenuSubTrigger data-track-owner="ui/responsive-menu.tsx#ResponsiveMenuSub:MenuSubTrigger.1">
+    <ResponsiveMenuPage
+      label={label}
+      trigger={
         <span className="flex min-w-0 flex-1 items-center gap-2 text-left">
           <span className={menuIcon}>{icon}</span>
           <span className="flex min-w-0 flex-1 flex-col justify-center">
@@ -235,11 +243,10 @@ export function EntriesPage({ icon, label, count, ...body }: EntriesPageProps) {
             <ChevronRightGlyph className={menuChevron} />
           </span>
         </span>
-      </MenuSubTrigger>
-      <MenuContent>
-        <EntriesPageBody label={label} {...body} />
-      </MenuContent>
-    </MenuSub>
+      }
+    >
+      <EntriesPageBody label={label} {...body} />
+    </ResponsiveMenuPage>
   );
 }
 
