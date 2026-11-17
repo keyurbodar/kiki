@@ -1,22 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
-import { searchParams } from "@/lib/search-params";
+import { DitherCoverPage } from "@/features/promotions/dither-cover";
 
 export const Route = createFileRoute("/dither-cover")({
-  validateSearch: searchParams([
-    "at",
-    "code",
-    "error",
-    "linear",
-    "message",
-    "slack",
-    "stage",
-    "state",
-    "theme",
-  ]),
+  validateSearch: (search: Record<string, unknown>) => ({
+    theme: search.theme === "dark" ? ("dark" as const) : ("light" as const),
+    at: typeof search.at === "number" ? search.at : undefined,
+  }),
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="Dither cover" path="/dither-cover" />;
+  const { theme, at } = Route.useSearch();
+  return <DitherCoverPage theme={theme} at={at} />;
 }
