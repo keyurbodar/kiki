@@ -37,7 +37,7 @@ export function formatRelative(
   return delta < 0 ? `in ${amount}` : `${amount} ago`;
 }
 
-/** Capy's duration label for build steps: "850ms", "12s", "4m 3s". */
+/** Capy's duration label for build steps: milliseconds under a second, then seconds, then minutes and seconds. */
 export function formatDuration(ms: number) {
   if (ms < second) return `${ms}ms`;
   const seconds = Math.round(ms / second);
