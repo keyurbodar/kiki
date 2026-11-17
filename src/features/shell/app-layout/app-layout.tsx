@@ -48,6 +48,26 @@ function SidebarToggle({ onClick }: { onClick: () => void }) {
   );
 }
 
+/**
+ * The phone's sidebar trigger: opens the shell's navigation sheet. Hidden from
+ * md up, where the sidebar is always in the layout. Pages put it in their top
+ * bar; the settings route puts it in its crumb bar.
+ */
+export function MobileNavTrigger({ className }: { className?: string }) {
+  const { setOpenMobile } = useSidebarActions();
+  return (
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      aria-label="Open navigation"
+      className={cx("md:hidden", className)}
+      onClick={() => setOpenMobile(true)}
+    >
+      <Icon name="sidebar-simple-left-wide" size="sm" />
+    </Button>
+  );
+}
+
 function AppShellBody({ children, banner }: AppLayoutProps) {
   const { open, isNarrow } = useSidebarState();
   const openMobile = useSidebarOpenMobile();
@@ -60,18 +80,19 @@ function AppShellBody({ children, banner }: AppLayoutProps) {
   }, [pathname, setOpenMobile]);
 
   const settings = pathname.startsWith(SETTINGS_PATH);
-  const nav = settings ? (
+  const closeMobile = () => setOpenMobile(false);
+  const settingsNav = (onToggle: () => void) => (
     <SettingsSidebarPanel
-      onNavigate={() => setOpenMobile(false)}
-      trigger={isNarrow ? undefined : <SidebarToggle onClick={toggle} />}
+      onNavigate={closeMobile}
+      trigger={<SidebarToggle onClick={onToggle} />}
     />
-  ) : (
-    <AppSidebar />
   );
+  const desktopNav = settings ? settingsNav(toggle) : <AppSidebar />;
+  const mobileNav = settings ? settingsNav(closeMobile) : <AppSidebar />;
 
   return (
     <>
-      {!isNarrow && <Sidebar>{nav}</Sidebar>}
+      {!isNarrow && <Sidebar>{desktopNav}</Sidebar>}
       <Card
         variant="panel"
         data-slot="sidebar-panel"
@@ -88,7 +109,7 @@ function AppShellBody({ children, banner }: AppLayoutProps) {
       </Card>
       {isNarrow && (
         <Sheet open={openMobile} onOpenChange={setOpenMobile}>
-          <SheetContent aria-label="Navigation">{nav}</SheetContent>
+          <SheetContent aria-label="Navigation">{mobileNav}</SheetContent>
         </Sheet>
       )}
     </>

@@ -7,6 +7,7 @@ import {
   type SettingsSidebarResult,
 } from "@/components/settings-sidebar";
 import { UserMenu } from "@/components/user-menu";
+import { MobileNavTrigger } from "@/features/shell/app-layout";
 import {
   settingsNav,
   settingsNavGroups,
@@ -109,6 +110,7 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
       <AppTopBar
         className="sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center bg-panel px-2 md:hidden"
         leading={crumb ? <SettingsCrumbLink crumb={crumb} /> : undefined}
+        trailing={<MobileNavTrigger />}
       />
       <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto md:scroll-fade-y">
         {children}
