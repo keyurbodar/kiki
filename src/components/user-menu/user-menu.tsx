@@ -3,10 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Option } from "effect";
 import { AsyncResult, Atom } from "effect/reactivity";
 import type { ComponentProps, MouseEvent } from "react";
-import {
-  AppearanceMenuItems,
-  menuIconSlotClassName,
-} from "@/components/appearance-menu";
+import { AppearanceMenuItems } from "@/components/appearance-menu";
 import {
   ArrowsRepeatRightLeftIcon,
   BubbleQuestionIcon,
@@ -25,6 +22,11 @@ import {
   selectedOrgIdAtom,
 } from "@/data/atoms/session";
 import { Icon } from "@/primitives/icon";
+import {
+  menuCheckClassName,
+  menuIconClassName,
+  menuTrailingClassName,
+} from "@/primitives/menu";
 import {
   ResponsiveMenu,
   ResponsiveMenuContent,
@@ -144,23 +146,23 @@ export function UserMenu({ compact = false, ...props }: UserMenuProps) {
         <ResponsiveMenuContent align="start" side="top" className="w-56">
           {setup.restorable ? (
             <ResponsiveMenuItem onClick={setup.restore}>
-              <span className={menuIconSlotClassName}>
+              <span className={menuIconClassName}>
                 <Icon name="checklist" size="sm" />
               </span>
               Finish setting up
             </ResponsiveMenuItem>
           ) : null}
           <ResponsiveMenuItem onClick={open("/settings/general")}>
-            <span className={menuIconSlotClassName}>
+            <span className={menuIconClassName}>
               <SettingsGearIcon />
             </span>
             Settings
-            <span className="ml-auto flex shrink-0 items-center gap-1.5 text-sm font-normal text-muted-foreground-1">
+            <span className={menuTrailingClassName}>
               {settingsShortcutLabel(isMac())}
             </span>
           </ResponsiveMenuItem>
           <ResponsiveMenuItem onClick={open("/settings/org/usage")}>
-            <span className={menuIconSlotClassName}>
+            <span className={menuIconClassName}>
               <Icon name="gauge" size="sm" />
             </span>
             Usage
@@ -182,7 +184,7 @@ export function UserMenu({ compact = false, ...props }: UserMenuProps) {
                 )
               }
             >
-              <span className={menuIconSlotClassName}>
+              <span className={menuIconClassName}>
                 <Icon name="book" size="sm" />
               </span>
               Documentation
@@ -199,13 +201,13 @@ export function UserMenu({ compact = false, ...props }: UserMenuProps) {
                 )
               }
             >
-              <span className={menuIconSlotClassName}>
+              <span className={menuIconClassName}>
                 <Icon name="mailbox" size="sm" />
               </span>
               Contact us
             </ResponsiveMenuItem>
             <ResponsiveMenuItem>
-              <span className={menuIconSlotClassName}>
+              <span className={menuIconClassName}>
                 <Icon name="megaphone" size="sm" />
               </span>
               Send feedback
@@ -221,31 +223,31 @@ export function UserMenu({ compact = false, ...props }: UserMenuProps) {
                 key={org.id}
                 onClick={() => selectOrg(org.id)}
               >
-                <span className={menuIconSlotClassName}>
+                <span className={menuIconClassName}>
                   <UserAvatar src={org.avatarUrl} name={org.name} size="xs" />
                 </span>
                 {org.name}
                 {org.id === activeOrgId ? (
-                  <CheckmarkIcon className="ml-auto size-(--icon-sm) shrink-0 text-foreground" />
+                  <CheckmarkIcon className={`ml-auto ${menuCheckClassName}`} />
                 ) : null}
               </ResponsiveMenuItem>
             ))}
             <ResponsiveMenuSeparator />
             <ResponsiveMenuItem onClick={() => openCreateOrganization(true)}>
-              <span className={menuIconSlotClassName}>
+              <span className={menuIconClassName}>
                 <PlusLargeIcon />
               </span>
               Create or join organization
             </ResponsiveMenuItem>
           </ResponsiveMenuSub>
           <ResponsiveMenuItem
-            data-intent="danger"
+            intent="danger"
             onClick={() => {
               selectOrg(null);
               navigate({ to: "/sign-in" });
             }}
           >
-            <span className={menuIconSlotClassName}>
+            <span className={menuIconClassName}>
               <DoorIcon />
             </span>
             Log out

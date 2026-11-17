@@ -7,6 +7,7 @@ import {
   useColorThemePreview,
 } from "@/lib/appearance";
 import { Button } from "@/primitives/button";
+import { MenuSeparator } from "@/primitives/menu";
 import {
   MenuSelect,
   MenuSelectContent,
@@ -58,6 +59,7 @@ export function ColorThemeSelect({
       onOpenChange={preview.onOpenChange}
     >
       <MenuSelectTrigger
+        size="sm"
         className={className ?? "w-40"}
         aria-label="Color theme"
       >
@@ -72,53 +74,49 @@ export function ColorThemeSelect({
             key={colorThemeKey(theme)}
             value={colorThemeKey(theme)}
             {...preview.itemProps(theme)}
+            icon={<ColorThemeSwatch theme={theme} dark={dark} />}
           >
-            <ColorThemeSwatch theme={theme} dark={dark} />
             {colorThemeLabel(theme)}
           </MenuSelectItem>
         ))}
-        {custom.length > 0 ? (
-          <div
-            aria-hidden
-            data-slot="menu-separator"
-            className="-mx-1 my-1 h-px bg-border-1"
-          />
-        ) : null}
+        {custom.length > 0 ? <MenuSeparator /> : null}
         {custom.map((theme) => (
           <MenuSelectItem
             key={colorThemeKey(theme)}
             value={colorThemeKey(theme)}
             {...preview.itemProps(theme)}
+            icon={<ColorThemeSwatch theme={theme} dark={dark} />}
+            trailing={
+              <Button
+                variant="bare"
+                size="icon-shrink"
+                aria-label={`Delete ${theme.name}`}
+                className="-my-1 p-1"
+                aria-busy={deleting === theme.id}
+                disabled={deleting !== null}
+                onPointerDown={stopPropagation}
+                onMouseUp={stopPropagation}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setDeleting(theme.id);
+                  deleteTheme(theme).then(
+                    () => {
+                      setDeleting(null);
+                      toast.success(`Deleted ${theme.name}`);
+                    },
+                    () => {
+                      setDeleting(null);
+                      toast.error("Could not delete the theme");
+                    },
+                  );
+                }}
+              >
+                <TrashCanIcon />
+              </Button>
+            }
           >
-            <ColorThemeSwatch theme={theme} dark={dark} />
             {colorThemeLabel(theme)}
-            <Button
-              variant="bare"
-              size="icon-shrink"
-              aria-label={`Delete ${theme.name}`}
-              className="-my-1 p-1"
-              aria-busy={deleting === theme.id}
-              disabled={deleting !== null}
-              onPointerDown={stopPropagation}
-              onMouseUp={stopPropagation}
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                setDeleting(theme.id);
-                deleteTheme(theme).then(
-                  () => {
-                    setDeleting(null);
-                    toast.success(`Deleted ${theme.name}`);
-                  },
-                  () => {
-                    setDeleting(null);
-                    toast.error("Could not delete the theme");
-                  },
-                );
-              }}
-            >
-              <TrashCanIcon />
-            </Button>
           </MenuSelectItem>
         ))}
       </MenuSelectContent>

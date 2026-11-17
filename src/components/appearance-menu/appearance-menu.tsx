@@ -15,6 +15,7 @@ import {
 } from "@/lib/appearance";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
+import { menuCheckClassName, menuIconClassName } from "@/primitives/menu";
 import {
   ResponsiveMenu,
   ResponsiveMenuContent,
@@ -23,12 +24,6 @@ import {
   ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import type { ColorMode } from "@/tokens/theme";
-
-export const menuIconSlotClassName =
-  "flex size-(--icon-sm) shrink-0 items-center justify-center text-icon-muted in-data-[intent=danger]:text-destructive";
-
-export const menuCheckClassName =
-  "ml-auto size-(--icon-sm) shrink-0 text-foreground";
 
 const menuLabelClassName =
   "mask-fade-r min-w-0 flex-1 overflow-hidden whitespace-nowrap";
@@ -67,12 +62,12 @@ export function AppearanceMenuItems() {
             key={option.value}
             onClick={() => setColorMode(option.value)}
           >
-            <span className={menuIconSlotClassName}>
+            <span className={menuIconClassName}>
               <Icon name={option.icon} size="sm" />
             </span>
             {option.label}
             {mode === option.value ? (
-              <CheckmarkIcon className={menuCheckClassName} />
+              <CheckmarkIcon className={"ml-auto " + menuCheckClassName} />
             ) : null}
           </ResponsiveMenuItem>
         ))}
@@ -91,12 +86,12 @@ export function AppearanceMenuItems() {
             onClick={() => select(theme)}
             {...preview.itemProps(theme)}
           >
-            <span className={menuIconSlotClassName}>
+            <span className={menuIconClassName}>
               <ColorThemeSwatch theme={theme} dark={dark} />
             </span>
             <span className={menuLabelClassName}>{colorThemeLabel(theme)}</span>
             {sameColorTheme(displayed, theme) ? (
-              <CheckmarkIcon className={menuCheckClassName} />
+              <CheckmarkIcon className={"ml-auto " + menuCheckClassName} />
             ) : null}
           </ResponsiveMenuItem>
         ))}
