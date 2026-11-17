@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { DriveDetailPage } from "@/features/drive/drive-detail-page";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/automation/$automationId_/drive")({
@@ -9,10 +9,8 @@ export const Route = createFileRoute("/_app/automation/$automationId_/drive")({
 
 function RouteComponent() {
   const { automationId } = Route.useParams();
+  const { file } = Route.useSearch();
   return (
-    <RoutePlaceholder
-      title="Drive"
-      path={`/automation/${automationId}/drive`}
-    />
+    <DriveDetailPage mount={{ kind: "automation", automationId }} file={file} />
   );
 }
