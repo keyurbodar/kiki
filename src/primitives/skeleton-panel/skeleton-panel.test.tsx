@@ -16,9 +16,15 @@ describe("SkeletonPanel", () => {
     const status = screen.getByRole("status");
     expect(status.textContent).toBe("Loading");
     expect(status.getAttribute("aria-busy")).toBe("true");
+    expect(status.getAttribute("aria-live")).toBe("polite");
     expect(
       screen.getByText("bar").parentElement?.getAttribute("aria-hidden"),
     ).toBe("true");
+  });
+
+  it("announces the label it is given", () => {
+    render(<SkeletonPanel label="Loading messages" />);
+    expect(screen.getByRole("status").textContent).toBe("Loading messages");
   });
 
   it("SkeletonPulse delays its reveal and pulses its children", () => {

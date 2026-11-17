@@ -10,6 +10,7 @@ export function ProgressEdge({
   active = true,
   label = "Loading",
   className,
+  onTransitionEnd,
   style,
   ...props
 }: ProgressEdgeProps) {
@@ -36,6 +37,7 @@ export function ProgressEdge({
       onTransitionEnd={(event) => {
         if (event.propertyName === "opacity" && !active)
           delete event.currentTarget.dataset.sweeping;
+        onTransitionEnd?.(event);
       }}
       style={{
         transitionDelay: active ? undefined : "var(--duration-fast)",
