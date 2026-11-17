@@ -33,6 +33,7 @@ import {
 } from "../notification-filter-rows/icons";
 import {
   completionKindLabels,
+  completionKinds,
   deviceCompletionKinds,
   enabledKindsSummary,
 } from "../notification-filter-rows/notification-kinds";
@@ -278,7 +279,7 @@ export function SettingsNotificationsPage() {
   const slack = slackNotificationPreferences(user?.preferences);
   const slackKinds =
     slack?.enabled === true
-      ? deviceCompletionKinds
+      ? completionKinds
           .filter((kind) => slack.kinds?.[kind] !== false)
           .map((kind) => completionKindLabels[kind])
       : [];
@@ -453,7 +454,7 @@ export function SettingsNotificationsPage() {
             description={
               slackLinks.length === 0 && user !== undefined
                 ? "Link your Slack account to get direct messages"
-                : enabledKindsSummary(slackKinds)
+                : enabledKindsSummary(slackKinds, completionKinds)
             }
           />
         </Card>
