@@ -9,13 +9,13 @@ import type { ComponentProps, ReactNode } from "react";
  * class from the bundle.
  */
 const tableVariants = cva(
-  "isolate grid w-full overflow-x-auto overscroll-x-contain px-4 [--table-fluid-min:0rem] [--table-lead-min:0rem] max-md:[--table-fluid-min:8rem] max-md:[--table-lead-min:10rem] max-md:[--table-auto-min:auto] max-md:[clip-path:inset(0_0_0_0.5rem)]",
+  "isolate grid w-full overflow-x-auto overscroll-x-contain px-4 [--table-fluid-min:0] [--table-lead-min:0] max-md:[--table-fluid-min:calc(var(--spacing)*32)] max-md:[--table-lead-min:calc(var(--spacing)*40)] max-md:[--table-auto-min:auto] max-md:[clip-path:inset(0_0_0_0.5rem)]",
   {
     variants: {
       density: {
-        directory: "[--table-row-h:3.125rem]",
-        pick: "[--table-row-h:2.75rem]",
-        compact: "[--table-row-h:2rem]",
+        directory: "[--table-row-h:calc(var(--spacing)*12.5)]",
+        pick: "[--table-row-h:calc(var(--spacing)*11)]",
+        compact: "[--table-row-h:calc(var(--spacing)*8)]",
       },
     },
     defaultVariants: { density: "directory" },
@@ -34,7 +34,9 @@ export function tableColumns(columns: string) {
       if (fluid !== null) {
         return `minmax(var(${index === 0 ? "--table-lead-min" : "--table-fluid-min"}),${fluid[1]})`;
       }
-      const auto = /^minmax\(\s*([\d.]+rem)\s*,\s*auto\s*\)$/.exec(part);
+      const auto = /^minmax\(\s*([\d.]+rem|min-content)\s*,\s*auto\s*\)$/.exec(
+        part,
+      );
       return auto === null
         ? part
         : `minmax(var(--table-auto-min,${auto[1]}),auto)`;
@@ -135,7 +137,7 @@ export function DirectoryTableSection({
 }
 
 export const tableRowClass =
-  "relative col-span-full grid grid-cols-subgrid before:absolute before:inset-y-0 before:-inset-x-2 before:rounded before:transition-colors before:duration-100 hover:before:bg-section";
+  "relative col-span-full grid grid-cols-subgrid before:absolute before:inset-y-0 before:-inset-x-2 before:rounded before:transition-colors before:duration-hover hover:before:bg-section";
 
 export function DirectoryTableRow({
   className,

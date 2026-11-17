@@ -48,6 +48,14 @@ const oauthPayload = (input: OAuthCallbackInput) => ({
   error: input.error,
 });
 
+const githubInstallationId = (value: string | undefined) => {
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
+};
+
+const githubSetupAction = (value: string | undefined) =>
+  value === "request" ? "request" : undefined;
+
 type SettingsProvider = "slack" | "linear" | "paper";
 
 const settingsProviders = {
@@ -121,8 +129,8 @@ export function GitHubCallback({ input }: { input: GitHubCallbackInput }) {
     complete({
       payload: {
         ...oauthPayload(input),
-        installationId: input.installationId,
-        setupAction: input.setupAction,
+        installationId: githubInstallationId(input.installationId),
+        setupAction: githubSetupAction(input.setupAction),
       },
     })
       .then(Schema.decodeUnknownPromise(GitHubCallbackResult))

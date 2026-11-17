@@ -1,10 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { NotFoundPage } from "@/components/not-found-page";
 
 export const Route = createFileRoute("/_app/settings/import")({
-  component: RouteComponent,
+  component: NotFoundPage,
 });
-
-function RouteComponent() {
-  return <RoutePlaceholder title="/settings/import" path="/settings/import" />;
-}
