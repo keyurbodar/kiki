@@ -44,7 +44,7 @@ export function ChatSkeleton({ leaving = false }: ChatSkeletonProps) {
               <div key={index} className="flex justify-end pt-8 pb-2">
                 <div
                   className={cx(
-                    "h-[calc(1lh+1rem)] rounded-(--radius-card) bg-secondary",
+                    "h-[calc(1lh+var(--spacing)*4)] rounded-(--radius-card) bg-secondary",
                     turn.width,
                   )}
                 />

@@ -15,7 +15,7 @@ export type ThreadViewProps = {
 };
 
 const chatColumnWithPane =
-  "w-[calc(100cqw_-_clamp(20rem,var(--right-panel-width,32.5rem),100cqw_-_20rem))]";
+  "w-[calc(100cqw_-_clamp(var(--container-xs),var(--right-panel-width,calc(var(--spacing)*130)),100cqw_-_var(--container-xs)))]";
 
 /** The thread screen: top bar, chat timeline and composer, with an optional pane on the right. */
 export function ThreadView({
@@ -39,7 +39,7 @@ export function ThreadView({
             <JamChat jamId={threadId} rows={rows} initialLoading={loading} />
             {loading && rows.length === 0 && <ChatSkeleton />}
           </div>
-          <div className="min-h-0 px-4 pb-[calc(0.25rem+var(--safe-bottom))]">
+          <div className="min-h-0 px-4 pb-[calc(var(--spacing)+var(--safe-bottom))]">
             <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col justify-end">
               <Composer />
             </div>

@@ -62,7 +62,7 @@ const renderRow = ({ item }: { item: TimelineRowData }) => (
 const itemType = (row: TimelineRowData) =>
   row.type === "update" ? `update:${row.kind}` : row.type;
 
-export type JamChatProps = Omit<ComponentProps<"div">, "children"> & {
+export type JamChatProps = ComponentProps<"div"> & {
   jamId?: string;
   rows?: readonly TimelineRowData[];
   header?: ReactNode;
@@ -79,6 +79,7 @@ export function JamChat({
   now,
   className,
   style,
+  children,
   ...props
 }: JamChatProps) {
   const listRef = useRef<LegendListRef>(null);
@@ -138,6 +139,7 @@ export function JamChat({
           ListFooterComponent={<div className="pb-8 max-md:pb-7" />}
         />
       </RowContext.Provider>
+      {children}
       <ChatScrollPill
         visible={showPill}
         messagesBelow={countMessagesBelow(

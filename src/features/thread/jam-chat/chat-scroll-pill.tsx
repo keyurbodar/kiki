@@ -74,7 +74,7 @@ export function ChatScrollPill({
         )}
       >
         <div className="pointer-events-auto -m-0.5 min-w-0 overflow-hidden p-0.5">
-          <div className="flex flex-col rounded-(--radius-card) border-[0.03125rem] border-[var(--card-hairline,var(--border-1))] bg-card shadow-card">
+          <div className="flex flex-col rounded-(--radius-card) border-(length:--border-width-hairline) border-[var(--card-hairline,var(--border-1))] bg-card shadow-card">
             <button
               type="button"
               aria-label={label}
