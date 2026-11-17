@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { useMemo } from "react";
+import { findPane } from "@/features/thread-panes/thread-pane";
+import { sampleTimelineRows, ThreadView } from "@/features/thread/thread-view";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/thread/$threadId")({
@@ -8,5 +10,15 @@ export const Route = createFileRoute("/_app/thread/$threadId")({
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="Threads" path="/thread/$threadId" />;
+  const { threadId } = Route.useParams();
+  const { pane } = Route.useSearch();
+  const rows = useMemo(() => sampleTimelineRows(), []);
+  const entry = findPane(pane);
+  return (
+    <ThreadView
+      threadId={threadId}
+      rows={rows}
+      pane={entry && <entry.component threadId={threadId} />}
+    />
+  );
 }
