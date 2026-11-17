@@ -136,12 +136,7 @@ export function MessageSection({
       className={cx("group/rail relative min-w-0", className)}
       {...props}
     >
-      <Markdown
-        data-streaming={streaming || undefined}
-        className="whitespace-pre-wrap"
-      >
-        {text}
-      </Markdown>
+      <Markdown text={text} streaming={streaming} gallery />
       {settled && <SectionRail row={row} text={text} section={section} />}
     </div>
   );

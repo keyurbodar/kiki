@@ -127,6 +127,8 @@ export function ClampedBody({
   useHeightTransition(outer, inner, expanded, open, limit, maxHeight);
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: click-to-expand is a pointer shortcut; keyboard users get the Show more button below
+    // biome-ignore lint/a11y/useKeyWithClickEvents: same as above
     <div
       className={cx("group/clamp", className, overflows && "cursor-pointer")}
       onPointerDown={(event) => {

@@ -120,7 +120,7 @@ export function UserMessage({
     </MessageFooter>
   );
 
-  const text = <Markdown className="whitespace-pre-wrap">{body}</Markdown>;
+  const text = <Markdown text={body} breaks literalHtml />;
 
   return (
     <div
