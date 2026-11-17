@@ -10,12 +10,13 @@ import {
 import { mockGroup } from "../mockGroup.ts";
 import {
   type SampleCredential,
+  sampleCatalogModels,
   sampleCompactAt,
   sampleConnections,
   sampleCredentials,
   sampleOrgCompactAt,
   sampleOrgKeys,
-  sampleRouting,
+  sampleRoutingPayload,
   sampleSettings,
 } from "./fixtures.ts";
 
@@ -89,8 +90,8 @@ export const ModelsMock = mockGroup("models", (handlers) =>
     );
     const deviceAttempts = yield* Ref.make<Record<string, string>>({});
     const orgKeys = yield* Ref.make<OrgKey[]>([...sampleOrgKeys]);
-    const routing = yield* Ref.make<Record<string, string>>({
-      ...sampleRouting,
+    const routing = yield* Ref.make<Record<string, unknown>>({
+      ...sampleRoutingPayload,
     });
     const settings = yield* Ref.make<Settings>({
       ...sampleSettings,
@@ -139,7 +140,7 @@ export const ModelsMock = mockGroup("models", (handlers) =>
         Effect.gen(function* () {
           const rows = yield* Ref.get(credentials);
           return {
-            models: worldModels.map((model) => ({ ...model, enabled: true })),
+            models: sampleCatalogModels.map((model) => ({ ...model })),
             credentials: rows.map(summary),
             services: [...new Set(rows.map((row) => row.service))],
           };
