@@ -89,6 +89,7 @@ import {
   directTicks,
   draftHeaders,
   hasHeaderProblems,
+  headersEqual,
   listedModels,
   matchedFirst,
   readDaybreak,
@@ -352,7 +353,7 @@ export function ConnectSheet({
     headers:
       credential === undefined ||
       azure ||
-      JSON.stringify(sentHeaders) === JSON.stringify(credential.headers ?? [])
+      headersEqual(sentHeaders, credential.headers)
         ? undefined
         : sentHeaders,
     api:

@@ -108,6 +108,7 @@ export type HeaderValueInputProps = {
   value: string;
   invalid: boolean;
   label: string;
+  placeholder?: string;
   inputRef?: Ref<HTMLInputElement>;
   onChange: (value: string) => void;
 };
@@ -116,6 +117,7 @@ export function HeaderValueInput({
   value,
   invalid,
   label,
+  placeholder = "Value",
   inputRef,
   onChange,
 }: HeaderValueInputProps) {
@@ -173,7 +175,7 @@ export function HeaderValueInput({
     <span className="relative min-w-0">
       <Input
         font="mono"
-        placeholder="Value"
+        placeholder={placeholder}
         aria-label={label}
         aria-invalid={invalid}
         className="text-transparent caret-foreground"
@@ -259,6 +261,7 @@ export function HeaderRows({ headers, recipient, onChange }: HeaderRowsProps) {
     <>
       {headers.map((header, index) => {
         const problem = problems[index];
+        const redacted = header.secret === true && header.value === "";
         return (
           <div key={header.id} className="flex flex-col gap-1">
             <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2">
@@ -274,12 +277,18 @@ export function HeaderRows({ headers, recipient, onChange }: HeaderRowsProps) {
               <HeaderValueInput
                 label={`Header ${index + 1} value`}
                 invalid={problem?.field === "value"}
+                placeholder={redacted ? "Saved, type to replace" : "Value"}
                 value={header.value}
                 inputRef={(element) => {
                   if (element === null) inputs.current.delete(header.id);
                   else inputs.current.set(header.id, element);
                 }}
-                onChange={(value) => update(header.id, { value })}
+                onChange={(value) =>
+                  update(header.id, {
+                    value,
+                    secret: value === "" ? header.secret : undefined,
+                  })
+                }
               />
               <span className="flex items-center gap-0.5">
                 <TagPicker onPick={(tag) => insertTag(header, tag)} />
@@ -329,7 +338,9 @@ export function HeaderRows({ headers, recipient, onChange }: HeaderRowsProps) {
               <span key={header.id} className="truncate">
                 <span className="text-foreground">{header.name.trim()}</span>
                 {": "}
-                {previewValue(header.value)}
+                {header.secret === true && header.value === ""
+                  ? "the saved value"
+                  : previewValue(header.value)}
               </span>
             ))}
           </div>

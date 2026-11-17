@@ -8,6 +8,7 @@ import {
   draftHeaders,
   hasHeaderProblems,
   headerProblem,
+  headersEqual,
   listedModels,
   matchedFirst,
   nearestEdge,
@@ -311,11 +312,50 @@ describe("headers", () => {
       { name: "X-A", value: "1" },
     ]);
     expect(draftHeaders([{ name: "X-A", secret: true }])).toEqual([
-      { id: 0, name: "X-A", value: "" },
+      { id: 0, name: "X-A", value: "", secret: true },
     ]);
     expect(nextHeaderId([])).toBe(0);
     expect(nextHeaderId([draft(4, "a")])).toBe(5);
     expect(hasHeaderProblems([draft(0, "host")])).toBe(true);
+  });
+  it("sends a redacted header back as unchanged", () => {
+    const saved = [
+      { name: "X-Gateway-Token", secret: true },
+      { name: "X-Team", value: "a" },
+    ];
+    const untouched = cleanHeaders(draftHeaders(saved));
+    expect(untouched).toEqual([
+      { name: "X-Gateway-Token", secret: true },
+      { name: "X-Team", value: "a" },
+    ]);
+    expect(headersEqual(untouched, saved)).toBe(true);
+    const renamed = draftHeaders(saved).map((header) =>
+      header.id === 0 ? { ...header, name: "X-Token" } : header,
+    );
+    expect(cleanHeaders(renamed)).toEqual([
+      { name: "X-Token", secret: true },
+      { name: "X-Team", value: "a" },
+    ]);
+    const edited = draftHeaders(saved).map((header) =>
+      header.id === 1 ? { ...header, value: "b" } : header,
+    );
+    const sent = cleanHeaders(edited);
+    expect(sent).toEqual([
+      { name: "X-Gateway-Token", secret: true },
+      { name: "X-Team", value: "b" },
+    ]);
+    expect(headersEqual(sent, saved)).toBe(false);
+    const replaced = draftHeaders(saved).map((header) =>
+      header.id === 0
+        ? { ...header, value: "fresh", secret: undefined }
+        : header,
+    );
+    expect(cleanHeaders(replaced)[0]).toEqual({
+      name: "X-Gateway-Token",
+      value: "fresh",
+    });
+    expect(headersEqual([], saved)).toBe(false);
+    expect(headersEqual([], undefined)).toBe(true);
   });
   it("finds, previews and splits tags", () => {
     const value = `id=\${capy.user.id};\${capy.x}`;

@@ -467,6 +467,7 @@ export type HeaderDraft = {
   readonly id: number;
   readonly name: string;
   readonly value: string;
+  readonly secret?: boolean;
 };
 
 export const draftHeaders = (
@@ -476,6 +477,7 @@ export const draftHeaders = (
     id,
     name: header.name,
     value: header.value ?? "",
+    secret: header.secret,
   }));
 
 export const headerProblem = (
@@ -513,12 +515,38 @@ export const headerProblem = (
 export const hasHeaderProblems = (headers: ReadonlyArray<HeaderDraft>) =>
   headers.some((header) => headerProblem(header, headers) !== undefined);
 
-export const cleanHeaders = (headers: ReadonlyArray<HeaderDraft>) =>
+export const cleanHeaders = (
+  headers: ReadonlyArray<HeaderDraft>,
+): Array<CredentialHeader> =>
   headers.flatMap((header) =>
     header.name.trim() === ""
       ? []
-      : [{ name: header.name.trim(), value: header.value }],
+      : [
+          header.secret === true && header.value === ""
+            ? { name: header.name.trim(), secret: true }
+            : { name: header.name.trim(), value: header.value },
+        ],
   );
+
+export const headersEqual = (
+  sent: ReadonlyArray<CredentialHeader>,
+  saved: ReadonlyArray<CredentialHeader> | undefined,
+): boolean => {
+  const stored = saved ?? [];
+  return (
+    sent.length === stored.length &&
+    sent.every((header, index) => {
+      const other = stored[index];
+      return (
+        other !== undefined &&
+        header.name === other.name &&
+        (header.secret === true
+          ? other.secret === true
+          : header.value === other.value)
+      );
+    })
+  );
+};
 
 export const nextHeaderId = (headers: ReadonlyArray<HeaderDraft>) =>
   Math.max(-1, ...headers.map((header) => header.id)) + 1;
