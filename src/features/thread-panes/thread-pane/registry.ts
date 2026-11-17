@@ -57,3 +57,24 @@ export const retiredPaneIds: ReadonlySet<string> = new Set([
 
 export const isRetiredPane = (id: string | undefined) =>
   id !== undefined && retiredPaneIds.has(id);
+
+/**
+ * The pane params Capy writes into `?pane=`. `files` is readable but not
+ * written: Capy opens the Files pane from the param and then rewrites the param
+ * off the URL, so a reload lands back on the chat.
+ */
+export const writtenPaneParams: ReadonlySet<string> = new Set([
+  "overview",
+  "diffs",
+  "captain_issues",
+]);
+
+/**
+ * The panes we cannot open yet keep whatever the URL carried: `setup` is a Capy
+ * pane the registry has not landed, and the tab keys the app builds itself are
+ * parameterised — `browser:<id>`, `service-preview:<machine>:<port>` — so a
+ * colon means a value that is not a plain unknown one.
+ */
+export const keepsPaneParam = (value: string | undefined): boolean =>
+  value !== undefined &&
+  (writtenPaneParams.has(value) || value === "setup" || value.includes(":"));
