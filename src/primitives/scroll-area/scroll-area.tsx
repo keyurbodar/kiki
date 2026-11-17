@@ -40,11 +40,12 @@ const setRef = <T,>(ref: Ref<T> | undefined, node: T | null) => {
 };
 
 /**
- * Set by ScrollArea on its native branch. Base UI's scroll area parts need a
- * Root above them, so a viewport a screen nests inside ScrollArea has to fall
- * back to a plain element once the custom scrollbar is gone.
+ * Set by ScrollArea around the children it already put inside its viewport, on
+ * both branches. Base UI's scroll area parts need a Root above them, so a
+ * viewport a screen nests inside ScrollArea renders as a plain element instead
+ * of a second scroll container — one scroll area owns exactly one viewport.
  */
-const NativeViewport = createContext(false);
+const NestedViewport = createContext(false);
 
 const viewportBase =
   "size-full overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
@@ -153,7 +154,7 @@ export function ScrollArea({
 
   if (narrow)
     return (
-      <NativeViewport.Provider value>
+      <NestedViewport.Provider value>
         <div
           ref={root}
           data-slot="scroll-area"
@@ -170,7 +171,7 @@ export function ScrollArea({
           </div>
           {caps}
         </div>
-      </NativeViewport.Provider>
+      </NestedViewport.Provider>
     );
 
   return (
@@ -185,7 +186,7 @@ export function ScrollArea({
         data-scroll-restoration-id={scrollRestorationId}
         className={viewportClassName}
       >
-        {children}
+        <NestedViewport.Provider value>{children}</NestedViewport.Provider>
       </ScrollAreaViewport>
       {caps}
       <ScrollAreaScrollbar>
@@ -204,11 +205,10 @@ export function ScrollAreaViewport({
   className,
   ...props
 }: ScrollAreaViewportProps) {
-  const native = useContext(NativeViewport);
-  if (native)
+  const nested = useContext(NestedViewport);
+  if (nested)
     return (
       <div
-        data-slot="scroll-area-viewport"
         className={cx(viewportBase, className)}
         {...(props as ComponentProps<"div">)}
       />
