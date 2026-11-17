@@ -5,14 +5,14 @@ export const cardVariants = cva("flex flex-col overflow-clip", {
   variants: {
     variant: {
       default:
-        "bg-card rounded-(--radius-card) border-[0.03125rem] border-(--card-hairline) shadow-card",
+        "bg-card rounded-(--radius-card) border-hairline border-(--card-hairline) shadow-card",
       interactive:
-        "bg-card rounded-(--radius-card) border-[0.03125rem] border-(--card-hairline) shadow-card cursor-pointer select-none transition-colors duration-100 hover:bg-card-hover focus-visible:outline-ring-inset",
+        "bg-card rounded-(--radius-card) border-hairline border-(--card-hairline) shadow-card cursor-pointer select-none transition-colors duration-100 hover:bg-card-hover focus-visible:outline-ring-inset",
       panel:
-        "bg-panel md:rounded-(--radius-panel) md:border-[0.03125rem] md:border-(--card-hairline) md:shadow-card",
+        "bg-panel md:rounded-(--radius-panel) md:border-hairline md:border-(--card-hairline) md:shadow-card",
       ghost: "bg-transparent rounded-(--radius-card)",
     },
-    rows: { true: "divide-y-[0.03125rem] divide-border-1" },
+    rows: { true: "divide-y-hairline divide-border-1" },
   },
   defaultVariants: { variant: "default" },
 });

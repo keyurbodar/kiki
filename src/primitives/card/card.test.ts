@@ -7,7 +7,7 @@ describe("card variants", () => {
     expect(classes).toContain("flex flex-col overflow-clip");
     expect(classes).toContain("bg-card");
     expect(classes).toContain("rounded-(--radius-card)");
-    expect(classes).toContain("border-[0.03125rem]");
+    expect(classes).toContain("border-hairline");
     expect(classes).toContain("border-(--card-hairline)");
     expect(classes).toContain("shadow-card");
   });
@@ -23,14 +23,14 @@ describe("card variants", () => {
     const classes = cardVariants({ variant: "panel" });
     expect(classes).toContain("bg-panel");
     expect(classes).toContain("md:rounded-(--radius-panel)");
-    expect(classes).toContain("md:border-[0.03125rem]");
+    expect(classes).toContain("md:border-hairline");
     expect(classes).not.toContain(" bg-card");
   });
 
   it("drops the surface for ghost and divides rows", () => {
     expect(cardVariants({ variant: "ghost" })).toContain("bg-transparent");
     expect(cardVariants({ rows: true })).toContain(
-      "divide-y-[0.03125rem] divide-border-1",
+      "divide-y-hairline divide-border-1",
     );
   });
 });
