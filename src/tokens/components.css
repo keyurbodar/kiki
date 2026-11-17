@@ -47,3 +47,11 @@
 :root[data-tab-strip] {
   --shell-top: 2.5rem;
 }
+
+/* Thread takeovers (B8, AMA-57): composer takeover card ring and request viewport. */
+:root,
+[data-theme-preview] {
+  --takeover-ring-radius: calc(var(--radius-card) + 1px);
+  --request-viewport-h: min(48dvh, 380px);
+  --request-viewport-h-touch: min(40dvh, 260px);
+}

@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { createRef } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   Menu,
@@ -10,6 +11,7 @@ import {
   MenuLabel,
   MenuRow,
   MenuSearchRow,
+  type MenuSearchRowProps,
   MenuSeparator,
   MenuSub,
   MenuSubTrigger,
@@ -152,7 +154,7 @@ describe("MenuRow", () => {
 });
 
 describe("MenuSearchRow", () => {
-  const setup = (props: { pickOnEnter?: boolean; pickOnDigit?: boolean }) => {
+  const setup = (props: MenuSearchRowProps) => {
     const first = vi.fn();
     const second = vi.fn();
     const before = vi.fn();
@@ -177,6 +179,46 @@ describe("MenuSearchRow", () => {
     );
     return { first, second, before, input: screen.getByLabelText("Search") };
   };
+
+  it("keeps both shortcuts working when the caller passes a ref", () => {
+    const objectRef = createRef<HTMLDivElement>();
+    const { first, second, input } = setup({
+      ref: objectRef,
+      pickOnEnter: true,
+      pickOnDigit: true,
+    });
+    expect(objectRef.current?.dataset.slot).toBe("menu-search-row");
+    fireEvent.keyDown(input, { key: "2" });
+    expect(second).toHaveBeenCalledTimes(1);
+    fireEvent.change(input, { target: { value: "fi" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(first).toHaveBeenCalledTimes(1);
+    cleanup();
+    let node: HTMLDivElement | null = null;
+    const callback = setup({
+      ref: (el) => {
+        node = el;
+      },
+      pickOnEnter: true,
+    });
+    expect(node).not.toBeNull();
+    fireEvent.change(callback.input, { target: { value: "fi" } });
+    fireEvent.keyDown(callback.input, { key: "Enter" });
+    expect(callback.first).toHaveBeenCalledTimes(1);
+  });
+
+  it("skips the shortcuts when the caller's capture handler prevents the key", () => {
+    const { first, second, input } = setup({
+      pickOnEnter: true,
+      pickOnDigit: true,
+      onKeyDownCapture: (event) => event.preventDefault(),
+    });
+    fireEvent.keyDown(input, { key: "2" });
+    fireEvent.change(input, { target: { value: "fi" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(second).not.toHaveBeenCalled();
+    expect(first).not.toHaveBeenCalled();
+  });
 
   it("renders its slot and a trailing separator", () => {
     setup({});
