@@ -12,10 +12,16 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { cn } from "@/lib/cn";
 import { Button } from "@/primitives/button";
 import { DotGridIcon } from "@/primitives/dot-grid-icon";
 import { Icon } from "@/primitives/icon";
-import type { ComposerEditorHandle, ComposerEditorProps } from "./editor";
+import {
+  type ComposerEditorHandle,
+  type ComposerEditorProps,
+  type ComposerFieldHeight,
+  EDITOR_FIELD_HEIGHT_CLASS,
+} from "./editor";
 import { ShortcutTooltip } from "./shortcut-tooltip";
 import { ToolbarAction } from "./toolbar-action";
 import type {
@@ -120,6 +126,7 @@ export type ComposerProps = Omit<
   controlsTarget?: HTMLElement | null;
   toolbar?: boolean;
   editorClassName?: string;
+  fieldHeight?: ComposerFieldHeight;
 };
 
 const hasFiles = (data: DataTransfer | null) =>
@@ -183,6 +190,7 @@ export function Composer({
   controlsTarget,
   toolbar = false,
   editorClassName,
+  fieldHeight = "single",
   className,
   ...rest
 }: ComposerProps) {
@@ -433,11 +441,11 @@ export function Composer({
   const fallback = (
     <div className="relative">
       <div
-        className={
-          editorClassName
-            ? `min-h-6 p-1 text-base font-normal text-muted-foreground-3 ${editorClassName}`
-            : "min-h-6 p-1 text-base font-normal text-muted-foreground-3"
-        }
+        className={cn(
+          "p-1 text-base font-normal text-muted-foreground-3",
+          EDITOR_FIELD_HEIGHT_CLASS[fieldHeight],
+          editorClassName,
+        )}
       >
         {placeholder}
       </div>
@@ -467,6 +475,7 @@ export function Composer({
     onEmptyChange: setEmpty,
     handleRef: handle,
     editorClassName,
+    fieldHeight,
   };
 
   const surfaceClass = [

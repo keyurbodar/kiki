@@ -20,6 +20,7 @@ export {
   type PaneTabKind,
   tabKey,
   tabLabel,
+  tabLink,
 } from "./tabs";
 export {
   type CommandEntry,

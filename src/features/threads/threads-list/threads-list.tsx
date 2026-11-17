@@ -3,11 +3,17 @@ import { type DragEvent, type ReactNode, useState } from "react";
 import { ChatIdentity } from "@/features/captains/chat-identity";
 import { Badge } from "@/primitives/badge";
 import {
+  Collapsible,
+  CollapsiblePanel,
+  CollapsibleTrigger,
+} from "@/primitives/collapsible";
+import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuTrigger,
 } from "@/primitives/context-menu";
 import { MenuItem, MenuSeparator } from "@/primitives/menu";
+import { ScrollArea } from "@/primitives/scroll-area";
 import {
   formatAge,
   type ProjectSummary,
@@ -331,7 +337,7 @@ export function ThreadsList({
 
   if (sections.length === 0)
     return (
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <ScrollArea className="min-h-0 flex-1">
         {loading ? (
           <ThreadsListSkeleton />
         ) : (
@@ -340,12 +346,12 @@ export function ThreadsList({
           </div>
         )}
         {footer}
-      </div>
+      </ScrollArea>
     );
 
   return (
     <div className="@container/list relative flex min-h-0 flex-1 flex-col [--thread-code-width:max-content]">
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pt-1">
+      <ScrollArea className="min-h-0 flex-1" viewportClassName="px-2 pt-1">
         {sections.map((section, index) => {
           const open = isOpen(section.id);
           return (
@@ -366,51 +372,51 @@ export function ThreadsList({
                 }
               }}
             >
-              <button
-                type="button"
-                aria-expanded={open}
-                data-panel-open={open ? "" : undefined}
-                className="group/collapsible flex h-9 w-full cursor-pointer items-center gap-2 rounded-(--radius-card) bg-section px-2 text-left text-sm font-medium text-foreground transition-colors duration-100 outline-none focus-visible:outline-ring-inset"
-                onClick={() => toggle(section.id)}
-              >
-                <span className="flex w-4 shrink-0 items-center justify-center">
-                  <span className="flex size-(--icon-xs) shrink-0 -rotate-90 items-center justify-center text-muted-foreground-3 transition-transform duration-100 group-data-[panel-open]/collapsible:rotate-0">
-                    {icons?.chevron}
+              <Collapsible open={open} onOpenChange={() => toggle(section.id)}>
+                <CollapsibleTrigger
+                  block
+                  showChevron={false}
+                  className="group/collapsible flex h-9 w-full cursor-pointer items-center gap-2 rounded-(--radius-card) bg-section px-2 text-left text-sm font-medium text-foreground transition-colors duration-100 outline-none focus-visible:outline-ring-inset"
+                >
+                  <span className="flex w-4 shrink-0 items-center justify-center">
+                    <span className="flex size-(--icon-xs) shrink-0 -rotate-90 items-center justify-center text-muted-foreground-3 transition-transform duration-100 group-data-[panel-open]/collapsible:rotate-0">
+                      {icons?.chevron}
+                    </span>
                   </span>
-                </span>
-                {section.label}
-                {section.showCount ? (
-                  <span className="font-normal text-muted-foreground-2 tabular-nums">
-                    {section.members.length}
-                  </span>
-                ) : null}
-              </button>
-              {open ? (
-                <div className={cx(section.members.length > 0 && "pt-1")}>
-                  {section.members.map((thread) => (
-                    <div key={thread.id} className="-m-0.5 p-0.5">
-                      <ThreadRow
-                        thread={thread}
-                        projects={projects}
-                        modelName={modelName}
-                        groupedByProject={groupedByProject}
-                        now={now}
-                        checked={checked.has(thread.id)}
-                        selectionMode={checked.size > 0}
-                        onCheck={onCheck}
-                        onArchive={onArchive}
-                        onRename={onRename}
-                        icons={icons}
-                      />
-                    </div>
-                  ))}
-                </div>
-              ) : null}
+                  {section.label}
+                  {section.showCount ? (
+                    <span className="font-normal text-muted-foreground-2 tabular-nums">
+                      {section.members.length}
+                    </span>
+                  ) : null}
+                </CollapsibleTrigger>
+                <CollapsiblePanel>
+                  <div className={cx(section.members.length > 0 && "pt-1")}>
+                    {section.members.map((thread) => (
+                      <div key={thread.id} className="-m-0.5 p-0.5">
+                        <ThreadRow
+                          thread={thread}
+                          projects={projects}
+                          modelName={modelName}
+                          groupedByProject={groupedByProject}
+                          now={now}
+                          checked={checked.has(thread.id)}
+                          selectionMode={checked.size > 0}
+                          onCheck={onCheck}
+                          onArchive={onArchive}
+                          onRename={onRename}
+                          icons={icons}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </CollapsiblePanel>
+              </Collapsible>
             </section>
           );
         })}
         <div className="pt-16">{footer}</div>
-      </div>
+      </ScrollArea>
     </div>
   );
 }

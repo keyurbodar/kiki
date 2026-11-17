@@ -238,6 +238,7 @@ export const AutomationsMock = mockGroup("automations", (handlers) =>
             organize: organize === undefined ? null : asOrganize(organize),
             creator,
             creatorUserId,
+            createdAt: isoMinutesAgo(0),
             updatedAt: isoMinutesAgo(0),
           };
           const row: AutomationRow = {

@@ -4,6 +4,7 @@ import { DateTime } from "effect";
 import { useState } from "react";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { Button } from "@/primitives/button";
+import { ScrollArea } from "@/primitives/scroll-area";
 import { useIsNarrow } from "@/primitives/sidebar";
 import { BuildingIcon, InboxIcon, ShareIcon, UserIcon } from "../icons";
 import { formatBytes, formatRelativeTime } from "../lib/format";
@@ -82,7 +83,11 @@ export function DrivePage() {
           </>
         }
       />
-      <div className="min-h-0 flex-1 overflow-y-auto md:scroll-fade-y">
+      <ScrollArea
+        className="min-h-0 flex-1"
+        viewportClassName="overscroll-contain"
+        fadeY
+      >
         {session.orgId !== undefined && (
           <DriveDirectory
             orgId={session.orgId}
@@ -95,7 +100,7 @@ export function DrivePage() {
             narrow={narrow}
           />
         )}
-      </div>
+      </ScrollArea>
     </div>
   );
 }

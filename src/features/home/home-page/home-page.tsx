@@ -233,6 +233,7 @@ function HomePageBody({
             <Composer
               ref={composerRef}
               className="relative"
+              fieldHeight="multi"
               placeholder={ASK_ANYTHING_PLACEHOLDER}
               autoFocus
               defaultValue={initialDraft}
