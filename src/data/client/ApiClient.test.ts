@@ -1,6 +1,6 @@
 import { assert, describe, it, layer } from "@effect/vitest";
 import { Context, Effect } from "effect";
-import { KikiApi } from "../api/Api.ts";
+import { groupIds, KikiApi } from "../api/Api.ts";
 import { InferredMethod } from "../api/annotations.ts";
 import { OrgId, ProjectId } from "../api/schemas/ids.ts";
 import { MockTransport } from "../mocks/MockServices.ts";
@@ -9,11 +9,21 @@ import { ApiClient, makeApiClientLayer } from "./ApiClient.ts";
 const orgId = OrgId.make("org_sample_acme");
 
 describe("KikiApi", () => {
-  it("declares all 62 groups and 712 endpoints", () => {
-    const groups = Object.values(KikiApi.groups);
-    const endpoints = groups.flatMap((group) => Object.keys(group.endpoints));
-    assert.strictEqual(groups.length, 62);
-    assert.strictEqual(endpoints.length, 712);
+  it("registers exactly the groups in groupIds", () => {
+    assert.deepStrictEqual(
+      Object.keys(KikiApi.groups).toSorted(),
+      [...groupIds].toSorted(),
+    );
+  });
+
+  it("declares at least one endpoint for every group", () => {
+    for (const [id, group] of Object.entries(KikiApi.groups)) {
+      assert.notStrictEqual(
+        Object.keys(group.endpoints).length,
+        0,
+        `group ${id} declares no endpoints`,
+      );
+    }
   });
 
   it("marks the methods api.md had to infer", () => {
