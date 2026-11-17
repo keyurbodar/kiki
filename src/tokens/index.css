@@ -13,5 +13,6 @@
 @import "./themes/presets.css";
 @import "./motion.css";
 @import "./effects.css";
+@import "./rich-content.css";
 @import "./base.css";
 @import "./utilities.css";
