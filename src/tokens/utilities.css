@@ -94,3 +94,11 @@
     animation-timeline: scroll(self);
   }
 }
+
+/* Thread cost series colour (features/thread/cost-badge): one hue per row in --cost-hue. */
+@utility cost-swatch {
+  background-color: light-dark(
+    oklch(0.56 0.14 var(--cost-hue)),
+    oklch(0.74 0.12 var(--cost-hue))
+  );
+}
