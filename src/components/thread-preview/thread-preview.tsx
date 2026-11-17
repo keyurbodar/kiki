@@ -384,7 +384,6 @@ export function ThreadPreview({
                   to="/thread/$threadId"
                   params={{ threadId: thread.id }}
                   search={{ pane: `task:${task.id}` }}
-                  onClick={openThread(task.id)}
                   className={rowLink}
                 >
                   {content}

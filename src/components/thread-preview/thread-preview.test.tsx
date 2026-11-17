@@ -118,6 +118,21 @@ describe("ThreadPreview", () => {
     expect(onOpenPr).toHaveBeenCalledTimes(1);
   });
 
+  it("links a subagent to its own pane when onOpenTask is not given", async () => {
+    const onOpenThread = vi.fn();
+    await renderAt(
+      <ThreadPreview
+        thread={card()}
+        tasks={[{ id: "t1", localIndex: 2, title: null }]}
+        onOpenThread={onOpenThread}
+      />,
+    );
+    const link = screen.getByText("Untitled subagent").closest("a");
+    expect(link?.getAttribute("href")).toBe("/thread/jam_sample?pane=task%3At1");
+    fireEvent.click(screen.getByText("Untitled subagent"));
+    expect(onOpenThread).not.toHaveBeenCalled();
+  });
+
   it("shows the ask under the title when the thread needs you", async () => {
     await renderAt(
       <ThreadPreview
