@@ -1,6 +1,25 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import {
+  CommentIssueRequest,
+  CreateIssueRequest,
+  IssueComment,
+  IssueDetail,
+  IssueList,
+  IssueRelationPage,
+  IssueStateList,
+  IssueSummary,
+  IssueViewer,
+  LinkIssueRequest,
+  RelateIssueRequest,
+  SetIssueSubscriptionRequest,
+  UnlinkIssueRequest,
+  UnrelateIssueRequest,
+  UpdateIssueRequest,
+} from "../schemas/issue.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
+
+const issueParams = { orgId: Schema.String, code: Schema.String };
 
 export class IssuesGroup extends HttpApiGroup.make("issues").add(
   HttpApiEndpoint.get(
@@ -22,7 +41,7 @@ export class IssuesGroup extends HttpApiGroup.make("issues").add(
   }),
   HttpApiEndpoint.get("states", "/orgs/:orgId/issue-states", {
     params: { orgId: Schema.String },
-    success: Undecoded,
+    success: IssueStateList,
   }),
   HttpApiEndpoint.post("createState", "/orgs/:orgId/issue-states", {
     params: { orgId: Schema.String },
@@ -46,35 +65,35 @@ export class IssuesGroup extends HttpApiGroup.make("issues").add(
   HttpApiEndpoint.get("summariesByCode", "/orgs/:orgId/issue-summaries", {
     params: { orgId: Schema.String },
     query: UndecodedQuery,
-    success: Undecoded,
+    success: Schema.Array(IssueSummary),
   }),
   HttpApiEndpoint.get("summary", "/orgs/:orgId/issue-summaries/:issueId", {
     params: { orgId: Schema.String, issueId: Schema.String },
-    success: Undecoded,
+    success: IssueSummary,
   }),
   HttpApiEndpoint.get("list", "/orgs/:orgId/issues", {
     params: { orgId: Schema.String },
     query: UndecodedQuery,
-    success: Undecoded,
+    success: IssueList,
   }),
   HttpApiEndpoint.post("create", "/orgs/:orgId/issues", {
     params: { orgId: Schema.String },
-    payload: Undecoded,
-    success: Undecoded,
+    payload: CreateIssueRequest,
+    success: IssueDetail,
   }),
   HttpApiEndpoint.get("get", "/orgs/:orgId/issues/:code", {
-    params: { orgId: Schema.String, code: Schema.String },
-    success: Undecoded,
+    params: issueParams,
+    success: IssueDetail,
   }),
   HttpApiEndpoint.patch("update", "/orgs/:orgId/issues/:code", {
-    params: { orgId: Schema.String, code: Schema.String },
-    payload: Undecoded,
-    success: Undecoded,
+    params: issueParams,
+    payload: UpdateIssueRequest,
+    success: IssueDetail,
   }),
   HttpApiEndpoint.post("comment", "/orgs/:orgId/issues/:code/comments", {
-    params: { orgId: Schema.String, code: Schema.String },
-    payload: Undecoded,
-    success: Undecoded,
+    params: issueParams,
+    payload: CommentIssueRequest,
+    success: IssueComment,
   }),
   HttpApiEndpoint.get(
     "fileUrl",
@@ -90,46 +109,49 @@ export class IssuesGroup extends HttpApiGroup.make("issues").add(
     },
   ),
   HttpApiEndpoint.post("link", "/orgs/:orgId/issues/:code/links", {
-    params: { orgId: Schema.String, code: Schema.String },
-    payload: Undecoded,
-    success: Undecoded,
+    params: issueParams,
+    payload: LinkIssueRequest,
+    success: IssueDetail,
   }),
   HttpApiEndpoint.delete("unlink", "/orgs/:orgId/issues/:code/links", {
-    params: { orgId: Schema.String, code: Schema.String },
-    query: UndecodedQuery,
-    success: Undecoded,
+    params: issueParams,
+    payload: UnlinkIssueRequest,
+    success: IssueDetail,
   }),
   HttpApiEndpoint.post("relate", "/orgs/:orgId/issues/:code/relations", {
-    params: { orgId: Schema.String, code: Schema.String },
-    payload: Undecoded,
-    success: Undecoded,
+    params: issueParams,
+    payload: RelateIssueRequest,
+    success: IssueDetail,
   }),
   HttpApiEndpoint.get("relations", "/orgs/:orgId/issues/:code/relations", {
-    params: { orgId: Schema.String, code: Schema.String },
-    query: UndecodedQuery,
-    success: Undecoded,
+    params: issueParams,
+    query: {
+      offset: Schema.optionalKey(Schema.NumberFromString),
+      limit: Schema.NumberFromString,
+    },
+    success: IssueRelationPage,
   }),
   HttpApiEndpoint.delete("unrelate", "/orgs/:orgId/issues/:code/relations", {
-    params: { orgId: Schema.String, code: Schema.String },
-    query: UndecodedQuery,
-    success: Undecoded,
+    params: issueParams,
+    payload: UnrelateIssueRequest,
+    success: IssueDetail,
   }),
   HttpApiEndpoint.post("markSeen", "/orgs/:orgId/issues/:code/seen", {
-    params: { orgId: Schema.String, code: Schema.String },
-    success: Undecoded,
+    params: issueParams,
+    success: IssueViewer,
   }),
   HttpApiEndpoint.put(
     "setSubscription",
     "/orgs/:orgId/issues/:code/subscription",
     {
-      params: { orgId: Schema.String, code: Schema.String },
-      payload: Undecoded,
-      success: Undecoded,
+      params: issueParams,
+      payload: SetIssueSubscriptionRequest,
+      success: IssueViewer,
     },
   ),
   HttpApiEndpoint.post("markUnread", "/orgs/:orgId/issues/:code/unread", {
-    params: { orgId: Schema.String, code: Schema.String },
-    success: Undecoded,
+    params: issueParams,
+    success: IssueViewer,
   }),
   HttpApiEndpoint.get("assignedCount", "/orgs/:orgId/issues/assigned-count", {
     params: { orgId: Schema.String },
@@ -143,6 +165,6 @@ export class IssuesGroup extends HttpApiGroup.make("issues").add(
   }),
   HttpApiEndpoint.get("byPull", "/orgs/:orgId/pulls/:pullId/issues", {
     params: { orgId: Schema.String, pullId: Schema.String },
-    success: Undecoded,
+    success: Schema.Array(IssueSummary),
   }),
 ) {}

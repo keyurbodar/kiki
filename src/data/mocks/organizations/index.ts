@@ -14,6 +14,19 @@ export const OrganizationsMock = mockGroup("organizations", (handlers) =>
         return organization
           ? Effect.succeed(organization)
           : Effect.fail(new Forbidden({}));
-      }),
+      })
+      .handle("listMyInvitations", () => Effect.succeed([]))
+      .handle("listJoinableOrganizations", () => Effect.succeed([]))
+      .handle("create", ({ payload }) => {
+        const name =
+          typeof payload === "object" &&
+          payload !== null &&
+          "name" in payload &&
+          typeof payload.name === "string"
+            ? payload.name
+            : "Workspace";
+        return Effect.succeed({ id: "org_sample_new", name });
+      })
+      .handle("setSharing", ({ payload }) => Effect.succeed(payload)),
   ),
 );
