@@ -39,7 +39,7 @@ type EmojiGridProps = {
 
 function EmojiGrid({ title, emojis, onPick }: EmojiGridProps) {
   return (
-    <div className="flex flex-col gap-1 [content-visibility:auto] [contain-intrinsic-size:auto_220px]">
+    <div className="flex flex-col gap-1 [content-visibility:auto] [contain-intrinsic-size:auto_var(--contain-intrinsic-emoji-group)]">
       <span className={headingClass}>{groupTitle(title)}</span>
       <div className={gridClass}>
         {emojis.map((entry) => (

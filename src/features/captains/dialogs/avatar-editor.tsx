@@ -14,16 +14,14 @@ import {
   uploadCaptainLibraryImageAtom,
 } from "@/data/atoms/captains";
 import { Button } from "@/primitives/button";
+import { ColorPicker } from "@/primitives/color-picker";
 import { Icon } from "@/primitives/icon";
 import {
-  MenuContent,
-  MenuGroup,
-  MenuLabel,
-  MenuTrigger,
-} from "@/primitives/menu";
-import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuLabel,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { captainAvatarCustomSwatch } from "@/tokens/captain-avatar";
@@ -207,7 +205,7 @@ function CustomPanel({
                 </span>
               </Button>
               <ResponsiveMenu>
-                <MenuTrigger
+                <ResponsiveMenuTrigger
                   render={
                     <Button
                       variant="soft"
@@ -219,7 +217,7 @@ function CustomPanel({
                     </Button>
                   }
                 />
-                <MenuContent align="start" className="w-60">
+                <ResponsiveMenuContent align="start" className="w-60">
                   <ResponsiveMenuItem
                     onClick={() => pictureInput.current?.click()}
                   >
@@ -230,7 +228,7 @@ function CustomPanel({
                   >
                     Remove
                   </ResponsiveMenuItem>
-                </MenuContent>
+                </ResponsiveMenuContent>
               </ResponsiveMenu>
             </span>
           ) : (
@@ -293,7 +291,7 @@ function CustomPanel({
                 <span key={image.id} className="group/tile relative flex">
                   {tile}
                   <ResponsiveMenu>
-                    <MenuTrigger
+                    <ResponsiveMenuTrigger
                       render={
                         <Button
                           variant="soft"
@@ -308,20 +306,20 @@ function CustomPanel({
                         </Button>
                       }
                     />
-                    <MenuContent align="start" className="w-60">
-                      <MenuGroup>
-                        <MenuLabel>
-                          {`Uploaded by ${image.uploadedBy}, ${image.createdAt.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`}
-                        </MenuLabel>
-                        <MenuLabel>{usedByLabel(image.usedBy)}</MenuLabel>
-                      </MenuGroup>
+                    <ResponsiveMenuContent align="start" className="w-60">
+                      <ResponsiveMenuLabel>
+                        {`Uploaded by ${image.uploadedBy}, ${image.createdAt.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`}
+                      </ResponsiveMenuLabel>
+                      <ResponsiveMenuLabel>
+                        {usedByLabel(image.usedBy)}
+                      </ResponsiveMenuLabel>
                       <ResponsiveMenuItem
                         data-intent="danger"
                         onClick={() => onRemove(image)}
                       >
                         Remove from library
                       </ResponsiveMenuItem>
-                    </MenuContent>
+                    </ResponsiveMenuContent>
                   </ResponsiveMenu>
                 </span>
               );
@@ -527,28 +525,39 @@ export function AvatarEditor({
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button
-                variant="ghost"
-                size="icon-shrink"
-                className="p-1"
-                aria-label="Custom background"
-                data-selected={(!privateImage && custom) || undefined}
-              >
-                <span
-                  aria-hidden
-                  className={cx(
-                    swatchClass,
-                    "grid place-items-center text-overlay-fg",
-                  )}
-                  style={{
-                    background: custom
-                      ? value.background
-                      : captainAvatarCustomSwatch,
-                  }}
-                >
-                  <Icon name="plus-large" className="size-2" />
-                </span>
-              </Button>
+              <span className="flex">
+                <ColorPicker
+                  label="Background"
+                  value={value.background}
+                  onValueChange={(background) =>
+                    onChange({ ...value, background })
+                  }
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="icon-shrink"
+                      className="p-1"
+                      aria-label="Custom background"
+                      data-selected={(!privateImage && custom) || undefined}
+                    >
+                      <span
+                        aria-hidden
+                        className={cx(
+                          swatchClass,
+                          "grid place-items-center text-overlay-fg",
+                        )}
+                        style={{
+                          background: custom
+                            ? value.background
+                            : captainAvatarCustomSwatch,
+                        }}
+                      >
+                        <Icon name="plus-large" className="size-2" />
+                      </span>
+                    </Button>
+                  }
+                />
+              </span>
             }
           />
           <TooltipContent side="top">Custom</TooltipContent>

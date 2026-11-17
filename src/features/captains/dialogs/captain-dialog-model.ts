@@ -1,3 +1,4 @@
+import type { JamId } from "@/data/api/schemas/ids";
 import {
   type CaptainAvatarValue,
   defaultCaptainName,
@@ -49,7 +50,7 @@ export type CaptainDialogRequest =
     }
   | {
       readonly kind: "edit";
-      readonly jamId: string;
+      readonly jamId: JamId;
       readonly entry?: CaptainDialogPage;
       readonly profile: CaptainProfile;
       readonly devices?: ReadonlyArray<CrewDevice>;

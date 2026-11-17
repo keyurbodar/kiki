@@ -55,3 +55,9 @@
   --request-viewport-h: min(48dvh, 380px);
   --request-viewport-h-touch: min(40dvh, 260px);
 }
+
+/* Emoji groups: the contain-intrinsic-size placeholder for a grid that has not been measured yet. */
+:root,
+[data-theme-preview] {
+  --contain-intrinsic-emoji-group: 220px;
+}

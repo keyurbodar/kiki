@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { JamId } from "@/data/api/schemas/ids";
 import {
   type CaptainProfile,
   createdCaptain,
@@ -46,7 +47,7 @@ describe("captain dialog model", () => {
         folder: { id: "f", name: "Ops", visibility: "shared" },
       }),
     ).toBe("Promote folder to Captain");
-    expect(dialogTitle({ kind: "edit", jamId: "j", profile })).toBe(
+    expect(dialogTitle({ kind: "edit", jamId: "j" as JamId, profile })).toBe(
       "Release captain",
     );
     expect(submitLabel("create")).toBe("Create Captain");

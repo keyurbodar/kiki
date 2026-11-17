@@ -28,7 +28,20 @@ export const sharedImageTypes = ["image/png", "image/webp"] as const;
 
 export const sharedImageMaxBytes = 5 * 1024 * 1024;
 
-export const captainPresetSrc = (preset: string) => `/avatars/${preset}.png`;
+/** Capy's capybara presets, as P33 ships them under src/assets/brand/avatars. */
+const presetSources = import.meta.glob<string>(
+  "../../../assets/brand/avatars/*.png",
+  { eager: true, query: "?url", import: "default" },
+);
+
+const presetUrl = (preset: string) =>
+  Object.entries(presetSources).find(([path]) =>
+    path.endsWith(`/${preset}.png`),
+  )?.[1];
+
+/** The image URL for a preset id; falls back to Capy's own path until the assets land. */
+export const captainPresetSrc = (preset: string) =>
+  presetUrl(preset) ?? `/avatars/${preset}.png`;
 
 export function randomCaptainAvatar(random = Math.random): CaptainAvatarValue {
   const backgrounds = captainAvatarBackgrounds.slice(1);

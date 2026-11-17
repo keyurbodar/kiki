@@ -61,7 +61,7 @@ export function filterEmojiGroups(
       emojis: group.emojis.filter(
         (entry) =>
           (include === undefined || include(entry.emoji)) &&
-          (needle === "" || entry.name.includes(needle)),
+          (needle === "" || entry.name.toLowerCase().includes(needle)),
       ),
     }))
     .filter((group) => group.emojis.length > 0);

@@ -2,12 +2,12 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import { AsyncResult } from "effect/reactivity";
-import { type FormEvent, type ReactNode, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { ModelPicker } from "@/components/model-picker";
 import { ProjectSelect } from "@/components/project-select";
 import { RunOnSelect } from "@/components/run-on-select";
-import type { OrgId } from "@/data/api/schemas/ids";
+import type { JamId, OrgId } from "@/data/api/schemas/ids";
 import {
   archiveJamsAtom,
   captainReactivityKeys,
@@ -19,17 +19,11 @@ import {
   unarchiveJamsAtom,
   updateCaptainAtom,
 } from "@/data/atoms/captains";
+import { reactivityKeys } from "@/data/atoms/conventions";
 import { projectsAtom } from "@/data/atoms/projects";
 import { Button } from "@/primitives/button";
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/primitives/dialog";
-import { DialogPage, DialogPages } from "@/primitives/dialog-pages";
+import { Dialog, DialogContent } from "@/primitives/dialog";
+import { type DialogPageSpec, DialogPages } from "@/primitives/dialog-pages";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import { Textarea } from "@/primitives/textarea";
@@ -66,70 +60,6 @@ const rowLabelClass = "text-sm font-medium text-foreground";
 const rowValueClass = "text-sm text-muted-foreground-1";
 const linesClass = "flex flex-col gap-1 text-sm text-muted-foreground-2";
 const chevronClass = "size-(--icon-sm) shrink-0 text-muted-foreground-3";
-
-type PageSpec = {
-  title: ReactNode;
-  body: ReactNode;
-  footer?: ReactNode;
-  relaxed?: boolean;
-  bodyClassName?: string;
-  footerClassName?: string;
-};
-
-function Page({
-  page,
-  root,
-  spec,
-  onBack,
-}: {
-  page: string;
-  root: string;
-  spec: PageSpec;
-  onBack: () => void;
-}) {
-  return (
-    <DialogPages>
-      <DialogPage data-page={page}>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-1">
-            {page === root ? null : (
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                type="button"
-                aria-label="Back"
-                className="-ml-2"
-                onClick={onBack}
-              >
-                <Icon name="chevron-left-small" />
-              </Button>
-            )}
-            <span className="min-w-0 truncate">{spec.title}</span>
-          </DialogTitle>
-        </DialogHeader>
-        <DialogBody
-          className={cx(
-            "flex flex-col px-5",
-            spec.relaxed ? "gap-4 py-5" : "gap-3 py-4",
-            spec.bodyClassName,
-          )}
-        >
-          {spec.body}
-        </DialogBody>
-        {spec.footer === undefined ? null : (
-          <DialogFooter
-            className={cx(
-              "flex flex-row justify-end gap-2 px-5 pb-4 border-t-hairline border-border-1 pt-4",
-              spec.footerClassName,
-            )}
-          >
-            {spec.footer}
-          </DialogFooter>
-        )}
-      </DialogPage>
-    </DialogPages>
-  );
-}
 
 function Lines({ lines }: { lines: ReadonlyArray<string> }) {
   return (
@@ -218,11 +148,17 @@ function CaptainDialogForm({
           crewDeviceId,
         });
   const canSave = request.kind !== "edit" || changes !== undefined;
-  const keysFor = (id: string) => [
-    captainReactivityKeys.captain(id),
-    captainReactivityKeys.jam(id),
-    captainReactivityKeys.jam(orgId),
-    captainReactivityKeys.captain(orgId),
+  const invalidation = (jamId?: string) => [
+    reactivityKeys.captains(orgId),
+    reactivityKeys.threads(orgId),
+    reactivityKeys.threadOrganization(orgId),
+    ...(jamId === undefined
+      ? []
+      : [
+          captainReactivityKeys.captain(jamId),
+          captainReactivityKeys.jam(jamId),
+          captainReactivityKeys.jamEvent(jamId),
+        ]),
   ];
 
   const submit = () => {
@@ -234,10 +170,7 @@ function CaptainDialogForm({
       update({
         params: { orgId, jamId: edit.jamId },
         payload: changes,
-        reactivityKeys: [
-          ...keysFor(edit.jamId),
-          captainReactivityKeys.jamEvent(edit.jamId),
-        ],
+        reactivityKeys: invalidation(edit.jamId),
       })
         .then(() => {
           onClose();
@@ -253,12 +186,7 @@ function CaptainDialogForm({
     }
     if (tooMany) return;
     setBusy(true);
-    const keys = [
-      captainReactivityKeys.captain(orgId),
-      captainReactivityKeys.jam(orgId),
-      captainReactivityKeys.jamRelation(orgId),
-      captainReactivityKeys.jamParticipant(orgId),
-    ];
+    const keys = invalidation();
     const pending =
       request.kind === "promote-thread"
         ? promoteThread({
@@ -317,7 +245,7 @@ function CaptainDialogForm({
         if (created.jamId !== undefined)
           navigate({
             to: "/thread/$threadId",
-            params: { threadId: created.jamId },
+            params: { threadId: created.jamId as JamId },
           });
       })
       .catch((error: unknown) => {
@@ -336,10 +264,7 @@ function CaptainDialogForm({
     onClose();
     remove({
       params: { orgId, jamId: edit.jamId },
-      reactivityKeys: [
-        ...keysFor(edit.jamId),
-        captainReactivityKeys.jamRelation(orgId),
-      ],
+      reactivityKeys: invalidation(edit.jamId),
     })
       .then(() => {
         toast.success("Captain deleted", { description: edit.profile.name });
@@ -357,10 +282,7 @@ function CaptainDialogForm({
     setBusy(true);
     demote({
       params: { orgId, jamId: edit.jamId },
-      reactivityKeys: [
-        ...keysFor(edit.jamId),
-        captainReactivityKeys.jamRelation(orgId),
-      ],
+      reactivityKeys: invalidation(edit.jamId),
     })
       .then(() => {
         onClose();
@@ -380,7 +302,7 @@ function CaptainDialogForm({
     (next ? archive : unarchive)({
       params: { orgId },
       payload: { jamIds: [edit.jamId] },
-      reactivityKeys: keysFor(edit.jamId),
+      reactivityKeys: invalidation(edit.jamId),
     })
       .then(() => {
         onClose();
@@ -570,10 +492,10 @@ function CaptainDialogForm({
       </span>
     ) : null;
 
-  const pages: Record<CaptainDialogPage, PageSpec> = {
+  const pages: Record<CaptainDialogPage, DialogPageSpec> = {
     profile: {
       title: dialogTitle(request),
-      relaxed: true,
+      spacing: "relaxed",
       bodyClassName: "items-center",
       body: (
         <>
@@ -725,7 +647,7 @@ function CaptainDialogForm({
     >
       <DialogContent className="max-w-md">
         <form className="flex min-h-0 flex-col" onSubmit={onSubmit}>
-          <Page page={page} root="profile" spec={pages[page]} onBack={back} />
+          <DialogPages page={page} root="profile" pages={pages} onBack={back} />
         </form>
       </DialogContent>
     </Dialog>
