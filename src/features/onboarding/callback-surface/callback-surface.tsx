@@ -69,10 +69,7 @@ export function CallbackSurface({
     <main className="grid h-dvh place-items-center bg-background px-6 pt-(--safe-top) pb-(--safe-bottom)">
       <Card className="w-full max-w-md p-6">
         <div className="flex flex-col items-center gap-5 text-center">
-          <div
-            className="flex items-center gap-4"
-            aria-label={`Capy and ${provider}`}
-          >
+          <div className="flex items-center gap-4">
             <div className="grid size-10 place-items-center rounded-md bg-secondary">
               <CapyMark className="h-6" />
             </div>
@@ -117,7 +114,6 @@ export function CallbackSurface({
               data-track-owner="shared/callback-surface.tsx#CallbackSurface:Button[Open Capy]"
               size="sm"
               render={
-                // biome-ignore lint/a11y/useAnchorContent: Button renders the children into the anchor
                 <a
                   data-track-owner="shared/callback-surface.tsx#CallbackSurface:a.1"
                   href={desktopHref}
@@ -131,7 +127,6 @@ export function CallbackSurface({
               data-track-owner="shared/callback-surface.tsx#CallbackSurface:Button.1"
               size="sm"
               render={
-                // biome-ignore lint/a11y/useAnchorContent: Button renders the children into the anchor
                 <a
                   data-track-owner="shared/callback-surface.tsx#CallbackSurface:a.2"
                   href={returnHref}

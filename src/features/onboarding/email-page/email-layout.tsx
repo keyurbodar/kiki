@@ -16,7 +16,6 @@ export function EmailLayout({ children }: { children: ReactNode }) {
           size="icon-sm"
           aria-label="Back to capy.ai"
           render={
-            // biome-ignore lint/a11y/useAnchorContent: Button renders the icon into the anchor
             <a
               data-track-owner="features/auth/auth-layout.tsx#AuthLayout:a.1"
               href="https://capy.ai"

@@ -32,20 +32,26 @@ export function ArrowLeftIcon(props: ComponentProps<"svg">) {
 
 type LogoProps = Omit<ComponentProps<"img">, "src" | "alt">;
 
-function logo(src: string) {
-  return function Logo({ className, ...props }: LogoProps) {
-    return (
-      <img
-        src={src}
-        alt=""
-        aria-hidden
-        className={["size-(--icon-base)", className].filter(Boolean).join(" ")}
-        {...props}
-      />
-    );
-  };
+function BrandLogo({ src, className, ...props }: LogoProps & { src: string }) {
+  return (
+    <img
+      src={src}
+      alt=""
+      aria-hidden
+      className={["size-(--icon-base)", className].filter(Boolean).join(" ")}
+      {...props}
+    />
+  );
 }
 
-export const LinearLogo = logo(linearLogo);
-export const SlackLogo = logo(slackLogo);
-export const PaperLogo = logo(paperLogo);
+export function LinearLogo(props: LogoProps) {
+  return <BrandLogo src={linearLogo} {...props} />;
+}
+
+export function SlackLogo(props: LogoProps) {
+  return <BrandLogo src={slackLogo} {...props} />;
+}
+
+export function PaperLogo(props: LogoProps) {
+  return <BrandLogo src={paperLogo} {...props} />;
+}
