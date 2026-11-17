@@ -176,6 +176,8 @@ const Char91__composerFooterChar93Route =
   Char91__composerFooterChar93RouteImport.update({
     id: '/__composer-footer',
     path: '/__composer-footer',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const Char91__annotationsChar93Route =
   Char91__annotationsChar93RouteImport.update({
     id: '/__annotations',
@@ -2065,6 +2067,8 @@ declare module '@tanstack/react-router' {
       path: '/__composer-footer'
       fullPath: '/__composer-footer'
       preLoaderRoute: typeof Char91__composerFooterChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/__annotations': {
       id: '/__annotations'
       path: '/__annotations'
