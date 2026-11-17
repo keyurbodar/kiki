@@ -170,20 +170,14 @@ export function TotpSetupDialog({
                   </Button>
                 )}
               </div>
-              <OtpInput className="w-full">
-                <input
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  aria-label="Verification code"
-                  value={code}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, "").slice(0, 6);
-                    setCode(value);
-                    verify(value);
-                  }}
-                />
-              </OtpInput>
+              <OtpInput
+                className="w-full"
+                value={code}
+                onChange={(value) => {
+                  setCode(value);
+                  verify(value);
+                }}
+              />
               <Button
                 type="submit"
                 intent="accent"

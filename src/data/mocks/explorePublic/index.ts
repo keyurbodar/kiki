@@ -1,22 +1,40 @@
-import { Effect, Ref } from "effect";
-import { ExploreIndex } from "../../api/schemas/explore.ts";
-import { mockGroup } from "../mockGroup.ts";
+import { Effect, Schema } from "effect";
 import {
+  ExploreCard,
+  ExploreNotFound,
   type ListingKind,
-  listingKinds,
-  sampleIndexCards,
-  sampleListings,
-} from "./fixtures.ts";
+} from "../../api/schemas/explore.ts";
+import { mockGroup } from "../mockGroup.ts";
+import { findSampleListing, sampleListings } from "./fixtures.ts";
+
+const listingKinds: ReadonlyArray<ListingKind> = ["plugin", "skill", "theme"];
 
 const isListingKind = (value: string): value is ListingKind =>
   listingKinds.some((kind) => kind === value);
 
-export const ExplorePublicMock = mockGroup("explorePublic", (handlers) =>
-  Effect.gen(function* () {
-    const listings = yield* Ref.make(sampleListings);
-    const indexCards = yield* Ref.make(sampleIndexCards);
+const queryValue = (
+  query: Record<string, string | ReadonlyArray<string>>,
+  key: string,
+) => {
+  const value = query[key];
+  return Array.isArray(value) ? value[0] : value;
+};
 
-    return handlers
+const plainCard = Schema.encodeSync(ExploreCard);
+
+const iconFor = (kind: string, slug: string) => ({
+  url: `https://icons.example.com/explore/${kind}/${slug}.png`,
+  mimeType: "image/png",
+});
+
+const wallpaperFor = (slug: string) => ({
+  url: `https://wallpapers.example.com/themes/${slug}.png`,
+  mimeType: "image/png",
+});
+
+export const ExplorePublicMock = mockGroup("explorePublic", (handlers) =>
+  Effect.succeed(
+    handlers
       .handle("icon", ({ params }) =>
         Effect.gen(function* () {
           if (!isListingKind(params.kind)) {
@@ -24,75 +42,51 @@ export const ExplorePublicMock = mockGroup("explorePublic", (handlers) =>
               new Error(`explorePublic.icon: unknown kind ${params.kind}`),
             );
           }
-          const rows = yield* Ref.get(listings);
-          const listing = rows.find(
-            (row) => row.kind === params.kind && row.slug === params.slug,
-          );
-          if (!listing) {
+          if (findSampleListing(params.kind, params.slug) === undefined) {
             return yield* Effect.die(
               new Error(
                 `explorePublic.icon: no ${params.kind} listing ${params.slug}`,
               ),
             );
           }
-          return listing.icon;
+          return iconFor(params.kind, params.slug);
         }),
       )
-      .handle("listings", ({ query }) =>
-        Effect.gen(function* () {
-          const cards = yield* Ref.get(indexCards);
-          const search = query.q?.toLowerCase();
-          return new ExploreIndex({
-            cards: cards
-              .filter(
-                (card) => query.kind === undefined || card.kind === query.kind,
-              )
-              .filter(
-                (card) =>
-                  search === undefined ||
-                  card.displayName.toLowerCase().includes(search) ||
-                  card.description.toLowerCase().includes(search),
-              ),
-            added: [],
-          });
-        }),
-      )
-      .handle("listing", ({ params }) =>
-        Effect.gen(function* () {
-          if (!isListingKind(params.kind)) {
-            return yield* Effect.die(
-              new Error(`explorePublic.listing: unknown kind ${params.kind}`),
-            );
-          }
-          const rows = yield* Ref.get(listings);
-          const listing = rows.find(
-            (row) => row.kind === params.kind && row.slug === params.slug,
-          );
-          if (!listing) {
-            return yield* Effect.die(
-              new Error(
-                `explorePublic.listing: no ${params.kind} listing ${params.slug}`,
-              ),
-            );
-          }
-          return listing;
-        }),
-      )
+      .handle("listings", ({ query }) => {
+        const kind = queryValue(query, "kind");
+        const search = (
+          queryValue(query, "search") ?? queryValue(query, "q")
+        )?.toLowerCase();
+        const featured = queryValue(query, "featured");
+        return Effect.succeed(
+          sampleListings
+            .map((listing) => listing.card)
+            .filter((card) => kind === undefined || card.kind === kind)
+            .filter(
+              (card) =>
+                search === undefined ||
+                card.displayName.toLowerCase().includes(search) ||
+                card.description.toLowerCase().includes(search) ||
+                card.slug.includes(search),
+            )
+            .filter(
+              (card) =>
+                featured === undefined ||
+                (card.featuredRank !== null) === (featured === "true"),
+            )
+            .map((card) => plainCard(card)),
+        );
+      })
+      .handle("listing", ({ params }) => {
+        const listing = findSampleListing(params.kind, params.slug);
+        return listing === undefined
+          ? Effect.fail(
+              new ExploreNotFound({ kind: params.kind, slug: params.slug }),
+            )
+          : Effect.succeed(listing);
+      })
       .handle("wallpaperImage", ({ params }) =>
-        Effect.gen(function* () {
-          const rows = yield* Ref.get(listings);
-          const listing = rows.find(
-            (row) => row.kind === "theme" && row.slug === params.slug,
-          );
-          if (!listing) {
-            return yield* Effect.die(
-              new Error(
-                `explorePublic.wallpaperImage: no theme ${params.slug}`,
-              ),
-            );
-          }
-          return listing.wallpaper;
-        }),
-      );
-  }),
+        Effect.succeed(wallpaperFor(params.slug)),
+      ),
+  ),
 );

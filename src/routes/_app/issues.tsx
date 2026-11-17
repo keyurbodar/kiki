@@ -1,12 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { IssuesPage } from "@/features/issues/issues-page";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/issues")({
   validateSearch: searchParams(["pane"]),
-  component: RouteComponent,
+  component: IssuesPage,
 });
-
-function RouteComponent() {
-  return <RoutePlaceholder title="Issues" path="/issues" />;
-}

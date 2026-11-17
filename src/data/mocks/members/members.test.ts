@@ -9,6 +9,9 @@ interface Member {
   readonly role: string;
   readonly removedAt: string | null;
   readonly mfaExtension: string | null;
+  readonly mfaEnabled: boolean;
+  readonly passkeyTrusted: boolean;
+  readonly enterpriseSso: boolean;
 }
 
 const key = `members:${orgId}`;
@@ -49,6 +52,17 @@ describe("members mock", () => {
       assert.strictEqual(
         rows.find((row) => row.id === people.sam.id)?.mfaExtension,
         "Acme Security Keys",
+      );
+
+      const viewer = rows.find((row) => row.id === people.alex.id);
+      assert.isTrue(viewer?.mfaEnabled);
+      assert.isTrue(viewer?.passkeyTrusted);
+      assert.isFalse(viewer?.enterpriseSso);
+      assert.isTrue(
+        rows.find((row) => row.id === people.sam.id)?.enterpriseSso,
+      );
+      assert.isFalse(
+        rows.find((row) => row.id === people.jordan.id)?.mfaEnabled,
       );
     }),
   );

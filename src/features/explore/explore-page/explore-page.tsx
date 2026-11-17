@@ -4,15 +4,16 @@ import { DateTime, Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import type { ReactNode } from "react";
 import type { ExploreCard } from "@/data/api/schemas/explore";
-import { exploreIndexAtom } from "@/data/atoms/explore";
+import { orgListingsAtom } from "@/data/atoms/explore";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { ExploreFrame } from "../explore-frame";
 import { type ListingCard, ListingIcon, ListingRow } from "../listing-card";
+import { useOrgId } from "../listing-detail/explore-session";
 import { ThemeBrowse } from "../theme-browse";
-import type { ThemeListingCard } from "../theme-detail";
+import type { ThemeCardPreview, ThemeListingCard } from "../theme-detail";
 import peerArt from "./assets/peer.svg";
 import {
   type ExploreKind,
@@ -166,6 +167,28 @@ const toDate = (value: unknown): Date | null => {
   return null;
 };
 
+const isPalette = (value: unknown): value is Readonly<Record<string, string>> =>
+  typeof value === "object" &&
+  value !== null &&
+  !Array.isArray(value) &&
+  Object.values(value).every((entry) => typeof entry === "string");
+
+const readTheme = (value: unknown): ThemeCardPreview | null => {
+  if (typeof value !== "object" || value === null) return null;
+  const record = value as Record<string, unknown>;
+  if (!isPalette(record.light) || !isPalette(record.dark)) return null;
+  const wallpaper = record.wallpaper;
+  return {
+    light: record.light,
+    dark: record.dark,
+    ...(typeof wallpaper === "object" &&
+    wallpaper !== null &&
+    typeof (wallpaper as { name?: unknown }).name === "string"
+      ? { wallpaper: { name: (wallpaper as { name: string }).name } }
+      : {}),
+  };
+};
+
 const toListingCard = (card: ExploreCard | ThemeListingCard): ListingCard => ({
   kind: card.kind,
   slug: card.slug,
@@ -182,10 +205,7 @@ const toListingCard = (card: ExploreCard | ThemeListingCard): ListingCard => ({
   stars: "stars" in card ? card.stars : null,
   starsCheckedAt: "starsCheckedAt" in card ? toDate(card.starsCheckedAt) : null,
   adds: card.adds,
-  theme:
-    card.theme === null
-      ? null
-      : { light: card.theme.light, dark: card.theme.dark },
+  theme: readTheme(card.theme),
 });
 
 const toThemeListingCard = (card: ExploreCard): ThemeListingCard => ({
@@ -201,20 +221,12 @@ const toThemeListingCard = (card: ExploreCard): ThemeListingCard => ({
   version: card.version,
   updatedAt: toDate(card.updatedAt) ?? new Date(0),
   featuredRank: card.featuredRank,
-  theme:
-    card.theme === null
-      ? null
-      : {
-          light: card.theme.light,
-          dark: card.theme.dark,
-          ...(card.theme.wallpaper === undefined
-            ? {}
-            : { wallpaper: card.theme.wallpaper }),
-        },
+  theme: readTheme(card.theme),
 });
 
 export function ExplorePage({ kind, search, onSearch }: ExplorePageProps) {
-  const result = useAtomValue(exploreIndexAtom);
+  const orgId = useOrgId();
+  const result = useAtomValue(orgListingsAtom(orgId ?? ""));
   const index = Option.getOrUndefined(AsyncResult.value(result));
   const failed = AsyncResult.isFailure(result);
   const label = exploreLabels[kind];

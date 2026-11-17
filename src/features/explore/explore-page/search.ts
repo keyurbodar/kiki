@@ -1,7 +1,10 @@
+import { Schema } from "effect";
 import {
-  type PluginCategory,
-  pluginCategories,
+  type ListingCategory,
+  ListingCategory as ListingCategorySchema,
 } from "@/data/api/schemas/explore.ts";
+
+const listingCategories = Schema.is(ListingCategorySchema);
 
 export type ExploreKind = "plugin" | "skill" | "theme";
 
@@ -36,7 +39,7 @@ export type ExploreSearch = {
   tab?: ExploreTab;
   q?: string;
   section?: ExploreSection;
-  category?: PluginCategory;
+  category?: ListingCategory;
   page?: number;
 };
 
@@ -46,8 +49,8 @@ const isTab = (value: unknown): value is ExploreTab =>
 const isSection = (value: unknown): value is ExploreSection =>
   value === "featured" || value === "recent";
 
-const isCategory = (value: unknown): value is PluginCategory =>
-  pluginCategories.some((category) => category === value);
+const isCategory = (value: unknown): value is ListingCategory =>
+  listingCategories(value);
 
 export function exploreKindFromPath(path: string): ExploreKind | undefined {
   return exploreKinds.find((kind) => explorePaths[kind] === path);
