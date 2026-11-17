@@ -150,7 +150,7 @@ export function ShortcutsPage() {
           <div
             role="row"
             key={command.command}
-            className="col-span-full grid grid-cols-subgrid items-center"
+            className="relative col-span-full grid grid-cols-subgrid before:absolute before:inset-y-0 before:-inset-x-2 before:rounded before:transition-colors before:duration-100 hover:before:bg-section"
           >
             <div role="cell" className="text-sm font-medium text-foreground">
               {command.label}
@@ -316,7 +316,7 @@ export function ShortcutsPage() {
         <div className="-mx-4">
           <div
             role="table"
-            className="grid grid-cols-[minmax(var(--table-lead-min),1.4fr)_minmax(var(--table-fluid-min),1.2fr)_minmax(var(--table-fluid-min),1fr)_auto]"
+            className="isolate grid w-full grid-cols-[minmax(var(--table-lead-min),1.4fr)_minmax(var(--table-fluid-min),1.2fr)_minmax(var(--table-fluid-min),1fr)_auto] overflow-x-auto overscroll-x-contain px-4 [--table-fluid-min:0] [--table-lead-min:0] max-md:[--table-fluid-min:8rem] max-md:[--table-lead-min:10rem] max-md:[clip-path:inset(0_0_0_0.5rem)]"
           >
             <div
               role="row"
