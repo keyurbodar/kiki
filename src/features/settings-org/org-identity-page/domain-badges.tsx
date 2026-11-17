@@ -1,18 +1,14 @@
 import { cx } from "class-variance-authority";
-import {
-  type AllowedDomain,
-  CircleDashedIcon,
-  ClockIcon,
-  ShieldCheckIcon,
-} from "@/features/settings-org/saml-sso";
+import type { AllowedDomain } from "@/features/settings-org/saml-sso";
 import { Badge } from "@/primitives/badge";
+import { Icon } from "@/primitives/icon";
 import { type DomainSso, dnsExpiry } from "./identity";
 
 export function VerificationBadge({ entry }: { entry: AllowedDomain }) {
   if (entry.verification === "pending")
     return (
       <Badge size="sm">
-        <ClockIcon />
+        <Icon name="clock" />
         Waiting for DNS
       </Badge>
     );
@@ -30,7 +26,7 @@ export function VerificationBadge({ entry }: { entry: AllowedDomain }) {
     );
   return (
     <Badge size="sm">
-      <CircleDashedIcon />
+      <Icon name="circle-dashed" />
       Unverified
     </Badge>
   );
@@ -46,7 +42,7 @@ export function SsoRequirementBadge({
   if (entry.ssoRequired)
     return (
       <Badge size="sm" color={sso.name === undefined ? "warning" : "success"}>
-        <ShieldCheckIcon />
+        <Icon name="shield-check" />
         Required
       </Badge>
     );

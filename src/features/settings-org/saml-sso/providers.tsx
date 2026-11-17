@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Icon } from "@/primitives/icon";
 import {
   Auth0Icon,
   GoogleIcon,
@@ -15,7 +16,6 @@ import type {
   SsoProvider,
 } from "./data";
 import { samlProviders } from "./data";
-import { KeyLongIcon } from "./icons";
 
 export type SamlMethod = "metadataUrl" | "manual" | "metadata";
 export type SamlField =
@@ -229,7 +229,7 @@ export const samlProviderConfig: Record<SamlProvider, SamlProviderConfig> = {
   },
   saml: {
     label: "Other SAML provider",
-    icon: <KeyLongIcon />,
+    icon: <Icon name="key-1" />,
     hint: "Any SAML 2.0 identity provider",
     where: "Paste these into your identity provider",
     copy: [
@@ -322,8 +322,8 @@ export const enterpriseProviderIcons: Record<EnterpriseProvider, ReactNode> = {
   okta: <OktaIcon />,
   microsoft: <MicrosoftIcon />,
   google: <GoogleIcon />,
-  saml: <KeyLongIcon />,
-  oidc: <KeyLongIcon />,
+  saml: <Icon name="key-1" />,
+  oidc: <Icon name="key-1" />,
 };
 
 export const formatShortDate = (date: Date) =>

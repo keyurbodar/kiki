@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/primitives/dialog";
+import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import { Label } from "@/primitives/label";
 import {
@@ -48,17 +49,6 @@ import {
   setSsoActiveAtom,
   ssoReactivityKeys,
 } from "./data";
-import {
-  BuildingsIcon,
-  CircleDashedIcon,
-  ClipboardIcon,
-  ClockIcon,
-  DotsIcon,
-  KeyIcon,
-  PencilIcon,
-  ToggleIcon,
-  TrashIcon,
-} from "./icons";
 import {
   copyValue,
   formatShortDate,
@@ -262,7 +252,7 @@ export function SelfServeSso({
       {!connected && (
         <SettingsRow
           id={singleSignOnRowId}
-          icon={<BuildingsIcon />}
+          icon={<Icon name="buildings" />}
           label="No identity provider connected"
           description={emptyDescription}
         >
@@ -400,14 +390,14 @@ export function connectionBadge(connection: SsoConnection) {
   if (connection.state === "draft")
     return (
       <Badge size="sm">
-        <CircleDashedIcon />
+        <Icon name="circle-dashed" />
         Draft
       </Badge>
     );
   if (untested)
     return (
       <Badge size="sm" color="warning">
-        <ClockIcon />
+        <Icon name="clock" />
         Waiting for a test sign-in
       </Badge>
     );
@@ -500,7 +490,7 @@ export function SamlConnectionRow({
       )}
       {untested && (
         <Button variant="ghost" size="sm" onClick={copyTestLink}>
-          <ClipboardIcon />
+          <Icon name="clipboard" />
           Copy link
         </Button>
       )}
@@ -515,20 +505,20 @@ export function SamlConnectionRow({
             />
           }
         >
-          <DotsIcon />
+          <Icon name="dot-grid-1x3-horizontal" />
         </MenuTrigger>
         <MenuContent align="end" className="w-52">
           {connection.state !== "draft" && (
             <>
               <MenuItem onClick={() => onEdit("edit")}>
                 <span className={menuIconSlot}>
-                  <PencilIcon />
+                  <Icon name="pencil" />
                 </span>
                 Edit
               </MenuItem>
               <MenuItem onClick={() => onEdit("certificate")}>
                 <span className={menuIconSlot}>
-                  <KeyIcon />
+                  <Icon name="key-2" />
                 </span>
                 Add certificate
               </MenuItem>
@@ -537,7 +527,7 @@ export function SamlConnectionRow({
           {(connection.state === "active" || connection.state === "off") && (
             <MenuItem onClick={onToggle}>
               <span className={menuIconSlot}>
-                <ToggleIcon />
+                <Icon name="toggle" />
               </span>
               {connection.state === "active" ? "Turn off" : "Turn on"}
             </MenuItem>
@@ -545,7 +535,7 @@ export function SamlConnectionRow({
           {connection.state !== "draft" && <MenuSeparator />}
           <MenuItem intent="danger" onClick={onRemove}>
             <span className={menuIconSlot}>
-              <TrashIcon />
+              <Icon name="trash-can" />
             </span>
             Remove
           </MenuItem>

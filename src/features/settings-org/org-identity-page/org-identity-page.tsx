@@ -11,7 +11,6 @@ import {
   accountAtom,
   allowedDomainsAtom,
   apiKeysAtom,
-  BuildingsIcon,
   ConfirmDialog,
   connectSsoAtom,
   DataTable,
@@ -19,7 +18,6 @@ import {
   DataTableHead,
   DataTableHeader,
   DataTableRow,
-  DotsIcon,
   decodeAccountEmails,
   decodeAllowedDomains,
   decodeApiKeys,
@@ -30,18 +28,13 @@ import {
   type EnterpriseConnection,
   enterpriseProviderIcons,
   enterpriseProviderLabels,
-  GlobeIcon,
   GoogleIcon,
   identityKeys,
-  LockIcon,
   linkClass,
   membersAtom,
   menuIconSlot,
-  PasskeysIcon,
-  PlusMediumIcon,
   removeAllowedDomainAtom,
   SelfServeSso,
-  ShieldCheckIcon,
   type SsoStatus,
   setMfaRequiredAtom,
   setOrgSsoRequiredAtom,
@@ -49,12 +42,11 @@ import {
   singleSignOnRowId,
   ssoReactivityKeys,
   ssoStatusAtom,
-  ToggleIcon,
-  TrashIcon,
 } from "@/features/settings-org/saml-sso";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
+import { Icon } from "@/primitives/icon";
 import {
   Menu,
   MenuContent,
@@ -184,7 +176,7 @@ function DomainsSection({ organizationId }: { organizationId: string }) {
       description="People with a verified email on these domains can join"
       action={
         <Button variant="ghost" size="sm" onClick={() => setAdding(true)}>
-          <PlusMediumIcon />
+          <Icon name="plus-medium" />
           Add domain
         </Button>
       }
@@ -244,15 +236,15 @@ function DomainsSection({ organizationId }: { organizationId: string }) {
                       />
                     }
                   >
-                    <DotsIcon />
+                    <Icon name="dot-grid-1x3-horizontal" />
                   </MenuTrigger>
                   <MenuContent align="end" className="w-52">
                     <MenuItem onClick={() => setOpenId(entry.id)}>
                       <span className={menuIconSlot}>
                         {entry.verification === "dns" ? (
-                          <GlobeIcon />
+                          <Icon name="globe" />
                         ) : (
-                          <ShieldCheckIcon />
+                          <Icon name="shield-check" />
                         )}
                       </span>
                       {entry.verification === "dns"
@@ -265,7 +257,7 @@ function DomainsSection({ organizationId }: { organizationId: string }) {
                       onClick={() => setRemoving(entry)}
                     >
                       <span className={menuIconSlot}>
-                        <TrashIcon />
+                        <Icon name="trash-can" />
                       </span>
                       Remove
                     </MenuItem>
@@ -435,7 +427,7 @@ function AuthenticationSection({
           ) : (
             <SettingsRow
               id={singleSignOnRowId}
-              icon={<BuildingsIcon />}
+              icon={<Icon name="buildings" />}
               label="Single sign-on"
               description={adminReason}
             />
@@ -449,7 +441,7 @@ function AuthenticationSection({
         <Card rows className="@container">
           <SettingsRow
             id={twoStepRow.id}
-            icon={<PasskeysIcon />}
+            icon={<Icon name="passkeys-outline" />}
             label={twoStepRow.title}
             className="@max-md:flex-col @max-md:items-stretch"
             description={description}
@@ -734,7 +726,7 @@ function GoogleWorkspaceRow({
                 />
               }
             >
-              <DotsIcon />
+              <Icon name="dot-grid-1x3-horizontal" />
             </MenuTrigger>
             <MenuContent align="end" className="w-52">
               {state === "failed" && !addOnEnded && accountProtected && (
@@ -748,7 +740,7 @@ function GoogleWorkspaceRow({
                     }
                   >
                     <span className={menuIconSlot}>
-                      <ToggleIcon />
+                      <Icon name="toggle" />
                     </span>
                     Turn on
                   </MenuItem>
@@ -757,7 +749,7 @@ function GoogleWorkspaceRow({
               )}
               <MenuItem intent="danger" onClick={() => setDisconnectOpen(true)}>
                 <span className={menuIconSlot}>
-                  <TrashIcon />
+                  <Icon name="trash-can" />
                 </span>
                 {state === "active" || state === "pending"
                   ? "Disconnect"
@@ -836,7 +828,7 @@ function RequireSsoRow({ organizationId }: { organizationId: string }) {
   if (state === null) return null;
   return (
     <SettingsRow
-      icon={<LockIcon />}
+      icon={<Icon name="lock" />}
       label="Require single sign-on"
       description={state.description}
     >

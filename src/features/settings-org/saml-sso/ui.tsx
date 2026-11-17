@@ -19,8 +19,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/primitives/dialog";
+import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
-import { ClipboardIcon } from "./icons";
 
 export const menuIconSlot =
   "flex size-(--icon-sm) shrink-0 items-center justify-center text-icon-muted in-data-[intent=danger]:text-destructive";
@@ -418,7 +418,7 @@ export function CopyValue({ value, label }: { value: string; label: string }) {
           aria-label={`Copy ${label}`}
           onClick={() => void copy()}
         >
-          <ClipboardIcon />
+          <Icon name="clipboard" />
         </Button>
       </span>
     </span>
