@@ -11,8 +11,9 @@ import { Markdown } from "@/components/markdown";
 import {
   type MarkdownChipsContextValue,
   MarkdownChipsProvider,
+  pullKey,
 } from "./context";
-import { sampleChipsContext } from "./fixtures";
+import { sampleChipsContext, samplePulls } from "./fixtures";
 
 afterEach(cleanup);
 
@@ -107,5 +108,52 @@ describe("markdown chips", () => {
     const link = owner(root, 'a[href="/pull/acme/api/7"]');
     expect(link?.textContent).toBe("the fix");
     expect(link?.querySelector('[data-glyph="shield-crossed"]')).not.toBeNull();
+  });
+  it("renders link chips as plain text when the markdown surface is not interactive", async () => {
+    const root = await renderWithRouter(
+      <MarkdownChipsProvider value={sampleChipsContext}>
+        <Markdown
+          interactive={false}
+          text="[run](https://github.com/acme/web/commit/abc1234) and ACME-12"
+        />
+      </MarkdownChipsProvider>,
+    );
+    expect(root.querySelectorAll("a")).toHaveLength(0);
+    expect(root.textContent).toContain("run and ACME-12");
+  });
+
+  it("keeps an inherited repository when a bare ref follows a qualified one", async () => {
+    const root = await renderMarkdown("acme/api#7 then #8", {
+      ...sampleChipsContext,
+      pullRequests: new Map([
+        ...(sampleChipsContext.pullRequests ?? []),
+        [
+          pullKey("acme/api", 8),
+          { ...samplePulls[2]!, number: 8, state: "ready" as const },
+        ],
+      ]),
+    });
+    const links = [...root.querySelectorAll("a")].map((a) =>
+      a.getAttribute("href"),
+    );
+    expect(links).toEqual(["/pull/acme/api/7", "/pull/acme/api/8"]);
+  });
+
+  it("resolves a short repository name against the surface repository", async () => {
+    const root = await renderMarkdown("see web#42", sampleChipsContext);
+    expect(owner(root, "a")?.getAttribute("href")).toBe("/pull/acme/web/42");
+  });
+
+  it("leaves an ambiguous pull reference as text", async () => {
+    const root = await renderMarkdown("see api#7 and web#7", {
+      ...sampleChipsContext,
+      repository: undefined,
+      pullRequests: new Map([
+        [pullKey("acme/api", 7), { ...samplePulls[2]! }],
+        [pullKey("other/api", 7), { ...samplePulls[2]!, repo: "other/api" }],
+      ]),
+    });
+    expect(root.querySelectorAll("a")).toHaveLength(0);
+    expect(root.textContent).toContain("api#7");
   });
 });

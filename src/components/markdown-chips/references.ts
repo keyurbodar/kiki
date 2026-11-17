@@ -317,6 +317,9 @@ function walk(parent: Parent, issuePrefix: string | undefined) {
       if (candidate !== undefined && linkChipKinds.has(candidate.kind))
         node.properties.dataChip = candidate.kind;
     }
+    // Anchors are never descended into: an authored link owns all of its
+    // content, and a chip inside one would nest anchors.
+    if (node.tagName === "a") continue;
     if (node.tagName === "code" && !isChipHost(parent)) {
       const chip = inlineCodeChip(node);
       if (chip !== undefined) {

@@ -166,6 +166,28 @@ describe("createChipTransform", () => {
     );
   });
 
+  it("never descends into an anchor, so formatted labels keep one link", () => {
+    const link: Element = {
+      type: "element",
+      tagName: "a",
+      properties: { href: "https://example.com" },
+      children: [
+        {
+          type: "element",
+          tagName: "strong",
+          properties: {},
+          children: [{ type: "text", value: "acme/web#42" }],
+        },
+      ],
+    };
+    const tree: Root = { type: "root", children: [paragraph(link)] };
+    createChipTransform()(tree);
+    const anchor = (tree.children[0] as Element).children[0] as Element;
+    const strong = anchor.children[0] as Element;
+    expect(strong.tagName).toBe("strong");
+    expect(strong.children[0]?.type).toBe("text");
+  });
+
   it("lets a bare #N inherit the repository of an earlier ref in the same block", () => {
     const tree: Root = {
       type: "root",

@@ -31,6 +31,8 @@ export type MarkdownChipRenderProps = {
   /** Set for link chips (anchors a tree transform marked with data-chip). */
   href?: string;
   anchorProps?: ComponentProps<"a">;
+  /** Markdown's interactive prop: false renders the chip as plain text. */
+  interactive?: boolean;
   children?: ReactNode;
 };
 

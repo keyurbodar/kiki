@@ -30,6 +30,7 @@ import {
   pullKey,
   useMarkdownChips,
 } from "./context";
+import { useMotionDelayMs } from "./delay";
 import type { ChipGlyphName } from "./glyphs";
 import {
   ChipFileIcon,
@@ -46,9 +47,6 @@ import {
   ThreadChipPreview,
 } from "./previews";
 import { classifyHref, parseCodes, parseDriveReference } from "./references";
-
-/** Capy's preview-card open delay for chips (ui/preview-card). */
-const previewOpenDelay = 300;
 
 function ChipTooltip({
   trigger,
@@ -84,7 +82,7 @@ function ChipPreview({
     <PreviewCard>
       <PreviewCardTrigger
         render={trigger}
-        delay={previewOpenDelay}
+        delay={useMotionDelayMs("--delay-preview")}
         closeDelay={0}
       >
         {label}
@@ -422,6 +420,51 @@ export function PullReferenceLink({
   );
 }
 
+type PullTarget = { repo: string; number: number };
+
+const unique = <T,>(values: readonly T[]) =>
+  values.length === 1 ? values[0] : undefined;
+
+/**
+ * Resolves a "#N", "repo#N" or "owner/repo#N" reference. A short repository
+ * name only resolves when the surface or the pull catalog names one repository
+ * it could mean; anything ambiguous stays text rather than linking nowhere.
+ */
+function resolvePullTarget(
+  reference: string,
+  chips: {
+    repository?: string | undefined;
+    pullRequests?: ReadonlyMap<string, ChipPull> | undefined;
+  },
+): PullTarget | undefined {
+  const hash = reference.lastIndexOf("#");
+  if (hash === -1) return;
+  const repo = reference.slice(0, hash);
+  const number = Number(reference.slice(hash + 1));
+  if (!Number.isInteger(number) || number <= 0) return;
+  if (repo.includes("/")) return { repo, number };
+  const known = [...(chips.pullRequests?.values() ?? [])];
+  if (repo === "") {
+    const surface = chips.repository;
+    if (surface !== undefined) return { repo: surface, number };
+    const pull = unique(known.filter((entry) => entry.number === number));
+    return pull === undefined ? undefined : { repo: pull.repo, number };
+  }
+  const named = known.filter(
+    (entry) => entry.number === number && entry.repo.split("/").at(-1) === repo,
+  );
+  const namedPull = unique(named);
+  if (namedPull !== undefined) return { repo: namedPull.repo, number };
+  const surface = chips.repository;
+  if (surface !== undefined && surface.split("/").at(-1) === repo)
+    return { repo: surface, number };
+  const inCatalog = unique(
+    known.filter((entry) => entry.repo.split("/").at(-1) === repo),
+  );
+  return inCatalog === undefined ? undefined : { repo: inCatalog.repo, number };
+}
+
+/** A pull reference with its state glyph and hover card, or plain text when it doesn't resolve. */
 function ResolvedPullChip({
   value,
   reference,
@@ -430,15 +473,14 @@ function ResolvedPullChip({
   reference: string;
 }) {
   const chips = useMarkdownChips();
-  const hash = reference.lastIndexOf("#");
-  const repo = reference.slice(0, hash);
-  const number = Number(reference.slice(hash + 1));
-  if (repo === "" || chips.interactive === false) return value;
-  const pull = chips.pullRequests?.get(pullKey(repo, number));
+  if (chips.interactive === false) return value;
+  const target = resolvePullTarget(reference, chips);
+  if (target === undefined) return value;
+  const pull = chips.pullRequests?.get(pullKey(target.repo, target.number));
   if (pull === undefined)
     return (
       <a
-        href={`https://github.com/${repo}/issues/${number}`}
+        href={`https://github.com/${target.repo}/issues/${target.number}`}
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -458,40 +500,12 @@ function ResolvedPullChip({
   );
 }
 
-function BarePullChip({ value }: { value: string }) {
-  const chips = useMarkdownChips();
-  const number = Number(value.slice(1));
-  const matches = [...(chips.pullRequests?.values() ?? [])].filter(
-    (pull) => pull.number === number,
-  );
-  const pull = matches.length === 1 ? matches[0] : undefined;
-  if (pull === undefined || chips.interactive === false) return value;
-  return (
-    <PullReferenceLink
-      repositoryFullName={pull.repo}
-      number={pull.number}
-      pull={pull}
-      className="whitespace-nowrap"
-    >
-      <PullStateIcon state={pull.state} className={chipIconClass} />
-      {value}
-    </PullReferenceLink>
-  );
-}
-
-/** owner/repo#N, repo#N or #N in text. */
+/**
+ * owner/repo#N, repo#N or #N in text. The transform's value carries the
+ * repository it inherited; the label is only what to show.
+ */
 export function PullChip({ value, label }: { value: string; label?: string }) {
-  const { repository } = useMarkdownChips();
-  const shown = label ?? value;
-  if (!shown.startsWith("#"))
-    return <ResolvedPullChip value={value} reference={value} />;
-  if (repository !== undefined)
-    return (
-      <ResolvedPullChip value={shown} reference={`${repository}${shown}`} />
-    );
-  if (label !== undefined)
-    return <ResolvedPullChip value={shown} reference={value} />;
-  return <BarePullChip value={shown} />;
+  return <ResolvedPullChip value={label ?? value} reference={value} />;
 }
 
 /** drive:path references, opened in the drive pane when the surface can. */

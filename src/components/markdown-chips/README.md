@@ -9,15 +9,15 @@ import { markdownChipComponents } from "@/components/markdown-chips";
 
 <MarkdownComponentsProvider value={markdownChipComponents}>
   <Markdown text={body} />
-</MarkdownComponentsProvider>
+</MarkdownComponentsProvider>;
 ```
 
 `markdownChipComponents` is exactly the markdown package's two plug-in points:
 
-| key          | what it is                                                                 |
-| ------------ | -------------------------------------------------------------------------- |
+| key          | what it is                                                                                             |
+| ------------ | ------------------------------------------------------------------------------------------------------ |
 | `chip`       | `MarkdownChipRenderer`, rendering anchors with `data-chip` and spans with `data-chip` / `data-mention` |
-| `transforms` | `[chipTransform]`, the hast pass that marks the chip-able runs             |
+| `transforms` | `[chipTransform]`, the hast pass that marks the chip-able runs                                         |
 
 They are already the defaults in `defaultMarkdownComponents`, so `<Markdown>` chips everything without any provider. Use the provider for a scoped override, for example a preview that renders chips as plain text (`interactive: false`) or a surface whose reference map differs.
 
@@ -53,13 +53,15 @@ Chips never fetch. A surface fills `MarkdownChipsContextValue` (`context.tsx`) f
 >
 ```
 
-Unknown references degrade exactly like Capy's: an unresolved thread code stays text, an unresolved pull ref links to its GitHub issue, an unresolved issue code falls back to a thread chip.
+Unknown references degrade exactly like Capy's: an unresolved thread code stays text, a pull ref whose repository is known but whose pull is not links to its GitHub issue, an unresolved issue code falls back to a thread chip. A ref that cannot name a repository at all (a bare `repo#N` that the surface or the pull catalog cannot place, or `#N` with no surface repository and no unique match) stays text rather than linking nowhere.
+
+`Markdown interactive={false}` wins over the provider: the chip renderer receives it and renders plain text, so a non-interactive markdown surface never emits a link.
 
 `fixtures.ts` holds the neutral Acme sample data used by the tests and the specimen page.
 
 ## Hover surfaces
 
-- `PullReferenceLink` + `PullRequestHoverPanel` — pull reference hover card (`w-96`), diff counts and author, 300 ms open delay.
+- `PullReferenceLink` + `PullRequestHoverPanel` — pull reference hover card (`w-96`), diff counts and author. The open delay is the motion token `--delay-preview` (`delay.ts`), never a literal.
 - `ThreadLinkChip` + `ThreadChipPreview` — thread hover card header (`w-96`). The issues, pulls and crew sections of the full card belong to the thread-preview package.
 - `IssueChip` + `IssuePreview` (`w-80`), `TaskChip` + `TaskPreview` (subagent), `FileChip` and `DriveReferenceChip` tooltips, and the dotted-underline ambiguous thread code tooltip.
 - Every popup uses `@/primitives/preview-card` and `@/primitives/tooltip` with Capy's class strings in `classes.ts`.

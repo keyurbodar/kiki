@@ -24,6 +24,8 @@ export type MarkdownChipRendererProps = {
   label?: string;
   href?: string;
   anchorProps?: ComponentProps<"a">;
+  /** Markdown's interactive prop: false renders the chip as plain text. */
+  interactive?: boolean;
   children?: ReactNode;
 };
 
@@ -38,8 +40,10 @@ export function MarkdownChipRenderer({
   label,
   href,
   anchorProps,
+  interactive = true,
   children,
 }: MarkdownChipRendererProps) {
+  if (!interactive) return <>{children ?? label ?? value}</>;
   if (href !== undefined)
     return (
       <ReferenceLinkChip kind={kind} href={href} anchorProps={anchorProps}>

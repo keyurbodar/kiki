@@ -1,6 +1,16 @@
 {
-  "matrix": { "theme": ["default"], "scheme": ["dark", "light"] },
-  "defaults": { "maxMismatch": 2 },
+  "matrix": {
+    "theme": [
+      "default"
+    ],
+    "scheme": [
+      "dark",
+      "light"
+    ]
+  },
+  "defaults": {
+    "maxMismatch": 2
+  },
   "targets": [
     {
       "id": "b6-chips-markdown",
@@ -9,7 +19,16 @@
       "viewport": "1440x900",
       "capture": {
         "[data-panel=markdown]": [],
-        "[data-panel=markdown] a": ["color", "text-decoration-line"]
+        "[data-panel=markdown] a": [
+          "color",
+          "text-decoration-line"
+        ]
+      },
+      "expect": {
+        "[data-panel=markdown] a": {
+          "text-decoration-line": "none",
+          "color": "var(--text-link)"
+        }
       }
     },
     {
@@ -26,7 +45,21 @@
           "width",
           "box-shadow"
         ],
-        "[data-panel=pull-hover] a": ["background-color", "padding"]
+        "[data-panel=pull-hover] a": [
+          "background-color",
+          "padding"
+        ]
+      },
+      "expect": {
+        "[data-panel=pull-hover]": {
+          "background-color": "var(--popover)",
+          "border-radius": "var(--radius-overlay)",
+          "padding": "12px",
+          "width": "384px"
+        },
+        "[data-panel=pull-hover] a": {
+          "padding": "4px 6px"
+        }
       }
     },
     {
@@ -41,6 +74,14 @@
           "padding",
           "width"
         ]
+      },
+      "expect": {
+        "[data-panel=thread-hover]": {
+          "background-color": "var(--popover)",
+          "border-radius": "var(--radius-overlay)",
+          "padding": "12px",
+          "width": "384px"
+        }
       }
     },
     {
@@ -55,6 +96,14 @@
           "padding",
           "width"
         ]
+      },
+      "expect": {
+        "[data-panel=issue-hover]": {
+          "background-color": "var(--popover)",
+          "border-radius": "var(--radius-overlay)",
+          "padding": "12px",
+          "width": "320px"
+        }
       }
     },
     {
@@ -70,6 +119,15 @@
           "font-size",
           "font-weight"
         ]
+      },
+      "expect": {
+        "[data-panel=tooltip]": {
+          "background-color": "var(--popover)",
+          "border-radius": "var(--radius)",
+          "padding": "4px 8px",
+          "font-size": "12px",
+          "font-weight": "500"
+        }
       }
     }
   ]
