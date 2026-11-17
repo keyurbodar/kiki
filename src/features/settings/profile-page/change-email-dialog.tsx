@@ -1,4 +1,4 @@
-import { Button } from "@/primitives/button";
+import { Button, ButtonIcon } from "@/primitives/button";
 import {
   Dialog,
   DialogBody,
@@ -193,7 +193,9 @@ export function ChangeEmailDialog(props: ChangeEmailDialogProps) {
                 disabled={busy !== null}
                 onClick={props.onBack}
               >
-                <Icon name="chevron-left-medium" size="sm" />
+                <ButtonIcon>
+                  <Icon name="chevron-left-medium" size="sm" />
+                </ButtonIcon>
               </Button>
             )}
             <DialogTitle>{page.title}</DialogTitle>

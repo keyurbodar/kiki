@@ -95,7 +95,7 @@ export function SharingSection({
               if (value !== null) saveMine(value === "default" ? null : value);
             }}
           >
-            <MenuSelectTrigger size="sm" className="w-56">
+            <MenuSelectTrigger size="sm" className="w-56!">
               <MenuSelectValue />
             </MenuSelectTrigger>
             <MenuSelectContent>
@@ -129,7 +129,7 @@ export function SharingSection({
                 saveSharing(value, organization.personalThreadsEnabled);
             }}
           >
-            <MenuSelectTrigger size="sm" className="w-56" title={adminReason}>
+            <MenuSelectTrigger size="sm" className="w-56!" title={adminReason}>
               <MenuSelectValue />
             </MenuSelectTrigger>
             <MenuSelectContent>

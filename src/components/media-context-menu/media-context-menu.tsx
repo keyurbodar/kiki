@@ -5,6 +5,7 @@ import {
   mediaActions,
   mediaShortcutLabel,
 } from "@/components/media-lightbox/media-actions";
+
 import {
   ContextMenu,
   ContextMenuContent,
@@ -12,6 +13,14 @@ import {
 } from "@/primitives/context-menu";
 import { Icon } from "@/primitives/icon";
 import { MenuItem } from "@/primitives/menu";
+
+export {
+  copyImageBlob as copyImage,
+  type MediaKind,
+  type MediaSource as MediaActionsInput,
+  mediaActions,
+  saveBlob,
+} from "@/components/media-lightbox/media-actions";
 
 export type MediaContextMenuProps = MediaSource & {
   /** Inside the lightbox: shows shortcuts and keeps touch long-press for pan. */
@@ -35,6 +44,7 @@ export function MediaContextMenu({
   url,
   resolveBlob,
   preview = false,
+
   children,
 }: MediaContextMenuProps) {
   const actions = mediaActions({ kind, name, url, resolveBlob });

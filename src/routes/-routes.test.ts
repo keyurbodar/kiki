@@ -10,6 +10,7 @@ type Node = {
 const DEV_ONLY_ROUTES = new Set([
   "/__tokens",
   "/__composer-footer",
+  "/__annotations",
   "/__captain-dialog",
   "/__composer",
   "/__thread-device",
@@ -17,7 +18,12 @@ const DEV_ONLY_ROUTES = new Set([
   "/__chips",
   "/__model-picker",
   "/__new-thread-selects",
+  "/__markdown",
 ]);
+
+// Capy ships /design as an internal render page; we deliberately do not implement it,
+// so it counts toward the parity-map contract but has no route in the tree.
+const NOT_SHIPPED_ROUTES = new Set(["/design"]);
 
 function countRoutes(node: Node): number {
   const children = Object.values(node.children ?? {}).filter(
@@ -37,7 +43,7 @@ async function resolve(path: string) {
 
 describe("route contract", () => {
   it("registers every app route from the parity map", () => {
-    expect(countRoutes(routeTree as Node)).toBe(159);
+    expect(countRoutes(routeTree as Node) + NOT_SHIPPED_ROUTES.size).toBe(159);
   });
 
   it.each([

@@ -154,6 +154,7 @@ export interface AutomationDetails {
   } | null;
   readonly creator: string;
   readonly creatorUserId: string;
+  readonly createdAt: string;
   readonly updatedAt: string;
 }
 
@@ -164,7 +165,13 @@ const detail = (
     readonly schedule?: { readonly cron: string; readonly timezone: string };
     readonly event?: string;
     readonly enabledFor?: string;
-  } = {},
+    readonly createdAgo: number;
+    readonly creator: {
+      readonly id: string;
+      readonly firstName: string;
+      readonly lastName: string;
+    };
+  },
 ): AutomationDetails => ({
   description: options.description ?? null,
   prompt,
@@ -182,8 +189,9 @@ const detail = (
   maxRunsPerDay: null,
   machineSize: null,
   organize: null,
-  creator: "Sam Rivera",
-  creatorUserId: people.sam.id,
+  creator: `${options.creator.firstName} ${options.creator.lastName}`,
+  creatorUserId: options.creator.id,
+  createdAt: isoMinutesAgo(options.createdAgo),
   updatedAt: isoMinutesAgo(options.enabledFor ? 7 * 60 : 60 * 24),
 });
 
@@ -193,6 +201,8 @@ export const automationDetails: Readonly<Record<string, AutomationDetails>> = {
     {
       description: "Runs nightly against acme/web.",
       schedule: { cron: "0 2 * * *", timezone: "UTC" },
+      createdAgo: 60 * 24 * 90,
+      creator: people.sam,
     },
   ),
   auto_sample_changelog: detail(
@@ -200,6 +210,8 @@ export const automationDetails: Readonly<Record<string, AutomationDetails>> = {
     {
       description: "Every Monday morning.",
       schedule: { cron: "0 9 * * 1", timezone: "UTC" },
+      createdAgo: 60 * 24 * 45,
+      creator: people.priya,
     },
   ),
   auto_sample_pr_followup: detail(
@@ -207,6 +219,8 @@ export const automationDetails: Readonly<Record<string, AutomationDetails>> = {
     {
       description: "Paused while the release stabilises.",
       event: "pull_request.merged",
+      createdAgo: 60 * 24 * 20,
+      creator: people.alex,
     },
   ),
 };

@@ -22,6 +22,7 @@ import {
   MenuSeparator,
   MenuTrigger,
 } from "@/primitives/menu";
+import { ScrollArea } from "@/primitives/scroll-area";
 import { useIsNarrow } from "@/primitives/sidebar";
 import { ShareIcon } from "../icons";
 import { formatRelativeTime } from "../lib/format";
@@ -135,28 +136,31 @@ export function SharedPage() {
   const [search, setSearch] = useState("");
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <DriveTopBar
-        title={
-          <span className="flex min-w-0 items-center gap-1.5">
-            <Link
-              to="/drive"
-              className="min-w-0 truncate rounded font-medium text-muted-foreground-2 outline-none transition-colors duration-hover hover:text-foreground focus-visible:outline-ring-inset"
-            >
-              Capy Drive
-            </Link>
-            <span aria-hidden="true" className="text-muted-foreground-3">
-              ›
+      <ScrollArea
+        className="min-h-0 flex-1"
+        viewportClassName="overscroll-contain"
+      >
+        <DriveTopBar
+          title={
+            <span className="flex min-w-0 items-center gap-1.5">
+              <Link
+                to="/drive"
+                className="min-w-0 truncate rounded font-medium text-muted-foreground-2 outline-none transition-colors duration-hover hover:text-foreground focus-visible:outline-ring-inset"
+              >
+                Capy Drive
+              </Link>
+              <span aria-hidden="true" className="text-muted-foreground-3">
+                ›
+              </span>
+              <span className="min-w-0 truncate">Shared</span>
             </span>
-            <span className="min-w-0 truncate">Shared</span>
-          </span>
-        }
-        search={{
-          value: search,
-          placeholder: "Search shared files",
-          onValueChange: setSearch,
-        }}
-      />
-      <div className="min-h-0 flex-1 overflow-y-auto md:scroll-fade-y">
+          }
+          search={{
+            value: search,
+            placeholder: "Search shared files",
+            onValueChange: setSearch,
+          }}
+        />
         <div className="flex w-full flex-col gap-5 px-6 py-4">
           {session.orgId !== undefined && (
             <SharedList
@@ -167,7 +171,7 @@ export function SharedPage() {
             />
           )}
         </div>
-      </div>
+      </ScrollArea>
     </div>
   );
 }

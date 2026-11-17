@@ -9,10 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as Char91__annotationsChar93RouteImport } from './routes/[__annotations]'
 import { Route as Char91__captainDialogChar93RouteImport } from './routes/[__captain-dialog]'
 import { Route as Char91__chipsChar93RouteImport } from './routes/[__chips]'
 import { Route as Char91__composerChar93RouteImport } from './routes/[__composer]'
 import { Route as Char91__composerFooterChar93RouteImport } from './routes/[__composer-footer]'
+import { Route as Char91__markdownChar93RouteImport } from './routes/[__markdown]'
 import { Route as Char91__mediaLightboxChar93RouteImport } from './routes/[__media-lightbox]'
 import { Route as Char91__modelPickerChar93RouteImport } from './routes/[__model-picker]'
 import { Route as Char91__newThreadSelectsChar93RouteImport } from './routes/[__new-thread-selects]'
@@ -20,7 +22,6 @@ import { Route as Char91__threadDeviceChar93RouteImport } from './routes/[__thre
 import { Route as Char91__tokensChar93RouteImport } from './routes/[__tokens]'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
-import { Route as DesignRouteImport } from './routes/design'
 import { Route as DesktopRouteImport } from './routes/desktop'
 import { Route as DitherCoverRouteImport } from './routes/dither-cover'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
@@ -178,6 +179,12 @@ import { Route as AppProjectProjectIdPullOwnerRepoPrNumberRouteImport } from './
 import { Route as AppSettingsProjectsProjectIdDevEnvironmentBuildsBuildIdRouteImport } from './routes/_app/settings/projects_/$projectId_/dev-environment_/builds/$buildId'
 import { Route as AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRouteImport } from './routes/_app/settings/projects_/$projectId_/dev-environment_/repositories/$owner/$repo'
 
+const Char91__annotationsChar93Route =
+  Char91__annotationsChar93RouteImport.update({
+    id: '/__annotations',
+    path: '/__annotations',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const Char91__captainDialogChar93Route =
   Char91__captainDialogChar93RouteImport.update({
     id: '/__captain-dialog',
@@ -200,6 +207,11 @@ const Char91__composerFooterChar93Route =
     path: '/__composer-footer',
     getParentRoute: () => rootRouteImport,
   } as any)
+const Char91__markdownChar93Route = Char91__markdownChar93RouteImport.update({
+  id: '/__markdown',
+  path: '/__markdown',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char91__mediaLightboxChar93Route =
   Char91__mediaLightboxChar93RouteImport.update({
     id: '/__media-lightbox',
@@ -235,11 +247,6 @@ const AppRouteRoute = AppRouteRouteImport.update({
 } as any)
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DesignRoute = DesignRouteImport.update({
-  id: '/design',
-  path: '/design',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DesktopRoute = DesktopRouteImport.update({
@@ -1097,16 +1104,17 @@ const AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/__annotations': typeof Char91__annotationsChar93Route
   '/__captain-dialog': typeof Char91__captainDialogChar93Route
   '/__chips': typeof Char91__chipsChar93Route
   '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__markdown': typeof Char91__markdownChar93Route
   '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
   '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
-  '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
   '/dither-cover': typeof DitherCoverRoute
   '/onboarding': typeof OnboardingRoute
@@ -1265,16 +1273,17 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
+  '/__annotations': typeof Char91__annotationsChar93Route
   '/__captain-dialog': typeof Char91__captainDialogChar93Route
   '/__chips': typeof Char91__chipsChar93Route
   '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__markdown': typeof Char91__markdownChar93Route
   '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
   '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
-  '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
   '/dither-cover': typeof DitherCoverRoute
   '/onboarding': typeof OnboardingRoute
@@ -1433,16 +1442,17 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteRouteWithChildren
   '/_auth': typeof AuthRouteRouteWithChildren
+  '/__annotations': typeof Char91__annotationsChar93Route
   '/__captain-dialog': typeof Char91__captainDialogChar93Route
   '/__chips': typeof Char91__chipsChar93Route
   '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__markdown': typeof Char91__markdownChar93Route
   '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
   '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
-  '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
   '/dither-cover': typeof DitherCoverRoute
   '/onboarding': typeof OnboardingRoute
@@ -1604,16 +1614,17 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/__annotations'
     | '/__captain-dialog'
     | '/__chips'
     | '/__composer'
     | '/__composer-footer'
+    | '/__markdown'
     | '/__media-lightbox'
     | '/__model-picker'
     | '/__new-thread-selects'
     | '/__thread-device'
     | '/__tokens'
-    | '/design'
     | '/desktop'
     | '/dither-cover'
     | '/onboarding'
@@ -1772,16 +1783,17 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/__annotations'
     | '/__captain-dialog'
     | '/__chips'
     | '/__composer'
     | '/__composer-footer'
+    | '/__markdown'
     | '/__media-lightbox'
     | '/__model-picker'
     | '/__new-thread-selects'
     | '/__thread-device'
     | '/__tokens'
-    | '/design'
     | '/desktop'
     | '/dither-cover'
     | '/onboarding'
@@ -1939,16 +1951,17 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/_auth'
+    | '/__annotations'
     | '/__captain-dialog'
     | '/__chips'
     | '/__composer'
     | '/__composer-footer'
+    | '/__markdown'
     | '/__media-lightbox'
     | '/__model-picker'
     | '/__new-thread-selects'
     | '/__thread-device'
     | '/__tokens'
-    | '/design'
     | '/desktop'
     | '/dither-cover'
     | '/onboarding'
@@ -2110,16 +2123,17 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
+  Char91__annotationsChar93Route: typeof Char91__annotationsChar93Route
   Char91__captainDialogChar93Route: typeof Char91__captainDialogChar93Route
   Char91__chipsChar93Route: typeof Char91__chipsChar93Route
   Char91__composerChar93Route: typeof Char91__composerChar93Route
   Char91__composerFooterChar93Route: typeof Char91__composerFooterChar93Route
+  Char91__markdownChar93Route: typeof Char91__markdownChar93Route
   Char91__mediaLightboxChar93Route: typeof Char91__mediaLightboxChar93Route
   Char91__modelPickerChar93Route: typeof Char91__modelPickerChar93Route
   Char91__newThreadSelectsChar93Route: typeof Char91__newThreadSelectsChar93Route
   Char91__threadDeviceChar93Route: typeof Char91__threadDeviceChar93Route
   Char91__tokensChar93Route: typeof Char91__tokensChar93Route
-  DesignRoute: typeof DesignRoute
   DesktopRoute: typeof DesktopRoute
   DitherCoverRoute: typeof DitherCoverRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -2144,6 +2158,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/__annotations': {
+      id: '/__annotations'
+      path: '/__annotations'
+      fullPath: '/__annotations'
+      preLoaderRoute: typeof Char91__annotationsChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/__captain-dialog': {
       id: '/__captain-dialog'
       path: '/__captain-dialog'
@@ -2170,6 +2191,13 @@ declare module '@tanstack/react-router' {
       path: '/__composer-footer'
       fullPath: '/__composer-footer'
       preLoaderRoute: typeof Char91__composerFooterChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__markdown': {
+      id: '/__markdown'
+      path: '/__markdown'
+      fullPath: '/__markdown'
+      preLoaderRoute: typeof Char91__markdownChar93RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/__media-lightbox': {
@@ -2219,13 +2247,6 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/design': {
-      id: '/design'
-      path: '/design'
-      fullPath: '/design'
-      preLoaderRoute: typeof DesignRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/desktop': {
@@ -3666,16 +3687,17 @@ const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   AuthRouteRoute: AuthRouteRouteWithChildren,
+  Char91__annotationsChar93Route: Char91__annotationsChar93Route,
   Char91__captainDialogChar93Route: Char91__captainDialogChar93Route,
   Char91__chipsChar93Route: Char91__chipsChar93Route,
   Char91__composerChar93Route: Char91__composerChar93Route,
   Char91__composerFooterChar93Route: Char91__composerFooterChar93Route,
+  Char91__markdownChar93Route: Char91__markdownChar93Route,
   Char91__mediaLightboxChar93Route: Char91__mediaLightboxChar93Route,
   Char91__modelPickerChar93Route: Char91__modelPickerChar93Route,
   Char91__newThreadSelectsChar93Route: Char91__newThreadSelectsChar93Route,
   Char91__threadDeviceChar93Route: Char91__threadDeviceChar93Route,
   Char91__tokensChar93Route: Char91__tokensChar93Route,
-  DesignRoute: DesignRoute,
   DesktopRoute: DesktopRoute,
   DitherCoverRoute: DitherCoverRoute,
   OnboardingRoute: OnboardingRoute,

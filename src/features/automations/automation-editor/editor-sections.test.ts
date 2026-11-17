@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { formatMachine } from "@/components/plan-picker/plan-catalog";
 import {
   limitsDescription,
+  machineSizeLabel,
   modelLabel,
   parseMaxRuns,
   reasoningLabel,
@@ -31,6 +33,13 @@ describe("editor copy", () => {
         defaultTrigger("schedule"),
       ]),
     ).toContain("grouped webhook");
+  });
+
+  it("labels the machine size each run inherits", () => {
+    expect(machineSizeLabel(null, "large")).toBe(formatMachine("large"));
+    expect(machineSizeLabel("small", "large")).toBe(formatMachine("small"));
+    expect(machineSizeLabel("nonsense", "large")).toBe(formatMachine("large"));
+    expect(machineSizeLabel(null, null)).toBe("Project default");
   });
 
   it("parses max runs per day", () => {
