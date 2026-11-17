@@ -9,6 +9,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react";
+import { motion } from "@/lib/motion";
 import { DotGridIcon } from "@/primitives/dot-grid-icon";
 import { buttonIntentVariants } from "@/primitives/intent";
 
@@ -19,10 +20,11 @@ export const buttonVariants = cva(
   [
     "cursor-pointer relative inline-flex items-center justify-center w-fit shrink-0 whitespace-nowrap rounded [text-box-trim:trim-both] text-nowrap",
     "border-hairline border-transparent font-medium",
-    "transition-colors duration-100 outline-none select-none",
-    "focus-visible:outline-ring-inset",
-    "pointer-coarse:after:absolute pointer-coarse:after:top-1/2 pointer-coarse:after:left-1/2 pointer-coarse:after:size-full pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11 pointer-coarse:after:-translate-x-1/2 pointer-coarse:after:-translate-y-1/2",
-    "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-55",
+    motion.hover,
+    motion.focusRing,
+    "select-none",
+    motion.touchTarget,
+    motion.disabled,
     "[&_svg]:pointer-events-none [&_svg]:shrink-0",
     "data-[selected]:bg-secondary data-[selected]:text-foreground",
     "group/button",
