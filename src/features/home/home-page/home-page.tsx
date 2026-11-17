@@ -9,11 +9,17 @@ import {
   type MentionSource,
   PlusMenu,
 } from "@/components/composer";
+import {
+  MachineConfigMenu,
+  type MachineConfigMenuProps,
+  toMachineSize,
+} from "@/components/machine-config";
 import { ModelPicker } from "@/components/model-picker";
 import {
   defaultSelection,
   type ModelSelection,
 } from "@/components/model-picker/catalog";
+import type { MachineSize } from "@/components/plan-picker/plan-catalog";
 import { ProjectSelect } from "@/components/project-select";
 import {
   type BranchSelection,
@@ -26,6 +32,7 @@ import {
 } from "@/components/run-on-select";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { Project } from "@/data/api/schemas/project";
+import { projectKey, projectSetupAtom } from "@/data/atoms/project-settings";
 import { projectsAtom } from "@/data/atoms/projects";
 import {
   organizationsAtom,
@@ -104,6 +111,46 @@ function HomePageProjects({ orgId, ...props }: HomePageProjectsProps) {
   return <HomePageBody orgId={orgId} projects={projects} {...props} />;
 }
 
+type ProjectMachineConfigProps = MachineConfigMenuProps & {
+  orgId: OrgId;
+  projectId: string;
+};
+
+/** The footer's machine menu, inheriting the size the project's setup boots at. */
+function ProjectMachineConfig({
+  orgId,
+  projectId,
+  ...props
+}: ProjectMachineConfigProps) {
+  const setup = AsyncResult.getOrElse(
+    useAtomValue(projectSetupAtom(projectKey(orgId, projectId))),
+    () => undefined,
+  );
+  return (
+    <MachineConfigMenu
+      {...props}
+      projectId={projectId}
+      defaultSize={toMachineSize(setup?.machineSize)}
+    />
+  );
+}
+
+/** Without a project there is no setup to inherit from and no project rows. */
+function HomeMachineConfig(
+  props: MachineConfigMenuProps & {
+    orgId?: OrgId;
+    project?: Project;
+  },
+) {
+  const { orgId, project, ...menu } = props;
+  if (orgId === undefined || project === undefined) {
+    return <MachineConfigMenu {...menu} />;
+  }
+  return (
+    <ProjectMachineConfig orgId={orgId} projectId={project.id} {...menu} />
+  );
+}
+
 type HomePageBodyProps = Omit<HomePageProjectsProps, "orgId"> & {
   orgId?: OrgId;
   projects?: ReadonlyArray<Project>;
@@ -127,6 +174,7 @@ function HomePageBody({
   const [placement, setPlacement] = useState<RunOnPlacement | null>(null);
   const [branches, setBranches] = useState<BranchSelection>({});
   const [model, setModel] = useState<ModelSelection>(defaultSelection);
+  const [machineSize, setMachineSize] = useState<MachineSize | null>(null);
   const composerRef = useRef<ComposerHandle>(null);
   const initialDraft = useRef(
     prompt === undefined ? undefined : payloadOf(prompt),
@@ -155,10 +203,15 @@ function HomePageBody({
   const submit = useCallback(
     (payload: ComposerPayload) => {
       if (locked || orgId === undefined) return false;
-      void startThread({ orgId, projectId: project?.id, payload });
+      void startThread({
+        orgId,
+        projectId: project?.id,
+        payload,
+        machineSize: machineSize ?? undefined,
+      });
       return true;
     },
-    [locked, orgId, project?.id, startThread],
+    [locked, machineSize, orgId, project?.id, startThread],
   );
 
   return (
@@ -251,19 +304,30 @@ function HomePageBody({
               onFilesAdded={attachments.add}
               leftControls={
                 <>
-                  <PlusMenu
-                    sources={noSources}
-                    onPickCategory={(category) => {
-                      composerRef.current?.typeCharacter(`@${category}:`);
-                    }}
-                    onAttach={(files) => attachments.add(files)}
-                  />
-                  <ModelPicker
-                    orgId={orgId}
-                    value={model}
-                    onChange={setModel}
-                    composer
-                  />
+                  <span className="flex items-center gap-0.5">
+                    <PlusMenu
+                      sources={noSources}
+                      onPickCategory={(category) => {
+                        composerRef.current?.typeCharacter(`@${category}:`);
+                      }}
+                      onAttach={(files) => attachments.add(files)}
+                    />
+                    <HomeMachineConfig
+                      orgId={orgId}
+                      project={project}
+                      runsOn={runOn === null ? "cloud" : "device"}
+                      size={machineSize}
+                      onSizeChange={setMachineSize}
+                    />
+                  </span>
+                  <span className="ml-1 flex min-w-0 items-center gap-0.5">
+                    <ModelPicker
+                      orgId={orgId}
+                      value={model}
+                      onChange={setModel}
+                      composer
+                    />
+                  </span>
                 </>
               }
             />
