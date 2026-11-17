@@ -46,4 +46,91 @@ describe("Popover", () => {
     expect(content.className).toContain("overflow-visible");
     expect(content.querySelector(".rotate-45")).not.toBeNull();
   });
+
+  it("anchors below the trigger, aligned to its start, as in Capy", async () => {
+    render(
+      <Popover defaultOpen>
+        <PopoverTrigger>Open</PopoverTrigger>
+        <PopoverContent>Body</PopoverContent>
+      </Popover>,
+    );
+    const content = await screen.findByText("Body");
+    const positioner = content.parentElement;
+    expect(positioner?.dataset.side).toBe("bottom");
+    expect(positioner?.dataset.align).toBe("start");
+    expect(content.role).toBe("dialog");
+    expect(screen.getByText("Open").getAttribute("aria-controls")).toBe(
+      content.id,
+    );
+  });
+
+  it("forwards side, align and the anchor to the positioner", async () => {
+    const { rerender } = render(
+      <Popover defaultOpen>
+        <PopoverTrigger>Open</PopoverTrigger>
+        <PopoverContent side="top" align="end">
+          Body
+        </PopoverContent>
+      </Popover>,
+    );
+    let content = await screen.findByText("Body");
+    expect(content.parentElement?.dataset.side).toBe("top");
+    expect(content.parentElement?.dataset.align).toBe("end");
+
+    const anchor = document.createElement("div");
+    document.body.append(anchor);
+    rerender(
+      <Popover defaultOpen>
+        <PopoverTrigger>Open</PopoverTrigger>
+        <PopoverContent side="right" anchor={anchor}>
+          Body
+        </PopoverContent>
+      </Popover>,
+    );
+    content = await screen.findByText("Body");
+    expect(content.parentElement?.dataset.side).toBe("right");
+    expect(content.parentElement?.dataset.align).toBe("start");
+    anchor.remove();
+  });
+
+  it("portals the content into the given container", async () => {
+    const container = document.createElement("div");
+    document.body.append(container);
+    render(
+      <Popover defaultOpen>
+        <PopoverTrigger>Open</PopoverTrigger>
+        <PopoverContent container={container}>Body</PopoverContent>
+      </Popover>,
+    );
+    const content = await screen.findByText("Body");
+    expect(container.contains(content)).toBe(true);
+    expect(screen.getByText("Open").contains(content)).toBe(false);
+    container.remove();
+  });
+
+  it("keeps the variant classes when the caller adds its own", async () => {
+    render(
+      <Popover defaultOpen>
+        <PopoverTrigger>Open</PopoverTrigger>
+        <PopoverContent className="rounded-none">Body</PopoverContent>
+      </Popover>,
+    );
+    const content = await screen.findByText("Body");
+    expect(content.className).toContain("bg-popover");
+    expect(content.className).toContain("border-hairline");
+    expect(content.className.endsWith("rounded-none")).toBe(true);
+  });
+
+  it("leaves the surface visible and adds no arrow by default", async () => {
+    render(
+      <Popover defaultOpen>
+        <PopoverTrigger>Open</PopoverTrigger>
+        <PopoverContent>Body</PopoverContent>
+      </Popover>,
+    );
+    const content = await screen.findByText("Body");
+    expect(content.className).toContain("overflow-hidden");
+    expect(content.className).not.toContain("overflow-visible");
+    expect(content.querySelector(".rotate-45")).toBeNull();
+  });
 });
