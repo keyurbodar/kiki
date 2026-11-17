@@ -153,10 +153,10 @@ export const spliceFilterQuery = (
 };
 
 const quoteValue = (value: string) =>
-  /[\s,"]/.test(value) ? '"' + value.replaceAll('"', "") + '"' : value;
+  /[\s,"]/.test(value) ? `"${value.replaceAll('"', "")}"` : value;
 
 export const formatFilterToken = (token: FilterToken) =>
-  token.key + ":" + token.values.map(quoteValue).join(",");
+  `${token.key}:${token.values.map(quoteValue).join(",")}`;
 
 export const mergeFilterToken = (
   tokens: ReadonlyArray<FilterToken>,
@@ -217,7 +217,7 @@ export const parseSince = (value: string, now: Date): Date | undefined => {
     return new Date(now.getTime() - Number(relative[1]) * unit * dayMs);
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
-  const date = new Date(value + "T00:00:00");
+  const date = new Date(`${value}T00:00:00`);
   return Number.isNaN(date.getTime()) ? undefined : date;
 };
 

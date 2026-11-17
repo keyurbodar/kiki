@@ -76,7 +76,7 @@ const githubUrl =
 
 export const parseGithubUrl = (value: string) => {
   const found = githubUrl.exec(value.trim());
-  return found === null ? undefined : found[1] + "/" + found[2];
+  return found === null ? undefined : `${found[1]}/${found[2]}`;
 };
 
 export const deriveProjectName = (source: ProjectSource) => {
@@ -126,7 +126,7 @@ export function CommandMenuProject({
     if (name.trim() === "") return;
     const pending = onCreate?.({ source, name: name.trim() });
     if (pending === undefined) return;
-    setStep({ kind: "busy", label: "Creating " + name.trim() });
+    setStep({ kind: "busy", label: `Creating ${name.trim()}` });
     pending.catch(() => {
       toast.error("Could not create the project");
       setStep({ kind: "details", source });
@@ -200,7 +200,7 @@ export function CommandMenuProject({
       value: "source-url",
       icon: "chain-link-2" as const,
       label: "Git URL",
-      trailing: "Clone onto this " + deviceKind,
+      trailing: `Clone onto this ${deviceKind}`,
       onClick: () => go({ kind: "url" }),
       show: desktop,
     },
@@ -219,7 +219,7 @@ export function CommandMenuProject({
       ? [
           {
             id: "this",
-            name: "This " + deviceKind,
+            name: `This ${deviceKind}`,
             machine: { kind: "this" } as const,
           },
         ]
@@ -319,7 +319,7 @@ export function CommandMenuProject({
               {machineRows.map((row) => (
                 <PaletteItem
                   key={row.id}
-                  value={"machine-" + row.id}
+                  value={`machine-${row.id}`}
                   onClick={() =>
                     toDetails({ kind: "folder", machine: row.machine })
                   }
@@ -342,7 +342,7 @@ export function CommandMenuProject({
               {repoRows.map((repo) => (
                 <PaletteItem
                   key={repo.fullName}
-                  value={"repo-" + repo.fullName}
+                  value={`repo-${repo.fullName}`}
                   onClick={() =>
                     toDetails({ kind: "github", repos: [repo.fullName] })
                   }
@@ -371,11 +371,9 @@ export function CommandMenuProject({
         </CommandMenuList>
       </CommandMenu>
       {footer?.(
-        <>
-          {footerHints.map(([keys = "", label = ""]) => (
-            <PaletteHint key={label} keys={keys} label={label} />
-          ))}
-        </>,
+        footerHints.map(([keys = "", label = ""]) => (
+          <PaletteHint key={label} keys={keys} label={label} />
+        )),
       )}
     </div>
   );
