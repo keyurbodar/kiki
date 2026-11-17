@@ -21,6 +21,7 @@ import { Route as VmHandoffRouteImport } from './routes/vm-handoff'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppSplatRouteImport } from './routes/_app/$'
+import { Route as AppChar91__t10Char93RouteImport } from './routes/_app/[__t10]'
 import { Route as AppAutomationsRouteImport } from './routes/_app/automations'
 import { Route as AppDriveRouteImport } from './routes/_app/drive'
 import { Route as AppExploreRouteRouteImport } from './routes/_app/explore/route'
@@ -228,6 +229,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppSplatRoute = AppSplatRouteImport.update({
   id: '/$',
   path: '/$',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppChar91__t10Char93Route = AppChar91__t10Char93RouteImport.update({
+  id: '/__t10',
+  path: '/__t10',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppAutomationsRoute = AppAutomationsRouteImport.update({
@@ -1061,6 +1067,7 @@ export interface FileRoutesByFullPath {
   '/explore': typeof AppExploreRouteRouteWithChildren
   '/settings': typeof AppSettingsRouteRouteWithChildren
   '/$': typeof AppSplatRoute
+  '/__t10': typeof AppChar91__t10Char93Route
   '/automations': typeof AppAutomationsRoute
   '/drive': typeof AppDriveRoute
   '/invites': typeof AppInvitesRoute
@@ -1220,6 +1227,7 @@ export interface FileRoutesByTo {
   '/vm-handoff': typeof VmHandoffRoute
   '/welcome': typeof WelcomeRoute
   '/$': typeof AppSplatRoute
+  '/__t10': typeof AppChar91__t10Char93Route
   '/automations': typeof AppAutomationsRoute
   '/drive': typeof AppDriveRoute
   '/invites': typeof AppInvitesRoute
@@ -1383,6 +1391,7 @@ export interface FileRoutesById {
   '/_app/explore': typeof AppExploreRouteRouteWithChildren
   '/_app/settings': typeof AppSettingsRouteRouteWithChildren
   '/_app/$': typeof AppSplatRoute
+  '/_app/__t10': typeof AppChar91__t10Char93Route
   '/_app/automations': typeof AppAutomationsRoute
   '/_app/drive': typeof AppDriveRoute
   '/_app/invites': typeof AppInvitesRoute
@@ -1547,6 +1556,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/settings'
     | '/$'
+    | '/__t10'
     | '/automations'
     | '/drive'
     | '/invites'
@@ -1706,6 +1716,7 @@ export interface FileRouteTypes {
     | '/vm-handoff'
     | '/welcome'
     | '/$'
+    | '/__t10'
     | '/automations'
     | '/drive'
     | '/invites'
@@ -1868,6 +1879,7 @@ export interface FileRouteTypes {
     | '/_app/explore'
     | '/_app/settings'
     | '/_app/$'
+    | '/_app/__t10'
     | '/_app/automations'
     | '/_app/drive'
     | '/_app/invites'
@@ -2130,6 +2142,13 @@ declare module '@tanstack/react-router' {
       path: '/$'
       fullPath: '/$'
       preLoaderRoute: typeof AppSplatRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/__t10': {
+      id: '/_app/__t10'
+      path: '/__t10'
+      fullPath: '/__t10'
+      preLoaderRoute: typeof AppChar91__t10Char93RouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/automations': {
@@ -3404,6 +3423,7 @@ interface AppRouteRouteChildren {
   AppExploreRouteRoute: typeof AppExploreRouteRouteWithChildren
   AppSettingsRouteRoute: typeof AppSettingsRouteRouteWithChildren
   AppSplatRoute: typeof AppSplatRoute
+  AppChar91__t10Char93Route: typeof AppChar91__t10Char93Route
   AppAutomationsRoute: typeof AppAutomationsRoute
   AppDriveRoute: typeof AppDriveRoute
   AppInvitesRoute: typeof AppInvitesRoute
@@ -3447,6 +3467,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppExploreRouteRoute: AppExploreRouteRouteWithChildren,
   AppSettingsRouteRoute: AppSettingsRouteRouteWithChildren,
   AppSplatRoute: AppSplatRoute,
+  AppChar91__t10Char93Route: AppChar91__t10Char93Route,
   AppAutomationsRoute: AppAutomationsRoute,
   AppDriveRoute: AppDriveRoute,
   AppInvitesRoute: AppInvitesRoute,
