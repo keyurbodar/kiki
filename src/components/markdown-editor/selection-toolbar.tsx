@@ -19,6 +19,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { Button } from "@/primitives/button";
+import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import {
@@ -28,7 +29,6 @@ import {
   BLOCK_TYPES,
   type BlockKind,
 } from "./blocks";
-import { EditorIcon } from "./icons";
 import { MarkdownEditorSelectionActionsContext } from "./selection-actions";
 import {
   cn,
@@ -277,7 +277,7 @@ export function SelectionToolbarPlugin({
                     onMouseDown={preventMouseDown}
                   >
                     {current?.label ?? "Turn into"}
-                    <EditorIcon name="chevron-down-small" />
+                    <Icon name="chevron-down-small" />
                   </Button>
                 }
               />
@@ -290,11 +290,11 @@ export function SelectionToolbarPlugin({
                     }
                   >
                     <span className={menuIconSlotClass}>
-                      <EditorIcon name={block.icon} />
+                      <Icon name={block.icon} />
                     </span>
                     {block.label}
                     {block.kind === state.block ? (
-                      <EditorIcon
+                      <Icon
                         name="checkmark-1"
                         className={cn(menuCheckClass, "ml-auto")}
                       />
@@ -309,7 +309,7 @@ export function SelectionToolbarPlugin({
             pressed={state.formats.includes("bold")}
             onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold")}
           >
-            <EditorIcon name="bold" />
+            <Icon name="bold" />
           </ToolbarAction>
           <ToolbarAction
             label="Italic"
@@ -318,7 +318,7 @@ export function SelectionToolbarPlugin({
               editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic")
             }
           >
-            <EditorIcon name="italic" />
+            <Icon name="italic" />
           </ToolbarAction>
           <ToolbarAction
             label="Strikethrough"
@@ -327,17 +327,17 @@ export function SelectionToolbarPlugin({
               editor.dispatchCommand(FORMAT_TEXT_COMMAND, "strikethrough")
             }
           >
-            <EditorIcon name="strike-through" />
+            <Icon name="strike-through" />
           </ToolbarAction>
           <ToolbarAction
             label="Code"
             pressed={state.formats.includes("code")}
             onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "code")}
           >
-            <EditorIcon name="code" />
+            <Icon name="code" />
           </ToolbarAction>
           <ToolbarAction label="Link" pressed={state.link} onClick={toggleLink}>
-            <EditorIcon name="chain-link-1" />
+            <Icon name="chain-link-1" />
           </ToolbarAction>
           {actions === null ? null : (
             <>
@@ -346,7 +346,7 @@ export function SelectionToolbarPlugin({
                 className="mx-0.5 h-4 w-hairline shrink-0 bg-border-1"
               />
               <ToolbarAction label="Comment" onClick={actions.comment}>
-                <EditorIcon name="bubble-wide" />
+                <Icon name="bubble-wide" />
               </ToolbarAction>
               <ToolbarAction
                 label="Copy"
@@ -357,7 +357,7 @@ export function SelectionToolbarPlugin({
                   );
                 }}
               >
-                <EditorIcon name="square-behind-square-2" />
+                <Icon name="square-behind-square-2" />
               </ToolbarAction>
             </>
           )}

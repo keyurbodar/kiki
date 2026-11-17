@@ -38,6 +38,7 @@ import {
 } from "lexical";
 import { type RefObject, useEffect, useRef, useState } from "react";
 import { Button } from "@/primitives/button";
+import { Icon, type IconId } from "@/primitives/icon";
 import {
   Menu,
   MenuContent,
@@ -54,7 +55,6 @@ import {
   $removeTable,
   $spliceColumnAlign,
 } from "./blocks";
-import { EditorIcon, type EditorIconName } from "./icons";
 import { type TableAlign, tableAlignState } from "./nodes";
 import {
   cn,
@@ -69,7 +69,7 @@ import { MarkdownEditorTableMenu } from "./slots";
 
 type TableAction = {
   label: string;
-  icon: EditorIconName;
+  icon: IconId;
   intent?: "danger";
   $run: (table: TableNode, cell: TableCellNode) => void;
 };
@@ -77,7 +77,7 @@ type TableAction = {
 export const COLUMN_ALIGNMENTS: ReadonlyArray<{
   value: TableAlign;
   label: string;
-  icon: EditorIconName;
+  icon: IconId;
 }> = [
   { value: null, label: "Default", icon: "alignment-left" },
   { value: "left", label: "Left", icon: "alignment-left" },
@@ -432,7 +432,7 @@ export function TableActionMenuPlugin({
               aria-label="Table actions"
               onMouseDown={preventMouseDown}
             >
-              <EditorIcon name="dot-grid-1x3-horizontal" />
+              <Icon name="dot-grid-1x3-horizontal" />
             </Button>
           }
         />
@@ -440,7 +440,7 @@ export function TableActionMenuPlugin({
           {INSERT_ACTIONS.map((action) => (
             <MenuItem key={action.label} onClick={() => run(action.$run)}>
               <span className={menuIconSlotClass}>
-                <EditorIcon name={action.icon} />
+                <Icon name={action.icon} />
               </span>
               {action.label}
             </MenuItem>
@@ -450,7 +450,7 @@ export function TableActionMenuPlugin({
             <MenuSubTrigger>
               <span className={menuIconSlotClass}>
                 {alignment === undefined ? null : (
-                  <EditorIcon name={alignment.icon} />
+                  <Icon name={alignment.icon} />
                 )}
               </span>
               Align column
@@ -467,11 +467,11 @@ export function TableActionMenuPlugin({
                   }
                 >
                   <span className={menuIconSlotClass}>
-                    <EditorIcon name={option.icon} />
+                    <Icon name={option.icon} />
                   </span>
                   {option.label}
                   {option.value === state.align ? (
-                    <EditorIcon
+                    <Icon
                       name="checkmark-1"
                       className={cn(menuCheckClass, "ml-auto")}
                     />
@@ -488,7 +488,7 @@ export function TableActionMenuPlugin({
               onClick={() => run(action.$run)}
             >
               <span className={menuIconSlotClass}>
-                <EditorIcon name={action.icon} />
+                <Icon name={action.icon} />
               </span>
               {action.label}
             </MenuItem>

@@ -9,6 +9,7 @@ import {
 } from "lexical";
 import { type RefObject, useEffect, useRef, useState } from "react";
 import { Button } from "@/primitives/button";
+import { Icon } from "@/primitives/icon";
 import {
   Menu,
   MenuContent,
@@ -17,7 +18,6 @@ import {
   MenuTrigger,
 } from "@/primitives/menu";
 import { filterCodeLanguages, findCodeLanguage } from "./code-languages";
-import { EditorIcon } from "./icons";
 import {
   cn,
   menuCheckClass,
@@ -147,7 +147,7 @@ export function CodeLanguagePlugin({
               onMouseDown={preventMouseDown}
             >
               {codeLanguageLabel(state.language)}
-              <EditorIcon name="chevron-down-small" />
+              <Icon name="chevron-down-small" />
             </Button>
           }
         />
@@ -196,7 +196,7 @@ export function CodeLanguagePlugin({
                   ? state.language.length === 0
                   : option === selected
               ) ? (
-                <EditorIcon
+                <Icon
                   name="checkmark-1"
                   className={cn(menuCheckClass, "ml-auto")}
                 />

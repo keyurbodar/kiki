@@ -7,6 +7,7 @@ import {
 import type { LexicalEditor } from "lexical";
 import { useState } from "react";
 import { createPortal } from "react-dom";
+import { Icon, type IconId } from "@/primitives/icon";
 import { menuRowVariants } from "@/primitives/menu";
 import {
   $getSelectedTableCell,
@@ -14,7 +15,6 @@ import {
   INSERT_OPTIONS,
   type InsertOption,
 } from "./blocks";
-import { EditorIcon, type EditorIconName } from "./icons";
 import {
   cn,
   menuIconSlotClass,
@@ -25,7 +25,7 @@ import {
 
 class SlashOption extends MenuOption {
   label: string;
-  iconName: EditorIconName;
+  iconName: IconId;
   keywords: string;
   apply: () => void;
 
@@ -96,7 +96,7 @@ export function SlashMenuPlugin() {
                     onMouseEnter={() => setHighlightedIndex(index)}
                   >
                     <span className={menuIconSlotClass}>
-                      <EditorIcon name={option.iconName} />
+                      <Icon name={option.iconName} />
                     </span>
                     <span className="min-w-0 truncate">{option.label}</span>
                   </div>

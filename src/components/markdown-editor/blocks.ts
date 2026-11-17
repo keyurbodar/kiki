@@ -37,7 +37,7 @@ import {
   type ElementNode,
   type LexicalNode,
 } from "lexical";
-import type { EditorIconName } from "./icons";
+import type { IconId } from "@/primitives/icon";
 import { $setTableAlign } from "./markdown";
 import { $getListItemChecked, type TableAlign, tableAlignState } from "./nodes";
 
@@ -55,7 +55,7 @@ export type BlockKind =
 export type BlockType = {
   kind: BlockKind;
   label: string;
-  icon: EditorIconName;
+  icon: IconId;
   keywords: string;
 };
 
@@ -204,7 +204,7 @@ export const $insertTable = () => {
 export type InsertOption = {
   key: string;
   label: string;
-  icon: EditorIconName;
+  icon: IconId;
   keywords: string;
   apply: () => void;
 };
