@@ -30,7 +30,7 @@ import {
 import { InvitationsTable } from "./invitations-table";
 import { acceptingKey, invitationsDialogOpenAtom } from "./invites-state";
 
-const valueOf = <A, E>(result: AsyncResult.AsyncResult<A, E>) =>
+const successValue = <A, E>(result: AsyncResult.AsyncResult<A, E>) =>
   AsyncResult.isSuccess(result) ? result.value : undefined;
 
 export type InvitationsDialogProps = {
@@ -49,8 +49,8 @@ export function InvitationsDialog({ onClosed }: InvitationsDialogProps) {
   const join = useAtomSet(joinByDomainAtom, { mode: "promise" });
   const [accepting, setAccepting] = useState<string | null>(null);
 
-  const invitations = valueOf(invitationsResult);
-  const organizations = valueOf(organizationsResult);
+  const invitations = successValue(invitationsResult);
+  const organizations = successValue(organizationsResult);
 
   const refreshAll = () => {
     refreshInvitations();
