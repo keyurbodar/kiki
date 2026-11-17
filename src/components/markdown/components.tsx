@@ -6,7 +6,10 @@ import {
   useContext,
   useMemo,
 } from "react";
-import { MarkdownChip } from "@/components/markdown-chips";
+import {
+  chipTransform,
+  MarkdownChipRenderer,
+} from "@/components/markdown-chips";
 import { MarkdownMermaid } from "./mermaid";
 import { MarkdownGallery, MarkdownVideo } from "./parts";
 import type { MarkdownTreeTransform } from "./pipeline";
@@ -68,41 +71,14 @@ function DefaultImage(props: ComponentProps<"img">) {
   return <img loading="lazy" {...props} alt={props.alt ?? ""} />;
 }
 
-function DefaultChip({
-  kind,
-  value,
-  label,
-  href,
-  anchorProps,
-  children,
-}: MarkdownChipRenderProps) {
-  if (href !== undefined)
-    return (
-      <a
-        {...anchorProps}
-        href={href}
-        data-chip={kind}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {children}
-      </a>
-    );
-  return (
-    <MarkdownChip data-chip={kind} data-chip-value={value}>
-      {label ?? children}
-    </MarkdownChip>
-  );
-}
-
 export const defaultMarkdownComponents: MarkdownComponents = {
   mermaid: MarkdownMermaid,
   fences: {},
   gallery: DefaultGallery,
   video: DefaultVideo,
   image: DefaultImage,
-  chip: DefaultChip,
-  transforms: [],
+  chip: MarkdownChipRenderer,
+  transforms: [chipTransform],
 };
 
 const MarkdownComponentsContext = createContext<MarkdownComponents>(

@@ -1,7 +1,78 @@
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
+import {
+  DriveChip,
+  FileChip,
+  IssueChip,
+  PathChip,
+  PullChip,
+  ReferenceLinkChip,
+  StructuredMentionChip,
+  TaskChip,
+} from "./chips";
+import { chipTransform } from "./references";
 
 export type MarkdownChipProps = ComponentProps<"span">;
 
+/** A bare chip span, for surfaces that render chip markup without the markdown pipeline. */
 export function MarkdownChip(props: MarkdownChipProps) {
   return <span {...props} />;
 }
+
+export type MarkdownChipRendererProps = {
+  kind: string;
+  value?: string;
+  label?: string;
+  href?: string;
+  anchorProps?: ComponentProps<"a">;
+  children?: ReactNode;
+};
+
+/**
+ * Renders one chip the markdown pipeline found: span chips by data-chip kind,
+ * anchors marked by the chip transform, and data-mention spans. Matches the
+ * markdown package's MarkdownChipRenderProps.
+ */
+export function MarkdownChipRenderer({
+  kind,
+  value,
+  label,
+  href,
+  anchorProps,
+  children,
+}: MarkdownChipRendererProps) {
+  if (href !== undefined)
+    return (
+      <ReferenceLinkChip kind={kind} href={href} anchorProps={anchorProps}>
+        {children}
+      </ReferenceLinkChip>
+    );
+  if (value === undefined) return <>{children}</>;
+  switch (kind) {
+    case "file":
+      return <FileChip value={value} label={label} />;
+    case "path":
+      return <PathChip value={value} />;
+    case "drive":
+      return <DriveChip value={value} />;
+    case "pull":
+      return <PullChip value={value} label={label} />;
+    case "task":
+      return <TaskChip value={value} />;
+    case "thread":
+      return <IssueChip value={value} />;
+    case "issue":
+      return <IssueChip value={value} />;
+    case "mention":
+      return (
+        <StructuredMentionChip value={value}>{children}</StructuredMentionChip>
+      );
+    default:
+      return <>{children ?? label ?? value}</>;
+  }
+}
+
+/** The markdown renderer's chip plug-in points, ready to spread into MarkdownComponents. */
+export const markdownChipComponents = {
+  chip: MarkdownChipRenderer,
+  transforms: [chipTransform],
+} as const;

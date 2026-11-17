@@ -1,0 +1,76 @@
+{
+  "matrix": { "theme": ["default"], "scheme": ["dark", "light"] },
+  "defaults": { "maxMismatch": 2 },
+  "targets": [
+    {
+      "id": "b6-chips-markdown",
+      "route": "/__chips",
+      "state": "markdown chips",
+      "viewport": "1440x900",
+      "capture": {
+        "[data-panel=markdown]": [],
+        "[data-panel=markdown] a": ["color", "text-decoration-line"]
+      }
+    },
+    {
+      "id": "b6-chips-pull-hover",
+      "route": "/__chips",
+      "state": "pull request hover card",
+      "viewport": "1440x900",
+      "capture": {
+        "[data-panel=pull-hover]": [
+          "background-color",
+          "border-radius",
+          "border-width",
+          "padding",
+          "width",
+          "box-shadow"
+        ],
+        "[data-panel=pull-hover] a": ["background-color", "padding"]
+      }
+    },
+    {
+      "id": "b6-chips-thread-hover",
+      "route": "/__chips",
+      "state": "thread hover card",
+      "viewport": "1440x900",
+      "capture": {
+        "[data-panel=thread-hover]": [
+          "background-color",
+          "border-radius",
+          "padding",
+          "width"
+        ]
+      }
+    },
+    {
+      "id": "b6-chips-issue-hover",
+      "route": "/__chips",
+      "state": "issue hover card",
+      "viewport": "1440x900",
+      "capture": {
+        "[data-panel=issue-hover]": [
+          "background-color",
+          "border-radius",
+          "padding",
+          "width"
+        ]
+      }
+    },
+    {
+      "id": "b6-chips-tooltip",
+      "route": "/__chips",
+      "state": "file tooltip",
+      "viewport": "1440x900",
+      "capture": {
+        "[data-panel=tooltip]": [
+          "background-color",
+          "border-radius",
+          "padding",
+          "font-size",
+          "font-weight"
+        ]
+      }
+    }
+  ]
+}
