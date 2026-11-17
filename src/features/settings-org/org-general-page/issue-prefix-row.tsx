@@ -74,7 +74,7 @@ export function IssuePrefixRow({
         value={draft ?? current.prefix ?? ""}
         placeholder={current.effective}
         aria-label="Issue prefix"
-        className="w-28"
+        className="w-28!"
         maxLength={8}
         disabled={!isAdmin}
         title={adminReason}
