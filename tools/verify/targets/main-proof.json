@@ -1,0 +1,113 @@
+{
+  "matrix": {
+    "theme": ["default", "catppuccin", "github", "gruvbox"],
+    "scheme": ["dark", "light"]
+  },
+  "targets": [
+    {
+      "id": "tokens",
+      "route": "/__tokens?theme={theme}&mode={scheme}",
+      "viewport": "1440x2800",
+      "expect": {
+        "h1": {
+          "font-size": "26px"
+        }
+      },
+      "variants": {
+        "default/dark": {
+          "frame": "XYrzNr5Hg7",
+          "expect": {
+            "h1": {
+              "font-size": "26px"
+            },
+            "#root > div": {
+              "background-color": "#09090a",
+              "color": "#ebebec"
+            }
+          }
+        },
+        "default/light": {
+          "frame": "uq8e6dzxrD",
+          "viewport": "1440x2820"
+        }
+      }
+    },
+    {
+      "id": "issues",
+      "route": "/issues",
+      "viewport": "1440x818",
+      "variants": {
+        "default/dark": {
+          "frame": "KcMpCOQilR",
+          "expect": {
+            "#root > div": {
+              "background-color": "#09090a",
+              "color": "#ebebec"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "pulls",
+      "route": "/pulls",
+      "viewport": "1440x818",
+      "variants": {
+        "default/dark": {
+          "frame": "PgFMS6eUl-"
+        }
+      }
+    },
+    {
+      "id": "automations",
+      "route": "/automations",
+      "viewport": "1440x818",
+      "variants": {
+        "default/dark": {
+          "frame": "mprynXwJsv"
+        }
+      }
+    },
+    {
+      "id": "explore",
+      "route": "/explore",
+      "viewport": "1440x818",
+      "variants": {
+        "default/dark": {
+          "frame": "qLG-HLmkZX"
+        }
+      }
+    },
+    {
+      "id": "drive",
+      "route": "/drive",
+      "viewport": "1440x818",
+      "variants": {
+        "default/dark": {
+          "frame": "qr6Dmg1fzM"
+        }
+      }
+    },
+    {
+      "id": "settings-general",
+      "route": "/settings/general",
+      "viewport": "1440x818",
+      "variants": {
+        "default/dark": {
+          "frame": "n3bw5bhvGQ"
+        }
+      }
+    },
+    {
+      "id": "settings-models",
+      "route": "/settings/models",
+      "viewport": "1440x818",
+      "steps": [["wait", "main"]],
+      "variants": {
+        "default/dark": {
+          "frame": "vpK_uBrg0B"
+        }
+      }
+    }
+  ]
+}
