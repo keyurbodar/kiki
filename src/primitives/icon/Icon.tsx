@@ -16,7 +16,7 @@ const iconVariants = cva("shrink-0", {
   },
 });
 
-export type IconProps = Omit<SVGProps<SVGSVGElement>, "children"> &
+export type IconProps = Omit<SVGProps<SVGSVGElement>, "children" | "name"> &
   VariantProps<typeof iconVariants> & {
     name: IconId;
     label?: string;
