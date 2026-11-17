@@ -5,6 +5,7 @@ import { AsyncResult } from "effect/reactivity";
 import { type FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AppTopBar } from "@/components/app-top-bar";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
   type FilterOptions,
   FilterSearch,
@@ -36,6 +37,7 @@ import { captainsAtom } from "@/data/atoms/captains";
 import { reactivityKeys } from "@/data/atoms/conventions";
 import {
   archiveThreadsAtom,
+  deleteThreadsAtom,
   renameThreadAtom,
   unarchiveThreadsAtom,
 } from "@/data/atoms/jams";
@@ -45,6 +47,7 @@ import {
   addToFolderAtom,
   createFolderAtom,
   folderBoardAtom,
+  pinThreadsAtom,
   threadOrganizationKeys,
 } from "@/data/atoms/threadOrganization";
 import { allThreadsAtom } from "@/data/atoms/threads";
@@ -202,6 +205,8 @@ export type ThreadsPageViewProps = {
   folderSections?: ReadonlyArray<ThreadSection>;
   onMoveThreads?: (ids: ReadonlyArray<string>, folderId: string) => void;
   onArchive?: (ids: ReadonlyArray<string>, archived: boolean) => void;
+  onPin?: (ids: ReadonlyArray<string>) => void;
+  onDelete?: (ids: ReadonlyArray<string>) => void;
   onRename?: (id: string, title: string) => void;
   state: ThreadsPageState;
   onStateChange: (
@@ -222,6 +227,8 @@ export function ThreadsPageView({
   folders = [],
   onMoveThreads,
   onArchive,
+  onPin,
+  onDelete,
   onRename,
   state,
   onStateChange,
@@ -234,6 +241,7 @@ export function ThreadsPageView({
   const [searchText, setSearchText] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [moving, setMoving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const filters = state.filters;
   const setFilters = (next: ThreadFilters) =>
     onStateChange((current) => ({ ...current, filters: next }));
@@ -578,6 +586,17 @@ export function ThreadsPageView({
           <Button
             variant="ghost"
             size="sm"
+            aria-label="Pin"
+            onClick={() => {
+              onPin?.([...checked]);
+              setChecked(new Set());
+            }}
+          >
+            Pin
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             aria-label="Archive"
             onClick={() => {
               onArchive?.([...checked], true);
@@ -589,6 +608,14 @@ export function ThreadsPageView({
           <Button
             variant="ghost"
             size="sm"
+            aria-label="Delete"
+            onClick={() => setDeleting(true)}
+          >
+            Delete
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             aria-label="Clear selection"
             onClick={() => setChecked(new Set())}
           >
@@ -596,6 +623,18 @@ export function ThreadsPageView({
           </Button>
         </BulkBar>
       )}
+      <ConfirmDialog
+        open={deleting}
+        onOpenChange={setDeleting}
+        title="Delete threads"
+        description={checked.size + " selected"}
+        confirmLabel="Delete"
+        onConfirm={() => {
+          onDelete?.([...checked]);
+          setChecked(new Set());
+          setDeleting(false);
+        }}
+      />
       <Dialog open={moving} onOpenChange={setMoving}>
         <DialogContent>
           <DialogHeader>
@@ -851,6 +890,8 @@ function ThreadsPageLoaded({
   const foldersResult = useAtomValue(folderBoardAtom(orgId));
   const user = useAtomValue(currentUserAtom);
   const createFolder = useAtomSet(createFolderAtom, { mode: "promise" });
+  const pinThreads = useAtomSet(pinThreadsAtom, { mode: "promise" });
+  const deleteThreads = useAtomSet(deleteThreadsAtom, { mode: "promise" });
   const moveToFolder = useAtomSet(addToFolderAtom, { mode: "promise" });
   const archive = useAtomSet(archiveThreadsAtom, { mode: "promise" });
   const unarchive = useAtomSet(unarchiveThreadsAtom, { mode: "promise" });
@@ -906,6 +947,29 @@ function ThreadsPageLoaded({
       onRetry={retry}
       folders={filed}
       folderSections={folderSections}
+      onPin={(ids) =>
+        pinThreads({
+          params: { orgId },
+          payload: { jamIds: ids.map((id) => id as unknown as JamId) },
+          reactivityKeys: threadOrganizationKeys(orgId),
+        }).then(
+          () => toast.success("Pinned"),
+          () => toast.error("Couldn't update threads"),
+        )
+      }
+      onDelete={(ids) =>
+        deleteThreads({
+          params: { orgId },
+          payload: { jamIds: ids.map((id) => id as unknown as JamId) },
+          reactivityKeys: [
+            reactivityKeys.threads(orgId),
+            reactivityKeys.threadOrganization(orgId),
+          ],
+        }).then(
+          () => toast.success("Threads deleted"),
+          () => toast.error("Couldn't delete threads"),
+        )
+      }
       onMoveThreads={(ids, folderId) =>
         moveToFolder({
           params: { orgId, folderId: folderId as unknown as ThreadFolderId },
