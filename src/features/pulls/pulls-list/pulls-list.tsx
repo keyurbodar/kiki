@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { cx } from "@/components/view-toolbar";
 import type { PullSection } from "@/features/pulls/pulls-page/model";
 import {
@@ -71,6 +71,35 @@ export function PullsList({
 }) {
   const [checked, setChecked] = useState<ReadonlyArray<string>>([]);
   const selectionMode = checked.length > 0;
+  const longestCode = Math.max(
+    3,
+    ...sections.flatMap((section) =>
+      section.members.map((pull) => 1 + String(pull.number).length),
+    ),
+  );
+  const rowCount = sections.reduce(
+    (count, section) => count + section.members.length,
+    0,
+  );
+  const listRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const root = listRef.current;
+    if (root === null) return;
+    const measure = () => {
+      root.style.setProperty("--pull-code-width", "max-content");
+      let widest = 0;
+      for (const cell of root.querySelectorAll("[data-pull-code-measure]")) {
+        widest = Math.max(widest, cell.getBoundingClientRect().width);
+      }
+      if (widest > 0) {
+        root.style.setProperty("--pull-code-width", `${Math.ceil(widest)}px`);
+      }
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(root);
+    return () => observer.disconnect();
+  }, [longestCode, rowCount]);
   if (sections.length === 0) {
     return loading === true ? (
       <div
@@ -91,14 +120,9 @@ export function PullsList({
       </div>
     );
   }
-  const longestCode = Math.max(
-    3,
-    ...sections.flatMap((section) =>
-      section.members.map((pull) => 1 + String(pull.number).length),
-    ),
-  );
   return (
     <div
+      ref={listRef}
       className="@container/list flex flex-col px-2 pt-1"
       style={{ "--pull-code-width": `${longestCode + 1}ch` } as never}
     >
