@@ -1,17 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { ProjectDevEnvironmentPage } from "@/features/settings-projects/project-dev-environment-page";
 
 export const Route = createFileRoute(
   "/_app/settings/projects_/$projectId_/dev-environment",
 )({
-  component: RouteComponent,
+  component: ProjectDevEnvironmentPage,
 });
-
-function RouteComponent() {
-  return (
-    <RoutePlaceholder
-      title="Dev environment"
-      path="/settings/projects/$projectId/dev-environment"
-    />
-  );
-}
