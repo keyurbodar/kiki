@@ -9,19 +9,19 @@ const assets = import.meta.glob<string>("./assets/*", {
 
 export const releaseAssetUrl = (file: string) => assets[`./assets/${file}`];
 
-export type ReleaseVisualProps = {
+export type ReleaseArtworkProps = {
   visual: ReleaseVisualData;
   animate?: boolean;
   className?: string;
   style?: CSSProperties;
 };
 
-export function ReleaseVisual({
+export function ReleaseArtwork({
   visual,
   animate = false,
   className,
   style,
-}: ReleaseVisualProps) {
+}: ReleaseArtworkProps) {
   const src = releaseAssetUrl(visual.file);
   const video = useRef<HTMLVideoElement>(null);
   useEffect(() => {

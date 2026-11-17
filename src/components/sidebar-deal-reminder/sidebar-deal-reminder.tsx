@@ -85,7 +85,7 @@ export function SidebarDealReminder({
     AsyncResult.isSuccess(result) &&
     typeof result.value === "object" &&
     result.value !== null
-      ? (result.value as Record<string, unknown>)
+      ? (result.value as unknown as Record<string, unknown>)
       : undefined;
   const title = dealTitle(recipient);
   if (code === null || title === undefined || dismissed) return null;

@@ -24,7 +24,7 @@ import {
   RotateIcon,
   WindowAppIcon,
 } from "./icons";
-import { ReleaseVisual } from "./release-visual";
+import { ReleaseArtwork } from "./release-visual";
 import {
   formatReleaseVersion,
   type Release,
@@ -90,7 +90,7 @@ export function ReleaseDialogBody({
       <ScrollArea className="flex flex-col [--scroll-fade-surface:var(--popover)]">
         <ScrollAreaViewport className="flex h-auto min-h-0 flex-1 flex-col p-4 pb-0">
           {release.visual !== undefined && (
-            <ReleaseVisual
+            <ReleaseArtwork
               key={release.version}
               visual={release.visual}
               animate
@@ -240,7 +240,7 @@ export function releaseAnnouncement(release: Release): AnnouncementDefinition {
     title,
     meta: release.title,
     visual: ({ animate, className }) => (
-      <ReleaseVisual
+      <ReleaseArtwork
         visual={visual}
         animate={animate}
         className={["block object-cover", className].filter(Boolean).join(" ")}

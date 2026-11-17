@@ -1,9 +1,9 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { type ComponentProps, useEffect, useState } from "react";
+import { desktopAppAnnouncement } from "@/components/desktop-app";
 import {
   type AnnouncementDefinition,
-  desktopAppAnnouncement,
   RELEASES,
   releaseAnnouncement,
 } from "@/components/release";
