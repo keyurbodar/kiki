@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { organizationsAtom } from "@/data/atoms/session";
-import { Button } from "@/primitives/button";
+import { Button, ButtonIcon } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import {
   type AutomationWebhookBatch,
@@ -154,7 +154,9 @@ function AutomationBatches({
             loading={waiting}
             onClick={refresh}
           >
-            <Icon name="arrow-rotate-clockwise" size="sm" />
+            <ButtonIcon>
+              <Icon name="arrow-rotate-clockwise" size="sm" />
+            </ButtonIcon>
           </Button>
         </div>
       </div>
