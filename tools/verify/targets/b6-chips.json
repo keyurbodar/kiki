@@ -1,12 +1,7 @@
 {
   "matrix": {
-    "theme": [
-      "default"
-    ],
-    "scheme": [
-      "dark",
-      "light"
-    ]
+    "theme": ["default"],
+    "scheme": ["dark", "light"]
   },
   "defaults": {
     "maxMismatch": 2
@@ -19,10 +14,7 @@
       "viewport": "1440x900",
       "capture": {
         "[data-panel=markdown]": [],
-        "[data-panel=markdown] a": [
-          "color",
-          "text-decoration-line"
-        ]
+        "[data-panel=markdown] a": ["color", "text-decoration-line"]
       },
       "expect": {
         "[data-panel=markdown] a": {
@@ -45,10 +37,7 @@
           "width",
           "box-shadow"
         ],
-        "[data-panel=pull-hover] a": [
-          "background-color",
-          "padding"
-        ]
+        "[data-panel=pull-hover] a": ["background-color", "padding"]
       },
       "expect": {
         "[data-panel=pull-hover]": {
