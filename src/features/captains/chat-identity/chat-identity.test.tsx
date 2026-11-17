@@ -34,6 +34,17 @@ describe("ChatIdentity", () => {
     expect(screen.getByRole("button", { name: "Share" })).toBeTruthy();
   });
 
+  it("supports compact thread-row usage", () => {
+    const { container } = render(
+      <RegistryProvider>
+        <ChatIdentity name="Alex Morgan" />
+      </RegistryProvider>,
+    );
+    const tile = container.querySelector('[data-slot="chat-identity"]');
+    expect(tile?.textContent).toBe("A");
+    expect(tile?.className).toContain("size-4");
+  });
+
   it("offers renaming and the avatar button when editable", () => {
     render(
       <RegistryProvider>
