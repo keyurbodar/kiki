@@ -1,0 +1,11 @@
+{
+  "defaults": { "maxMismatch": 100 },
+  "targets": [
+    {
+      "id": "settings-models",
+      "route": "/settings/models",
+      "viewport": "1440x818",
+      "variants": { "default/dark": { "frame": "vpK_uBrg0B" } }
+    }
+  ]
+}
