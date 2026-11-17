@@ -1,12 +1,12 @@
 import { cx } from "class-variance-authority";
 import type { ComponentProps, ReactNode } from "react";
 import { PanZoomControls } from "./pan-zoom-controls";
-import { DEFAULT_MAX_ZOOM, MIN_ZOOM, usePanZoom } from "./use-pan-zoom";
+import { PAN_ZOOM_MAX, PAN_ZOOM_MIN, usePanZoom } from "./use-pan-zoom";
 
 export type PanZoomProps = ComponentProps<"div"> & {
   maxZoom?: number;
   minZoom?: number;
-  /** Show the zoom controls in the bottom-left corner. Defaults to true. */
+  /** Show the zoom bar in the bottom-left corner. Defaults to true. */
   controls?: boolean;
   /** Extra controls appended to the zoom bar. */
   controlsExtra?: ReactNode;
@@ -18,8 +18,8 @@ export type PanZoomProps = ComponentProps<"div"> & {
  * double-click to toggle 2x, +/-/0/1/2 keys and the zoom bar.
  */
 export function PanZoom({
-  maxZoom = DEFAULT_MAX_ZOOM,
-  minZoom = MIN_ZOOM,
+  maxZoom = PAN_ZOOM_MAX,
+  minZoom = PAN_ZOOM_MIN,
   controls = true,
   controlsExtra,
   className,
@@ -28,7 +28,7 @@ export function PanZoom({
   onKeyDown,
   ...props
 }: PanZoomProps) {
-  const view = usePanZoom(maxZoom, undefined, minZoom);
+  const view = usePanZoom(maxZoom, minZoom);
   const moved = view.zoom !== 1 || view.pan.x !== 0 || view.pan.y !== 0;
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: the stage takes pointer gestures and the zoom keys

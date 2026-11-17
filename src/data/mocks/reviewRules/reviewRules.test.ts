@@ -7,7 +7,7 @@ import { orgId } from "../fixtures/world.ts";
 interface Rule {
   readonly id: string;
   readonly body: string;
-  readonly scopes: ReadonlyArray<string>;
+  readonly scopes: ReadonlyArray<{ readonly repo: string | null }>;
   readonly status: string;
 }
 
@@ -51,7 +51,10 @@ describe("reviewRules mock", () => {
       const registry = AtomRegistry.make();
       registry.set(create, {
         params: { orgId },
-        payload: { body: "Keep examples short", scopes: ["*"] },
+        payload: {
+          body: "Keep examples short",
+          scopes: [{ repo: null, paths: [] }],
+        },
         reactivityKeys: [key],
       });
       const created = (yield* AtomRegistry.getResult(registry, create)) as {
@@ -59,6 +62,7 @@ describe("reviewRules mock", () => {
       };
       assert.isString(created.rule.id);
       assert.equal(created.rule.status, "active");
+      assert.isNull(created.rule.scopes[0]?.repo);
 
       registry.set(update, {
         params: { orgId, id: created.rule.id },

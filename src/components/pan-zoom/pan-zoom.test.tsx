@@ -5,35 +5,42 @@ import {
   render,
   renderHook,
 } from "@testing-library/react";
+import type { KeyboardEvent } from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import { PanZoom } from "./pan-zoom";
-import { clampZoom, MIN_ZOOM, usePanZoom, ZOOM_STEP } from "./use-pan-zoom";
+import {
+  clampZoom,
+  PAN_ZOOM_MIN,
+  PAN_ZOOM_STEP,
+  usePanZoom,
+} from "./use-pan-zoom";
 
 afterEach(cleanup);
 
 describe("clampZoom", () => {
   it("keeps zoom between the bounds", () => {
     expect(clampZoom(10)).toBe(4);
-    expect(clampZoom(0.01)).toBe(MIN_ZOOM);
+    expect(clampZoom(0.01)).toBe(PAN_ZOOM_MIN);
     expect(clampZoom(2, 8, 0.5)).toBe(2);
   });
 });
 
-describe("usePanZoom", () => {
-  const key = (k: string) =>
-    ({
-      key: k,
-      altKey: false,
-      ctrlKey: false,
-      metaKey: false,
-      target: document.body,
-      preventDefault: () => {},
-    }) as unknown as React.KeyboardEvent<HTMLElement>;
+const key = (k: string, init: Partial<KeyboardEvent<HTMLElement>> = {}) =>
+  ({
+    key: k,
+    altKey: false,
+    ctrlKey: false,
+    metaKey: false,
+    target: document.body,
+    preventDefault: () => {},
+    ...init,
+  }) as unknown as KeyboardEvent<HTMLElement>;
 
+describe("usePanZoom", () => {
   it("zooms in and out by the step with + and -", () => {
     const { result } = renderHook(() => usePanZoom());
     act(() => result.current.onKeyDown(key("+")));
-    expect(result.current.zoom).toBeCloseTo(ZOOM_STEP);
+    expect(result.current.zoom).toBeCloseTo(PAN_ZOOM_STEP);
     act(() => result.current.onKeyDown(key("-")));
     expect(result.current.zoom).toBeCloseTo(1);
   });
@@ -51,12 +58,7 @@ describe("usePanZoom", () => {
 
   it("ignores modified keys", () => {
     const { result } = renderHook(() => usePanZoom());
-    act(() =>
-      result.current.onKeyDown({
-        ...key("+"),
-        metaKey: true,
-      } as React.KeyboardEvent<HTMLElement>),
-    );
+    act(() => result.current.onKeyDown(key("+", { metaKey: true })));
     expect(result.current.zoom).toBe(1);
   });
 
@@ -90,7 +92,7 @@ describe("PanZoom", () => {
     expect(getByLabelText("Zoom out")).toBeTruthy();
     expect(container.textContent).toContain("100%");
     fireEvent.click(getByLabelText("Zoom in"));
-    expect(content?.style.transform).toContain(`scale(${ZOOM_STEP})`);
+    expect(content?.style.transform).toContain(`scale(${PAN_ZOOM_STEP})`);
     fireEvent.click(getByLabelText("Reset view (0)"));
     expect(content?.style.transform).toContain("scale(1)");
   });

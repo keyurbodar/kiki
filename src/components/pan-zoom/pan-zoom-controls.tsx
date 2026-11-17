@@ -1,22 +1,24 @@
-import type { PointerEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
+import {
+  MinusSmallIcon,
+  PlusLargeIcon,
+  RotateLeftIcon,
+} from "@/components/markdown/icons";
 import { Button } from "@/primitives/button";
-import { Icon } from "@/primitives/icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
-import { clampZoom, type PanZoomView, ZOOM_STEP } from "./use-pan-zoom";
+import { clampZoom, PAN_ZOOM_STEP, type PanZoomView } from "./use-pan-zoom";
 
-export type ZoomButtonProps = {
-  label: string;
-  disabled?: boolean;
-  onClick: () => void;
-  children: ReactNode;
-};
-
-export function ZoomButton({
+function ZoomButton({
   label,
   disabled,
   onClick,
   children,
-}: ZoomButtonProps) {
+}: {
+  label: string;
+  disabled?: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
   return (
     <Tooltip>
       <TooltipTrigger
@@ -39,47 +41,44 @@ export function ZoomButton({
 
 export type PanZoomControlsProps = {
   view: PanZoomView;
-  /** Extra controls after the reset button. */
   children?: ReactNode;
 };
 
-const stopPropagation = (event: PointerEvent) => event.stopPropagation();
-
-/** Capy's PanZoomControls: zoom out, percentage, zoom in, 100%, 200%, reset. */
+/** Capy's shared/pan-zoom PanZoomControls: the floating zoom bar in the stage's bottom-left corner. */
 export function PanZoomControls({ view, children }: PanZoomControlsProps) {
-  const resetPan = () => view.setPan({ x: 0, y: 0 });
+  const percent = Math.round((view.zoom / (view.nativeZoom ?? 1)) * 100);
   return (
     <div
       data-slot="pan-zoom-controls"
-      className="absolute bottom-3 left-3 flex cursor-default items-center gap-0.5 rounded-(--radius) border-(length:--border-width-hairline) border-border-2 bg-popover px-1 py-0.5 shadow-overlay"
-      onPointerDown={stopPropagation}
+      className="absolute bottom-3 left-3 flex cursor-default items-center gap-0.5 rounded-(--radius) border-hairline border-border-2 bg-popover px-1 py-0.5 shadow-overlay"
+      onPointerDown={(event) => event.stopPropagation()}
     >
       <ZoomButton
         label="Zoom out"
         disabled={view.zoom <= view.minZoom}
         onClick={() =>
-          view.setZoom((zoom) =>
-            clampZoom(zoom / ZOOM_STEP, view.maxZoom, view.minZoom),
+          view.setZoom((z) =>
+            clampZoom(z / PAN_ZOOM_STEP, view.maxZoom, view.minZoom),
           )
         }
       >
-        <Icon name="minus-small" />
+        <MinusSmallIcon />
       </ZoomButton>
       <span className="min-w-10 text-center text-xs font-normal text-muted-foreground-1 tabular-nums">
-        {Math.round((view.zoom / (view.nativeZoom ?? 1)) * 100)}%
+        {percent}%
       </span>
       <ZoomButton
         label="Zoom in"
         disabled={view.zoom >= view.maxZoom}
         onClick={() =>
-          view.setZoom((zoom) =>
-            clampZoom(zoom * ZOOM_STEP, view.maxZoom, view.minZoom),
+          view.setZoom((z) =>
+            clampZoom(z * PAN_ZOOM_STEP, view.maxZoom, view.minZoom),
           )
         }
       >
-        <Icon name="plus-large" />
+        <PlusLargeIcon />
       </ZoomButton>
-      {view.nativeZoom === undefined ? null : (
+      {view.nativeZoom !== undefined && (
         <>
           <ZoomButton
             label="Actual size (1)"
@@ -87,7 +86,7 @@ export function PanZoomControls({ view, children }: PanZoomControlsProps) {
               view.setZoom(
                 clampZoom(view.nativeZoom ?? 1, view.maxZoom, view.minZoom),
               );
-              resetPan();
+              view.setPan({ x: 0, y: 0 });
             }}
           >
             100%
@@ -102,7 +101,7 @@ export function PanZoomControls({ view, children }: PanZoomControlsProps) {
                   view.minZoom,
                 ),
               );
-              resetPan();
+              view.setPan({ x: 0, y: 0 });
             }}
           >
             200%
@@ -113,10 +112,10 @@ export function PanZoomControls({ view, children }: PanZoomControlsProps) {
         label="Reset view (0)"
         onClick={() => {
           view.setZoom(1);
-          resetPan();
+          view.setPan({ x: 0, y: 0 });
         }}
       >
-        <Icon name="arrow-rotate-counter-clockwise" />
+        <RotateLeftIcon />
       </ZoomButton>
       {children}
     </div>

@@ -14,7 +14,12 @@ import {
   useState,
   type WheelEvent,
 } from "react";
-import { PanZoomControls, usePanZoom } from "@/components/pan-zoom";
+import {
+  PAN_ZOOM_MAX,
+  PAN_ZOOM_MIN,
+  PanZoomControls,
+  usePanZoom,
+} from "@/components/pan-zoom";
 import { Button } from "@/primitives/button";
 import {
   Dialog,
@@ -87,7 +92,8 @@ export function MediaLightbox<T extends MediaLightboxEntry>({
   const entry = entries[index];
   const image = entry?.kind === "image";
   const view = usePanZoom(
-    4,
+    PAN_ZOOM_MAX,
+    PAN_ZOOM_MIN,
     image
       ? {
           key: entry.key,
@@ -225,13 +231,16 @@ export function MediaLightbox<T extends MediaLightboxEntry>({
       <DialogPortal>
         <DialogOverlay scrim="media" forceRender />
         <DialogPopup
-          ref={popup}
+          ref={(node) => {
+            popup.current = node;
+            (
+              node?.querySelector<HTMLElement>("[data-lightbox-media] video") ??
+              node
+            )?.focus();
+          }}
           data-media-preview=""
-          initialFocus={() =>
-            popup.current?.querySelector<HTMLElement>(
-              "[data-lightbox-media] video",
-            ) ?? popup.current
-          }
+          tabIndex={-1}
+          initialFocus={popup}
           aria-label={entry.label}
           className={cx(
             "fixed inset-0 z-(--z-dialog) h-dvh overflow-hidden outline-none transition-opacity duration-base ease-out data-[starting-style]:opacity-0 data-[ending-style]:opacity-0 data-[ending-style]:duration-fast",

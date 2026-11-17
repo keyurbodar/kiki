@@ -1,11 +1,6 @@
 import { Menu as BaseMenu } from "@base-ui/react/menu";
 import { cva, type VariantProps } from "class-variance-authority";
-import {
-  type ComponentProps,
-  type KeyboardEvent,
-  type ReactNode,
-  useRef,
-} from "react";
+import type { ComponentProps, KeyboardEvent, ReactNode } from "react";
 
 const cx = (...parts: ReadonlyArray<string | false | null | undefined>) =>
   parts.filter(Boolean).join(" ");
@@ -452,12 +447,12 @@ export function MenuSearchRow({
   onKeyDownCapture,
   ...props
 }: MenuSearchRowProps) {
-  const ref = useRef<HTMLDivElement>(null);
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     onKeyDownCapture?.(event);
-    const row = ref.current;
+    if (event.defaultPrevented) return;
+    const row = event.currentTarget;
     const input = event.target;
-    if (row === null || !(input instanceof HTMLInputElement)) return;
+    if (!(input instanceof HTMLInputElement)) return;
     const container = menuContainerOf(row);
     if (
       pickOnDigit &&
@@ -500,7 +495,6 @@ export function MenuSearchRow({
   return (
     <>
       <div
-        ref={ref}
         data-slot="menu-search-row"
         className={cx("flex shrink-0 items-center", className)}
         onKeyDownCapture={onKeyDown}

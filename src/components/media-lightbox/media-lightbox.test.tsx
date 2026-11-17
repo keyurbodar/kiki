@@ -89,6 +89,11 @@ describe("MediaLightbox", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it("takes focus on open so the arrow keys work", () => {
+    render(<Harness />);
+    expect(document.activeElement).toBe(dialog());
+  });
+
   it("closes from the close button", () => {
     const onClose = vi.fn();
     render(<Harness onClose={onClose} />);

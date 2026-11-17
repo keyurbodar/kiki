@@ -1,15 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { OrgIdentityPage } from "@/features/settings-org/org-identity-page";
 
 export const Route = createFileRoute("/_app/settings/org/identity")({
-  component: RouteComponent,
+  component: OrgIdentityPage,
 });
-
-function RouteComponent() {
-  return (
-    <RoutePlaceholder
-      title="/settings/org/identity"
-      path="/settings/org/identity"
-    />
-  );
-}
