@@ -196,7 +196,9 @@ export const matchesMember = (
     (role === "neither" &&
       !("mfaExtension" in member
         ? member.mfaExtension !== null
-        : member.enterpriseSso || member.passkeyTrusted || member.mfaEnabled))) &&
+        : member.enterpriseSso ||
+          member.passkeyTrusted ||
+          member.mfaEnabled))) &&
   `${memberName(member)} ${member.email ?? ""}`
     .toLowerCase()
     .includes(normalized(query));

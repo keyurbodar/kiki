@@ -1,11 +1,20 @@
-// biome-ignore-all lint/a11y/useSemanticElements: Capy's table is a CSS grid of ARIA rows and cells, which <table> markup cannot subgrid
-// biome-ignore-all lint/a11y/useFocusableInteractive: rows, headers and cells are not interactive; their buttons are
+// biome-ignore-all lint/a11y/useSemanticElements: Capy's table is a CSS grid whose rows are subgrids, which <table> parts cannot be.
+// biome-ignore-all lint/a11y/useFocusableInteractive: rows and header cells are not focus stops; the controls inside them are.
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
+import { Link, type LinkProps } from "@tanstack/react-router";
 import { cva, cx, type VariantProps } from "class-variance-authority";
-import { type ComponentProps, createContext, useContext } from "react";
+import {
+  type ComponentProps,
+  createContext,
+  type ReactNode,
+  useContext,
+} from "react";
+import { Card } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
 
 export const tableVariants = cva(
-  "isolate grid w-full overflow-x-auto overscroll-x-contain px-4 [--table-fluid-min:0rem] [--table-lead-min:0rem] max-md:[--table-fluid-min:8rem] max-md:[--table-lead-min:10rem] max-md:[--table-auto-min:auto] max-md:[clip-path:inset(0_0_0_0.5rem)]",
+  "isolate grid w-full overflow-x-auto overscroll-x-contain [--table-fluid-min:0] [--table-lead-min:0] max-md:[--table-auto-min:auto]",
   {
     variants: {
       density: {
@@ -14,64 +23,77 @@ export const tableVariants = cva(
         compact: "[--table-row-h:2rem]",
       },
       flush: {
-        true: "scrollbar-hide scroll-fade-x px-0 [overflow-wrap:normal] [--scroll-fade-ramp:1.5rem] max-md:[clip-path:none] max-md:[--table-fluid-min:0rem] max-md:[--table-lead-min:0rem] [&_[role=cell]:last-child]:pr-0 [&_[role=columnheader]]:whitespace-normal [&_[role=columnheader]:last-child]:pr-0",
-        false: "",
+        true: "scrollbar-hide scroll-fade-x [overflow-wrap:normal] [--scroll-fade-ramp:1.5rem] [&_[role=cell]:last-child]:pr-0 [&_[role=columnheader]]:whitespace-normal [&_[role=columnheader]:last-child]:pr-0",
+        false:
+          "px-4 max-md:[--table-fluid-min:8rem] max-md:[--table-lead-min:10rem] max-md:[clip-path:inset(0_0_0_0.5rem)]",
       },
     },
     defaultVariants: { density: "directory", flush: false },
   },
 );
 
-const leadCell =
-  "max-md:min-w-auto max-md:first:sticky max-md:first:left-0 max-md:first:z-(--z-table-lead) max-md:in-data-scrolled:first:bg-[var(--table-lead-bg,var(--panel))] max-md:in-data-scrolled:first:shadow-[-0.5rem_0_0_var(--table-lead-bg,var(--panel)),0.03125rem_0_0_var(--border-1)] in-data-pin-lead:first:sticky in-data-pin-lead:first:left-0 in-data-pin-lead:first:z-(--z-table-lead) in-data-pin-lead:in-data-scrolled:first:bg-[var(--table-lead-bg,var(--panel))] in-data-pin-lead:in-data-scrolled:first:shadow-[-0.5rem_0_0_var(--table-lead-bg,var(--panel)),0.03125rem_0_0_var(--border-1)]";
+const stickyLead = cx(
+  "max-md:min-w-auto max-md:first:sticky max-md:first:left-0 max-md:first:z-(--z-table-lead)",
+  "max-md:in-data-scrolled:first:bg-[var(--table-lead-bg,var(--panel))] max-md:in-data-scrolled:first:shadow-[-0.5rem_0_0_var(--table-lead-bg,var(--panel)),var(--border-width-hairline)_0_0_var(--border-1)]",
+  "in-data-pin-lead:first:sticky in-data-pin-lead:first:left-0 in-data-pin-lead:first:z-(--z-table-lead)",
+  "in-data-pin-lead:in-data-scrolled:first:bg-[var(--table-lead-bg,var(--panel))] in-data-pin-lead:in-data-scrolled:first:shadow-[-0.5rem_0_0_var(--table-lead-bg,var(--panel)),var(--border-width-hairline)_0_0_var(--border-1)]",
+);
 
-/** Capy's column template rewrite: fluid columns get minimum widths on narrow screens. */
-export const tableColumns = (columns: string) => {
-  const expanded = columns.replace(
+/**
+ * Expands repeat() and rewrites zero-minimum minmax() tracks so narrow screens
+ * can give them a floor (--table-lead-min for the first track,
+ * --table-fluid-min for the rest), and lets fixed-minimum auto tracks relax.
+ * Templates it cannot tokenise come back unchanged.
+ */
+export function tableColumns(template: string): string {
+  const expanded = template.replace(
     /repeat\(\s*(\d+)\s*,((?:[^()]|\([^()]*\))*)\)/g,
     (_, count: string, track: string) =>
       Array.from({ length: Number(count) }, () => track.trim()).join(" "),
   );
   const tracks =
     expanded.match(/(?:[^\s(]+|\((?:[^()]|\([^()]*\))*\))+/g) ?? [];
-  if (tracks.join("").replace(/\s+/g, "") !== expanded.replace(/\s+/g, ""))
-    return columns;
+  if (tracks.join("").replace(/\s+/g, "") !== expanded.replace(/\s+/g, "")) {
+    return template;
+  }
   return tracks
     .map((track, index) => {
-      const fluid = /^minmax\(\s*0(?:px|rem)?\s*,(.+)\)$/.exec(track);
-      if (fluid !== null)
-        return `minmax(var(${index === 0 ? "--table-lead-min" : "--table-fluid-min"}),${fluid[1]})`;
-      const fixed = /^minmax\(\s*([\d.]+(?:px|rem))\s*,\s*auto\s*\)$/.exec(
+      const fluid = /^minmax\(\s*0(?:px)?\s*,(.+)\)$/.exec(track);
+      if (fluid !== null) {
+        const floor = index === 0 ? "--table-lead-min" : "--table-fluid-min";
+        return `minmax(var(${floor}),${fluid[1]})`;
+      }
+      const auto = /^minmax\(\s*([\d.]+(?:px|rem))\s*,\s*auto\s*\)$/.exec(
         track,
       );
-      return fixed === null
+      return auto === null
         ? track
-        : `minmax(var(--table-auto-min,${fixed[1]}),auto)`;
+        : `minmax(var(--table-auto-min,${auto[1]}),auto)`;
     })
     .join(" ");
-};
+}
 
 const TableCardContext = createContext(false);
 
 export type TableProps = ComponentProps<"div"> &
   VariantProps<typeof tableVariants> & {
-    /** CSS grid template for the columns; every row is a subgrid of it. */
+    /** grid-template-columns for every row; rows are subgrids of it. */
     columns?: string;
+    /** Wraps the table in a Card and fills header rows. */
     card?: boolean;
+    /** Keeps the first column pinned while the table scrolls sideways. */
     pinLead?: boolean;
     cardClassName?: string;
   };
 
-/** Capy's ui/table: a CSS grid with role=table whose rows are subgrids. */
 export function Table({
-  className,
+  columns,
   density,
   flush,
-  columns = "",
   card = false,
   pinLead = false,
   cardClassName,
-  style,
+  className,
   onScroll,
   ...props
 }: TableProps) {
@@ -80,7 +102,10 @@ export function Table({
       role="table"
       data-slot="table"
       data-pin-lead={pinLead || undefined}
-      style={{ gridTemplateColumns: tableColumns(columns), ...style }}
+      style={{
+        gridTemplateColumns:
+          columns === undefined ? undefined : tableColumns(columns),
+      }}
       className={cx(
         tableVariants({ density, flush }),
         card && "[--table-lead-bg:var(--card)]",
@@ -99,20 +124,15 @@ export function Table({
   if (!card) return table;
   return (
     <TableCardContext.Provider value>
-      <div
-        data-slot="card"
-        className={cx(
-          "flex flex-col overflow-clip rounded-(--radius-card) border-[0.03125rem] border-(--card-hairline) bg-card py-2 shadow-card",
-          cardClassName,
-        )}
-      >
-        {table}
-      </div>
+      <Card className={cx("py-2", cardClassName)}>{table}</Card>
     </TableCardContext.Provider>
   );
 }
 
-export type TableHeaderProps = ComponentProps<"div"> & { filled?: boolean };
+export type TableHeaderProps = ComponentProps<"div"> & {
+  /** Section-filled header band; defaults to on inside a card table. */
+  filled?: boolean;
+};
 
 export function TableHeader({ filled, className, ...props }: TableHeaderProps) {
   const inCard = useContext(TableCardContext);
@@ -131,6 +151,7 @@ export function TableHeader({ filled, className, ...props }: TableHeaderProps) {
 }
 
 export type TableHeaderCellProps = ComponentProps<"div"> & {
+  /** Shows the sort arrow on a column the table is sorted by. */
   sorted?: boolean;
   numeric?: boolean;
 };
@@ -148,7 +169,7 @@ export function TableHeaderCell({
       className={cx(
         "flex min-w-0 items-center gap-0.5 pr-4 text-xs font-normal whitespace-nowrap text-muted-foreground-1 select-none",
         numeric && "justify-end",
-        leadCell,
+        stickyLead,
         "in-data-pin-lead:first:[--table-lead-bg:var(--card)]",
         className,
       )}
@@ -156,18 +177,22 @@ export function TableHeaderCell({
     >
       {children}
       {sorted && (
-        <Icon name="arrow-down" className="size-3 shrink-0 text-foreground" />
+        <Icon
+          name="arrow-down"
+          size={null}
+          className="size-3 shrink-0 text-foreground"
+        />
       )}
     </div>
   );
 }
 
-export type SortableTableHeaderCellProps = Omit<
-  ComponentProps<"div">,
-  "onClick"
-> & {
-  direction?: "ascending" | "descending";
-  onSort: () => void;
+export type SortDirection = "ascending" | "descending";
+
+export type SortableTableHeaderCellProps = ComponentProps<"div"> & {
+  /** Sort on this column; leave undefined while another column sorts. */
+  direction?: SortDirection;
+  onSort?: () => void;
 };
 
 export function SortableTableHeaderCell({
@@ -183,7 +208,7 @@ export function SortableTableHeaderCell({
       aria-sort={direction ?? "none"}
       className={cx(
         "flex min-w-0 items-center pr-4 text-xs font-normal whitespace-nowrap text-muted-foreground-1 select-none",
-        leadCell,
+        stickyLead,
         className,
       )}
       {...props}
@@ -197,6 +222,7 @@ export function SortableTableHeaderCell({
         {direction !== undefined && (
           <Icon
             name="arrow-down"
+            size={null}
             className={cx(
               "size-3 shrink-0 text-foreground",
               direction === "ascending" && "rotate-180",
@@ -209,9 +235,10 @@ export function SortableTableHeaderCell({
 }
 
 export type TableGroupProps = {
-  label: React.ReactNode;
+  label: ReactNode;
   count?: number;
-  children?: React.ReactNode;
+  /** Trailing cells; without them the label spans the whole row. */
+  children?: ReactNode;
   className?: string;
 };
 
@@ -226,9 +253,8 @@ export function TableGroup({
     <div
       role="row"
       className={cx(
-        "relative col-span-full mb-0.5 grid h-8 grid-cols-subgrid items-center",
-        !inCard && "[--table-lead-bg:var(--section)]",
-        inCard && "mt-2 mb-0",
+        "relative col-span-full grid h-8 grid-cols-subgrid items-center",
+        inCard ? "mt-2" : "mb-0.5 [--table-lead-bg:var(--section)]",
         className,
       )}
     >
@@ -240,7 +266,7 @@ export function TableGroup({
           "relative flex items-center text-xs font-medium text-muted-foreground-1",
           children === undefined
             ? "col-span-full"
-            : "max-md:sticky max-md:left-0 max-md:z-(--z-table-lead) max-md:in-data-scrolled:bg-[var(--table-lead-bg,var(--panel))] max-md:in-data-scrolled:shadow-[-0.5rem_0_0_var(--table-lead-bg,var(--panel)),0.03125rem_0_0_var(--border-1)]",
+            : "max-md:sticky max-md:left-0 max-md:z-(--z-table-lead) max-md:in-data-scrolled:bg-[var(--table-lead-bg,var(--panel))] max-md:in-data-scrolled:shadow-[-0.5rem_0_0_var(--table-lead-bg,var(--panel)),var(--border-width-hairline)_0_0_var(--border-1)]",
         )}
       >
         <span className="flex items-center gap-1.5 max-md:sticky max-md:left-0">
@@ -257,7 +283,25 @@ export function TableGroup({
   );
 }
 
-export type TableRowProps = ComponentProps<"div"> & { interactive?: boolean };
+export type TableGroupCellProps = ComponentProps<"div">;
+
+export function TableGroupCell({ className, ...props }: TableGroupCellProps) {
+  return (
+    <div
+      role="cell"
+      className={cx(
+        "relative flex min-w-0 items-center pr-4 text-xs font-medium text-muted-foreground-1 max-md:min-w-auto",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export type TableRowProps = ComponentProps<"div"> & {
+  /** Hover band behind the row. Defaults to true. */
+  interactive?: boolean;
+};
 
 export function TableRow({
   interactive = true,
@@ -270,7 +314,7 @@ export function TableRow({
       className={cx(
         "relative col-span-full grid grid-cols-subgrid",
         interactive &&
-          "before:absolute before:inset-y-0 before:-inset-x-2 before:rounded before:transition-colors before:duration-100 hover:before:bg-section",
+          "before:absolute before:inset-y-0 before:-inset-x-2 before:rounded before:transition-colors before:duration-(--duration-hover) hover:before:bg-section",
         className,
       )}
       {...props}
@@ -279,6 +323,7 @@ export function TableRow({
 }
 
 export type TableCellProps = ComponentProps<"div"> & {
+  /** The row's title cell: foreground colour, no wrapping. */
   lead?: boolean;
   numeric?: boolean;
 };
@@ -296,10 +341,61 @@ export function TableCell({
         "relative flex min-h-[var(--table-row-h,3.125rem)] min-w-0 items-center pr-4 text-xs font-normal text-muted-foreground-1",
         lead && "whitespace-nowrap text-foreground",
         numeric && "justify-end tabular-nums whitespace-nowrap",
-        leadCell,
+        stickyLead,
         className,
       )}
       {...props}
     />
   );
+}
+
+export type TableActionRowProps = Omit<
+  useRender.ComponentProps<"button">,
+  "className"
+> & {
+  className?: string;
+  icon?: ReactNode;
+  /** Renders the row as a router link. */
+  to?: NonNullable<LinkProps["to"]>;
+};
+
+export function TableActionRow({
+  icon,
+  to,
+  render,
+  className,
+  children,
+  ...props
+}: TableActionRowProps) {
+  const target = to === undefined ? render : <Link to={to} />;
+  return useRender({
+    defaultTagName: "button",
+    render: target,
+    props: mergeProps<"button">(
+      {
+        type: target === undefined ? "button" : undefined,
+        className: cx(
+          "group relative mx-4 flex h-8 w-[calc(100%-2rem)] cursor-pointer items-center gap-2 text-left text-xs font-medium text-muted-foreground-1 outline-none select-none",
+          "hover:text-foreground focus-visible:outline-ring-inset",
+          "pointer-coarse:after:absolute pointer-coarse:after:top-1/2 pointer-coarse:after:left-1/2 pointer-coarse:after:size-full pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11 pointer-coarse:after:-translate-x-1/2 pointer-coarse:after:-translate-y-1/2",
+          className,
+        ),
+        children: (
+          <>
+            <span className="absolute inset-y-0 -inset-x-2 rounded-(--radius-card) bg-section transition-colors duration-(--duration-hover) group-hover:bg-secondary" />
+            <span className="relative flex size-(--icon-base) shrink-0 items-center justify-center [&_svg:not([class*='size-'])]:size-(--icon-base)">
+              {icon}
+            </span>
+            <span className="relative min-w-0 flex-1 truncate">{children}</span>
+            <Icon
+              name="chevron-right-small"
+              size={null}
+              className="relative size-(--icon-sm) shrink-0 text-muted-foreground-3 group-hover:text-foreground"
+            />
+          </>
+        ),
+      },
+      props,
+    ),
+  });
 }
