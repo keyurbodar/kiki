@@ -7,4 +7,5 @@ export const reactivityKeys = {
   organizations: "organizations",
   projects: (orgId: string) => `projects:${orgId}`,
   threads: (orgId: string) => `threads:${orgId}`,
+  pulls: (orgId: string) => `pull:${orgId}`,
 } as const;

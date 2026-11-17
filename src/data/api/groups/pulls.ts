@@ -1,5 +1,11 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import {
+  CreatePullRequestRequest,
+  PullListQuery,
+  PullRequestCard,
+  PullRequestPage,
+} from "../schemas/pull.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class PullsGroup extends HttpApiGroup.make("pulls").add(
@@ -25,13 +31,13 @@ export class PullsGroup extends HttpApiGroup.make("pulls").add(
   }),
   HttpApiEndpoint.post("create", "/orgs/:orgId/pulls", {
     params: { orgId: Schema.String },
-    payload: Undecoded,
-    success: Undecoded,
+    payload: CreatePullRequestRequest,
+    success: PullRequestCard,
   }),
   HttpApiEndpoint.get("list", "/orgs/:orgId/pulls", {
     params: { orgId: Schema.String },
-    query: UndecodedQuery,
-    success: Undecoded,
+    query: PullListQuery,
+    success: PullRequestPage,
   }),
   HttpApiEndpoint.get("get", "/orgs/:orgId/pulls/:pullId", {
     params: { orgId: Schema.String, pullId: Schema.String },
@@ -282,8 +288,8 @@ export class PullsGroup extends HttpApiGroup.make("pulls").add(
   ),
   HttpApiEndpoint.get("branches", "/orgs/:orgId/pulls/branches", {
     params: { orgId: Schema.String },
-    query: UndecodedQuery,
-    success: Undecoded,
+    query: { repo: Schema.String },
+    success: Schema.Array(Schema.String),
   }),
   HttpApiEndpoint.post("byNumber", "/orgs/:orgId/pulls/by-number", {
     params: { orgId: Schema.String },

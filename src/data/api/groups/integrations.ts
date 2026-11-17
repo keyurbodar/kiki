@@ -1,6 +1,7 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
 import { InferredMethod } from "../annotations.ts";
+import { GitHubInstallationRepoList } from "../schemas/pull.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
@@ -94,7 +95,7 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
   HttpApiEndpoint.get(
     "listGitHubInstallationRepos",
     "/orgs/:orgId/integrations/github/installation/repos",
-    { params: { orgId: Schema.String }, success: Undecoded },
+    { params: { orgId: Schema.String }, success: GitHubInstallationRepoList },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
     "startGitHubInstallation",
