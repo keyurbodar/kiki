@@ -1,6 +1,8 @@
 import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult, Atom } from "effect/reactivity";
+import type { VolumeId } from "@/data/api/schemas/drive";
+import type { OrgId } from "@/data/api/schemas/ids";
 import { queryTimeToLive } from "@/data/atoms/conventions";
 import { organizationsAtom } from "@/data/atoms/session";
 import { ApiClient } from "@/data/client/ApiClient";
@@ -140,7 +142,7 @@ export function MissingFileState({
 export const fileVersionsAtom = Atom.family((key: string) => {
   const [orgId = "", volumeId = "", path = ""] = JSON.parse(key) as string[];
   return ApiClient.query("volumes", "fileVersions", {
-    params: { orgId, volumeId },
+    params: { orgId: orgId as OrgId, volumeId: volumeId as VolumeId },
     query: { path },
     reactivityKeys: [`volume:${orgId}`],
     timeToLive: queryTimeToLive,
