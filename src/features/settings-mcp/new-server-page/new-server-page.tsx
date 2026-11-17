@@ -32,7 +32,7 @@ import {
   SelectField,
   VariablesSection,
 } from "../server-form/fields.tsx";
-import { McpPage, McpSection } from "../ui/settings-layout.tsx";
+import { SettingsPage, SettingsSection } from "@/components/settings-page";
 
 export interface NewServerPageProps {
   readonly mount: McpMount;
@@ -86,7 +86,7 @@ export function NewServerPage({ mount, importing = false }: NewServerPageProps) 
   };
 
   return (
-    <McpPage
+    <SettingsPage
       title="Add MCP server"
       description={
         mount.kind === "project"
@@ -94,7 +94,7 @@ export function NewServerPage({ mount, importing = false }: NewServerPageProps) 
           : "Connect tools and services Capy can use"
       }
     >
-      <McpSection
+      <SettingsSection
         title="Server"
         action={
           <Button
@@ -172,7 +172,7 @@ export function NewServerPage({ mount, importing = false }: NewServerPageProps) 
             </FieldRow>
           )}
         </Card>
-      </McpSection>
+      </SettingsSection>
       <RuntimeSection draft={draft} onChange={change} />
       <AuthenticationSection draft={draft} onChange={change} />
       <VariablesSection draft={draft} onChange={change} />
@@ -185,7 +185,7 @@ export function NewServerPage({ mount, importing = false }: NewServerPageProps) 
           <Icon name="chevron-right" size="sm" />
         </CollapsibleTrigger>
         <CollapsiblePanel>
-          <McpSection
+          <SettingsSection
             title="Import a configuration"
             description="Paste an mcpServers JSON, a Codex TOML, a URL, or a command line, or drop a file"
           >
@@ -206,9 +206,9 @@ export function NewServerPage({ mount, importing = false }: NewServerPageProps) 
                 Parse
               </Button>
             </Card>
-          </McpSection>
+          </SettingsSection>
         </CollapsiblePanel>
       </Collapsible>
-    </McpPage>
+    </SettingsPage>
   );
 }

@@ -27,8 +27,8 @@ import {
 } from "../model/use-mcp-data.ts";
 import { SearchGlyph } from "../ui/glyphs.tsx";
 import { PluginIcon, ServerIcon, StatusBadge } from "../ui/plugin-shared.tsx";
-import { McpRow, McpRowLink } from "../ui/rows.tsx";
-import { McpPage, McpSection as Section } from "../ui/settings-layout.tsx";
+import { SettingsRow, SettingsRowLink } from "@/primitives/settings-row";
+import { SettingsPage, SettingsSection as Section } from "@/components/settings-page";
 import { AddMenu } from "./add-menu.tsx";
 import { GitHubPluginSheet } from "./github-plugin-sheet.tsx";
 import { filterRows, type ListRow, listSections } from "./model.ts";
@@ -58,7 +58,7 @@ export function McpAndPluginsPage({ github }: McpAndPluginsPageProps) {
       : listSections(plugins, servers);
 
   return (
-    <McpPage
+    <SettingsPage
       title="MCP & plugins"
       description="Teach Capy to work with the services your team uses"
     >
@@ -78,7 +78,7 @@ export function McpAndPluginsPage({ github }: McpAndPluginsPageProps) {
       )}
       <Section>
         <Card rows>
-          <McpRow
+          <SettingsRow
             id="mcp-setup"
             icon={<Icon name="console-sparkle" />}
             label="Set up with Capy"
@@ -90,8 +90,8 @@ export function McpAndPluginsPage({ github }: McpAndPluginsPageProps) {
             >
               Start a thread
             </Button>
-          </McpRow>
-          <McpRowLink
+          </SettingsRow>
+          <SettingsRowLink chevron="wide"
             to="/settings/mcp/marketplace"
             id="mcp-marketplace"
             icon={<Icon name="store-1" />}
@@ -99,7 +99,7 @@ export function McpAndPluginsPage({ github }: McpAndPluginsPageProps) {
             description="Plugins, skills, and templates, listed by Capy"
           >
             <MarketplaceStack plugins={marketplace ?? []} />
-          </McpRowLink>
+          </SettingsRowLink>
         </Card>
       </Section>
       {sections === undefined ? (
@@ -161,7 +161,7 @@ export function McpAndPluginsPage({ github }: McpAndPluginsPageProps) {
           );
         })
       )}
-    </McpPage>
+    </SettingsPage>
   );
 }
 
@@ -282,7 +282,7 @@ function ListRowLink({
       />
     );
   return row.kind === "plugin" ? (
-    <McpRowLink
+    <SettingsRowLink chevron="wide"
       to="/settings/mcp/plugins/$installationId"
       params={{ installationId: row.plugin.id }}
       icon={<PluginIcon name={row.plugin.displayName} />}
@@ -290,9 +290,9 @@ function ListRowLink({
       description={description}
     >
       {trailing}
-    </McpRowLink>
+    </SettingsRowLink>
   ) : (
-    <McpRowLink
+    <SettingsRowLink chevron="wide"
       to="/settings/mcp/$serverId"
       params={{ serverId: row.server.id }}
       icon={<ServerIcon iconUrl={row.server.iconUrl} />}
@@ -300,7 +300,7 @@ function ListRowLink({
       description={description}
     >
       {trailing}
-    </McpRowLink>
+    </SettingsRowLink>
   );
 }
 

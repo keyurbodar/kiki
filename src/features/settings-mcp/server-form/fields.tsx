@@ -22,7 +22,7 @@ import {
 import type { McpAuth } from "../model/types.ts";
 import { cx } from "../ui/cx.ts";
 import { PlusGlyph } from "../ui/glyphs.tsx";
-import { McpSection } from "../ui/settings-layout.tsx";
+import { SettingsSection } from "@/components/settings-page";
 
 export const fieldCard = "flex flex-col gap-4 p-4";
 export const fieldDivider = "border-t-[0.5px] border-border-1 pt-4";
@@ -258,7 +258,7 @@ export function RuntimeSection({
 }) {
   const command = draft.placement === "command";
   return (
-    <McpSection title="Runtime">
+    <SettingsSection title="Runtime">
       <Card className={fieldCard}>
         <FieldRow
           label="Transport"
@@ -326,7 +326,7 @@ export function RuntimeSection({
           </label>
         )}
       </Card>
-    </McpSection>
+    </SettingsSection>
   );
 }
 
@@ -403,7 +403,7 @@ export function AuthenticationSection({
 }) {
   if (draft.placement === "command") return null;
   return (
-    <McpSection title="Authentication">
+    <SettingsSection title="Authentication">
       <div role="radiogroup" aria-label="Authentication" className="flex flex-col gap-2">
         {authOptions.map((option) => (
           <RadioCard
@@ -486,7 +486,7 @@ export function AuthenticationSection({
           )}
         </div>
       )}
-    </McpSection>
+    </SettingsSection>
   );
 }
 
@@ -499,7 +499,7 @@ export function VariablesSection({
 }) {
   const command = draft.placement === "command";
   return (
-    <McpSection
+    <SettingsSection
       title="Variables"
       description={
         command
@@ -516,6 +516,6 @@ export function VariablesSection({
           }
         />
       </Card>
-    </McpSection>
+    </SettingsSection>
   );
 }
