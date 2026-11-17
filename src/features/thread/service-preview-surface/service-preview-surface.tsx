@@ -140,7 +140,7 @@ export function ServicePreviewSurface({
         {onOpenNewTab === undefined ? null : (
           <PreviewIconButton
             label="Open in new tab"
-            icon={<Icon name="arrow-up-right" size="xs" />}
+            icon={<Icon name="arrow-split-right" size="xs" />}
             onClick={onOpenNewTab}
           />
         )}
@@ -153,7 +153,7 @@ export function ServicePreviewSurface({
             }
           />
           <MenuContent align="end" className="w-56">
-            {tools.map((tool, index) => (
+            {tools.map((tool) => (
               <MenuItem key={tool.label} onClick={tool.onClick}>
                 <span className="flex items-center gap-2">
                   {tool.icon}

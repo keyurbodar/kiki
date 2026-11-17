@@ -91,7 +91,7 @@ export function PhoneView({
             aria-label="Back"
             onClick={() => onPress?.("back")}
           >
-            <Icon name="arrow-left" size="sm" />
+            <Icon name="arrow-up-left" size="sm" />
           </Button>
           <Popover>
             <PopoverTrigger

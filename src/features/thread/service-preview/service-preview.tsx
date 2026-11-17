@@ -1,6 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Exit } from "effect";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { queryTimeToLive } from "@/data/atoms/conventions.ts";
 import { ApiClient } from "@/data/client/ApiClient.ts";
@@ -9,15 +9,26 @@ import { previewArt } from "@/features/thread/service-preview-surface/art.ts";
 import { PreviewEmptyState } from "@/features/thread/service-preview-surface/empty-state.tsx";
 import { previewDetail } from "./service-preview-logic.ts";
 
-const previewsAtom = ApiClient.query("machines", "listServicePreviews", {
-  reactivityKeys: ["service-previews"],
-  timeToLive: queryTimeToLive,
-});
+const usePreviews = (orgId: string, jamId: string) => {
+  const atom = useMemo(
+    () =>
+      ApiClient.query("machines", "listServicePreviews", {
+        params: { orgId, jamId },
+        reactivityKeys: ["service-previews"],
+        timeToLive: queryTimeToLive,
+      }),
+    [jamId, orgId],
+  );
+  return useAtomValue(atom) as { _tag: string; value?: unknown; cause?: unknown };
+};
 
-const useHandoff = () =>
-  useAtomSet(ApiClient.mutation("machines", "previewHandoff"), {
-    mode: "promiseExit",
-  });
+const useHandoff = () => {
+  const atom = useMemo(
+    () => ApiClient.mutation("machines", "previewHandoff"),
+    [],
+  );
+  return useAtomSet(atom, { mode: "promiseExit" });
+};
 
 export type ServicePreviewProps = {
   readonly orgId?: string;
@@ -32,9 +43,7 @@ export function ServicePreview({
   machineId,
   port,
 }: ServicePreviewProps) {
-  const previews = useAtomValue(
-    previewsAtom({ params: { orgId: orgId ?? "acme", jamId } }),
-  );
+  const previews = usePreviews(orgId ?? "acme", jamId);
   const handoff = useHandoff();
   const [handoffUrl, setHandoff] = useState<
     { readonly url: string } | undefined

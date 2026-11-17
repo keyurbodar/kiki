@@ -98,14 +98,14 @@ export function buildOmniboxSuggestions(input: {
     ...input.ports
       .filter((port) => matches(query, port.detail))
       .map((port) => ({
-        kind: "port",
+        kind: "port" as const,
         port: port.port,
         detail: port.detail,
       })),
     ...input.history
       .filter((visit) => matches(query, visit.url, visit.title))
       .map((visit) => ({
-        kind: "history",
+        kind: "history" as const,
         visit,
       })),
     ...urlSuggestion,
@@ -113,7 +113,7 @@ export function buildOmniboxSuggestions(input: {
       ? []
       : [
           {
-            kind: "search",
+            kind: "search" as const,
             query: input.query.trim(),
             engine: input.searchEngine,
           },
