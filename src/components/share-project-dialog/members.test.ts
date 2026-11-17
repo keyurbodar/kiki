@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
-  type SharePerson,
-  type ShareProject,
   canManageSharing,
   memberState,
   nameOf,
   pendingCandidates,
+  type SharePerson,
+  type ShareProject,
 } from "./members";
 
 const people: ReadonlyArray<SharePerson> = [

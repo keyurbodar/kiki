@@ -173,6 +173,7 @@ export function ProjectIconPicker({
             )}
           </div>
           {tab === "icons" && (
+            // biome-ignore lint/a11y/useSemanticElements: a grid of icon buttons, not a form fieldset
             <div
               role="group"
               aria-label="Project icons"
@@ -194,6 +195,7 @@ export function ProjectIconPicker({
             </div>
           )}
           {tab === "emojis" && (
+            // biome-ignore lint/a11y/useSemanticElements: a grid of emoji buttons, not a form fieldset
             <div
               role="group"
               aria-label="Project emojis"
@@ -296,13 +298,13 @@ export function ProjectIconField({
   placeholder,
 }: ProjectIconPickerInputProps) {
   return (
-    <label className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1.5">
       <span className="text-sm font-medium text-foreground">{label}</span>
       <Input
         value={value}
         placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)}
       />
-    </label>
+    </div>
   );
 }
