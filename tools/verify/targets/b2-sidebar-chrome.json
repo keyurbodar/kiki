@@ -1,0 +1,180 @@
+{
+  "matrix": {
+    "theme": [
+      "default"
+    ],
+    "scheme": [
+      "dark",
+      "light"
+    ]
+  },
+  "defaults": {
+    "maxMismatch": 2
+  },
+  "targets": [
+    {
+      "id": "b2-sidebar-chrome-new",
+      "route": "/new",
+      "state": "sidebar header and footer in the shell",
+      "viewport": "1600x1000",
+      "capture": {
+        "[data-slot=sidebar-content] footer": [
+          "height",
+          "padding-top",
+          "padding-left"
+        ],
+        "[data-slot=sidebar-content] footer > div > button": [
+          "width",
+          "height",
+          "padding-top"
+        ],
+        "[data-slot=sidebar-content] footer nav": [
+          "width",
+          "height"
+        ],
+        "[data-slot=sidebar-content] header": [
+          "height"
+        ],
+        "[data-slot=sidebar-content] header button[aria-label=\"Search\"]": [
+          "width",
+          "height"
+        ],
+        "[data-slot=sidebar-content] header a[aria-label=\"New thread\"]": [
+          "width",
+          "height"
+        ],
+        "[data-slot=sidebar-content] header button[aria-label=\"Close sidebar\"]": [
+          "width",
+          "height"
+        ],
+        "[data-slot=sidebar-content] [data-sidebar-mode]": [
+          "height",
+          "margin-top"
+        ],
+        "[data-slot=sidebar-content] [data-sidebar-mode] > [role=list]": [
+          "height"
+        ],
+        "[data-slot=sidebar-content] header [data-slot=sidebar-mode] > button:nth-of-type(1)": [
+          "width",
+          "height",
+          "padding-left",
+          "padding-right"
+        ]
+      },
+      "expect": {
+        "[data-slot=sidebar-content] footer": {
+          "height": "49px",
+          "padding-top": "8px",
+          "padding-left": "8px"
+        },
+        "[data-slot=sidebar-content] footer > div > button": {
+          "width": "32px",
+          "height": "32px",
+          "padding-top": "4px"
+        },
+        "[data-slot=sidebar-content] footer nav": {
+          "width": "188px",
+          "height": "28px"
+        },
+        "[data-slot=sidebar-content] footer nav > span:nth-child(1) a": {
+          "width": "28px",
+          "height": "28px"
+        },
+        "[data-slot=sidebar-content] footer nav > span:nth-child(2) a": {
+          "width": "28px",
+          "height": "28px"
+        },
+        "[data-slot=sidebar-content] footer nav > span:nth-child(3) a": {
+          "width": "28px",
+          "height": "28px"
+        },
+        "[data-slot=sidebar-content] footer nav > span:nth-child(4) a": {
+          "width": "28px",
+          "height": "28px"
+        },
+        "[data-slot=sidebar-content] footer nav > span:nth-child(5) a": {
+          "width": "28px",
+          "height": "28px"
+        },
+        "[data-slot=sidebar-content] footer nav > span:nth-child(6) a": {
+          "width": "28px",
+          "height": "28px"
+        },
+        "[data-slot=sidebar-content] header": {
+          "height": "44px"
+        },
+        "[data-slot=sidebar-content] header button[aria-label=\"Search\"]": {
+          "width": "28px",
+          "height": "28px"
+        },
+        "[data-slot=sidebar-content] header a[aria-label=\"New thread\"]": {
+          "width": "28px",
+          "height": "28px"
+        },
+        "[data-slot=sidebar-content] header button[aria-label=\"Close sidebar\"]": {
+          "width": "28px",
+          "height": "28px"
+        },
+        "[data-slot=sidebar-content] header [data-slot=sidebar-mode] > button:nth-of-type(1)": {
+          "width": "26px",
+          "height": "24px",
+          "padding-left": "0px",
+          "padding-right": "0px"
+        },
+        "[data-slot=sidebar-content] header [data-slot=sidebar-mode] > button:nth-of-type(2)": {
+          "width": "26px",
+          "height": "24px"
+        },
+        "[data-slot=sidebar-content] [data-sidebar-mode]": {
+          "height": "887px",
+          "margin-top": "12px"
+        },
+        "[data-slot=sidebar-content] [data-sidebar-mode] > [role=list]": {
+          "height": "855px"
+        }
+      },
+      "variants": {
+        "default/dark": {
+          "frame": "GGMp1Jv-KO"
+        }
+      }
+    },
+    {
+      "id": "b2-sidebar-chrome-threads",
+      "route": "/threads",
+      "state": "sidebar header and footer over the thread list",
+      "viewport": "1440x818",
+      "expect": {
+        "[data-slot=sidebar-content] footer": {
+          "height": "49px",
+          "padding-top": "8px",
+          "padding-left": "8px"
+        },
+        "[data-slot=sidebar-content] footer > div > button": {
+          "width": "32px",
+          "height": "32px",
+          "padding-top": "4px"
+        },
+        "[data-slot=sidebar-content] footer nav": {
+          "width": "188px",
+          "height": "28px"
+        },
+        "[data-slot=sidebar-content] footer nav > span:nth-child(6) a": {
+          "width": "28px",
+          "height": "28px"
+        },
+        "[data-slot=sidebar-content] header": {
+          "height": "44px"
+        },
+        "[data-slot=sidebar-content] header button[aria-label=\"Search\"]": {
+          "width": "28px",
+          "height": "28px"
+        },
+        "[data-slot=sidebar-content] [data-sidebar-mode]": {
+          "height": "705px",
+          "margin-top": "12px"
+        }
+      }
+    }
+  ]
+}

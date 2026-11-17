@@ -25,7 +25,7 @@ const segmented =
   "bg-transparent text-[var(--intent-text,var(--segmented-foreground))] hover:text-[var(--intent-text-hover,var(--fg))] active:brightness-97 data-[selected]:bg-[var(--intent-bg,var(--card))] data-[selected]:text-[var(--intent-text-hover,var(--fg))] data-[selected]:shadow-card";
 
 const iconSm =
-  "size-(--h-control-sm) [&_svg:not([class*='size-'])]:size-(--icon-sm)";
+  "size-(--h-control-sm) w-(--h-control-sm)! [&_svg:not([class*='size-'])]:size-(--icon-sm)";
 
 const svgEdges = "[&_svg:first-of-type]:-ml-0.5 [&_svg:last-of-type]:-mr-0.5";
 
@@ -46,7 +46,7 @@ export const segmentedXsButton = cx(
   segmented,
   "h-(--h-control-xs) text-xs gap-1.5 [&_svg:not([class*='size-'])]:size-(--icon-xs)",
   svgEdges,
-  "w-6.5 px-0",
+  "w-6.5! px-0!",
 );
 
 export const menuIconSlot =
