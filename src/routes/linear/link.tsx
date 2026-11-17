@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { LinearLinkPage } from "@/features/onboarding/account-link";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/linear/link")({
@@ -8,5 +8,6 @@ export const Route = createFileRoute("/linear/link")({
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="/linear/link" path="/linear/link" />;
+  const { token } = Route.useSearch();
+  return <LinearLinkPage token={token} />;
 }
