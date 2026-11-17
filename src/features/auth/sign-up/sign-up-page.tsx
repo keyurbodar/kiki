@@ -1,3 +1,4 @@
+import { Field } from "@base-ui/react/field";
 import { useAtomSet } from "@effect/atom-react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { type FormEvent, useRef, useState } from "react";
@@ -157,7 +158,7 @@ export function SignUpPage({
         className="flex flex-col gap-3"
         onSubmit={submit({ kind: "create", email, password, redirectTo })}
       >
-        <div className="flex flex-col gap-2">
+        <Field.Root className="flex flex-col gap-2">
           <Label htmlFor="sign-up-email">Email</Label>
           <Input
             id="sign-up-email"
@@ -172,8 +173,8 @@ export function SignUpPage({
               setError(null);
             }}
           />
-        </div>
-        <div className="flex flex-col gap-2">
+        </Field.Root>
+        <Field.Root className="flex flex-col gap-2">
           <Label htmlFor="sign-up-password">Password</Label>
           <Input
             id="sign-up-password"
@@ -188,7 +189,7 @@ export function SignUpPage({
               setError(null);
             }}
           />
-        </div>
+        </Field.Root>
         <Button
           type="submit"
           intent="accent"

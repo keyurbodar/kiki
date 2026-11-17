@@ -1,3 +1,4 @@
+import { Field } from "@base-ui/react/field";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
@@ -243,7 +244,7 @@ export function SignInPage({
                 className="flex flex-col gap-3"
                 onSubmit={submit({ kind: "identify", email, redirectTo })}
               >
-                <div className="flex flex-col gap-2">
+                <Field.Root className="flex flex-col gap-2">
                   <Label htmlFor="sign-in-email">Email</Label>
                   <div className="relative">
                     <Input
@@ -261,7 +262,7 @@ export function SignInPage({
                     />
                     {lastUsed === "email" ? <LastUsedBadge /> : null}
                   </div>
-                </div>
+                </Field.Root>
                 <Button
                   type="submit"
                   intent={passkeyFirst ? undefined : "accent"}
@@ -299,7 +300,7 @@ export function SignInPage({
             className="flex flex-col gap-3"
             onSubmit={submit({ kind: "password", password })}
           >
-            <div className="flex flex-col gap-2">
+            <Field.Root className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="sign-in-password">Password</Label>
                 <Button
@@ -325,7 +326,7 @@ export function SignInPage({
                   setError(null);
                 }}
               />
-            </div>
+            </Field.Root>
             <Button
               type="submit"
               intent="accent"
@@ -393,7 +394,7 @@ export function SignInPage({
             className="flex flex-col gap-3"
             onSubmit={submit({ kind: "backup-code", code })}
           >
-            <div className="flex flex-col gap-1.5">
+            <Field.Root className="flex flex-col gap-1.5">
               <Label htmlFor="sign-in-backup-code">Backup code</Label>
               <Input
                 id="sign-in-backup-code"
@@ -407,7 +408,7 @@ export function SignInPage({
                 spellCheck={false}
                 autoFocus
               />
-            </div>
+            </Field.Root>
             <Button
               type="submit"
               intent="accent"
@@ -476,7 +477,7 @@ export function SignInPage({
               else setError("Passwords must match");
             }}
           >
-            <div className="flex flex-col gap-2">
+            <Field.Root className="flex flex-col gap-2">
               <Label htmlFor="new-password">New password</Label>
               <Input
                 id="new-password"
@@ -492,8 +493,8 @@ export function SignInPage({
                   setError(null);
                 }}
               />
-            </div>
-            <div className="flex flex-col gap-2">
+            </Field.Root>
+            <Field.Root className="flex flex-col gap-2">
               <Label htmlFor="confirm-password">Confirm password</Label>
               <Input
                 id="confirm-password"
@@ -510,7 +511,7 @@ export function SignInPage({
                 }}
               />
               <FieldError>{error}</FieldError>
-            </div>
+            </Field.Root>
             <Button
               type="submit"
               intent="accent"
