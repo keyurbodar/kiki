@@ -128,7 +128,9 @@ describe("ThreadPreview", () => {
       />,
     );
     const link = screen.getByText("Untitled subagent").closest("a");
-    expect(link?.getAttribute("href")).toBe("/thread/jam_sample?pane=task%3At1");
+    expect(link?.getAttribute("href")).toBe(
+      "/thread/jam_sample?pane=task%3At1",
+    );
     fireEvent.click(screen.getByText("Untitled subagent"));
     expect(onOpenThread).not.toHaveBeenCalled();
   });
