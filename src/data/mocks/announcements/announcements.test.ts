@@ -52,3 +52,43 @@ describe("announcements mock", () => {
     }),
   );
 });
+
+describe("announcement seen state", () => {
+  it.effect("nests seen state the way Capy's client reads it", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const list = ApiClient.query("announcements", "list", {
+        query: {},
+        reactivityKeys: ["announcements"],
+      });
+      const rows = (yield* AtomRegistry.getResult(
+        registry,
+        list,
+      )) as ReadonlyArray<{
+        key: string;
+        seenAt: string | null;
+        state: { seenAt: string | null; dismissedAt: string | null };
+      }>;
+      assert.isAbove(rows.length, 0);
+      for (const row of rows) {
+        assert.strictEqual(row.state.seenAt, row.seenAt);
+        assert.isNull(row.state.dismissedAt);
+      }
+
+      const record = ApiClient.mutation("announcements", "record");
+      registry.set(record, {
+        params: { key: rows[0]?.key ?? "" },
+        payload: {},
+        reactivityKeys: ["announcements"],
+      } as never);
+      const recorded = (yield* AtomRegistry.getResult(registry, record)) as {
+        ok: boolean;
+      };
+      assert.isTrue(recorded.ok);
+      const after = (yield* AtomRegistry.getResult(registry, list, {
+        suspendOnWaiting: true,
+      })) as ReadonlyArray<{ state: { seenAt: string | null } }>;
+      assert.isNotNull(after[0]?.state.seenAt ?? null);
+    }),
+  );
+});
