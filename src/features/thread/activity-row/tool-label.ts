@@ -66,7 +66,9 @@ const TENSES: ReadonlyArray<readonly [string, string, string]> = [
 
 const VERBS = new Map(
   TENSES.flatMap(([bare, present, past]) =>
-    [bare, present, past].map((word) => [word, { bare, present, past }] as const),
+    [bare, present, past].map(
+      (word) => [word, { bare, present, past }] as const,
+    ),
   ),
 );
 
@@ -117,7 +119,7 @@ export function byPhase(phase: Phase, present: string, past: string) {
     : [`Couldn't ${verb.bare.toLowerCase()}`, ...rest].join(" ");
 }
 
-export function describe(description: string | undefined, command?: string) {
+export function toolDescription(description: string | undefined, command?: string) {
   const text = description?.trim();
   if (text === undefined || text === "") return undefined;
   const lower = text.toLowerCase();
@@ -150,7 +152,7 @@ export function toolLabel(row: ToolRow) {
   if (row.toolName === "execute")
     return byPhase(phase, "Running a script", "Ran a script");
   const command = commandOf(row);
-  const description = describe(field(row.args, "description"), command);
+  const description = toolDescription(field(row.args, "description"), command);
   if (description !== undefined) return inflect(description, phase);
   if (command !== undefined) return shortenCommand(command);
   return row.toolName;

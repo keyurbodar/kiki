@@ -62,7 +62,7 @@ export function LiveStatus({
         {wordWidth}
       </span>
       <span aria-hidden className="invisible col-3 row-1 whitespace-pre">
-        {" for 0s"}
+        {`for ${0}s`.padStart(7)}
       </span>
       <span className="col-[3/5] row-1 flex min-w-0 items-center gap-1.5 justify-self-start empty:hidden">
         {clock}

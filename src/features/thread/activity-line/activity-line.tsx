@@ -6,10 +6,13 @@ import {
   useState,
 } from "react";
 
-export { LiveStatus, type LiveStatusProps } from "@/features/thread/live-status";
+export {
+  LiveStatus,
+  type LiveStatusProps,
+} from "@/features/thread/live-status";
 
 const rule =
-  "w-[clamp(0px,calc((100%-var(--spacing)*6)*9999),100%)] border-t-[length:--spacing(0.125)] border-border-2 motion-safe:transition-[scale] motion-safe:duration-base motion-safe:ease-out-quint";
+  "w-[clamp(0,calc((100%-var(--spacing)*6)*9999),100%)] border-t-[length:--spacing(0.125)] border-border-2 motion-safe:transition-[scale] motion-safe:duration-base motion-safe:ease-out-quint";
 
 export type ActivityLineProps = Omit<ComponentProps<"div">, "children"> & {
   label?: ReactNode;
