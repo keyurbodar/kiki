@@ -176,6 +176,7 @@ export const SIZES = [
   "--spacing-page-padding",
   "--spacing-hairline",
   "--spacing-switch-inset",
+  "--border-width-hairline",
 ] as const;
 
 export const Z_INDEX = [
