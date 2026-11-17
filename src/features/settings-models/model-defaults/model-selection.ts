@@ -156,3 +156,30 @@ export function parseTokens(value: string): number | null {
 export function formatTokens(value: number): string {
   return value.toLocaleString("en-US");
 }
+
+/** Capy's built-in default model, shown when neither the user nor the org set one. */
+export const builtInDefaultModel: ModelSelection = {
+  modelId: "anthropic/claude-opus-5-5",
+};
+
+export type ResolvedDefaults = {
+  org: ModelSelection;
+  web: ModelSelection;
+  slack: ModelSelection;
+  linear: ModelSelection;
+};
+
+/**
+ * What a row displays: an unset value falls back to the level it inherits from,
+ * so only the stored value decides the "Org" and "Web" badges.
+ */
+export function resolveDefaults(input: {
+  webValue: ModelSelection | null;
+  orgValue: ModelSelection | null;
+  surfaceValues: Record<string, ModelSelection | null>;
+}): ResolvedDefaults {
+  const org = input.orgValue ?? builtInDefaultModel;
+  const web = input.webValue ?? org;
+  const surface = (key: string) => input.surfaceValues[key] ?? web;
+  return { org, web, slack: surface("slack"), linear: surface("linear") };
+}

@@ -10,6 +10,7 @@ import {
   type ModelEntry,
   type ModelSelection,
   providerOf,
+  resolveDefaults,
   selectionEffort,
   selectionName,
 } from "./model-selection";
@@ -238,6 +239,7 @@ export function DefaultModelsSection({
   onSaveOrg,
   onSaveSurface,
 }: DefaultModelsSectionProps) {
+  const resolved = resolveDefaults({ webValue, orgValue, surfaceValues });
   return (
     <Card rows className={`${cardChrome} @container`}>
       <SettingsRow
@@ -246,12 +248,12 @@ export function DefaultModelsSection({
         className={modelRowClass}
       >
         <ModelChooser
-          value={webValue}
+          value={resolved.web}
           catalog={catalog}
           badge={webValue === null ? "Org" : undefined}
           inherit={{
             label: "Org default",
-            value: orgValue,
+            value: resolved.org,
             active: webValue === null,
           }}
           onChange={onSaveWeb}
@@ -266,14 +268,14 @@ export function DefaultModelsSection({
           className={modelRowClass}
         >
           <ModelChooser
-            value={surfaceValues[item.surface] ?? null}
+            value={item.surface === "slack" ? resolved.slack : resolved.linear}
             catalog={catalog}
             badge={
               (surfaceValues[item.surface] ?? null) === null ? "Web" : undefined
             }
             inherit={{
               label: "Web default",
-              value: webValue,
+              value: resolved.web,
               active: (surfaceValues[item.surface] ?? null) === null,
             }}
             onChange={(value) => onSaveSurface(item.surface, value)}
@@ -301,7 +303,7 @@ export function DefaultModelsSection({
             title={adminReason}
             className={triggerClass}
           >
-            <ModelTriggerLabel selection={orgValue} catalog={catalog} />
+            <ModelTriggerLabel selection={resolved.org} catalog={catalog} />
             <Icon
               name="chevron-down-small"
               className="size-(--icon-sm) shrink-0 text-muted-foreground-3"
