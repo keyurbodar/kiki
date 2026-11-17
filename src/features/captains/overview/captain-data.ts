@@ -67,7 +67,7 @@ const date = (value: unknown) => {
 };
 
 function toAvatar(json: Json): CaptainAvatarValue | undefined {
-  const avatar = record(json.avatar);
+  const avatar = record(record(json.face).avatar ?? json.avatar);
   const kind = avatar.kind;
   const value = text(avatar.value);
   const image = text(avatar.image) ?? text(json.imageUrl) ?? undefined;
@@ -85,12 +85,13 @@ function toAvatar(json: Json): CaptainAvatarValue | undefined {
 /** Reads the undecoded captains.get response. */
 export function toCaptain(value: unknown): Captain | undefined {
   const json = record(value);
+  const face = record(json.face);
   const id = text(json.id);
   if (id === null) return undefined;
   return {
     id,
-    name: text(json.name) ?? "",
-    description: text(json.description),
+    name: text(face.name) ?? text(json.name) ?? text(json.title) ?? "",
+    description: text(face.description) ?? text(json.description),
     avatar: toAvatar(json),
   };
 }
