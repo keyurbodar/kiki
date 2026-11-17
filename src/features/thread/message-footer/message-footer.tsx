@@ -33,7 +33,7 @@ export function MessageFooter({
       <div
         data-slot="message-footer"
         className={cx(
-          "pointer-events-auto sticky top-0 flex h-7 items-center gap-0.5 rounded-(--radius) border-hairline border-border-2 bg-card px-0.5 opacity-0 shadow-sm transition-opacity group-hover/rail:opacity-100 has-focus-visible:opacity-100 has-[[data-popup-open]]:opacity-100 md:top-(--scroll-fade-ramp,--spacing(8))",
+          "pointer-events-auto sticky top-0 flex h-7 items-center gap-0.5 rounded-(--radius) border-(length:--border-width-hairline) border-border-2 bg-card px-0.5 opacity-0 shadow-sm transition-opacity group-hover/rail:opacity-100 has-focus-visible:opacity-100 has-[[data-popup-open]]:opacity-100 md:top-(--scroll-fade-ramp,--spacing(8))",
           touch && "pointer-coarse:opacity-100",
           className,
         )}
