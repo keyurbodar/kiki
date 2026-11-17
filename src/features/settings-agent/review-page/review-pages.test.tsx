@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { ReviewAgentConfigPage } from "./review-agent-config-page";
 import { ReviewRepositoriesPage } from "./review-repositories-page";
@@ -21,6 +21,15 @@ describe("review settings pages", () => {
       ),
     ).toBeTruthy();
     expect(screen.queryByText("acme/api")).toBeNull();
+  });
+
+  it("opens the review tier menu from its trigger", async () => {
+    render(<ReviewAgentConfigPage />);
+    const trigger = await screen.findByRole("button", {
+      name: "Review tier mode",
+    });
+    fireEvent.click(trigger);
+    expect(await screen.findByRole("menu")).toBeTruthy();
   });
 
   it("shows tiers, guides, filters and instructions", async () => {

@@ -34,7 +34,7 @@ export const tableColumns = (tracks: ReadonlyArray<string>) =>
 export const spacing = (n: number) => `calc(var(--spacing)*${n})`;
 
 export const reviewTableVariants = cva(
-  "isolate grid w-full overflow-x-auto overscroll-x-contain px-4 [--table-fluid-min:0] [--table-lead-min:0] max-md:[--table-fluid-min:8rem] max-md:[--table-lead-min:10rem] max-md:[--table-auto-min:auto] max-md:[clip-path:inset(0_0_0_0.5rem)]",
+  "isolate grid w-full overflow-x-auto overscroll-x-contain px-4 [--table-fluid-min:0] [--table-lead-min:0] max-md:[--table-fluid-min:calc(var(--spacing)*32)] max-md:[--table-lead-min:calc(var(--spacing)*40)] max-md:[--table-auto-min:auto] max-md:[clip-path:inset(0_0_0_calc(var(--spacing)*2))]",
   {
     variants: {
       density: {
