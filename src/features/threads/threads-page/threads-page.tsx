@@ -354,21 +354,21 @@ export function ThreadsPageView({
         <h1 className="ml-2.5 min-w-0 truncate text-sm font-medium text-foreground max-md:hidden">
           Threads
         </h1>
-        <FilterSearch
-          search={search}
-          aria-label="Search threads"
-          placeholder="Search threads"
-          className="mx-2 h-7 min-w-0 flex-1 rounded border-hairline border-border-1 bg-input px-2 text-sm text-foreground outline-none placeholder:text-muted-foreground-2 focus-visible:outline-ring-inset"
-        />
+        <div className="relative mx-2 flex min-w-0 flex-1 items-center">
+          <Icon
+            name="deep-search"
+            size="sm"
+            aria-hidden
+            className="pointer-events-none absolute left-1.5 text-muted-foreground-2"
+          />
+          <FilterSearch
+            search={search}
+            aria-label="Search threads"
+            placeholder="Search threads"
+            className="h-7 min-w-0 w-full flex-1 rounded border-hairline border-border-1 bg-input pr-2 pl-7 text-sm text-foreground outline-none placeholder:text-muted-foreground-2 focus-visible:outline-ring-inset"
+          />
+        </div>
         <div className="ml-auto flex items-center gap-1.5 pl-2">
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button variant="ghost" size="icon-sm" aria-label="Search" />
-              }
-            />
-            <TooltipContent side="bottom">Search</TooltipContent>
-          </Tooltip>
           <Tooltip>
             <TooltipTrigger
               render={
@@ -377,7 +377,9 @@ export function ThreadsPageView({
                   size="icon-sm"
                   aria-label="New thread"
                   onClick={() => navigate({ to: "/new" })}
-                />
+                >
+                  <Icon name="plus-medium" size="sm" />
+                </Button>
               }
             />
             <TooltipContent side="bottom">New thread</TooltipContent>

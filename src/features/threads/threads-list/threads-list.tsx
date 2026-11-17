@@ -319,7 +319,10 @@ export function ThreadsList({
   const [openState, setOpenState] = useState<ReadonlyMap<string, boolean>>(
     new Map(),
   );
-  const isOpen = (id: string) => openState.get(id) ?? sectionStartsOpen(id);
+  const anyOpen = sections.some((section) => sectionStartsOpen(section.id));
+  const isOpen = (id: string) =>
+    openState.get(id) ??
+    (anyOpen ? sectionStartsOpen(id) : sections[0]?.id === id);
   const toggle = (id: string) =>
     setOpenState((state) => new Map(state).set(id, !isOpen(id)));
   const onCheck = (id: string) => {
