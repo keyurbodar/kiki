@@ -1,294 +1,150 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { type AsyncResult, type Atom, AtomRegistry } from "effect/reactivity";
-import { ApiClient } from "../../client/ApiClient.ts";
-import { orgId, people, threads } from "../fixtures/world.ts";
+import { AtomRegistry } from "effect/reactivity";
+import type { OrgId } from "../../api/schemas/ids.ts";
+import { reactivityKeys } from "../../atoms/conventions.ts";
+import {
+  issueAtom,
+  issueStatesAtom,
+  linkIssueAtom,
+  relateIssueAtom,
+  unrelateIssueAtom,
+  updateIssueAtom,
+} from "../../atoms/issues.ts";
+import { orgId as worldOrgId } from "../fixtures/world.ts";
 
-interface Issue {
-  readonly id: string;
-  readonly number: number;
-  readonly code: string;
-  readonly title: string;
-  readonly stateId: string;
-}
-
-const key = `issues:${orgId}`;
-const listQuery = ApiClient.query("issues", "list", {
-  params: { orgId },
-  query: {},
-  reactivityKeys: [key],
-});
-const create = ApiClient.mutation("issues", "create");
-const update = ApiClient.mutation("issues", "update");
-const setPrefix = ApiClient.mutation("issues", "setPrefix");
-
-const codes = (value: unknown) =>
-  (value as ReadonlyArray<Issue>).map((issue) => issue.code);
-
-const titles = (value: unknown) =>
-  (value as ReadonlyArray<Issue>).map((issue) => issue.title);
+const orgId = worldOrgId as OrgId;
+const keys = (code: string) => [reactivityKeys.issue(orgId, code)];
 
 describe("issues mock", () => {
-  it.effect("every read endpoint returns sensible data", () =>
+  it.effect(
+    "decodes an issue's detail with parent, relations and threads",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        const detail = yield* AtomRegistry.getResult(
+          registry,
+          issueAtom(orgId, "ACME-2"),
+        );
+        assert.strictEqual(detail.issue.title, "Checkout test times out on CI");
+        assert.strictEqual(detail.issue.status, "in_progress");
+        assert.strictEqual(detail.parent?.code, "ACME-1");
+        assert.deepStrictEqual(
+          (detail.relations ?? []).map((r) => [r.relation, r.issue.code]),
+          [
+            ["blocks", "ACME-1"],
+            ["related", "ACME-5"],
+          ],
+        );
+        assert.strictEqual(detail.threads.length, 1);
+        assert.strictEqual(detail.issue.dueAt, "2026-03-03");
+      }),
+  );
+
+  it.effect("projects the org's states onto Capy's status icons", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
-      const read = <A, E>(
-        atom: Atom.Atom<AsyncResult.AsyncResult<A, E>>,
-      ): Effect.Effect<A, E> => AtomRegistry.getResult(registry, atom);
-
-      const list = yield* read(listQuery);
-      assert.isAbove((list as ReadonlyArray<Issue>).length, 0);
-      assert.isTrue(codes(list).includes("ACME-1"));
-
-      const issue = (list as ReadonlyArray<Issue>)[0];
-      assert.isDefined(issue);
-      const detail = yield* read(
-        ApiClient.query("issues", "get", {
-          params: { orgId, code: issue?.code ?? "ACME-1" },
-        }),
+      const { states } = yield* AtomRegistry.getResult(
+        registry,
+        issueStatesAtom(orgId),
       );
-      assert.equal((detail as Issue).code, issue?.code);
-
-      const prefix = yield* read(
-        ApiClient.query("issues", "prefix", { params: { orgId } }),
+      const review = states.find((state) => state.name === "In review");
+      assert.deepStrictEqual(
+        [review?.icon, review?.color],
+        ["progress", "green"],
       );
-      assert.equal((prefix as { prefix: string }).prefix, "ACME");
-
-      const states = yield* read(
-        ApiClient.query("issues", "states", { params: { orgId } }),
+      assert.strictEqual(
+        states.find((state) => state.name === "Done")?.type,
+        "closed",
       );
-      assert.isAbove((states as ReadonlyArray<unknown>).length, 0);
-
-      const counts = yield* read(
-        ApiClient.query("issues", "stateCounts", { params: { orgId } }),
-      );
-      assert.isAbove(Object.keys(counts as object).length, 0);
-
-      const summaries = yield* read(
-        ApiClient.query("issues", "summariesByCode", {
-          params: { orgId },
-          query: { search: "checkout" },
-        }),
-      );
-      assert.isAbove((summaries as ReadonlyArray<unknown>).length, 0);
-
-      const summary = yield* read(
-        ApiClient.query("issues", "summary", {
-          params: { orgId, issueId: issue?.id ?? "iss_sample_1" },
-        }),
-      );
-      assert.equal((summary as { code: string }).code, issue?.code);
-
-      const relations = yield* read(
-        ApiClient.query("issues", "relations", {
-          params: { orgId, code: "ACME-2" },
-          query: {},
-        }),
-      );
-      assert.isAbove((relations as ReadonlyArray<unknown>).length, 0);
-
-      const fileUrl = yield* read(
-        ApiClient.query("issues", "fileUrl", {
-          params: {
-            orgId,
-            code: issue?.code ?? "ACME-1",
-            fileId: "file_sample_spec",
-          },
-          query: {},
-        }),
-      );
-      assert.include((fileUrl as { url: string }).url, "files.example.com");
-
-      const assignedCount = yield* read(
-        ApiClient.query("issues", "assignedCount", {
-          params: { orgId },
-          query: { userId: people.alex.id },
-        }),
-      );
-      assert.isAbove(assignedCount as number, 0);
-
-      const mentionCount = yield* read(
-        ApiClient.query("issues", "mentionCount", {
-          params: { orgId },
-          query: { userId: people.alex.id },
-        }),
-      );
-      assert.isAtLeast(mentionCount as number, 0);
-
-      const activity = yield* read(
-        ApiClient.query("issues", "captainActivity", {
-          params: { orgId, jamId: "jam_sample_cap1" },
-        }),
-      );
-      assert.isAbove(
-        (activity as { items: ReadonlyArray<Issue> }).items.length,
-        0,
-      );
-
-      const cursorPage = yield* read(
-        ApiClient.query("issues", "list", {
-          params: { orgId },
-          query: { cursor: "first" },
-        }),
-      );
-      assert.isAbove(
-        (cursorPage as { items: ReadonlyArray<Issue> }).items.length,
-        0,
-      );
-
-      const byPull = yield* read(
-        ApiClient.query("issues", "byPull", {
-          params: { orgId, pullId: "pr_sample_119" },
-        }),
-      );
-      assert.isAbove((byPull as ReadonlyArray<Issue>).length, 0);
     }),
   );
 
-  it.effect("create, update and state mutations refresh the list", () =>
+  it.effect("updates status by status key, due date and description", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
-      registry.mount(listQuery);
-      yield* AtomRegistry.getResult(registry, listQuery);
-
-      registry.set(create, {
-        params: { orgId },
-        payload: { title: "Audit checkout retries", priority: "high" },
-        reactivityKeys: [key],
+      const atom = issueAtom(orgId, "ACME-4");
+      registry.mount(atom);
+      yield* AtomRegistry.getResult(registry, atom);
+      registry.set(updateIssueAtom, {
+        params: { orgId, code: "ACME-4" },
+        payload: { status: "done", dueAt: "2026-04-01", description: "New" },
+        reactivityKeys: keys("ACME-4"),
       });
-      const created = yield* AtomRegistry.getResult(registry, create);
-      const afterCreate = yield* AtomRegistry.getResult(registry, listQuery, {
+      yield* AtomRegistry.getResult(registry, updateIssueAtom);
+      const after = yield* AtomRegistry.getResult(registry, atom, {
         suspendOnWaiting: true,
       });
-      assert.include(codes(afterCreate), (created as Issue).code);
-      assert.include(titles(afterCreate), "Audit checkout retries");
+      assert.strictEqual(after.issue.status, "done");
+      assert.strictEqual(after.issue.dueAt, "2026-04-01");
+      assert.strictEqual(after.description, "New");
 
-      registry.set(update, {
-        params: { orgId, code: (created as Issue).code },
-        payload: { title: "Audit checkout timeouts" },
-        reactivityKeys: [key],
+      registry.set(updateIssueAtom, {
+        params: { orgId, code: "ACME-4" },
+        payload: { dueAt: null },
+        reactivityKeys: keys("ACME-4"),
       });
-      yield* AtomRegistry.getResult(registry, update);
-      const afterUpdate = yield* AtomRegistry.getResult(registry, listQuery, {
+      const cleared = yield* AtomRegistry.getResult(registry, updateIssueAtom, {
         suspendOnWaiting: true,
       });
-      assert.include(titles(afterUpdate), "Audit checkout timeouts");
-
-      registry.set(setPrefix, {
-        params: { orgId },
-        payload: { prefix: "QA" },
-        reactivityKeys: [key],
-      });
-      const prefix = yield* AtomRegistry.getResult(registry, setPrefix);
-      assert.deepStrictEqual(prefix, { prefix: "QA" });
+      assert.isUndefined(cleared.issue.dueAt);
     }),
   );
 
-  it.effect("issue comment, link, relation and state mutations work", () =>
+  it.effect("links a pull request by repo and number", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
-      const mutate = <A, E, Args>(
-        endpoint:
-          | "comment"
-          | "createState"
-          | "updateState"
-          | "reorderStates"
-          | "link"
-          | "unlink"
-          | "relate"
-          | "unrelate"
-          | "markSeen"
-          | "markUnread"
-          | "setSubscription",
-        args: Args,
-      ) => {
-        const atom = ApiClient.mutation("issues", endpoint);
-        registry.set(atom, args as never);
-        return AtomRegistry.getResult(registry, atom) as Effect.Effect<A, E>;
-      };
-
-      const posted = yield* mutate<{ id: string }, never, unknown>("comment", {
+      registry.set(linkIssueAtom, {
         params: { orgId, code: "ACME-2" },
-        payload: { body: "Added a regression test." },
+        payload: { ref: "acme/web#131" },
+        reactivityKeys: keys("ACME-2"),
       });
-      assert.isString(posted.id);
-
-      const state = yield* mutate<{ id: string }, never, unknown>(
-        "createState",
-        {
-          params: { orgId },
-          payload: { name: "Blocked", category: "started", color: "warning" },
-        },
+      const linked = yield* AtomRegistry.getResult(registry, linkIssueAtom, {
+        suspendOnWaiting: true,
+      });
+      assert.deepStrictEqual(
+        linked.pulls.map((pull) => pull.prNumber),
+        [131],
       );
-      const stateId = state.id;
+      assert.strictEqual(linked.pulls[0]?.state, "draft");
+    }),
+  );
 
-      const renamed = yield* mutate<{ name: string }, never, unknown>(
-        "updateState",
-        {
-          params: { orgId, stateId },
-          payload: { name: "Blocked on review" },
-        },
+  it.effect("relates and unrelates issues on both sides", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      registry.set(relateIssueAtom, {
+        params: { orgId, code: "ACME-6" },
+        payload: { relation: "blocked_by", issue: "ACME-7" },
+        reactivityKeys: keys("ACME-6"),
+      });
+      const related = yield* AtomRegistry.getResult(registry, relateIssueAtom, {
+        suspendOnWaiting: true,
+      });
+      assert.deepStrictEqual(
+        related.issue.blockedBy?.map((ref) => ref.code),
+        ["ACME-7"],
       );
-      assert.equal(renamed.name, "Blocked on review");
-
-      const reordered = yield* mutate<
-        ReadonlyArray<{ id: string }>,
-        never,
-        unknown
-      >("reorderStates", {
-        params: { orgId },
-        payload: { stateIds: [stateId] },
-      });
-      assert.equal(reordered[0]?.id, stateId);
-
-      const link = yield* mutate<{ id: string }, never, unknown>("link", {
-        params: { orgId, code: "ACME-2" },
-        payload: { url: "https://example.com/spec", title: "Spec" },
-      });
-      const unlinked = yield* mutate<{ ok: boolean }, never, unknown>(
-        "unlink",
-        {
-          params: { orgId, code: "ACME-2" },
-          query: { linkId: link.id },
-        },
+      const other = yield* AtomRegistry.getResult(
+        registry,
+        issueAtom(orgId, "ACME-7"),
       );
-      assert.isTrue(unlinked.ok);
-
-      const relation = yield* mutate<{ id: string }, never, unknown>("relate", {
-        params: { orgId, code: "ACME-2" },
-        payload: { relatedCode: "ACME-3", kind: "related" },
-      });
-      const unrelate = yield* mutate<{ ok: boolean }, never, unknown>(
-        "unrelate",
-        {
-          params: { orgId, code: "ACME-2" },
-          query: { relationId: relation.id },
-        },
+      assert.deepStrictEqual(
+        other.issue.blocking?.map((ref) => ref.code),
+        ["ACME-6"],
       );
-      assert.isTrue(unrelate.ok);
 
-      const seen = yield* mutate<{ ok: boolean }, never, unknown>("markSeen", {
-        params: { orgId, code: "ACME-2" },
+      registry.set(unrelateIssueAtom, {
+        params: { orgId, code: "ACME-7" },
+        payload: { issue: "ACME-6" },
+        reactivityKeys: keys("ACME-7"),
       });
-      assert.isTrue(seen.ok);
-      const unread = yield* mutate<{ ok: boolean }, never, unknown>(
-        "markUnread",
-        {
-          params: { orgId, code: "ACME-2" },
-        },
+      const unrelated = yield* AtomRegistry.getResult(
+        registry,
+        unrelateIssueAtom,
+        { suspendOnWaiting: true },
       );
-      assert.isTrue(unread.ok);
-      const subscription = yield* mutate<
-        { subscribed: boolean },
-        never,
-        unknown
-      >("setSubscription", {
-        params: { orgId, code: "ACME-2" },
-        payload: { subscribed: true },
-      });
-      assert.isTrue(subscription.subscribed);
-
-      assert.equal(threads.checkoutTest.number, 41);
+      assert.strictEqual(unrelated.relations?.length, 0);
     }),
   );
 });
