@@ -64,7 +64,7 @@ export function TileSurface({
   const surface = useRef<HTMLDivElement | null>(null);
   const attach = (el: HTMLDivElement | null) => {
     surface.current = el;
-    assignRef(ref, el);
+    return assignRef(ref, el);
   };
   const classes = cx("relative min-h-0 min-w-0 flex-1", className);
 
@@ -160,8 +160,8 @@ export function TileSurface({
 }
 
 function assignRef<T>(ref: Ref<T> | undefined, value: T | null) {
-  if (typeof ref === "function") ref(value);
-  else if (ref) ref.current = value;
+  if (typeof ref === "function") return ref(value);
+  if (ref) ref.current = value;
 }
 
 export type TileLeafProps = {
@@ -438,15 +438,15 @@ export function TileDivider({
           "hover:before:opacity-100 hover:before:delay-hover-intent focus-visible:before:opacity-100 data-dragging:before:opacity-100 data-dragging:before:delay-0 motion-reduce:before:transition-none",
           "pointer-coarse:after:absolute pointer-coarse:after:top-1/2 pointer-coarse:after:left-1/2 pointer-coarse:after:-translate-x-1/2 pointer-coarse:after:-translate-y-1/2",
           row
-            ? "inset-y-0 -left-1 w-2 cursor-col-resize before:inset-y-0 before:left-[0.15625rem] before:w-[0.1875rem] pointer-coarse:after:h-full pointer-coarse:after:w-11"
-            : "inset-x-0 -top-1 h-2 cursor-row-resize before:inset-x-0 before:top-[0.15625rem] before:h-[0.1875rem] pointer-coarse:after:h-11 pointer-coarse:after:w-full",
+            ? "inset-y-0 -left-1 w-2 cursor-col-resize before:inset-y-0 before:left-[calc(var(--spacing)*0.625)] before:w-[calc(var(--spacing)*0.75)] pointer-coarse:after:h-full pointer-coarse:after:w-11"
+            : "inset-x-0 -top-1 h-2 cursor-row-resize before:inset-x-0 before:top-[calc(var(--spacing)*0.625)] before:h-[calc(var(--spacing)*0.75)] pointer-coarse:after:h-11 pointer-coarse:after:w-full",
         )}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
         onLostPointerCapture={() => end(true)}
-        onDoubleClick={() => onCommit(0.5)}
+        onDoubleClick={() => onCommit(clamp(0.5, span()?.size ?? 0))}
         onKeyDown={onKeyDown}
       />
     </div>
