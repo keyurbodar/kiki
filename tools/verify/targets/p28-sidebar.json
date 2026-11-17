@@ -1,12 +1,7 @@
 {
   "matrix": {
-    "theme": [
-      "default"
-    ],
-    "scheme": [
-      "dark",
-      "light"
-    ]
+    "theme": ["default"],
+    "scheme": ["dark", "light"]
   },
   "defaults": {
     "maxMismatch": 2
@@ -75,16 +70,7 @@
       "route": "/pulls",
       "state": "sidebar collapsed with mod+B",
       "viewport": "1440x818",
-      "steps": [
-        [
-          "press",
-          "Control+b"
-        ],
-        [
-          "wait",
-          "500"
-        ]
-      ],
+      "steps": [["press", "Control+b"], ["wait", "500"]],
       "expect": {
         "[data-slot=sidebar-gap]": {
           "width": "0px"
