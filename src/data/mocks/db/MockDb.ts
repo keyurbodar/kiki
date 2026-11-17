@@ -57,6 +57,7 @@ export type MockTables = {
   /** Threads any group can resolve: the fixture threads plus every jam a mock creates. */
   readonly jams: Ref.Ref<ReadonlyArray<JamRow>>;
   readonly orgState: OrgState;
+  readonly hiddenThemes: Ref.Ref<ReadonlyArray<string>>;
 };
 
 let sequence = 0;
@@ -90,13 +91,15 @@ export class MockDb extends Context.Service<MockDb, MockTables>()(
         })),
       );
       const orgState = yield* makeOrgState;
+      const hiddenThemes = yield* Ref.make<ReadonlyArray<string>>([]);
       return MockDb.of({
         ...(Object.fromEntries(entries) as unknown as Omit<
           MockTables,
-          "jams" | "orgState"
+          "jams" | "orgState" | "hiddenThemes"
         >),
         jams,
         orgState,
+        hiddenThemes,
       });
     }),
   );
