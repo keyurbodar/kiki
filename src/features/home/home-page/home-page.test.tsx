@@ -69,4 +69,12 @@ describe("/new", () => {
     await waitFor(() => expect(composerSlot()).not.toBeNull());
     expect(screen.queryByRole("button", { name: "Add project" })).toBeNull();
   });
+
+  it("mounts the fabric layer ahead of the wallpaper backdrop", async () => {
+    await renderHome();
+    await waitFor(() => expect(composerSlot()).not.toBeNull());
+    const layer = document.querySelector(".pointer-events-none.fixed.inset-0");
+    expect(layer).not.toBeNull();
+    expect(layer?.querySelector(".bg-panel")).not.toBeNull();
+  });
 });
