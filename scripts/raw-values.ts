@@ -38,5 +38,6 @@ export function findRawValues(source: string): RawValueHit[] {
 export const isGuarded = (path: string) =>
   /\.(css|ts|tsx)$/.test(path) &&
   !path.startsWith("src/tokens/") &&
+  !path.startsWith("src/data/") &&
   !/\.test\.tsx?$/.test(path) &&
   path !== "src/routeTree.gen.ts";

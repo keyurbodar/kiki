@@ -1,6 +1,6 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useLayoutEffect, useState } from "react";
-import { ICON_IDS, Icon } from "../primitives/icon";
+import { ICON_IDS, Icon } from "@/primitives/icon";
 import {
   ANIMATIONS,
   COLOR_GROUPS,
@@ -15,7 +15,7 @@ import {
   TEXT_SIZES,
   THEME_VARIABLES,
   Z_INDEX,
-} from "../tokens/catalog";
+} from "@/tokens/catalog";
 import {
   applyColorMode,
   applyColorTheme,
@@ -23,7 +23,7 @@ import {
   COLOR_THEMES,
   type ColorMode,
   type ColorTheme,
-} from "../tokens/theme";
+} from "@/tokens/theme";
 
 type Search = { theme: ColorTheme; mode: ColorMode };
 

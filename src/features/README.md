@@ -1,3 +1,3 @@
 # features
 
-Screen-level code grouped by product area (threads, settings, explore, drive, ...), mirroring Capy's `features/<area>/` layout. A feature owns its state (effect-atom), its API calls (Effect HttpApi client against mocked services) and the components only it uses. Features compose `src/components` and `src/primitives` and never hold raw values: `bun run lint` fails on hex, px or ms outside `src/tokens`.
+Screens and feature-owned building blocks, one directory per screen group, then one directory per unit inside it. Each group README names its owning work package (parity map §3). Route files import from here; nothing here imports from `src/routes/`.

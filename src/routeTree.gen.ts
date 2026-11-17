@@ -9,55 +9,2031 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as Char91__tokensChar93RouteImport } from './routes/[__tokens]'
+import { Route as AppRouteRouteImport } from './routes/_app/route'
+import { Route as AuthRouteRouteImport } from './routes/_auth/route'
+import { Route as DesignRouteImport } from './routes/design'
+import { Route as DesktopRouteImport } from './routes/desktop'
+import { Route as DitherCoverRouteImport } from './routes/dither-cover'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as VmHandoffRouteImport } from './routes/vm-handoff'
+import { Route as WelcomeRouteImport } from './routes/welcome'
+import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppSplatRouteImport } from './routes/_app/$'
+import { Route as AppAutomationsRouteImport } from './routes/_app/automations'
+import { Route as AppDriveRouteImport } from './routes/_app/drive'
+import { Route as AppExploreRouteRouteImport } from './routes/_app/explore/route'
+import { Route as AppInvitesRouteImport } from './routes/_app/invites'
+import { Route as AppIssuesRouteImport } from './routes/_app/issues'
+import { Route as AppMemoryRouteImport } from './routes/_app/memory'
+import { Route as AppNewRouteImport } from './routes/_app/new'
+import { Route as AppProjectsRouteImport } from './routes/_app/projects'
+import { Route as AppPullsRouteImport } from './routes/_app/pulls'
+import { Route as AppSettingsRouteRouteImport } from './routes/_app/settings/route'
+import { Route as AppThreadsRouteImport } from './routes/_app/threads'
+import { Route as AppVolumesRouteImport } from './routes/_app/volumes'
+import { Route as DesktopPasskeyRouteImport } from './routes/desktop_/passkey'
+import { Route as EmailProgramRouteImport } from './routes/email/$program'
+import { Route as LinearLinkRouteImport } from './routes/linear/link'
+import { Route as OfferOfferIdRouteImport } from './routes/offer/$offerId'
+import { Route as PCodeRouteImport } from './routes/p/$code'
+import { Route as PromotionPromotionIdRouteImport } from './routes/promotion/$promotionId'
+import { Route as SShareIdRouteImport } from './routes/s/$shareId'
+import { Route as SecurityNotMeRouteImport } from './routes/security/not-me'
+import { Route as SlackLinkRouteImport } from './routes/slack/link'
+import { Route as AppAutomationAutomationIdRouteImport } from './routes/_app/automation/$automationId'
+import { Route as AppAutomationNewRouteImport } from './routes/_app/automation/new'
+import { Route as AppDriveScopeRouteImport } from './routes/_app/drive_/$scope'
+import { Route as AppDriveSharedRouteImport } from './routes/_app/drive_/shared'
+import { Route as AppExploreIndexRouteImport } from './routes/_app/explore/index'
+import { Route as AppIssuesCodeRouteImport } from './routes/_app/issues_/$code'
+import { Route as AppSettingsIndexRouteImport } from './routes/_app/settings/index'
+import { Route as AppSettingsApiRouteImport } from './routes/_app/settings/api'
+import { Route as AppSettingsAppearanceRouteImport } from './routes/_app/settings/appearance'
+import { Route as AppSettingsCapyRouteImport } from './routes/_app/settings/capy'
+import { Route as AppSettingsCloudCredentialsRouteImport } from './routes/_app/settings/cloud-credentials'
+import { Route as AppSettingsDevicesRouteImport } from './routes/_app/settings/devices'
+import { Route as AppSettingsEnvironmentVariablesRouteImport } from './routes/_app/settings/environment-variables'
+import { Route as AppSettingsExperimentsRouteImport } from './routes/_app/settings/experiments'
+import { Route as AppSettingsGeneralRouteImport } from './routes/_app/settings/general'
+import { Route as AppSettingsGitRouteImport } from './routes/_app/settings/git'
+import { Route as AppSettingsImportRouteImport } from './routes/_app/settings/import'
+import { Route as AppSettingsInstructionsRouteImport } from './routes/_app/settings/instructions'
+import { Route as AppSettingsIntegrationsRouteImport } from './routes/_app/settings/integrations'
+import { Route as AppSettingsMcpRouteImport } from './routes/_app/settings/mcp'
+import { Route as AppSettingsModelsRouteImport } from './routes/_app/settings/models'
+import { Route as AppSettingsNotificationsRouteImport } from './routes/_app/settings/notifications'
+import { Route as AppSettingsProfileRouteImport } from './routes/_app/settings/profile'
+import { Route as AppSettingsProjectsRouteImport } from './routes/_app/settings/projects'
+import { Route as AppSettingsReferralsRouteImport } from './routes/_app/settings/referrals'
+import { Route as AppSettingsReviewRouteImport } from './routes/_app/settings/review'
+import { Route as AppSettingsSecurityRouteImport } from './routes/_app/settings/security'
+import { Route as AppSettingsSetupAndSnapshotsRouteImport } from './routes/_app/settings/setup-and-snapshots'
+import { Route as AppSettingsShortcutsRouteImport } from './routes/_app/settings/shortcuts'
+import { Route as AppSettingsSkillsRouteImport } from './routes/_app/settings/skills'
+import { Route as AppSettingsThreadsRouteImport } from './routes/_app/settings/threads'
+import { Route as AppSettingsVolumesRouteImport } from './routes/_app/settings/volumes'
+import { Route as AppThreadThreadIdRouteImport } from './routes/_app/thread/$threadId'
+import { Route as AppVolumesScopeRouteImport } from './routes/_app/volumes_/$scope'
+import { Route as AuthSignInIndexRouteImport } from './routes/_auth/sign-in/index'
+import { Route as AuthSignInSsoCallbackRouteImport } from './routes/_auth/sign-in/sso-callback'
+import { Route as AuthSignInVerifyRouteImport } from './routes/_auth/sign-in/verify'
+import { Route as AuthSignUpIndexRouteImport } from './routes/_auth/sign-up/index'
+import { Route as AuthSignUpSsoCallbackRouteImport } from './routes/_auth/sign-up/sso-callback'
+import { Route as AuthSignUpVerifyRouteImport } from './routes/_auth/sign-up/verify'
+import { Route as WebCallbacksGithubRouteImport } from './routes/web/callbacks/github'
+import { Route as WebCallbacksLinearRouteImport } from './routes/web/callbacks/linear'
+import { Route as WebCallbacksMcpRouteImport } from './routes/web/callbacks/mcp'
+import { Route as WebCallbacksPaperRouteImport } from './routes/web/callbacks/paper'
+import { Route as WebCallbacksSlackRouteImport } from './routes/web/callbacks/slack'
+import { Route as WebCallbacksXRouteImport } from './routes/web/callbacks/x'
+import { Route as AppAutomationAutomationIdDriveRouteImport } from './routes/_app/automation/$automationId_/drive'
+import { Route as AppAutomationAutomationIdVolumeRouteImport } from './routes/_app/automation/$automationId_/volume'
+import { Route as AppDriveCaptainJamIdRouteImport } from './routes/_app/drive_/captain/$jamId'
+import { Route as AppDriveShareShareIdRouteImport } from './routes/_app/drive_/share/$shareId'
+import { Route as AppExploreKindIndexRouteImport } from './routes/_app/explore/$kind/index'
+import { Route as AppExploreKindSlugRouteImport } from './routes/_app/explore/$kind/$slug'
+import { Route as AppProjectProjectIdIndexRouteImport } from './routes/_app/project/$projectId/index'
+import { Route as AppProjectProjectIdDevEnvironmentRouteImport } from './routes/_app/project/$projectId/dev-environment'
+import { Route as AppProjectProjectIdEnvironmentVariablesRouteImport } from './routes/_app/project/$projectId/environment-variables'
+import { Route as AppProjectProjectIdSettingsRouteImport } from './routes/_app/project/$projectId/settings'
+import { Route as AppSettingsAppearanceThemesRouteImport } from './routes/_app/settings/appearance_/themes'
+import { Route as AppSettingsCloudCredentialsAwsRouteImport } from './routes/_app/settings/cloud-credentials_/aws'
+import { Route as AppSettingsCloudCredentialsAzureRouteImport } from './routes/_app/settings/cloud-credentials_/azure'
+import { Route as AppSettingsCloudCredentialsGcpRouteImport } from './routes/_app/settings/cloud-credentials_/gcp'
+import { Route as AppSettingsCloudCredentialsOidcRouteImport } from './routes/_app/settings/cloud-credentials_/oidc'
+import { Route as AppSettingsCloudCredentialsVaultRouteImport } from './routes/_app/settings/cloud-credentials_/vault'
+import { Route as AppSettingsDevicesDeviceIdRouteImport } from './routes/_app/settings/devices_/$deviceId'
+import { Route as AppSettingsDevicesLinkRouteImport } from './routes/_app/settings/devices_/link'
+import { Route as AppSettingsDevicesThisRouteImport } from './routes/_app/settings/devices_/this'
+import { Route as AppSettingsIntegrationsCloudAccessRouteImport } from './routes/_app/settings/integrations_/cloud-access'
+import { Route as AppSettingsIntegrationsGithubRouteImport } from './routes/_app/settings/integrations_/github'
+import { Route as AppSettingsIntegrationsLinearRouteImport } from './routes/_app/settings/integrations_/linear'
+import { Route as AppSettingsIntegrationsMcpRouteImport } from './routes/_app/settings/integrations_/mcp'
+import { Route as AppSettingsIntegrationsPaperRouteImport } from './routes/_app/settings/integrations_/paper'
+import { Route as AppSettingsIntegrationsRevylRouteImport } from './routes/_app/settings/integrations_/revyl'
+import { Route as AppSettingsIntegrationsSlackRouteImport } from './routes/_app/settings/integrations_/slack'
+import { Route as AppSettingsIntegrationsTailscaleRouteImport } from './routes/_app/settings/integrations_/tailscale'
+import { Route as AppSettingsMcpServerIdRouteImport } from './routes/_app/settings/mcp_/$serverId'
+import { Route as AppSettingsMcpMarketplaceRouteImport } from './routes/_app/settings/mcp_/marketplace'
+import { Route as AppSettingsMcpNewRouteImport } from './routes/_app/settings/mcp_/new'
+import { Route as AppSettingsNotificationsDeviceRouteImport } from './routes/_app/settings/notifications_/device'
+import { Route as AppSettingsNotificationsEmailRouteImport } from './routes/_app/settings/notifications_/email'
+import { Route as AppSettingsNotificationsSlackRouteImport } from './routes/_app/settings/notifications_/slack'
+import { Route as AppSettingsOrgActivityRouteImport } from './routes/_app/settings/org/activity'
+import { Route as AppSettingsOrgAuditLogRouteImport } from './routes/_app/settings/org/audit-log'
+import { Route as AppSettingsOrgBillingRouteImport } from './routes/_app/settings/org/billing'
+import { Route as AppSettingsOrgGeneralRouteImport } from './routes/_app/settings/org/general'
+import { Route as AppSettingsOrgIdentityRouteImport } from './routes/_app/settings/org/identity'
+import { Route as AppSettingsOrgIssueStatesRouteImport } from './routes/_app/settings/org/issue-states'
+import { Route as AppSettingsOrgMembersRouteImport } from './routes/_app/settings/org/members'
+import { Route as AppSettingsOrgUsageRouteImport } from './routes/_app/settings/org/usage'
+import { Route as AppSettingsProjectsProjectIdRouteImport } from './routes/_app/settings/projects_/$projectId'
+import { Route as AppSettingsReviewAgentConfigRouteImport } from './routes/_app/settings/review_/agent-config'
+import { Route as AppSettingsReviewRepositoriesRouteImport } from './routes/_app/settings/review_/repositories'
+import { Route as AppSettingsVolumesScopeRouteImport } from './routes/_app/settings/volumes_/$scope'
+import { Route as AppDiagramThreadIdMessageIdIndexRouteImport } from './routes/_app/diagram/$threadId/$messageId/$index'
+import { Route as AppProjectProjectIdDriveScopeRouteImport } from './routes/_app/project/$projectId/drive/$scope'
+import { Route as AppProjectProjectIdJamJamIdRouteImport } from './routes/_app/project/$projectId/jam/$jamId'
+import { Route as AppProjectProjectIdMcpServerIdRouteImport } from './routes/_app/project/$projectId/mcp_/$serverId'
+import { Route as AppProjectProjectIdMcpNewRouteImport } from './routes/_app/project/$projectId/mcp_/new'
+import { Route as AppProjectProjectIdThreadThreadIdRouteImport } from './routes/_app/project/$projectId/thread/$threadId'
+import { Route as AppProjectProjectIdVolumeScopeRouteImport } from './routes/_app/project/$projectId/volume/$scope'
+import { Route as AppPullOwnerRepoPrNumberRouteImport } from './routes/_app/pull/$owner/$repo/$prNumber'
+import { Route as AppSettingsApiKeyKeyIdRouteImport } from './routes/_app/settings/api_/key/$keyId'
+import { Route as AppSettingsApiServiceUserServiceUserIdRouteImport } from './routes/_app/settings/api_/service-user/$serviceUserId'
+import { Route as AppSettingsAppearanceThemesThemeIdRouteImport } from './routes/_app/settings/appearance_/themes_/$themeId'
+import { Route as AppSettingsCloudCredentialsAwsTargetIdRouteImport } from './routes/_app/settings/cloud-credentials_/aws_/$targetId'
+import { Route as AppSettingsCloudCredentialsAwsNewRouteImport } from './routes/_app/settings/cloud-credentials_/aws_/new'
+import { Route as AppSettingsCloudCredentialsAzureTargetIdRouteImport } from './routes/_app/settings/cloud-credentials_/azure_/$targetId'
+import { Route as AppSettingsCloudCredentialsAzureNewRouteImport } from './routes/_app/settings/cloud-credentials_/azure_/new'
+import { Route as AppSettingsCloudCredentialsGcpTargetIdRouteImport } from './routes/_app/settings/cloud-credentials_/gcp_/$targetId'
+import { Route as AppSettingsCloudCredentialsGcpNewRouteImport } from './routes/_app/settings/cloud-credentials_/gcp_/new'
+import { Route as AppSettingsCloudCredentialsOidcTargetIdRouteImport } from './routes/_app/settings/cloud-credentials_/oidc_/$targetId'
+import { Route as AppSettingsCloudCredentialsOidcNewRouteImport } from './routes/_app/settings/cloud-credentials_/oidc_/new'
+import { Route as AppSettingsCloudCredentialsVaultTargetIdRouteImport } from './routes/_app/settings/cloud-credentials_/vault_/$targetId'
+import { Route as AppSettingsCloudCredentialsVaultNewRouteImport } from './routes/_app/settings/cloud-credentials_/vault_/new'
+import { Route as AppSettingsIntegrationsCloudAccessSplatRouteImport } from './routes/_app/settings/integrations_/cloud-access_/$'
+import { Route as AppSettingsIntegrationsMcpServerIdRouteImport } from './routes/_app/settings/integrations_/mcp_/$serverId'
+import { Route as AppSettingsIntegrationsMcpNewRouteImport } from './routes/_app/settings/integrations_/mcp_/new'
+import { Route as AppSettingsMcpAddVersionIdRouteImport } from './routes/_app/settings/mcp_/add/$versionId'
+import { Route as AppSettingsMcpMarketplaceNameRouteImport } from './routes/_app/settings/mcp_/marketplace_/$name'
+import { Route as AppSettingsMcpPluginsInstallationIdRouteImport } from './routes/_app/settings/mcp_/plugins/$installationId'
+import { Route as AppSettingsProjectsProjectIdDevEnvironmentRouteImport } from './routes/_app/settings/projects_/$projectId_/dev-environment'
+import { Route as AppSettingsProjectsProjectIdEnvironmentVariablesRouteImport } from './routes/_app/settings/projects_/$projectId_/environment-variables'
+import { Route as AppProjectProjectIdDevEnvironmentBuildsBuildIdRouteImport } from './routes/_app/project/$projectId/dev-environment_/builds/$buildId'
+import { Route as AppSettingsMcpPluginsInstallationIdUpdateRouteImport } from './routes/_app/settings/mcp_/plugins/$installationId_/update'
+import { Route as AppSettingsProjectsProjectIdMcpServerIdRouteImport } from './routes/_app/settings/projects_/$projectId_/mcp_/$serverId'
+import { Route as AppSettingsProjectsProjectIdMcpNewRouteImport } from './routes/_app/settings/projects_/$projectId_/mcp_/new'
+import { Route as AppProjectProjectIdDevEnvironmentRepositoriesOwnerRepoRouteImport } from './routes/_app/project/$projectId/dev-environment_/repositories/$owner/$repo'
+import { Route as AppProjectProjectIdPullOwnerRepoPrNumberRouteImport } from './routes/_app/project/$projectId/pull/$owner/$repo/$prNumber'
+import { Route as AppSettingsProjectsProjectIdDevEnvironmentBuildsBuildIdRouteImport } from './routes/_app/settings/projects_/$projectId_/dev-environment_/builds/$buildId'
+import { Route as AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRouteImport } from './routes/_app/settings/projects_/$projectId_/dev-environment_/repositories/$owner/$repo'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const Char91__tokensChar93Route = Char91__tokensChar93RouteImport.update({
   id: '/__tokens',
   path: '/__tokens',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppRouteRoute = AppRouteRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRouteRoute = AuthRouteRouteImport.update({
+  id: '/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesignRoute = DesignRouteImport.update({
+  id: '/design',
+  path: '/design',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesktopRoute = DesktopRouteImport.update({
+  id: '/desktop',
+  path: '/desktop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DitherCoverRoute = DitherCoverRouteImport.update({
+  id: '/dither-cover',
+  path: '/dither-cover',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VmHandoffRoute = VmHandoffRouteImport.update({
+  id: '/vm-handoff',
+  path: '/vm-handoff',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppSplatRoute = AppSplatRouteImport.update({
+  id: '/$',
+  path: '/$',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppAutomationsRoute = AppAutomationsRouteImport.update({
+  id: '/automations',
+  path: '/automations',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppDriveRoute = AppDriveRouteImport.update({
+  id: '/drive',
+  path: '/drive',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppExploreRouteRoute = AppExploreRouteRouteImport.update({
+  id: '/explore',
+  path: '/explore',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppInvitesRoute = AppInvitesRouteImport.update({
+  id: '/invites',
+  path: '/invites',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppIssuesRoute = AppIssuesRouteImport.update({
+  id: '/issues',
+  path: '/issues',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppMemoryRoute = AppMemoryRouteImport.update({
+  id: '/memory',
+  path: '/memory',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppNewRoute = AppNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppProjectsRoute = AppProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppPullsRoute = AppPullsRouteImport.update({
+  id: '/pulls',
+  path: '/pulls',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppSettingsRouteRoute = AppSettingsRouteRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppThreadsRoute = AppThreadsRouteImport.update({
+  id: '/threads',
+  path: '/threads',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppVolumesRoute = AppVolumesRouteImport.update({
+  id: '/volumes',
+  path: '/volumes',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const DesktopPasskeyRoute = DesktopPasskeyRouteImport.update({
+  id: '/desktop_/passkey',
+  path: '/desktop/passkey',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmailProgramRoute = EmailProgramRouteImport.update({
+  id: '/email/$program',
+  path: '/email/$program',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LinearLinkRoute = LinearLinkRouteImport.update({
+  id: '/linear/link',
+  path: '/linear/link',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OfferOfferIdRoute = OfferOfferIdRouteImport.update({
+  id: '/offer/$offerId',
+  path: '/offer/$offerId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PCodeRoute = PCodeRouteImport.update({
+  id: '/p/$code',
+  path: '/p/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PromotionPromotionIdRoute = PromotionPromotionIdRouteImport.update({
+  id: '/promotion/$promotionId',
+  path: '/promotion/$promotionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SShareIdRoute = SShareIdRouteImport.update({
+  id: '/s/$shareId',
+  path: '/s/$shareId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SecurityNotMeRoute = SecurityNotMeRouteImport.update({
+  id: '/security/not-me',
+  path: '/security/not-me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SlackLinkRoute = SlackLinkRouteImport.update({
+  id: '/slack/link',
+  path: '/slack/link',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppAutomationAutomationIdRoute =
+  AppAutomationAutomationIdRouteImport.update({
+    id: '/automation/$automationId',
+    path: '/automation/$automationId',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppAutomationNewRoute = AppAutomationNewRouteImport.update({
+  id: '/automation/new',
+  path: '/automation/new',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppDriveScopeRoute = AppDriveScopeRouteImport.update({
+  id: '/drive_/$scope',
+  path: '/drive/$scope',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppDriveSharedRoute = AppDriveSharedRouteImport.update({
+  id: '/drive_/shared',
+  path: '/drive/shared',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppExploreIndexRoute = AppExploreIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppExploreRouteRoute,
+} as any)
+const AppIssuesCodeRoute = AppIssuesCodeRouteImport.update({
+  id: '/issues_/$code',
+  path: '/issues/$code',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsApiRoute = AppSettingsApiRouteImport.update({
+  id: '/api',
+  path: '/api',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsAppearanceRoute = AppSettingsAppearanceRouteImport.update({
+  id: '/appearance',
+  path: '/appearance',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsCapyRoute = AppSettingsCapyRouteImport.update({
+  id: '/capy',
+  path: '/capy',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsCloudCredentialsRoute =
+  AppSettingsCloudCredentialsRouteImport.update({
+    id: '/cloud-credentials',
+    path: '/cloud-credentials',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsDevicesRoute = AppSettingsDevicesRouteImport.update({
+  id: '/devices',
+  path: '/devices',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsEnvironmentVariablesRoute =
+  AppSettingsEnvironmentVariablesRouteImport.update({
+    id: '/environment-variables',
+    path: '/environment-variables',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsExperimentsRoute = AppSettingsExperimentsRouteImport.update({
+  id: '/experiments',
+  path: '/experiments',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsGeneralRoute = AppSettingsGeneralRouteImport.update({
+  id: '/general',
+  path: '/general',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsGitRoute = AppSettingsGitRouteImport.update({
+  id: '/git',
+  path: '/git',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsImportRoute = AppSettingsImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsInstructionsRoute = AppSettingsInstructionsRouteImport.update({
+  id: '/instructions',
+  path: '/instructions',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsIntegrationsRoute = AppSettingsIntegrationsRouteImport.update({
+  id: '/integrations',
+  path: '/integrations',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsMcpRoute = AppSettingsMcpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsModelsRoute = AppSettingsModelsRouteImport.update({
+  id: '/models',
+  path: '/models',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsNotificationsRoute =
+  AppSettingsNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsProfileRoute = AppSettingsProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsProjectsRoute = AppSettingsProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsReferralsRoute = AppSettingsReferralsRouteImport.update({
+  id: '/referrals',
+  path: '/referrals',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsReviewRoute = AppSettingsReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsSecurityRoute = AppSettingsSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsSetupAndSnapshotsRoute =
+  AppSettingsSetupAndSnapshotsRouteImport.update({
+    id: '/setup-and-snapshots',
+    path: '/setup-and-snapshots',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsShortcutsRoute = AppSettingsShortcutsRouteImport.update({
+  id: '/shortcuts',
+  path: '/shortcuts',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsSkillsRoute = AppSettingsSkillsRouteImport.update({
+  id: '/skills',
+  path: '/skills',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsThreadsRoute = AppSettingsThreadsRouteImport.update({
+  id: '/threads',
+  path: '/threads',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsVolumesRoute = AppSettingsVolumesRouteImport.update({
+  id: '/volumes',
+  path: '/volumes',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppThreadThreadIdRoute = AppThreadThreadIdRouteImport.update({
+  id: '/thread/$threadId',
+  path: '/thread/$threadId',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppVolumesScopeRoute = AppVolumesScopeRouteImport.update({
+  id: '/volumes_/$scope',
+  path: '/volumes/$scope',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AuthSignInIndexRoute = AuthSignInIndexRouteImport.update({
+  id: '/sign-in/',
+  path: '/sign-in/',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+const AuthSignInSsoCallbackRoute = AuthSignInSsoCallbackRouteImport.update({
+  id: '/sign-in/sso-callback',
+  path: '/sign-in/sso-callback',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+const AuthSignInVerifyRoute = AuthSignInVerifyRouteImport.update({
+  id: '/sign-in/verify',
+  path: '/sign-in/verify',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+const AuthSignUpIndexRoute = AuthSignUpIndexRouteImport.update({
+  id: '/sign-up/',
+  path: '/sign-up/',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+const AuthSignUpSsoCallbackRoute = AuthSignUpSsoCallbackRouteImport.update({
+  id: '/sign-up/sso-callback',
+  path: '/sign-up/sso-callback',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+const AuthSignUpVerifyRoute = AuthSignUpVerifyRouteImport.update({
+  id: '/sign-up/verify',
+  path: '/sign-up/verify',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+const WebCallbacksGithubRoute = WebCallbacksGithubRouteImport.update({
+  id: '/web/callbacks/github',
+  path: '/web/callbacks/github',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WebCallbacksLinearRoute = WebCallbacksLinearRouteImport.update({
+  id: '/web/callbacks/linear',
+  path: '/web/callbacks/linear',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WebCallbacksMcpRoute = WebCallbacksMcpRouteImport.update({
+  id: '/web/callbacks/mcp',
+  path: '/web/callbacks/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WebCallbacksPaperRoute = WebCallbacksPaperRouteImport.update({
+  id: '/web/callbacks/paper',
+  path: '/web/callbacks/paper',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WebCallbacksSlackRoute = WebCallbacksSlackRouteImport.update({
+  id: '/web/callbacks/slack',
+  path: '/web/callbacks/slack',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WebCallbacksXRoute = WebCallbacksXRouteImport.update({
+  id: '/web/callbacks/x',
+  path: '/web/callbacks/x',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppAutomationAutomationIdDriveRoute =
+  AppAutomationAutomationIdDriveRouteImport.update({
+    id: '/automation/$automationId_/drive',
+    path: '/automation/$automationId/drive',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppAutomationAutomationIdVolumeRoute =
+  AppAutomationAutomationIdVolumeRouteImport.update({
+    id: '/automation/$automationId_/volume',
+    path: '/automation/$automationId/volume',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppDriveCaptainJamIdRoute = AppDriveCaptainJamIdRouteImport.update({
+  id: '/drive_/captain/$jamId',
+  path: '/drive/captain/$jamId',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppDriveShareShareIdRoute = AppDriveShareShareIdRouteImport.update({
+  id: '/drive_/share/$shareId',
+  path: '/drive/share/$shareId',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppExploreKindIndexRoute = AppExploreKindIndexRouteImport.update({
+  id: '/$kind/',
+  path: '/$kind/',
+  getParentRoute: () => AppExploreRouteRoute,
+} as any)
+const AppExploreKindSlugRoute = AppExploreKindSlugRouteImport.update({
+  id: '/$kind/$slug',
+  path: '/$kind/$slug',
+  getParentRoute: () => AppExploreRouteRoute,
+} as any)
+const AppProjectProjectIdIndexRoute =
+  AppProjectProjectIdIndexRouteImport.update({
+    id: '/project/$projectId/',
+    path: '/project/$projectId/',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppProjectProjectIdDevEnvironmentRoute =
+  AppProjectProjectIdDevEnvironmentRouteImport.update({
+    id: '/project/$projectId/dev-environment',
+    path: '/project/$projectId/dev-environment',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppProjectProjectIdEnvironmentVariablesRoute =
+  AppProjectProjectIdEnvironmentVariablesRouteImport.update({
+    id: '/project/$projectId/environment-variables',
+    path: '/project/$projectId/environment-variables',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppProjectProjectIdSettingsRoute =
+  AppProjectProjectIdSettingsRouteImport.update({
+    id: '/project/$projectId/settings',
+    path: '/project/$projectId/settings',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppSettingsAppearanceThemesRoute =
+  AppSettingsAppearanceThemesRouteImport.update({
+    id: '/appearance_/themes',
+    path: '/appearance/themes',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsCloudCredentialsAwsRoute =
+  AppSettingsCloudCredentialsAwsRouteImport.update({
+    id: '/cloud-credentials_/aws',
+    path: '/cloud-credentials/aws',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsCloudCredentialsAzureRoute =
+  AppSettingsCloudCredentialsAzureRouteImport.update({
+    id: '/cloud-credentials_/azure',
+    path: '/cloud-credentials/azure',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsCloudCredentialsGcpRoute =
+  AppSettingsCloudCredentialsGcpRouteImport.update({
+    id: '/cloud-credentials_/gcp',
+    path: '/cloud-credentials/gcp',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsCloudCredentialsOidcRoute =
+  AppSettingsCloudCredentialsOidcRouteImport.update({
+    id: '/cloud-credentials_/oidc',
+    path: '/cloud-credentials/oidc',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsCloudCredentialsVaultRoute =
+  AppSettingsCloudCredentialsVaultRouteImport.update({
+    id: '/cloud-credentials_/vault',
+    path: '/cloud-credentials/vault',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsDevicesDeviceIdRoute =
+  AppSettingsDevicesDeviceIdRouteImport.update({
+    id: '/devices_/$deviceId',
+    path: '/devices/$deviceId',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsDevicesLinkRoute = AppSettingsDevicesLinkRouteImport.update({
+  id: '/devices_/link',
+  path: '/devices/link',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsDevicesThisRoute = AppSettingsDevicesThisRouteImport.update({
+  id: '/devices_/this',
+  path: '/devices/this',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsIntegrationsCloudAccessRoute =
+  AppSettingsIntegrationsCloudAccessRouteImport.update({
+    id: '/integrations_/cloud-access',
+    path: '/integrations/cloud-access',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsIntegrationsGithubRoute =
+  AppSettingsIntegrationsGithubRouteImport.update({
+    id: '/integrations_/github',
+    path: '/integrations/github',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsIntegrationsLinearRoute =
+  AppSettingsIntegrationsLinearRouteImport.update({
+    id: '/integrations_/linear',
+    path: '/integrations/linear',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsIntegrationsMcpRoute =
+  AppSettingsIntegrationsMcpRouteImport.update({
+    id: '/integrations_/mcp',
+    path: '/integrations/mcp',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsIntegrationsPaperRoute =
+  AppSettingsIntegrationsPaperRouteImport.update({
+    id: '/integrations_/paper',
+    path: '/integrations/paper',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsIntegrationsRevylRoute =
+  AppSettingsIntegrationsRevylRouteImport.update({
+    id: '/integrations_/revyl',
+    path: '/integrations/revyl',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsIntegrationsSlackRoute =
+  AppSettingsIntegrationsSlackRouteImport.update({
+    id: '/integrations_/slack',
+    path: '/integrations/slack',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsIntegrationsTailscaleRoute =
+  AppSettingsIntegrationsTailscaleRouteImport.update({
+    id: '/integrations_/tailscale',
+    path: '/integrations/tailscale',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsMcpServerIdRoute = AppSettingsMcpServerIdRouteImport.update({
+  id: '/mcp_/$serverId',
+  path: '/mcp/$serverId',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsMcpMarketplaceRoute =
+  AppSettingsMcpMarketplaceRouteImport.update({
+    id: '/mcp_/marketplace',
+    path: '/mcp/marketplace',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsMcpNewRoute = AppSettingsMcpNewRouteImport.update({
+  id: '/mcp_/new',
+  path: '/mcp/new',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsNotificationsDeviceRoute =
+  AppSettingsNotificationsDeviceRouteImport.update({
+    id: '/notifications_/device',
+    path: '/notifications/device',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsNotificationsEmailRoute =
+  AppSettingsNotificationsEmailRouteImport.update({
+    id: '/notifications_/email',
+    path: '/notifications/email',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsNotificationsSlackRoute =
+  AppSettingsNotificationsSlackRouteImport.update({
+    id: '/notifications_/slack',
+    path: '/notifications/slack',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsOrgActivityRoute = AppSettingsOrgActivityRouteImport.update({
+  id: '/org/activity',
+  path: '/org/activity',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsOrgAuditLogRoute = AppSettingsOrgAuditLogRouteImport.update({
+  id: '/org/audit-log',
+  path: '/org/audit-log',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsOrgBillingRoute = AppSettingsOrgBillingRouteImport.update({
+  id: '/org/billing',
+  path: '/org/billing',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsOrgGeneralRoute = AppSettingsOrgGeneralRouteImport.update({
+  id: '/org/general',
+  path: '/org/general',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsOrgIdentityRoute = AppSettingsOrgIdentityRouteImport.update({
+  id: '/org/identity',
+  path: '/org/identity',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsOrgIssueStatesRoute =
+  AppSettingsOrgIssueStatesRouteImport.update({
+    id: '/org/issue-states',
+    path: '/org/issue-states',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsOrgMembersRoute = AppSettingsOrgMembersRouteImport.update({
+  id: '/org/members',
+  path: '/org/members',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsOrgUsageRoute = AppSettingsOrgUsageRouteImport.update({
+  id: '/org/usage',
+  path: '/org/usage',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsProjectsProjectIdRoute =
+  AppSettingsProjectsProjectIdRouteImport.update({
+    id: '/projects_/$projectId',
+    path: '/projects/$projectId',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsReviewAgentConfigRoute =
+  AppSettingsReviewAgentConfigRouteImport.update({
+    id: '/review_/agent-config',
+    path: '/review/agent-config',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsReviewRepositoriesRoute =
+  AppSettingsReviewRepositoriesRouteImport.update({
+    id: '/review_/repositories',
+    path: '/review/repositories',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsVolumesScopeRoute = AppSettingsVolumesScopeRouteImport.update({
+  id: '/volumes_/$scope',
+  path: '/volumes/$scope',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppDiagramThreadIdMessageIdIndexRoute =
+  AppDiagramThreadIdMessageIdIndexRouteImport.update({
+    id: '/diagram/$threadId/$messageId/$index',
+    path: '/diagram/$threadId/$messageId/$index',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppProjectProjectIdDriveScopeRoute =
+  AppProjectProjectIdDriveScopeRouteImport.update({
+    id: '/project/$projectId/drive/$scope',
+    path: '/project/$projectId/drive/$scope',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppProjectProjectIdJamJamIdRoute =
+  AppProjectProjectIdJamJamIdRouteImport.update({
+    id: '/project/$projectId/jam/$jamId',
+    path: '/project/$projectId/jam/$jamId',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppProjectProjectIdMcpServerIdRoute =
+  AppProjectProjectIdMcpServerIdRouteImport.update({
+    id: '/project/$projectId/mcp_/$serverId',
+    path: '/project/$projectId/mcp/$serverId',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppProjectProjectIdMcpNewRoute =
+  AppProjectProjectIdMcpNewRouteImport.update({
+    id: '/project/$projectId/mcp_/new',
+    path: '/project/$projectId/mcp/new',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppProjectProjectIdThreadThreadIdRoute =
+  AppProjectProjectIdThreadThreadIdRouteImport.update({
+    id: '/project/$projectId/thread/$threadId',
+    path: '/project/$projectId/thread/$threadId',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppProjectProjectIdVolumeScopeRoute =
+  AppProjectProjectIdVolumeScopeRouteImport.update({
+    id: '/project/$projectId/volume/$scope',
+    path: '/project/$projectId/volume/$scope',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppPullOwnerRepoPrNumberRoute =
+  AppPullOwnerRepoPrNumberRouteImport.update({
+    id: '/pull/$owner/$repo/$prNumber',
+    path: '/pull/$owner/$repo/$prNumber',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppSettingsApiKeyKeyIdRoute = AppSettingsApiKeyKeyIdRouteImport.update({
+  id: '/api_/key/$keyId',
+  path: '/api/key/$keyId',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsApiServiceUserServiceUserIdRoute =
+  AppSettingsApiServiceUserServiceUserIdRouteImport.update({
+    id: '/api_/service-user/$serviceUserId',
+    path: '/api/service-user/$serviceUserId',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsAppearanceThemesThemeIdRoute =
+  AppSettingsAppearanceThemesThemeIdRouteImport.update({
+    id: '/appearance_/themes_/$themeId',
+    path: '/appearance/themes/$themeId',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsCloudCredentialsAwsTargetIdRoute =
+  AppSettingsCloudCredentialsAwsTargetIdRouteImport.update({
+    id: '/cloud-credentials_/aws_/$targetId',
+    path: '/cloud-credentials/aws/$targetId',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsCloudCredentialsAwsNewRoute =
+  AppSettingsCloudCredentialsAwsNewRouteImport.update({
+    id: '/cloud-credentials_/aws_/new',
+    path: '/cloud-credentials/aws/new',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsCloudCredentialsAzureTargetIdRoute =
+  AppSettingsCloudCredentialsAzureTargetIdRouteImport.update({
+    id: '/cloud-credentials_/azure_/$targetId',
+    path: '/cloud-credentials/azure/$targetId',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsCloudCredentialsAzureNewRoute =
+  AppSettingsCloudCredentialsAzureNewRouteImport.update({
+    id: '/cloud-credentials_/azure_/new',
+    path: '/cloud-credentials/azure/new',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsCloudCredentialsGcpTargetIdRoute =
+  AppSettingsCloudCredentialsGcpTargetIdRouteImport.update({
+    id: '/cloud-credentials_/gcp_/$targetId',
+    path: '/cloud-credentials/gcp/$targetId',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsCloudCredentialsGcpNewRoute =
+  AppSettingsCloudCredentialsGcpNewRouteImport.update({
+    id: '/cloud-credentials_/gcp_/new',
+    path: '/cloud-credentials/gcp/new',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsCloudCredentialsOidcTargetIdRoute =
+  AppSettingsCloudCredentialsOidcTargetIdRouteImport.update({
+    id: '/cloud-credentials_/oidc_/$targetId',
+    path: '/cloud-credentials/oidc/$targetId',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsCloudCredentialsOidcNewRoute =
+  AppSettingsCloudCredentialsOidcNewRouteImport.update({
+    id: '/cloud-credentials_/oidc_/new',
+    path: '/cloud-credentials/oidc/new',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsCloudCredentialsVaultTargetIdRoute =
+  AppSettingsCloudCredentialsVaultTargetIdRouteImport.update({
+    id: '/cloud-credentials_/vault_/$targetId',
+    path: '/cloud-credentials/vault/$targetId',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsCloudCredentialsVaultNewRoute =
+  AppSettingsCloudCredentialsVaultNewRouteImport.update({
+    id: '/cloud-credentials_/vault_/new',
+    path: '/cloud-credentials/vault/new',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsIntegrationsCloudAccessSplatRoute =
+  AppSettingsIntegrationsCloudAccessSplatRouteImport.update({
+    id: '/integrations_/cloud-access_/$',
+    path: '/integrations/cloud-access/$',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsIntegrationsMcpServerIdRoute =
+  AppSettingsIntegrationsMcpServerIdRouteImport.update({
+    id: '/integrations_/mcp_/$serverId',
+    path: '/integrations/mcp/$serverId',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsIntegrationsMcpNewRoute =
+  AppSettingsIntegrationsMcpNewRouteImport.update({
+    id: '/integrations_/mcp_/new',
+    path: '/integrations/mcp/new',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsMcpAddVersionIdRoute =
+  AppSettingsMcpAddVersionIdRouteImport.update({
+    id: '/mcp_/add/$versionId',
+    path: '/mcp/add/$versionId',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsMcpMarketplaceNameRoute =
+  AppSettingsMcpMarketplaceNameRouteImport.update({
+    id: '/mcp_/marketplace_/$name',
+    path: '/mcp/marketplace/$name',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsMcpPluginsInstallationIdRoute =
+  AppSettingsMcpPluginsInstallationIdRouteImport.update({
+    id: '/mcp_/plugins/$installationId',
+    path: '/mcp/plugins/$installationId',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsProjectsProjectIdDevEnvironmentRoute =
+  AppSettingsProjectsProjectIdDevEnvironmentRouteImport.update({
+    id: '/projects_/$projectId_/dev-environment',
+    path: '/projects/$projectId/dev-environment',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsProjectsProjectIdEnvironmentVariablesRoute =
+  AppSettingsProjectsProjectIdEnvironmentVariablesRouteImport.update({
+    id: '/projects_/$projectId_/environment-variables',
+    path: '/projects/$projectId/environment-variables',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppProjectProjectIdDevEnvironmentBuildsBuildIdRoute =
+  AppProjectProjectIdDevEnvironmentBuildsBuildIdRouteImport.update({
+    id: '/project/$projectId/dev-environment_/builds/$buildId',
+    path: '/project/$projectId/dev-environment/builds/$buildId',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppSettingsMcpPluginsInstallationIdUpdateRoute =
+  AppSettingsMcpPluginsInstallationIdUpdateRouteImport.update({
+    id: '/mcp_/plugins/$installationId_/update',
+    path: '/mcp/plugins/$installationId/update',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsProjectsProjectIdMcpServerIdRoute =
+  AppSettingsProjectsProjectIdMcpServerIdRouteImport.update({
+    id: '/projects_/$projectId_/mcp_/$serverId',
+    path: '/projects/$projectId/mcp/$serverId',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsProjectsProjectIdMcpNewRoute =
+  AppSettingsProjectsProjectIdMcpNewRouteImport.update({
+    id: '/projects_/$projectId_/mcp_/new',
+    path: '/projects/$projectId/mcp/new',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppProjectProjectIdDevEnvironmentRepositoriesOwnerRepoRoute =
+  AppProjectProjectIdDevEnvironmentRepositoriesOwnerRepoRouteImport.update({
+    id: '/project/$projectId/dev-environment_/repositories/$owner/$repo',
+    path: '/project/$projectId/dev-environment/repositories/$owner/$repo',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppProjectProjectIdPullOwnerRepoPrNumberRoute =
+  AppProjectProjectIdPullOwnerRepoPrNumberRouteImport.update({
+    id: '/project/$projectId/pull/$owner/$repo/$prNumber',
+    path: '/project/$projectId/pull/$owner/$repo/$prNumber',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
+const AppSettingsProjectsProjectIdDevEnvironmentBuildsBuildIdRoute =
+  AppSettingsProjectsProjectIdDevEnvironmentBuildsBuildIdRouteImport.update({
+    id: '/projects_/$projectId_/dev-environment_/builds/$buildId',
+    path: '/projects/$projectId/dev-environment/builds/$buildId',
+    getParentRoute: () => AppSettingsRouteRoute,
+  } as any)
+const AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRoute =
+  AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRouteImport.update(
+    {
+      id: '/projects_/$projectId_/dev-environment_/repositories/$owner/$repo',
+      path: '/projects/$projectId/dev-environment/repositories/$owner/$repo',
+      getParentRoute: () => AppSettingsRouteRoute,
+    } as any,
+  )
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AppIndexRoute
   '/__tokens': typeof Char91__tokensChar93Route
+  '/design': typeof DesignRoute
+  '/desktop': typeof DesktopRoute
+  '/dither-cover': typeof DitherCoverRoute
+  '/onboarding': typeof OnboardingRoute
+  '/vm-handoff': typeof VmHandoffRoute
+  '/welcome': typeof WelcomeRoute
+  '/explore': typeof AppExploreRouteRouteWithChildren
+  '/settings': typeof AppSettingsRouteRouteWithChildren
+  '/$': typeof AppSplatRoute
+  '/automations': typeof AppAutomationsRoute
+  '/drive': typeof AppDriveRoute
+  '/invites': typeof AppInvitesRoute
+  '/issues': typeof AppIssuesRoute
+  '/memory': typeof AppMemoryRoute
+  '/new': typeof AppNewRoute
+  '/projects': typeof AppProjectsRoute
+  '/pulls': typeof AppPullsRoute
+  '/threads': typeof AppThreadsRoute
+  '/volumes': typeof AppVolumesRoute
+  '/desktop/passkey': typeof DesktopPasskeyRoute
+  '/email/$program': typeof EmailProgramRoute
+  '/linear/link': typeof LinearLinkRoute
+  '/offer/$offerId': typeof OfferOfferIdRoute
+  '/p/$code': typeof PCodeRoute
+  '/promotion/$promotionId': typeof PromotionPromotionIdRoute
+  '/s/$shareId': typeof SShareIdRoute
+  '/security/not-me': typeof SecurityNotMeRoute
+  '/slack/link': typeof SlackLinkRoute
+  '/automation/$automationId': typeof AppAutomationAutomationIdRoute
+  '/automation/new': typeof AppAutomationNewRoute
+  '/drive/$scope': typeof AppDriveScopeRoute
+  '/drive/shared': typeof AppDriveSharedRoute
+  '/issues/$code': typeof AppIssuesCodeRoute
+  '/settings/api': typeof AppSettingsApiRoute
+  '/settings/appearance': typeof AppSettingsAppearanceRoute
+  '/settings/capy': typeof AppSettingsCapyRoute
+  '/settings/cloud-credentials': typeof AppSettingsCloudCredentialsRoute
+  '/settings/devices': typeof AppSettingsDevicesRoute
+  '/settings/environment-variables': typeof AppSettingsEnvironmentVariablesRoute
+  '/settings/experiments': typeof AppSettingsExperimentsRoute
+  '/settings/general': typeof AppSettingsGeneralRoute
+  '/settings/git': typeof AppSettingsGitRoute
+  '/settings/import': typeof AppSettingsImportRoute
+  '/settings/instructions': typeof AppSettingsInstructionsRoute
+  '/settings/integrations': typeof AppSettingsIntegrationsRoute
+  '/settings/mcp': typeof AppSettingsMcpRoute
+  '/settings/models': typeof AppSettingsModelsRoute
+  '/settings/notifications': typeof AppSettingsNotificationsRoute
+  '/settings/profile': typeof AppSettingsProfileRoute
+  '/settings/projects': typeof AppSettingsProjectsRoute
+  '/settings/referrals': typeof AppSettingsReferralsRoute
+  '/settings/review': typeof AppSettingsReviewRoute
+  '/settings/security': typeof AppSettingsSecurityRoute
+  '/settings/setup-and-snapshots': typeof AppSettingsSetupAndSnapshotsRoute
+  '/settings/shortcuts': typeof AppSettingsShortcutsRoute
+  '/settings/skills': typeof AppSettingsSkillsRoute
+  '/settings/threads': typeof AppSettingsThreadsRoute
+  '/settings/volumes': typeof AppSettingsVolumesRoute
+  '/thread/$threadId': typeof AppThreadThreadIdRoute
+  '/volumes/$scope': typeof AppVolumesScopeRoute
+  '/sign-in/sso-callback': typeof AuthSignInSsoCallbackRoute
+  '/sign-in/verify': typeof AuthSignInVerifyRoute
+  '/sign-up/sso-callback': typeof AuthSignUpSsoCallbackRoute
+  '/sign-up/verify': typeof AuthSignUpVerifyRoute
+  '/web/callbacks/github': typeof WebCallbacksGithubRoute
+  '/web/callbacks/linear': typeof WebCallbacksLinearRoute
+  '/web/callbacks/mcp': typeof WebCallbacksMcpRoute
+  '/web/callbacks/paper': typeof WebCallbacksPaperRoute
+  '/web/callbacks/slack': typeof WebCallbacksSlackRoute
+  '/web/callbacks/x': typeof WebCallbacksXRoute
+  '/explore/': typeof AppExploreIndexRoute
+  '/settings/': typeof AppSettingsIndexRoute
+  '/sign-in/': typeof AuthSignInIndexRoute
+  '/sign-up/': typeof AuthSignUpIndexRoute
+  '/automation/$automationId/drive': typeof AppAutomationAutomationIdDriveRoute
+  '/automation/$automationId/volume': typeof AppAutomationAutomationIdVolumeRoute
+  '/drive/captain/$jamId': typeof AppDriveCaptainJamIdRoute
+  '/drive/share/$shareId': typeof AppDriveShareShareIdRoute
+  '/explore/$kind/$slug': typeof AppExploreKindSlugRoute
+  '/project/$projectId/dev-environment': typeof AppProjectProjectIdDevEnvironmentRoute
+  '/project/$projectId/environment-variables': typeof AppProjectProjectIdEnvironmentVariablesRoute
+  '/project/$projectId/settings': typeof AppProjectProjectIdSettingsRoute
+  '/settings/appearance/themes': typeof AppSettingsAppearanceThemesRoute
+  '/settings/cloud-credentials/aws': typeof AppSettingsCloudCredentialsAwsRoute
+  '/settings/cloud-credentials/azure': typeof AppSettingsCloudCredentialsAzureRoute
+  '/settings/cloud-credentials/gcp': typeof AppSettingsCloudCredentialsGcpRoute
+  '/settings/cloud-credentials/oidc': typeof AppSettingsCloudCredentialsOidcRoute
+  '/settings/cloud-credentials/vault': typeof AppSettingsCloudCredentialsVaultRoute
+  '/settings/devices/$deviceId': typeof AppSettingsDevicesDeviceIdRoute
+  '/settings/devices/link': typeof AppSettingsDevicesLinkRoute
+  '/settings/devices/this': typeof AppSettingsDevicesThisRoute
+  '/settings/integrations/cloud-access': typeof AppSettingsIntegrationsCloudAccessRoute
+  '/settings/integrations/github': typeof AppSettingsIntegrationsGithubRoute
+  '/settings/integrations/linear': typeof AppSettingsIntegrationsLinearRoute
+  '/settings/integrations/mcp': typeof AppSettingsIntegrationsMcpRoute
+  '/settings/integrations/paper': typeof AppSettingsIntegrationsPaperRoute
+  '/settings/integrations/revyl': typeof AppSettingsIntegrationsRevylRoute
+  '/settings/integrations/slack': typeof AppSettingsIntegrationsSlackRoute
+  '/settings/integrations/tailscale': typeof AppSettingsIntegrationsTailscaleRoute
+  '/settings/mcp/$serverId': typeof AppSettingsMcpServerIdRoute
+  '/settings/mcp/marketplace': typeof AppSettingsMcpMarketplaceRoute
+  '/settings/mcp/new': typeof AppSettingsMcpNewRoute
+  '/settings/notifications/device': typeof AppSettingsNotificationsDeviceRoute
+  '/settings/notifications/email': typeof AppSettingsNotificationsEmailRoute
+  '/settings/notifications/slack': typeof AppSettingsNotificationsSlackRoute
+  '/settings/org/activity': typeof AppSettingsOrgActivityRoute
+  '/settings/org/audit-log': typeof AppSettingsOrgAuditLogRoute
+  '/settings/org/billing': typeof AppSettingsOrgBillingRoute
+  '/settings/org/general': typeof AppSettingsOrgGeneralRoute
+  '/settings/org/identity': typeof AppSettingsOrgIdentityRoute
+  '/settings/org/issue-states': typeof AppSettingsOrgIssueStatesRoute
+  '/settings/org/members': typeof AppSettingsOrgMembersRoute
+  '/settings/org/usage': typeof AppSettingsOrgUsageRoute
+  '/settings/projects/$projectId': typeof AppSettingsProjectsProjectIdRoute
+  '/settings/review/agent-config': typeof AppSettingsReviewAgentConfigRoute
+  '/settings/review/repositories': typeof AppSettingsReviewRepositoriesRoute
+  '/settings/volumes/$scope': typeof AppSettingsVolumesScopeRoute
+  '/explore/$kind/': typeof AppExploreKindIndexRoute
+  '/project/$projectId/': typeof AppProjectProjectIdIndexRoute
+  '/diagram/$threadId/$messageId/$index': typeof AppDiagramThreadIdMessageIdIndexRoute
+  '/project/$projectId/drive/$scope': typeof AppProjectProjectIdDriveScopeRoute
+  '/project/$projectId/jam/$jamId': typeof AppProjectProjectIdJamJamIdRoute
+  '/project/$projectId/mcp/$serverId': typeof AppProjectProjectIdMcpServerIdRoute
+  '/project/$projectId/mcp/new': typeof AppProjectProjectIdMcpNewRoute
+  '/project/$projectId/thread/$threadId': typeof AppProjectProjectIdThreadThreadIdRoute
+  '/project/$projectId/volume/$scope': typeof AppProjectProjectIdVolumeScopeRoute
+  '/pull/$owner/$repo/$prNumber': typeof AppPullOwnerRepoPrNumberRoute
+  '/settings/api/key/$keyId': typeof AppSettingsApiKeyKeyIdRoute
+  '/settings/api/service-user/$serviceUserId': typeof AppSettingsApiServiceUserServiceUserIdRoute
+  '/settings/appearance/themes/$themeId': typeof AppSettingsAppearanceThemesThemeIdRoute
+  '/settings/cloud-credentials/aws/$targetId': typeof AppSettingsCloudCredentialsAwsTargetIdRoute
+  '/settings/cloud-credentials/aws/new': typeof AppSettingsCloudCredentialsAwsNewRoute
+  '/settings/cloud-credentials/azure/$targetId': typeof AppSettingsCloudCredentialsAzureTargetIdRoute
+  '/settings/cloud-credentials/azure/new': typeof AppSettingsCloudCredentialsAzureNewRoute
+  '/settings/cloud-credentials/gcp/$targetId': typeof AppSettingsCloudCredentialsGcpTargetIdRoute
+  '/settings/cloud-credentials/gcp/new': typeof AppSettingsCloudCredentialsGcpNewRoute
+  '/settings/cloud-credentials/oidc/$targetId': typeof AppSettingsCloudCredentialsOidcTargetIdRoute
+  '/settings/cloud-credentials/oidc/new': typeof AppSettingsCloudCredentialsOidcNewRoute
+  '/settings/cloud-credentials/vault/$targetId': typeof AppSettingsCloudCredentialsVaultTargetIdRoute
+  '/settings/cloud-credentials/vault/new': typeof AppSettingsCloudCredentialsVaultNewRoute
+  '/settings/integrations/cloud-access/$': typeof AppSettingsIntegrationsCloudAccessSplatRoute
+  '/settings/integrations/mcp/$serverId': typeof AppSettingsIntegrationsMcpServerIdRoute
+  '/settings/integrations/mcp/new': typeof AppSettingsIntegrationsMcpNewRoute
+  '/settings/mcp/add/$versionId': typeof AppSettingsMcpAddVersionIdRoute
+  '/settings/mcp/marketplace/$name': typeof AppSettingsMcpMarketplaceNameRoute
+  '/settings/mcp/plugins/$installationId': typeof AppSettingsMcpPluginsInstallationIdRoute
+  '/settings/projects/$projectId/dev-environment': typeof AppSettingsProjectsProjectIdDevEnvironmentRoute
+  '/settings/projects/$projectId/environment-variables': typeof AppSettingsProjectsProjectIdEnvironmentVariablesRoute
+  '/project/$projectId/dev-environment/builds/$buildId': typeof AppProjectProjectIdDevEnvironmentBuildsBuildIdRoute
+  '/settings/mcp/plugins/$installationId/update': typeof AppSettingsMcpPluginsInstallationIdUpdateRoute
+  '/settings/projects/$projectId/mcp/$serverId': typeof AppSettingsProjectsProjectIdMcpServerIdRoute
+  '/settings/projects/$projectId/mcp/new': typeof AppSettingsProjectsProjectIdMcpNewRoute
+  '/project/$projectId/dev-environment/repositories/$owner/$repo': typeof AppProjectProjectIdDevEnvironmentRepositoriesOwnerRepoRoute
+  '/project/$projectId/pull/$owner/$repo/$prNumber': typeof AppProjectProjectIdPullOwnerRepoPrNumberRoute
+  '/settings/projects/$projectId/dev-environment/builds/$buildId': typeof AppSettingsProjectsProjectIdDevEnvironmentBuildsBuildIdRoute
+  '/settings/projects/$projectId/dev-environment/repositories/$owner/$repo': typeof AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/': typeof AppIndexRoute
   '/__tokens': typeof Char91__tokensChar93Route
+  '/design': typeof DesignRoute
+  '/desktop': typeof DesktopRoute
+  '/dither-cover': typeof DitherCoverRoute
+  '/onboarding': typeof OnboardingRoute
+  '/vm-handoff': typeof VmHandoffRoute
+  '/welcome': typeof WelcomeRoute
+  '/$': typeof AppSplatRoute
+  '/automations': typeof AppAutomationsRoute
+  '/drive': typeof AppDriveRoute
+  '/invites': typeof AppInvitesRoute
+  '/issues': typeof AppIssuesRoute
+  '/memory': typeof AppMemoryRoute
+  '/new': typeof AppNewRoute
+  '/projects': typeof AppProjectsRoute
+  '/pulls': typeof AppPullsRoute
+  '/threads': typeof AppThreadsRoute
+  '/volumes': typeof AppVolumesRoute
+  '/desktop/passkey': typeof DesktopPasskeyRoute
+  '/email/$program': typeof EmailProgramRoute
+  '/linear/link': typeof LinearLinkRoute
+  '/offer/$offerId': typeof OfferOfferIdRoute
+  '/p/$code': typeof PCodeRoute
+  '/promotion/$promotionId': typeof PromotionPromotionIdRoute
+  '/s/$shareId': typeof SShareIdRoute
+  '/security/not-me': typeof SecurityNotMeRoute
+  '/slack/link': typeof SlackLinkRoute
+  '/automation/$automationId': typeof AppAutomationAutomationIdRoute
+  '/automation/new': typeof AppAutomationNewRoute
+  '/drive/$scope': typeof AppDriveScopeRoute
+  '/drive/shared': typeof AppDriveSharedRoute
+  '/issues/$code': typeof AppIssuesCodeRoute
+  '/settings/api': typeof AppSettingsApiRoute
+  '/settings/appearance': typeof AppSettingsAppearanceRoute
+  '/settings/capy': typeof AppSettingsCapyRoute
+  '/settings/cloud-credentials': typeof AppSettingsCloudCredentialsRoute
+  '/settings/devices': typeof AppSettingsDevicesRoute
+  '/settings/environment-variables': typeof AppSettingsEnvironmentVariablesRoute
+  '/settings/experiments': typeof AppSettingsExperimentsRoute
+  '/settings/general': typeof AppSettingsGeneralRoute
+  '/settings/git': typeof AppSettingsGitRoute
+  '/settings/import': typeof AppSettingsImportRoute
+  '/settings/instructions': typeof AppSettingsInstructionsRoute
+  '/settings/integrations': typeof AppSettingsIntegrationsRoute
+  '/settings/mcp': typeof AppSettingsMcpRoute
+  '/settings/models': typeof AppSettingsModelsRoute
+  '/settings/notifications': typeof AppSettingsNotificationsRoute
+  '/settings/profile': typeof AppSettingsProfileRoute
+  '/settings/projects': typeof AppSettingsProjectsRoute
+  '/settings/referrals': typeof AppSettingsReferralsRoute
+  '/settings/review': typeof AppSettingsReviewRoute
+  '/settings/security': typeof AppSettingsSecurityRoute
+  '/settings/setup-and-snapshots': typeof AppSettingsSetupAndSnapshotsRoute
+  '/settings/shortcuts': typeof AppSettingsShortcutsRoute
+  '/settings/skills': typeof AppSettingsSkillsRoute
+  '/settings/threads': typeof AppSettingsThreadsRoute
+  '/settings/volumes': typeof AppSettingsVolumesRoute
+  '/thread/$threadId': typeof AppThreadThreadIdRoute
+  '/volumes/$scope': typeof AppVolumesScopeRoute
+  '/sign-in/sso-callback': typeof AuthSignInSsoCallbackRoute
+  '/sign-in/verify': typeof AuthSignInVerifyRoute
+  '/sign-up/sso-callback': typeof AuthSignUpSsoCallbackRoute
+  '/sign-up/verify': typeof AuthSignUpVerifyRoute
+  '/web/callbacks/github': typeof WebCallbacksGithubRoute
+  '/web/callbacks/linear': typeof WebCallbacksLinearRoute
+  '/web/callbacks/mcp': typeof WebCallbacksMcpRoute
+  '/web/callbacks/paper': typeof WebCallbacksPaperRoute
+  '/web/callbacks/slack': typeof WebCallbacksSlackRoute
+  '/web/callbacks/x': typeof WebCallbacksXRoute
+  '/explore': typeof AppExploreIndexRoute
+  '/settings': typeof AppSettingsIndexRoute
+  '/sign-in': typeof AuthSignInIndexRoute
+  '/sign-up': typeof AuthSignUpIndexRoute
+  '/automation/$automationId/drive': typeof AppAutomationAutomationIdDriveRoute
+  '/automation/$automationId/volume': typeof AppAutomationAutomationIdVolumeRoute
+  '/drive/captain/$jamId': typeof AppDriveCaptainJamIdRoute
+  '/drive/share/$shareId': typeof AppDriveShareShareIdRoute
+  '/explore/$kind/$slug': typeof AppExploreKindSlugRoute
+  '/project/$projectId/dev-environment': typeof AppProjectProjectIdDevEnvironmentRoute
+  '/project/$projectId/environment-variables': typeof AppProjectProjectIdEnvironmentVariablesRoute
+  '/project/$projectId/settings': typeof AppProjectProjectIdSettingsRoute
+  '/settings/appearance/themes': typeof AppSettingsAppearanceThemesRoute
+  '/settings/cloud-credentials/aws': typeof AppSettingsCloudCredentialsAwsRoute
+  '/settings/cloud-credentials/azure': typeof AppSettingsCloudCredentialsAzureRoute
+  '/settings/cloud-credentials/gcp': typeof AppSettingsCloudCredentialsGcpRoute
+  '/settings/cloud-credentials/oidc': typeof AppSettingsCloudCredentialsOidcRoute
+  '/settings/cloud-credentials/vault': typeof AppSettingsCloudCredentialsVaultRoute
+  '/settings/devices/$deviceId': typeof AppSettingsDevicesDeviceIdRoute
+  '/settings/devices/link': typeof AppSettingsDevicesLinkRoute
+  '/settings/devices/this': typeof AppSettingsDevicesThisRoute
+  '/settings/integrations/cloud-access': typeof AppSettingsIntegrationsCloudAccessRoute
+  '/settings/integrations/github': typeof AppSettingsIntegrationsGithubRoute
+  '/settings/integrations/linear': typeof AppSettingsIntegrationsLinearRoute
+  '/settings/integrations/mcp': typeof AppSettingsIntegrationsMcpRoute
+  '/settings/integrations/paper': typeof AppSettingsIntegrationsPaperRoute
+  '/settings/integrations/revyl': typeof AppSettingsIntegrationsRevylRoute
+  '/settings/integrations/slack': typeof AppSettingsIntegrationsSlackRoute
+  '/settings/integrations/tailscale': typeof AppSettingsIntegrationsTailscaleRoute
+  '/settings/mcp/$serverId': typeof AppSettingsMcpServerIdRoute
+  '/settings/mcp/marketplace': typeof AppSettingsMcpMarketplaceRoute
+  '/settings/mcp/new': typeof AppSettingsMcpNewRoute
+  '/settings/notifications/device': typeof AppSettingsNotificationsDeviceRoute
+  '/settings/notifications/email': typeof AppSettingsNotificationsEmailRoute
+  '/settings/notifications/slack': typeof AppSettingsNotificationsSlackRoute
+  '/settings/org/activity': typeof AppSettingsOrgActivityRoute
+  '/settings/org/audit-log': typeof AppSettingsOrgAuditLogRoute
+  '/settings/org/billing': typeof AppSettingsOrgBillingRoute
+  '/settings/org/general': typeof AppSettingsOrgGeneralRoute
+  '/settings/org/identity': typeof AppSettingsOrgIdentityRoute
+  '/settings/org/issue-states': typeof AppSettingsOrgIssueStatesRoute
+  '/settings/org/members': typeof AppSettingsOrgMembersRoute
+  '/settings/org/usage': typeof AppSettingsOrgUsageRoute
+  '/settings/projects/$projectId': typeof AppSettingsProjectsProjectIdRoute
+  '/settings/review/agent-config': typeof AppSettingsReviewAgentConfigRoute
+  '/settings/review/repositories': typeof AppSettingsReviewRepositoriesRoute
+  '/settings/volumes/$scope': typeof AppSettingsVolumesScopeRoute
+  '/explore/$kind': typeof AppExploreKindIndexRoute
+  '/project/$projectId': typeof AppProjectProjectIdIndexRoute
+  '/diagram/$threadId/$messageId/$index': typeof AppDiagramThreadIdMessageIdIndexRoute
+  '/project/$projectId/drive/$scope': typeof AppProjectProjectIdDriveScopeRoute
+  '/project/$projectId/jam/$jamId': typeof AppProjectProjectIdJamJamIdRoute
+  '/project/$projectId/mcp/$serverId': typeof AppProjectProjectIdMcpServerIdRoute
+  '/project/$projectId/mcp/new': typeof AppProjectProjectIdMcpNewRoute
+  '/project/$projectId/thread/$threadId': typeof AppProjectProjectIdThreadThreadIdRoute
+  '/project/$projectId/volume/$scope': typeof AppProjectProjectIdVolumeScopeRoute
+  '/pull/$owner/$repo/$prNumber': typeof AppPullOwnerRepoPrNumberRoute
+  '/settings/api/key/$keyId': typeof AppSettingsApiKeyKeyIdRoute
+  '/settings/api/service-user/$serviceUserId': typeof AppSettingsApiServiceUserServiceUserIdRoute
+  '/settings/appearance/themes/$themeId': typeof AppSettingsAppearanceThemesThemeIdRoute
+  '/settings/cloud-credentials/aws/$targetId': typeof AppSettingsCloudCredentialsAwsTargetIdRoute
+  '/settings/cloud-credentials/aws/new': typeof AppSettingsCloudCredentialsAwsNewRoute
+  '/settings/cloud-credentials/azure/$targetId': typeof AppSettingsCloudCredentialsAzureTargetIdRoute
+  '/settings/cloud-credentials/azure/new': typeof AppSettingsCloudCredentialsAzureNewRoute
+  '/settings/cloud-credentials/gcp/$targetId': typeof AppSettingsCloudCredentialsGcpTargetIdRoute
+  '/settings/cloud-credentials/gcp/new': typeof AppSettingsCloudCredentialsGcpNewRoute
+  '/settings/cloud-credentials/oidc/$targetId': typeof AppSettingsCloudCredentialsOidcTargetIdRoute
+  '/settings/cloud-credentials/oidc/new': typeof AppSettingsCloudCredentialsOidcNewRoute
+  '/settings/cloud-credentials/vault/$targetId': typeof AppSettingsCloudCredentialsVaultTargetIdRoute
+  '/settings/cloud-credentials/vault/new': typeof AppSettingsCloudCredentialsVaultNewRoute
+  '/settings/integrations/cloud-access/$': typeof AppSettingsIntegrationsCloudAccessSplatRoute
+  '/settings/integrations/mcp/$serverId': typeof AppSettingsIntegrationsMcpServerIdRoute
+  '/settings/integrations/mcp/new': typeof AppSettingsIntegrationsMcpNewRoute
+  '/settings/mcp/add/$versionId': typeof AppSettingsMcpAddVersionIdRoute
+  '/settings/mcp/marketplace/$name': typeof AppSettingsMcpMarketplaceNameRoute
+  '/settings/mcp/plugins/$installationId': typeof AppSettingsMcpPluginsInstallationIdRoute
+  '/settings/projects/$projectId/dev-environment': typeof AppSettingsProjectsProjectIdDevEnvironmentRoute
+  '/settings/projects/$projectId/environment-variables': typeof AppSettingsProjectsProjectIdEnvironmentVariablesRoute
+  '/project/$projectId/dev-environment/builds/$buildId': typeof AppProjectProjectIdDevEnvironmentBuildsBuildIdRoute
+  '/settings/mcp/plugins/$installationId/update': typeof AppSettingsMcpPluginsInstallationIdUpdateRoute
+  '/settings/projects/$projectId/mcp/$serverId': typeof AppSettingsProjectsProjectIdMcpServerIdRoute
+  '/settings/projects/$projectId/mcp/new': typeof AppSettingsProjectsProjectIdMcpNewRoute
+  '/project/$projectId/dev-environment/repositories/$owner/$repo': typeof AppProjectProjectIdDevEnvironmentRepositoriesOwnerRepoRoute
+  '/project/$projectId/pull/$owner/$repo/$prNumber': typeof AppProjectProjectIdPullOwnerRepoPrNumberRoute
+  '/settings/projects/$projectId/dev-environment/builds/$buildId': typeof AppSettingsProjectsProjectIdDevEnvironmentBuildsBuildIdRoute
+  '/settings/projects/$projectId/dev-environment/repositories/$owner/$repo': typeof AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_app': typeof AppRouteRouteWithChildren
+  '/_auth': typeof AuthRouteRouteWithChildren
   '/__tokens': typeof Char91__tokensChar93Route
+  '/design': typeof DesignRoute
+  '/desktop': typeof DesktopRoute
+  '/dither-cover': typeof DitherCoverRoute
+  '/onboarding': typeof OnboardingRoute
+  '/vm-handoff': typeof VmHandoffRoute
+  '/welcome': typeof WelcomeRoute
+  '/_app/explore': typeof AppExploreRouteRouteWithChildren
+  '/_app/settings': typeof AppSettingsRouteRouteWithChildren
+  '/_app/$': typeof AppSplatRoute
+  '/_app/automations': typeof AppAutomationsRoute
+  '/_app/drive': typeof AppDriveRoute
+  '/_app/invites': typeof AppInvitesRoute
+  '/_app/issues': typeof AppIssuesRoute
+  '/_app/memory': typeof AppMemoryRoute
+  '/_app/new': typeof AppNewRoute
+  '/_app/projects': typeof AppProjectsRoute
+  '/_app/pulls': typeof AppPullsRoute
+  '/_app/threads': typeof AppThreadsRoute
+  '/_app/volumes': typeof AppVolumesRoute
+  '/desktop_/passkey': typeof DesktopPasskeyRoute
+  '/email/$program': typeof EmailProgramRoute
+  '/linear/link': typeof LinearLinkRoute
+  '/offer/$offerId': typeof OfferOfferIdRoute
+  '/p/$code': typeof PCodeRoute
+  '/promotion/$promotionId': typeof PromotionPromotionIdRoute
+  '/s/$shareId': typeof SShareIdRoute
+  '/security/not-me': typeof SecurityNotMeRoute
+  '/slack/link': typeof SlackLinkRoute
+  '/_app/': typeof AppIndexRoute
+  '/_app/automation/$automationId': typeof AppAutomationAutomationIdRoute
+  '/_app/automation/new': typeof AppAutomationNewRoute
+  '/_app/drive_/$scope': typeof AppDriveScopeRoute
+  '/_app/drive_/shared': typeof AppDriveSharedRoute
+  '/_app/issues_/$code': typeof AppIssuesCodeRoute
+  '/_app/settings/api': typeof AppSettingsApiRoute
+  '/_app/settings/appearance': typeof AppSettingsAppearanceRoute
+  '/_app/settings/capy': typeof AppSettingsCapyRoute
+  '/_app/settings/cloud-credentials': typeof AppSettingsCloudCredentialsRoute
+  '/_app/settings/devices': typeof AppSettingsDevicesRoute
+  '/_app/settings/environment-variables': typeof AppSettingsEnvironmentVariablesRoute
+  '/_app/settings/experiments': typeof AppSettingsExperimentsRoute
+  '/_app/settings/general': typeof AppSettingsGeneralRoute
+  '/_app/settings/git': typeof AppSettingsGitRoute
+  '/_app/settings/import': typeof AppSettingsImportRoute
+  '/_app/settings/instructions': typeof AppSettingsInstructionsRoute
+  '/_app/settings/integrations': typeof AppSettingsIntegrationsRoute
+  '/_app/settings/mcp': typeof AppSettingsMcpRoute
+  '/_app/settings/models': typeof AppSettingsModelsRoute
+  '/_app/settings/notifications': typeof AppSettingsNotificationsRoute
+  '/_app/settings/profile': typeof AppSettingsProfileRoute
+  '/_app/settings/projects': typeof AppSettingsProjectsRoute
+  '/_app/settings/referrals': typeof AppSettingsReferralsRoute
+  '/_app/settings/review': typeof AppSettingsReviewRoute
+  '/_app/settings/security': typeof AppSettingsSecurityRoute
+  '/_app/settings/setup-and-snapshots': typeof AppSettingsSetupAndSnapshotsRoute
+  '/_app/settings/shortcuts': typeof AppSettingsShortcutsRoute
+  '/_app/settings/skills': typeof AppSettingsSkillsRoute
+  '/_app/settings/threads': typeof AppSettingsThreadsRoute
+  '/_app/settings/volumes': typeof AppSettingsVolumesRoute
+  '/_app/thread/$threadId': typeof AppThreadThreadIdRoute
+  '/_app/volumes_/$scope': typeof AppVolumesScopeRoute
+  '/_auth/sign-in/sso-callback': typeof AuthSignInSsoCallbackRoute
+  '/_auth/sign-in/verify': typeof AuthSignInVerifyRoute
+  '/_auth/sign-up/sso-callback': typeof AuthSignUpSsoCallbackRoute
+  '/_auth/sign-up/verify': typeof AuthSignUpVerifyRoute
+  '/web/callbacks/github': typeof WebCallbacksGithubRoute
+  '/web/callbacks/linear': typeof WebCallbacksLinearRoute
+  '/web/callbacks/mcp': typeof WebCallbacksMcpRoute
+  '/web/callbacks/paper': typeof WebCallbacksPaperRoute
+  '/web/callbacks/slack': typeof WebCallbacksSlackRoute
+  '/web/callbacks/x': typeof WebCallbacksXRoute
+  '/_app/explore/': typeof AppExploreIndexRoute
+  '/_app/settings/': typeof AppSettingsIndexRoute
+  '/_auth/sign-in/': typeof AuthSignInIndexRoute
+  '/_auth/sign-up/': typeof AuthSignUpIndexRoute
+  '/_app/automation/$automationId_/drive': typeof AppAutomationAutomationIdDriveRoute
+  '/_app/automation/$automationId_/volume': typeof AppAutomationAutomationIdVolumeRoute
+  '/_app/drive_/captain/$jamId': typeof AppDriveCaptainJamIdRoute
+  '/_app/drive_/share/$shareId': typeof AppDriveShareShareIdRoute
+  '/_app/explore/$kind/$slug': typeof AppExploreKindSlugRoute
+  '/_app/project/$projectId/dev-environment': typeof AppProjectProjectIdDevEnvironmentRoute
+  '/_app/project/$projectId/environment-variables': typeof AppProjectProjectIdEnvironmentVariablesRoute
+  '/_app/project/$projectId/settings': typeof AppProjectProjectIdSettingsRoute
+  '/_app/settings/appearance_/themes': typeof AppSettingsAppearanceThemesRoute
+  '/_app/settings/cloud-credentials_/aws': typeof AppSettingsCloudCredentialsAwsRoute
+  '/_app/settings/cloud-credentials_/azure': typeof AppSettingsCloudCredentialsAzureRoute
+  '/_app/settings/cloud-credentials_/gcp': typeof AppSettingsCloudCredentialsGcpRoute
+  '/_app/settings/cloud-credentials_/oidc': typeof AppSettingsCloudCredentialsOidcRoute
+  '/_app/settings/cloud-credentials_/vault': typeof AppSettingsCloudCredentialsVaultRoute
+  '/_app/settings/devices_/$deviceId': typeof AppSettingsDevicesDeviceIdRoute
+  '/_app/settings/devices_/link': typeof AppSettingsDevicesLinkRoute
+  '/_app/settings/devices_/this': typeof AppSettingsDevicesThisRoute
+  '/_app/settings/integrations_/cloud-access': typeof AppSettingsIntegrationsCloudAccessRoute
+  '/_app/settings/integrations_/github': typeof AppSettingsIntegrationsGithubRoute
+  '/_app/settings/integrations_/linear': typeof AppSettingsIntegrationsLinearRoute
+  '/_app/settings/integrations_/mcp': typeof AppSettingsIntegrationsMcpRoute
+  '/_app/settings/integrations_/paper': typeof AppSettingsIntegrationsPaperRoute
+  '/_app/settings/integrations_/revyl': typeof AppSettingsIntegrationsRevylRoute
+  '/_app/settings/integrations_/slack': typeof AppSettingsIntegrationsSlackRoute
+  '/_app/settings/integrations_/tailscale': typeof AppSettingsIntegrationsTailscaleRoute
+  '/_app/settings/mcp_/$serverId': typeof AppSettingsMcpServerIdRoute
+  '/_app/settings/mcp_/marketplace': typeof AppSettingsMcpMarketplaceRoute
+  '/_app/settings/mcp_/new': typeof AppSettingsMcpNewRoute
+  '/_app/settings/notifications_/device': typeof AppSettingsNotificationsDeviceRoute
+  '/_app/settings/notifications_/email': typeof AppSettingsNotificationsEmailRoute
+  '/_app/settings/notifications_/slack': typeof AppSettingsNotificationsSlackRoute
+  '/_app/settings/org/activity': typeof AppSettingsOrgActivityRoute
+  '/_app/settings/org/audit-log': typeof AppSettingsOrgAuditLogRoute
+  '/_app/settings/org/billing': typeof AppSettingsOrgBillingRoute
+  '/_app/settings/org/general': typeof AppSettingsOrgGeneralRoute
+  '/_app/settings/org/identity': typeof AppSettingsOrgIdentityRoute
+  '/_app/settings/org/issue-states': typeof AppSettingsOrgIssueStatesRoute
+  '/_app/settings/org/members': typeof AppSettingsOrgMembersRoute
+  '/_app/settings/org/usage': typeof AppSettingsOrgUsageRoute
+  '/_app/settings/projects_/$projectId': typeof AppSettingsProjectsProjectIdRoute
+  '/_app/settings/review_/agent-config': typeof AppSettingsReviewAgentConfigRoute
+  '/_app/settings/review_/repositories': typeof AppSettingsReviewRepositoriesRoute
+  '/_app/settings/volumes_/$scope': typeof AppSettingsVolumesScopeRoute
+  '/_app/explore/$kind/': typeof AppExploreKindIndexRoute
+  '/_app/project/$projectId/': typeof AppProjectProjectIdIndexRoute
+  '/_app/diagram/$threadId/$messageId/$index': typeof AppDiagramThreadIdMessageIdIndexRoute
+  '/_app/project/$projectId/drive/$scope': typeof AppProjectProjectIdDriveScopeRoute
+  '/_app/project/$projectId/jam/$jamId': typeof AppProjectProjectIdJamJamIdRoute
+  '/_app/project/$projectId/mcp_/$serverId': typeof AppProjectProjectIdMcpServerIdRoute
+  '/_app/project/$projectId/mcp_/new': typeof AppProjectProjectIdMcpNewRoute
+  '/_app/project/$projectId/thread/$threadId': typeof AppProjectProjectIdThreadThreadIdRoute
+  '/_app/project/$projectId/volume/$scope': typeof AppProjectProjectIdVolumeScopeRoute
+  '/_app/pull/$owner/$repo/$prNumber': typeof AppPullOwnerRepoPrNumberRoute
+  '/_app/settings/api_/key/$keyId': typeof AppSettingsApiKeyKeyIdRoute
+  '/_app/settings/api_/service-user/$serviceUserId': typeof AppSettingsApiServiceUserServiceUserIdRoute
+  '/_app/settings/appearance_/themes_/$themeId': typeof AppSettingsAppearanceThemesThemeIdRoute
+  '/_app/settings/cloud-credentials_/aws_/$targetId': typeof AppSettingsCloudCredentialsAwsTargetIdRoute
+  '/_app/settings/cloud-credentials_/aws_/new': typeof AppSettingsCloudCredentialsAwsNewRoute
+  '/_app/settings/cloud-credentials_/azure_/$targetId': typeof AppSettingsCloudCredentialsAzureTargetIdRoute
+  '/_app/settings/cloud-credentials_/azure_/new': typeof AppSettingsCloudCredentialsAzureNewRoute
+  '/_app/settings/cloud-credentials_/gcp_/$targetId': typeof AppSettingsCloudCredentialsGcpTargetIdRoute
+  '/_app/settings/cloud-credentials_/gcp_/new': typeof AppSettingsCloudCredentialsGcpNewRoute
+  '/_app/settings/cloud-credentials_/oidc_/$targetId': typeof AppSettingsCloudCredentialsOidcTargetIdRoute
+  '/_app/settings/cloud-credentials_/oidc_/new': typeof AppSettingsCloudCredentialsOidcNewRoute
+  '/_app/settings/cloud-credentials_/vault_/$targetId': typeof AppSettingsCloudCredentialsVaultTargetIdRoute
+  '/_app/settings/cloud-credentials_/vault_/new': typeof AppSettingsCloudCredentialsVaultNewRoute
+  '/_app/settings/integrations_/cloud-access_/$': typeof AppSettingsIntegrationsCloudAccessSplatRoute
+  '/_app/settings/integrations_/mcp_/$serverId': typeof AppSettingsIntegrationsMcpServerIdRoute
+  '/_app/settings/integrations_/mcp_/new': typeof AppSettingsIntegrationsMcpNewRoute
+  '/_app/settings/mcp_/add/$versionId': typeof AppSettingsMcpAddVersionIdRoute
+  '/_app/settings/mcp_/marketplace_/$name': typeof AppSettingsMcpMarketplaceNameRoute
+  '/_app/settings/mcp_/plugins/$installationId': typeof AppSettingsMcpPluginsInstallationIdRoute
+  '/_app/settings/projects_/$projectId_/dev-environment': typeof AppSettingsProjectsProjectIdDevEnvironmentRoute
+  '/_app/settings/projects_/$projectId_/environment-variables': typeof AppSettingsProjectsProjectIdEnvironmentVariablesRoute
+  '/_app/project/$projectId/dev-environment_/builds/$buildId': typeof AppProjectProjectIdDevEnvironmentBuildsBuildIdRoute
+  '/_app/settings/mcp_/plugins/$installationId_/update': typeof AppSettingsMcpPluginsInstallationIdUpdateRoute
+  '/_app/settings/projects_/$projectId_/mcp_/$serverId': typeof AppSettingsProjectsProjectIdMcpServerIdRoute
+  '/_app/settings/projects_/$projectId_/mcp_/new': typeof AppSettingsProjectsProjectIdMcpNewRoute
+  '/_app/project/$projectId/dev-environment_/repositories/$owner/$repo': typeof AppProjectProjectIdDevEnvironmentRepositoriesOwnerRepoRoute
+  '/_app/project/$projectId/pull/$owner/$repo/$prNumber': typeof AppProjectProjectIdPullOwnerRepoPrNumberRoute
+  '/_app/settings/projects_/$projectId_/dev-environment_/builds/$buildId': typeof AppSettingsProjectsProjectIdDevEnvironmentBuildsBuildIdRoute
+  '/_app/settings/projects_/$projectId_/dev-environment_/repositories/$owner/$repo': typeof AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/__tokens'
+  fullPaths:
+    | '/'
+    | '/__tokens'
+    | '/design'
+    | '/desktop'
+    | '/dither-cover'
+    | '/onboarding'
+    | '/vm-handoff'
+    | '/welcome'
+    | '/explore'
+    | '/settings'
+    | '/$'
+    | '/automations'
+    | '/drive'
+    | '/invites'
+    | '/issues'
+    | '/memory'
+    | '/new'
+    | '/projects'
+    | '/pulls'
+    | '/threads'
+    | '/volumes'
+    | '/desktop/passkey'
+    | '/email/$program'
+    | '/linear/link'
+    | '/offer/$offerId'
+    | '/p/$code'
+    | '/promotion/$promotionId'
+    | '/s/$shareId'
+    | '/security/not-me'
+    | '/slack/link'
+    | '/automation/$automationId'
+    | '/automation/new'
+    | '/drive/$scope'
+    | '/drive/shared'
+    | '/issues/$code'
+    | '/settings/api'
+    | '/settings/appearance'
+    | '/settings/capy'
+    | '/settings/cloud-credentials'
+    | '/settings/devices'
+    | '/settings/environment-variables'
+    | '/settings/experiments'
+    | '/settings/general'
+    | '/settings/git'
+    | '/settings/import'
+    | '/settings/instructions'
+    | '/settings/integrations'
+    | '/settings/mcp'
+    | '/settings/models'
+    | '/settings/notifications'
+    | '/settings/profile'
+    | '/settings/projects'
+    | '/settings/referrals'
+    | '/settings/review'
+    | '/settings/security'
+    | '/settings/setup-and-snapshots'
+    | '/settings/shortcuts'
+    | '/settings/skills'
+    | '/settings/threads'
+    | '/settings/volumes'
+    | '/thread/$threadId'
+    | '/volumes/$scope'
+    | '/sign-in/sso-callback'
+    | '/sign-in/verify'
+    | '/sign-up/sso-callback'
+    | '/sign-up/verify'
+    | '/web/callbacks/github'
+    | '/web/callbacks/linear'
+    | '/web/callbacks/mcp'
+    | '/web/callbacks/paper'
+    | '/web/callbacks/slack'
+    | '/web/callbacks/x'
+    | '/explore/'
+    | '/settings/'
+    | '/sign-in/'
+    | '/sign-up/'
+    | '/automation/$automationId/drive'
+    | '/automation/$automationId/volume'
+    | '/drive/captain/$jamId'
+    | '/drive/share/$shareId'
+    | '/explore/$kind/$slug'
+    | '/project/$projectId/dev-environment'
+    | '/project/$projectId/environment-variables'
+    | '/project/$projectId/settings'
+    | '/settings/appearance/themes'
+    | '/settings/cloud-credentials/aws'
+    | '/settings/cloud-credentials/azure'
+    | '/settings/cloud-credentials/gcp'
+    | '/settings/cloud-credentials/oidc'
+    | '/settings/cloud-credentials/vault'
+    | '/settings/devices/$deviceId'
+    | '/settings/devices/link'
+    | '/settings/devices/this'
+    | '/settings/integrations/cloud-access'
+    | '/settings/integrations/github'
+    | '/settings/integrations/linear'
+    | '/settings/integrations/mcp'
+    | '/settings/integrations/paper'
+    | '/settings/integrations/revyl'
+    | '/settings/integrations/slack'
+    | '/settings/integrations/tailscale'
+    | '/settings/mcp/$serverId'
+    | '/settings/mcp/marketplace'
+    | '/settings/mcp/new'
+    | '/settings/notifications/device'
+    | '/settings/notifications/email'
+    | '/settings/notifications/slack'
+    | '/settings/org/activity'
+    | '/settings/org/audit-log'
+    | '/settings/org/billing'
+    | '/settings/org/general'
+    | '/settings/org/identity'
+    | '/settings/org/issue-states'
+    | '/settings/org/members'
+    | '/settings/org/usage'
+    | '/settings/projects/$projectId'
+    | '/settings/review/agent-config'
+    | '/settings/review/repositories'
+    | '/settings/volumes/$scope'
+    | '/explore/$kind/'
+    | '/project/$projectId/'
+    | '/diagram/$threadId/$messageId/$index'
+    | '/project/$projectId/drive/$scope'
+    | '/project/$projectId/jam/$jamId'
+    | '/project/$projectId/mcp/$serverId'
+    | '/project/$projectId/mcp/new'
+    | '/project/$projectId/thread/$threadId'
+    | '/project/$projectId/volume/$scope'
+    | '/pull/$owner/$repo/$prNumber'
+    | '/settings/api/key/$keyId'
+    | '/settings/api/service-user/$serviceUserId'
+    | '/settings/appearance/themes/$themeId'
+    | '/settings/cloud-credentials/aws/$targetId'
+    | '/settings/cloud-credentials/aws/new'
+    | '/settings/cloud-credentials/azure/$targetId'
+    | '/settings/cloud-credentials/azure/new'
+    | '/settings/cloud-credentials/gcp/$targetId'
+    | '/settings/cloud-credentials/gcp/new'
+    | '/settings/cloud-credentials/oidc/$targetId'
+    | '/settings/cloud-credentials/oidc/new'
+    | '/settings/cloud-credentials/vault/$targetId'
+    | '/settings/cloud-credentials/vault/new'
+    | '/settings/integrations/cloud-access/$'
+    | '/settings/integrations/mcp/$serverId'
+    | '/settings/integrations/mcp/new'
+    | '/settings/mcp/add/$versionId'
+    | '/settings/mcp/marketplace/$name'
+    | '/settings/mcp/plugins/$installationId'
+    | '/settings/projects/$projectId/dev-environment'
+    | '/settings/projects/$projectId/environment-variables'
+    | '/project/$projectId/dev-environment/builds/$buildId'
+    | '/settings/mcp/plugins/$installationId/update'
+    | '/settings/projects/$projectId/mcp/$serverId'
+    | '/settings/projects/$projectId/mcp/new'
+    | '/project/$projectId/dev-environment/repositories/$owner/$repo'
+    | '/project/$projectId/pull/$owner/$repo/$prNumber'
+    | '/settings/projects/$projectId/dev-environment/builds/$buildId'
+    | '/settings/projects/$projectId/dev-environment/repositories/$owner/$repo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/__tokens'
-  id: '__root__' | '/' | '/__tokens'
+  to:
+    | '/'
+    | '/__tokens'
+    | '/design'
+    | '/desktop'
+    | '/dither-cover'
+    | '/onboarding'
+    | '/vm-handoff'
+    | '/welcome'
+    | '/$'
+    | '/automations'
+    | '/drive'
+    | '/invites'
+    | '/issues'
+    | '/memory'
+    | '/new'
+    | '/projects'
+    | '/pulls'
+    | '/threads'
+    | '/volumes'
+    | '/desktop/passkey'
+    | '/email/$program'
+    | '/linear/link'
+    | '/offer/$offerId'
+    | '/p/$code'
+    | '/promotion/$promotionId'
+    | '/s/$shareId'
+    | '/security/not-me'
+    | '/slack/link'
+    | '/automation/$automationId'
+    | '/automation/new'
+    | '/drive/$scope'
+    | '/drive/shared'
+    | '/issues/$code'
+    | '/settings/api'
+    | '/settings/appearance'
+    | '/settings/capy'
+    | '/settings/cloud-credentials'
+    | '/settings/devices'
+    | '/settings/environment-variables'
+    | '/settings/experiments'
+    | '/settings/general'
+    | '/settings/git'
+    | '/settings/import'
+    | '/settings/instructions'
+    | '/settings/integrations'
+    | '/settings/mcp'
+    | '/settings/models'
+    | '/settings/notifications'
+    | '/settings/profile'
+    | '/settings/projects'
+    | '/settings/referrals'
+    | '/settings/review'
+    | '/settings/security'
+    | '/settings/setup-and-snapshots'
+    | '/settings/shortcuts'
+    | '/settings/skills'
+    | '/settings/threads'
+    | '/settings/volumes'
+    | '/thread/$threadId'
+    | '/volumes/$scope'
+    | '/sign-in/sso-callback'
+    | '/sign-in/verify'
+    | '/sign-up/sso-callback'
+    | '/sign-up/verify'
+    | '/web/callbacks/github'
+    | '/web/callbacks/linear'
+    | '/web/callbacks/mcp'
+    | '/web/callbacks/paper'
+    | '/web/callbacks/slack'
+    | '/web/callbacks/x'
+    | '/explore'
+    | '/settings'
+    | '/sign-in'
+    | '/sign-up'
+    | '/automation/$automationId/drive'
+    | '/automation/$automationId/volume'
+    | '/drive/captain/$jamId'
+    | '/drive/share/$shareId'
+    | '/explore/$kind/$slug'
+    | '/project/$projectId/dev-environment'
+    | '/project/$projectId/environment-variables'
+    | '/project/$projectId/settings'
+    | '/settings/appearance/themes'
+    | '/settings/cloud-credentials/aws'
+    | '/settings/cloud-credentials/azure'
+    | '/settings/cloud-credentials/gcp'
+    | '/settings/cloud-credentials/oidc'
+    | '/settings/cloud-credentials/vault'
+    | '/settings/devices/$deviceId'
+    | '/settings/devices/link'
+    | '/settings/devices/this'
+    | '/settings/integrations/cloud-access'
+    | '/settings/integrations/github'
+    | '/settings/integrations/linear'
+    | '/settings/integrations/mcp'
+    | '/settings/integrations/paper'
+    | '/settings/integrations/revyl'
+    | '/settings/integrations/slack'
+    | '/settings/integrations/tailscale'
+    | '/settings/mcp/$serverId'
+    | '/settings/mcp/marketplace'
+    | '/settings/mcp/new'
+    | '/settings/notifications/device'
+    | '/settings/notifications/email'
+    | '/settings/notifications/slack'
+    | '/settings/org/activity'
+    | '/settings/org/audit-log'
+    | '/settings/org/billing'
+    | '/settings/org/general'
+    | '/settings/org/identity'
+    | '/settings/org/issue-states'
+    | '/settings/org/members'
+    | '/settings/org/usage'
+    | '/settings/projects/$projectId'
+    | '/settings/review/agent-config'
+    | '/settings/review/repositories'
+    | '/settings/volumes/$scope'
+    | '/explore/$kind'
+    | '/project/$projectId'
+    | '/diagram/$threadId/$messageId/$index'
+    | '/project/$projectId/drive/$scope'
+    | '/project/$projectId/jam/$jamId'
+    | '/project/$projectId/mcp/$serverId'
+    | '/project/$projectId/mcp/new'
+    | '/project/$projectId/thread/$threadId'
+    | '/project/$projectId/volume/$scope'
+    | '/pull/$owner/$repo/$prNumber'
+    | '/settings/api/key/$keyId'
+    | '/settings/api/service-user/$serviceUserId'
+    | '/settings/appearance/themes/$themeId'
+    | '/settings/cloud-credentials/aws/$targetId'
+    | '/settings/cloud-credentials/aws/new'
+    | '/settings/cloud-credentials/azure/$targetId'
+    | '/settings/cloud-credentials/azure/new'
+    | '/settings/cloud-credentials/gcp/$targetId'
+    | '/settings/cloud-credentials/gcp/new'
+    | '/settings/cloud-credentials/oidc/$targetId'
+    | '/settings/cloud-credentials/oidc/new'
+    | '/settings/cloud-credentials/vault/$targetId'
+    | '/settings/cloud-credentials/vault/new'
+    | '/settings/integrations/cloud-access/$'
+    | '/settings/integrations/mcp/$serverId'
+    | '/settings/integrations/mcp/new'
+    | '/settings/mcp/add/$versionId'
+    | '/settings/mcp/marketplace/$name'
+    | '/settings/mcp/plugins/$installationId'
+    | '/settings/projects/$projectId/dev-environment'
+    | '/settings/projects/$projectId/environment-variables'
+    | '/project/$projectId/dev-environment/builds/$buildId'
+    | '/settings/mcp/plugins/$installationId/update'
+    | '/settings/projects/$projectId/mcp/$serverId'
+    | '/settings/projects/$projectId/mcp/new'
+    | '/project/$projectId/dev-environment/repositories/$owner/$repo'
+    | '/project/$projectId/pull/$owner/$repo/$prNumber'
+    | '/settings/projects/$projectId/dev-environment/builds/$buildId'
+    | '/settings/projects/$projectId/dev-environment/repositories/$owner/$repo'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/_auth'
+    | '/__tokens'
+    | '/design'
+    | '/desktop'
+    | '/dither-cover'
+    | '/onboarding'
+    | '/vm-handoff'
+    | '/welcome'
+    | '/_app/explore'
+    | '/_app/settings'
+    | '/_app/$'
+    | '/_app/automations'
+    | '/_app/drive'
+    | '/_app/invites'
+    | '/_app/issues'
+    | '/_app/memory'
+    | '/_app/new'
+    | '/_app/projects'
+    | '/_app/pulls'
+    | '/_app/threads'
+    | '/_app/volumes'
+    | '/desktop_/passkey'
+    | '/email/$program'
+    | '/linear/link'
+    | '/offer/$offerId'
+    | '/p/$code'
+    | '/promotion/$promotionId'
+    | '/s/$shareId'
+    | '/security/not-me'
+    | '/slack/link'
+    | '/_app/'
+    | '/_app/automation/$automationId'
+    | '/_app/automation/new'
+    | '/_app/drive_/$scope'
+    | '/_app/drive_/shared'
+    | '/_app/issues_/$code'
+    | '/_app/settings/api'
+    | '/_app/settings/appearance'
+    | '/_app/settings/capy'
+    | '/_app/settings/cloud-credentials'
+    | '/_app/settings/devices'
+    | '/_app/settings/environment-variables'
+    | '/_app/settings/experiments'
+    | '/_app/settings/general'
+    | '/_app/settings/git'
+    | '/_app/settings/import'
+    | '/_app/settings/instructions'
+    | '/_app/settings/integrations'
+    | '/_app/settings/mcp'
+    | '/_app/settings/models'
+    | '/_app/settings/notifications'
+    | '/_app/settings/profile'
+    | '/_app/settings/projects'
+    | '/_app/settings/referrals'
+    | '/_app/settings/review'
+    | '/_app/settings/security'
+    | '/_app/settings/setup-and-snapshots'
+    | '/_app/settings/shortcuts'
+    | '/_app/settings/skills'
+    | '/_app/settings/threads'
+    | '/_app/settings/volumes'
+    | '/_app/thread/$threadId'
+    | '/_app/volumes_/$scope'
+    | '/_auth/sign-in/sso-callback'
+    | '/_auth/sign-in/verify'
+    | '/_auth/sign-up/sso-callback'
+    | '/_auth/sign-up/verify'
+    | '/web/callbacks/github'
+    | '/web/callbacks/linear'
+    | '/web/callbacks/mcp'
+    | '/web/callbacks/paper'
+    | '/web/callbacks/slack'
+    | '/web/callbacks/x'
+    | '/_app/explore/'
+    | '/_app/settings/'
+    | '/_auth/sign-in/'
+    | '/_auth/sign-up/'
+    | '/_app/automation/$automationId_/drive'
+    | '/_app/automation/$automationId_/volume'
+    | '/_app/drive_/captain/$jamId'
+    | '/_app/drive_/share/$shareId'
+    | '/_app/explore/$kind/$slug'
+    | '/_app/project/$projectId/dev-environment'
+    | '/_app/project/$projectId/environment-variables'
+    | '/_app/project/$projectId/settings'
+    | '/_app/settings/appearance_/themes'
+    | '/_app/settings/cloud-credentials_/aws'
+    | '/_app/settings/cloud-credentials_/azure'
+    | '/_app/settings/cloud-credentials_/gcp'
+    | '/_app/settings/cloud-credentials_/oidc'
+    | '/_app/settings/cloud-credentials_/vault'
+    | '/_app/settings/devices_/$deviceId'
+    | '/_app/settings/devices_/link'
+    | '/_app/settings/devices_/this'
+    | '/_app/settings/integrations_/cloud-access'
+    | '/_app/settings/integrations_/github'
+    | '/_app/settings/integrations_/linear'
+    | '/_app/settings/integrations_/mcp'
+    | '/_app/settings/integrations_/paper'
+    | '/_app/settings/integrations_/revyl'
+    | '/_app/settings/integrations_/slack'
+    | '/_app/settings/integrations_/tailscale'
+    | '/_app/settings/mcp_/$serverId'
+    | '/_app/settings/mcp_/marketplace'
+    | '/_app/settings/mcp_/new'
+    | '/_app/settings/notifications_/device'
+    | '/_app/settings/notifications_/email'
+    | '/_app/settings/notifications_/slack'
+    | '/_app/settings/org/activity'
+    | '/_app/settings/org/audit-log'
+    | '/_app/settings/org/billing'
+    | '/_app/settings/org/general'
+    | '/_app/settings/org/identity'
+    | '/_app/settings/org/issue-states'
+    | '/_app/settings/org/members'
+    | '/_app/settings/org/usage'
+    | '/_app/settings/projects_/$projectId'
+    | '/_app/settings/review_/agent-config'
+    | '/_app/settings/review_/repositories'
+    | '/_app/settings/volumes_/$scope'
+    | '/_app/explore/$kind/'
+    | '/_app/project/$projectId/'
+    | '/_app/diagram/$threadId/$messageId/$index'
+    | '/_app/project/$projectId/drive/$scope'
+    | '/_app/project/$projectId/jam/$jamId'
+    | '/_app/project/$projectId/mcp_/$serverId'
+    | '/_app/project/$projectId/mcp_/new'
+    | '/_app/project/$projectId/thread/$threadId'
+    | '/_app/project/$projectId/volume/$scope'
+    | '/_app/pull/$owner/$repo/$prNumber'
+    | '/_app/settings/api_/key/$keyId'
+    | '/_app/settings/api_/service-user/$serviceUserId'
+    | '/_app/settings/appearance_/themes_/$themeId'
+    | '/_app/settings/cloud-credentials_/aws_/$targetId'
+    | '/_app/settings/cloud-credentials_/aws_/new'
+    | '/_app/settings/cloud-credentials_/azure_/$targetId'
+    | '/_app/settings/cloud-credentials_/azure_/new'
+    | '/_app/settings/cloud-credentials_/gcp_/$targetId'
+    | '/_app/settings/cloud-credentials_/gcp_/new'
+    | '/_app/settings/cloud-credentials_/oidc_/$targetId'
+    | '/_app/settings/cloud-credentials_/oidc_/new'
+    | '/_app/settings/cloud-credentials_/vault_/$targetId'
+    | '/_app/settings/cloud-credentials_/vault_/new'
+    | '/_app/settings/integrations_/cloud-access_/$'
+    | '/_app/settings/integrations_/mcp_/$serverId'
+    | '/_app/settings/integrations_/mcp_/new'
+    | '/_app/settings/mcp_/add/$versionId'
+    | '/_app/settings/mcp_/marketplace_/$name'
+    | '/_app/settings/mcp_/plugins/$installationId'
+    | '/_app/settings/projects_/$projectId_/dev-environment'
+    | '/_app/settings/projects_/$projectId_/environment-variables'
+    | '/_app/project/$projectId/dev-environment_/builds/$buildId'
+    | '/_app/settings/mcp_/plugins/$installationId_/update'
+    | '/_app/settings/projects_/$projectId_/mcp_/$serverId'
+    | '/_app/settings/projects_/$projectId_/mcp_/new'
+    | '/_app/project/$projectId/dev-environment_/repositories/$owner/$repo'
+    | '/_app/project/$projectId/pull/$owner/$repo/$prNumber'
+    | '/_app/settings/projects_/$projectId_/dev-environment_/builds/$buildId'
+    | '/_app/settings/projects_/$projectId_/dev-environment_/repositories/$owner/$repo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AppRouteRoute: typeof AppRouteRouteWithChildren
+  AuthRouteRoute: typeof AuthRouteRouteWithChildren
   Char91__tokensChar93Route: typeof Char91__tokensChar93Route
+  DesignRoute: typeof DesignRoute
+  DesktopRoute: typeof DesktopRoute
+  DitherCoverRoute: typeof DitherCoverRoute
+  OnboardingRoute: typeof OnboardingRoute
+  VmHandoffRoute: typeof VmHandoffRoute
+  WelcomeRoute: typeof WelcomeRoute
+  DesktopPasskeyRoute: typeof DesktopPasskeyRoute
+  EmailProgramRoute: typeof EmailProgramRoute
+  LinearLinkRoute: typeof LinearLinkRoute
+  OfferOfferIdRoute: typeof OfferOfferIdRoute
+  PCodeRoute: typeof PCodeRoute
+  PromotionPromotionIdRoute: typeof PromotionPromotionIdRoute
+  SShareIdRoute: typeof SShareIdRoute
+  SecurityNotMeRoute: typeof SecurityNotMeRoute
+  SlackLinkRoute: typeof SlackLinkRoute
+  WebCallbacksGithubRoute: typeof WebCallbacksGithubRoute
+  WebCallbacksLinearRoute: typeof WebCallbacksLinearRoute
+  WebCallbacksMcpRoute: typeof WebCallbacksMcpRoute
+  WebCallbacksPaperRoute: typeof WebCallbacksPaperRoute
+  WebCallbacksSlackRoute: typeof WebCallbacksSlackRoute
+  WebCallbacksXRoute: typeof WebCallbacksXRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/__tokens': {
       id: '/__tokens'
       path: '/__tokens'
@@ -65,12 +2041,1487 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91__tokensChar93RouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/design': {
+      id: '/design'
+      path: '/design'
+      fullPath: '/design'
+      preLoaderRoute: typeof DesignRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/desktop': {
+      id: '/desktop'
+      path: '/desktop'
+      fullPath: '/desktop'
+      preLoaderRoute: typeof DesktopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dither-cover': {
+      id: '/dither-cover'
+      path: '/dither-cover'
+      fullPath: '/dither-cover'
+      preLoaderRoute: typeof DitherCoverRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vm-handoff': {
+      id: '/vm-handoff'
+      path: '/vm-handoff'
+      fullPath: '/vm-handoff'
+      preLoaderRoute: typeof VmHandoffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/': {
+      id: '/_app/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/$': {
+      id: '/_app/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof AppSplatRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/automations': {
+      id: '/_app/automations'
+      path: '/automations'
+      fullPath: '/automations'
+      preLoaderRoute: typeof AppAutomationsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/drive': {
+      id: '/_app/drive'
+      path: '/drive'
+      fullPath: '/drive'
+      preLoaderRoute: typeof AppDriveRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/explore': {
+      id: '/_app/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof AppExploreRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/invites': {
+      id: '/_app/invites'
+      path: '/invites'
+      fullPath: '/invites'
+      preLoaderRoute: typeof AppInvitesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/issues': {
+      id: '/_app/issues'
+      path: '/issues'
+      fullPath: '/issues'
+      preLoaderRoute: typeof AppIssuesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/memory': {
+      id: '/_app/memory'
+      path: '/memory'
+      fullPath: '/memory'
+      preLoaderRoute: typeof AppMemoryRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/new': {
+      id: '/_app/new'
+      path: '/new'
+      fullPath: '/new'
+      preLoaderRoute: typeof AppNewRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/projects': {
+      id: '/_app/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof AppProjectsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/pulls': {
+      id: '/_app/pulls'
+      path: '/pulls'
+      fullPath: '/pulls'
+      preLoaderRoute: typeof AppPullsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/threads': {
+      id: '/_app/threads'
+      path: '/threads'
+      fullPath: '/threads'
+      preLoaderRoute: typeof AppThreadsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/volumes': {
+      id: '/_app/volumes'
+      path: '/volumes'
+      fullPath: '/volumes'
+      preLoaderRoute: typeof AppVolumesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/desktop_/passkey': {
+      id: '/desktop_/passkey'
+      path: '/desktop/passkey'
+      fullPath: '/desktop/passkey'
+      preLoaderRoute: typeof DesktopPasskeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/email/$program': {
+      id: '/email/$program'
+      path: '/email/$program'
+      fullPath: '/email/$program'
+      preLoaderRoute: typeof EmailProgramRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/linear/link': {
+      id: '/linear/link'
+      path: '/linear/link'
+      fullPath: '/linear/link'
+      preLoaderRoute: typeof LinearLinkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/offer/$offerId': {
+      id: '/offer/$offerId'
+      path: '/offer/$offerId'
+      fullPath: '/offer/$offerId'
+      preLoaderRoute: typeof OfferOfferIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/$code': {
+      id: '/p/$code'
+      path: '/p/$code'
+      fullPath: '/p/$code'
+      preLoaderRoute: typeof PCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/promotion/$promotionId': {
+      id: '/promotion/$promotionId'
+      path: '/promotion/$promotionId'
+      fullPath: '/promotion/$promotionId'
+      preLoaderRoute: typeof PromotionPromotionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/s/$shareId': {
+      id: '/s/$shareId'
+      path: '/s/$shareId'
+      fullPath: '/s/$shareId'
+      preLoaderRoute: typeof SShareIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/security/not-me': {
+      id: '/security/not-me'
+      path: '/security/not-me'
+      fullPath: '/security/not-me'
+      preLoaderRoute: typeof SecurityNotMeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/slack/link': {
+      id: '/slack/link'
+      path: '/slack/link'
+      fullPath: '/slack/link'
+      preLoaderRoute: typeof SlackLinkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/automation/$automationId': {
+      id: '/_app/automation/$automationId'
+      path: '/automation/$automationId'
+      fullPath: '/automation/$automationId'
+      preLoaderRoute: typeof AppAutomationAutomationIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/automation/new': {
+      id: '/_app/automation/new'
+      path: '/automation/new'
+      fullPath: '/automation/new'
+      preLoaderRoute: typeof AppAutomationNewRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/drive_/$scope': {
+      id: '/_app/drive_/$scope'
+      path: '/drive/$scope'
+      fullPath: '/drive/$scope'
+      preLoaderRoute: typeof AppDriveScopeRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/drive_/shared': {
+      id: '/_app/drive_/shared'
+      path: '/drive/shared'
+      fullPath: '/drive/shared'
+      preLoaderRoute: typeof AppDriveSharedRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/explore/': {
+      id: '/_app/explore/'
+      path: '/'
+      fullPath: '/explore/'
+      preLoaderRoute: typeof AppExploreIndexRouteImport
+      parentRoute: typeof AppExploreRouteRoute
+    }
+    '/_app/issues_/$code': {
+      id: '/_app/issues_/$code'
+      path: '/issues/$code'
+      fullPath: '/issues/$code'
+      preLoaderRoute: typeof AppIssuesCodeRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/settings/': {
+      id: '/_app/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AppSettingsIndexRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/api': {
+      id: '/_app/settings/api'
+      path: '/api'
+      fullPath: '/settings/api'
+      preLoaderRoute: typeof AppSettingsApiRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/appearance': {
+      id: '/_app/settings/appearance'
+      path: '/appearance'
+      fullPath: '/settings/appearance'
+      preLoaderRoute: typeof AppSettingsAppearanceRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/capy': {
+      id: '/_app/settings/capy'
+      path: '/capy'
+      fullPath: '/settings/capy'
+      preLoaderRoute: typeof AppSettingsCapyRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/cloud-credentials': {
+      id: '/_app/settings/cloud-credentials'
+      path: '/cloud-credentials'
+      fullPath: '/settings/cloud-credentials'
+      preLoaderRoute: typeof AppSettingsCloudCredentialsRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/devices': {
+      id: '/_app/settings/devices'
+      path: '/devices'
+      fullPath: '/settings/devices'
+      preLoaderRoute: typeof AppSettingsDevicesRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/environment-variables': {
+      id: '/_app/settings/environment-variables'
+      path: '/environment-variables'
+      fullPath: '/settings/environment-variables'
+      preLoaderRoute: typeof AppSettingsEnvironmentVariablesRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/experiments': {
+      id: '/_app/settings/experiments'
+      path: '/experiments'
+      fullPath: '/settings/experiments'
+      preLoaderRoute: typeof AppSettingsExperimentsRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/general': {
+      id: '/_app/settings/general'
+      path: '/general'
+      fullPath: '/settings/general'
+      preLoaderRoute: typeof AppSettingsGeneralRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/git': {
+      id: '/_app/settings/git'
+      path: '/git'
+      fullPath: '/settings/git'
+      preLoaderRoute: typeof AppSettingsGitRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/import': {
+      id: '/_app/settings/import'
+      path: '/import'
+      fullPath: '/settings/import'
+      preLoaderRoute: typeof AppSettingsImportRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/instructions': {
+      id: '/_app/settings/instructions'
+      path: '/instructions'
+      fullPath: '/settings/instructions'
+      preLoaderRoute: typeof AppSettingsInstructionsRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/integrations': {
+      id: '/_app/settings/integrations'
+      path: '/integrations'
+      fullPath: '/settings/integrations'
+      preLoaderRoute: typeof AppSettingsIntegrationsRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/mcp': {
+      id: '/_app/settings/mcp'
+      path: '/mcp'
+      fullPath: '/settings/mcp'
+      preLoaderRoute: typeof AppSettingsMcpRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/models': {
+      id: '/_app/settings/models'
+      path: '/models'
+      fullPath: '/settings/models'
+      preLoaderRoute: typeof AppSettingsModelsRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/notifications': {
+      id: '/_app/settings/notifications'
+      path: '/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof AppSettingsNotificationsRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/profile': {
+      id: '/_app/settings/profile'
+      path: '/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof AppSettingsProfileRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/projects': {
+      id: '/_app/settings/projects'
+      path: '/projects'
+      fullPath: '/settings/projects'
+      preLoaderRoute: typeof AppSettingsProjectsRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/referrals': {
+      id: '/_app/settings/referrals'
+      path: '/referrals'
+      fullPath: '/settings/referrals'
+      preLoaderRoute: typeof AppSettingsReferralsRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/review': {
+      id: '/_app/settings/review'
+      path: '/review'
+      fullPath: '/settings/review'
+      preLoaderRoute: typeof AppSettingsReviewRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/security': {
+      id: '/_app/settings/security'
+      path: '/security'
+      fullPath: '/settings/security'
+      preLoaderRoute: typeof AppSettingsSecurityRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/setup-and-snapshots': {
+      id: '/_app/settings/setup-and-snapshots'
+      path: '/setup-and-snapshots'
+      fullPath: '/settings/setup-and-snapshots'
+      preLoaderRoute: typeof AppSettingsSetupAndSnapshotsRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/shortcuts': {
+      id: '/_app/settings/shortcuts'
+      path: '/shortcuts'
+      fullPath: '/settings/shortcuts'
+      preLoaderRoute: typeof AppSettingsShortcutsRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/skills': {
+      id: '/_app/settings/skills'
+      path: '/skills'
+      fullPath: '/settings/skills'
+      preLoaderRoute: typeof AppSettingsSkillsRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/threads': {
+      id: '/_app/settings/threads'
+      path: '/threads'
+      fullPath: '/settings/threads'
+      preLoaderRoute: typeof AppSettingsThreadsRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/volumes': {
+      id: '/_app/settings/volumes'
+      path: '/volumes'
+      fullPath: '/settings/volumes'
+      preLoaderRoute: typeof AppSettingsVolumesRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/thread/$threadId': {
+      id: '/_app/thread/$threadId'
+      path: '/thread/$threadId'
+      fullPath: '/thread/$threadId'
+      preLoaderRoute: typeof AppThreadThreadIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/volumes_/$scope': {
+      id: '/_app/volumes_/$scope'
+      path: '/volumes/$scope'
+      fullPath: '/volumes/$scope'
+      preLoaderRoute: typeof AppVolumesScopeRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_auth/sign-in/': {
+      id: '/_auth/sign-in/'
+      path: '/sign-in'
+      fullPath: '/sign-in/'
+      preLoaderRoute: typeof AuthSignInIndexRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
+    '/_auth/sign-in/sso-callback': {
+      id: '/_auth/sign-in/sso-callback'
+      path: '/sign-in/sso-callback'
+      fullPath: '/sign-in/sso-callback'
+      preLoaderRoute: typeof AuthSignInSsoCallbackRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
+    '/_auth/sign-in/verify': {
+      id: '/_auth/sign-in/verify'
+      path: '/sign-in/verify'
+      fullPath: '/sign-in/verify'
+      preLoaderRoute: typeof AuthSignInVerifyRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
+    '/_auth/sign-up/': {
+      id: '/_auth/sign-up/'
+      path: '/sign-up'
+      fullPath: '/sign-up/'
+      preLoaderRoute: typeof AuthSignUpIndexRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
+    '/_auth/sign-up/sso-callback': {
+      id: '/_auth/sign-up/sso-callback'
+      path: '/sign-up/sso-callback'
+      fullPath: '/sign-up/sso-callback'
+      preLoaderRoute: typeof AuthSignUpSsoCallbackRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
+    '/_auth/sign-up/verify': {
+      id: '/_auth/sign-up/verify'
+      path: '/sign-up/verify'
+      fullPath: '/sign-up/verify'
+      preLoaderRoute: typeof AuthSignUpVerifyRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
+    '/web/callbacks/github': {
+      id: '/web/callbacks/github'
+      path: '/web/callbacks/github'
+      fullPath: '/web/callbacks/github'
+      preLoaderRoute: typeof WebCallbacksGithubRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/web/callbacks/linear': {
+      id: '/web/callbacks/linear'
+      path: '/web/callbacks/linear'
+      fullPath: '/web/callbacks/linear'
+      preLoaderRoute: typeof WebCallbacksLinearRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/web/callbacks/mcp': {
+      id: '/web/callbacks/mcp'
+      path: '/web/callbacks/mcp'
+      fullPath: '/web/callbacks/mcp'
+      preLoaderRoute: typeof WebCallbacksMcpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/web/callbacks/paper': {
+      id: '/web/callbacks/paper'
+      path: '/web/callbacks/paper'
+      fullPath: '/web/callbacks/paper'
+      preLoaderRoute: typeof WebCallbacksPaperRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/web/callbacks/slack': {
+      id: '/web/callbacks/slack'
+      path: '/web/callbacks/slack'
+      fullPath: '/web/callbacks/slack'
+      preLoaderRoute: typeof WebCallbacksSlackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/web/callbacks/x': {
+      id: '/web/callbacks/x'
+      path: '/web/callbacks/x'
+      fullPath: '/web/callbacks/x'
+      preLoaderRoute: typeof WebCallbacksXRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/automation/$automationId_/drive': {
+      id: '/_app/automation/$automationId_/drive'
+      path: '/automation/$automationId/drive'
+      fullPath: '/automation/$automationId/drive'
+      preLoaderRoute: typeof AppAutomationAutomationIdDriveRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/automation/$automationId_/volume': {
+      id: '/_app/automation/$automationId_/volume'
+      path: '/automation/$automationId/volume'
+      fullPath: '/automation/$automationId/volume'
+      preLoaderRoute: typeof AppAutomationAutomationIdVolumeRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/drive_/captain/$jamId': {
+      id: '/_app/drive_/captain/$jamId'
+      path: '/drive/captain/$jamId'
+      fullPath: '/drive/captain/$jamId'
+      preLoaderRoute: typeof AppDriveCaptainJamIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/drive_/share/$shareId': {
+      id: '/_app/drive_/share/$shareId'
+      path: '/drive/share/$shareId'
+      fullPath: '/drive/share/$shareId'
+      preLoaderRoute: typeof AppDriveShareShareIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/explore/$kind/': {
+      id: '/_app/explore/$kind/'
+      path: '/$kind'
+      fullPath: '/explore/$kind/'
+      preLoaderRoute: typeof AppExploreKindIndexRouteImport
+      parentRoute: typeof AppExploreRouteRoute
+    }
+    '/_app/explore/$kind/$slug': {
+      id: '/_app/explore/$kind/$slug'
+      path: '/$kind/$slug'
+      fullPath: '/explore/$kind/$slug'
+      preLoaderRoute: typeof AppExploreKindSlugRouteImport
+      parentRoute: typeof AppExploreRouteRoute
+    }
+    '/_app/project/$projectId/': {
+      id: '/_app/project/$projectId/'
+      path: '/project/$projectId'
+      fullPath: '/project/$projectId/'
+      preLoaderRoute: typeof AppProjectProjectIdIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/project/$projectId/dev-environment': {
+      id: '/_app/project/$projectId/dev-environment'
+      path: '/project/$projectId/dev-environment'
+      fullPath: '/project/$projectId/dev-environment'
+      preLoaderRoute: typeof AppProjectProjectIdDevEnvironmentRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/project/$projectId/environment-variables': {
+      id: '/_app/project/$projectId/environment-variables'
+      path: '/project/$projectId/environment-variables'
+      fullPath: '/project/$projectId/environment-variables'
+      preLoaderRoute: typeof AppProjectProjectIdEnvironmentVariablesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/project/$projectId/settings': {
+      id: '/_app/project/$projectId/settings'
+      path: '/project/$projectId/settings'
+      fullPath: '/project/$projectId/settings'
+      preLoaderRoute: typeof AppProjectProjectIdSettingsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/settings/appearance_/themes': {
+      id: '/_app/settings/appearance_/themes'
+      path: '/appearance/themes'
+      fullPath: '/settings/appearance/themes'
+      preLoaderRoute: typeof AppSettingsAppearanceThemesRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/cloud-credentials_/aws': {
+      id: '/_app/settings/cloud-credentials_/aws'
+      path: '/cloud-credentials/aws'
+      fullPath: '/settings/cloud-credentials/aws'
+      preLoaderRoute: typeof AppSettingsCloudCredentialsAwsRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/cloud-credentials_/azure': {
+      id: '/_app/settings/cloud-credentials_/azure'
+      path: '/cloud-credentials/azure'
+      fullPath: '/settings/cloud-credentials/azure'
+      preLoaderRoute: typeof AppSettingsCloudCredentialsAzureRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/cloud-credentials_/gcp': {
+      id: '/_app/settings/cloud-credentials_/gcp'
+      path: '/cloud-credentials/gcp'
+      fullPath: '/settings/cloud-credentials/gcp'
+      preLoaderRoute: typeof AppSettingsCloudCredentialsGcpRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/cloud-credentials_/oidc': {
+      id: '/_app/settings/cloud-credentials_/oidc'
+      path: '/cloud-credentials/oidc'
+      fullPath: '/settings/cloud-credentials/oidc'
+      preLoaderRoute: typeof AppSettingsCloudCredentialsOidcRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/cloud-credentials_/vault': {
+      id: '/_app/settings/cloud-credentials_/vault'
+      path: '/cloud-credentials/vault'
+      fullPath: '/settings/cloud-credentials/vault'
+      preLoaderRoute: typeof AppSettingsCloudCredentialsVaultRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/devices_/$deviceId': {
+      id: '/_app/settings/devices_/$deviceId'
+      path: '/devices/$deviceId'
+      fullPath: '/settings/devices/$deviceId'
+      preLoaderRoute: typeof AppSettingsDevicesDeviceIdRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/devices_/link': {
+      id: '/_app/settings/devices_/link'
+      path: '/devices/link'
+      fullPath: '/settings/devices/link'
+      preLoaderRoute: typeof AppSettingsDevicesLinkRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/devices_/this': {
+      id: '/_app/settings/devices_/this'
+      path: '/devices/this'
+      fullPath: '/settings/devices/this'
+      preLoaderRoute: typeof AppSettingsDevicesThisRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/integrations_/cloud-access': {
+      id: '/_app/settings/integrations_/cloud-access'
+      path: '/integrations/cloud-access'
+      fullPath: '/settings/integrations/cloud-access'
+      preLoaderRoute: typeof AppSettingsIntegrationsCloudAccessRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/integrations_/github': {
+      id: '/_app/settings/integrations_/github'
+      path: '/integrations/github'
+      fullPath: '/settings/integrations/github'
+      preLoaderRoute: typeof AppSettingsIntegrationsGithubRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/integrations_/linear': {
+      id: '/_app/settings/integrations_/linear'
+      path: '/integrations/linear'
+      fullPath: '/settings/integrations/linear'
+      preLoaderRoute: typeof AppSettingsIntegrationsLinearRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/integrations_/mcp': {
+      id: '/_app/settings/integrations_/mcp'
+      path: '/integrations/mcp'
+      fullPath: '/settings/integrations/mcp'
+      preLoaderRoute: typeof AppSettingsIntegrationsMcpRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/integrations_/paper': {
+      id: '/_app/settings/integrations_/paper'
+      path: '/integrations/paper'
+      fullPath: '/settings/integrations/paper'
+      preLoaderRoute: typeof AppSettingsIntegrationsPaperRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/integrations_/revyl': {
+      id: '/_app/settings/integrations_/revyl'
+      path: '/integrations/revyl'
+      fullPath: '/settings/integrations/revyl'
+      preLoaderRoute: typeof AppSettingsIntegrationsRevylRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/integrations_/slack': {
+      id: '/_app/settings/integrations_/slack'
+      path: '/integrations/slack'
+      fullPath: '/settings/integrations/slack'
+      preLoaderRoute: typeof AppSettingsIntegrationsSlackRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/integrations_/tailscale': {
+      id: '/_app/settings/integrations_/tailscale'
+      path: '/integrations/tailscale'
+      fullPath: '/settings/integrations/tailscale'
+      preLoaderRoute: typeof AppSettingsIntegrationsTailscaleRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/mcp_/$serverId': {
+      id: '/_app/settings/mcp_/$serverId'
+      path: '/mcp/$serverId'
+      fullPath: '/settings/mcp/$serverId'
+      preLoaderRoute: typeof AppSettingsMcpServerIdRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/mcp_/marketplace': {
+      id: '/_app/settings/mcp_/marketplace'
+      path: '/mcp/marketplace'
+      fullPath: '/settings/mcp/marketplace'
+      preLoaderRoute: typeof AppSettingsMcpMarketplaceRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/mcp_/new': {
+      id: '/_app/settings/mcp_/new'
+      path: '/mcp/new'
+      fullPath: '/settings/mcp/new'
+      preLoaderRoute: typeof AppSettingsMcpNewRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/notifications_/device': {
+      id: '/_app/settings/notifications_/device'
+      path: '/notifications/device'
+      fullPath: '/settings/notifications/device'
+      preLoaderRoute: typeof AppSettingsNotificationsDeviceRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/notifications_/email': {
+      id: '/_app/settings/notifications_/email'
+      path: '/notifications/email'
+      fullPath: '/settings/notifications/email'
+      preLoaderRoute: typeof AppSettingsNotificationsEmailRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/notifications_/slack': {
+      id: '/_app/settings/notifications_/slack'
+      path: '/notifications/slack'
+      fullPath: '/settings/notifications/slack'
+      preLoaderRoute: typeof AppSettingsNotificationsSlackRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/org/activity': {
+      id: '/_app/settings/org/activity'
+      path: '/org/activity'
+      fullPath: '/settings/org/activity'
+      preLoaderRoute: typeof AppSettingsOrgActivityRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/org/audit-log': {
+      id: '/_app/settings/org/audit-log'
+      path: '/org/audit-log'
+      fullPath: '/settings/org/audit-log'
+      preLoaderRoute: typeof AppSettingsOrgAuditLogRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/org/billing': {
+      id: '/_app/settings/org/billing'
+      path: '/org/billing'
+      fullPath: '/settings/org/billing'
+      preLoaderRoute: typeof AppSettingsOrgBillingRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/org/general': {
+      id: '/_app/settings/org/general'
+      path: '/org/general'
+      fullPath: '/settings/org/general'
+      preLoaderRoute: typeof AppSettingsOrgGeneralRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/org/identity': {
+      id: '/_app/settings/org/identity'
+      path: '/org/identity'
+      fullPath: '/settings/org/identity'
+      preLoaderRoute: typeof AppSettingsOrgIdentityRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/org/issue-states': {
+      id: '/_app/settings/org/issue-states'
+      path: '/org/issue-states'
+      fullPath: '/settings/org/issue-states'
+      preLoaderRoute: typeof AppSettingsOrgIssueStatesRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/org/members': {
+      id: '/_app/settings/org/members'
+      path: '/org/members'
+      fullPath: '/settings/org/members'
+      preLoaderRoute: typeof AppSettingsOrgMembersRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/org/usage': {
+      id: '/_app/settings/org/usage'
+      path: '/org/usage'
+      fullPath: '/settings/org/usage'
+      preLoaderRoute: typeof AppSettingsOrgUsageRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/projects_/$projectId': {
+      id: '/_app/settings/projects_/$projectId'
+      path: '/projects/$projectId'
+      fullPath: '/settings/projects/$projectId'
+      preLoaderRoute: typeof AppSettingsProjectsProjectIdRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/review_/agent-config': {
+      id: '/_app/settings/review_/agent-config'
+      path: '/review/agent-config'
+      fullPath: '/settings/review/agent-config'
+      preLoaderRoute: typeof AppSettingsReviewAgentConfigRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/review_/repositories': {
+      id: '/_app/settings/review_/repositories'
+      path: '/review/repositories'
+      fullPath: '/settings/review/repositories'
+      preLoaderRoute: typeof AppSettingsReviewRepositoriesRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/volumes_/$scope': {
+      id: '/_app/settings/volumes_/$scope'
+      path: '/volumes/$scope'
+      fullPath: '/settings/volumes/$scope'
+      preLoaderRoute: typeof AppSettingsVolumesScopeRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/diagram/$threadId/$messageId/$index': {
+      id: '/_app/diagram/$threadId/$messageId/$index'
+      path: '/diagram/$threadId/$messageId/$index'
+      fullPath: '/diagram/$threadId/$messageId/$index'
+      preLoaderRoute: typeof AppDiagramThreadIdMessageIdIndexRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/project/$projectId/drive/$scope': {
+      id: '/_app/project/$projectId/drive/$scope'
+      path: '/project/$projectId/drive/$scope'
+      fullPath: '/project/$projectId/drive/$scope'
+      preLoaderRoute: typeof AppProjectProjectIdDriveScopeRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/project/$projectId/jam/$jamId': {
+      id: '/_app/project/$projectId/jam/$jamId'
+      path: '/project/$projectId/jam/$jamId'
+      fullPath: '/project/$projectId/jam/$jamId'
+      preLoaderRoute: typeof AppProjectProjectIdJamJamIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/project/$projectId/mcp_/$serverId': {
+      id: '/_app/project/$projectId/mcp_/$serverId'
+      path: '/project/$projectId/mcp/$serverId'
+      fullPath: '/project/$projectId/mcp/$serverId'
+      preLoaderRoute: typeof AppProjectProjectIdMcpServerIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/project/$projectId/mcp_/new': {
+      id: '/_app/project/$projectId/mcp_/new'
+      path: '/project/$projectId/mcp/new'
+      fullPath: '/project/$projectId/mcp/new'
+      preLoaderRoute: typeof AppProjectProjectIdMcpNewRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/project/$projectId/thread/$threadId': {
+      id: '/_app/project/$projectId/thread/$threadId'
+      path: '/project/$projectId/thread/$threadId'
+      fullPath: '/project/$projectId/thread/$threadId'
+      preLoaderRoute: typeof AppProjectProjectIdThreadThreadIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/project/$projectId/volume/$scope': {
+      id: '/_app/project/$projectId/volume/$scope'
+      path: '/project/$projectId/volume/$scope'
+      fullPath: '/project/$projectId/volume/$scope'
+      preLoaderRoute: typeof AppProjectProjectIdVolumeScopeRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/pull/$owner/$repo/$prNumber': {
+      id: '/_app/pull/$owner/$repo/$prNumber'
+      path: '/pull/$owner/$repo/$prNumber'
+      fullPath: '/pull/$owner/$repo/$prNumber'
+      preLoaderRoute: typeof AppPullOwnerRepoPrNumberRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/settings/api_/key/$keyId': {
+      id: '/_app/settings/api_/key/$keyId'
+      path: '/api/key/$keyId'
+      fullPath: '/settings/api/key/$keyId'
+      preLoaderRoute: typeof AppSettingsApiKeyKeyIdRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/api_/service-user/$serviceUserId': {
+      id: '/_app/settings/api_/service-user/$serviceUserId'
+      path: '/api/service-user/$serviceUserId'
+      fullPath: '/settings/api/service-user/$serviceUserId'
+      preLoaderRoute: typeof AppSettingsApiServiceUserServiceUserIdRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/appearance_/themes_/$themeId': {
+      id: '/_app/settings/appearance_/themes_/$themeId'
+      path: '/appearance/themes/$themeId'
+      fullPath: '/settings/appearance/themes/$themeId'
+      preLoaderRoute: typeof AppSettingsAppearanceThemesThemeIdRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/cloud-credentials_/aws_/$targetId': {
+      id: '/_app/settings/cloud-credentials_/aws_/$targetId'
+      path: '/cloud-credentials/aws/$targetId'
+      fullPath: '/settings/cloud-credentials/aws/$targetId'
+      preLoaderRoute: typeof AppSettingsCloudCredentialsAwsTargetIdRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/cloud-credentials_/aws_/new': {
+      id: '/_app/settings/cloud-credentials_/aws_/new'
+      path: '/cloud-credentials/aws/new'
+      fullPath: '/settings/cloud-credentials/aws/new'
+      preLoaderRoute: typeof AppSettingsCloudCredentialsAwsNewRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/cloud-credentials_/azure_/$targetId': {
+      id: '/_app/settings/cloud-credentials_/azure_/$targetId'
+      path: '/cloud-credentials/azure/$targetId'
+      fullPath: '/settings/cloud-credentials/azure/$targetId'
+      preLoaderRoute: typeof AppSettingsCloudCredentialsAzureTargetIdRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/cloud-credentials_/azure_/new': {
+      id: '/_app/settings/cloud-credentials_/azure_/new'
+      path: '/cloud-credentials/azure/new'
+      fullPath: '/settings/cloud-credentials/azure/new'
+      preLoaderRoute: typeof AppSettingsCloudCredentialsAzureNewRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/cloud-credentials_/gcp_/$targetId': {
+      id: '/_app/settings/cloud-credentials_/gcp_/$targetId'
+      path: '/cloud-credentials/gcp/$targetId'
+      fullPath: '/settings/cloud-credentials/gcp/$targetId'
+      preLoaderRoute: typeof AppSettingsCloudCredentialsGcpTargetIdRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/cloud-credentials_/gcp_/new': {
+      id: '/_app/settings/cloud-credentials_/gcp_/new'
+      path: '/cloud-credentials/gcp/new'
+      fullPath: '/settings/cloud-credentials/gcp/new'
+      preLoaderRoute: typeof AppSettingsCloudCredentialsGcpNewRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/cloud-credentials_/oidc_/$targetId': {
+      id: '/_app/settings/cloud-credentials_/oidc_/$targetId'
+      path: '/cloud-credentials/oidc/$targetId'
+      fullPath: '/settings/cloud-credentials/oidc/$targetId'
+      preLoaderRoute: typeof AppSettingsCloudCredentialsOidcTargetIdRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/cloud-credentials_/oidc_/new': {
+      id: '/_app/settings/cloud-credentials_/oidc_/new'
+      path: '/cloud-credentials/oidc/new'
+      fullPath: '/settings/cloud-credentials/oidc/new'
+      preLoaderRoute: typeof AppSettingsCloudCredentialsOidcNewRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/cloud-credentials_/vault_/$targetId': {
+      id: '/_app/settings/cloud-credentials_/vault_/$targetId'
+      path: '/cloud-credentials/vault/$targetId'
+      fullPath: '/settings/cloud-credentials/vault/$targetId'
+      preLoaderRoute: typeof AppSettingsCloudCredentialsVaultTargetIdRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/cloud-credentials_/vault_/new': {
+      id: '/_app/settings/cloud-credentials_/vault_/new'
+      path: '/cloud-credentials/vault/new'
+      fullPath: '/settings/cloud-credentials/vault/new'
+      preLoaderRoute: typeof AppSettingsCloudCredentialsVaultNewRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/integrations_/cloud-access_/$': {
+      id: '/_app/settings/integrations_/cloud-access_/$'
+      path: '/integrations/cloud-access/$'
+      fullPath: '/settings/integrations/cloud-access/$'
+      preLoaderRoute: typeof AppSettingsIntegrationsCloudAccessSplatRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/integrations_/mcp_/$serverId': {
+      id: '/_app/settings/integrations_/mcp_/$serverId'
+      path: '/integrations/mcp/$serverId'
+      fullPath: '/settings/integrations/mcp/$serverId'
+      preLoaderRoute: typeof AppSettingsIntegrationsMcpServerIdRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/integrations_/mcp_/new': {
+      id: '/_app/settings/integrations_/mcp_/new'
+      path: '/integrations/mcp/new'
+      fullPath: '/settings/integrations/mcp/new'
+      preLoaderRoute: typeof AppSettingsIntegrationsMcpNewRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/mcp_/add/$versionId': {
+      id: '/_app/settings/mcp_/add/$versionId'
+      path: '/mcp/add/$versionId'
+      fullPath: '/settings/mcp/add/$versionId'
+      preLoaderRoute: typeof AppSettingsMcpAddVersionIdRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/mcp_/marketplace_/$name': {
+      id: '/_app/settings/mcp_/marketplace_/$name'
+      path: '/mcp/marketplace/$name'
+      fullPath: '/settings/mcp/marketplace/$name'
+      preLoaderRoute: typeof AppSettingsMcpMarketplaceNameRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/mcp_/plugins/$installationId': {
+      id: '/_app/settings/mcp_/plugins/$installationId'
+      path: '/mcp/plugins/$installationId'
+      fullPath: '/settings/mcp/plugins/$installationId'
+      preLoaderRoute: typeof AppSettingsMcpPluginsInstallationIdRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/projects_/$projectId_/dev-environment': {
+      id: '/_app/settings/projects_/$projectId_/dev-environment'
+      path: '/projects/$projectId/dev-environment'
+      fullPath: '/settings/projects/$projectId/dev-environment'
+      preLoaderRoute: typeof AppSettingsProjectsProjectIdDevEnvironmentRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/projects_/$projectId_/environment-variables': {
+      id: '/_app/settings/projects_/$projectId_/environment-variables'
+      path: '/projects/$projectId/environment-variables'
+      fullPath: '/settings/projects/$projectId/environment-variables'
+      preLoaderRoute: typeof AppSettingsProjectsProjectIdEnvironmentVariablesRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/project/$projectId/dev-environment_/builds/$buildId': {
+      id: '/_app/project/$projectId/dev-environment_/builds/$buildId'
+      path: '/project/$projectId/dev-environment/builds/$buildId'
+      fullPath: '/project/$projectId/dev-environment/builds/$buildId'
+      preLoaderRoute: typeof AppProjectProjectIdDevEnvironmentBuildsBuildIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/settings/mcp_/plugins/$installationId_/update': {
+      id: '/_app/settings/mcp_/plugins/$installationId_/update'
+      path: '/mcp/plugins/$installationId/update'
+      fullPath: '/settings/mcp/plugins/$installationId/update'
+      preLoaderRoute: typeof AppSettingsMcpPluginsInstallationIdUpdateRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/projects_/$projectId_/mcp_/$serverId': {
+      id: '/_app/settings/projects_/$projectId_/mcp_/$serverId'
+      path: '/projects/$projectId/mcp/$serverId'
+      fullPath: '/settings/projects/$projectId/mcp/$serverId'
+      preLoaderRoute: typeof AppSettingsProjectsProjectIdMcpServerIdRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/projects_/$projectId_/mcp_/new': {
+      id: '/_app/settings/projects_/$projectId_/mcp_/new'
+      path: '/projects/$projectId/mcp/new'
+      fullPath: '/settings/projects/$projectId/mcp/new'
+      preLoaderRoute: typeof AppSettingsProjectsProjectIdMcpNewRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/project/$projectId/dev-environment_/repositories/$owner/$repo': {
+      id: '/_app/project/$projectId/dev-environment_/repositories/$owner/$repo'
+      path: '/project/$projectId/dev-environment/repositories/$owner/$repo'
+      fullPath: '/project/$projectId/dev-environment/repositories/$owner/$repo'
+      preLoaderRoute: typeof AppProjectProjectIdDevEnvironmentRepositoriesOwnerRepoRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/project/$projectId/pull/$owner/$repo/$prNumber': {
+      id: '/_app/project/$projectId/pull/$owner/$repo/$prNumber'
+      path: '/project/$projectId/pull/$owner/$repo/$prNumber'
+      fullPath: '/project/$projectId/pull/$owner/$repo/$prNumber'
+      preLoaderRoute: typeof AppProjectProjectIdPullOwnerRepoPrNumberRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/settings/projects_/$projectId_/dev-environment_/builds/$buildId': {
+      id: '/_app/settings/projects_/$projectId_/dev-environment_/builds/$buildId'
+      path: '/projects/$projectId/dev-environment/builds/$buildId'
+      fullPath: '/settings/projects/$projectId/dev-environment/builds/$buildId'
+      preLoaderRoute: typeof AppSettingsProjectsProjectIdDevEnvironmentBuildsBuildIdRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/projects_/$projectId_/dev-environment_/repositories/$owner/$repo': {
+      id: '/_app/settings/projects_/$projectId_/dev-environment_/repositories/$owner/$repo'
+      path: '/projects/$projectId/dev-environment/repositories/$owner/$repo'
+      fullPath: '/settings/projects/$projectId/dev-environment/repositories/$owner/$repo'
+      preLoaderRoute: typeof AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
   }
 }
 
+interface AppExploreRouteRouteChildren {
+  AppExploreIndexRoute: typeof AppExploreIndexRoute
+  AppExploreKindSlugRoute: typeof AppExploreKindSlugRoute
+  AppExploreKindIndexRoute: typeof AppExploreKindIndexRoute
+}
+
+const AppExploreRouteRouteChildren: AppExploreRouteRouteChildren = {
+  AppExploreIndexRoute: AppExploreIndexRoute,
+  AppExploreKindSlugRoute: AppExploreKindSlugRoute,
+  AppExploreKindIndexRoute: AppExploreKindIndexRoute,
+}
+
+const AppExploreRouteRouteWithChildren = AppExploreRouteRoute._addFileChildren(
+  AppExploreRouteRouteChildren,
+)
+
+interface AppSettingsRouteRouteChildren {
+  AppSettingsApiRoute: typeof AppSettingsApiRoute
+  AppSettingsAppearanceRoute: typeof AppSettingsAppearanceRoute
+  AppSettingsCapyRoute: typeof AppSettingsCapyRoute
+  AppSettingsCloudCredentialsRoute: typeof AppSettingsCloudCredentialsRoute
+  AppSettingsDevicesRoute: typeof AppSettingsDevicesRoute
+  AppSettingsEnvironmentVariablesRoute: typeof AppSettingsEnvironmentVariablesRoute
+  AppSettingsExperimentsRoute: typeof AppSettingsExperimentsRoute
+  AppSettingsGeneralRoute: typeof AppSettingsGeneralRoute
+  AppSettingsGitRoute: typeof AppSettingsGitRoute
+  AppSettingsImportRoute: typeof AppSettingsImportRoute
+  AppSettingsInstructionsRoute: typeof AppSettingsInstructionsRoute
+  AppSettingsIntegrationsRoute: typeof AppSettingsIntegrationsRoute
+  AppSettingsMcpRoute: typeof AppSettingsMcpRoute
+  AppSettingsModelsRoute: typeof AppSettingsModelsRoute
+  AppSettingsNotificationsRoute: typeof AppSettingsNotificationsRoute
+  AppSettingsProfileRoute: typeof AppSettingsProfileRoute
+  AppSettingsProjectsRoute: typeof AppSettingsProjectsRoute
+  AppSettingsReferralsRoute: typeof AppSettingsReferralsRoute
+  AppSettingsReviewRoute: typeof AppSettingsReviewRoute
+  AppSettingsSecurityRoute: typeof AppSettingsSecurityRoute
+  AppSettingsSetupAndSnapshotsRoute: typeof AppSettingsSetupAndSnapshotsRoute
+  AppSettingsShortcutsRoute: typeof AppSettingsShortcutsRoute
+  AppSettingsSkillsRoute: typeof AppSettingsSkillsRoute
+  AppSettingsThreadsRoute: typeof AppSettingsThreadsRoute
+  AppSettingsVolumesRoute: typeof AppSettingsVolumesRoute
+  AppSettingsIndexRoute: typeof AppSettingsIndexRoute
+  AppSettingsAppearanceThemesRoute: typeof AppSettingsAppearanceThemesRoute
+  AppSettingsCloudCredentialsAwsRoute: typeof AppSettingsCloudCredentialsAwsRoute
+  AppSettingsCloudCredentialsAzureRoute: typeof AppSettingsCloudCredentialsAzureRoute
+  AppSettingsCloudCredentialsGcpRoute: typeof AppSettingsCloudCredentialsGcpRoute
+  AppSettingsCloudCredentialsOidcRoute: typeof AppSettingsCloudCredentialsOidcRoute
+  AppSettingsCloudCredentialsVaultRoute: typeof AppSettingsCloudCredentialsVaultRoute
+  AppSettingsDevicesDeviceIdRoute: typeof AppSettingsDevicesDeviceIdRoute
+  AppSettingsDevicesLinkRoute: typeof AppSettingsDevicesLinkRoute
+  AppSettingsDevicesThisRoute: typeof AppSettingsDevicesThisRoute
+  AppSettingsIntegrationsCloudAccessRoute: typeof AppSettingsIntegrationsCloudAccessRoute
+  AppSettingsIntegrationsGithubRoute: typeof AppSettingsIntegrationsGithubRoute
+  AppSettingsIntegrationsLinearRoute: typeof AppSettingsIntegrationsLinearRoute
+  AppSettingsIntegrationsMcpRoute: typeof AppSettingsIntegrationsMcpRoute
+  AppSettingsIntegrationsPaperRoute: typeof AppSettingsIntegrationsPaperRoute
+  AppSettingsIntegrationsRevylRoute: typeof AppSettingsIntegrationsRevylRoute
+  AppSettingsIntegrationsSlackRoute: typeof AppSettingsIntegrationsSlackRoute
+  AppSettingsIntegrationsTailscaleRoute: typeof AppSettingsIntegrationsTailscaleRoute
+  AppSettingsMcpServerIdRoute: typeof AppSettingsMcpServerIdRoute
+  AppSettingsMcpMarketplaceRoute: typeof AppSettingsMcpMarketplaceRoute
+  AppSettingsMcpNewRoute: typeof AppSettingsMcpNewRoute
+  AppSettingsNotificationsDeviceRoute: typeof AppSettingsNotificationsDeviceRoute
+  AppSettingsNotificationsEmailRoute: typeof AppSettingsNotificationsEmailRoute
+  AppSettingsNotificationsSlackRoute: typeof AppSettingsNotificationsSlackRoute
+  AppSettingsOrgActivityRoute: typeof AppSettingsOrgActivityRoute
+  AppSettingsOrgAuditLogRoute: typeof AppSettingsOrgAuditLogRoute
+  AppSettingsOrgBillingRoute: typeof AppSettingsOrgBillingRoute
+  AppSettingsOrgGeneralRoute: typeof AppSettingsOrgGeneralRoute
+  AppSettingsOrgIdentityRoute: typeof AppSettingsOrgIdentityRoute
+  AppSettingsOrgIssueStatesRoute: typeof AppSettingsOrgIssueStatesRoute
+  AppSettingsOrgMembersRoute: typeof AppSettingsOrgMembersRoute
+  AppSettingsOrgUsageRoute: typeof AppSettingsOrgUsageRoute
+  AppSettingsProjectsProjectIdRoute: typeof AppSettingsProjectsProjectIdRoute
+  AppSettingsReviewAgentConfigRoute: typeof AppSettingsReviewAgentConfigRoute
+  AppSettingsReviewRepositoriesRoute: typeof AppSettingsReviewRepositoriesRoute
+  AppSettingsVolumesScopeRoute: typeof AppSettingsVolumesScopeRoute
+  AppSettingsApiKeyKeyIdRoute: typeof AppSettingsApiKeyKeyIdRoute
+  AppSettingsApiServiceUserServiceUserIdRoute: typeof AppSettingsApiServiceUserServiceUserIdRoute
+  AppSettingsAppearanceThemesThemeIdRoute: typeof AppSettingsAppearanceThemesThemeIdRoute
+  AppSettingsCloudCredentialsAwsTargetIdRoute: typeof AppSettingsCloudCredentialsAwsTargetIdRoute
+  AppSettingsCloudCredentialsAwsNewRoute: typeof AppSettingsCloudCredentialsAwsNewRoute
+  AppSettingsCloudCredentialsAzureTargetIdRoute: typeof AppSettingsCloudCredentialsAzureTargetIdRoute
+  AppSettingsCloudCredentialsAzureNewRoute: typeof AppSettingsCloudCredentialsAzureNewRoute
+  AppSettingsCloudCredentialsGcpTargetIdRoute: typeof AppSettingsCloudCredentialsGcpTargetIdRoute
+  AppSettingsCloudCredentialsGcpNewRoute: typeof AppSettingsCloudCredentialsGcpNewRoute
+  AppSettingsCloudCredentialsOidcTargetIdRoute: typeof AppSettingsCloudCredentialsOidcTargetIdRoute
+  AppSettingsCloudCredentialsOidcNewRoute: typeof AppSettingsCloudCredentialsOidcNewRoute
+  AppSettingsCloudCredentialsVaultTargetIdRoute: typeof AppSettingsCloudCredentialsVaultTargetIdRoute
+  AppSettingsCloudCredentialsVaultNewRoute: typeof AppSettingsCloudCredentialsVaultNewRoute
+  AppSettingsIntegrationsCloudAccessSplatRoute: typeof AppSettingsIntegrationsCloudAccessSplatRoute
+  AppSettingsIntegrationsMcpServerIdRoute: typeof AppSettingsIntegrationsMcpServerIdRoute
+  AppSettingsIntegrationsMcpNewRoute: typeof AppSettingsIntegrationsMcpNewRoute
+  AppSettingsMcpAddVersionIdRoute: typeof AppSettingsMcpAddVersionIdRoute
+  AppSettingsMcpMarketplaceNameRoute: typeof AppSettingsMcpMarketplaceNameRoute
+  AppSettingsMcpPluginsInstallationIdRoute: typeof AppSettingsMcpPluginsInstallationIdRoute
+  AppSettingsProjectsProjectIdDevEnvironmentRoute: typeof AppSettingsProjectsProjectIdDevEnvironmentRoute
+  AppSettingsProjectsProjectIdEnvironmentVariablesRoute: typeof AppSettingsProjectsProjectIdEnvironmentVariablesRoute
+  AppSettingsMcpPluginsInstallationIdUpdateRoute: typeof AppSettingsMcpPluginsInstallationIdUpdateRoute
+  AppSettingsProjectsProjectIdMcpServerIdRoute: typeof AppSettingsProjectsProjectIdMcpServerIdRoute
+  AppSettingsProjectsProjectIdMcpNewRoute: typeof AppSettingsProjectsProjectIdMcpNewRoute
+  AppSettingsProjectsProjectIdDevEnvironmentBuildsBuildIdRoute: typeof AppSettingsProjectsProjectIdDevEnvironmentBuildsBuildIdRoute
+  AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRoute: typeof AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRoute
+}
+
+const AppSettingsRouteRouteChildren: AppSettingsRouteRouteChildren = {
+  AppSettingsApiRoute: AppSettingsApiRoute,
+  AppSettingsAppearanceRoute: AppSettingsAppearanceRoute,
+  AppSettingsCapyRoute: AppSettingsCapyRoute,
+  AppSettingsCloudCredentialsRoute: AppSettingsCloudCredentialsRoute,
+  AppSettingsDevicesRoute: AppSettingsDevicesRoute,
+  AppSettingsEnvironmentVariablesRoute: AppSettingsEnvironmentVariablesRoute,
+  AppSettingsExperimentsRoute: AppSettingsExperimentsRoute,
+  AppSettingsGeneralRoute: AppSettingsGeneralRoute,
+  AppSettingsGitRoute: AppSettingsGitRoute,
+  AppSettingsImportRoute: AppSettingsImportRoute,
+  AppSettingsInstructionsRoute: AppSettingsInstructionsRoute,
+  AppSettingsIntegrationsRoute: AppSettingsIntegrationsRoute,
+  AppSettingsMcpRoute: AppSettingsMcpRoute,
+  AppSettingsModelsRoute: AppSettingsModelsRoute,
+  AppSettingsNotificationsRoute: AppSettingsNotificationsRoute,
+  AppSettingsProfileRoute: AppSettingsProfileRoute,
+  AppSettingsProjectsRoute: AppSettingsProjectsRoute,
+  AppSettingsReferralsRoute: AppSettingsReferralsRoute,
+  AppSettingsReviewRoute: AppSettingsReviewRoute,
+  AppSettingsSecurityRoute: AppSettingsSecurityRoute,
+  AppSettingsSetupAndSnapshotsRoute: AppSettingsSetupAndSnapshotsRoute,
+  AppSettingsShortcutsRoute: AppSettingsShortcutsRoute,
+  AppSettingsSkillsRoute: AppSettingsSkillsRoute,
+  AppSettingsThreadsRoute: AppSettingsThreadsRoute,
+  AppSettingsVolumesRoute: AppSettingsVolumesRoute,
+  AppSettingsIndexRoute: AppSettingsIndexRoute,
+  AppSettingsAppearanceThemesRoute: AppSettingsAppearanceThemesRoute,
+  AppSettingsCloudCredentialsAwsRoute: AppSettingsCloudCredentialsAwsRoute,
+  AppSettingsCloudCredentialsAzureRoute: AppSettingsCloudCredentialsAzureRoute,
+  AppSettingsCloudCredentialsGcpRoute: AppSettingsCloudCredentialsGcpRoute,
+  AppSettingsCloudCredentialsOidcRoute: AppSettingsCloudCredentialsOidcRoute,
+  AppSettingsCloudCredentialsVaultRoute: AppSettingsCloudCredentialsVaultRoute,
+  AppSettingsDevicesDeviceIdRoute: AppSettingsDevicesDeviceIdRoute,
+  AppSettingsDevicesLinkRoute: AppSettingsDevicesLinkRoute,
+  AppSettingsDevicesThisRoute: AppSettingsDevicesThisRoute,
+  AppSettingsIntegrationsCloudAccessRoute:
+    AppSettingsIntegrationsCloudAccessRoute,
+  AppSettingsIntegrationsGithubRoute: AppSettingsIntegrationsGithubRoute,
+  AppSettingsIntegrationsLinearRoute: AppSettingsIntegrationsLinearRoute,
+  AppSettingsIntegrationsMcpRoute: AppSettingsIntegrationsMcpRoute,
+  AppSettingsIntegrationsPaperRoute: AppSettingsIntegrationsPaperRoute,
+  AppSettingsIntegrationsRevylRoute: AppSettingsIntegrationsRevylRoute,
+  AppSettingsIntegrationsSlackRoute: AppSettingsIntegrationsSlackRoute,
+  AppSettingsIntegrationsTailscaleRoute: AppSettingsIntegrationsTailscaleRoute,
+  AppSettingsMcpServerIdRoute: AppSettingsMcpServerIdRoute,
+  AppSettingsMcpMarketplaceRoute: AppSettingsMcpMarketplaceRoute,
+  AppSettingsMcpNewRoute: AppSettingsMcpNewRoute,
+  AppSettingsNotificationsDeviceRoute: AppSettingsNotificationsDeviceRoute,
+  AppSettingsNotificationsEmailRoute: AppSettingsNotificationsEmailRoute,
+  AppSettingsNotificationsSlackRoute: AppSettingsNotificationsSlackRoute,
+  AppSettingsOrgActivityRoute: AppSettingsOrgActivityRoute,
+  AppSettingsOrgAuditLogRoute: AppSettingsOrgAuditLogRoute,
+  AppSettingsOrgBillingRoute: AppSettingsOrgBillingRoute,
+  AppSettingsOrgGeneralRoute: AppSettingsOrgGeneralRoute,
+  AppSettingsOrgIdentityRoute: AppSettingsOrgIdentityRoute,
+  AppSettingsOrgIssueStatesRoute: AppSettingsOrgIssueStatesRoute,
+  AppSettingsOrgMembersRoute: AppSettingsOrgMembersRoute,
+  AppSettingsOrgUsageRoute: AppSettingsOrgUsageRoute,
+  AppSettingsProjectsProjectIdRoute: AppSettingsProjectsProjectIdRoute,
+  AppSettingsReviewAgentConfigRoute: AppSettingsReviewAgentConfigRoute,
+  AppSettingsReviewRepositoriesRoute: AppSettingsReviewRepositoriesRoute,
+  AppSettingsVolumesScopeRoute: AppSettingsVolumesScopeRoute,
+  AppSettingsApiKeyKeyIdRoute: AppSettingsApiKeyKeyIdRoute,
+  AppSettingsApiServiceUserServiceUserIdRoute:
+    AppSettingsApiServiceUserServiceUserIdRoute,
+  AppSettingsAppearanceThemesThemeIdRoute:
+    AppSettingsAppearanceThemesThemeIdRoute,
+  AppSettingsCloudCredentialsAwsTargetIdRoute:
+    AppSettingsCloudCredentialsAwsTargetIdRoute,
+  AppSettingsCloudCredentialsAwsNewRoute:
+    AppSettingsCloudCredentialsAwsNewRoute,
+  AppSettingsCloudCredentialsAzureTargetIdRoute:
+    AppSettingsCloudCredentialsAzureTargetIdRoute,
+  AppSettingsCloudCredentialsAzureNewRoute:
+    AppSettingsCloudCredentialsAzureNewRoute,
+  AppSettingsCloudCredentialsGcpTargetIdRoute:
+    AppSettingsCloudCredentialsGcpTargetIdRoute,
+  AppSettingsCloudCredentialsGcpNewRoute:
+    AppSettingsCloudCredentialsGcpNewRoute,
+  AppSettingsCloudCredentialsOidcTargetIdRoute:
+    AppSettingsCloudCredentialsOidcTargetIdRoute,
+  AppSettingsCloudCredentialsOidcNewRoute:
+    AppSettingsCloudCredentialsOidcNewRoute,
+  AppSettingsCloudCredentialsVaultTargetIdRoute:
+    AppSettingsCloudCredentialsVaultTargetIdRoute,
+  AppSettingsCloudCredentialsVaultNewRoute:
+    AppSettingsCloudCredentialsVaultNewRoute,
+  AppSettingsIntegrationsCloudAccessSplatRoute:
+    AppSettingsIntegrationsCloudAccessSplatRoute,
+  AppSettingsIntegrationsMcpServerIdRoute:
+    AppSettingsIntegrationsMcpServerIdRoute,
+  AppSettingsIntegrationsMcpNewRoute: AppSettingsIntegrationsMcpNewRoute,
+  AppSettingsMcpAddVersionIdRoute: AppSettingsMcpAddVersionIdRoute,
+  AppSettingsMcpMarketplaceNameRoute: AppSettingsMcpMarketplaceNameRoute,
+  AppSettingsMcpPluginsInstallationIdRoute:
+    AppSettingsMcpPluginsInstallationIdRoute,
+  AppSettingsProjectsProjectIdDevEnvironmentRoute:
+    AppSettingsProjectsProjectIdDevEnvironmentRoute,
+  AppSettingsProjectsProjectIdEnvironmentVariablesRoute:
+    AppSettingsProjectsProjectIdEnvironmentVariablesRoute,
+  AppSettingsMcpPluginsInstallationIdUpdateRoute:
+    AppSettingsMcpPluginsInstallationIdUpdateRoute,
+  AppSettingsProjectsProjectIdMcpServerIdRoute:
+    AppSettingsProjectsProjectIdMcpServerIdRoute,
+  AppSettingsProjectsProjectIdMcpNewRoute:
+    AppSettingsProjectsProjectIdMcpNewRoute,
+  AppSettingsProjectsProjectIdDevEnvironmentBuildsBuildIdRoute:
+    AppSettingsProjectsProjectIdDevEnvironmentBuildsBuildIdRoute,
+  AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRoute:
+    AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRoute,
+}
+
+const AppSettingsRouteRouteWithChildren =
+  AppSettingsRouteRoute._addFileChildren(AppSettingsRouteRouteChildren)
+
+interface AppRouteRouteChildren {
+  AppExploreRouteRoute: typeof AppExploreRouteRouteWithChildren
+  AppSettingsRouteRoute: typeof AppSettingsRouteRouteWithChildren
+  AppSplatRoute: typeof AppSplatRoute
+  AppAutomationsRoute: typeof AppAutomationsRoute
+  AppDriveRoute: typeof AppDriveRoute
+  AppInvitesRoute: typeof AppInvitesRoute
+  AppIssuesRoute: typeof AppIssuesRoute
+  AppMemoryRoute: typeof AppMemoryRoute
+  AppNewRoute: typeof AppNewRoute
+  AppProjectsRoute: typeof AppProjectsRoute
+  AppPullsRoute: typeof AppPullsRoute
+  AppThreadsRoute: typeof AppThreadsRoute
+  AppVolumesRoute: typeof AppVolumesRoute
+  AppIndexRoute: typeof AppIndexRoute
+  AppAutomationAutomationIdRoute: typeof AppAutomationAutomationIdRoute
+  AppAutomationNewRoute: typeof AppAutomationNewRoute
+  AppDriveScopeRoute: typeof AppDriveScopeRoute
+  AppDriveSharedRoute: typeof AppDriveSharedRoute
+  AppIssuesCodeRoute: typeof AppIssuesCodeRoute
+  AppThreadThreadIdRoute: typeof AppThreadThreadIdRoute
+  AppVolumesScopeRoute: typeof AppVolumesScopeRoute
+  AppAutomationAutomationIdDriveRoute: typeof AppAutomationAutomationIdDriveRoute
+  AppAutomationAutomationIdVolumeRoute: typeof AppAutomationAutomationIdVolumeRoute
+  AppDriveCaptainJamIdRoute: typeof AppDriveCaptainJamIdRoute
+  AppDriveShareShareIdRoute: typeof AppDriveShareShareIdRoute
+  AppProjectProjectIdDevEnvironmentRoute: typeof AppProjectProjectIdDevEnvironmentRoute
+  AppProjectProjectIdEnvironmentVariablesRoute: typeof AppProjectProjectIdEnvironmentVariablesRoute
+  AppProjectProjectIdSettingsRoute: typeof AppProjectProjectIdSettingsRoute
+  AppProjectProjectIdIndexRoute: typeof AppProjectProjectIdIndexRoute
+  AppDiagramThreadIdMessageIdIndexRoute: typeof AppDiagramThreadIdMessageIdIndexRoute
+  AppProjectProjectIdDriveScopeRoute: typeof AppProjectProjectIdDriveScopeRoute
+  AppProjectProjectIdJamJamIdRoute: typeof AppProjectProjectIdJamJamIdRoute
+  AppProjectProjectIdMcpServerIdRoute: typeof AppProjectProjectIdMcpServerIdRoute
+  AppProjectProjectIdMcpNewRoute: typeof AppProjectProjectIdMcpNewRoute
+  AppProjectProjectIdThreadThreadIdRoute: typeof AppProjectProjectIdThreadThreadIdRoute
+  AppProjectProjectIdVolumeScopeRoute: typeof AppProjectProjectIdVolumeScopeRoute
+  AppPullOwnerRepoPrNumberRoute: typeof AppPullOwnerRepoPrNumberRoute
+  AppProjectProjectIdDevEnvironmentBuildsBuildIdRoute: typeof AppProjectProjectIdDevEnvironmentBuildsBuildIdRoute
+  AppProjectProjectIdDevEnvironmentRepositoriesOwnerRepoRoute: typeof AppProjectProjectIdDevEnvironmentRepositoriesOwnerRepoRoute
+  AppProjectProjectIdPullOwnerRepoPrNumberRoute: typeof AppProjectProjectIdPullOwnerRepoPrNumberRoute
+}
+
+const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppExploreRouteRoute: AppExploreRouteRouteWithChildren,
+  AppSettingsRouteRoute: AppSettingsRouteRouteWithChildren,
+  AppSplatRoute: AppSplatRoute,
+  AppAutomationsRoute: AppAutomationsRoute,
+  AppDriveRoute: AppDriveRoute,
+  AppInvitesRoute: AppInvitesRoute,
+  AppIssuesRoute: AppIssuesRoute,
+  AppMemoryRoute: AppMemoryRoute,
+  AppNewRoute: AppNewRoute,
+  AppProjectsRoute: AppProjectsRoute,
+  AppPullsRoute: AppPullsRoute,
+  AppThreadsRoute: AppThreadsRoute,
+  AppVolumesRoute: AppVolumesRoute,
+  AppIndexRoute: AppIndexRoute,
+  AppAutomationAutomationIdRoute: AppAutomationAutomationIdRoute,
+  AppAutomationNewRoute: AppAutomationNewRoute,
+  AppDriveScopeRoute: AppDriveScopeRoute,
+  AppDriveSharedRoute: AppDriveSharedRoute,
+  AppIssuesCodeRoute: AppIssuesCodeRoute,
+  AppThreadThreadIdRoute: AppThreadThreadIdRoute,
+  AppVolumesScopeRoute: AppVolumesScopeRoute,
+  AppAutomationAutomationIdDriveRoute: AppAutomationAutomationIdDriveRoute,
+  AppAutomationAutomationIdVolumeRoute: AppAutomationAutomationIdVolumeRoute,
+  AppDriveCaptainJamIdRoute: AppDriveCaptainJamIdRoute,
+  AppDriveShareShareIdRoute: AppDriveShareShareIdRoute,
+  AppProjectProjectIdDevEnvironmentRoute:
+    AppProjectProjectIdDevEnvironmentRoute,
+  AppProjectProjectIdEnvironmentVariablesRoute:
+    AppProjectProjectIdEnvironmentVariablesRoute,
+  AppProjectProjectIdSettingsRoute: AppProjectProjectIdSettingsRoute,
+  AppProjectProjectIdIndexRoute: AppProjectProjectIdIndexRoute,
+  AppDiagramThreadIdMessageIdIndexRoute: AppDiagramThreadIdMessageIdIndexRoute,
+  AppProjectProjectIdDriveScopeRoute: AppProjectProjectIdDriveScopeRoute,
+  AppProjectProjectIdJamJamIdRoute: AppProjectProjectIdJamJamIdRoute,
+  AppProjectProjectIdMcpServerIdRoute: AppProjectProjectIdMcpServerIdRoute,
+  AppProjectProjectIdMcpNewRoute: AppProjectProjectIdMcpNewRoute,
+  AppProjectProjectIdThreadThreadIdRoute:
+    AppProjectProjectIdThreadThreadIdRoute,
+  AppProjectProjectIdVolumeScopeRoute: AppProjectProjectIdVolumeScopeRoute,
+  AppPullOwnerRepoPrNumberRoute: AppPullOwnerRepoPrNumberRoute,
+  AppProjectProjectIdDevEnvironmentBuildsBuildIdRoute:
+    AppProjectProjectIdDevEnvironmentBuildsBuildIdRoute,
+  AppProjectProjectIdDevEnvironmentRepositoriesOwnerRepoRoute:
+    AppProjectProjectIdDevEnvironmentRepositoriesOwnerRepoRoute,
+  AppProjectProjectIdPullOwnerRepoPrNumberRoute:
+    AppProjectProjectIdPullOwnerRepoPrNumberRoute,
+}
+
+const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
+  AppRouteRouteChildren,
+)
+
+interface AuthRouteRouteChildren {
+  AuthSignInSsoCallbackRoute: typeof AuthSignInSsoCallbackRoute
+  AuthSignInVerifyRoute: typeof AuthSignInVerifyRoute
+  AuthSignUpSsoCallbackRoute: typeof AuthSignUpSsoCallbackRoute
+  AuthSignUpVerifyRoute: typeof AuthSignUpVerifyRoute
+  AuthSignInIndexRoute: typeof AuthSignInIndexRoute
+  AuthSignUpIndexRoute: typeof AuthSignUpIndexRoute
+}
+
+const AuthRouteRouteChildren: AuthRouteRouteChildren = {
+  AuthSignInSsoCallbackRoute: AuthSignInSsoCallbackRoute,
+  AuthSignInVerifyRoute: AuthSignInVerifyRoute,
+  AuthSignUpSsoCallbackRoute: AuthSignUpSsoCallbackRoute,
+  AuthSignUpVerifyRoute: AuthSignUpVerifyRoute,
+  AuthSignInIndexRoute: AuthSignInIndexRoute,
+  AuthSignUpIndexRoute: AuthSignUpIndexRoute,
+}
+
+const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
+  AuthRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AppRouteRoute: AppRouteRouteWithChildren,
+  AuthRouteRoute: AuthRouteRouteWithChildren,
   Char91__tokensChar93Route: Char91__tokensChar93Route,
+  DesignRoute: DesignRoute,
+  DesktopRoute: DesktopRoute,
+  DitherCoverRoute: DitherCoverRoute,
+  OnboardingRoute: OnboardingRoute,
+  VmHandoffRoute: VmHandoffRoute,
+  WelcomeRoute: WelcomeRoute,
+  DesktopPasskeyRoute: DesktopPasskeyRoute,
+  EmailProgramRoute: EmailProgramRoute,
+  LinearLinkRoute: LinearLinkRoute,
+  OfferOfferIdRoute: OfferOfferIdRoute,
+  PCodeRoute: PCodeRoute,
+  PromotionPromotionIdRoute: PromotionPromotionIdRoute,
+  SShareIdRoute: SShareIdRoute,
+  SecurityNotMeRoute: SecurityNotMeRoute,
+  SlackLinkRoute: SlackLinkRoute,
+  WebCallbacksGithubRoute: WebCallbacksGithubRoute,
+  WebCallbacksLinearRoute: WebCallbacksLinearRoute,
+  WebCallbacksMcpRoute: WebCallbacksMcpRoute,
+  WebCallbacksPaperRoute: WebCallbacksPaperRoute,
+  WebCallbacksSlackRoute: WebCallbacksSlackRoute,
+  WebCallbacksXRoute: WebCallbacksXRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
