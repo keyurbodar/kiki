@@ -7,8 +7,8 @@ import {
   useMemo,
 } from "react";
 import { MarkdownChip } from "@/components/markdown-chips";
-import { MarkdownGallery, MarkdownVideo } from "./markdown";
 import { MarkdownMermaid } from "./mermaid";
+import { MarkdownGallery, MarkdownVideo } from "./parts";
 import type { MarkdownTreeTransform } from "./pipeline";
 
 export type MarkdownMermaidProps = { text: string; complete: boolean };
