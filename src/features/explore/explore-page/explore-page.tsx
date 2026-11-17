@@ -8,6 +8,7 @@ import { orgListingsAtom } from "@/data/atoms/explore";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
+import { ScrollArea } from "@/primitives/scroll-area";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { ExploreFrame } from "../explore-frame";
 import { type ListingCard, ListingIcon, ListingRow } from "../listing-card";
@@ -113,31 +114,25 @@ export function ExploreSearchField({
 }: ExploreSearchFieldProps) {
   const placeholder = kind === "plugin" ? "Search plugins" : "Search Explore";
   return (
-    <div className="relative flex items-center md:w-55 md:shrink-0">
-      <Icon
-        name="magnifying-glass"
-        size="sm"
-        className="pointer-events-none absolute left-2.5 text-icon-muted"
-      />
-      <Input
-        type="search"
-        value={search.q ?? ""}
-        onChange={(event) =>
-          onSearch({
-            ...search,
-            q: event.target.value === "" ? undefined : event.target.value,
-          })
-        }
-        onKeyDown={(event) => {
-          if (event.key !== "Escape") return;
-          onSearch({ ...search, q: undefined });
-          event.currentTarget.blur();
-        }}
-        placeholder={placeholder}
-        aria-label="Search Explore"
-        className="w-full pl-8"
-      />
-    </div>
+    <Input
+      type="search"
+      icon={<Icon name="magnifying-glass" />}
+      wrapperClassName="md:w-55 md:shrink-0"
+      value={search.q ?? ""}
+      onChange={(event) =>
+        onSearch({
+          ...search,
+          q: event.target.value === "" ? undefined : event.target.value,
+        })
+      }
+      onKeyDown={(event) => {
+        if (event.key !== "Escape") return;
+        onSearch({ ...search, q: undefined });
+        event.currentTarget.blur();
+      }}
+      placeholder={placeholder}
+      aria-label="Search Explore"
+    />
   );
 }
 
@@ -332,11 +327,11 @@ export function ExplorePage({ kind, search, onSearch }: ExplorePageProps) {
           ))}
         </nav>
       </header>
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <ScrollArea className="flex-1" scrollRestorationId="explore-list">
         <div className={`${pageClassName} min-h-full gap-9 pt-3 pb-18`}>
           {body}
         </div>
-      </div>
+      </ScrollArea>
     </div>
   );
 }
