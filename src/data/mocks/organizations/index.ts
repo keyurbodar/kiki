@@ -1,6 +1,10 @@
 import { DateTime, Effect, Ref } from "effect";
 import { Forbidden } from "../../api/schemas/errors.ts";
-import { ProjectId } from "../../api/schemas/ids.ts";
+import { OrgId, ProjectId } from "../../api/schemas/ids.ts";
+import {
+  JoinableOrganization,
+  MyInvitation,
+} from "../../api/schemas/invitation.ts";
 import { Organization } from "../../api/schemas/organization.ts";
 import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
 import { fixtureNow, minutesAgo } from "../fixtures/time.ts";
@@ -30,7 +34,12 @@ const memberId = (value: unknown) =>
 
 export const OrganizationsMock = mockGroup("organizations", (handlers) =>
   Effect.gen(function* () {
-    const { members, pendingInvitations, orgState: state } = yield* MockDb;
+    const {
+      members,
+      myInvitations,
+      joinableOrganizations,
+      orgState: state,
+    } = yield* MockDb;
     const { organizations, domains, surfaceModels, sso, settings, avatarUrl } =
       state;
 
@@ -117,18 +126,27 @@ export const OrganizationsMock = mockGroup("organizations", (handlers) =>
 
     return handlers
       .handle("listMyInvitations", () =>
-        Effect.gen(function* () {
-          const rows = yield* Ref.get(pendingInvitations);
-          return rows.map((row) => ({
-            ...row,
-            organizationId: org.id,
-            organizationName: org.name,
-            invitedByEmail: people.sam.email,
-          }));
-        }),
+        Effect.map(Ref.get(myInvitations), (rows) =>
+          rows.map(
+            (row) =>
+              new MyInvitation({
+                ...row,
+                orgId: OrgId.make(row.orgId),
+                invitedAt: DateTime.makeUnsafe(row.invitedAt),
+              }),
+          ),
+        ),
       )
       .handle("listJoinableOrganizations", () =>
-        Effect.succeed(sampleJoinableOrganizations),
+        Effect.map(Ref.get(joinableOrganizations), (rows) =>
+          rows.map(
+            (row) =>
+              new JoinableOrganization({
+                ...row,
+                orgId: OrgId.make(row.orgId),
+              }),
+          ),
+        ),
       )
       .handle("list", () => Ref.get(organizations))
       .handle("create", ({ payload }) =>
