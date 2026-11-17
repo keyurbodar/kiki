@@ -14,6 +14,10 @@ import {
   suggestedDrivePath,
   trimTrailingSlashes,
 } from "./logic";
+
+vi.mock("@/components/markdown/mermaid", () => ({ Mermaid: () => null }));
+vi.mock("@/components/markdown", () => ({ Markdown: () => null }));
+
 import { MachinePathBody } from "./machine-path-view";
 import { MachineFileMiss, MachinePathUnavailable } from "./machine-states";
 import {

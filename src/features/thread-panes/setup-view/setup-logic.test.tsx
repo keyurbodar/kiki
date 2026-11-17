@@ -4,7 +4,7 @@ import {
   createRouter,
   RouterProvider,
 } from "@tanstack/react-router";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ArrowLeftGlyph, ChevronRightSmallGlyph } from "./glyphs";
 import {
@@ -297,26 +297,31 @@ describe("SetupBody", () => {
     ).toBeTruthy();
   });
 
-  it("renders the exact empty copy, loading state and show all control", () => {
+  it("renders the exact empty copy, loading state and show all control", async () => {
     const setupRouter = createRouter({
       routeTree: createRootRoute({
         component: () => <SetupBody {...emptyProps} />,
       }),
       history: createMemoryHistory({ initialEntries: ["/"] }),
     });
+    await setupRouter.load();
     render(<RouterProvider router={setupRouter} />);
     expect(
-      screen.getByText(
+      await screen.findByText(
         "No scripts yet. Add them in project settings or ask Capy.",
       ),
     ).toBeTruthy();
+    const startup = screen.getByRole("button", { name: /Startup/ });
+    fireEvent.click(startup);
     expect(
-      screen.getByText(
+      await screen.findByText(
         "No startup entries yet. Add them in project settings or ask Capy.",
       ),
     ).toBeTruthy();
+    const commands = screen.getByRole("button", { name: /Commands/ });
+    fireEvent.click(commands);
     expect(
-      screen.getByText(
+      await screen.findByText(
         "No commands yet. Add them in project settings or ask Capy.",
       ),
     ).toBeTruthy();
@@ -329,7 +334,9 @@ describe("SetupBody", () => {
         onOpenBuild={vi.fn()}
       />,
     );
-    expect(screen.getByText("Loading builds")).toBeTruthy();
+    const buildsTrigger = screen.getByRole("button", { name: /Builds/ });
+    fireEvent.click(buildsTrigger);
+    expect(await screen.findByText("Loading builds")).toBeTruthy();
     cleanup();
     const builds = [1, 2, 3, 4].map((n) => ({
       id: `b${n}`,
