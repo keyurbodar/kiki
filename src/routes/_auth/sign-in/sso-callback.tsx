@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { SsoCallbackPage } from "@/features/auth/sso-callback";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_auth/sign-in/sso-callback")({
@@ -8,5 +8,6 @@ export const Route = createFileRoute("/_auth/sign-in/sso-callback")({
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="Sign in" path="/sign-in/sso-callback" />;
+  const { redirect_url } = Route.useSearch();
+  return <SsoCallbackPage redirectUrl={redirect_url} />;
 }

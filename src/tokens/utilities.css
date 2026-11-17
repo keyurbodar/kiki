@@ -7,21 +7,13 @@
   --shadow-plate: var(--sh-plate);
   --shadow-overlay: var(--sh-overlay);
   --shadow-row-open: var(--sh-row-open);
+  --shadow-composer: var(--sh-composer);
 }
 
 :root,
 [data-theme-preview] {
-  --border-hairline: 0.5px;
   --mask-fade-ramp-default: 16px;
   --mask-fade-ramp-toolbar: 24px;
-}
-
-@utility border-hairline {
-  border-width: var(--border-hairline);
-}
-
-@utility border-l-hairline {
-  border-left-width: var(--border-hairline);
 }
 
 @utility outline-ring-inset {

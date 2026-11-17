@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { IssuePage } from "@/features/issues/issue-page";
 
 export const Route = createFileRoute("/_app/issues_/$code")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="Issues" path="/issues/$code" />;
+  const { code } = Route.useParams();
+  return <IssuePage key={code} code={code} />;
 }

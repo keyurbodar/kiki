@@ -1,10 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { NotFoundPage } from "@/components/not-found-page";
+import { EmailPage, isEmailProgram } from "@/features/onboarding/email-page";
+import { Toaster } from "@/primitives/toaster";
 
 export const Route = createFileRoute("/email/$program")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="Email" path="/email/$program" />;
+  const { program } = Route.useParams();
+  if (!isEmailProgram(program)) return <NotFoundPage />;
+  return (
+    <>
+      <EmailPage program={program} />
+      <Toaster position="bottom-right" />
+    </>
+  );
 }

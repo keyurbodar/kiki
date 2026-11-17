@@ -1,0 +1,7 @@
+.diff-column {
+  --diff-card-max: 62.5rem;
+}
+
+.diff-column[data-diff-style="split"] {
+  --diff-card-max: 125rem;
+}
