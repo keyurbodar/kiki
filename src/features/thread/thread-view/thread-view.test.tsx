@@ -57,6 +57,7 @@ describe("thread view composer slot", () => {
   it("shows the composer on a thread with nothing waiting", () => {
     const { container } = renderRoute(timeline({ rows: messages }));
     expect(slot(container, "composer")).not.toBeNull();
+    expect(slot(container, "composer-footer")).not.toBeNull();
     expect(slot(container, "clarify-takeover")).toBeNull();
     expect(slot(container, "request-takeover")).toBeNull();
   });

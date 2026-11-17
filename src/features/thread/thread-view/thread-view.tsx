@@ -3,6 +3,10 @@ import { type ReactNode, useState } from "react";
 import { AppTopBar } from "@/components/app-top-bar";
 import { Composer } from "@/components/composer";
 import type { TimelineRow } from "@/data/events";
+import {
+  ComposerFooter,
+  MachineTrigger,
+} from "@/features/composer/composer-footer";
 import type { ClarifyAnswer } from "@/features/thread/clarify-takeover";
 import {
   ComposerTakeover,
@@ -178,6 +182,10 @@ export function ThreadView({
               ) : (
                 <ComposerTakeover {...active} />
               )}
+              <ComposerFooter
+                data-slot="composer-footer"
+                machine={<MachineTrigger machine={null} />}
+              />
             </div>
           </div>
         </div>
