@@ -326,7 +326,6 @@ export function ModelPicker({
   const rootRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const railRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const jumping = useRef(false);
@@ -716,20 +715,6 @@ export function ModelPicker({
     return () => document.removeEventListener("keydown", listener, true);
   }, []);
 
-  useEffect(() => {
-    const rail = railRef.current;
-    const mark = [...(rail?.children ?? [])].find(
-      (child): child is HTMLElement =>
-        child instanceof HTMLElement && child.dataset.mark === anchor,
-    );
-    if (rail == null || mark === undefined) return;
-    const top = mark.offsetTop - 32;
-    const bottom = mark.offsetTop + mark.offsetHeight + 32 - rail.clientHeight;
-    const target =
-      rail.scrollTop > top ? top : rail.scrollTop < bottom ? bottom : undefined;
-    if (target !== undefined) rail.scrollTo?.({ top: target });
-  }, [anchor]);
-
   useLayoutEffect(() => {
     const card = cardRef.current;
     const panel = panelRef.current;
@@ -853,14 +838,6 @@ export function ModelPicker({
     setAnchor(id);
     setHighlighted(null);
     list.scrollTo?.({ top: target.offsetTop });
-  };
-
-  const railPointer = (event: PointerEvent<HTMLDivElement>, force: boolean) => {
-    const index = [...event.currentTarget.querySelectorAll("button")].findIndex(
-      (button) => event.clientY < button.getBoundingClientRect().bottom,
-    );
-    const id = groupsShown[index === -1 ? groupsShown.length - 1 : index]?.id;
-    if (id !== undefined && (force || id !== anchor)) jump(id);
   };
 
   const navProps = (nav: string) => ({
@@ -1432,6 +1409,11 @@ export function ModelPicker({
       ? "⌥"
       : "Alt+";
   const railShown = scrolled && browsing;
+  const railSections = groupsShown.map((section) => ({
+    id: section.id,
+    name: section.name,
+    icon: sectionIcon(section, "size-4"),
+  }));
 
   return (
     <div
@@ -1513,59 +1495,14 @@ export function ModelPicker({
                 </div>
               </div>
             </div>
-            <div
-              data-slot="picker-lab-rail"
-              aria-hidden={!railShown}
-              className={join(
-                surface,
-                "absolute -top-1.25 right-full -bottom-1.25 mr-2.75 flex w-9.25 cursor-pointer flex-col overflow-hidden p-0 transition-[opacity,translate] duration-base ease-out motion-reduce:transition-none",
-                !railShown && "pointer-events-none translate-x-2 opacity-0",
-              )}
-              onMouseDown={keepFocus}
-              onPointerDown={(event) => {
-                event.currentTarget.setPointerCapture(event.pointerId);
-                railPointer(event, true);
-              }}
-              onPointerMove={(event) => {
-                if (event.buttons === 1) railPointer(event, false);
-              }}
-            >
-              <div
-                ref={railRef}
-                className="relative flex min-h-0 flex-1 scrollbar-hide flex-col gap-px overflow-y-auto scroll-fade-y p-1"
-              >
-                {groupsShown.map((section) => (
-                  <Tip key={section.id} side="left" label={section.name}>
-                    <button
-                      type="button"
-                      tabIndex={-1}
-                      aria-label={section.name}
-                      aria-current={anchor === section.id}
-                      data-mark={section.id}
-                      className={join(
-                        "flex h-(--h-menu-row) w-full shrink-0 cursor-pointer items-center justify-center rounded hover:bg-popover-hover hover:text-foreground focus-visible:outline-ring-inset",
-                        anchor === section.id
-                          ? "bg-popover-hover text-foreground"
-                          : "text-muted-foreground-2",
-                      )}
-                    >
-                      {sectionIcon(section, "size-4")}
-                    </button>
-                  </Tip>
-                ))}
-              </div>
-            </div>
+            <PickerLabRail
+              sections={railSections}
+              anchor={anchor}
+              onJump={jump}
+              shown={railShown}
+            />
             {focus === undefined ? null : (
-              <div
-                ref={cardRef}
-                data-slot="picker-lab-card"
-                className={join(
-                  surface,
-                  "absolute left-full ml-2.75 flex w-72 animate-crossfade-in flex-col motion-reduce:animate-none",
-                )}
-              >
-                {card(focus)}
-              </div>
+              <PickerLabCard ref={cardRef}>{card(focus)}</PickerLabCard>
             )}
             {also === undefined ? null : (
               <>
@@ -1589,16 +1526,109 @@ export function ModelPicker({
   );
 }
 
-export type PickerLabRailProps = ComponentProps<"div">;
+export type PickerLabSection = { id: string; name: string; icon: ReactNode };
 
-export function PickerLabRail(props: PickerLabRailProps) {
-  return <div data-slot="picker-lab-rail" {...props} />;
+export type PickerLabRailProps = ComponentProps<"div"> & {
+  sections?: ReadonlyArray<PickerLabSection>;
+  anchor?: string | null;
+  onJump?: (id: string) => void;
+  shown?: boolean;
+};
+
+export function PickerLabRail({
+  sections,
+  anchor = null,
+  onJump,
+  shown = true,
+  className,
+  ...props
+}: PickerLabRailProps) {
+  const listRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const list = listRef.current;
+    const mark = [...(list?.children ?? [])].find(
+      (child): child is HTMLElement =>
+        child instanceof HTMLElement && child.dataset.mark === anchor,
+    );
+    if (list == null || mark === undefined) return;
+    const top = mark.offsetTop - 32;
+    const bottom = mark.offsetTop + mark.offsetHeight + 32 - list.clientHeight;
+    const target =
+      list.scrollTop > top ? top : list.scrollTop < bottom ? bottom : undefined;
+    if (target !== undefined) list.scrollTo?.({ top: target });
+  }, [anchor]);
+  if (sections === undefined)
+    return <div data-slot="picker-lab-rail" className={className} {...props} />;
+  const nearest = (event: PointerEvent<HTMLDivElement>, force: boolean) => {
+    const index = [...event.currentTarget.querySelectorAll("button")].findIndex(
+      (button) => event.clientY < button.getBoundingClientRect().bottom,
+    );
+    const id = sections[index === -1 ? sections.length - 1 : index]?.id;
+    if (id !== undefined && (force || id !== anchor)) onJump?.(id);
+  };
+  return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: the rail is a pointer-jump surface, as in Capy
+    <div
+      data-slot="picker-lab-rail"
+      aria-hidden={!shown}
+      className={join(
+        surface,
+        "absolute -top-1.25 right-full -bottom-1.25 mr-2.75 flex w-9.25 cursor-pointer flex-col overflow-hidden p-0 transition-[opacity,translate] duration-base ease-out motion-reduce:transition-none",
+        !shown && "pointer-events-none translate-x-2 opacity-0",
+        className,
+      )}
+      onMouseDown={keepFocus}
+      onPointerDown={(event) => {
+        event.currentTarget.setPointerCapture(event.pointerId);
+        nearest(event, true);
+      }}
+      onPointerMove={(event) => {
+        if (event.buttons === 1) nearest(event, false);
+      }}
+      {...props}
+    >
+      <div
+        ref={listRef}
+        className="relative flex min-h-0 flex-1 scrollbar-hide flex-col gap-px overflow-y-auto scroll-fade-y p-1"
+      >
+        {sections.map((section) => (
+          <Tip key={section.id} side="left" label={section.name}>
+            <button
+              type="button"
+              tabIndex={-1}
+              aria-label={section.name}
+              aria-current={anchor === section.id}
+              data-mark={section.id}
+              className={join(
+                "flex h-(--h-menu-row) w-full shrink-0 cursor-pointer items-center justify-center rounded hover:bg-popover-hover hover:text-foreground focus-visible:outline-ring-inset",
+                anchor === section.id
+                  ? "bg-popover-hover text-foreground"
+                  : "text-muted-foreground-2",
+              )}
+            >
+              {section.icon}
+            </button>
+          </Tip>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export type PickerLabCardProps = ComponentProps<"div">;
 
-export function PickerLabCard(props: PickerLabCardProps) {
-  return <div data-slot="picker-lab-card" {...props} />;
+export function PickerLabCard({ className, ...props }: PickerLabCardProps) {
+  return (
+    <div
+      data-slot="picker-lab-card"
+      className={join(
+        surface,
+        "absolute left-full ml-2.75 flex w-72 animate-crossfade-in flex-col motion-reduce:animate-none",
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
 export type ModelPinProps = ComponentProps<"button">;
