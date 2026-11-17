@@ -30,7 +30,6 @@ it("lists Capy's user menu items in order", async () => {
   expect(items).toEqual([
     "Settings",
     "Usage",
-    "Refer a friend",
     "Appearance",
     "Support",
     "Switch organization",
