@@ -27,6 +27,7 @@ import {
 import { SidebarReferralMenu } from "@/components/sidebar-referral-menu";
 import { SidebarSetupCard } from "@/components/sidebar-setup-card";
 import { UserMenu } from "@/components/user-menu";
+import { useSidebarThreads } from "@/features/sidebar/sidebar-threads-data";
 import { SidebarThreadsPanel } from "@/features/sidebar/sidebar-threads-panel";
 import { openCommandPalette } from "@/lib/command-palette-events";
 import { Button } from "@/primitives/button";
@@ -129,6 +130,9 @@ export function AppSidebar({
   ...props
 }: AppSidebarProps) {
   const nav = useSidebarNav(navOptions);
+  const threads = useSidebarThreads({
+    initialPrefs: { mode: mode ?? defaultMode ?? "threads" },
+  });
   const pages = sidebarNavPages(nav.entries, { memory });
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
@@ -313,9 +317,11 @@ export function AppSidebar({
           <div className="flex">
             <SidebarModeToggle
               data-track-owner="shared/app-sidebar.tsx#AppSidebar:SidebarModeToggle.1"
-              mode={mode}
-              defaultMode={defaultMode}
-              onModeChange={onModeChange}
+              mode={mode ?? threads.view.mode}
+              onModeChange={(next) => {
+                threads.setMode(next);
+                onModeChange?.(next);
+              }}
             />
           </div>
         ) : (
@@ -411,7 +417,7 @@ export function AppSidebar({
           </Tooltip>
         </div>
       </header>
-      <SidebarThreadsPanel />
+      <SidebarThreadsPanel controller={threads} />
       <SidebarAnnouncements />
       <SidebarSetupCard />
       <SidebarDealReminder />
