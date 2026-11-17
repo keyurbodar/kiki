@@ -7,6 +7,7 @@ const day = 24 * hour;
 
 export const dashboardSeed = {
   code: "ACME-REFS",
+  canRefer: true,
   shareUrl: "https://capy.example.com/referrals/ACME-REFS",
   referredCount: 3,
   pendingCount: 1,
