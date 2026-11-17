@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { OrgId } from "./ids.ts";
+import { JamId, OrgId } from "./ids.ts";
 
 export class Unauthorized extends Schema.TaggedError<Unauthorized>()(
   "capy/Unauthorized",
@@ -15,4 +15,22 @@ export class Forbidden extends Schema.TaggedError<Forbidden>()(
     passkeyRequired: Schema.optional(Schema.Boolean),
   },
   { httpApiStatus: 403 },
+) {}
+
+export class JamNotFound extends Schema.TaggedError<JamNotFound>()(
+  "capy/JamNotFound",
+  { jamId: JamId },
+  { httpApiStatus: 404 },
+) {}
+
+export class InvalidRequest extends Schema.TaggedError<InvalidRequest>()(
+  "capy/InvalidRequest",
+  { message: Schema.String },
+  { httpApiStatus: 400 },
+) {}
+
+export class ThreadOrganizationNotFound extends Schema.TaggedError<ThreadOrganizationNotFound>()(
+  "capy/ThreadOrganizationNotFound",
+  {},
+  { httpApiStatus: 404 },
 ) {}
