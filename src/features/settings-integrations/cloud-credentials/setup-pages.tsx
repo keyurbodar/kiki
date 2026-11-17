@@ -639,7 +639,11 @@ function AzureSetup({ orgId, access, target }: SetupProps) {
           >
             <div className="mt-2 flex min-w-0 items-center gap-2">
               <span className="shrink-0 text-foreground">Subject</span>
-              <CopyValue value={commands.subject} label="subject" />
+              <CopyValue
+                className="flex-1"
+                value={commands.subject}
+                label="subject"
+              />
             </div>
             {showCommands ? (
               <div className="mt-2 flex min-w-0 flex-col gap-2">

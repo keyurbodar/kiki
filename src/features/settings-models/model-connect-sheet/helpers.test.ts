@@ -8,12 +8,15 @@ import {
   draftHeaders,
   hasHeaderProblems,
   headerProblem,
+  headersEqual,
   listedModels,
   matchedFirst,
+  mergeDiscovered,
   nearestEdge,
   nextHeaderId,
   nextTargetPhrase,
   parseTokens,
+  pendingCompactAts,
   previewValue,
   readMediaCheck,
   relativeTime,
@@ -176,6 +179,31 @@ describe("buildTicks", () => {
     });
   });
 
+  it("renders an excluded named model unticked", () => {
+    const ticks = buildTicks(
+      [],
+      [],
+      [{ model: "acme-coder", name: "Acme Coder", excluded: true }],
+      false,
+      catalog,
+      "custom",
+      true,
+    );
+    expect(ticks[0]?.models[0]?.ticked).toBe(false);
+    expect(servedCount(ticks)).toBe(0);
+    expect(
+      buildTicks(
+        [],
+        [],
+        [{ model: "acme-coder", name: "Acme Coder", excluded: false }],
+        false,
+        catalog,
+        "custom",
+        true,
+      )[0]?.models[0]?.ticked,
+    ).toBe(true);
+  });
+
   it("hides served-as rows with no setting on custom endpoints", () => {
     const base: Array<LabTicks> = [
       {
@@ -286,11 +314,50 @@ describe("headers", () => {
       { name: "X-A", value: "1" },
     ]);
     expect(draftHeaders([{ name: "X-A", secret: true }])).toEqual([
-      { id: 0, name: "X-A", value: "" },
+      { id: 0, name: "X-A", value: "", secret: true },
     ]);
     expect(nextHeaderId([])).toBe(0);
     expect(nextHeaderId([draft(4, "a")])).toBe(5);
     expect(hasHeaderProblems([draft(0, "host")])).toBe(true);
+  });
+  it("sends a redacted header back as unchanged", () => {
+    const saved = [
+      { name: "X-Gateway-Token", secret: true },
+      { name: "X-Team", value: "a" },
+    ];
+    const untouched = cleanHeaders(draftHeaders(saved));
+    expect(untouched).toEqual([
+      { name: "X-Gateway-Token", secret: true },
+      { name: "X-Team", value: "a" },
+    ]);
+    expect(headersEqual(untouched, saved)).toBe(true);
+    const renamed = draftHeaders(saved).map((header) =>
+      header.id === 0 ? { ...header, name: "X-Token" } : header,
+    );
+    expect(cleanHeaders(renamed)).toEqual([
+      { name: "X-Token", secret: true },
+      { name: "X-Team", value: "a" },
+    ]);
+    const edited = draftHeaders(saved).map((header) =>
+      header.id === 1 ? { ...header, value: "b" } : header,
+    );
+    const sent = cleanHeaders(edited);
+    expect(sent).toEqual([
+      { name: "X-Gateway-Token", secret: true },
+      { name: "X-Team", value: "b" },
+    ]);
+    expect(headersEqual(sent, saved)).toBe(false);
+    const replaced = draftHeaders(saved).map((header) =>
+      header.id === 0
+        ? { ...header, value: "fresh", secret: undefined }
+        : header,
+    );
+    expect(cleanHeaders(replaced)[0]).toEqual({
+      name: "X-Gateway-Token",
+      value: "fresh",
+    });
+    expect(headersEqual([], saved)).toBe(false);
+    expect(headersEqual([], undefined)).toBe(true);
   });
   it("finds, previews and splits tags", () => {
     const value = `id=\${capy.user.id};\${capy.x}`;
@@ -310,6 +377,81 @@ describe("headers", () => {
     ]);
     expect(nearestEdge(5, { start: 3, end: 18 })).toBe(3);
     expect(nearestEdge(15, { start: 3, end: 18 })).toBe(18);
+  });
+});
+
+describe("mergeDiscovered", () => {
+  it("keeps draft selections and custom models", () => {
+    const drafted = [
+      { model: "openai/*", excluded: true },
+      { model: "acme-coder", name: "Acme Coder" },
+    ];
+    const once = mergeDiscovered(drafted, [], [{ model: "acme/alpha" }]);
+    expect(once).toEqual([...drafted, { model: "acme/alpha" }]);
+    expect(mergeDiscovered(once, [], [{ model: "acme/alpha" }])).toEqual(once);
+  });
+  it("takes a changed endpoint's alias but keeps the draft's choices", () => {
+    const drafted = [
+      {
+        model: "acme/alpha",
+        providerModelId: "old-alias",
+        context: 32e3,
+        excluded: true,
+      },
+      { model: "acme-coder", name: "Acme Coder", providerModelId: "coder-1" },
+    ];
+    const found = [
+      { model: "acme/alpha", providerModelId: "new-alias", context: 64e3 },
+    ];
+    expect(mergeDiscovered(drafted, [], found)).toEqual([
+      {
+        model: "acme/alpha",
+        providerModelId: "new-alias",
+        context: 64e3,
+        excluded: true,
+      },
+      { model: "acme-coder", name: "Acme Coder", providerModelId: "coder-1" },
+    ]);
+    expect(mergeDiscovered(drafted, [], [{ model: "acme/alpha" }])[0]).toEqual({
+      model: "acme/alpha",
+      context: 32e3,
+      excluded: true,
+    });
+  });
+  it("adds each default once and never drops the draft", () => {
+    const drafted = [{ model: "acme-coder", name: "Acme Coder" }];
+    const defaults = [{ model: "acme/*" }, { model: "zen/*" }];
+    const found = [{ model: "acme/alpha", context: 32e3 }];
+    const once = mergeDiscovered(drafted, defaults, found);
+    expect(once).toEqual([...drafted, ...defaults, ...found]);
+    expect(mergeDiscovered(once, defaults, found)).toEqual(once);
+  });
+});
+
+describe("pendingCompactAts", () => {
+  const customs = [
+    { model: "acme-coder", name: "Acme Coder" },
+    { model: "acme-fast", name: "Acme Fast" },
+  ];
+  const saved = [{ model: "acme-coder", compactAt: 6e4 }];
+  it("reports thresholds that differ from the saved ones", () => {
+    expect(
+      pendingCompactAts(new Map([["acme-coder", 7e4]]), customs, saved),
+    ).toEqual([["acme-coder", 7e4]]);
+    expect(
+      pendingCompactAts(new Map([["acme-coder", 6e4]]), customs, saved),
+    ).toEqual([]);
+    expect(
+      pendingCompactAts(new Map([["acme-fast", 9e4]]), customs, saved),
+    ).toEqual([["acme-fast", 9e4]]);
+  });
+  it("reports a cleared threshold and skips models no longer served", () => {
+    expect(
+      pendingCompactAts(new Map([["acme-coder", undefined]]), customs, saved),
+    ).toEqual([["acme-coder", undefined]]);
+    expect(pendingCompactAts(new Map([["gone", 7e4]]), customs, saved)).toEqual(
+      [],
+    );
   });
 });
 

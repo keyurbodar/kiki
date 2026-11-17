@@ -7,6 +7,147 @@ const END_OF_CENTRAL_DIRECTORY = 0x06054b50;
 const CENTRAL_DIRECTORY_HEADER = 0x02014b50;
 const LOCAL_FILE_HEADER = 0x04034b50;
 const STORED = 0;
+const UTF8_FLAG = 1 << 11;
+const CP437 = [
+  "\u00c7",
+  "\u00fc",
+  "\u00e9",
+  "\u00e2",
+  "\u00e4",
+  "\u00e0",
+  "\u00e5",
+  "\u00e7",
+  "\u00ea",
+  "\u00eb",
+  "\u00e8",
+  "\u00ef",
+  "\u00ee",
+  "\u00ec",
+  "\u00c4",
+  "\u00c5",
+  "\u00c9",
+  "\u00e6",
+  "\u00c6",
+  "\u00f4",
+  "\u00f6",
+  "\u00f2",
+  "\u00fb",
+  "\u00f9",
+  "\u00ff",
+  "\u00d6",
+  "\u00dc",
+  "\u00a2",
+  "\u00a3",
+  "\u00a5",
+  "\u20a7",
+  "\u0192",
+  "\u00e1",
+  "\u00ed",
+  "\u00f3",
+  "\u00fa",
+  "\u00f1",
+  "\u00d1",
+  "\u00aa",
+  "\u00ba",
+  "\u00bf",
+  "\u2310",
+  "\u00ac",
+  "\u00bd",
+  "\u00bc",
+  "\u00a1",
+  "\u00ab",
+  "\u00bb",
+  "\u2591",
+  "\u2592",
+  "\u2593",
+  "\u2502",
+  "\u2524",
+  "\u2561",
+  "\u2562",
+  "\u2556",
+  "\u2555",
+  "\u2563",
+  "\u2551",
+  "\u2557",
+  "\u255d",
+  "\u255c",
+  "\u255b",
+  "\u2510",
+  "\u2514",
+  "\u2534",
+  "\u252c",
+  "\u251c",
+  "\u2500",
+  "\u253c",
+  "\u255e",
+  "\u255f",
+  "\u255a",
+  "\u2554",
+  "\u2569",
+  "\u2566",
+  "\u2560",
+  "\u2550",
+  "\u256c",
+  "\u2567",
+  "\u2568",
+  "\u2564",
+  "\u2565",
+  "\u2559",
+  "\u2558",
+  "\u2552",
+  "\u2553",
+  "\u256b",
+  "\u256a",
+  "\u2518",
+  "\u250c",
+  "\u2588",
+  "\u2584",
+  "\u258c",
+  "\u2590",
+  "\u2580",
+  "\u03b1",
+  "\u00df",
+  "\u0393",
+  "\u03c0",
+  "\u03a3",
+  "\u03c3",
+  "\u00b5",
+  "\u03c4",
+  "\u03a6",
+  "\u0398",
+  "\u03a9",
+  "\u03b4",
+  "\u221e",
+  "\u03c6",
+  "\u03b5",
+  "\u2229",
+  "\u2261",
+  "\u00b1",
+  "\u2265",
+  "\u2264",
+  "\u2320",
+  "\u2321",
+  "\u00f7",
+  "\u2248",
+  "\u00b0",
+  "\u2219",
+  "\u00b7",
+  "\u221a",
+  "\u207f",
+  "\u00b2",
+  "\u25a0",
+  "\u00a0",
+];
+const cp437Table = new Map<number, string>();
+for (let index = 0; index < CP437.length; index += 1) {
+  cp437Table.set(0x80 + index, CP437[index] ?? "");
+}
+const decodeName = (bytes: Uint8Array, utf8: boolean) =>
+  utf8
+    ? new TextDecoder("utf-8").decode(bytes)
+    : [...bytes]
+        .map((byte) => cp437Table.get(byte) ?? String.fromCharCode(byte))
+        .join("");
 const DEFLATED = 8;
 const ZIP64_MARKER = 0xffffffff;
 
@@ -20,8 +161,8 @@ export type ArchiveMember = {
 };
 
 export type ZipDirectory =
-  | { members: ArchiveMember[]; refused?: undefined }
-  | { refused: string; members?: undefined };
+  | { members: ArchiveMember[]; folders: string[]; refused?: undefined }
+  | { refused: string; members?: undefined; folders?: undefined };
 
 export const isZipFile = (file: { name: string; mediaType: string }) =>
   /\.zip$/i.test(file.name) ||
@@ -74,8 +215,8 @@ export function readZipDirectory(bytes: Uint8Array): ZipDirectory {
     };
   if (start + size > end)
     return { refused: "Central directory is out of bounds" };
-  const decoder = new TextDecoder();
   const members: ArchiveMember[] = [];
+  const folders: string[] = [];
   let cursor = start;
   for (let entry = 0; entry < count; entry += 1) {
     if (
@@ -91,11 +232,15 @@ export function readZipDirectory(bytes: Uint8Array): ZipDirectory {
     const extraLength = view.getUint16(cursor + 30, true);
     const commentLength = view.getUint16(cursor + 32, true);
     const offset = view.getUint32(cursor + 42, true);
-    const path = decoder.decode(
+    const path = decodeName(
       bytes.subarray(cursor + 46, cursor + 46 + nameLength),
+      (flags & UTF8_FLAG) !== 0,
     );
     cursor += 46 + nameLength + extraLength + commentLength;
-    if (path.endsWith("/")) continue;
+    if (path.endsWith("/")) {
+      folders.push(normalizeMemberPath(path.slice(0, -1)));
+      continue;
+    }
     members.push({
       path,
       sizeBytes,
@@ -112,7 +257,7 @@ export function readZipDirectory(bytes: Uint8Array): ZipDirectory {
       ),
     });
   }
-  return { members };
+  return { members, folders };
 }
 
 function inflate(data: Uint8Array, cap: number): Promise<Uint8Array> {
@@ -227,10 +372,19 @@ export type DirectoryEntry =
 export function listDirectory(
   files: ReadonlyArray<{ path: string; sizeBytes: number }>,
   directory: string,
+  explicitFolders: ReadonlyArray<string> = [],
 ): DirectoryEntry[] {
   const prefix = directory === "" ? "" : `${directory}/`;
   const folders = new Map<string, { fileCount: number; totalBytes: number }>();
   const entries: DirectoryEntry[] = [];
+  for (const folder of explicitFolders) {
+    if (!folder.startsWith(prefix)) continue;
+    const rest = folder.slice(prefix.length);
+    if (rest === "") continue;
+    const child = rest.split("/", 1)[0] ?? rest;
+    if (!folders.has(child))
+      folders.set(child, { fileCount: 0, totalBytes: 0 });
+  }
   for (const file of files) {
     if (!file.path.startsWith(prefix)) continue;
     const rest = file.path.slice(prefix.length);

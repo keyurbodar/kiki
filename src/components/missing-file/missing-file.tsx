@@ -154,18 +154,21 @@ const pendingAtom = Atom.make(AsyncResult.initial<unknown, unknown>(true));
 export type MissingFileProps = Omit<MissingFileStateProps, "state"> & {
   volumeId: string;
   path: string;
+  /** Overrides the first organization when file history is scope-specific. */
+  orgId?: string;
 };
 
 export function MissingFile({
   volumeId,
   path,
   onRetry,
+  orgId: orgIdProp,
   ...props
 }: MissingFileProps) {
   const organizations = Option.getOrUndefined(
     AsyncResult.value(useAtomValue(organizationsAtom)),
   );
-  const orgId = organizations?.[0]?.id;
+  const orgId = orgIdProp ?? organizations?.[0]?.id;
   const atom: Atom.Atom<AsyncResult.AsyncResult<unknown, unknown>> =
     orgId === undefined
       ? pendingAtom

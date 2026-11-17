@@ -115,4 +115,58 @@ describe("reviewFilters mock", () => {
       assert.isTrue(deletedPaths.deleted);
     }),
   );
+
+  it.effect("saves all-repository scopes and numeric repository IDs", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      registry.set(createRule, {
+        params: { orgId },
+        payload: {
+          repo: null,
+          conditions: [],
+          repositoryCondition: { not: false, repoIds: [1002, 1003] },
+        },
+        reactivityKeys: [key],
+      });
+      const rule = (yield* AtomRegistry.getResult(registry, createRule)) as {
+        id: string;
+        repo: string | null;
+        repositoryCondition: { repoIds: ReadonlyArray<number> };
+      };
+      assert.isNull(rule.repo);
+      assert.deepEqual(rule.repositoryCondition.repoIds, [1002, 1003]);
+
+      registry.set(updateRule, {
+        params: { orgId, id: rule.id },
+        payload: { repo: null },
+        reactivityKeys: [key],
+      });
+      const updated = (yield* AtomRegistry.getResult(registry, updateRule)) as {
+        repo: string | null;
+        repositoryCondition: { repoIds: ReadonlyArray<number> };
+      };
+      assert.isNull(updated.repo);
+      assert.deepEqual(updated.repositoryCondition.repoIds, [1002, 1003]);
+
+      registry.set(createPaths, {
+        params: { orgId },
+        payload: { repo: null, patterns: ["dist/**"] },
+        reactivityKeys: [key],
+      });
+      const paths = (yield* AtomRegistry.getResult(registry, createPaths)) as {
+        id: string;
+        repo: string | null;
+      };
+      assert.isNull(paths.repo);
+
+      registry.set(deleteRule, {
+        params: { orgId, id: rule.id },
+        reactivityKeys: [key],
+      });
+      registry.set(deletePaths, {
+        params: { orgId, id: paths.id },
+        reactivityKeys: [key],
+      });
+    }),
+  );
 });

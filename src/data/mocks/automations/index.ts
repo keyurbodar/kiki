@@ -4,12 +4,15 @@ import { minutesAgo } from "../fixtures/time.ts";
 import {
   isoMinutesAgo,
   org,
+  people,
   projects as sampleProjects,
 } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
   type AutomationBatch,
+  type AutomationDetails,
   type AutomationRun,
+  automationDetails,
   batches,
   defaultUsage,
   runs,
@@ -29,7 +32,35 @@ type AutomationRow = {
   };
   readonly ownerId: string;
   readonly lastRunAt: string | null;
+  readonly details?: AutomationDetails;
 };
+
+const asRecord = (value: unknown): Record<string, unknown> | undefined =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
+
+const asOrganize = (
+  value: Record<string, unknown>,
+): AutomationDetails["organize"] => {
+  const folders = strings(value.folders);
+  const tags = strings(value.tags);
+  return {
+    ...(value.pin === true ? { pin: true } : {}),
+    ...(folders === undefined ? {} : { folders }),
+    ...(tags === undefined ? {} : { tags }),
+  };
+};
+
+const asDetails = (value: unknown): AutomationDetails | undefined =>
+  typeof value === "object" && value !== null
+    ? (value as AutomationDetails)
+    : undefined;
+
+const strings = (value: unknown): ReadonlyArray<string> | undefined =>
+  Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : undefined;
 
 const asStored = (row: AutomationRow) => row as Row<"automations">;
 
@@ -62,8 +93,11 @@ export const AutomationsMock = mockGroup("automations", (handlers) =>
         const project = sampleProjectsArray.find(
           (item) => item.id === row.projectId,
         );
+        const details =
+          asDetails(row.details) ?? automationDetails[row.id] ?? undefined;
         return {
           ...row,
+          ...(details ?? {}),
           organizationId: org.id,
           projectName: project?.name ?? "Unassigned",
           webhookUrl: `https://hooks.example.com/orgs/${org.id}/automations/${row.id}`,
@@ -161,6 +195,51 @@ export const AutomationsMock = mockGroup("automations", (handlers) =>
               new Error(`automations.projects: no row ${projectId}`),
             );
           }
+          const triggers = Array.isArray(input.triggers)
+            ? (input.triggers.filter(
+                (trigger) => typeof trigger === "object" && trigger !== null,
+              ) as ReadonlyArray<Record<string, unknown>>)
+            : undefined;
+          const creator = text(input.creator) ?? "Alex Morgan";
+          const creatorUserId = text(input.creatorUserId) ?? people.alex.id;
+          const model = asRecord(input.model);
+          const organize = asRecord(input.organize);
+          const details: AutomationDetails = {
+            description:
+              typeof input.description === "string" ? input.description : null,
+            prompt: text(input.prompt) ?? "",
+            triggers: triggers ?? [
+              {
+                type: "schedule",
+                cron: "0 9 * * 1",
+                timezone: "UTC",
+              },
+            ],
+            threadMode: input.threadMode === "single" ? "single" : "new",
+            singleJamId:
+              typeof input.singleJamId === "string" ? input.singleJamId : null,
+            runAsKind: input.runAsKind === "service" ? "service" : "human",
+            runAsId: text(input.runAsId) ?? creatorUserId,
+            slackImpersonation: input.slackImpersonation === true,
+            quietSlackPosts: input.quietSlackPosts === true,
+            model:
+              model === undefined
+                ? null
+                : {
+                    id: text(model.id) ?? "",
+                    reasoning: text(model.reasoning) ?? "",
+                  },
+            maxRunsPerDay:
+              typeof input.maxRunsPerDay === "number"
+                ? input.maxRunsPerDay
+                : null,
+            machineSize:
+              typeof input.machineSize === "string" ? input.machineSize : null,
+            organize: organize === undefined ? null : asOrganize(organize),
+            creator,
+            creatorUserId,
+            updatedAt: isoMinutesAgo(0),
+          };
           const row: AutomationRow = {
             id: newId("auto"),
             name: text(input.name) ?? "New automation",
@@ -173,6 +252,7 @@ export const AutomationsMock = mockGroup("automations", (handlers) =>
                 : { kind: "schedule", cron: "0 9 * * 1", timezone: "UTC" },
             ownerId: text(input.ownerId) ?? org.id,
             lastRunAt: null,
+            details,
           };
           yield* Ref.update(automations, (rows) => [...rows, asStored(row)]);
           return yield* view(row);
@@ -191,6 +271,87 @@ export const AutomationsMock = mockGroup("automations", (handlers) =>
             typeof input.trigger === "object" && input.trigger !== null
               ? (input.trigger as AutomationRow["trigger"])
               : undefined;
+          const details = asDetails(
+            (current as { readonly details?: unknown }).details,
+          );
+          const currentDetails =
+            details ?? automationDetails[current.id] ?? undefined;
+          const triggers = Array.isArray(input.triggers)
+            ? (input.triggers.filter(
+                (trigger) => typeof trigger === "object" && trigger !== null,
+              ) as ReadonlyArray<Record<string, unknown>>)
+            : undefined;
+          const model = asRecord(input.model);
+          const organize = asRecord(input.organize);
+          const patchedDetails: AutomationDetails | undefined =
+            currentDetails === undefined
+              ? undefined
+              : {
+                  ...currentDetails,
+                  ...(typeof input.description === "string"
+                    ? { description: input.description }
+                    : {}),
+                  ...(input.description === null ? { description: null } : {}),
+                  ...(typeof input.prompt === "string"
+                    ? { prompt: input.prompt }
+                    : {}),
+                  ...(triggers === undefined ? {} : { triggers }),
+                  ...(input.threadMode === "single" ||
+                  input.threadMode === "new"
+                    ? { threadMode: input.threadMode }
+                    : {}),
+                  ...(input.singleJamId === null ||
+                  typeof input.singleJamId === "string"
+                    ? { singleJamId: input.singleJamId }
+                    : {}),
+                  ...(input.runAsKind === "human" ||
+                  input.runAsKind === "service"
+                    ? { runAsKind: input.runAsKind }
+                    : {}),
+                  ...(typeof input.runAsId === "string"
+                    ? { runAsId: input.runAsId }
+                    : {}),
+                  ...(typeof input.slackImpersonation === "boolean"
+                    ? { slackImpersonation: input.slackImpersonation }
+                    : {}),
+                  ...(typeof input.quietSlackPosts === "boolean"
+                    ? { quietSlackPosts: input.quietSlackPosts }
+                    : {}),
+                  ...(model === undefined && input.model !== null
+                    ? {}
+                    : model === undefined
+                      ? { model: null }
+                      : {
+                          model: {
+                            id: text(model.id) ?? "",
+                            reasoning: text(model.reasoning) ?? "",
+                          },
+                        }),
+                  ...(typeof input.maxRunsPerDay === "number" ||
+                  input.maxRunsPerDay === null
+                    ? {
+                        maxRunsPerDay:
+                          typeof input.maxRunsPerDay === "number"
+                            ? input.maxRunsPerDay
+                            : null,
+                      }
+                    : {}),
+                  ...(typeof input.machineSize === "string" ||
+                  input.machineSize === null
+                    ? {
+                        machineSize:
+                          typeof input.machineSize === "string"
+                            ? input.machineSize
+                            : null,
+                      }
+                    : {}),
+                  ...(organize === undefined && input.organize !== null
+                    ? {}
+                    : organize === undefined
+                      ? { organize: null }
+                      : { organize: asOrganize(organize) }),
+                  updatedAt: isoMinutesAgo(0),
+                };
           const updated: AutomationRow = {
             ...current,
             ...(name ? { name } : {}),
@@ -199,6 +360,9 @@ export const AutomationsMock = mockGroup("automations", (handlers) =>
               ? {}
               : { enabled: enabled(input.enabled) }),
             ...(triggerValue ? { trigger: triggerValue } : {}),
+            ...(patchedDetails === undefined
+              ? {}
+              : { details: patchedDetails }),
           };
           yield* Ref.update(automations, (rows) =>
             rows.map((row) =>

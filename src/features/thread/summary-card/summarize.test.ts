@@ -96,6 +96,37 @@ describe("summarizeTurn", () => {
     );
   });
 
+  it("matches live pull requests regardless of repository casing", () => {
+    const mixedCase = {
+      kind: "pr" as const,
+      number: 12,
+      url: "https://github.com/Acme/Web/pull/12",
+    };
+    expect(summarizeTurn(turn({ prs: [mixedCase] }), [live])).toBe(
+      "Merged web#12",
+    );
+  });
+
+  it("keys live pull requests by repository as well as number", () => {
+    const api = {
+      kind: "pr" as const,
+      number: 12,
+      url: "https://github.com/acme/api/pull/12",
+    };
+    expect(
+      summarizeTurn(turn({ prs: [pr, api] }), [
+        live,
+        { ...live, repo: "acme/api", title: "Thread B", state: "ready" },
+      ]),
+    ).toBe("Merged a pull request and opened a pull request");
+    expect(
+      summarizeTurn(turn({ prs: [api] }), [
+        live,
+        { ...live, repo: "acme/api", title: "Thread B", state: "merged" },
+      ]),
+    ).toBe("Merged api#12");
+  });
+
   it("summarizes ports, automations, environment requests and setup references", () => {
     expect(
       summarizeTurn(

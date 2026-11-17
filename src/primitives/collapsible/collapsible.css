@@ -1,0 +1,22 @@
+/*
+ * Collapsible rules from Capy's stylesheet. Under reduced motion the height
+ * transition is replaced by a plain fade, and a panel measured while it is
+ * still hidden needs its content-visibility containers visible so the height it
+ * measures is real.
+ */
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="collapsible-panel"],
+  [data-slot="work-group-preview"],
+  [data-slot="work-group-panel"],
+  [data-slot="clamped-body"] {
+    /* biome-ignore lint/complexity/noImportantStyles: Capy fades a collapsed surface under reduced motion instead of animating its height */
+    transition-property: opacity !important;
+    /* biome-ignore lint/complexity/noImportantStyles: Capy fades a collapsed surface under reduced motion instead of animating its height */
+    transition-duration: var(--duration-collapse) !important;
+  }
+}
+
+[data-slot="collapsible-panel"][data-starting-style]
+  .\[content-visibility\:auto\] {
+  content-visibility: visible;
+}

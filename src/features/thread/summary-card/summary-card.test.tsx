@@ -4,6 +4,7 @@ import {
   buildElapsedMs,
   buildStatusLabel,
   formatElapsed,
+  PortRow,
   type SummaryBuild,
   SummaryCard,
 } from "./summary-card";
@@ -140,5 +141,145 @@ describe("SummaryCard", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: /web#12/ }));
     expect(onOpenPane).toHaveBeenCalledWith(reference);
+  });
+
+  it("matches live pull requests by repository as well as number", () => {
+    const apiReference = {
+      kind: "pr" as const,
+      number: 12,
+      url: "https://github.com/acme/api/pull/12",
+    };
+    render(
+      <SummaryCard
+        turn={{
+          prs: [reference, apiReference],
+          ports: [],
+          automations: [],
+          environmentRequests: [],
+          setup: [],
+        }}
+        pullRequests={[
+          {
+            number: 12,
+            repo: "acme/web",
+            title: "Thread A",
+            state: "merged",
+            additions: 5,
+            deletions: 2,
+          },
+          {
+            number: 12,
+            repo: "acme/api",
+            title: "Thread B",
+            state: "ready",
+            additions: 1,
+            deletions: 0,
+          },
+        ]}
+      />,
+    );
+    expect(screen.getByText("Thread A")).toBeTruthy();
+    expect(screen.getByText("Thread B")).toBeTruthy();
+    expect(screen.getByText("web#12")).toBeTruthy();
+    expect(screen.getByText("api#12")).toBeTruthy();
+  });
+
+  it("gives automations a row", () => {
+    render(
+      <SummaryCard
+        turn={{
+          prs: [],
+          ports: [],
+          automations: [{ bound: true }],
+          environmentRequests: [],
+          setup: [],
+        }}
+      />,
+    );
+    expect(screen.getByText("Automation")).toBeTruthy();
+    expect(screen.getByText("Runs in this thread")).toBeTruthy();
+  });
+
+  it("gives environment requests a row", () => {
+    render(
+      <SummaryCard
+        turn={{
+          prs: [],
+          ports: [],
+          automations: [],
+          environmentRequests: [{ variables: ["API_KEY"] }],
+          setup: [],
+        }}
+      />,
+    );
+    expect(screen.getByText("Environment")).toBeTruthy();
+  });
+
+  it("gives setup versions a row", () => {
+    render(
+      <SummaryCard
+        turn={{
+          prs: [],
+          ports: [],
+          automations: [],
+          environmentRequests: [],
+          setup: [{ kind: "version", versionId: "v1", toolCallId: "t1" }],
+        }}
+        setupVersions={[{ id: "v1", versionNumber: 2 }]}
+      />,
+    );
+    expect(screen.getByText("Setup")).toBeTruthy();
+    expect(screen.getByText("Saved")).toBeTruthy();
+    expect(screen.getByText("Version 2")).toBeTruthy();
+  });
+
+  it("gives snapshot toggles a row", () => {
+    render(
+      <SummaryCard
+        turn={{
+          prs: [],
+          ports: [],
+          automations: [],
+          environmentRequests: [],
+          setup: [{ kind: "snapshots", enabled: true, toolCallId: "t3" }],
+        }}
+      />,
+    );
+    expect(screen.getByText("Snapshots")).toBeTruthy();
+    expect(screen.getByText("Enabled")).toBeTruthy();
+  });
+});
+
+describe("PortRow", () => {
+  const port = {
+    kind: "port" as const,
+    title: "Preview",
+    machineId: "machine_a",
+    port: 3000,
+  };
+
+  it("opens the preview when only onOpen is supplied", () => {
+    const onOpen = vi.fn();
+    render(
+      <PortRow port={port} machineLabel="Primary machine" onOpen={onOpen} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Preview/ }));
+    expect(onOpen).toHaveBeenCalled();
+  });
+
+  it("opens a new tab when only onOpenNewTab is supplied", () => {
+    const onOpenNewTab = vi.fn();
+    render(
+      <PortRow
+        port={port}
+        machineLabel="Primary machine"
+        onOpenNewTab={onOpenNewTab}
+      />,
+    );
+    const row = screen.getByRole("button", { name: /Preview/ });
+    fireEvent.click(row, { metaKey: true });
+    expect(onOpenNewTab).toHaveBeenCalledTimes(1);
+    fireEvent.click(row);
+    expect(onOpenNewTab).toHaveBeenCalledTimes(2);
   });
 });

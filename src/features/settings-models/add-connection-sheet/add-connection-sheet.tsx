@@ -117,7 +117,7 @@ export function AddConnectionSheet({
                       type="button"
                       disabled={entry.target === undefined}
                       onClick={() => setTarget(entry.target)}
-                      className="group flex min-w-0 items-center gap-3 rounded-(--radius-card) border-hairline border-(--card-hairline) bg-card p-3 text-left shadow-card transition-colors duration-100 outline-none select-none focus-visible:outline-ring-inset enabled:cursor-pointer enabled:hover:bg-card-hover"
+                      className="group flex min-w-0 items-center gap-3 rounded-(--radius-card) border-hairline border-(--card-hairline) bg-card p-3 text-left shadow-card transition-colors duration-hover outline-none select-none focus-visible:outline-ring-inset enabled:cursor-pointer enabled:hover:bg-card-hover"
                     >
                       <span
                         aria-hidden
@@ -147,7 +147,7 @@ export function AddConnectionSheet({
                         </span>
                       </span>
                       {entry.state === undefined ? (
-                        <ChevronRightGlyph className="size-(--icon-sm) shrink-0 text-muted-foreground-3 opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-visible:opacity-100" />
+                        <ChevronRightGlyph className="size-(--icon-sm) shrink-0 text-muted-foreground-3 opacity-0 transition-opacity duration-hover group-hover:opacity-100 group-focus-visible:opacity-100" />
                       ) : (
                         <span className="shrink-0 text-xs text-muted-foreground-2">
                           {entry.state}
