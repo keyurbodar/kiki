@@ -1,7 +1,11 @@
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
-import { useEffect, useRef, useState } from "react";
-import { cx, menuCheckClassName, menuIconSlotClassName } from "@/components/view-toolbar";
+import { type ReactNode, useEffect, useRef, useState } from "react";
+import {
+  cx,
+  menuCheckClassName,
+  menuIconSlotClassName,
+} from "@/components/view-toolbar";
 import {
   BranchGlyph,
   CheckGlyph,
@@ -9,14 +13,14 @@ import {
   PullRequestGlyph,
 } from "@/features/pulls/pulls-list/pull-row/pull-icons";
 import {
+  installationReposAtom,
+  pullBranchesAtom,
+} from "@/features/pulls/pulls-page/data/atoms";
+import {
   decodeBranches,
   decodeInstallationRepos,
   type InstallationRepo,
 } from "@/features/pulls/pulls-page/data/pull";
-import {
-  installationReposAtom,
-  pullBranchesAtom,
-} from "@/features/pulls/pulls-page/data/atoms";
 import { Button } from "@/primitives/button";
 import { Checkbox } from "@/primitives/checkbox";
 import {
@@ -47,16 +51,14 @@ export interface NewPullInput {
   readonly draft: boolean;
 }
 
-const searchInputClassName =
-  "h-7 w-full min-w-0 bg-transparent px-1 text-sm text-foreground outline-none placeholder:text-muted-foreground-3";
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    // biome-ignore lint/a11y/noLabelWithoutControl: the control is the child
-    <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-medium text-muted-foreground-1">{label}</span>
+    <div className="flex flex-col gap-1.5">
+      <span className="text-xs font-medium text-muted-foreground-1">
+        {label}
+      </span>
       {children}
-    </label>
+    </div>
   );
 }
 
@@ -85,7 +87,11 @@ export function RepositoryPicker({
       ? repos
       : repos.filter((repo) => repo.fullName.toLowerCase().includes(term));
   return (
-    <Menu onOpenChange={(open) => (open ? undefined : setQuery(""))}>
+    <Menu
+      onOpenChange={(open) => {
+        if (!open) setQuery("");
+      }}
+    >
       <MenuTrigger
         render={
           <Button
@@ -96,7 +102,9 @@ export function RepositoryPicker({
           />
         }
       >
-        {value === undefined ? null : <PullRequestGlyph className="size-(--icon-sm)" />}
+        {value === undefined ? null : (
+          <PullRequestGlyph className="size-(--icon-sm)" />
+        )}
         <span className="min-w-0 truncate">
           {value === undefined ? "Select repository" : value.fullName}
         </span>
@@ -105,7 +113,7 @@ export function RepositoryPicker({
       <MenuContent align="start" className="w-72">
         <MenuSearchRow>
           <input
-            className={searchInputClassName}
+            className="h-7 w-full min-w-0 bg-transparent px-1 text-sm text-foreground outline-none placeholder:text-muted-foreground-3"
             placeholder="Search repositories"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
@@ -118,7 +126,10 @@ export function RepositoryPicker({
           </div>
         ) : (
           shown.map((repo) => (
-            <MenuItem key={repo.fullName} onClick={() => onChange(repo.fullName)}>
+            <MenuItem
+              key={repo.fullName}
+              onClick={() => onChange(repo.fullName)}
+            >
               <span className={menuIconSlotClassName}>
                 <PullRequestGlyph />
               </span>
@@ -130,6 +141,32 @@ export function RepositoryPicker({
       </MenuContent>
     </Menu>
   );
+}
+
+function BranchItems({
+  orgId,
+  repo,
+  value,
+  onChange,
+}: {
+  orgId: string;
+  repo: InstallationRepo;
+  value: string;
+  onChange: (branch: string) => void;
+}) {
+  const result = useAtomValue(pullBranchesAtom(orgId, repo.fullName));
+  const branches = AsyncResult.isSuccess(result)
+    ? decodeBranches(result.value, repo.fullName)
+    : [];
+  return branches.map((branch) => (
+    <MenuItem key={branch} onClick={() => onChange(branch)}>
+      <span className={menuIconSlotClassName}>
+        <BranchGlyph />
+      </span>
+      <span className="min-w-0 truncate">{branch}</span>
+      {value === branch ? <Check /> : null}
+    </MenuItem>
+  ));
 }
 
 /** A branch button and its menu of the repository's branches (Capy's BranchPicker). */
@@ -167,37 +204,16 @@ export function BranchPicker({
       </MenuTrigger>
       <MenuContent align="start" className="w-64">
         {repo === undefined ? null : (
-          <BranchItems orgId={orgId} repo={repo} value={value} onChange={onChange} />
+          <BranchItems
+            orgId={orgId}
+            repo={repo}
+            value={value}
+            onChange={onChange}
+          />
         )}
       </MenuContent>
     </Menu>
   );
-}
-
-function BranchItems({
-  orgId,
-  repo,
-  value,
-  onChange,
-}: {
-  orgId: string;
-  repo: InstallationRepo;
-  value: string;
-  onChange: (branch: string) => void;
-}) {
-  const result = useAtomValue(pullBranchesAtom(orgId, repo.fullName));
-  const branches = AsyncResult.isSuccess(result)
-    ? decodeBranches(result.value, repo.fullName)
-    : [];
-  return branches.map((branch) => (
-    <MenuItem key={branch} onClick={() => onChange(branch)}>
-      <span className={menuIconSlotClassName}>
-        <BranchGlyph />
-      </span>
-      <span className="min-w-0 truncate">{branch}</span>
-      {value === branch ? <Check /> : null}
-    </MenuItem>
-  ));
 }
 
 /** "New pull request" dialog (Capy's NewPullDialog). */
@@ -217,7 +233,8 @@ export function NewPullDialog({
     ? decodeInstallationRepos(reposResult.value)
     : [];
   const [repoName, setRepoName] = useState("");
-  const repo = repos.find((candidate) => candidate.fullName === repoName) ?? repos[0];
+  const repo =
+    repos.find((candidate) => candidate.fullName === repoName) ?? repos[0];
   const [base, setBase] = useState("");
   const [head, setHead] = useState("");
   const [title, setTitle] = useState("");
@@ -280,8 +297,6 @@ export function NewPullDialog({
       .finally(() => setCreating(false));
   };
 
-  const failed = AsyncResult.isFailure(reposResult);
-
   return (
     <Dialog open={open} onOpenChange={changeOpen}>
       <DialogContent className="max-w-xl">
@@ -292,14 +307,18 @@ export function NewPullDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogBody className="flex flex-col gap-3">
-          {failed ? (
+          {AsyncResult.isFailure(reposResult) ? (
             <div className="px-2 py-4 text-center text-sm text-muted-foreground-2">
               No repositories
             </div>
           ) : (
             <>
               <Field label="Repository">
-                <RepositoryPicker repos={repos} value={repo} onChange={setRepoName} />
+                <RepositoryPicker
+                  repos={repos}
+                  value={repo}
+                  onChange={setRepoName}
+                />
               </Field>
               <div className="grid gap-3 sm:grid-cols-2">
                 <Field label="Base branch">
@@ -326,6 +345,7 @@ export function NewPullDialog({
               </div>
               <Field label="Title">
                 <Input
+                  aria-label="Title"
                   value={title}
                   placeholder="Pull request title"
                   onChange={(event) => {
@@ -343,14 +363,14 @@ export function NewPullDialog({
                   onChange={(event) => setBody(event.target.value)}
                 />
               </Field>
-              {/* biome-ignore lint/a11y/noLabelWithoutControl: the checkbox is the child */}
-              <label className="flex items-center gap-2 text-sm text-foreground">
+              <span className="flex items-center gap-2 text-sm text-foreground">
                 <Checkbox
+                  aria-label="Create as draft"
                   checked={draft}
                   onCheckedChange={(checked) => setDraft(checked === true)}
                 />
                 Create as draft
-              </label>
+              </span>
             </>
           )}
         </DialogBody>
