@@ -111,8 +111,7 @@ function WebhookBatchRow({
               <Button
                 variant="ghost"
                 size="sm"
-                data-loading={pendingId === batch.id ? "" : undefined}
-                aria-busy={pendingId === batch.id}
+                loading={pendingId === batch.id}
                 disabled={pendingId !== undefined}
                 onClick={() => onFlush(batch)}
               >

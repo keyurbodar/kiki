@@ -1,6 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
-import { Option } from "effect";
+import { Effect, Option } from "effect";
 import { AsyncResult, Atom } from "effect/reactivity";
 import type { ComponentProps, MouseEvent } from "react";
 import { AppearanceMenuItems } from "@/components/appearance-menu";
@@ -21,6 +21,7 @@ import {
   resolveActiveOrgId,
   selectedOrgIdAtom,
 } from "@/data/atoms/session";
+import { AuthService, authRuntime } from "@/data/auth";
 import { Icon } from "@/primitives/icon";
 import {
   menuCheckClassName,
@@ -40,6 +41,27 @@ import { useSetupRestore } from "./use-setup-restore";
 import { UserAvatar } from "./user-avatar";
 
 export const createOrganizationDialogOpenAtom = Atom.make(false);
+
+export const signOutAtom = authRuntime.fn(() =>
+  Effect.gen(function* () {
+    const auth = yield* AuthService;
+    yield* auth.signOut;
+  }),
+);
+
+export const logOut = async (deps: {
+  signOut: () => Promise<unknown>;
+  clearOrganization: () => void;
+  goToSignIn: () => void;
+}) => {
+  try {
+    await deps.signOut();
+  } catch {
+    return;
+  }
+  deps.clearOrganization();
+  deps.goToSignIn();
+};
 
 export const userDisplayName = (
   user: Pick<UserProfile, "firstName" | "lastName" | "email">,
@@ -81,6 +103,7 @@ export function UserMenu({ compact = false, ...props }: UserMenuProps) {
   const selectedOrgId = useAtomValue(selectedOrgIdAtom);
   const selectOrg = useAtomSet(selectedOrgIdAtom);
   const openCreateOrganization = useAtomSet(createOrganizationDialogOpenAtom);
+  const signOut = useAtomSet(signOutAtom, { mode: "promise" });
   const activeOrgId = resolveActiveOrgId(organizations, selectedOrgId);
   const activeOrg = organizations.find((org) => org.id === activeOrgId);
   const setup = useSetupRestore(activeOrgId);
@@ -242,10 +265,13 @@ export function UserMenu({ compact = false, ...props }: UserMenuProps) {
           </ResponsiveMenuSub>
           <ResponsiveMenuItem
             intent="danger"
-            onClick={() => {
-              selectOrg(null);
-              navigate({ to: "/sign-in" });
-            }}
+            onClick={() =>
+              logOut({
+                signOut: () => signOut(),
+                clearOrganization: () => selectOrg(null),
+                goToSignIn: () => navigate({ to: "/sign-in" }),
+              })
+            }
           >
             <span className={menuIconClassName}>
               <DoorIcon />

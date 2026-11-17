@@ -31,7 +31,12 @@ import {
   MenuSelectValue,
 } from "@/primitives/menu-select";
 import { SettingsRow } from "@/primitives/settings-row";
-import { Sheet, SheetContent, SheetTitle } from "@/primitives/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetOverlay,
+  SheetTitle,
+} from "@/primitives/sheet";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { Textarea } from "@/primitives/textarea";
 import { GoogleIcon } from "./brand-icons";
@@ -849,7 +854,11 @@ export function SamlSetupSheet({
 
   return (
     <Sheet open={open} onOpenChange={(next) => !next && !saving && onClose()}>
-      <SheetContent aria-label={title}>
+      <SheetOverlay className="fixed inset-0 z-(--z-drawer) bg-overlay" />
+      <SheetContent
+        aria-label={title}
+        className="fixed inset-y-0 right-0 z-(--z-drawer) flex w-(--container-sm) max-w-full flex-col gap-6 overflow-y-auto bg-chrome p-(--spacing-page-padding) shadow-card outline-none"
+      >
         <div data-slot="sheet-header">
           <SheetTitle>
             <span className="flex items-center gap-2">

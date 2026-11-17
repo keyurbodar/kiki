@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { CloudSetupPage } from "@/features/settings-integrations/cloud-credentials";
 
 export const Route = createFileRoute(
   "/_app/settings/cloud-credentials_/gcp_/$targetId",
@@ -8,10 +8,6 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-  return (
-    <RoutePlaceholder
-      title="/settings/cloud-credentials/gcp/$targetId"
-      path="/settings/cloud-credentials/gcp/$targetId"
-    />
-  );
+  const { targetId } = Route.useParams();
+  return <CloudSetupPage provider="gcp" targetId={targetId} />;
 }

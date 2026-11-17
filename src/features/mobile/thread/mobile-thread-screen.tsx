@@ -1,0 +1,265 @@
+import { useAtomValue } from "@effect/atom-react";
+import { AsyncResult } from "effect/reactivity";
+import { type ReactNode, useState } from "react";
+import { organizationsAtom } from "@/data/atoms/session";
+import {
+  ComposerFooter,
+  FooterTrigger,
+} from "@/features/composer/composer-footer";
+import { useSidebarActions } from "@/features/shell/sidebar-container";
+import { JamChat } from "@/features/thread/jam-chat";
+import { Button } from "@/primitives/button";
+import {
+  MobileComposer,
+  MobileComposerAddTrigger,
+  MobileComposerModelTrigger,
+} from "../composer";
+import {
+  MobileAddDrawer,
+  MobileMachineDrawer,
+  MobileModelDrawer,
+  type MobileModelSection,
+  MobileTabDrawer,
+  type MobileTabPane,
+} from "../drawers";
+import {
+  mobileModelsAtom,
+  mobileThreadAtom,
+  mobileThreadMachinesAtom,
+} from "./atoms";
+import { MobileIcon } from "./mobile-icon";
+import {
+  CHAT_TAB,
+  MobileOpenTabTrigger,
+  MobileThreadView,
+} from "./mobile-thread-view";
+
+/** Panes a thread offers on a phone, in Capy's order. */
+export const mobileThreadPanes: ReadonlyArray<Omit<MobileTabPane, "open">> = [
+  { id: "overview", label: "Overview", icon: "list" },
+  { id: "diffs", label: "Diffs", icon: "changes" },
+  { id: "files", label: "Files", icon: "files" },
+  { id: "setup", label: "Setup", icon: "server-2" },
+  { id: "browser", label: "Browser", icon: "globe" },
+];
+
+const record = (value: unknown): Record<string, unknown> =>
+  typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>)
+    : {};
+
+const text = (value: unknown) =>
+  typeof value === "string" ? value : undefined;
+
+const success = (result: AsyncResult.AsyncResult<unknown, unknown>) =>
+  AsyncResult.isSuccess(result) ? result.value : undefined;
+
+/** Models from the models endpoint, grouped by provider; empty until that mock is filled. */
+export function modelSections(models: unknown): MobileModelSection[] {
+  if (!Array.isArray(models)) return [];
+  const sections = new Map<string, MobileModelSection>();
+  for (const entry of models) {
+    const model = record(entry);
+    const id = text(model.id);
+    const name = text(model.name) ?? id;
+    if (id === undefined || name === undefined) continue;
+    const provider = text(model.provider) ?? "Models";
+    const section = sections.get(provider) ?? {
+      id: provider,
+      label: provider,
+      models: [],
+    };
+    sections.set(provider, {
+      ...section,
+      models: [...section.models, { id, name }],
+    });
+  }
+  return [...sections.values()];
+}
+
+export type MobileThreadScreenProps = {
+  threadId: string;
+  /** The chat timeline; defaults to the thread view's JamChat. */
+  chat?: ReactNode;
+};
+
+function SidebarTrigger() {
+  const { setOpenMobile } = useSidebarActions();
+  return (
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      aria-label="Open sidebar"
+      onClick={() => setOpenMobile(true)}
+    >
+      <MobileIcon name="sidebar-simple-left-wide" />
+    </Button>
+  );
+}
+
+/** The thread route on a phone: wires the mobile view, composer and drawers to the data layer. */
+export function MobileThreadScreen({
+  threadId,
+  chat,
+}: MobileThreadScreenProps) {
+  const organizations = success(useAtomValue(organizationsAtom));
+  const orgId = Array.isArray(organizations)
+    ? text(record(organizations[0]).id)
+    : undefined;
+  return orgId === undefined ? (
+    <MobileThreadBody threadId={threadId} chat={chat} />
+  ) : (
+    <MobileThreadData orgId={orgId} threadId={threadId} chat={chat} />
+  );
+}
+
+function MobileThreadData({
+  orgId,
+  threadId,
+  chat,
+}: MobileThreadScreenProps & { orgId: string }) {
+  const key = `${orgId}/${threadId}`;
+  const thread = record(success(useAtomValue(mobileThreadAtom(key))));
+  const machines = success(useAtomValue(mobileThreadMachinesAtom(key)));
+  const machine = Array.isArray(machines) ? record(machines[0]) : undefined;
+  return (
+    <MobileThreadBody
+      threadId={threadId}
+      chat={chat}
+      title={text(thread.title)}
+      models={success(useAtomValue(mobileModelsAtom))}
+      machine={
+        machine && {
+          name: text(machine.name) ?? "",
+          live: machine.status === "running" || machine.status === "online",
+        }
+      }
+    />
+  );
+}
+
+type MobileThreadBodyProps = MobileThreadScreenProps & {
+  title?: string;
+  models?: unknown;
+  machine?: { name: string; live: boolean };
+};
+
+function MobileThreadBody({
+  threadId,
+  chat,
+  title,
+  models,
+  machine,
+}: MobileThreadBodyProps) {
+  const [openTabs, setOpenTabs] = useState<ReadonlyArray<string>>(["overview"]);
+  const [activeTab, setActiveTab] = useState(CHAT_TAB);
+  const [modelId, setModelId] = useState<string>();
+  const sections = modelSections(models);
+  const model = sections
+    .flatMap((section) => section.models)
+    .find((option) => option.id === modelId);
+  const openPane = (id: string) => {
+    setOpenTabs((tabs) => (tabs.includes(id) ? tabs : [...tabs, id]));
+    setActiveTab(id);
+  };
+  const closeTab = (id: string) => {
+    setOpenTabs((tabs) => tabs.filter((tab) => tab !== id));
+    if (activeTab === id) setActiveTab(CHAT_TAB);
+  };
+  const threadTitle = title ?? "";
+  return (
+    <MobileThreadView
+      title={threadTitle}
+      sidebarTrigger={<SidebarTrigger />}
+      options={
+        <Button variant="ghost" size="icon-sm" aria-label="Thread options">
+          <MobileIcon name="dots-horizontal" />
+        </Button>
+      }
+      tabs={mobileThreadPanes.filter((pane) => openTabs.includes(pane.id))}
+      activeTab={activeTab}
+      onSelectTab={setActiveTab}
+      onCloseTab={closeTab}
+      tabMenu={
+        <MobileTabDrawer
+          title={threadTitle}
+          trigger={<MobileOpenTabTrigger />}
+          panes={mobileThreadPanes.map((pane) => ({
+            ...pane,
+            open: openTabs.includes(pane.id),
+          }))}
+          sideThreads={0}
+          terminals={{
+            status: machine?.live ? "Awake" : "Asleep",
+            live: machine?.live ?? false,
+          }}
+          onOpenPane={openPane}
+          onOpenSideThreads={() => {}}
+          onNewTerminal={() => {}}
+        />
+      }
+      composer={
+        <>
+          <MobileComposer
+            onSend={() => {}}
+            addMenu={
+              <MobileAddDrawer
+                trigger={<MobileComposerAddTrigger />}
+                onSelect={() => {}}
+              />
+            }
+            modelMenu={
+              <MobileModelDrawer
+                sections={sections}
+                selectedId={modelId}
+                groupLabel="By provider"
+                trigger={
+                  <MobileComposerModelTrigger label={model?.name ?? "Model"} />
+                }
+                onSelect={setModelId}
+                onOpenSettings={() => {}}
+                onGroupBy={() => {}}
+              />
+            }
+          />
+          {machine && (
+            <ComposerFooter
+              machine={
+                <MobileMachineDrawer
+                  name={machine.name}
+                  live={machine.live}
+                  actions={[
+                    {
+                      id: "move-to-cloud",
+                      label: "Move to cloud",
+                      icon: "cloud",
+                    },
+                  ]}
+                  trigger={
+                    <FooterTrigger
+                      aria-label="Machine"
+                      icon={<MobileIcon name="macbook" />}
+                      color={machine.live ? "success" : "neutral"}
+                    >
+                      {machine.name}
+                    </FooterTrigger>
+                  }
+                  onAction={() => {}}
+                />
+              }
+            />
+          )}
+        </>
+      }
+    >
+      {activeTab === CHAT_TAB
+        ? (chat ?? (
+            <JamChat
+              data-thread-id={threadId}
+              className="flex min-h-0 flex-1 flex-col"
+            />
+          ))
+        : null}
+    </MobileThreadView>
+  );
+}

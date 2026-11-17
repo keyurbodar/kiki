@@ -1,6 +1,7 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentProps, ReactNode } from "react";
+import { Icon } from "@/primitives/icon";
 
 const cx = (...parts: Array<string | false | null | undefined>) =>
   parts.filter(Boolean).join(" ");
@@ -64,7 +65,7 @@ export function SettingsRow({
         Boolean(icon) && "min-h-15",
         highlighted && "bg-card-hover",
         clickable &&
-          "relative cursor-pointer transition-colors duration-100 hover:bg-card-hover",
+          "relative cursor-pointer transition-colors duration-hover hover:bg-card-hover",
         className,
       )}
       {...props}
@@ -122,7 +123,7 @@ export function SettingsRow({
               className={cx(
                 "-mr-2 flex items-center gap-1",
                 !children &&
-                  "opacity-0 transition-opacity duration-100 group-hover/row:opacity-100 focus-within:opacity-100 has-[[data-popup-open]]:opacity-100 pointer-coarse:opacity-100",
+                  "opacity-0 transition-opacity duration-hover group-hover/row:opacity-100 focus-within:opacity-100 has-[[data-popup-open]]:opacity-100 pointer-coarse:opacity-100",
               )}
             >
               {actions}
@@ -168,7 +169,7 @@ export function SettingsRowLink({
       id={id}
       data-slot="settings-row-link"
       className={cx(
-        "flex items-center justify-between gap-6 p-4 transition-colors duration-100 outline-none select-none",
+        "flex items-center justify-between gap-6 p-4 transition-colors duration-hover outline-none select-none",
         "hover:bg-card-hover focus-visible:outline-ring-inset",
         Boolean(icon) && "min-h-15",
         className,
@@ -192,24 +193,14 @@ export function SettingsRowLink({
       </div>
       <div className="flex shrink-0 items-center gap-2">
         {children}
-        <svg
-          aria-hidden
-          data-icon="chevron-right-small"
-          viewBox="0 0 24 24"
-          fill="none"
+        <Icon
+          name="chevron-right-small"
+          size={null}
           className={cx(
             "size-(--icon-sm) shrink-0 text-muted-foreground-3",
             chevron === "wide" && "max-sm:hidden",
           )}
-        >
-          <path
-            d="M10 16L12.9393 13.0607C13.5251 12.4749 13.5251 11.5251 12.9393 10.9393L10 8"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        />
       </div>
     </Link>
   );

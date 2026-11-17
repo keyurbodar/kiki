@@ -23,6 +23,7 @@ import { SettingsSkeletonCard } from "../notification-filter-rows/settings-skele
 import {
   pushEnableAtom,
   pushInstallDialogOpenAtom,
+  pushRetryAtom,
   pushStateAtom,
   pushSubscriptionIdAtom,
   pushSubscriptionKeys,
@@ -93,15 +94,19 @@ export function NotificationDevicesSection({
   const enable = useAtomValue(pushEnableAtom);
   const unsubscribe = useAtomSet(unsubscribePushAtom, { mode: "promise" });
   const openInstall = useAtomSet(pushInstallDialogOpenAtom);
+  const [retry, setRetry] = useAtom(pushRetryAtom);
   const [busy, setBusy] = useState(false);
   const [support] = useState(pushSupport);
   const now = Date.now();
 
   if (support === "unsupported" && currentId === null) return null;
 
-  const state = Option.getOrUndefined(
-    Option.map(AsyncResult.value(result), readPushState),
-  );
+  const failed = AsyncResult.isFailure(result);
+  const state = failed
+    ? undefined
+    : Option.getOrUndefined(
+        Option.map(AsyncResult.value(result), readPushState),
+      );
   const current = state?.subscriptions.find((row) => row.id === currentId);
   const others =
     state?.subscriptions.filter((row) => row.id !== currentId) ?? [];
@@ -148,7 +153,23 @@ export function NotificationDevicesSection({
       title="Devices"
       description="Push reaches these browsers and installed apps even when Capy is closed"
     >
-      {state === undefined ? (
+      {failed ? (
+        <Card>
+          <SettingsRow
+            label="Devices are unavailable"
+            description="Check your connection and try again"
+            descriptionTone="strong"
+          >
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setRetry(retry + 1)}
+            >
+              Retry
+            </Button>
+          </SettingsRow>
+        </Card>
+      ) : state === undefined ? (
         <SettingsSkeletonCard label="Loading devices" />
       ) : state.vapidPublicKey === null ? (
         <Card>
