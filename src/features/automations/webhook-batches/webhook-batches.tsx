@@ -3,17 +3,9 @@ import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { organizationsAtom } from "@/data/atoms/session";
 import { Button } from "@/primitives/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/primitives/dialog";
 import { Icon } from "@/primitives/icon";
 import {
   type AutomationWebhookBatch,
@@ -159,8 +151,7 @@ function AutomationBatches({
             variant="ghost"
             size="icon-sm"
             aria-label="Refresh events"
-            aria-busy={waiting}
-            data-loading={waiting ? "" : undefined}
+            loading={waiting}
             onClick={refresh}
           >
             <Icon name="arrow-rotate-clockwise" size="sm" />
@@ -217,36 +208,19 @@ function AutomationBatches({
           ) : null}
         </>
       )}
-      <Dialog
+      <ConfirmDialog
         open={cancelling !== undefined}
         onOpenChange={(open) => {
           if (!open) setCancelling(undefined);
         }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Cancel batch</DialogTitle>
-            <DialogDescription>
-              {`These ${cancelling?.eventCount ?? 0} events will not be run`}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose render={<Button variant="ghost" size="sm" />}>
-              Cancel
-            </DialogClose>
-            <Button
-              intent="danger"
-              size="sm"
-              onClick={() => {
-                if (cancelling !== undefined) run(cancelling, "cancel");
-                setCancelling(undefined);
-              }}
-            >
-              Cancel batch
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title="Cancel batch"
+        description={`These ${cancelling?.eventCount ?? 0} events will not be run`}
+        confirmLabel="Cancel batch"
+        intent="danger"
+        onConfirm={() => {
+          if (cancelling !== undefined) run(cancelling, "cancel");
+        }}
+      />
     </section>
   );
 }
