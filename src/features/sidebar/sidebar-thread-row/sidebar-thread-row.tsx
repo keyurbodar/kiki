@@ -8,7 +8,6 @@ import {
   type SidebarProject,
   type SidebarThread,
 } from "@/components/sidebar-threads";
-import { ThreadPreview } from "@/components/thread-preview";
 import { NeedsYouDot, ThreadStatusIcon } from "@/components/thread-status";
 import { Button } from "@/primitives/button";
 import {
@@ -288,9 +287,11 @@ export function SidebarThreadRow({
             </span>
           )}
         </PreviewCardTrigger>
-        <PreviewCardContent side="right" align="start">
-          {preview ?? <ThreadPreview />}
-        </PreviewCardContent>
+        {preview === undefined ? null : (
+          <PreviewCardContent side="right" align="start">
+            {preview}
+          </PreviewCardContent>
+        )}
       </PreviewCard>
       {actions === undefined ? null : (
         <ThreadRowActions slim={slim} active={active} actions={actions} />
