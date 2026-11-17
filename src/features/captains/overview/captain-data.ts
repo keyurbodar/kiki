@@ -50,6 +50,7 @@ export const captainPresetUrl = (value: string) => `/avatars/${value}.png`;
 export const captainReactivityKeys = (orgId: string, jamId: string) => [
   `captain:${jamId}`,
   `captain:${orgId}`,
+  `captains:${orgId}`,
   `jam:${jamId}`,
   `jam:${orgId}`,
 ];
@@ -178,14 +179,9 @@ export const recentDriveFiles = (
   files: readonly CaptainDriveFile[],
   limit: number,
 ) => {
-  const dated = files.filter((file) => file.updatedAt !== null);
-  const ordered =
-    dated.length > 0
-      ? dated.toSorted(
-          (a, b) =>
-            (b.updatedAt?.getTime() ?? 0) - (a.updatedAt?.getTime() ?? 0),
-        )
-      : [...files];
+  const ordered = files.toSorted(
+    (a, b) => (b.updatedAt?.getTime() ?? 0) - (a.updatedAt?.getTime() ?? 0),
+  );
   return { shown: ordered.slice(0, limit), total: ordered.length };
 };
 

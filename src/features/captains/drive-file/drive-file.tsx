@@ -161,6 +161,7 @@ export function CaptainDriveFileView({
         />
       ) : (
         <MissingFile
+          orgId={orgId}
           volumeId={state.volumeId}
           path={path}
           absent={captainDriveAbsent}

@@ -6,7 +6,7 @@ export const captainAvatarVariants = cva(
   {
     variants: {
       size: {
-        "2xs": "size-2.5 rounded-(--radius-inner) text-[0.5625rem]",
+        "2xs": "size-2.5 rounded-(--radius-inner) text-2xs",
         xs: "size-4 rounded-(--radius-inner) text-2xs",
         sm: "size-6 rounded-(--radius-inner) text-xs",
         base: "size-8 rounded-(--radius-sm) text-sm",
