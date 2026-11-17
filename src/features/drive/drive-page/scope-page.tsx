@@ -1,6 +1,8 @@
 // biome-ignore-all lint/a11y: Capy's directory table is an ARIA grid of div subgrid rows (role table/row/cell), class for class from the bundle
 import { useAtomValue } from "@effect/atom-react";
+import { Link } from "@tanstack/react-router";
 import { DateTime } from "effect";
+import { Fragment } from "react";
 import type { Volume } from "@/data/api/schemas/drive";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { driveVolumesAtom } from "@/data/atoms/drive";
@@ -77,7 +79,7 @@ function ScopeTitle({
           ? names.projects.find((project) => project.id === mount.projectId)
               ?.name
           : undefined;
-  return mountTrail(
+  const trail = mountTrail(
     mount,
     {
       organization: orgName,
@@ -86,7 +88,26 @@ function ScopeTitle({
       project: known,
     },
     true,
-  ).title;
+  );
+  return (
+    <span className="flex min-w-0 items-center gap-1.5">
+      {trail.crumbs.map((crumb) => (
+        <Fragment key={crumb.label}>
+          <Link
+            to={crumb.to ?? (crumb.route?.to as "/drive")}
+            params={crumb.route?.params as never}
+            className="shrink-0 text-muted-foreground-1 outline-none hover:text-foreground focus-visible:outline-ring-inset"
+          >
+            {crumb.label}
+          </Link>
+          <span aria-hidden="true" className="text-muted-foreground-3">
+            /
+          </span>
+        </Fragment>
+      ))}
+      <span className="truncate text-foreground">{trail.title}</span>
+    </span>
+  );
 }
 
 const volumeRows = (volumes: ReadonlyArray<Volume>, now: number) =>
