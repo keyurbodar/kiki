@@ -85,10 +85,18 @@ layer(makeApiClientLayer(MockTransport))(
           params: { orgId },
           query: { limit: 4, cursor: first.cursor ?? undefined },
         });
-        assert.strictEqual(second.items.length, 2);
-        assert.isNull(second.cursor);
+        assert.strictEqual(second.items.length, 4);
+        assert.isNotNull(second.cursor);
+        const third = yield* client.jams.list({
+          params: { orgId },
+          query: { limit: 4, cursor: second.cursor ?? undefined },
+        });
+        assert.strictEqual(third.items.length, 2);
+        assert.isNull(third.cursor);
         assert.isFalse(
-          [...first.items, ...second.items].some((thread) => thread.archived),
+          [...first.items, ...second.items, ...third.items].some(
+            (thread) => thread.archived,
+          ),
         );
       }),
     );

@@ -34,6 +34,7 @@ import {
   sampleFeedbackRequests,
   sampleThreadAccess,
   sampleThreads,
+  sampleThreadUsage,
   sampleUsage,
   type ThreadAccess,
   threadIssuesOf,
@@ -1122,6 +1123,7 @@ export const JamsMock = mockGroup("jams", (handlers) =>
       .handle("usage", ({ params }) =>
         Effect.gen(function* () {
           const rows = yield* Ref.get(usage);
+          const member = sampleThreadUsage[params.jamId];
           return {
             jamId: params.jamId,
             period: "current month",
@@ -1130,6 +1132,7 @@ export const JamsMock = mockGroup("jams", (handlers) =>
               (sum, row) => sum + (row.currency === "USD" ? row.amount : 0),
               0,
             ),
+            ...(member === undefined ? {} : { members: [member] }),
           };
         }),
       )

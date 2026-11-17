@@ -55,7 +55,7 @@ describe("listAllThreads", () => {
         registry,
         allThreadsAtom(orgId, { archived: false, excludeFiled: false }),
       );
-      assert.strictEqual(all.length, 6);
+      assert.strictEqual(all.length, 10);
     }),
   );
 });

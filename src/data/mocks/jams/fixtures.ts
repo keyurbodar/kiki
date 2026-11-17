@@ -25,12 +25,14 @@ const thread = (options: {
   readonly preview?: string;
   readonly pinned?: boolean;
   readonly unread?: boolean;
+  readonly modelId?: string;
+  readonly machine?: { readonly kind: "cloud"; readonly size: string };
   readonly pull?: { readonly number: number; readonly title: string };
 }) => {
   const activity = minutesAgo(options.activeMinutesAgo);
   return new ThreadCard({
     id: JamId.make(options.id),
-    primaryMachine: undefined,
+    primaryMachine: options.machine,
     title: options.title,
     titleCustom: false,
     status: options.status,
@@ -54,7 +56,7 @@ const thread = (options: {
     personal: false,
     tagIds: [],
     importing: false,
-    lastModelId: null,
+    lastModelId: options.modelId ?? null,
     pulls: options.pull
       ? [
           new PullRequestChip({
@@ -152,6 +154,50 @@ export const sampleThreads = [
     status: "archived",
     projectId: threads.bundler.projectId,
     activeMinutesAgo: 60 * 24 * 9,
+  }),
+  thread({
+    id: threads.capturePipeline.id,
+    number: threads.capturePipeline.number,
+    title: threads.capturePipeline.title,
+    status: "working",
+    projectId: threads.capturePipeline.projectId,
+    activeMinutesAgo: 3,
+    preview: "Running the last shard again before I push the retry budget.",
+    unread: true,
+    modelId: world.models[1].id,
+    machine: { kind: "cloud", size: "large" },
+  }),
+  thread({
+    id: threads.captureFiles.id,
+    number: threads.captureFiles.number,
+    title: threads.captureFiles.title,
+    status: "idle",
+    projectId: threads.captureFiles.projectId,
+    activeMinutesAgo: 44,
+    preview: "Shards 1 to 6 pass with the split at 40 tests each.",
+    modelId: world.models[1].id,
+    machine: { kind: "cloud", size: "medium" },
+    pull: { number: 312, title: "Shard the release test suite" },
+  }),
+  thread({
+    id: threads.captureSideParent.id,
+    number: threads.captureSideParent.number,
+    title: threads.captureSideParent.title,
+    status: "waiting",
+    projectId: threads.captureSideParent.projectId,
+    activeMinutesAgo: 72,
+    modelId: world.models[0].id,
+    machine: { kind: "cloud", size: "large" },
+  }),
+  thread({
+    id: threads.captureProbe.id,
+    number: threads.captureProbe.number,
+    title: threads.captureProbe.title,
+    status: "idle",
+    projectId: threads.captureProbe.projectId,
+    activeMinutesAgo: 60 * 5 + 20,
+    modelId: world.models[1].id,
+    machine: { kind: "cloud", size: "small" },
   }),
 ];
 
@@ -334,6 +380,60 @@ export const sampleUsage = [
     period: "current month",
   },
 ];
+
+export interface ThreadUsageMember {
+  readonly jamId: string;
+  readonly familyId: string;
+  readonly usage: { readonly totalCredits: number; readonly vmCredits: number };
+  readonly keyCredits: number;
+  readonly models: ReadonlyArray<{
+    readonly entryId: string;
+    readonly label: string;
+    readonly unbilled: boolean;
+    readonly credentialName: string | null;
+    readonly credits: number;
+    readonly tokenFeeCredits: number;
+  }>;
+  readonly images: ReadonlyArray<unknown>;
+}
+
+/** Per-thread credits, so the capture ids' headers carry a real cost chip. */
+const usageMember = (
+  jamId: string,
+  totalCredits: number,
+  vmCredits: number,
+): ThreadUsageMember => ({
+  jamId,
+  familyId: jamId,
+  usage: { totalCredits, vmCredits },
+  keyCredits: 0,
+  models: [
+    {
+      entryId: `${jamId}:models:1`,
+      label: "Claude Sonnet",
+      unbilled: false,
+      credentialName: null,
+      credits: totalCredits - vmCredits,
+      tokenFeeCredits: totalCredits - vmCredits,
+    },
+  ],
+  images: [],
+});
+
+export const sampleThreadUsage: Readonly<Record<string, ThreadUsageMember>> = {
+  [threads.capturePipeline.id]: usageMember(
+    threads.capturePipeline.id,
+    3_240,
+    900,
+  ),
+  [threads.captureFiles.id]: usageMember(threads.captureFiles.id, 1_180, 420),
+  [threads.captureSideParent.id]: usageMember(
+    threads.captureSideParent.id,
+    2_060,
+    380,
+  ),
+  [threads.captureProbe.id]: usageMember(threads.captureProbe.id, 470, 120),
+};
 
 export const sampleAd = {
   id: "ad_sample_checkout",
