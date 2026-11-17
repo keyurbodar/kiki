@@ -1,7 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { cx } from "@/components/view-toolbar";
 import type { PullSection } from "@/features/pulls/pulls-page/model";
-import { codePrefixes } from "@/features/pulls/pulls-page/model";
 import {
   Collapsible,
   CollapsiblePanel,
@@ -16,9 +15,6 @@ import { MenuItem } from "@/primitives/menu";
 import { PullRow } from "./pull-row";
 import { CheckGlyph, ChevronDownGlyph } from "./pull-row/pull-icons";
 
-const sectionTriggerClassName =
-  "group/collapsible flex h-9 w-full cursor-pointer items-center gap-2 rounded-(--radius-card) bg-section px-2 text-left text-sm font-medium text-foreground transition-colors duration-100 outline-none select-none focus-visible:outline-ring-inset [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-(--icon-sm)";
-
 function SectionHeader({
   section,
   open,
@@ -31,7 +27,9 @@ function SectionHeader({
   return (
     <CollapsibleTrigger
       data-track-owner="features/pulls/pulls-list.tsx#PullsList:CollapsibleTrigger.1"
-      className={sectionTriggerClassName}
+      tone="section"
+      block
+      showChevron={false}
       onClick={onToggle}
     >
       <span className="flex w-4 shrink-0 items-center justify-center">
@@ -77,9 +75,6 @@ export function PullsList({
     ...sections.flatMap((section) =>
       section.members.map((pull) => 1 + String(pull.number).length),
     ),
-  );
-  const prefixes = codePrefixes(
-    sections.flatMap((section) => section.members.map((pull) => pull.repo)),
   );
   const observerRef = useRef<ResizeObserver | null>(null);
   const attachList = useCallback((root: HTMLDivElement | null) => {
@@ -129,7 +124,7 @@ export function PullsList({
       {sections.map((section, index) => {
         const open = !collapsed.includes(section.id);
         return (
-          <div key={section.id} className={cx(index > 0 && "mt-1")}>
+          <div key={section.id} className={cx(index > 0 && "mt-0.5")}>
             <Collapsible open={open}>
               <ContextMenu>
                 <ContextMenuTrigger className="block">
@@ -185,7 +180,6 @@ export function PullsList({
                           selected={selectedId === pull.id}
                           checked={checked.includes(pull.id)}
                           selectionMode={selectionMode}
-                          codePrefix={prefixes.get(pull.repo) ?? ""}
                           onCheck={() =>
                             setChecked((current) =>
                               current.includes(pull.id)
