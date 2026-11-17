@@ -36,11 +36,7 @@ export function ThreadView({
         <AppTopBar>{topBar}</AppTopBar>
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
           <div className="relative min-h-0 flex-1">
-            <JamChat
-              jamId={threadId}
-              rows={rows}
-              initialLoading={loading}
-            />
+            <JamChat jamId={threadId} rows={rows} initialLoading={loading} />
             {loading && rows.length === 0 && <ChatSkeleton />}
           </div>
           <div className="min-h-0 px-4 pb-[calc(0.25rem+var(--safe-bottom))]">

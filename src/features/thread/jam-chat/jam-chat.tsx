@@ -55,7 +55,9 @@ function ChatRow({ row }: { row: TimelineRowData }) {
   );
 }
 
-const renderRow = ({ item }: { item: TimelineRowData }) => <ChatRow row={item} />;
+const renderRow = ({ item }: { item: TimelineRowData }) => (
+  <ChatRow row={item} />
+);
 
 const itemType = (row: TimelineRowData) =>
   row.type === "update" ? `update:${row.kind}` : row.type;
@@ -138,7 +140,10 @@ export function JamChat({
       </RowContext.Provider>
       <ChatScrollPill
         visible={showPill}
-        messagesBelow={countMessagesBelow(rows, showPill ? lastVisibleKey : null)}
+        messagesBelow={countMessagesBelow(
+          rows,
+          showPill ? lastVisibleKey : null,
+        )}
         onClick={() => listRef.current?.scrollToEnd({ animated: true })}
       />
     </div>

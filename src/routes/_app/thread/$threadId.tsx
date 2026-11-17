@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { findPane } from "@/features/thread-panes/thread-pane";
 import { sampleTimelineRows, ThreadView } from "@/features/thread/thread-view";
+import { findPane } from "@/features/thread-panes/thread-pane";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/thread/$threadId")({

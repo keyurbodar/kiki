@@ -20,7 +20,9 @@ const speaker = (row: TimelineRow): string | undefined => {
 };
 
 const startedAt = (row: TimelineRow): Date =>
-  row.type === "cluster" ? (row.members[0]?.createdAt ?? row.createdAt) : row.createdAt;
+  row.type === "cluster"
+    ? (row.members[0]?.createdAt ?? row.createdAt)
+    : row.createdAt;
 
 const isDivider = (row: TimelineRow) =>
   row.type === "cluster" ||
@@ -102,6 +104,7 @@ export function countMessagesBelow(
   if (index < 0) return 0;
   return rows
     .slice(index + 1)
-    .filter((row) => row.type === "user-message" || row.type === "agent-message")
-    .length;
+    .filter(
+      (row) => row.type === "user-message" || row.type === "agent-message",
+    ).length;
 }

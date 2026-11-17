@@ -61,7 +61,9 @@ export function ChatSkeleton({ leaving = false }: ChatSkeletonProps) {
                     {lines.map((width, line) => (
                       // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder list
                       <div key={line} className="flex h-[1lh] items-center">
-                        <div className={cx("h-3 rounded bg-secondary", width)} />
+                        <div
+                          className={cx("h-3 rounded bg-secondary", width)}
+                        />
                       </div>
                     ))}
                   </div>
