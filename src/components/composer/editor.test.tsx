@@ -6,6 +6,8 @@ import {
   EDITOR_FIELD_HEIGHT_CLASS,
   editorFieldClass,
 } from "./editor";
+import { ToolbarAction } from "./toolbar-action";
+import { VoiceControl } from "./voice-control";
 
 afterEach(cleanup);
 
@@ -44,5 +46,24 @@ describe("composer field height", () => {
     const className = (await field("multi")).className;
     expect(className).toContain("min-h-16");
     expect(className).not.toContain("min-h-6");
+  });
+});
+
+describe("composer control hitboxes", () => {
+  it("keeps toolbar and voice controls square at the control height", () => {
+    const { container } = render(
+      <>
+        <ToolbarAction label="Bold">
+          <span />
+        </ToolbarAction>
+        <VoiceControl empty={false} ready={false} />
+      </>,
+    );
+    const buttons = [...container.querySelectorAll("button")];
+    expect(buttons).toHaveLength(2);
+    for (const button of buttons) {
+      expect(button.className).toContain("size-(--h-control-sm)");
+      expect(button.className).toContain("w-(--h-control-sm)!");
+    }
   });
 });

@@ -24,7 +24,8 @@ export function ToolbarAction({
       <span className="inline-flex">
         <Button
           variant="ghost"
-          size="icon-xs"
+          size="icon-sm"
+          className="w-(--h-control-sm)!"
           aria-label={label}
           aria-pressed={pressed}
           data-selected={pressed === true ? "" : undefined}

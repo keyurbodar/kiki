@@ -50,7 +50,7 @@ export function PlusMenu({
             <Button
               variant="ghost"
               size="icon-sm"
-              className="relative"
+              className="relative w-(--h-control-sm)!"
               aria-label={plusMenuLabel(staged)}
             >
               <Icon name="plus-medium" size="sm" />
