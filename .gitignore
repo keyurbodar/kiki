@@ -1,4 +1,5 @@
 node_modules/
+.bun/
 dist/
 build/
 *.tsbuildinfo
@@ -19,3 +20,6 @@ playwright/.cache/
 # OS / editor
 .DS_Store
 *.log
+
+# bun
+.bun/
