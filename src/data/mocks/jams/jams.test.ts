@@ -439,4 +439,66 @@ describe("jams mock", () => {
       assert.isTrue(countsAfter.pinned > 0);
     }),
   );
+
+  it.effect(
+    "records the machineSize /new's footer menu sends on both creates",
+    () =>
+      Effect.gen(function* () {
+        const recorded = (created: unknown) =>
+          (created as { readonly machineSize?: string | null }).machineSize;
+        const start = (
+          endpoint: "create" | "createProjectless",
+          params: object,
+          payload: object,
+        ) =>
+          Effect.gen(function* () {
+            const registry = AtomRegistry.make();
+            const atom = ApiClient.mutation("jams", endpoint);
+            registry.set(atom, {
+              params,
+              payload,
+              reactivityKeys: [key],
+            } as never);
+            return yield* AtomRegistry.getResult(registry, atom, {
+              suspendOnWaiting: true,
+            });
+          });
+        const startProjectless = (payload: object) =>
+          start("createProjectless", { orgId: org }, payload);
+        const startInProject = (payload: object) =>
+          start(
+            "create",
+            { orgId: org, projectId: world.projects.api.id },
+            payload,
+          );
+
+        const projectlessLarge = yield* startProjectless({
+          title: "Ship the footer on a large machine",
+          machineSize: "large",
+        });
+        assert.strictEqual(recorded(projectlessLarge), "large");
+
+        const projectLarge = yield* startInProject({
+          title: "Ship the footer on a large machine",
+          machineSize: "large",
+        });
+        assert.strictEqual(recorded(projectLarge), "large");
+
+        const projectlessDefault = yield* startProjectless({
+          title: "Ship the footer on the default machine",
+        });
+        assert.strictEqual(recorded(projectlessDefault), null);
+
+        const projectDefault = yield* startInProject({
+          title: "Ship the footer on the default machine",
+        });
+        assert.strictEqual(recorded(projectDefault), null);
+
+        const projectlessUnknown = yield* startProjectless({
+          title: "Ship the footer on an unknown machine",
+          machineSize: 8,
+        });
+        assert.strictEqual(recorded(projectlessUnknown), null);
+      }),
+  );
 });

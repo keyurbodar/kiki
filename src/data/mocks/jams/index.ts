@@ -60,6 +60,15 @@ const stringValue = (
   return typeof candidate === "string" ? candidate : fallback;
 };
 
+/**
+ * A create's optional `machineSize`: the composer footer's machine menu sends
+ * it, and a missing or non-string value means the project's default.
+ */
+const machineSizeValue = (input: Record<string, unknown>) => {
+  const candidate = input.machineSize;
+  return typeof candidate === "string" && candidate !== "" ? candidate : null;
+};
+
 const booleanValue = (
   input: Record<string, unknown>,
   key: string,
@@ -422,6 +431,7 @@ export const JamsMock = mockGroup("jams", (handlers) =>
         Effect.gen(function* () {
           const input = fields(payload);
           const title = stringValue(input, "title", "New thread");
+          const machineSize = machineSizeValue(input);
           const created = new ThreadCard({
             ...fallbackThread,
             id: JamId.make(newId("jam")),
@@ -446,7 +456,7 @@ export const JamsMock = mockGroup("jams", (handlers) =>
               ...accessTemplate(created.id),
             },
           ]);
-          return threadJSON(created);
+          return { ...threadJSON(created), machineSize };
         }),
       )
       .handle("create", ({ params, payload }) =>
@@ -454,6 +464,7 @@ export const JamsMock = mockGroup("jams", (handlers) =>
           const input = fields(payload);
           const title = stringValue(input, "title", "New project thread");
           const message = stringValue(input, "message", "");
+          const machineSize = machineSizeValue(input);
           const project = Object.values(world.projects).find(
             (candidate) => candidate.id === params.projectId,
           );
@@ -493,7 +504,7 @@ export const JamsMock = mockGroup("jams", (handlers) =>
               projectId: project.id,
             },
           ]);
-          return { ...threadJSON(created), projectId: project.id };
+          return { ...threadJSON(created), projectId: project.id, machineSize };
         }),
       )
       .handle("get", ({ params }) =>
