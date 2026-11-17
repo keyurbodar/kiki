@@ -1,6 +1,10 @@
 import { DateTime, Effect, Ref } from "effect";
 import { Forbidden } from "../../api/schemas/errors.ts";
-import { ProjectId } from "../../api/schemas/ids.ts";
+import { OrgId, ProjectId } from "../../api/schemas/ids.ts";
+import {
+  JoinableOrganization,
+  MyInvitation,
+} from "../../api/schemas/invitation.ts";
 import { Organization } from "../../api/schemas/organization.ts";
 import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
 import { fixtureNow, minutesAgo } from "../fixtures/time.ts";
@@ -19,6 +23,15 @@ import type { DomainRow } from "./state.ts";
 const text = (value: unknown) =>
   typeof value === "string" && value.length > 0 ? value : undefined;
 
+const dnsRecordFor = (domain: string, id: string) => ({
+  host: "_capy-challenge." + domain,
+  type: "TXT",
+  value: "capy-verify=" + id,
+});
+
+const numberField = (value: unknown, fallback: number) =>
+  typeof value === "number" && Number.isFinite(value) ? value : fallback;
+
 const flag = (value: unknown, fallback: boolean) =>
   typeof value === "boolean" ? value : fallback;
 
@@ -30,7 +43,12 @@ const memberId = (value: unknown) =>
 
 export const OrganizationsMock = mockGroup("organizations", (handlers) =>
   Effect.gen(function* () {
-    const { members, pendingInvitations, orgState: state } = yield* MockDb;
+    const {
+      members,
+      myInvitations,
+      joinableOrganizations,
+      orgState: state,
+    } = yield* MockDb;
     const { organizations, domains, surfaceModels, sso, settings, avatarUrl } =
       state;
 
@@ -117,18 +135,27 @@ export const OrganizationsMock = mockGroup("organizations", (handlers) =>
 
     return handlers
       .handle("listMyInvitations", () =>
-        Effect.gen(function* () {
-          const rows = yield* Ref.get(pendingInvitations);
-          return rows.map((row) => ({
-            ...row,
-            organizationId: org.id,
-            organizationName: org.name,
-            invitedByEmail: people.sam.email,
-          }));
-        }),
+        Effect.map(Ref.get(myInvitations), (rows) =>
+          rows.map(
+            (row) =>
+              new MyInvitation({
+                ...row,
+                orgId: OrgId.make(row.orgId),
+                invitedAt: DateTime.makeUnsafe(row.invitedAt),
+              }),
+          ),
+        ),
       )
       .handle("listJoinableOrganizations", () =>
-        Effect.succeed(sampleJoinableOrganizations),
+        Effect.map(Ref.get(joinableOrganizations), (rows) =>
+          rows.map(
+            (row) =>
+              new JoinableOrganization({
+                ...row,
+                orgId: OrgId.make(row.orgId),
+              }),
+          ),
+        ),
       )
       .handle("list", () => Ref.get(organizations))
       .handle("create", ({ payload }) =>
@@ -162,10 +189,13 @@ export const OrganizationsMock = mockGroup("organizations", (handlers) =>
         Effect.gen(function* () {
           const input = fields(payload);
           const domain = text(input.domain) ?? "example.org";
+          const id = newId("dom");
           const row: DomainRow = {
-            id: newId("dom"),
+            id,
             domain,
             verified: false,
+            verification: "dns",
+            dnsRecord: dnsRecordFor(domain, id),
             ssoRequired: false,
             createdAt: isoMinutesAgo(0),
             verifiedAt: null,
@@ -312,15 +342,29 @@ export const OrganizationsMock = mockGroup("organizations", (handlers) =>
           yield* findOrganization(params.orgId).pipe(Effect.orDie);
           const input = fields(payload);
           const mfaRequired = flag(input.required ?? input.mfaRequired, true);
-          const mfaEnforceAt = mfaRequired ? minutesAgo(-30 * 24 * 60) : null;
-          yield* setSettings({ mfaRequired, mfaEnforceAt });
+          const graceDays = mfaRequired
+            ? Math.max(0, numberField(input.graceDays, 30))
+            : 0;
+          const mfaLevel = text(input.level ?? input.mfaLevel) ?? "any";
+          const mfaEnforceAt = mfaRequired
+            ? minutesAgo(-graceDays * 24 * 60)
+            : null;
+          yield* setSettings({
+            mfaRequired,
+            mfaEnforceAt,
+            mfaLevel,
+            mfaGraceDays: graceDays,
+          });
           yield* updateOrganizations(params.orgId, {
             mfaRequired,
             mfaEnforceAt,
+            mfaLevel,
           });
           return {
             ok: true,
             mfaRequired,
+            mfaLevel,
+            graceDays,
             mfaEnforceAt: mfaEnforceAt
               ? DateTime.formatIso(mfaEnforceAt)
               : null,

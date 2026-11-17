@@ -1,4 +1,5 @@
 node_modules/
+.bun/
 dist/
 build/
 *.tsbuildinfo
@@ -12,6 +13,11 @@ playwright-report/
 blob-report/
 playwright/.cache/
 
+# Instabox VM provisioning
+MACHINE.md
+.agents/
+.claude/
+
 # Env
 .env
 .env*
@@ -19,3 +25,11 @@ playwright/.cache/
 # OS / editor
 .DS_Store
 *.log
+# Agent scratch dirs (written inside worktrees, not source)
+.agents/
+.claude/
+.codex/
+.cursor/
+.gemini/
+.continue/
+MACHINE.md

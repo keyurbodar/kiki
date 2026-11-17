@@ -419,6 +419,8 @@ export const buildSections = (options: {
   now: number;
   projectName: (id: string | null) => string;
   authorName: (id: string) => string;
+  /** Folder shelves, drawn after the Captains section as Capy orders them. */
+  folderSections?: ReadonlyArray<ThreadSection>;
 }): ThreadSection[] => {
   const { threads, filters, grouping, ordering, now } = options;
   const compare = threadComparator(ordering);
@@ -440,6 +442,7 @@ export const buildSections = (options: {
       ? []
       : [{ id: "archived", label: "Archived", members, showCount: true }];
   }
+  const folderSections = options.folderSections ?? [];
   const captains = threads
     .filter((thread) => thread.captain !== null)
     .toSorted(compare);
@@ -466,6 +469,7 @@ export const buildSections = (options: {
     }
     return [
       ...captainSections,
+      ...folderSections,
       ...[...groups].map(([key, members]) => ({
         id: grouping + ":" + key,
         label:
@@ -486,6 +490,7 @@ export const buildSections = (options: {
   for (const thread of rest) shelves[threadShelf(thread, now)].push(thread);
   return [
     ...captainSections,
+    ...folderSections,
     ...[
       {
         id: "shelf:asks",

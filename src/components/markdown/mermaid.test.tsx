@@ -14,7 +14,7 @@ import {
 afterEach(cleanup);
 
 const fence = (body: string, lang = "mermaid") =>
-  ["```" + lang, body, "```"].join("\n");
+  [`\`\`\`${lang}`, body, "```"].join("\n");
 
 describe("extractMermaidBlocks", () => {
   it("finds mermaid fences in order and ignores other languages", () => {

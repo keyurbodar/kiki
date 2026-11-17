@@ -30,7 +30,7 @@ export const emailDomain = (email: string | null | undefined) => {
 
 export const isValidDomain = (domain: string) =>
   domain.length <= 253 &&
-  /^(?!-)([a-z0-9-]{1,63}(?<!-)\.)+[a-z]{2,63}$/.test(domain);
+  /^([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(domain);
 
 export const isFreeEmailDomain = (domain: string) =>
   freeEmailDomains.has(normalizeDomain(domain));
