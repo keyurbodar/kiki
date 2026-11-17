@@ -16,9 +16,17 @@ const user = (id: string, minutes: number, clientKey?: string) =>
     clientKey,
   }) as unknown as TimelineRow;
 const agent = (id: string, minutes: number) =>
-  ({ id, type: "agent-message", createdAt: at(minutes) }) as unknown as TimelineRow;
+  ({
+    id,
+    type: "agent-message",
+    createdAt: at(minutes),
+  }) as unknown as TimelineRow;
 const work = (id: string, minutes: number) =>
-  ({ id, type: "work-group", createdAt: at(minutes) }) as unknown as TimelineRow;
+  ({
+    id,
+    type: "work-group",
+    createdAt: at(minutes),
+  }) as unknown as TimelineRow;
 const marker = (id: string, minutes: number) =>
   ({ id, type: "marker", createdAt: at(minutes) }) as unknown as TimelineRow;
 
