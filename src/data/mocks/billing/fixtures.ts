@@ -161,11 +161,20 @@ export const invoiceSeed = [
   },
 ];
 
+/**
+ * The `billing.usage` payload. `machineHourAllowance` and
+ * `machineHoursConsumed` are mock-only: Capy's client has no field or endpoint
+ * that carries them, so kiki invents the org's machine-hour allowance here to
+ * drive the automation Limits row. See the note on the endpoint in
+ * `src/data/api/groups/billing.ts`.
+ */
 export const usageSeed = {
   period: {
     start: DateTime.formatIso(minutesAgo(30 * day)),
     end: DateTime.formatIso(minutesAgo(0)),
   },
+  machineHourAllowance: 30000,
+  machineHoursConsumed: 29875,
   totalCredits: 18450,
   totalCostCents: 1845,
   currency: "usd",

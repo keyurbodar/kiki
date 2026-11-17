@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { AppTopBar } from "@/components/app-top-bar";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { Project } from "@/data/api/schemas/project";
+import { projectKey, projectSetupAtom } from "@/data/atoms/project-settings";
 import { projectsAtom } from "@/data/atoms/projects";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
@@ -48,7 +49,7 @@ import {
   updateAutomationAtom,
 } from "./atoms";
 import { AutomationDriveRow } from "./drive-row";
-import { EditorSections } from "./editor-sections";
+import { EditorSections, type EditorSectionsProps } from "./editor-sections";
 import {
   ArrowShareRight,
   ChevronRightSmall,
@@ -75,6 +76,7 @@ import {
   PersonAvatar,
 } from "./parts";
 import { readAutomation } from "./read";
+import { useMachineUsage } from "./use-machine-usage";
 import { resultValue, useOrgId } from "./use-org";
 
 export const errorMessage = (error: unknown, fallback: string) =>
@@ -141,6 +143,20 @@ export function AutomationNotFound() {
   );
 }
 
+/** The sections plus the project's machine size, which each run inherits until someone overrides it. */
+function ProjectEditorSections({
+  orgId,
+  projectId,
+  ...sections
+}: EditorSectionsProps & { orgId: string; projectId: string }) {
+  const setup = resultValue(
+    useAtomValue(projectSetupAtom(projectKey(orgId as OrgId, projectId))),
+  );
+  return (
+    <EditorSections {...sections} machineSizeDefault={setup?.machineSize} />
+  );
+}
+
 export type AutomationEditorProps = {
   orgId: string;
   automation: Automation;
@@ -169,6 +185,7 @@ export function AutomationEditor({
     projects.find((candidate) => candidate.id === current.projectId) ??
     projects[0];
   const threads = useProjectThreads(project?.id);
+  const machineUsage = useMachineUsage(orgId);
   const runAs = effectiveRunAs(form, current);
   const serviceRunAs = runAs.kind === "service";
   const params = { orgId, automationId: current.id };
@@ -496,14 +513,29 @@ export function AutomationEditor({
                 </SettingsRow>
               </Card>
             </div>
-            <EditorSections
-              form={form}
-              setForm={setFormTo}
-              mixedRunWhen={mixedRunWhen(current.triggers)}
-              serviceRunAs={serviceRunAs}
-              folders={[]}
-              tags={[]}
-            />
+            {project === undefined ? (
+              <EditorSections
+                form={form}
+                setForm={setFormTo}
+                mixedRunWhen={mixedRunWhen(current.triggers)}
+                serviceRunAs={serviceRunAs}
+                folders={[]}
+                tags={[]}
+                machineUsage={machineUsage}
+              />
+            ) : (
+              <ProjectEditorSections
+                orgId={orgId}
+                projectId={project.id}
+                form={form}
+                setForm={setFormTo}
+                mixedRunWhen={mixedRunWhen(current.triggers)}
+                serviceRunAs={serviceRunAs}
+                folders={[]}
+                tags={[]}
+                machineUsage={machineUsage}
+              />
+            )}
             <AutomationUsageSection orgId={orgId} automationId={current.id} />
             <AutomationDriveRow automationId={current.id} title={name} />
           </div>
