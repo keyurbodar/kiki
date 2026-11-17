@@ -103,14 +103,8 @@
       "scheme": "dark",
       "viewport": "1600x1000",
       "steps": [
-        [
-          "click",
-          "[data-track-owner$=\"HomePage:ProjectSelect.1\"] button"
-        ],
-        [
-          "wait",
-          "[role=menu]"
-        ]
+        ["click", "[data-track-owner$=\"HomePage:ProjectSelect.1\"] button"],
+        ["wait", "[role=menu]"]
       ],
       "capture": {
         "[role=menu]": []
@@ -131,12 +125,7 @@
       "theme": "default",
       "scheme": "dark",
       "viewport": "1600x1000",
-      "steps": [
-        [
-          "wait",
-          "[data-slot=composer]"
-        ]
-      ],
+      "steps": [["wait", "[data-slot=composer]"]],
       "expect": {
         "[data-slot=composer]": {
           "width": "712px",
