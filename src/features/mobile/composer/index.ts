@@ -1,2 +1,2 @@
-export * from "./composer-menus";
+export * from "./composer-catalog";
 export * from "./mobile-composer";
