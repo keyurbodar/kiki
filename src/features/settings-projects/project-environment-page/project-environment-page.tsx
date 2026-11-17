@@ -1,5 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useParams } from "@tanstack/react-router";
+import { DateTime } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -39,7 +40,8 @@ import {
   DialogTitle,
 } from "@/primitives/dialog";
 import { Icon } from "@/primitives/icon";
-import { Input } from "@/primitives/input";
+import { Input, InputGroup } from "@/primitives/input";
+import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import { Textarea } from "@/primitives/textarea";
 import { CardList, CardListTitle, StatusDot } from "../shared/card-list";
 import { cx } from "../shared/cx";
@@ -53,6 +55,8 @@ const reachabilityColor = {
 } as const;
 
 const secretPlaceholder = "••••••••••";
+
+const sortLabel = { updated: "Last updated", name: "Name" } as const;
 
 export function ProjectEnvironmentPage() {
   const { projectId } = useParams({
@@ -81,6 +85,8 @@ function EnvironmentVariablesSettings({
   readonly projectId: string;
 }) {
   const [scope, setScope] = useState<VariableScope>("shared");
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<"updated" | "name">("updated");
   const [editing, setEditing] = useState<ProjectEnvironmentVariable | null>(
     null,
   );
@@ -102,6 +108,15 @@ function EnvironmentVariablesSettings({
   const dependencyRepos = AsyncResult.isSuccess(reposResult)
     ? reposResult.value
     : undefined;
+  const query = search.trim().toLowerCase();
+  const visible = (variables ?? [])
+    .filter((variable) => variable.name.toLowerCase().includes(query))
+    .toSorted((left, right) =>
+      sort === "name"
+        ? left.name.localeCompare(right.name)
+        : DateTime.toEpochMillis(right.updatedAt) -
+          DateTime.toEpochMillis(left.updatedAt),
+    );
 
   const readValue = useAtomSet(
     scope === "shared"
@@ -180,24 +195,71 @@ function EnvironmentVariablesSettings({
               title={
                 variables === undefined
                   ? "Loading variables"
-                  : variables.length === 0
-                    ? `No ${scope} variables`
-                    : variables.length === 1
+                  : visible.length === 0
+                    ? query === ""
+                      ? `No ${scope} variables`
+                      : `No ${scope} variables match “${search.trim()}”`
+                    : visible.length === 1
                       ? "1 variable"
-                      : `${variables.length} variables`
+                      : `${visible.length} variables`
               }
             >
+              {(variables?.length ?? 0) >= 2 && (
+                <div className="flex items-center gap-0.5">
+                  <InputGroup className="relative inline-flex w-44">
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-icon-muted"
+                    >
+                      <Glyph name="search" className="size-(--icon-sm)" />
+                    </span>
+                    <Input
+                      size="sm"
+                      className="pl-8"
+                      placeholder="Search variables"
+                      aria-label="Search variables"
+                      value={search}
+                      onChange={(event) => setSearch(event.target.value)}
+                    />
+                  </InputGroup>
+                  <Menu>
+                    <MenuTrigger
+                      render={
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          aria-label="Sort variables"
+                        >
+                          {sortLabel[sort]}
+                          <Glyph
+                            name="chevron-down"
+                            className="size-(--icon-sm)"
+                          />
+                        </Button>
+                      }
+                    >
+                      Sort variables
+                    </MenuTrigger>
+                    <MenuContent align="end" className="w-44">
+                      <MenuItem onClick={() => setSort("updated")}>
+                        Last updated
+                      </MenuItem>
+                      <MenuItem onClick={() => setSort("name")}>Name</MenuItem>
+                    </MenuContent>
+                  </Menu>
+                </div>
+              )}
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label={`Add ${scope} variable`}
-                title={`Add ${scope} variable`}
+                aria-label="Add variable"
+                title="Add variable"
                 onClick={() => setAdding(true)}
               >
                 <Glyph name="plus" className="size-(--icon-sm)" />
               </Button>
             </CardListTitle>
-            {variables?.map((variable) => (
+            {visible.map((variable) => (
               <VariableRow
                 key={variable.name}
                 variable={variable}
@@ -250,19 +312,19 @@ function EnvironmentVariablesSettings({
             <CardListTitle
               title={
                 dependencyRepos === undefined
-                  ? "Loading dependency repositories"
+                  ? "Loading repositories"
                   : dependencyRepos.length === 0
                     ? "No dependency repositories"
                     : dependencyRepos.length === 1
-                      ? "1 dependency repository"
-                      : `${dependencyRepos.length} dependency repositories`
+                      ? "1 repository"
+                      : `${dependencyRepos.length} repositories`
               }
             >
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Add dependency repository"
-                title="Add dependency repository"
+                aria-label="Add repository"
+                title="Add repository"
                 onClick={() =>
                   window.open("/settings/integrations/github", "_self")
                 }

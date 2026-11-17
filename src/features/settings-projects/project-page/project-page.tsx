@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { Project, ProjectRepo } from "@/data/api/schemas/project";
+import type { ProjectSetupRepo } from "@/data/api/schemas/project-settings";
 import {
   personalVariablesAtom,
   projectAtom,
@@ -35,6 +36,7 @@ import {
 import { CardList, CardListTitle } from "../shared/card-list";
 import { Glyph } from "../shared/glyphs";
 import { ProjectGlyph } from "../shared/project-glyph";
+import { formatRelative } from "../shared/relative-time";
 import { useActiveOrgId } from "../shared/use-org";
 
 const machineSizes = {
@@ -199,7 +201,13 @@ function ProjectSettings({
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <h1 className="sr-only">{project.name}</h1>
             <div className="flex min-w-0 items-center gap-3">
-              <NameInput name={project.name} onSave={rename} />
+              <NameInput
+                name={project.name}
+                derived={project.nameIsDerived}
+                repos={project.repos.map((repo) => repo.repoFullName)}
+                onSave={rename}
+                onRename={() => setRenaming(true)}
+              />
               <Badge>{project.code}</Badge>
               <Menu>
                 <MenuTrigger
@@ -234,18 +242,6 @@ function ProjectSettings({
                 </MenuContent>
               </Menu>
             </div>
-            <p className="flex min-w-0 items-center gap-1 text-sm font-normal text-muted-foreground-1">
-              <span className="truncate">
-                {project.repos.length === 0
-                  ? "No repositories yet"
-                  : project.repos.map((repo) => repo.repoFullName).join(", ")}
-              </span>
-              {project.nameIsDerived && (
-                <span className="shrink-0 text-muted-foreground-2">
-                  name and icon follow the repositories
-                </span>
-              )}
-            </p>
           </div>
         </div>
       </header>
@@ -279,13 +275,12 @@ function ProjectSettings({
             <RepoRow
               key={repo.repoFullName}
               repo={repo}
-              setupVersionNumber={
-                setup?.repositories.some(
-                  (entry) => entry.repository === repo.repoFullName,
-                )
-                  ? (setup?.versionNumber ?? null)
-                  : null
-              }
+              setup={setup?.repositories.find(
+                (entry) => entry.repository === repo.repoFullName,
+              )}
+              touchedAt={formatRelative(
+                project.lastTouchedAt ?? project.updatedAt,
+              )}
               onMode={(mode) =>
                 setRepoMode({
                   params: {
@@ -456,38 +451,67 @@ const projectSnapshotState = (
 
 function NameInput({
   name,
+  derived,
+  repos,
   onSave,
+  onRename,
 }: {
   readonly name: string;
+  readonly derived: boolean;
+  readonly repos: ReadonlyArray<string>;
   readonly onSave: (name: string | null) => void;
+  readonly onRename: () => void;
 }) {
-  const [value, setValue] = useState(name);
-  if (
-    name !== value &&
-    document.activeElement?.getAttribute("data-name") !== "1"
-  )
-    setValue(name);
+  const [draft, setDraft] = useState<string | null>(null);
+  if (draft === null)
+    return (
+      <>
+        <button
+          type="button"
+          className="min-w-0 truncate text-left text-xl font-medium text-foreground outline-none focus-visible:outline-ring-inset"
+          onClick={() => setDraft(name)}
+        >
+          {name}
+        </button>
+        <p className="flex min-w-0 items-center gap-1 text-sm font-normal text-muted-foreground-1">
+          <span className="truncate">
+            {repos.length === 0
+              ? "No repositories yet"
+              : derived
+                ? `${repos.join(", ")}, name and icon follow the repositories,`
+                : repos.join(", ")}
+          </span>
+          {derived && (
+            <Button
+              variant="ghost"
+              size="xs"
+              className="shrink-0"
+              onClick={onRename}
+            >
+              Rename
+            </Button>
+          )}
+        </p>
+      </>
+    );
   return (
     <span className="flex min-w-0 shrink items-center [&_input]:w-auto [&_input]:max-w-full [&_input]:field-sizing-content">
       <Input
-        data-name="1"
         aria-label="Project name"
         maxLength={255}
-        value={value}
+        autoFocus
+        value={draft}
         className="border-0 bg-transparent px-0 text-xl font-medium"
-        onChange={(event) => setValue(event.target.value)}
+        onChange={(event) => setDraft(event.target.value)}
         onBlur={() => {
-          const trimmed = value.trim();
-          if (trimmed === name) return;
-          if (trimmed === "") {
-            setValue(name);
-            return;
-          }
+          const trimmed = draft.trim();
+          setDraft(null);
+          if (trimmed === name || trimmed === "") return;
           onSave(trimmed);
         }}
         onKeyDown={(event) => {
           if (event.key === "Enter") event.currentTarget.blur();
-          if (event.key === "Escape") setValue(name);
+          if (event.key === "Escape") setDraft(null);
         }}
       />
     </span>
@@ -512,6 +536,7 @@ function CodeInput({
       data-code="1"
       aria-label="Thread code"
       maxLength={4}
+      size="sm"
       value={value}
       className="w-24 uppercase"
       onChange={(event) => setValue(event.target.value.toUpperCase())}
@@ -534,69 +559,95 @@ function CodeInput({
 
 function RepoRow({
   repo,
-  setupVersionNumber,
+  setup,
+  touchedAt,
   onMode,
   onBranch,
   onRemove,
 }: {
   readonly repo: ProjectRepo;
-  readonly setupVersionNumber: number | null;
+  readonly setup: ProjectSetupRepo | undefined;
+  readonly touchedAt: string;
   readonly onMode: (mode: "primary" | "lazy") => void;
   readonly onBranch: (branch: string) => void;
   readonly onRemove: () => void;
 }) {
   const branches = [...new Set([repo.baseBranch, "main", "master", "develop"])];
+  const attribution =
+    setup === undefined
+      ? "Default setup with no install scripts yet"
+      : `Setup configured${
+          setup.source === "repo" && setup.sourceCommit !== null
+            ? ` at ${setup.sourceCommit.slice(0, 7)}`
+            : ""
+        } by ${sourceLabel[setup.source]}, ${touchedAt}`;
   return (
     <SettingsRow
       icon={<Icon name="github" className="size-4" />}
-      label={repo.repoFullName}
+      label={<span className="block truncate">{repo.repoFullName}</span>}
       description={
-        setupVersionNumber === null
-          ? "Default setup with no install scripts yet"
-          : `Setup configured at v${setupVersionNumber}`
+        setup?.sourceError === null || setup === undefined
+          ? attribution
+          : `${attribution}, the file at the branch head could not be applied`
+      }
+      actions={
+        <Menu>
+          <MenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`${repo.repoFullName} actions`}
+              />
+            }
+          >
+            <Glyph name="dots" className="size-(--icon-sm)" />
+          </MenuTrigger>
+          <MenuContent align="end" className="w-44">
+            <MenuItem
+              onClick={() =>
+                onMode(repo.mode === "primary" ? "lazy" : "primary")
+              }
+            >
+              {repo.mode === "primary" ? "Move to lazy" : "Move to primary"}
+            </MenuItem>
+            <MenuItem intent="danger" onClick={onRemove}>
+              Remove
+            </MenuItem>
+          </MenuContent>
+        </Menu>
       }
     >
-      <MenuSelect
-        value={repo.baseBranch}
-        onValueChange={(value) => onBranch(String(value))}
-      >
-        <MenuSelectTrigger aria-label={`${repo.repoFullName} base branch`}>
-          <Glyph name="branch" className="size-(--icon-sm) shrink-0" />
-          <MenuSelectValue>{repo.baseBranch}</MenuSelectValue>
-          <Glyph
-            name="chevron-down"
-            className="size-(--icon-sm) shrink-0 text-muted-foreground-3"
-          />
-        </MenuSelectTrigger>
-        {branches.map((branch) => (
-          <MenuSelectItem key={branch} value={branch}>
-            {branch}
-          </MenuSelectItem>
-        ))}
-      </MenuSelect>
       <Menu>
         <MenuTrigger
           render={
             <Button
               variant="ghost"
-              size="icon-sm"
-              aria-label={`${repo.repoFullName} actions`}
-            />
+              size="sm"
+              aria-label={`${repo.repoFullName} base branch`}
+            >
+              <Glyph name="branch" className="size-(--icon-sm)" />
+              {repo.baseBranch}
+              <Glyph name="chevron-down" className="size-(--icon-sm)" />
+            </Button>
           }
         >
-          <Glyph name="dots" className="size-(--icon-sm)" />
+          {repo.repoFullName} base branch
         </MenuTrigger>
         <MenuContent align="end" className="w-44">
-          <MenuItem
-            onClick={() => onMode(repo.mode === "primary" ? "lazy" : "primary")}
-          >
-            {repo.mode === "primary" ? "Move to lazy" : "Move to primary"}
-          </MenuItem>
-          <MenuItem intent="danger" onClick={onRemove}>
-            Remove
-          </MenuItem>
+          {branches.map((branch) => (
+            <MenuItem key={branch} onClick={() => onBranch(branch)}>
+              {branch}
+            </MenuItem>
+          ))}
         </MenuContent>
       </Menu>
     </SettingsRow>
   );
 }
+
+const sourceLabel = {
+  capy: "Capy",
+  user: "you",
+  repo: "the repository",
+} as const;

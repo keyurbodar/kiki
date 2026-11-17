@@ -17,7 +17,7 @@ export function DirectoryTable({
     // biome-ignore lint/a11y/useSemanticElements: Capy's table is a CSS grid with subgrid rows, which native table elements cannot host
     <div
       role="table"
-      className="isolate grid w-full overflow-x-auto overscroll-x-contain px-4 [--table-row-h:--spacing(12.5)] max-md:[--table-fluid-min:8rem] max-md:[--table-lead-min:10rem] max-md:[clip-path:inset(0_0_0_0.5rem)]"
+      className="isolate grid w-full overflow-x-auto overscroll-x-contain px-4 [--table-row-h:--spacing(12.5)] max-md:[--table-fluid-min:8rem] max-md:[--table-lead-min:10rem] max-md:[--table-auto-min:auto] max-md:[clip-path:inset(0_0_0_0.5rem)]"
       style={{ gridTemplateColumns: columns } as CSSProperties}
     >
       {children}
