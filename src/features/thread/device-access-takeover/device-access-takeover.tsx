@@ -1,4 +1,4 @@
-import { Markdown } from "@/components/markdown";
+import { Markdown } from "@/components/markdown/markdown";
 import { LoadingButton } from "@/lib/loading-button";
 import { Kbd } from "@/primitives/kbd";
 import { TakeoverPanel } from "./takeover-panel";
