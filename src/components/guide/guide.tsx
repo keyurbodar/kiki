@@ -10,6 +10,7 @@ import { Checkbox } from "@/primitives/checkbox";
 import { Icon } from "@/primitives/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
+import "./guide.css";
 import {
   chapterDomId,
   chapterNumbering,

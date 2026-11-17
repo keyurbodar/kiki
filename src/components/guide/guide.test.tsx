@@ -63,4 +63,19 @@ describe("GuideBody", () => {
     );
     expect(onChapterReviewed).toHaveBeenCalledWith(3, true);
   });
+
+  it("carries Capy's guide classes so the stylesheet applies", () => {
+    const { container } = render(
+      <GuideBody
+        chapters={chapters}
+        collapsed={new Set()}
+        onCollapseFiles={vi.fn()}
+        onOpenFile={vi.fn()}
+        onChapterReviewed={vi.fn()}
+        renderFile={(file) => <div>diff {file.path}</div>}
+      />,
+    );
+    expect(container.querySelector(".pull-guide")).toBeTruthy();
+    expect(container.querySelector(".pull-guide-chapter")).toBeTruthy();
+  });
 });

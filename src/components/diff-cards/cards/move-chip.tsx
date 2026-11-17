@@ -1,4 +1,5 @@
 import { Icon } from "@/primitives/icon";
+import "./move-chip.css";
 
 export type DiffMoveSide = "origin" | "destination";
 
