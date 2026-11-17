@@ -6,6 +6,7 @@ import {
   type ActorOption,
   type ActorSources,
 } from "@/components/actor-filter";
+import { IssuesBulkBar } from "@/components/issues-bulk-bar";
 import {
   filtersForView,
   type IssueFilterSources,
@@ -17,12 +18,12 @@ import {
 } from "@/components/issues-filters";
 import { IssuesList } from "@/components/issues-list";
 import {
+  CloseGlyph,
   defaultIssueDisplay,
   type IssueDisplay,
   IssuesToolbar,
   PlusGlyph,
   SearchGlyph,
-  CloseGlyph,
 } from "@/components/issues-toolbar";
 import type { OrgId } from "@/data/api/schemas/ids";
 import {
@@ -308,6 +309,12 @@ export function IssuesPage() {
           )}
         </div>
       </div>
+      {checked.size > 0 ? (
+        <IssuesBulkBar
+          checked={checked}
+          onClear={() => setChecked(new Map())}
+        />
+      ) : null}
     </div>
   );
 }

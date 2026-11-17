@@ -451,17 +451,22 @@ function IssueSection({
   onOpenChange: (open: boolean) => void;
   children: ReactNode;
 }) {
-  const Chevron = open ? ChevronDownGlyph : ChevronRightGlyph;
   return (
-    <section className="flex flex-col">
+    <section className="group/collapsible flex flex-col">
       <button
         type="button"
+        data-slot="collapsible-trigger"
         aria-expanded={open}
-        className="flex h-9 w-full cursor-pointer items-center gap-2 rounded bg-section px-2 text-sm font-medium text-foreground outline-none select-none focus-visible:outline-ring-inset"
+        className="flex h-9 w-full cursor-pointer items-center gap-2 rounded-card bg-section px-2 text-sm font-medium text-foreground outline-none select-none transition-colors duration-100 focus-visible:outline-ring-inset"
         onClick={() => onOpenChange(!open)}
       >
-        <span className="flex size-5 shrink-0 items-center justify-center">
-          <Chevron className="size-(--icon-xs) shrink-0 text-muted-foreground-3" />
+        <span className="flex size-4 shrink-0 items-center justify-center">
+          <ChevronDownGlyph
+            className={
+              "size-(--icon-xs) shrink-0 text-muted-foreground-3 transition-transform duration-100 " +
+              (open ? "rotate-0" : "-rotate-90")
+            }
+          />
         </span>
         {group.label}
         {open || !group.closed ? (
@@ -470,7 +475,17 @@ function IssueSection({
           </span>
         ) : null}
       </button>
-      {open ? <div className="-m-0.5 p-0.5">{children}</div> : null}
+      {open ? (
+        <div className="-m-0.5 p-0.5">
+          {group.issues.length === 0 ? (
+            <div className="flex h-11 items-center px-2 pt-0.5 text-sm font-normal text-muted-foreground-2">
+              No issues in {group.label}
+            </div>
+          ) : (
+            children
+          )}
+        </div>
+      ) : null}
     </section>
   );
 }
