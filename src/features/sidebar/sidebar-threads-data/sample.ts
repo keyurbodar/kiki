@@ -18,7 +18,7 @@ const previewCard = (now: Date) => {
     primaryMachine: { kind: "device", name: "workstation" },
     title: "Add dark mode to settings",
     titleCustom: false,
-    status: "waiting",
+    status: "idle",
     archived: false,
     archivedIdleDays: null,
     threadNumber: 40,

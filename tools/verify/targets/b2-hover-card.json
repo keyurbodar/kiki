@@ -9,7 +9,7 @@
   "targets": [
     {
       "id": "sidebar-thread-hover-card",
-      "route": "/threads",
+      "route": "/new",
       "state": "sidebar thread row hover card open",
       "viewport": "1440x818",
       "steps": [
@@ -26,6 +26,32 @@
         ],
         "[data-slot=thread-preview]": ["width"],
         "[data-slot=pull-preview]": ["width"]
+      },
+      "variants": {
+        "default/dark": {
+          "expect": {
+            "[data-slot=preview-card-content]": {
+              "width": "288px",
+              "padding": "12px",
+              "border-radius": "8px",
+              "background-color": "oklch(0.2524 0.0019 286.3)"
+            },
+            "[data-slot=thread-preview]": { "width": "274px" },
+            "[data-slot=pull-preview]": { "width": "270px" }
+          }
+        },
+        "default/light": {
+          "expect": {
+            "[data-slot=preview-card-content]": {
+              "width": "288px",
+              "padding": "12px",
+              "border-radius": "8px",
+              "background-color": "oklch(1 0 0)"
+            },
+            "[data-slot=thread-preview]": { "width": "274px" },
+            "[data-slot=pull-preview]": { "width": "270px" }
+          }
+        }
       }
     }
   ]
