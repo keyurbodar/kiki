@@ -48,29 +48,10 @@
   --shell-top: 2.5rem;
 }
 
-/*
- * Thread takeovers (B8, AMA-57). Additive: values from Capy's stylesheet that
- * the composer takeover cards use and no earlier token covered.
- */
-@theme static {
-  --shadow-composer: var(--sh-composer);
-}
-
+/* Thread takeovers (B8, AMA-57): composer takeover card ring and request viewport. */
 :root,
 [data-theme-preview] {
-  --hairline: 0.5px;
-  --mask-opaque: #000;
   --takeover-ring-radius: calc(var(--radius-card) + 1px);
   --request-viewport-h: min(48dvh, 380px);
   --request-viewport-h-touch: min(40dvh, 260px);
-}
-
-@utility focus-gutter {
-  margin-inline: -0.25rem;
-  padding-inline: 0.25rem;
-}
-
-@utility outline-ring-inset {
-  outline: 1px solid var(--focus-ring, var(--ring));
-  outline-offset: -1px;
 }

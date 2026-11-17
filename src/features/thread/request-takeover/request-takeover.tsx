@@ -75,7 +75,7 @@ export type RequestTakeoverProps = RequestTakeoverViewProps;
 
 export function RequestViewport({ children }: { children?: ReactNode }) {
   return (
-    <div className="flex h-(--request-viewport-h) flex-col overflow-hidden rounded-(--radius-control) border-(length:--hairline) border-border-2 bg-panel max-md:h-(--request-viewport-h-touch)">
+    <div className="flex h-(--request-viewport-h) flex-col overflow-hidden rounded-(--radius-control) border-hairline border-border-2 bg-panel max-md:h-(--request-viewport-h-touch)">
       {children}
     </div>
   );

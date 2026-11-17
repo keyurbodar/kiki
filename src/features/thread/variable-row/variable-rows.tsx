@@ -105,7 +105,7 @@ export function VariableRows({
             data-slot="variable-row"
             className={cx(
               "flex flex-col gap-3",
-              index > 0 && "border-t-(length:--hairline) border-border-1 pt-4",
+              index > 0 && "border-t-hairline border-border-1 pt-4",
             )}
           >
             <div className="flex flex-col gap-1.5">

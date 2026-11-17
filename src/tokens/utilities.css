@@ -7,6 +7,7 @@
   --shadow-plate: var(--sh-plate);
   --shadow-overlay: var(--sh-overlay);
   --shadow-row-open: var(--sh-row-open);
+  --shadow-composer: var(--sh-composer);
 }
 
 :root,
@@ -18,6 +19,11 @@
 @utility outline-ring-inset {
   outline: 1px solid var(--focus-ring, var(--ring));
   outline-offset: -1px;
+}
+
+@utility focus-gutter {
+  margin-inline: -0.25rem;
+  padding-inline: 0.25rem;
 }
 
 @utility scrollbar-hide {

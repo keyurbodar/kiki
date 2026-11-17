@@ -31,7 +31,7 @@ export function TakeoverCard({
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute -inset-px rounded-(--takeover-ring-radius) border-(length:--hairline) border-transparent [background:linear-gradient(180deg,var(--border-2),var(--border-1))] [mask:linear-gradient(var(--mask-opaque),var(--mask-opaque))_padding-box_exclude,linear-gradient(var(--mask-opaque),var(--mask-opaque))_border-box]"
+        className="pointer-events-none absolute -inset-px rounded-(--takeover-ring-radius) border-hairline border-transparent [background:linear-gradient(180deg,var(--border-2),var(--border-1))] [mask:linear-gradient(black,black)_padding-box_exclude,linear-gradient(black,black)_border-box]"
       />
       <div className="relative flex min-h-0 flex-col">
         <div className="flex shrink-0 items-center justify-between gap-2 pb-3">

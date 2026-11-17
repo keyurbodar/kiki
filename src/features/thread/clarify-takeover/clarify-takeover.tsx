@@ -234,7 +234,7 @@ export function ClarifyTakeover({
                   onClick={() => pick(option)}
                   className={cx(
                     "-mx-2 flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-left text-sm font-normal outline-none transition-colors duration-100",
-                    "border-(length:--hairline) border-transparent pointer-coarse:border-border-2",
+                    "border-hairline border-transparent pointer-coarse:border-border-2",
                     "focus-visible:outline-ring-inset",
                     selected
                       ? "bg-secondary text-foreground"
