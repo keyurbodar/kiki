@@ -59,35 +59,37 @@ export function DrivePage() {
   };
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <DriveTopBar
-        title="Capy Drive"
-        search={{
-          value: search,
-          placeholder: "Search Capy Drive",
-          onValueChange: (value) => {
-            setSearch(value);
-            setPage(1);
-          },
-        }}
-        trailing={
-          <>
-            <Button
-              variant="ghost"
-              size="sm"
-              render={<Link to="/drive/shared" />}
-            >
-              <ShareIcon className="size-(--icon-sm)" />
-              Shared
-            </Button>
-            <DriveDisplayMenu ordering={ordering} onOrdering={changeOrdering} />
-          </>
-        }
-      />
       <ScrollArea
         className="min-h-0 flex-1"
         viewportClassName="overscroll-contain"
-        fadeY
       >
+        <DriveTopBar
+          title="Capy Drive"
+          search={{
+            value: search,
+            placeholder: "Search Capy Drive",
+            onValueChange: (value) => {
+              setSearch(value);
+              setPage(1);
+            },
+          }}
+          trailing={
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                render={<Link to="/drive/shared" />}
+              >
+                <ShareIcon className="size-(--icon-sm)" />
+                Shared
+              </Button>
+              <DriveDisplayMenu
+                ordering={ordering}
+                onOrdering={changeOrdering}
+              />
+            </>
+          }
+        />
         {session.orgId !== undefined && (
           <DriveDirectory
             orgId={session.orgId}
