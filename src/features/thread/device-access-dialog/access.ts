@@ -99,12 +99,25 @@ const toDate = (value: unknown): Date | null => {
 };
 
 const toStatus = (value: unknown): AccessStatus | null =>
-  value === "requested" ||
-  value === "granted" ||
-  value === "denied" ||
-  value === "revoked"
-    ? value
-    : null;
+  value === "pending"
+    ? "requested"
+    : value === "requested" ||
+        value === "granted" ||
+        value === "denied" ||
+        value === "revoked"
+      ? value
+      : null;
+
+const timestamp = (
+  row: Record<string, unknown>,
+  keys: ReadonlyArray<string>,
+) => {
+  for (const key of keys) {
+    const date = toDate(row[key]);
+    if (date !== null) return date;
+  }
+  return null;
+};
 
 export type RawDeviceAccess = {
   id: string;
@@ -119,7 +132,11 @@ export type RawDeviceAccess = {
 export function parseDeviceAccess(value: unknown): RawDeviceAccess[] {
   return listOf(value).flatMap((row) => {
     const status = toStatus(row.status);
-    const requestedAt = toDate(row.requestedAt);
+    const requestedAt = timestamp(row, [
+      "requestedAt",
+      "createdAt",
+      "updatedAt",
+    ]);
     if (typeof row.id !== "string" || status === null || requestedAt === null) {
       return [];
     }
@@ -128,10 +145,10 @@ export function parseDeviceAccess(value: unknown): RawDeviceAccess[] {
       {
         id: row.id,
         threadId: String(row.threadId ?? row.jamId ?? ""),
-        userId: String(row.userId ?? ""),
+        userId: String(row.userId ?? row.requesterId ?? ""),
         status,
         requestedAt,
-        resolvedAt: toDate(row.resolvedAt),
+        resolvedAt: timestamp(row, ["resolvedAt", "decidedAt"]),
         held:
           held === null
             ? null
@@ -197,7 +214,7 @@ export function parseAgentAccess(value: unknown): RawAgentAccess[] {
         toolInput: row.toolInput,
         status,
         requestedAt,
-        resolvedAt: toDate(row.resolvedAt),
+        resolvedAt: timestamp(row, ["resolvedAt", "updatedAt", "decidedAt"]),
       },
     ];
   });

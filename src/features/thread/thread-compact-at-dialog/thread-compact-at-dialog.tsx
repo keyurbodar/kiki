@@ -1,6 +1,7 @@
-import { useAtomSet } from "@effect/atom-react";
+import { useAtomRefresh, useAtomSet } from "@effect/atom-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
+import { contextUsageAtom, jamEventKey } from "@/data/atoms/events";
 import {
   setThreadCompactAtAtom,
   threadDeviceKeys,
@@ -47,6 +48,7 @@ export function ThreadCompactAtDialog({
   viewerOwnsThread = false,
   onClose,
 }: ThreadCompactAtDialogProps) {
+  const refreshContext = useAtomRefresh(contextUsageAtom(orgId ?? "", jamId));
   const setThreadCompactAt = useAtomSet(setThreadCompactAtAtom, {
     mode: "promise",
   });
@@ -58,7 +60,7 @@ export function ThreadCompactAtDialog({
   const inputId = useId();
   const defaultTokens = Math.round(defaultCompactAt);
   const maxTokens = Math.round(windowTokens);
-  const reactivityKeys = [threadDeviceKeys.jam(jamId)];
+  const reactivityKeys = [jamEventKey(jamId), threadDeviceKeys.jam(jamId)];
 
   const commit = (tokens: number | null) => {
     if (orgId === undefined) return;
@@ -70,6 +72,7 @@ export function ThreadCompactAtDialog({
     })
       .then(() => {
         toast.success("Thread settings saved");
+        refreshContext();
         onClose();
       })
       .catch(() => toast.error("Could not update compact at"))
@@ -99,6 +102,7 @@ export function ThreadCompactAtDialog({
       .then(
         () => {
           toast.success("Your default saved");
+          refreshContext();
           onClose();
           if (threadCompactAt !== undefined && viewerOwnsThread) {
             setThreadCompactAt({
