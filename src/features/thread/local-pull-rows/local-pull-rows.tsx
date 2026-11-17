@@ -399,3 +399,19 @@ export function LocalPullRowView({
     </div>
   );
 }
+
+export type LocalPullRowProps = {
+  pull: LocalPull;
+  onRemove: () => void;
+};
+
+export function LocalPullRow({ pull, onRemove }: LocalPullRowProps) {
+  return (
+    <LocalPullRowView
+      pull={pull}
+      state={{ kind: "loading" }}
+      recorder={null}
+      onRemove={onRemove}
+    />
+  );
+}

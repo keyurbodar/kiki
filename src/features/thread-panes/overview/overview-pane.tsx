@@ -17,7 +17,6 @@ import {
   overviewRemoveLocalPullAtom,
 } from "@/data/atoms/overview";
 import { useIssueOrgId } from "@/features/issues/issue-parts";
-import { localPullRowState as stateOf } from "@/features/thread/local-pull-rows";
 import type { PaneProps } from "@/features/thread-panes/thread-pane/registry";
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
 import { ConsoleGlyph, FilesGlyph, StudioDisplayGlyph } from "./glyphs";
@@ -35,7 +34,7 @@ import {
 } from "./model";
 import { parseLocalPull, parsePull, parseTask, valueList } from "./parse";
 import {
-  LocalPullRowView,
+  LocalPullRow,
   type OpenPull,
   PortRow,
   PullRow,
@@ -189,17 +188,9 @@ export function OverviewBody({
                   />
                 )),
                 ...localPulls.map((pull) => (
-                  <LocalPullRowView
+                  <LocalPullRow
                     key={pull.id}
                     pull={pull}
-                    state={stateOf({
-                      reachable: true,
-                      answer: undefined,
-                      refreshing: false,
-                      onRefresh: () => undefined,
-                      githubLinked: true,
-                    })}
-                    recorder={null}
                     onRemove={() => onRemoveLocalPull(pull.id)}
                   />
                 )),
