@@ -1,0 +1,74 @@
+{
+  "matrix": {
+    "theme": ["default"],
+    "scheme": ["dark", "light"]
+  },
+  "targets": [
+    {
+      "id": "p21-primitives",
+      "route": "/__p21",
+      "state": "Table, Breadcrumb and BulkBar specimens",
+      "viewport": "1440x900",
+      "capture": {
+        "#table-directory": [],
+        "[data-slot=bulk-bar] > div": []
+      },
+      "expect": {
+        "#table-directory": {
+          "display": "grid",
+          "padding-left": "16px"
+        },
+        "#table-directory [role=row]": {
+          "height": "32px"
+        },
+        "#table-directory [role=columnheader]": {
+          "font-size": "12px",
+          "font-weight": "var(--font-weight-normal)",
+          "padding-right": "16px",
+          "color": "var(--muted-foreground-1)"
+        },
+        "#table-directory [role=cell]": {
+          "min-height": "50px",
+          "font-size": "12px",
+          "color": "var(--foreground)"
+        },
+        "#table-card [role=cell]": {
+          "min-height": "44px"
+        },
+        "#table-card > button": {
+          "height": "32px",
+          "font-size": "12px",
+          "font-weight": "500",
+          "color": "var(--muted-foreground-1)"
+        },
+        "#table-compact": {
+          "padding-left": "0px"
+        },
+        "#table-compact [role=cell]": {
+          "min-height": "32px"
+        },
+        "#breadcrumb a": {
+          "height": "var(--h-control-sm)",
+          "font-size": "var(--text-sm)",
+          "font-weight": "500",
+          "padding-left": "8px",
+          "margin-left": "-8px",
+          "color": "var(--muted-foreground-1)"
+        },
+        "[data-slot=bulk-bar]": {
+          "bottom": "24px"
+        },
+        "[data-slot=bulk-bar] > div": {
+          "background-color": "var(--popover)",
+          "border-radius": "var(--radius-card)",
+          "padding-top": "4px"
+        },
+        "[data-slot=bulk-bar] > div > span": {
+          "font-size": "var(--text-sm)",
+          "font-weight": "500",
+          "color": "var(--foreground)"
+        }
+      }
+    }
+  ]
+}

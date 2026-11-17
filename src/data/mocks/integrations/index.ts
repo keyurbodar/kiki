@@ -6,7 +6,7 @@ import {
   type OAuthCompletionResult,
   PaperOAuthCompletion,
   SlackOAuthCompletion,
-} from "../../api/schemas/integration.ts";
+} from "../../api/schemas/integrationOAuth.ts";
 import { fields, newId } from "../db/MockDb.ts";
 import { isoMinutesAgo, world } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
@@ -17,7 +17,6 @@ import {
   sampleGitHubInstallationRepos,
   sampleGitHubReachableInstallations,
   sampleGitHubUser,
-  sampleGitHubWorkspace,
   sampleLinearConnection,
   sampleLinearLabels,
   sampleLinearLinkPreview,
@@ -37,6 +36,15 @@ import {
   sampleTailscaleConnection,
   sampleThreadSlackUserReadAccess,
 } from "./fixtures.ts";
+import {
+  toGitHubInstallation,
+  toGitHubUser,
+  toGitHubWorkspace,
+  toLinear,
+  toPaper,
+  toSlack,
+  toTailscale,
+} from "./typed.ts";
 
 interface Connection {
   readonly connected: boolean;
@@ -79,21 +87,21 @@ export const IntegrationsMock = mockGroup("integrations", (handlers) =>
       withConnection(sampleGitHubInstallation),
     );
     const linear = yield* Ref.make<Connection>(
-      withConnection(sampleLinearConnection),
+      withConnection(sampleLinearConnection, false),
     );
     const linearLinks = yield* Ref.make<LinearLink[]>([...sampleLinearLinks]);
     const paper = yield* Ref.make<Connection>(
-      withConnection(samplePaperConnection),
+      withConnection(samplePaperConnection, false),
     );
     const slack = yield* Ref.make<Connection>(
-      withConnection(sampleSlackConnection),
+      withConnection(sampleSlackConnection, false),
     );
     const slackLinks = yield* Ref.make<SlackLink[]>([...sampleSlackLinks]);
     const slackUserRead = yield* Ref.make<Connection>(
       withConnection(sampleSlackUserRead),
     );
     const tailscale = yield* Ref.make<Connection>(
-      withConnection(sampleTailscaleConnection),
+      withConnection(sampleTailscaleConnection, false),
     );
 
     const updateAccess = (
@@ -143,7 +151,9 @@ export const IntegrationsMock = mockGroup("integrations", (handlers) =>
               });
             }),
       )
-      .handle("getGitHubUser", () => Ref.get(githubUser))
+      .handle("getGitHubUser", () =>
+        Effect.map(Ref.get(githubUser), toGitHubUser),
+      )
       .handle("disconnectGitHubUser", () =>
         Effect.map(
           Ref.updateAndGet(githubUser, (current) =>
@@ -175,7 +185,7 @@ export const IntegrationsMock = mockGroup("integrations", (handlers) =>
       .handle("completeLinearOAuth", ({ payload }) =>
         completeOAuth(linear, payload.error, LinearOAuthCompletion),
       )
-      .handle("getPaper", () => Ref.get(paper))
+      .handle("getPaper", () => Effect.map(Ref.get(paper), toPaper))
       .handle("disconnectPaper", () =>
         Effect.map(
           Ref.updateAndGet(paper, (current) => withConnection(current, false)),
@@ -209,7 +219,9 @@ export const IntegrationsMock = mockGroup("integrations", (handlers) =>
       .handle("disconnectGitHubDependencyReader", () =>
         Effect.succeed({ ok: true, connected: false }),
       )
-      .handle("getGitHubInstallation", () => Ref.get(githubInstallation))
+      .handle("getGitHubInstallation", () =>
+        Effect.map(Ref.get(githubInstallation), toGitHubInstallation),
+      )
       .handle("disconnectGitHubInstallation", () =>
         Effect.map(
           Ref.updateAndGet(githubInstallation, (current) =>
@@ -263,8 +275,10 @@ export const IntegrationsMock = mockGroup("integrations", (handlers) =>
           ),
         ),
       )
-      .handle("getGitHubWorkspace", () => Effect.succeed(sampleGitHubWorkspace))
-      .handle("getLinear", () => Ref.get(linear))
+      .handle("getGitHubWorkspace", () =>
+        Effect.map(Ref.get(githubInstallation), toGitHubWorkspace),
+      )
+      .handle("getLinear", () => Effect.map(Ref.get(linear), toLinear))
       .handle("updateLinear", ({ payload }) => {
         const input = fields(payload);
         return Effect.gen(function* () {
@@ -318,7 +332,7 @@ export const IntegrationsMock = mockGroup("integrations", (handlers) =>
       .handle("startPaperOAuth", () =>
         Effect.succeed(sampleOAuthStart("paper", "state_sample_paper")),
       )
-      .handle("getSlack", () => Ref.get(slack))
+      .handle("getSlack", () => Effect.map(Ref.get(slack), toSlack))
       .handle("updateSlack", ({ payload }) => {
         const input = fields(payload);
         return Effect.gen(function* () {
@@ -425,7 +439,7 @@ export const IntegrationsMock = mockGroup("integrations", (handlers) =>
         ),
       )
       .handle("listSlackUsers", () => Effect.succeed(sampleSlackUsers))
-      .handle("getTailscale", () => Ref.get(tailscale))
+      .handle("getTailscale", () => Effect.map(Ref.get(tailscale), toTailscale))
       .handle("connectTailscale", ({ payload }) => {
         const input = fields(payload);
         return Effect.gen(function* () {

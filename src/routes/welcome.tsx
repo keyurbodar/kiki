@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { WelcomePage } from "@/features/auth/welcome";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/welcome")({
@@ -8,5 +8,6 @@ export const Route = createFileRoute("/welcome")({
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="Welcome" path="/welcome" />;
+  const { redirect_url } = Route.useSearch();
+  return <WelcomePage redirectUrl={redirect_url} />;
 }

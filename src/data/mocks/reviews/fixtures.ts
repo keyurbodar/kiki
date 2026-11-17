@@ -1,25 +1,38 @@
-import { isoMinutesAgo, people, repos } from "../fixtures/world.ts";
+import {
+  isoMinutesAgo,
+  orgId,
+  people,
+  projects,
+  repos,
+} from "../fixtures/world.ts";
 
 export const sampleSelfPolicy = {
   selfLogin: people.alex.githubLogin,
-  selfReviewed: false,
+  selfReviewed: true,
 };
 
-const reviewSetting = (repo: string, autoReview: boolean, offset: number) => ({
+export type AutoReviewMode = "off" | "once" | "always";
+
+const reviewSetting = (
+  repo: string,
+  autoReview: AutoReviewMode,
+  projectId: string | null,
+  offset: number,
+) => ({
   repo,
-  billingOrgId: null as string | null,
-  heldByCaller: false,
+  billingOrgId: autoReview === "off" ? null : (orgId as string | null),
+  heldByCaller: autoReview !== "off",
   autoReview,
   postingThreshold: "always",
   postInvestigate: true,
   postNotes: true,
-  postStatusCheck: true,
-  projectId: null as string | null,
+  postStatusCheck: false,
+  projectId,
   memorySelection: { kind: "none" },
   updatedAt: isoMinutesAgo(offset),
 });
 
 export const sampleReviewSettings = [
-  reviewSetting(repos[0]!.fullName, true, 18),
-  reviewSetting(repos[1]!.fullName, false, 42),
+  reviewSetting(repos[0]!.fullName, "always", projects.web.id, 18),
+  reviewSetting(repos[1]!.fullName, "off", null, 42),
 ];
