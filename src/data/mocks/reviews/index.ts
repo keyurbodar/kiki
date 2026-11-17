@@ -1,13 +1,22 @@
 import { Effect, Ref } from "effect";
 import { fields } from "../db/MockDb.ts";
+import { orgId } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
-import { sampleReviewSettings, sampleSelfPolicy } from "./fixtures.ts";
+import {
+  type AutoReviewMode,
+  sampleReviewSettings,
+  sampleSelfPolicy,
+} from "./fixtures.ts";
 
 const text = (value: unknown) =>
   typeof value === "string" && value.length > 0 ? value : undefined;
 
 const flag = (value: unknown, fallback: boolean) =>
   typeof value === "boolean" ? value : fallback;
+
+const modes: ReadonlyArray<AutoReviewMode> = ["off", "once", "always"];
+const mode = (value: unknown, fallback: AutoReviewMode) =>
+  modes.find((candidate) => candidate === value) ?? fallback;
 
 export const ReviewsMock = mockGroup("reviews", (handlers) =>
   Effect.gen(function* () {
@@ -31,9 +40,13 @@ export const ReviewsMock = mockGroup("reviews", (handlers) =>
           yield* Ref.update(settings, (rows) =>
             rows.map((row) => {
               if (row.repo !== repo) return row;
+              const autoReview = mode(input.autoReview, row.autoReview);
+              const claims = autoReview !== "off" && row.billingOrgId === null;
               updated = {
                 ...row,
-                autoReview: flag(input.autoReview, row.autoReview),
+                autoReview,
+                billingOrgId: claims ? orgId : row.billingOrgId,
+                heldByCaller: claims || row.heldByCaller,
                 postInvestigate: flag(
                   input.postInvestigate,
                   row.postInvestigate,
