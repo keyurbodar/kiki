@@ -1,6 +1,7 @@
 import { cx } from "class-variance-authority";
 import type { ReactNode } from "react";
 import { AppTopBar } from "@/components/app-top-bar";
+import { ChatIdentity } from "@/features/captains/chat-identity";
 import {
   type PaneTab,
   type TabMenuOptions,
@@ -18,6 +19,8 @@ export const threadHeaderClassName = cx(
   "sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center bg-panel px-2",
   "border-b-hairline border-border-1",
 );
+
+/** The bar's controls are 28×28 (Capy's `Open a tab`, `Thread options`, `Expand pane`). */
 
 export type ThreadHeaderProps = {
   threadId: string;
@@ -123,6 +126,7 @@ export function ThreadHeader({
           title,
           content: (
             <span className="flex min-w-0 items-center gap-1.5">
+              <ChatIdentity name={title} size="xs" />
               <span className="min-w-0 truncate">{title}</span>
             </span>
           ),

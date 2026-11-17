@@ -7,12 +7,19 @@ import {
   Outlet,
   RouterProvider,
 } from "@tanstack/react-router";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ThreadCostBadgeControl,
   type ThreadUsage,
 } from "@/features/thread/cost-badge";
+import { isRetiredPane } from "@/features/thread-panes/thread-pane";
 import { searchParams } from "@/lib/search-params";
 import { ThreadScreen } from "@/routes/_app/thread/$threadId";
 import { ThreadHeader } from "./thread-header";
@@ -80,6 +87,22 @@ describe("ThreadHeader", () => {
     expect(container.querySelector("header")?.className).toContain("min-h-11");
   });
 
+  it("puts the thread's avatar before its name in the chat tab", () => {
+    const { container } = renderHeader({});
+    const chat = container.querySelector('[data-pane-tab="chat"]');
+    expect(chat?.querySelector('[data-slot="chat-identity"]')).not.toBeNull();
+    expect(chat?.textContent).toContain("Fix flaky checkout test");
+  });
+
+  it("sizes the thread actions like Capy's 28×28 header controls", () => {
+    renderHeader({});
+    for (const name of ["Open a tab", "Thread options", "Expand pane"]) {
+      expect(screen.getByRole("button", { name }).className).toContain(
+        "size-(--h-control-sm)",
+      );
+    }
+  });
+
   it("lists the registered pane tabs with a close button each", () => {
     renderHeader({});
     expect(tabButton("Files")).toBeTruthy();
@@ -127,6 +150,13 @@ describe("ThreadHeader", () => {
   });
 });
 
+const paneTab = (id: string) =>
+  document.querySelector(`[data-pane-tab="${id}"]`) ?? undefined;
+
+/** The strip mounts once the thread atoms resolve. */
+const waitForStrip = () =>
+  waitFor(() => expect(paneTab("chat")).toBeDefined(), { timeout: 3000 });
+
 describe("thread route header", () => {
   async function renderRoute(path: string) {
     const rootRoute = createRootRoute({ component: () => <Outlet /> });
@@ -165,11 +195,60 @@ describe("thread route header", () => {
     expect(screen.getByRole("button", { name: "Open a tab" })).toBeTruthy();
   });
 
-  it("sets the pane search param when a tab is clicked", async () => {
+  it("opens a pane from the tab strip and keeps the URL in step", async () => {
     const router = await renderRoute("/thread/jam_sample_0001");
     fireEvent.click(await screen.findByText("Files"));
+    await waitFor(() => {
+      expect(
+        document
+          .querySelector('[data-pane-tab="files"]')
+          ?.querySelector("[data-selected]"),
+      ).not.toBeNull();
+    });
     expect(router.state.location.search).toEqual({ pane: "files" });
     fireEvent.click(screen.getByText("Fix flaky checkout test"));
+    await waitFor(() => {
+      expect(
+        document
+          .querySelector('[data-pane-tab="chat"]')
+          ?.querySelector("[data-selected]"),
+      ).not.toBeNull();
+    });
     expect(router.state.location.search).toEqual({});
+  });
+
+  it("opens the pane the URL names when Capy honours that param", async () => {
+    await renderRoute("/thread/jam_sample_0001?pane=overview");
+    await waitForStrip();
+    expect(
+      paneTab("overview")?.querySelector("[data-selected]"),
+    ).not.toBeNull();
+  });
+
+  it("renders one header bar, not a bar inside a bar", async () => {
+    await renderRoute("/thread/jam_sample_0001");
+    await waitForStrip();
+    expect(document.querySelectorAll("header").length).toBe(1);
+  });
+
+  it("drops the pane params we invented, but not the ones Capy accepts", async () => {
+    const retired = await renderRoute("/thread/jam_sample_0001?pane=threads");
+    await waitForStrip();
+    expect(paneTab("chat")?.querySelector("[data-selected]")).not.toBeNull();
+    expect(retired.state.location.search).toEqual({});
+    cleanup();
+    await renderRoute("/thread/jam_sample_0001?pane=files");
+    await waitForStrip();
+    expect(paneTab("files")?.querySelector("[data-selected]")).not.toBeNull();
+  });
+
+  it("retires exactly the pane ids Capy has no pane for", () => {
+    for (const id of ["threads", "all-threads", "pull-requests"]) {
+      expect(isRetiredPane(id)).toBe(true);
+    }
+    for (const id of ["overview", "diffs", "files", "captain_issues"]) {
+      expect(isRetiredPane(id)).toBe(false);
+    }
+    expect(isRetiredPane(undefined)).toBe(false);
   });
 });
