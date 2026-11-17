@@ -7,20 +7,26 @@ import type {
 
 export const memoryReactivityKey = (orgId: string) => `volume:${orgId}`;
 
-export const memoryListQuery = (location: MemoryLocation, query: string) => ({
-  scope: location.where === "everywhere" ? "user" : undefined,
-  tab:
-    location.who === "you"
-      ? "personal"
+export const memoryListQuery = (
+  location: MemoryLocation,
+  query: string,
+  cursor?: string,
+): Record<string, string> => {
+  const search = query.trim();
+  return {
+    ...(location.where === "everywhere" ? { scope: "user" } : {}),
+    ...(location.who === "you"
+      ? { tab: "personal" }
       : location.who === "everyone"
-        ? "shared"
-        : undefined,
-  projectId:
-    location.where !== undefined && location.where !== "everywhere"
-      ? location.where
-      : undefined,
-  q: query.trim() || undefined,
-});
+        ? { tab: "shared" }
+        : {}),
+    ...(location.where !== undefined && location.where !== "everywhere"
+      ? { projectId: location.where }
+      : {}),
+    ...(search === "" ? {} : { search }),
+    ...(cursor === undefined ? {} : { cursor }),
+  };
+};
 
 export const scopeLabel = (scope: MemoryTopic["scope"] | undefined) => {
   switch (scope) {

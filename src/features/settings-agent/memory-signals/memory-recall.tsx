@@ -57,7 +57,10 @@ export function MemoryRecall({
             render={
               <Link
                 to="/memory"
-                search={{ volume: memory.volume ?? "", file: memory.file ?? "" }}
+                search={{
+                  volume: memory.volume ?? "",
+                  file: memory.file ?? "",
+                }}
                 aria-label={`Open current memory: ${memory.title ?? "Memory topic"}`}
               />
             }

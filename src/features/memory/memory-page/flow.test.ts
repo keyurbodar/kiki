@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { MemoryTopic } from "./types.ts";
 import {
   emptyStateCopy,
   forgetDescription,
@@ -12,6 +11,7 @@ import {
   whereLabel,
   whoLabel,
 } from "./flow.ts";
+import type { MemoryTopic } from "./types.ts";
 
 const topic = (overrides: Partial<MemoryTopic> = {}): MemoryTopic => ({
   volumeId: "v1",
@@ -34,12 +34,21 @@ describe("memory list query", () => {
   it("maps the who and where search params to endpoint filters", () => {
     expect(
       memoryListQuery({ who: "you", where: "everywhere" }, "  note  "),
-    ).toEqual({ scope: "user", tab: "personal", projectId: undefined, q: "note" });
+    ).toEqual({
+      scope: "user",
+      tab: "personal",
+      search: "note",
+    });
     expect(memoryListQuery({ who: "everyone", where: "pr1" }, "")).toEqual({
-      scope: undefined,
       tab: "shared",
       projectId: "pr1",
-      q: undefined,
+    });
+    expect(
+      memoryListQuery({ who: "everyone", where: "pr1" }, "", "cursor_2"),
+    ).toEqual({
+      tab: "shared",
+      projectId: "pr1",
+      cursor: "cursor_2",
     });
   });
 });
@@ -70,15 +79,15 @@ describe("memory labels and sorting", () => {
 
 describe("memory empty and error copy", () => {
   it("uses exact empty state copy for each cause", () => {
-    expect(emptyStateCopy("note", { nextCursor: null, skipped: 0 }, true).title).toBe(
-      "No memories match “note”",
-    );
+    expect(
+      emptyStateCopy("note", { nextCursor: null, skipped: 0 }, true).title,
+    ).toBe("No memories match “note”");
     expect(
       emptyStateCopy("", { nextCursor: "next", skipped: 0 }, false).title,
     ).toBe("No readable memories on this page");
-    expect(emptyStateCopy("", { nextCursor: null, skipped: 0 }, false).title).toBe(
-      "No memories match these filters",
-    );
+    expect(
+      emptyStateCopy("", { nextCursor: null, skipped: 0 }, false).title,
+    ).toBe("No memories match these filters");
   });
 
   it("keeps the draft on a head conflict and uses the fallback otherwise", () => {
@@ -105,9 +114,9 @@ describe("memory detail copy", () => {
     expect(forgetTitle(topic({ scope: "project" }))).toBe(
       "Forget this shared memory?",
     );
-    expect(
-      forgetDescription(topic({ scope: "project" }), "Sample"),
-    ).toBe("Removes it from Sample shared memory for everyone");
+    expect(forgetDescription(topic({ scope: "project" }), "Sample")).toBe(
+      "Removes it from Sample shared memory for everyone",
+    );
     expect(forgetDescription(topic(), "Sample")).toBe(
       "Removes it from your saved memories",
     );

@@ -1,0 +1,19 @@
+{
+  "defaults": { "maxMismatch": 100 },
+  "targets": [
+    {
+      "id": "memory-route",
+      "route": "/memory",
+      "state": "memory experiment paused",
+      "viewport": "1600x1000",
+      "variants": { "default/dark": { "frame": "iP9D2ei47_" } }
+    },
+    {
+      "id": "threads-reference",
+      "route": "/threads",
+      "state": "the page the memory route falls back to",
+      "viewport": "1600x1000",
+      "variants": { "default/dark": { "frame": "iP9D2ei47_" } }
+    }
+  ]
+}

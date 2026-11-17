@@ -9,16 +9,18 @@ import { Icon } from "@/primitives/icon";
 import { Input, InputGroup } from "@/primitives/input";
 import { Label } from "@/primitives/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
-import { ResponsiveMenu, ResponsiveMenuItem } from "@/primitives/responsive-menu";
 import { Textarea } from "@/primitives/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   editMemoryAtom,
   forgetMemoryAtom,
   memoryListAtom,
+  memoryListKey,
   memoryReadAtom,
+  memoryReadKey,
   restoreMemoryAtom,
 } from "./atoms.ts";
+import { memoryPageRow, memoryTopic } from "./decode.ts";
 import {
   emptyStateCopy,
   forgetDescription,
@@ -166,21 +168,25 @@ function ResponsiveButton({
   );
 }
 
-function MemoryDetail({
-  topic,
-  where,
-}: {
-  topic: MemoryTopic;
-  where: string;
-}) {
+function MemoryDetail({ topic, where }: { topic: MemoryTopic; where: string }) {
   const repositories =
     topic.repositories.length > 0 && !topic.repositories.includes("all")
       ? topic.repositories.join(", ")
       : undefined;
   const rows = [
-    ["Visible to", <Icon key="who" name="brain" size="sm" />, scopeLabel(topic.scope), false],
+    [
+      "Visible to",
+      <Icon key="who" name="brain" size="sm" />,
+      scopeLabel(topic.scope),
+      false,
+    ],
     ["Where", <Icon key="where" name="folder-1" size="sm" />, where, true],
-    ["Confirmed", <Icon key="confirmed" name="calendar-days" size="sm" />, topic.lastConfirmed ?? "Not recorded", false],
+    [
+      "Confirmed",
+      <Icon key="confirmed" name="calendar-days" size="sm" />,
+      topic.lastConfirmed ?? "Not recorded",
+      false,
+    ],
   ] as const;
   return (
     <div className="flex flex-col gap-8">
@@ -221,11 +227,15 @@ function MemoryDetail({
             <span className="flex h-6 w-24 shrink-0 items-center gap-2 text-xs text-muted-foreground-2 [&_svg]:size-(--icon-xs) [&_svg]:text-icon-muted">
               <Icon name="chain-link-2" size="sm" /> Source
             </span>
-            <span className="truncate text-xs">{plainSource(topic.source)}</span>
+            <span className="truncate text-xs">
+              {plainSource(topic.source)}
+            </span>
           </div>
         )}
       </div>
-      <p className="whitespace-pre-wrap text-sm text-foreground">{topic.body}</p>
+      <p className="whitespace-pre-wrap text-sm text-foreground">
+        {topic.body}
+      </p>
     </div>
   );
 }
@@ -296,12 +306,19 @@ function MemoryEditForm({
         />
       </div>
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="ghost" disabled={busy} onClick={onCancel}>
+        <Button
+          type="button"
+          variant="ghost"
+          disabled={busy}
+          onClick={onCancel}
+        >
           Cancel
         </Button>
         <Button
           type="submit"
-          disabled={!changed || !draft.title.trim() || !draft.description.trim()}
+          disabled={
+            !changed || !draft.title.trim() || !draft.description.trim()
+          }
         >
           Save
         </Button>
@@ -411,15 +428,17 @@ export function MemoryPage({ search }: { search: MemoryLocation }) {
     return () => clearTimeout(timer);
   }, [query]);
 
-  const listAtom = memoryListAtom(orgId ?? "", search, debouncedQuery);
+  const listAtom = memoryListAtom(
+    memoryListKey(orgId ?? "", search, debouncedQuery, cursors.at(-1)),
+  );
   const listResult = useAtomValue(listAtom);
-  const list = AsyncResult.isSuccess(listResult) ? listResult.value : undefined;
+  const list = AsyncResult.isSuccess(listResult)
+    ? memoryPageRow(listResult.value)
+    : undefined;
   const listError = AsyncResult.isFailure(listResult);
   const refreshList = useAtomRefresh(listAtom);
   const readAtom = memoryReadAtom(
-    orgId ?? "",
-    selected?.volumeId ?? "",
-    selected?.path ?? "",
+    memoryReadKey(orgId ?? "", selected?.volumeId ?? "", selected?.path ?? ""),
   );
   const readResult = useAtomValue(readAtom);
   const refreshRead = useAtomRefresh(readAtom);
@@ -429,7 +448,7 @@ export function MemoryPage({ search }: { search: MemoryLocation }) {
 
   const detail =
     AsyncResult.isSuccess(readResult) && search.volume === undefined
-      ? (readResult.value as MemoryTopic)
+      ? memoryTopic(readResult.value)
       : selected;
   const readError = AsyncResult.isFailure(readResult);
   const detailLoading = AsyncResult.isWaiting(readResult);
@@ -614,9 +633,7 @@ export function MemoryPage({ search }: { search: MemoryLocation }) {
       {detail?.canWrite === true && (
         <ResponsiveButton
           label="Memory actions"
-          items={[
-            { label: "Forget…", onClick: () => setForgetting(detail) },
-          ]}
+          items={[{ label: "Forget…", onClick: () => setForgetting(detail) }]}
         >
           <Icon name="x" size="sm" />
         </ResponsiveButton>
@@ -648,8 +665,16 @@ export function MemoryPage({ search }: { search: MemoryLocation }) {
   }));
 
   const visibleToItems = [
-    { label: "All", checked: search.who === undefined, onClick: () => navigateSafely({ where: search.where }) },
-    { label: "Only you", checked: search.who === "you", onClick: () => navigateSafely({ who: "you", where: search.where }) },
+    {
+      label: "All",
+      checked: search.who === undefined,
+      onClick: () => navigateSafely({ where: search.where }),
+    },
+    {
+      label: "Only you",
+      checked: search.who === "you",
+      onClick: () => navigateSafely({ who: "you", where: search.where }),
+    },
     {
       label: "Everyone",
       checked: search.who === "everyone",
@@ -662,7 +687,11 @@ export function MemoryPage({ search }: { search: MemoryLocation }) {
   ];
 
   const whereItems = [
-    { label: "All", checked: search.where === undefined, onClick: () => navigateSafely({ who: search.who }) },
+    {
+      label: "All",
+      checked: search.where === undefined,
+      onClick: () => navigateSafely({ who: search.who }),
+    },
     {
       label: "Everywhere",
       checked: search.where === "everywhere",
@@ -685,7 +714,9 @@ export function MemoryPage({ search }: { search: MemoryLocation }) {
               variant="ghost"
               size="icon-sm"
               aria-label="Back to memories"
-              onClick={() => navigateSafely({ who: search.who, where: search.where })}
+              onClick={() =>
+                navigateSafely({ who: search.who, where: search.where })
+              }
             >
               <Icon name="arrow-share-left" size="sm" />
             </Button>
@@ -710,10 +741,18 @@ export function MemoryPage({ search }: { search: MemoryLocation }) {
               <ResponsiveButton label="Display options" items={displayItems}>
                 <Icon name="settings-slider-hor" size="sm" />
               </ResponsiveButton>
-              <ResponsiveButton label="Visible to" value={whoLabel(search.who)} items={visibleToItems}>
+              <ResponsiveButton
+                label="Visible to"
+                value={whoLabel(search.who)}
+                items={visibleToItems}
+              >
                 <Icon name="user-settings" size="sm" />
               </ResponsiveButton>
-              <ResponsiveButton label="Where" value={whereLabel(search.where, projects)} items={whereItems}>
+              <ResponsiveButton
+                label="Where"
+                value={whereLabel(search.where, projects)}
+                items={whereItems}
+              >
                 <InputGroup>
                   <Input
                     aria-label="Search projects"
@@ -772,7 +811,10 @@ export function MemoryPage({ search }: { search: MemoryLocation }) {
               ) : list === undefined ? (
                 <div className="flex flex-col divide-y-[0.5px] divide-border-1 border-t-[0.5px] border-border-1">
                   {skeletonRows.map((width) => (
-                    <div key={width} className="flex flex-col gap-2 px-6 py-3.5">
+                    <div
+                      key={width}
+                      className="flex flex-col gap-2 px-6 py-3.5"
+                    >
                       <span className={`h-3 rounded bg-secondary ${width}`} />
                       <span className="h-3 w-64 rounded bg-secondary" />
                     </div>
@@ -782,7 +824,9 @@ export function MemoryPage({ search }: { search: MemoryLocation }) {
                 <ListEmptyState
                   query={debouncedQuery.trim()}
                   page={list}
-                  filtered={search.who !== undefined || search.where !== undefined}
+                  filtered={
+                    search.who !== undefined || search.where !== undefined
+                  }
                   onClearSearch={() => setQuery("")}
                   onClearFilters={() => navigateSafely({})}
                 />
@@ -826,6 +870,7 @@ export function MemoryPage({ search }: { search: MemoryLocation }) {
                       ))}
                     </div>
                     {ordered.map((topic) => (
+                      // biome-ignore lint/a11y/useSemanticElements: Capy's memory rows are buttons inside the table's subgrid
                       <button
                         key={`${topic.volumeId}:${topic.path}`}
                         type="button"
@@ -871,7 +916,9 @@ export function MemoryPage({ search }: { search: MemoryLocation }) {
               )}
             </div>
             {list !== undefined &&
-              (list.skipped > 0 || list.nextCursor !== null || cursors.length > 1) && (
+              (list.skipped > 0 ||
+                list.nextCursor !== null ||
+                cursors.length > 1) && (
                 <p className="px-6 pt-2 text-xs text-muted-foreground-2">
                   {list.scanned} memories checked on this page
                   {list.skipped > 0 ? ` · ${list.skipped} unreadable` : ""}
@@ -897,7 +944,10 @@ export function MemoryPage({ search }: { search: MemoryLocation }) {
                   aria-label="Next page"
                   disabled={list?.nextCursor == null}
                   onClick={() =>
-                    setCursors((current) => [...current, list?.nextCursor])
+                    setCursors((current) => [
+                      ...current,
+                      list?.nextCursor ?? undefined,
+                    ])
                   }
                 >
                   <Icon name="chevron-right" size="sm" />
@@ -915,7 +965,11 @@ export function MemoryPage({ search }: { search: MemoryLocation }) {
         onConfirm={confirmForget}
       />
       {discardOpen && (
-        <div role="dialog" aria-modal="true" aria-label="Discard unsaved changes?">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Discard unsaved changes?"
+        >
           <h2>Discard unsaved changes?</h2>
           <p>Your changes to this memory haven’t been saved</p>
           <Button

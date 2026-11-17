@@ -7,7 +7,8 @@ const memoryFeaturePaused = () => true;
 
 export const Route = createFileRoute("/_app/memory")({
   beforeLoad: () => {
-    if (memoryFeaturePaused()) throw redirect({ to: "/threads", replace: true });
+    if (memoryFeaturePaused())
+      throw redirect({ to: "/threads", replace: true });
   },
   validateSearch: searchParams(["file", "volume", "where", "who"]),
   component: RouteComponent,

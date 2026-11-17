@@ -1,4 +1,8 @@
-export type MemoryScope = "personal" | "project-user" | "project" | "everywhere";
+export type MemoryScope =
+  | "personal"
+  | "project-user"
+  | "project"
+  | "everywhere";
 
 export type MemoryTopic = {
   volumeId: string;
