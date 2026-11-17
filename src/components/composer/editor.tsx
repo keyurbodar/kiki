@@ -152,7 +152,7 @@ export type ComposerEditorProps = {
   sources?: MentionSource[];
   commands?: ComposerCommand[];
   inputPrefs?: ComposerInputPrefs;
-  onSubmit?: (
+  onSubmit: (
     payload: ComposerPayload,
     delivery: ComposerDelivery,
   ) => boolean | undefined | void;
@@ -457,7 +457,7 @@ function EditorBody(props: ComposerEditorProps) {
       current.onEmptySubmit?.();
       return;
     }
-    if (current.onSubmit?.(payload, chosen) === false) {
+    if (current.onSubmit(payload, chosen) === false) {
       cancelFlush();
       current.onChange?.({ ...payload, caret: caret.current });
       return;
