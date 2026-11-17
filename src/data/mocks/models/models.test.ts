@@ -1,0 +1,417 @@
+import { assert, describe, it } from "@effect/vitest";
+import { Effect } from "effect";
+import { AtomRegistry } from "effect/reactivity";
+import { ApiClient } from "../../client/ApiClient.ts";
+import { orgId, viewer, world } from "../fixtures/world.ts";
+
+const key = `models:${orgId}`;
+const params = { orgId };
+
+interface Credential {
+  readonly id: string;
+  readonly service: string;
+  readonly name: string;
+  readonly enabled: boolean;
+  readonly status: string;
+  readonly models: ReadonlyArray<string>;
+}
+
+interface Connection {
+  readonly credentialId: string;
+  readonly service: string;
+  readonly enabled: boolean;
+  readonly models: ReadonlyArray<string>;
+  readonly position: number;
+}
+
+interface CompactAt {
+  readonly userId?: string;
+  readonly orgId?: string;
+  readonly compactAt: string;
+}
+
+const listAtom = ApiClient.query("models", "list", {
+  query: {},
+  reactivityKeys: [key],
+});
+const myCompactAtom = ApiClient.query("models", "listMyCompactAt", {
+  params,
+  reactivityKeys: [key],
+});
+const orgCompactAtom = ApiClient.query("models", "listCompactAt", {
+  params,
+  reactivityKeys: [key],
+});
+const connectionsAtom = ApiClient.query("models", "connections", {
+  params,
+  query: {},
+  reactivityKeys: [key],
+});
+const routingAtom = ApiClient.query("models", "routing", {
+  params,
+  reactivityKeys: [key],
+});
+const settingsAtom = ApiClient.query("models", "getSettings", {
+  params,
+  reactivityKeys: [key],
+});
+
+const rows = (value: unknown) => value as ReadonlyArray<unknown>;
+const credentials = (value: unknown) =>
+  (value as { credentials: ReadonlyArray<Credential> }).credentials;
+const connections = (value: unknown) => value as ReadonlyArray<Connection>;
+const compactRows = (value: unknown) => value as ReadonlyArray<CompactAt>;
+const setting = (value: unknown) => value as Record<string, unknown>;
+
+describe("models mock", () => {
+  it.effect("every GET endpoint returns sensible data", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const [list, myCompact, orgCompact, connectionsList, routing, settings] =
+        yield* Effect.all([
+          AtomRegistry.getResult(registry, listAtom),
+          AtomRegistry.getResult(registry, myCompactAtom),
+          AtomRegistry.getResult(registry, orgCompactAtom),
+          AtomRegistry.getResult(registry, connectionsAtom),
+          AtomRegistry.getResult(registry, routingAtom),
+          AtomRegistry.getResult(registry, settingsAtom),
+        ]);
+
+      const listed = list as { models: ReadonlyArray<{ id: string }> };
+      assert.deepStrictEqual(
+        listed.models.map((model) => model.id),
+        world.models.map((model) => model.id),
+      );
+      assert.isAbove(credentials(list).length, 0);
+      assert.isTrue(credentials(list).every((row) => row.id.length > 0));
+      assert.isAbove(compactRows(myCompact).length, 0);
+      assert.isAbove(compactRows(orgCompact).length, 0);
+      assert.isAbove(connections(connectionsList).length, 0);
+      assert.isAbove(Object.keys(routing as object).length, 0);
+      assert.isString(setting(settings).defaultModel);
+      for (const query of [
+        ApiClient.query("models", "pollDevice", {
+          params: { attemptId: "device_attempt_missing" },
+        }),
+      ]) {
+        assert.isDefined(query);
+      }
+    }),
+  );
+
+  it.effect("credential mutations refresh the list and connections", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      registry.mount(listAtom);
+      registry.mount(connectionsAtom);
+      yield* AtomRegistry.getResult(registry, listAtom);
+      yield* AtomRegistry.getResult(registry, connectionsAtom);
+
+      const create = ApiClient.mutation("models", "createCredential");
+      registry.set(create, {
+        params,
+        payload: {
+          service: "google",
+          name: "Extra workspace",
+          models: [world.models[2].id],
+        },
+        reactivityKeys: [key],
+      });
+      const created = (yield* AtomRegistry.getResult(
+        registry,
+        create,
+      )) as Credential;
+      assert.equal(created.name, "Extra workspace");
+
+      const afterCreate = yield* AtomRegistry.getResult(registry, listAtom, {
+        suspendOnWaiting: true,
+      });
+      assert.isTrue(
+        credentials(afterCreate).some((row) => row.id === created.id),
+      );
+      const afterCreateConnections = yield* AtomRegistry.getResult(
+        registry,
+        connectionsAtom,
+        { suspendOnWaiting: true },
+      );
+      assert.isTrue(
+        connections(afterCreateConnections).some(
+          (row) => row.credentialId === created.id,
+        ),
+      );
+
+      const update = ApiClient.mutation("models", "updateCredential");
+      registry.set(update, {
+        params: { ...params, credentialId: created.id },
+        payload: { name: "Renamed workspace", enabled: false },
+        reactivityKeys: [key],
+      });
+      const updated = (yield* AtomRegistry.getResult(
+        registry,
+        update,
+      )) as Credential;
+      assert.equal(updated.name, "Renamed workspace");
+      assert.isFalse(updated.enabled);
+
+      const setModels = ApiClient.mutation("models", "setConnectionModels");
+      registry.set(setModels, {
+        params: { ...params, credentialId: created.id },
+        payload: { models: [world.models[3].id] },
+        reactivityKeys: [key],
+      });
+      const withModels = (yield* AtomRegistry.getResult(
+        registry,
+        setModels,
+      )) as Connection;
+      assert.deepStrictEqual(withModels.models, [world.models[3].id]);
+
+      const remove = ApiClient.mutation("models", "removeCredential");
+      registry.set(remove, {
+        params: { ...params, credentialId: created.id },
+        reactivityKeys: [key],
+      });
+      yield* AtomRegistry.getResult(registry, remove);
+      const afterRemove = yield* AtomRegistry.getResult(registry, listAtom, {
+        suspendOnWaiting: true,
+      });
+      assert.isFalse(
+        credentials(afterRemove).some((row) => row.id === created.id),
+      );
+    }),
+  );
+
+  it.effect(
+    "compact-at, settings, connections, and credential actions update state",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        registry.mount(myCompactAtom);
+        registry.mount(orgCompactAtom);
+        registry.mount(connectionsAtom);
+        registry.mount(routingAtom);
+        registry.mount(settingsAtom);
+        yield* AtomRegistry.getResult(registry, myCompactAtom);
+        yield* AtomRegistry.getResult(registry, orgCompactAtom);
+        yield* AtomRegistry.getResult(registry, connectionsAtom);
+        yield* AtomRegistry.getResult(registry, routingAtom);
+        yield* AtomRegistry.getResult(registry, settingsAtom);
+
+        const upsertMine = ApiClient.mutation("models", "upsertMyCompactAt");
+        registry.set(upsertMine, {
+          params,
+          payload: { compactAt: "2026-03-02T08:30:00.000Z" },
+          reactivityKeys: [key],
+        });
+        const mine = (yield* AtomRegistry.getResult(
+          registry,
+          upsertMine,
+        )) as CompactAt;
+        assert.equal(mine.userId, viewer.id);
+        const afterMine = yield* AtomRegistry.getResult(
+          registry,
+          myCompactAtom,
+          {
+            suspendOnWaiting: true,
+          },
+        );
+        assert.isTrue(
+          compactRows(afterMine).some((row) => row.userId === viewer.id),
+        );
+
+        const removeMine = ApiClient.mutation("models", "removeMyCompactAt");
+        registry.set(removeMine, { params, query: {}, reactivityKeys: [key] });
+        yield* AtomRegistry.getResult(registry, removeMine);
+        const withoutMine = yield* AtomRegistry.getResult(
+          registry,
+          myCompactAtom,
+          {
+            suspendOnWaiting: true,
+          },
+        );
+        assert.isFalse(
+          compactRows(withoutMine).some((row) => row.userId === viewer.id),
+        );
+
+        const upsertOrg = ApiClient.mutation("models", "upsertCompactAt");
+        registry.set(upsertOrg, {
+          params,
+          payload: { compactAt: "2026-03-02T08:00:00.000Z" },
+          reactivityKeys: [key],
+        });
+        yield* AtomRegistry.getResult(registry, upsertOrg);
+        const afterOrg = yield* AtomRegistry.getResult(
+          registry,
+          orgCompactAtom,
+          {
+            suspendOnWaiting: true,
+          },
+        );
+        assert.isTrue(compactRows(afterOrg).some((row) => row.orgId === orgId));
+
+        const removeOrg = ApiClient.mutation("models", "removeCompactAt");
+        registry.set(removeOrg, { params, query: {}, reactivityKeys: [key] });
+        yield* AtomRegistry.getResult(registry, removeOrg);
+        const withoutOrg = yield* AtomRegistry.getResult(
+          registry,
+          orgCompactAtom,
+          {
+            suspendOnWaiting: true,
+          },
+        );
+        assert.isFalse(
+          compactRows(withoutOrg).some((row) => row.orgId === orgId),
+        );
+
+        const setDefault = ApiClient.mutation("models", "setModelSetting");
+        registry.set(setDefault, {
+          params,
+          payload: { defaultModel: world.models[0].id },
+          reactivityKeys: [key],
+        });
+        const afterDefault = (yield* AtomRegistry.getResult(
+          registry,
+          setDefault,
+        )) as Record<string, unknown>;
+        assert.equal(afterDefault.defaultModel, world.models[0].id);
+
+        const setFallback = ApiClient.mutation("models", "setFallback");
+        registry.set(setFallback, {
+          params,
+          payload: { fallbackModel: world.models[1].id },
+          reactivityKeys: [key],
+        });
+        yield* AtomRegistry.getResult(registry, setFallback);
+        const afterFallback = yield* AtomRegistry.getResult(
+          registry,
+          settingsAtom,
+          {
+            suspendOnWaiting: true,
+          },
+        );
+        assert.equal(setting(afterFallback).fallbackModel, world.models[1].id);
+
+        const setMembers = ApiClient.mutation("models", "setMemberCredentials");
+        registry.set(setMembers, {
+          params,
+          payload: { memberCredentials: "personal" },
+          reactivityKeys: [key],
+        });
+        yield* AtomRegistry.getResult(registry, setMembers);
+        const afterMembers = yield* AtomRegistry.getResult(
+          registry,
+          settingsAtom,
+          {
+            suspendOnWaiting: true,
+          },
+        );
+        assert.equal(setting(afterMembers).memberCredentials, "personal");
+
+        const reorder = ApiClient.mutation("models", "reorderConnections");
+        const beforeReorder = connections(
+          yield* AtomRegistry.getResult(registry, connectionsAtom),
+        );
+        const order = [...beforeReorder]
+          .reverse()
+          .map((row) => row.credentialId);
+        registry.set(reorder, {
+          params,
+          payload: { order },
+          reactivityKeys: [key],
+        });
+        yield* AtomRegistry.getResult(registry, reorder);
+        const reordered = connections(
+          yield* AtomRegistry.getResult(registry, connectionsAtom, {
+            suspendOnWaiting: true,
+          }),
+        );
+        assert.deepStrictEqual(
+          reordered.map((row) => row.credentialId),
+          order,
+        );
+      }),
+  );
+
+  it.effect("handles the remaining credential and provider actions", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const connectionsList = connections(
+        yield* AtomRegistry.getResult(registry, connectionsAtom),
+      );
+      const first = connectionsList[0];
+      if (!first) return yield* Effect.die("No sample connections");
+      const credentialId = first.credentialId;
+      const service = first.service;
+
+      const actions: ReadonlyArray<{
+        endpoint:
+          | "setCredentialEnabled"
+          | "startDevice"
+          | "refreshClaudeSeat"
+          | "connectClaudeSeat"
+          | "discoverModels"
+          | "upsertOrgKey"
+          | "removeOrgKey"
+          | "checkMediaUrl"
+          | "moveToOrganization"
+          | "testCredential"
+          | "refreshDaybreak"
+          | "disconnect";
+        params: Record<string, string>;
+        payload?: Record<string, unknown>;
+      }> = [
+        {
+          endpoint: "setCredentialEnabled",
+          params: { service },
+          payload: { enabled: true },
+        },
+        { endpoint: "startDevice", params: { service } },
+        { endpoint: "refreshClaudeSeat", params: { credentialId } },
+        {
+          endpoint: "connectClaudeSeat",
+          params: {},
+          payload: { service: "anthropic" },
+        },
+        { endpoint: "discoverModels", params, payload: { query: "claude" } },
+        {
+          endpoint: "upsertOrgKey",
+          params: { ...params, provider: "openai" },
+          payload: { secret: "sample" },
+        },
+        { endpoint: "removeOrgKey", params: { ...params, provider: "openai" } },
+        { endpoint: "checkMediaUrl", params: { ...params, credentialId } },
+        { endpoint: "moveToOrganization", params: { ...params, credentialId } },
+        { endpoint: "testCredential", params: { ...params, credentialId } },
+        { endpoint: "refreshDaybreak", params: { ...params, credentialId } },
+        { endpoint: "disconnect", params: { service } },
+      ];
+
+      for (const action of actions) {
+        const mutation = ApiClient.mutation("models", action.endpoint);
+        registry.set(mutation, {
+          params: action.params as { orgId: string },
+          query: {},
+          payload: action.payload ?? {},
+          reactivityKeys: [key],
+        });
+        const result = yield* AtomRegistry.getResult(registry, mutation);
+        assert.isDefined(result);
+      }
+
+      const discovered = rows(
+        yield* AtomRegistry.getResult(
+          registry,
+          ApiClient.mutation("models", "discoverModels"),
+        ),
+      );
+      assert.isAbove(discovered.length, 0);
+      const afterDisconnect = credentials(
+        yield* AtomRegistry.getResult(registry, listAtom, {
+          suspendOnWaiting: true,
+        }),
+      );
+      assert.isFalse(
+        afterDisconnect.find((row) => row.service === service)?.enabled,
+      );
+    }),
+  );
+});
