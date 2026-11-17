@@ -1,0 +1,55 @@
+import { createContext, useContext } from "react";
+import type { Actor } from "@/data/events";
+
+export type ReplyTarget = {
+  eventId: string;
+  rowId: string;
+  section: number;
+  name: string;
+  text: string;
+};
+
+export type QuoteSource = { text: string; source: string };
+
+export type MessageActor = { name: string; imageUrl?: string | null };
+
+/**
+ * What the chat list hands its message rows: the clock, the viewer, sender
+ * lookups and the actions behind the hover footer. Every field is optional so
+ * a row renders read-only outside a live thread.
+ */
+export type MessageActions = {
+  now?: number;
+  viewerUserId?: string;
+  resolveActor?: (actor: Actor) => MessageActor;
+  rowActors?: ReadonlyMap<string, Actor>;
+  automationName?: (automationId: string) => string | undefined;
+  reply?: (target: ReplyTarget) => void;
+  editMessage?: (rowId: string) => void;
+  jumpToSection?: (rowId: string, section: number) => void;
+  forkQuote?: (kind: "copy" | "summary", quote: QuoteSource) => void;
+  sideChatQuote?: (quote: QuoteSource) => void;
+};
+
+const MessageActionsContext = createContext<MessageActions>({});
+
+export const MessageActionsProvider = MessageActionsContext.Provider;
+
+export function useMessageActions() {
+  return useContext(MessageActionsContext);
+}
+
+export function actorName(actions: MessageActions, actor: Actor): string {
+  const resolved = actions.resolveActor?.(actor)?.name;
+  if (resolved !== undefined) return resolved;
+  switch (actor.type) {
+    case "user":
+      return actor.userId;
+    case "service_user":
+      return actor.serviceUserId;
+    case "agent":
+      return "Capy";
+    case "system":
+      return actor.service;
+  }
+}
