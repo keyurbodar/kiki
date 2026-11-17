@@ -9,9 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/primitives/dialog";
-import { Input } from "@/primitives/input";
 import { cx } from "../shared";
-import { CopyIcon } from "./icons";
 
 export function CodeBlock({
   text,
@@ -43,28 +41,12 @@ export function CopyValue({
   className?: string;
 }) {
   return (
-    <CopyField className={cx("relative flex min-w-0", className)}>
-      <Input
-        size="sm"
-        readOnly
-        aria-label={label}
-        spellCheck={false}
-        autoComplete="off"
-        value={value}
-        className="text-ellipsis pr-7"
-      />
-      <span className="absolute inset-y-0 flex items-center right-0.5">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-xs"
-          aria-label={`Copy ${label}`}
-          onClick={() => void navigator.clipboard.writeText(value)}
-        >
-          <CopyIcon />
-        </Button>
-      </span>
-    </CopyField>
+    <CopyField
+      value={value}
+      label={label}
+      size="sm"
+      className={cx("relative flex min-w-0", className)}
+    />
   );
 }
 

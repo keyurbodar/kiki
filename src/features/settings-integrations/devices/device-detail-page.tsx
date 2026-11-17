@@ -36,7 +36,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/primitives/dialog";
-import { Input } from "@/primitives/input";
 import {
   MenuSelect,
   MenuSelectContent,
@@ -263,14 +262,12 @@ function DeviceDetail({ orgId, device }: { orgId: OrgId; device: Device }) {
         <SettingsSection title="Identity">
           <Card rows>
             <SettingsRow label="Token hint">
-              <CopyField className="w-56">
-                <Input
-                  size="sm"
-                  readOnly
-                  value={device.tokenHint}
-                  aria-label="token hint"
-                />
-              </CopyField>
+              <CopyField
+                value={device.tokenHint}
+                label="token hint"
+                size="sm"
+                className="w-56"
+              />
             </SettingsRow>
             <SettingsRow label="Paired">
               <ValueText>{formatDateTime(device.createdAt)}</ValueText>
