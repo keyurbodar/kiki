@@ -18,8 +18,8 @@ const iconMargins =
 
 export const buttonVariants = cva(
   [
-    "cursor-pointer relative inline-flex items-center justify-center w-fit shrink-0 whitespace-nowrap rounded [text-box-trim:trim-both] text-nowrap",
-    "border-hairline border-transparent font-medium",
+    "cursor-pointer relative inline-flex items-center justify-center shrink-0 whitespace-nowrap rounded [text-box-trim:trim-both] text-nowrap",
+    "border-hairline font-medium",
     motion.hover,
     motion.focusRing,
     "select-none",
@@ -34,17 +34,17 @@ export const buttonVariants = cva(
       variant: {
         solid:
           "bg-[var(--intent-bg,var(--button))] border-[var(--intent-border-solid,var(--intent-border,var(--border-2)))] text-[var(--intent-text-on-bg,var(--fg))] [--focus-ring:var(--intent-text-on-bg,var(--ring))] shadow-[inset_0_calc(var(--spacing-hairline)*2)_var(--intent-highlight,var(--highlight-top)),var(--sh-plate)] hover:bg-[var(--intent-bg-solid-hover,var(--button-hover))] active:shadow-none active:brightness-97",
-        soft: "bg-[var(--intent-bg-soft,var(--secondary))] text-[var(--intent-text,var(--fg))] hover:bg-[var(--intent-bg-soft-hover,var(--secondary-hover))] active:brightness-97",
+        soft: "border-transparent bg-[var(--intent-bg-soft,var(--secondary))] text-[var(--intent-text,var(--fg))] hover:bg-[var(--intent-bg-soft-hover,var(--secondary-hover))] active:brightness-97",
         ghost:
-          "bg-transparent text-[var(--intent-text,var(--muted-foreground-1))] hover:text-[var(--intent-text-hover,var(--fg))] hover:bg-[var(--intent-bg-hover,var(--secondary))] data-[popup-open]:text-[var(--intent-text-hover,var(--fg))] active:brightness-97 data-[selected]:data-[unfocused]:bg-secondary/50 data-[selected]:data-[unfocused]:text-muted-foreground-1 data-[selected]:data-[unfocused]:hover:bg-secondary data-[selected]:data-[unfocused]:hover:text-foreground",
+          "border-transparent bg-transparent text-[var(--intent-text,var(--muted-foreground-1))] hover:text-[var(--intent-text-hover,var(--fg))] hover:bg-[var(--intent-bg-hover,var(--secondary))] data-[popup-open]:text-[var(--intent-text-hover,var(--fg))] active:brightness-97 data-[selected]:data-[unfocused]:bg-secondary/50 data-[selected]:data-[unfocused]:text-muted-foreground-1 data-[selected]:data-[unfocused]:hover:bg-secondary data-[selected]:data-[unfocused]:hover:text-foreground",
         outline:
           "bg-transparent border-[var(--intent-border,var(--border-2))] text-[var(--intent-text,var(--fg))] hover:bg-[var(--intent-bg-hover,var(--secondary))] active:brightness-97",
-        link: "bg-transparent text-[var(--intent-text,var(--text-link))] hover:underline underline-offset-2 disabled:opacity-40",
-        bare: "bg-transparent text-[var(--intent-text,var(--muted-foreground-1))] hover:text-[var(--intent-text-hover,var(--fg))] data-[popup-open]:text-[var(--intent-text-hover,var(--fg))] data-[selected]:bg-transparent data-[selected]:text-[var(--intent-text-hover,var(--fg))] active:brightness-97 disabled:opacity-40",
+        link: "border-transparent bg-transparent text-[var(--intent-text,var(--text-link))] hover:underline underline-offset-2 disabled:opacity-40",
+        bare: "border-transparent bg-transparent text-[var(--intent-text,var(--muted-foreground-1))] hover:text-[var(--intent-text-hover,var(--fg))] data-[popup-open]:text-[var(--intent-text-hover,var(--fg))] data-[selected]:bg-transparent data-[selected]:text-[var(--intent-text-hover,var(--fg))] active:brightness-97 disabled:opacity-40",
         inverse:
-          "bg-[var(--intent-bg,var(--inverse))] text-[var(--intent-text-on-bg,var(--inverse-text))] hover:bg-[var(--intent-bg-solid-hover,var(--inverse-hover))] active:brightness-95 disabled:opacity-50 data-[selected]:bg-[var(--intent-bg,var(--inverse))] data-[selected]:text-[var(--intent-text-on-bg,var(--inverse-text))]",
+          "border-transparent bg-[var(--intent-bg,var(--inverse))] text-[var(--intent-text-on-bg,var(--inverse-text))] hover:bg-[var(--intent-bg-solid-hover,var(--inverse-hover))] active:brightness-95 disabled:opacity-50 data-[selected]:bg-[var(--intent-bg,var(--inverse))] data-[selected]:text-[var(--intent-text-on-bg,var(--inverse-text))]",
         segmented:
-          "bg-transparent text-[var(--intent-text,var(--segmented-foreground))] hover:text-[var(--intent-text-hover,var(--fg))] active:brightness-97 data-[selected]:bg-[var(--intent-bg,var(--card))] data-[selected]:text-[var(--intent-text-hover,var(--fg))] data-[selected]:shadow-card",
+          "border-transparent bg-transparent text-[var(--intent-text,var(--segmented-foreground))] hover:text-[var(--intent-text-hover,var(--fg))] active:brightness-97 data-[selected]:bg-[var(--intent-bg,var(--card))] data-[selected]:text-[var(--intent-text-hover,var(--fg))] data-[selected]:shadow-card",
       },
       intent: buttonIntentVariants,
       size: {
