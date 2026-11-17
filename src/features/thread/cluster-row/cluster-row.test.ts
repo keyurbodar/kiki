@@ -1,10 +1,12 @@
 import { expect, it } from "vitest";
 import { UpdateRow as UpdateRowSchema } from "@/data/events";
-import type { Schema } from "effect";
+import { Schema } from "effect";
 
 import { clusterSummary } from "./cluster-row";
 
 type UpdateRow = Schema.Schema.Type<typeof UpdateRowSchema>;
+
+const rowFrom = (value: unknown) => Schema.decodeUnknownSync(UpdateRowSchema)(value);
 
 const base = {
   id: "update:1",
@@ -12,7 +14,7 @@ const base = {
   createdAt: new Date(0),
 };
 
-const task = (): UpdateRow => ({
+const task = (): UpdateRow => rowFrom({
   ...base,
   type: "update",
   kind: "task",

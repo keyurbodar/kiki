@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { expect, it } from "vitest";
 import { MarkerRow as MarkerRowSchema } from "@/data/events";
-import type { Schema } from "effect";
+import { Schema } from "effect";
 
 import { MarkerDivider } from "@/features/thread/markers";
 import { entry as clusterEntry } from "./entries/cluster";
@@ -13,6 +13,8 @@ import { entry as updateEntry } from "./entries/update";
 import { entry as visualEntry } from "./entries/visual";
 
 type MarkerRow = Schema.Schema.Type<typeof MarkerRowSchema>;
+
+const markerFrom = (value: unknown) => Schema.decodeUnknownSync(MarkerRowSchema)(value);
 
 it("registers all T03 timeline row types", () => {
   expect([
@@ -35,14 +37,14 @@ it("registers all T03 timeline row types", () => {
 });
 
 it("renders a marker divider with its bundle copy", () => {
-  const row: MarkerRow = {
+  const row: MarkerRow = markerFrom({
     id: "marker:1",
     eventId: "01J0000000000000000000000" as MarkerRow["eventId"],
     createdAt: new Date(0),
     type: "marker",
     kind: "handoff",
     label: "Handed off to cloud",
-  };
+  });
   render(<MarkerDivider row={row} />);
   expect(screen.getByText("Handed off to cloud")).toBeDefined();
 });

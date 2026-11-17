@@ -9,7 +9,6 @@ import { Icon, type IconId } from "@/primitives/icon";
 type UpdateRowData = Schema.Schema.Type<typeof UpdateRowSchema>;
 type NoticeRow = Extract<UpdateRowData, { kind: "notice" }>;
 type OperationRow = Extract<UpdateRowData, { kind: "operation" }>;
-type TaskRow = Extract<UpdateRowData, { kind: "task" }>;
 
 const objectField = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -17,8 +16,6 @@ const stringField = (value: unknown): string | undefined =>
   typeof value === "string" ? value : undefined;
 const numberField = (value: unknown): number | undefined =>
   typeof value === "number" ? value : undefined;
-const boolField = (value: unknown): boolean | undefined =>
-  typeof value === "boolean" ? value : undefined;
 
 export type UpdateRowProps = {
   row: UpdateRowData;
