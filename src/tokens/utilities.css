@@ -15,6 +15,14 @@
   --mask-fade-ramp-toolbar: 24px;
 }
 
+@utility mask-fade-l {
+  mask-image: linear-gradient(
+    to left,
+    black calc(100% - var(--mask-fade-ramp, var(--mask-fade-ramp-default))),
+    transparent 100%
+  );
+}
+
 @utility outline-ring-inset {
   outline: 1px solid var(--focus-ring, var(--ring));
   outline-offset: -1px;

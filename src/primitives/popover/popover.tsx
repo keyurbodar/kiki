@@ -23,7 +23,13 @@ export type PopoverContentProps = Omit<
 > &
   Pick<
     ComponentProps<typeof BasePopover.Positioner>,
-    "side" | "align" | "sideOffset" | "alignOffset"
+    | "side"
+    | "align"
+    | "sideOffset"
+    | "alignOffset"
+    | "anchor"
+    | "collisionPadding"
+    | "collisionAvoidance"
   > &
   VariantProps<typeof popoverContentVariants> & { className?: string };
 
@@ -32,6 +38,9 @@ export function PopoverContent({
   align,
   sideOffset,
   alignOffset,
+  anchor,
+  collisionPadding,
+  collisionAvoidance,
   variant,
   className,
   ...props
@@ -43,6 +52,9 @@ export function PopoverContent({
         align={align}
         sideOffset={sideOffset}
         alignOffset={alignOffset}
+        anchor={anchor}
+        collisionPadding={collisionPadding}
+        collisionAvoidance={collisionAvoidance}
       >
         <BasePopover.Popup
           data-slot="popover-content"

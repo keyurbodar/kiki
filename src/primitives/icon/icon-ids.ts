@@ -163,6 +163,15 @@ export const ICON_IDS = [
   "warning-sign",
   "webhooks",
   "x",
+  "cross-small",
+  "trash-can",
+  "bubble-plus",
+  "square-behind-square-2",
+  "chain-link-1",
+  "arrow-inbox",
+  "arrow-rotate-counter-clockwise",
+  "arrow-rotate-clockwise",
+  "arrow-undo-up",
 ] as const;
 
 export type IconId = (typeof ICON_IDS)[number];
@@ -332,4 +341,14 @@ export const ICON_KEYWORDS: Record<IconId, string> = {
   "warning-sign": "warning-sign,attention,coution",
   webhooks: "webhooks",
   x: "x",
+  "cross-small": "cross-small, crossed small, delete, remove",
+  "trash-can": "trash-can, delete, remove, garbage, waste",
+  "bubble-plus": "bubble-plus, comment, feedback",
+  "square-behind-square-2": "square-behind-square-2, copy 2, layers, pages",
+  "chain-link-1": "chain-link-1,url",
+  "arrow-inbox": "arrow-inbox, download, file, down, save",
+  "arrow-rotate-counter-clockwise":
+    "arrow-rotate-counter-clockwise, rotate-left",
+  "arrow-rotate-clockwise": "arrow-rotate-clockwise, rotate-right",
+  "arrow-undo-up": "arrow-undo-up, back, top",
 };
