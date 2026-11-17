@@ -1,6 +1,16 @@
 {
-  "matrix": { "theme": ["default"], "scheme": ["dark", "light"] },
-  "defaults": { "maxMismatch": 2 },
+  "matrix": {
+    "theme": [
+      "default"
+    ],
+    "scheme": [
+      "dark",
+      "light"
+    ]
+  },
+  "defaults": {
+    "maxMismatch": 2
+  },
   "targets": [
     {
       "id": "b2-sidebar-chrome-new",
@@ -8,14 +18,23 @@
       "state": "sidebar header and footer in the shell",
       "viewport": "1600x1000",
       "capture": {
-        "[data-slot=sidebar-content] footer": ["height", "padding-top", "padding-left"],
+        "[data-slot=sidebar-content] footer": [
+          "height",
+          "padding-top",
+          "padding-left"
+        ],
         "[data-slot=sidebar-content] footer > div > button": [
           "width",
           "height",
           "padding-top"
         ],
-        "[data-slot=sidebar-content] footer nav": ["width", "height"],
-        "[data-slot=sidebar-content] header": ["height"],
+        "[data-slot=sidebar-content] footer nav": [
+          "width",
+          "height"
+        ],
+        "[data-slot=sidebar-content] header": [
+          "height"
+        ],
         "[data-slot=sidebar-content] header button[aria-label=\"Search\"]": [
           "width",
           "height"
@@ -26,6 +45,13 @@
         ],
         "[data-slot=sidebar-content] header button[aria-label=\"Close sidebar\"]": [
           "width",
+          "height"
+        ],
+        "[data-slot=sidebar-content] [data-sidebar-mode]": [
+          "height",
+          "margin-top"
+        ],
+        "[data-slot=sidebar-content] [data-sidebar-mode] > [role=list]": [
           "height"
         ]
       },
@@ -68,7 +94,9 @@
           "width": "28px",
           "height": "28px"
         },
-        "[data-slot=sidebar-content] header": { "height": "44px" },
+        "[data-slot=sidebar-content] header": {
+          "height": "44px"
+        },
         "[data-slot=sidebar-content] header button[aria-label=\"Search\"]": {
           "width": "28px",
           "height": "28px"
@@ -88,10 +116,19 @@
         "[data-slot=sidebar-content] header [data-slot=sidebar-mode] > button:nth-of-type(2)": {
           "width": "26px",
           "height": "24px"
+        },
+        "[data-slot=sidebar-content] [data-sidebar-mode]": {
+          "height": "887px",
+          "margin-top": "12px"
+        },
+        "[data-slot=sidebar-content] [data-sidebar-mode] > [role=list]": {
+          "height": "855px"
         }
       },
       "variants": {
-        "default/dark": { "frame": "GGMp1Jv-KO" }
+        "default/dark": {
+          "frame": "GGMp1Jv-KO"
+        }
       }
     },
     {
@@ -118,10 +155,16 @@
           "width": "28px",
           "height": "28px"
         },
-        "[data-slot=sidebar-content] header": { "height": "44px" },
+        "[data-slot=sidebar-content] header": {
+          "height": "44px"
+        },
         "[data-slot=sidebar-content] header button[aria-label=\"Search\"]": {
           "width": "28px",
           "height": "28px"
+        },
+        "[data-slot=sidebar-content] [data-sidebar-mode]": {
+          "height": "705px",
+          "margin-top": "12px"
         }
       }
     }
