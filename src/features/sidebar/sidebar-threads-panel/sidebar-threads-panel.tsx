@@ -1,4 +1,5 @@
 import { Glyph, SidebarThreads } from "@/components/sidebar-threads";
+import { ThreadPreview } from "@/components/thread-preview";
 import { Button } from "@/primitives/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { SidebarThreadRow } from "../sidebar-thread-row";
@@ -96,18 +97,40 @@ export function SidebarThreadsPanel({
       onShowMore={sidebar.showMore}
       onNewThread={onNewThread}
       onNewCaptain={onNewCaptain}
-      renderThread={(thread, { density, active }) => (
-        <SidebarThreadRow
-          thread={thread}
-          project={
-            thread.projectId === null
-              ? undefined
-              : view.projects[thread.projectId]
-          }
-          density={density}
-          active={active}
-        />
-      )}
+      renderThread={(thread, { density, active }) => {
+        const project =
+          thread.projectId === null
+            ? undefined
+            : view.projects[thread.projectId];
+        const previewProject =
+          thread.project ??
+          (project === undefined ? undefined : { name: project.name });
+        return (
+          <SidebarThreadRow
+            thread={thread}
+            project={project}
+            density={density}
+            active={active}
+            preview={
+              thread.card === undefined ? undefined : (
+                <ThreadPreview
+                  thread={thread.card}
+                  code={thread.code}
+                  description={thread.description}
+                  project={previewProject}
+                  model={thread.model}
+                  members={thread.members}
+                  asks={thread.asks}
+                  crew={thread.crew}
+                  issues={thread.issues}
+                  tasks={thread.tasks}
+                  multirepo={thread.multirepo}
+                />
+              )
+            }
+          />
+        );
+      }}
     />
   );
 }
