@@ -1,5 +1,8 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { CaptainCard, CaptainListScope } from "../schemas/captain.ts";
+import { Forbidden } from "../schemas/errors.ts";
+import { OrgId } from "../schemas/ids.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class CaptainsGroup extends HttpApiGroup.make("captains").add(
@@ -26,9 +29,10 @@ export class CaptainsGroup extends HttpApiGroup.make("captains").add(
     },
   ),
   HttpApiEndpoint.get("list", "/orgs/:orgId/captains", {
-    params: { orgId: Schema.String },
-    query: UndecodedQuery,
-    success: Undecoded,
+    params: { orgId: OrgId },
+    query: { scope: Schema.optional(CaptainListScope) },
+    success: Schema.Array(CaptainCard),
+    error: Forbidden,
   }),
   HttpApiEndpoint.post("create", "/orgs/:orgId/captains", {
     params: { orgId: Schema.String },
