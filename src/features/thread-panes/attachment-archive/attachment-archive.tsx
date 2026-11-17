@@ -319,7 +319,7 @@ export function ArchiveMemberView({
   onBack,
 }: ArchiveMemberViewProps) {
   const name = path.split("/").at(-1) ?? path;
-  const kind = attachmentKind({ name, mediaType: "" });
+  const kind = attachmentKind({ name, mediaType: mediaTypeForPath(name) });
   const [ungated, setUngated] = useState(false);
   const gated =
     kind === undefined && member.sizeBytes > ARCHIVE_GATE_BYTES && !ungated;
@@ -458,6 +458,7 @@ export function AttachmentArchiveView({
         rootLabel={file.name}
         path={directory}
         files={files}
+        explicitFolders={archive.folders}
         decorations={decorations}
         trailing={
           <Tooltip>

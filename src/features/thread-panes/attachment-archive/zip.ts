@@ -7,6 +7,24 @@ const END_OF_CENTRAL_DIRECTORY = 0x06054b50;
 const CENTRAL_DIRECTORY_HEADER = 0x02014b50;
 const LOCAL_FILE_HEADER = 0x04034b50;
 const STORED = 0;
+const UTF8_FLAG = 1 << 11;
+const CP437 = [
+  "ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒ",
+  "áíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤ÁÂÀ©╣║╗╝¢¥┐",
+  "└┴┬├─┼ãÃ╚╔╩╦╠═╬¤ðÐÊËÈıÍÎÏ┘┌█▄¦Ì▀",
+  "ÓßÔÒõÕµþÞÚÛÙýÝ¯´≡±‗¾¶§÷¸°¨·¹³²■ ",
+];
+const cp437Table = new Map<number, string>();
+let cp437Code = 0x80;
+for (const row of CP437) {
+  for (const char of row) cp437Table.set(cp437Code++, char);
+}
+const decodeName = (bytes: Uint8Array, utf8: boolean) =>
+  utf8
+    ? new TextDecoder("utf-8").decode(bytes)
+    : [...bytes]
+        .map((byte) => cp437Table.get(byte) ?? String.fromCharCode(byte))
+        .join("");
 const DEFLATED = 8;
 const ZIP64_MARKER = 0xffffffff;
 
@@ -20,8 +38,8 @@ export type ArchiveMember = {
 };
 
 export type ZipDirectory =
-  | { members: ArchiveMember[]; refused?: undefined }
-  | { refused: string; members?: undefined };
+  | { members: ArchiveMember[]; folders: string[]; refused?: undefined }
+  | { refused: string; members?: undefined; folders?: undefined };
 
 export const isZipFile = (file: { name: string; mediaType: string }) =>
   /\.zip$/i.test(file.name) ||
@@ -74,8 +92,8 @@ export function readZipDirectory(bytes: Uint8Array): ZipDirectory {
     };
   if (start + size > end)
     return { refused: "Central directory is out of bounds" };
-  const decoder = new TextDecoder();
   const members: ArchiveMember[] = [];
+  const folders: string[] = [];
   let cursor = start;
   for (let entry = 0; entry < count; entry += 1) {
     if (
@@ -91,11 +109,15 @@ export function readZipDirectory(bytes: Uint8Array): ZipDirectory {
     const extraLength = view.getUint16(cursor + 30, true);
     const commentLength = view.getUint16(cursor + 32, true);
     const offset = view.getUint32(cursor + 42, true);
-    const path = decoder.decode(
+    const path = decodeName(
       bytes.subarray(cursor + 46, cursor + 46 + nameLength),
+      (flags & UTF8_FLAG) !== 0,
     );
     cursor += 46 + nameLength + extraLength + commentLength;
-    if (path.endsWith("/")) continue;
+    if (path.endsWith("/")) {
+      folders.push(normalizeMemberPath(path.slice(0, -1)));
+      continue;
+    }
     members.push({
       path,
       sizeBytes,
@@ -112,7 +134,7 @@ export function readZipDirectory(bytes: Uint8Array): ZipDirectory {
       ),
     });
   }
-  return { members };
+  return { members, folders };
 }
 
 function inflate(data: Uint8Array, cap: number): Promise<Uint8Array> {
@@ -227,10 +249,17 @@ export type DirectoryEntry =
 export function listDirectory(
   files: ReadonlyArray<{ path: string; sizeBytes: number }>,
   directory: string,
+  explicitFolders: ReadonlyArray<string> = [],
 ): DirectoryEntry[] {
   const prefix = directory === "" ? "" : `${directory}/`;
   const folders = new Map<string, { fileCount: number; totalBytes: number }>();
   const entries: DirectoryEntry[] = [];
+  for (const folder of explicitFolders) {
+    if (!folder.startsWith(prefix)) continue;
+    const rest = folder.slice(prefix.length);
+    if (rest === "" || rest.includes("/")) continue;
+    if (!folders.has(rest)) folders.set(rest, { fileCount: 0, totalBytes: 0 });
+  }
   for (const file of files) {
     if (!file.path.startsWith(prefix)) continue;
     const rest = file.path.slice(prefix.length);

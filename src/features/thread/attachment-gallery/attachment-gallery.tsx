@@ -693,7 +693,7 @@ export function AudioPlayer({
   const [errored, setErrored] = useState(false);
   const label = entry.title ?? entry.file.name;
   const broken = errored || unavailable;
-  const playable = url !== undefined && !broken;
+  const playable = url !== undefined && !broken && duration !== undefined;
   const fraction =
     duration === undefined || duration === 0 ? 0 : Math.min(1, time / duration);
   const toggle = () => {
