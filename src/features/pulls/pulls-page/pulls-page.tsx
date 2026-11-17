@@ -25,6 +25,7 @@ import {
 } from "@/features/pulls/pulls-list/pull-row/pull-icons";
 import { PullsList } from "@/features/pulls/pulls-list/pulls-list";
 import { Button } from "@/primitives/button";
+import { RightPanel, RightPanelGroup } from "@/primitives/right-panel";
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
@@ -112,21 +113,24 @@ function PullsFrame({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative flex min-w-0 flex-1 flex-col">
-      <AppTopBar className="sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center border-b-hairline border-border-1 bg-panel px-2">
-        {search ?? (
-          <h1 className="ml-2.5 min-w-0 truncate text-sm font-medium text-foreground">
-            Pull requests
-          </h1>
-        )}
-        {trailing === undefined ? null : (
-          <div className="ml-auto flex shrink-0 items-center gap-1.5 pl-2">
-            {trailing}
-          </div>
-        )}
-      </AppTopBar>
-      {children}
-    </div>
+    <RightPanelGroup className="h-full">
+      <div className="relative flex min-w-0 flex-1 flex-col">
+        <AppTopBar className="sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center border-b-hairline border-border-1 bg-panel px-2">
+          {search ?? (
+            <h1 className="ml-2.5 min-w-0 truncate text-sm font-medium text-foreground">
+              Pull requests
+            </h1>
+          )}
+          {trailing === undefined ? null : (
+            <div className="ml-auto flex shrink-0 items-center gap-1.5 pl-2">
+              {trailing}
+            </div>
+          )}
+        </AppTopBar>
+        {children}
+      </div>
+      <RightPanel open={false} />
+    </RightPanelGroup>
   );
 }
 
