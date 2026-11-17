@@ -152,6 +152,7 @@ const pullState = (state: string): IssuePullState =>
 /** What the world does not store about an issue, keyed by issue code. */
 export interface IssueExtra {
   readonly description: string;
+  readonly mentions: number;
   readonly dueAt?: IssueDueDate;
   readonly subscribed: boolean;
   readonly unread: boolean;
@@ -168,6 +169,7 @@ export interface IssueExtra {
 
 export const issueExtras: Record<string, IssueExtra> = {
   "ACME-1": {
+    mentions: 1,
     description:
       "Ship web release 2.4 once the checkout fix and dark mode land.\n\n- [ ] Checkout test is green on CI\n- [ ] Dark mode reviewed\n- [ ] Changelog written",
     dueAt: "2026-03-06",
@@ -183,6 +185,7 @@ export const issueExtras: Record<string, IssueExtra> = {
     ],
   },
   "ACME-2": {
+    mentions: 2,
     description:
       "The checkout end-to-end test times out on CI about one run in five. It passes locally.\n\nLikely cause: the payment sandbox answers slowly under parallel runs. Retry the gateway call and raise the test timeout.",
     dueAt: "2026-03-03",
@@ -201,6 +204,7 @@ export const issueExtras: Record<string, IssueExtra> = {
     ],
   },
   "ACME-3": {
+    mentions: 0,
     description:
       "Add a dark theme to every settings page, following the system preference by default.",
     subscribed: false,
@@ -209,6 +213,7 @@ export const issueExtras: Record<string, IssueExtra> = {
     comments: [],
   },
   "ACME-4": {
+    mentions: 0,
     description:
       "Orders currently returns every row. Pick a default page size and document it.",
     subscribed: true,
@@ -220,6 +225,7 @@ export const issueExtras: Record<string, IssueExtra> = {
 
 const emptyExtra: IssueExtra = {
   description: "",
+  mentions: 0,
   subscribed: false,
   unread: false,
   relations: [],
@@ -337,7 +343,7 @@ export const toIssueSummary = (world: IssueWorld, row: WorldIssue) => {
       subscribed: extra.subscribed,
       unread: extra.unread,
       unreadSince: null,
-      mentions: 0,
+      mentions: extraOf(world.extras, row.code).mentions,
     }),
     createdAt: timestamp(row.createdAt),
     updatedAt: timestamp(row.updatedAt),

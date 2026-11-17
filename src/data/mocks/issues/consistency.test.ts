@@ -172,7 +172,16 @@ describe("issues mock: filters and consistency", () => {
         params: { orgId },
         query: { userId: people.casey.id },
       });
-      assert.notStrictEqual(forAlex, forCasey);
+      assert.strictEqual(forAlex, 3);
+      assert.strictEqual(forCasey, 0);
+      const page = yield* query<{
+        issues: ReadonlyArray<{ viewer: { mentions: number } }>;
+      }>(registry, "list", { params: { orgId }, query: {} });
+      const sum = page.issues.reduce(
+        (total, row) => total + row.viewer.mentions,
+        0,
+      );
+      assert.strictEqual(sum, forAlex);
     }),
   );
 });

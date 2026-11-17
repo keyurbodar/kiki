@@ -479,14 +479,17 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
       )
       .handle("mentionCount", ({ query }) =>
         snapshot.pipe(
-          Effect.map(
-            (world) =>
-              world.issues.filter(
-                (issue) =>
-                  issue.assigneeId === String(query.userId ?? viewer.id) ||
-                  extraOf(world.extras, issue.code).subscribed,
-              ).length,
-          ),
+          Effect.map((world) => {
+            const target =
+              query.userId === undefined ? viewer.id : String(query.userId);
+            return target === viewer.id
+              ? world.issues.reduce(
+                  (total, issue) =>
+                    total + extraOf(world.extras, issue.code).mentions,
+                  0,
+                )
+              : 0;
+          }),
         ),
       );
   }),
