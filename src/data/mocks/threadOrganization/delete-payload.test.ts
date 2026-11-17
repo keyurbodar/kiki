@@ -49,7 +49,7 @@ describe("threadOrganization DELETE endpoints with a payload", () => {
       });
       const removed = yield* AtomRegistry.getResult(registry, remove);
       assert.notInclude(
-        removed.items.map((item) => item.jamId),
+        removed.items.map((item) => String(item.jamId)),
         "jam_sample_0002",
       );
     }),
