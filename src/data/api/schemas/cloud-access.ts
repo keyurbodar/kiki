@@ -53,7 +53,9 @@ export const CloudAudience = Schema.String.check(
 );
 export const AwsRoleArn = Schema.String.check(
   Schema.isMaxLength(512),
-  Schema.isPattern(/^arn:aws:iam::[0-9]{12}:role\/[A-Za-z0-9+=,.@_/-]{1,480}$/u),
+  Schema.isPattern(
+    /^arn:aws:iam::[0-9]{12}:role\/[A-Za-z0-9+=,.@_/-]{1,480}$/u,
+  ),
 );
 export const AwsRegion = Schema.String.check(
   Schema.isMaxLength(32),

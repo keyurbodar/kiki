@@ -1,5 +1,6 @@
 import { DateTime } from "effect";
 import {
+  azureAudience,
   CloudAccess,
   CloudAccessAws,
   CloudAccessAzure,
@@ -9,14 +10,13 @@ import {
   CloudAccessTargetId,
   CloudAccessVault,
   type CloudProvider,
-  azureAudience,
   type CreateCloudAccessTargetRequest,
   oidcTokenFile,
   type UpdateCloudAccessTargetRequest,
 } from "../../api/schemas/cloud-access.ts";
 import { ProjectId, UserId } from "../../api/schemas/ids.ts";
-import { orgId, viewer } from "../fixtures/world.ts";
 import { fixtureNow } from "../fixtures/time.ts";
+import { orgId, viewer } from "../fixtures/world.ts";
 
 export const sampleIssuer = `https://api.capy.ai/oidc/orgs/${orgId}`;
 
@@ -109,7 +109,8 @@ export const makeTarget = (
 ) => {
   const firstOidc = !existing.some(
     (target) =>
-      target.projectId === input.projectId && target.tokenFile === oidcTokenFile,
+      target.projectId === input.projectId &&
+      target.tokenFile === oidcTokenFile,
   );
   const target = new CloudAccessTarget({
     id: CloudAccessTargetId.make(id),

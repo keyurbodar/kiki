@@ -426,7 +426,7 @@ function ProjectsCard({
   const openTarget = (target: CloudAccessTarget) =>
     void navigate({ to: routes.target, params: { targetId: target.id } });
 
-  const describe = (target: CloudAccessTarget) =>
+  const describeTarget = (target: CloudAccessTarget) =>
     ({
       gcp: target.gcp?.serviceAccountEmail,
       aws: target.aws?.roleArn,
@@ -458,7 +458,6 @@ function ProjectsCard({
               size="auto-sm"
               className="mr-3"
               render={
-                // biome-ignore lint/a11y/useAnchorContent: Button renders its children into the anchor
                 <a
                   href={meta.guideUrl}
                   target="_blank"
@@ -520,7 +519,7 @@ function ProjectsCard({
             <SettingsRow
               key={target.id}
               label={projectName(target)}
-              description={describe(target)}
+              description={describeTarget(target)}
               onClick={() => openTarget(target)}
               actions={
                 <Menu>

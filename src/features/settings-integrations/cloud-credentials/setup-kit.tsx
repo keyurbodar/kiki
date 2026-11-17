@@ -145,7 +145,6 @@ export function SetupLayout({
             variant="link"
             size="auto-sm"
             render={
-              // biome-ignore lint/a11y/useAnchorContent: Button renders its children into the anchor
               <a
                 href={meta.guideUrl}
                 target="_blank"

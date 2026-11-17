@@ -1,4 +1,5 @@
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { InferredMethod } from "../annotations.ts";
 import {
   CloudAccess,
   CloudAccessTarget,
@@ -6,7 +7,6 @@ import {
   CreateCloudAccessTargetRequest,
   UpdateCloudAccessTargetRequest,
 } from "../schemas/cloud-access.ts";
-import { InferredMethod } from "../annotations.ts";
 import { OrgId } from "../schemas/ids.ts";
 import { IntegrationMutationResult } from "../schemas/integrations.ts";
 

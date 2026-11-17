@@ -11,7 +11,7 @@ import {
   deleteCloudAccessTargetAtom,
   updateCloudAccessTargetAtom,
 } from "../../atoms/cloud-credentials.ts";
-import { orgId as worldOrgId, projects } from "../fixtures/world.ts";
+import { projects, orgId as worldOrgId } from "../fixtures/world.ts";
 
 const orgId = OrgId.make(worldOrgId);
 const reactivityKeys = cloudAccessKeys.cloudAccess(orgId);

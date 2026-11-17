@@ -145,7 +145,7 @@ export const gcpCommands = (input: {
     trust: lines(
       `PROJECT_ID=$(gcloud projects describe ${number} --format='value(projectId)')`,
       `gcloud iam workload-identity-pools create ${gcpPoolId} \\`,
-      '  --location=global --display-name=Capy --project="${PROJECT_ID:?run the first line}"',
+      '  --location=global --display-name=Capy --project="$PROJECT_ID"',
       `gcloud iam workload-identity-pools providers create-oidc ${gcpProviderId} \\`,
       `  --location=global --workload-identity-pool=${gcpPoolId} --project="\${PROJECT_ID:?run the first line}" \\`,
       `  --issuer-uri=${input.issuer} \\`,

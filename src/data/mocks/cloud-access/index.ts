@@ -37,7 +37,9 @@ export const CloudAccessMock = mockGroup("cloud-access", (handlers) =>
         const target = targets.find((row) => row.id === id);
         if (!target) return yield* unknownRow("target", id);
         const updated = next(target);
-        yield* setTargets(targets.map((row) => (row.id === id ? updated : row)));
+        yield* setTargets(
+          targets.map((row) => (row.id === id ? updated : row)),
+        );
         return updated;
       });
 
@@ -66,7 +68,9 @@ export const CloudAccessMock = mockGroup("cloud-access", (handlers) =>
           if (!targets.some((row) => row.id === params.targetId)) {
             return yield* unknownRow("target", params.targetId);
           }
-          yield* setTargets(targets.filter((row) => row.id !== params.targetId));
+          yield* setTargets(
+            targets.filter((row) => row.id !== params.targetId),
+          );
           return new IntegrationMutationResult({ ok: true });
         }),
       );
