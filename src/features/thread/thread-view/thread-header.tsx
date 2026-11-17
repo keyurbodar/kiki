@@ -1,6 +1,7 @@
 import { cx } from "class-variance-authority";
 import type { ReactNode } from "react";
 import { AppTopBar } from "@/components/app-top-bar";
+import { ChatIdentity } from "@/features/captains/chat-identity";
 import {
   type PaneTab,
   type TabMenuOptions,
@@ -18,6 +19,14 @@ export const threadHeaderClassName = cx(
   "sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center bg-panel px-2",
   "border-b-hairline border-border-1",
 );
+
+/**
+ * The bar's controls are 28×28 (Capy's `Close sidebar`, `Open a tab`, `Thread
+ * options`, `Expand pane`), which the shared `icon-sm` size cannot guarantee on
+ * its own: its `size-*` loses to the primitive's `w-fit`, so the button falls
+ * back to its icon's width. Same override the sidebar's icon buttons carry.
+ */
+const headerIconButton = "w-(--h-control-sm)!";
 
 export type ThreadHeaderProps = {
   threadId: string;
@@ -72,6 +81,7 @@ export function ThreadHeader({
                       <Button
                         variant="ghost"
                         size="icon-sm"
+                        className={headerIconButton}
                         aria-label="Thread options"
                       >
                         <Icon name="dot-grid-1x3-horizontal" size="sm" />
@@ -99,6 +109,7 @@ export function ThreadHeader({
                 <Button
                   variant="ghost"
                   size="icon-sm"
+                  className={headerIconButton}
                   aria-label={expanded ? "Collapse pane" : "Expand pane"}
                   aria-pressed={expanded}
                   onClick={onToggleExpand}
@@ -123,6 +134,7 @@ export function ThreadHeader({
           title,
           content: (
             <span className="flex min-w-0 items-center gap-1.5">
+              <ChatIdentity name={title} size="xs" />
               <span className="min-w-0 truncate">{title}</span>
             </span>
           ),

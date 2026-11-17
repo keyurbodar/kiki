@@ -6,4 +6,5 @@ export const entry = definePane({
   label: "Overview",
   order: 0,
   component: OverviewPane,
+  param: "overview",
 });

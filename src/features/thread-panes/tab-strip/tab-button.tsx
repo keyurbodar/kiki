@@ -231,7 +231,7 @@ export function PaneTabButton({
                   onClose(id);
                 }}
                 className={[
-                  "absolute top-1/2 right-1 size-5 -translate-y-1/2 rounded-(--radius-inner)",
+                  "absolute top-1/2 right-1 size-5 w-5! -translate-y-1/2 rounded-(--radius-inner)",
                   !coarse &&
                     "pointer-events-none opacity-0 transition-opacity duration-hover group-hover/tab:pointer-events-auto group-hover/tab:opacity-100 group-has-[:focus-visible]/tab:pointer-events-auto group-has-[:focus-visible]/tab:opacity-100",
                 ]

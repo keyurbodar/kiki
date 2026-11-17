@@ -6,4 +6,5 @@ export const entry = definePane({
   label: "Diffs",
   order: 30,
   component: DiffsView,
+  param: "diffs",
 });

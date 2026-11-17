@@ -2,7 +2,7 @@ import { useAtomValue } from "@effect/atom-react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { copyText } from "@/components/file-view/copy";
 import type { JamId, OrgId } from "@/data/api/schemas/ids";
 import {
@@ -24,7 +24,7 @@ import {
   ThreadView,
 } from "@/features/thread/thread-view";
 import { useThreadTimeline } from "@/features/thread/timeline";
-import { findPane } from "@/features/thread-panes/thread-pane";
+import { findPane, findPaneByParam } from "@/features/thread-panes/thread-pane";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/thread/$threadId")({
@@ -32,24 +32,22 @@ export const Route = createFileRoute("/_app/thread/$threadId")({
   component: RouteComponent,
 });
 
-/**
- * Capy opens a thread with its chat alone; a `pane` the registry has not
- * landed yet renders nothing rather than guessing at another pane.
- */
-const paneFor = (pane: string | undefined) =>
-  pane === undefined ? undefined : findPane(pane);
+/** The pane id a `pane` param opens, and undefined for a value Capy drops. */
+export const paneIdForParam = (pane: string | undefined) =>
+  findPaneByParam(pane)?.id;
 
 export type ThreadRouteProps = {
   threadId: string;
+  /** The pane to open, by registry id; the route resolves it from the URL. */
   pane: string | undefined;
-  /** The route's pane search param; undefined returns the thread to its chat. */
-  onSelectPane?: (pane: string | undefined) => void;
+  /** Clears the pane param when the open pane closes, as Capy's close does. */
+  onPaneClosed?: () => void;
 };
 
 export function ThreadRoute({
   threadId,
   pane,
-  onSelectPane,
+  onPaneClosed,
 }: ThreadRouteProps) {
   const organizations =
     Option.getOrUndefined(AsyncResult.value(useAtomValue(organizationsAtom))) ??
@@ -71,9 +69,15 @@ export function ThreadRoute({
     }),
     [orgId],
   );
-  const [expanded, setExpanded] = useState(false);
-  const entry = paneFor(pane);
+  const [paneId, setPaneId] = useState(pane);
+  useEffect(() => setPaneId(pane), [pane]);
+  const entry = findPane(paneId);
   const activeId = activeTabId(entry);
+  const closePane = () => {
+    setPaneId(undefined);
+    onPaneClosed?.();
+  };
+  const [expanded, setExpanded] = useState(false);
   return (
     <ThreadView
       threadId={threadId}
@@ -99,10 +103,10 @@ export function ThreadRoute({
             )
           }
           expanded={expanded}
-          onSelectChat={() => onSelectPane?.(undefined)}
-          onSelectTab={(id) => onSelectPane?.(id)}
+          onSelectChat={closePane}
+          onSelectTab={setPaneId}
           onCloseTab={(id) => {
-            if (id === activeId) onSelectPane?.(undefined);
+            if (id === activeId) closePane();
           }}
           onCopyLink={(path) =>
             void copyText(
@@ -118,34 +122,52 @@ export function ThreadRoute({
   );
 }
 
-/** The thread on a wide screen, with the pane search param wired to the router. */
+/** The thread on a wide screen, with the pane the route's param opened. */
 export function ThreadScreen({
   threadId,
   pane,
+  onPaneClosed,
 }: {
   threadId: string;
   pane: string | undefined;
+  onPaneClosed?: () => void;
 }) {
-  const navigate = useNavigate();
   return (
-    <ThreadRoute
-      threadId={threadId}
-      pane={pane}
-      onSelectPane={(next) =>
-        void navigate({
-          to: "/thread/$threadId",
-          params: { threadId },
-          search: next === undefined ? {} : { pane: next },
-        })
-      }
-    />
+    <ThreadRoute threadId={threadId} pane={pane} onPaneClosed={onPaneClosed} />
   );
 }
 
+/**
+ * Capy honours `?pane=overview` and `?pane=diffs` and drops every other value,
+ * so a param outside the registry's addressable set is stripped from the URL
+ * and the thread opens on its chat. Every other pane opens from the tab strip
+ * or the + menu and never reaches the URL.
+ */
 function RouteComponent() {
   const { threadId } = Route.useParams();
   const { pane } = Route.useSearch();
+  const navigate = useNavigate();
+  const paneId = paneIdForParam(pane);
+  const clearParam = useCallback(() => {
+    void navigate({
+      to: "/thread/$threadId",
+      params: { threadId },
+      search: {},
+      replace: true,
+    });
+  }, [navigate, threadId]);
+  useEffect(() => {
+    if (pane !== undefined && paneId === undefined) clearParam();
+  }, [pane, paneId, clearParam]);
   const isPhoneSurface = useIsPhoneSurface();
   if (isPhoneSurface) return <MobileThreadScreen threadId={threadId} />;
-  return <ThreadScreen threadId={threadId} pane={pane} />;
+  return (
+    <ThreadScreen
+      threadId={threadId}
+      pane={paneId}
+      onPaneClosed={() => {
+        if (pane !== undefined) clearParam();
+      }}
+    />
+  );
 }

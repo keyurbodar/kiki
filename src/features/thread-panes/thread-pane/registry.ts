@@ -2,15 +2,18 @@ import type { ComponentType } from "react";
 
 export type PaneProps = { threadId: string };
 
-/**
- * One tab kind the thread pane can open. `id` is the value of the route's
- * `pane` search param for this kind.
- */
+/** One tab kind the thread pane can open. */
 export type PaneEntry = {
   id: string;
   label: string;
   order: number;
   component: ComponentType<PaneProps>;
+  /**
+   * The route's `pane` search param value this kind answers to. Capy only
+   * honours `overview` and `diffs` from the URL and drops every other value, so
+   * only those entries carry one; the rest open from the tab strip or a menu.
+   */
+  param?: string;
 };
 
 export function definePane(entry: PaneEntry): PaneEntry {
@@ -40,4 +43,11 @@ export const panes = collectPanes(
 
 export function findPane(id: string | undefined): PaneEntry | undefined {
   return panes.find((pane) => pane.id === id);
+}
+
+/** The pane a `pane` search param value opens, and nothing for a value Capy drops. */
+export function findPaneByParam(value: string | undefined) {
+  return value === undefined
+    ? undefined
+    : panes.find((pane) => pane.param === value);
 }

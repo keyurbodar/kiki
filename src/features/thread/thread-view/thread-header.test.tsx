@@ -7,14 +7,20 @@ import {
   Outlet,
   RouterProvider,
 } from "@tanstack/react-router";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ThreadCostBadgeControl,
   type ThreadUsage,
 } from "@/features/thread/cost-badge";
 import { searchParams } from "@/lib/search-params";
-import { ThreadScreen } from "@/routes/_app/thread/$threadId";
+import { paneIdForParam, ThreadScreen } from "@/routes/_app/thread/$threadId";
 import { ThreadHeader } from "./thread-header";
 import { paneTabs } from "./thread-tabs";
 
@@ -80,6 +86,22 @@ describe("ThreadHeader", () => {
     expect(container.querySelector("header")?.className).toContain("min-h-11");
   });
 
+  it("puts the thread's avatar before its name in the chat tab", () => {
+    const { container } = renderHeader({});
+    const chat = container.querySelector('[data-pane-tab="chat"]');
+    expect(chat?.querySelector('[data-slot="chat-identity"]')).not.toBeNull();
+    expect(chat?.textContent).toContain("Fix flaky checkout test");
+  });
+
+  it("sizes the thread actions like Capy's 28×28 header controls", () => {
+    renderHeader({});
+    for (const name of ["Open a tab", "Thread options", "Expand pane"]) {
+      expect(screen.getByRole("button", { name }).className).toContain(
+        "w-(--h-control-sm)!",
+      );
+    }
+  });
+
   it("lists the registered pane tabs with a close button each", () => {
     renderHeader({});
     expect(tabButton("Files")).toBeTruthy();
@@ -127,6 +149,13 @@ describe("ThreadHeader", () => {
   });
 });
 
+const paneTab = (id: string) =>
+  document.querySelector(`[data-pane-tab="${id}"]`) ?? undefined;
+
+/** The strip mounts once the thread atoms resolve. */
+const waitForStrip = () =>
+  waitFor(() => expect(paneTab("chat")).toBeDefined(), { timeout: 3000 });
+
 describe("thread route header", () => {
   async function renderRoute(path: string) {
     const rootRoute = createRootRoute({ component: () => <Outlet /> });
@@ -137,7 +166,7 @@ describe("thread route header", () => {
       component: () => {
         const { threadId } = threadRoute.useParams();
         const { pane } = threadRoute.useSearch();
-        return <ThreadScreen threadId={threadId} pane={pane} />;
+        return <ThreadScreen threadId={threadId} pane={paneIdForParam(pane)} />;
       },
     });
     const router = createRouter({
@@ -165,11 +194,49 @@ describe("thread route header", () => {
     expect(screen.getByRole("button", { name: "Open a tab" })).toBeTruthy();
   });
 
-  it("sets the pane search param when a tab is clicked", async () => {
-    const router = await renderRoute("/thread/jam_sample_0001");
+  it("opens a pane from the tab strip without rewriting the URL", async () => {
+    await renderRoute("/thread/jam_sample_0001");
     fireEvent.click(await screen.findByText("Files"));
-    expect(router.state.location.search).toEqual({ pane: "files" });
+    expect(
+      document
+        .querySelector('[data-pane-tab="files"]')
+        ?.querySelector("[data-selected]"),
+    ).not.toBeNull();
     fireEvent.click(screen.getByText("Fix flaky checkout test"));
-    expect(router.state.location.search).toEqual({});
+    expect(
+      document
+        .querySelector('[data-pane-tab="chat"]')
+        ?.querySelector("[data-selected]"),
+    ).not.toBeNull();
+  });
+
+  it("opens the pane the URL names when Capy honours that param", async () => {
+    await renderRoute("/thread/jam_sample_0001?pane=overview");
+    await waitForStrip();
+    expect(
+      paneTab("overview")?.querySelector("[data-selected]"),
+    ).not.toBeNull();
+  });
+
+  it("renders one header bar, not a bar inside a bar", async () => {
+    await renderRoute("/thread/jam_sample_0001");
+    await waitForStrip();
+    expect(document.querySelectorAll("header").length).toBe(1);
+  });
+
+  it("drops a pane param Capy does not honour", async () => {
+    await renderRoute("/thread/jam_sample_0001?pane=files");
+    await waitForStrip();
+    expect(paneTab("chat")?.querySelector("[data-selected]")).not.toBeNull();
+    expect(paneTab("files")?.querySelector("[data-selected]")).toBeNull();
+  });
+
+  it("resolves only the pane params Capy answers to", () => {
+    expect(paneIdForParam("overview")).toBe("overview");
+    expect(paneIdForParam("diffs")).toBe("diffs");
+    expect(paneIdForParam("files")).toBeUndefined();
+    expect(paneIdForParam("threads")).toBeUndefined();
+    expect(paneIdForParam("captain_issues")).toBeUndefined();
+    expect(paneIdForParam(undefined)).toBeUndefined();
   });
 });

@@ -28,6 +28,7 @@ import {
 import { JamChat } from "@/features/thread/jam-chat";
 import { useComposerSend } from "@/features/thread/use-composer-send";
 import { ChatSkeleton } from "./chat-skeleton";
+import { threadHeaderClassName } from "./thread-header";
 
 type ClarifyRow = Extract<TimelineRow, { type: "clarify" }>;
 type EnvironmentRequestRow = Extract<
@@ -249,7 +250,7 @@ export function ThreadView({
     [handlers.orgId, threadId],
   );
 
-  const header = <AppTopBar>{topBar}</AppTopBar>;
+  const header = topBar ?? <AppTopBar className={threadHeaderClassName} />;
 
   return (
     <div className="@container flex h-full min-h-0 min-w-0 flex-1">
