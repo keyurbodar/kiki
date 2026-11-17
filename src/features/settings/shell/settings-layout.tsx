@@ -1,5 +1,5 @@
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { type ComponentType, type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { AppTopBar } from "@/components/app-top-bar";
 import {
   SettingsSidebar,
@@ -7,8 +7,7 @@ import {
   type SettingsSidebarResult,
 } from "@/components/settings-sidebar";
 import { UserMenu } from "@/components/user-menu";
-import { Button } from "@/primitives/button";
-import { Sheet, SheetContent } from "@/primitives/sheet";
+import { MobileNavTrigger } from "@/features/shell/app-layout";
 import {
   settingsNav,
   settingsNavGroups,
@@ -17,9 +16,6 @@ import {
 import { type SettingsSearchContext, searchSettings } from "../nav/search";
 import { settingsCrumb } from "./settings-crumb";
 import { SettingsIcon } from "./settings-icon";
-
-const cx = (...parts: Array<string | false | null | undefined>) =>
-  parts.filter(Boolean).join(" ");
 
 const sidebarGroups: SettingsSidebarGroup[] = settingsNavGroups.map(
   (group) => ({
@@ -80,19 +76,6 @@ export function SettingsSidebarPanel({
   );
 }
 
-function SidebarToggle({ onClick }: { onClick: () => void }) {
-  return (
-    <Button
-      variant="ghost"
-      size="icon-sm"
-      aria-label="Toggle sidebar"
-      onClick={onClick}
-    >
-      <SettingsIcon name="sidebar-simple-left-wide" />
-    </Button>
-  );
-}
-
 export type SettingsMobileSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -102,24 +85,17 @@ export type SettingsMobileSheetProps = {
 export type SettingsLayoutProps = {
   children?: ReactNode;
   searchContext?: SettingsSearchContext;
-  /** Replaces the built-in phone navigation sheet (D8's MobileSettingsSheet). */
-  MobileSheet?: ComponentType<SettingsMobileSheetProps>;
 };
 
 /**
- * Settings layout: Capy's settings route (top bar with back crumb, scrolling
- * content, hash scroll) inside a stand-in for the app shell's sidebar container
- * until B1's shell hosts `SettingsSidebarPanel` itself.
+ * Settings route content: the back crumb's top bar on narrow viewports, the
+ * scrolling page and hash scrolling. The sidebar, its panel and the phone
+ * navigation sheet come from the app shell, which hosts SettingsSidebarPanel on
+ * every settings route.
  */
-export function SettingsLayout({
-  children,
-  searchContext,
-  MobileSheet,
-}: SettingsLayoutProps) {
+export function SettingsLayout({ children }: SettingsLayoutProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const hash = useRouterState({ select: (s) => s.location.hash });
-  const [open, setOpen] = useState(true);
-  const [mobileOpen, setMobileOpen] = useState(false);
   const crumb = settingsCrumb(pathname);
 
   useEffect(() => {
@@ -129,100 +105,17 @@ export function SettingsLayout({
         ?.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [hash]);
 
-  useEffect(() => {
-    void pathname;
-    setMobileOpen(false);
-  }, [pathname]);
-
-  const toggle = () => {
-    if (window.matchMedia("(width < 48rem)").matches) setMobileOpen(true);
-    else setOpen((value) => !value);
-  };
-
   return (
-    <div
-      data-slot="sidebar-wrapper"
-      className="flex h-dvh w-full bg-chrome [--sidebar-width:--spacing(60)]"
-    >
-      <div
-        data-slot="sidebar-gap"
-        className={cx(
-          "ease-out-quint relative w-(--sidebar-width) shrink-0 transition-[width] duration-base max-md:hidden",
-          !open && "w-0 duration-fast",
-          "motion-reduce:transition-none",
-        )}
+    <>
+      <AppTopBar
+        className="sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center bg-panel px-2 md:hidden"
+        leading={crumb ? <SettingsCrumbLink crumb={crumb} /> : undefined}
+        trailing={<MobileNavTrigger />}
       />
-      <div
-        data-slot="sidebar-container"
-        className={cx(
-          "ease-out-quint fixed top-(--shell-top) bottom-0 left-0 z-(--z-sidebar) flex w-(--sidebar-width) transition-[translate] duration-base max-md:hidden",
-          !open && "-translate-x-full duration-fast",
-          "motion-reduce:transition-none",
-        )}
-      >
-        <div
-          data-slot="sidebar-content"
-          inert={!open || undefined}
-          className="flex h-full min-w-0 flex-1 flex-col"
-        >
-          <SettingsSidebarPanel
-            searchContext={searchContext}
-            trigger={<SidebarToggle onClick={toggle} />}
-          />
-        </div>
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto md:scroll-fade-y">
+        {children}
       </div>
-      <div
-        data-slot="sidebar-panel"
-        className={cx(
-          "ease-out-quint isolate flex min-w-0 flex-1 flex-col transition-[margin-left] duration-base md:my-2 md:mr-2 motion-reduce:transition-none",
-          "bg-panel md:rounded-(--radius-panel) md:border-[0.03125rem] md:border-border-1 md:shadow-card",
-          !open && "md:ml-2 md:duration-fast",
-        )}
-      >
-        <main className="relative flex min-h-0 flex-1 flex-col overflow-y-auto">
-          <AppTopBar
-            className={cx(
-              "sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center bg-panel px-2",
-              open && crumb === undefined && "md:hidden",
-            )}
-          >
-            <span
-              className={cx(
-                "flex w-(--h-control-sm) shrink-0 items-center overflow-hidden -mr-1",
-                open && "md:hidden",
-              )}
-            >
-              <SidebarToggle onClick={toggle} />
-            </span>
-            {crumb && (
-              <span className="flex min-w-0 shrink-0 items-center pl-2">
-                <SettingsCrumbLink crumb={crumb} />
-              </span>
-            )}
-          </AppTopBar>
-          <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto md:scroll-fade-y">
-            {children}
-          </div>
-        </main>
-      </div>
-      {MobileSheet ? (
-        <MobileSheet
-          open={mobileOpen}
-          onOpenChange={setMobileOpen}
-          searchContext={searchContext}
-        />
-      ) : (
-        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetContent aria-label="Navigation">
-            <SettingsSidebarPanel
-              searchContext={searchContext}
-              trigger={<SidebarToggle onClick={() => setMobileOpen(false)} />}
-              onNavigate={() => setMobileOpen(false)}
-            />
-          </SheetContent>
-        </Sheet>
-      )}
-    </div>
+    </>
   );
 }
 
