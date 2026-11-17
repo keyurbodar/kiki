@@ -1,16 +1,21 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import {
+  FileUploadDeclaration,
+  FileUploadTargets,
+  FileUrl,
+} from "../schemas/files.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class FilesGroup extends HttpApiGroup.make("files").add(
   HttpApiEndpoint.post("upload", "/orgs/:orgId/files", {
     params: { orgId: Schema.String },
-    payload: Undecoded,
-    success: Undecoded,
+    payload: Schema.Struct({ files: Schema.Array(FileUploadDeclaration) }),
+    success: FileUploadTargets,
   }),
   HttpApiEndpoint.post("pendingPreview", "/orgs/:orgId/files/:fileId/preview", {
     params: { orgId: Schema.String, fileId: Schema.String },
-    success: Undecoded,
+    success: FileUrl,
   }),
   HttpApiEndpoint.put("write", "/orgs/:orgId/jams/:jamId/files/:fileId", {
     params: {
