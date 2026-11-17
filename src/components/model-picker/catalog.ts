@@ -194,19 +194,20 @@ export function groupModels(
     ? entries.filter((entry) => entry.aliasOf === undefined)
     : entries;
   return [...new Set(visible.map(groupKey))]
-    .flatMap((key) => {
+    .flatMap((key): ModelGroup[] => {
       const [first, ...rest] = visible
         .filter((entry) => groupKey(entry) === key)
         .toSorted((a, b) => Number(isPlanEntry(b)) - Number(isPlanEntry(a)))
         .map(routeOption);
       if (first === undefined) return [];
+      const routes: [RouteOption, ...RouteOption[]] = [first, ...rest];
       return [
         {
           key,
           lab: labOf(first.entry),
           name: first.entry.name,
           older: olderModels.has(modelSlug(first.entry.id)),
-          routes: [first, ...rest],
+          routes,
         },
       ];
     })

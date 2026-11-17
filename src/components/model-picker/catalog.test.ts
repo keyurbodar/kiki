@@ -8,6 +8,7 @@ import {
   groupModels,
   isFreeRoute,
   type ModelEntry,
+  type ModelGroup,
   maxFavorites,
   parseEntries,
   preferredRoute,
@@ -21,8 +22,8 @@ import {
 } from "./catalog";
 
 const entry = (over: Partial<ModelEntry> & { id: string }): ModelEntry => ({
-  name: over.id.split("/")[1],
-  provider: over.id.split("/")[0],
+  name: over.id.split("/")[1] ?? over.id,
+  provider: over.id.split("/")[0] ?? over.id,
   efforts: ["low", "medium", "high"],
   defaultEffort: "medium",
   fast: false,
@@ -129,8 +130,11 @@ describe("model picker catalog", () => {
     expect(featured.map((item) => item.group.key)).toEqual([
       "zai/glm-5.3-flash-ads",
     ]);
-    expect(featured[0].note).toBe("Free, supported by ads");
-    expect(isFreeRoute(featured[0].group.routes[0])).toBe(true);
+    const [first] = featured;
+    expect(first?.note).toBe("Free, supported by ads");
+    expect(
+      first === undefined ? false : isFreeRoute(first.group.routes[0]),
+    ).toBe(true);
   });
 
   it("searches names and labs, prefering whole-word matches", () => {
