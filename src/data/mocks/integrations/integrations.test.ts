@@ -448,9 +448,32 @@ describe("integrations mock", () => {
           completePaperOAuth,
           completeSlackOAuth,
         ]) {
-          registry.set(mutation, { payload: {} });
-          assert.isDefined(yield* AtomRegistry.getResult(registry, mutation));
+          registry.set(mutation, { payload: { state: "state_sample" } });
+          assert.strictEqual(
+            (yield* AtomRegistry.getResult(registry, mutation)).result,
+            "connected",
+          );
         }
+
+        registry.set(completeSlackOAuth, {
+          payload: { state: "state_sample", error: "access_denied" },
+        });
+        assert.strictEqual(
+          (yield* AtomRegistry.getResult(registry, completeSlackOAuth, {
+            suspendOnWaiting: true,
+          })).result,
+          "denied",
+        );
+        registry.set(completeGitHubOAuth, {
+          payload: { state: "state_sample", code: "code_sample" },
+        });
+        const github = yield* AtomRegistry.getResult(
+          registry,
+          completeGitHubOAuth,
+          { suspendOnWaiting: true },
+        );
+        assert.strictEqual(github.orgId, orgId);
+        assert.strictEqual(github.returnTo, "settings");
 
         for (const mutation of [
           startLinearOAuth,
@@ -482,14 +505,21 @@ describe("integrations mock", () => {
         );
 
         for (const mutation of [previewLinearLink, previewSlackLink]) {
-          registry.set(mutation, {
-            payload: { threadId: threads.darkMode.id },
-          });
-          assert.isTrue(
-            row(yield* AtomRegistry.getResult(registry, mutation)).valid ===
-              true,
-          );
+          registry.set(mutation, { payload: { token: "link_token_sample" } });
+          const preview = yield* AtomRegistry.getResult(registry, mutation);
+          assert.strictEqual(preview.orgName, world.org.name);
+          assert.strictEqual(preview.externalUserName, "Alex Morgan");
+          assert.isString(preview.externalUserId);
+          assert.strictEqual(preview.workspaceName, "Acme sample");
         }
+        registry.set(previewSlackLink, {
+          payload: { token: "link_token_sample" },
+        });
+        assert.isString(
+          (yield* AtomRegistry.getResult(registry, previewSlackLink, {
+            suspendOnWaiting: true,
+          })).avatarUrl,
+        );
 
         registry.set(linkGitHubInstallation, {
           params: org,
