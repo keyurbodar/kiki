@@ -1,5 +1,5 @@
 import { Fragment, type ReactElement } from "react";
-import { mentionCategories } from "../composer/composer-menus";
+import { mentionCategories } from "../composer";
 import { MobileIcon } from "../thread/mobile-icon";
 import {
   MobileDrawer,
