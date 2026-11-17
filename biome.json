@@ -7,7 +7,21 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!src/routeTree.gen.ts", "!**/*.svg"]
+    "includes": [
+      "**",
+      "!src/routeTree.gen.ts",
+      "!**/*.svg",
+      "!.bun/**",
+      "!**/.bun/**",
+      "!.agents/**",
+      "!.claude/**",
+      "!.codex/**",
+      "!.cursor/**",
+      "!.gemini/**",
+      "!.continue/**",
+      "!MACHINE.md",
+      "!**/MACHINE.md"
+    ]
   },
   "formatter": {
     "enabled": true,
