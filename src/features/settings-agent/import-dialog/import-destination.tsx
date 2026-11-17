@@ -96,7 +96,7 @@ export function ImportDestination({
                 </span>
                 <span className="min-w-0 truncate">{project.name}</span>
                 {project.id === projectId && !unresolved ? (
-                  <Icon name="checkmark-1" className="ml-auto" />
+                  <Icon name="circle-check" className="ml-auto" />
                 ) : null}
               </ResponsiveMenuItem>
             ))}

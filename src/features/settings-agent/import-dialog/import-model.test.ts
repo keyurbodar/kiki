@@ -8,6 +8,7 @@ import {
   type ImportSession,
   placementRows,
   scopeManifest,
+  selectableKeys,
   sessionsSummary,
   tildePath,
   toggleSelection,
@@ -124,6 +125,33 @@ describe("scopeManifest", () => {
       "e",
     ]);
     expect([...scoped.selected]).toEqual(["claude-code:a", "claude-code:b"]);
+    expect(
+      scoped.manifest.sessions.find((s) => s.sessionId === "e")?.imported,
+    ).toBe(true);
+    expect(
+      selectableKeys(
+        groupSessions(scoped.manifest).projects[0] ?? { sessions: [] },
+      ),
+    ).not.toContain("claude-code:e");
+  });
+
+  it("keeps sessions completed in a previous run unselectable on reopen", () => {
+    const scoped = scopeManifest(
+      {
+        ...manifest,
+        sessions: [session({ sessionId: "a" }), session({ sessionId: "b" })],
+      },
+      "claude-code",
+      new Set(["claude-code:b"]),
+    );
+    expect(
+      scoped.manifest.sessions.find((s) => s.sessionId === "b")?.imported,
+    ).toBe(true);
+    expect([...scoped.selected]).toEqual(["claude-code:a"]);
+    const keys = groupSessions(scoped.manifest)
+      .projects.flatMap(selectableKeys)
+      .concat(groupSessions(scoped.manifest).folders.flatMap(selectableKeys));
+    expect(keys).not.toContain("claude-code:b");
   });
 });
 

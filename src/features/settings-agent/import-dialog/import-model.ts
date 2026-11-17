@@ -142,14 +142,22 @@ export function scopeManifest(
   const sessions = manifest.sessions.flatMap((session) =>
     source !== undefined && session.source !== source
       ? []
-      : [session.updatable ? { ...session, imported: false } : session],
+      : [
+          session.updatable
+            ? { ...session, imported: false }
+            : doneKeys.has(sessionKey(session))
+              ? { ...session, imported: true }
+              : session,
+        ],
   );
   return {
     manifest: { ...manifest, sessions },
     selected: new Set(
       sessions
         .filter(
-          (session) => !session.imported && !doneKeys.has(sessionKey(session)),
+          (session) =>
+            !session.imported &&
+            (session.updatable || !doneKeys.has(sessionKey(session))),
         )
         .map(sessionKey),
     ),

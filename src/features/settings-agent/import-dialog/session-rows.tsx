@@ -12,7 +12,7 @@ import {
 } from "./import-model";
 
 export const ROW_CLASS =
-  "flex h-(--h-menu-row) items-center gap-2 rounded px-2 text-sm transition-colors duration-100";
+  "flex h-(--h-menu-row) items-center gap-2 rounded px-2 text-sm transition-colors duration-base";
 
 export function ChevronDown({ className }: { className?: string }) {
   return (
