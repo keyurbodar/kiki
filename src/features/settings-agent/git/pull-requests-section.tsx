@@ -46,6 +46,8 @@ import {
   type BotHealth,
   botAllowlistMax,
   canAddBot,
+  ciModeOptions,
+  conflictModeOptions,
   feedbackModeOptions,
   githubAvatarUrl,
   readBotHealth,
@@ -70,7 +72,10 @@ export type PullRequestSettingsProps = {
   busy: string | null;
   disabled?: boolean;
   disabledReason?: string;
-  onModeChange: (key: FeedbackModeKey, mode: FeedbackMode | undefined) => void;
+  onModeChange: (
+    key: FeedbackModeKey,
+    mode: FeedbackMode | string | undefined,
+  ) => void;
   onAgeChange: (days: number | undefined) => void;
   onBotAllowlistChange: (logins: string[] | undefined) => void;
   onDraftDefaultChange: (draft: boolean | undefined) => void;
@@ -100,6 +105,15 @@ export function PullRequestSettings({
   const conflicts = row("merge-conflicts");
   const botFeedback = row("review-bot-feedback");
   const bots = row("review-bots");
+  const modes = {
+    humanMode: feedbackModeOptions,
+    botMode: feedbackModeOptions,
+    ciMode: ciModeOptions,
+    conflictMode: conflictModeOptions,
+  } satisfies Record<
+    FeedbackModeKey,
+    ReadonlyArray<{ value: string; label: string }>
+  >;
   const modeRow = (
     key: FeedbackModeKey,
     entry: { id: string; title: string },
@@ -110,7 +124,7 @@ export function PullRequestSettings({
         value={values?.[key]}
         inherits={you}
         inherited={you ? organization[key] : undefined}
-        options={feedbackModeOptions}
+        options={modes[key]}
         disabled={locked}
         disabledReason={disabledReason}
         onChange={(mode) => onModeChange(key, mode)}

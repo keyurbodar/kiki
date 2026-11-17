@@ -1,4 +1,9 @@
-import type { CommitAuthor, FeedbackMode } from "../threads/agent-settings";
+import type {
+  CiMode,
+  CommitAuthor,
+  ConflictMode,
+  FeedbackMode,
+} from "../threads/agent-settings";
 
 export type CommitAuthorOption = {
   author: CommitAuthor;
@@ -116,13 +121,15 @@ export const readGitSigning = (value: unknown): GitSigning | undefined => {
   if (raw === undefined) return undefined;
   const status = raw.registrationStatus;
   return {
-    hasKey: raw.hasKey === true,
+    hasKey:
+      raw.hasKey === true ||
+      (raw.enabled === true && text(raw.publicKey) !== null),
     registrationStatus:
       status === "registered" || status === "pending"
         ? status
         : "manual_required",
     publicKey: text(raw.publicKey),
-    fingerprint: text(raw.fingerprint),
+    fingerprint: text(raw.fingerprint ?? raw.keyId),
   };
 };
 
@@ -153,6 +160,21 @@ export const feedbackModeLabels: Record<FeedbackMode, string> = {
 export const feedbackModeOptions = (["off", "listen", "react"] as const).map(
   (value) => ({ value, label: feedbackModeLabels[value] }),
 );
+
+export const ciModeOptions: ReadonlyArray<{ value: CiMode; label: string }> = [
+  { value: "off", label: "Ignore" },
+  { value: "once", label: "Once" },
+  { value: "always", label: "Always" },
+];
+
+export const conflictModeOptions: ReadonlyArray<{
+  value: ConflictMode;
+  label: string;
+}> = [
+  { value: "ask", label: "Ask" },
+  { value: "react", label: "React" },
+  { value: "ignore", label: "Ignore" },
+];
 
 export const botAllowlistMax = 20;
 

@@ -1,3 +1,5 @@
+import { AsyncResult } from "effect/reactivity";
+
 export type SettingsScope = "you" | "org";
 
 export type SettingsAgentPageId = "threads" | "git";
@@ -80,12 +82,14 @@ export type TaskLimitKey = "concurrent" | "nestedDepth";
 export type TaskLimits = { concurrent?: number; nestedDepth?: number };
 
 export type FeedbackMode = "off" | "listen" | "react";
+export type CiMode = "off" | "once" | "always";
+export type ConflictMode = "ask" | "react" | "ignore";
 
 export type FeedbackSettings = {
   humanMode: FeedbackMode;
   botMode: FeedbackMode;
-  ciMode: FeedbackMode;
-  conflictMode: FeedbackMode;
+  ciMode: CiMode;
+  conflictMode: ConflictMode;
   conflictMaxThreadAgeDays: number;
   botAllowlist: string[];
   prDraftDefault: boolean;
@@ -127,6 +131,12 @@ const mode = (value: unknown): FeedbackMode | undefined =>
   value === "off" || value === "listen" || value === "react"
     ? value
     : undefined;
+const ciMode = (value: unknown): CiMode | undefined =>
+  value === "off" || value === "once" || value === "always" ? value : undefined;
+const conflictMode = (value: unknown): ConflictMode | undefined =>
+  value === "ask" || value === "react" || value === "ignore"
+    ? value
+    : undefined;
 const logins = (value: unknown) =>
   Array.isArray(value)
     ? value.filter((login): login is string => typeof login === "string")
@@ -143,8 +153,8 @@ export const readFeedbackOverrides = (value: unknown) => {
   return defined<FeedbackOverrides>({
     humanMode: mode(raw.humanMode),
     botMode: mode(raw.botMode),
-    ciMode: mode(raw.ciMode),
-    conflictMode: mode(raw.conflictMode),
+    ciMode: ciMode(raw.ciMode),
+    conflictMode: conflictMode(raw.conflictMode),
     conflictMaxThreadAgeDays: num(raw.conflictMaxThreadAgeDays),
     botAllowlist: logins(raw.botAllowlist),
     prDraftDefault: bool(raw.prDraftDefault),
@@ -158,8 +168,8 @@ export const readFeedbackSettings = (value: unknown): FeedbackSettings => {
   return {
     humanMode: raw.humanMode ?? "react",
     botMode: raw.botMode ?? "react",
-    ciMode: raw.ciMode ?? "react",
-    conflictMode: raw.conflictMode ?? "react",
+    ciMode: raw.ciMode ?? "once",
+    conflictMode: raw.conflictMode ?? "ask",
     conflictMaxThreadAgeDays: raw.conflictMaxThreadAgeDays ?? 3,
     botAllowlist: raw.botAllowlist ?? [],
     prDraftDefault: raw.prDraftDefault ?? false,
@@ -193,6 +203,29 @@ export const readAgentPreferences = (
       }),
     gitSigning: signing && defined({ signCommits: bool(signing.signCommits) }),
     archiveIdleAfterDays: num(preferences?.archiveIdleAfterDays),
+  };
+};
+
+export type SettingsQuery<T> = {
+  value: T | undefined;
+  loading: boolean;
+  failed: boolean;
+};
+
+/** Keeps pending, failed and empty responses distinct so the UI never spins forever. */
+export const settingsQuery = <A, E>(
+  result: AsyncResult.AsyncResult<A, E>,
+  read: (value: A) => T,
+): SettingsQuery<T> => {
+  const value = AsyncResult.isSuccess(result)
+    ? read(result.value)
+    : AsyncResult.isFailure(result) && result.previousSuccess._tag === "Some"
+      ? read(result.previousSuccess.value)
+      : undefined;
+  return {
+    value,
+    loading: result.waiting && value === undefined,
+    failed: AsyncResult.isFailure(result) && value === undefined,
   };
 };
 

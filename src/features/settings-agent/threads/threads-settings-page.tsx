@@ -34,9 +34,11 @@ import {
   archiveIdleValue,
   defaultTaskLimits,
   errorMessage,
+  patchTaskLimits,
   type SettingsScope,
   type TaskLimitKey,
   type TaskLimits,
+  taskLimitsPayload,
   titlePromptMaxLength,
   titleTriggerChoice,
   titleTriggerOptions,
@@ -85,20 +87,41 @@ export function ThreadsSettingsPage() {
 }
 
 function ThreadsYou() {
-  const preferences = useAgentPreferences();
-  const feedback = useFeedbackSettings();
-  const { organization } = useActiveOrganization();
+  const { organization, failed } = useActiveOrganization();
+  const preferencesQuery = useAgentPreferences();
+  const feedbackQuery = useFeedbackSettings();
   const updatePreferences = useAtomSet(updatePreferencesAtom, {
     mode: "promise",
   });
   const [busy, setBusy] = useState<string | null>(null);
+  if (preferencesQuery.failed || feedbackQuery.failed || failed)
+    return (
+      <SettingsSection title="Threads">
+        <SettingsRow
+          label="Could not load thread settings"
+          description="Check your connection and try again"
+        >
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              window.location.reload();
+            }}
+          >
+            Retry
+          </Button>
+        </SettingsRow>
+      </SettingsSection>
+    );
+  const preferences = preferencesQuery.value;
+  const feedback = feedbackQuery.value;
   if (preferences === undefined || feedback === undefined)
     return <SettingsLoadingCard />;
   const archive = row("archive-idle-threads");
   const updateTasks = (key: TaskLimitKey, value: number | undefined) => {
     setBusy(key);
     updatePreferences({
-      payload: { tasks: { [key]: value ?? null } },
+      payload: { tasks: patchTaskLimits(preferences, key, value) },
       reactivityKeys: userKeys,
     })
       .catch((error) =>
@@ -165,10 +188,27 @@ function ThreadsYou() {
 }
 
 function OrgSubagentsSection() {
-  const { organization, waiting } = useActiveOrganization();
+  const { organization, waiting, failed } = useActiveOrganization();
   const setTaskLimits = useAtomSet(setTaskLimitsAtom, { mode: "promise" });
   const { isAdmin, adminReason } = useIsAdmin();
   const [busy, setBusy] = useState<TaskLimitKey | null>(null);
+  if (failed)
+    return (
+      <SettingsSection title="Subagents">
+        <SettingsRow
+          label="Could not load subagent settings"
+          description="Check your connection and try again"
+        >
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => window.location.reload()}
+          >
+            Retry
+          </Button>
+        </SettingsRow>
+      </SettingsSection>
+    );
   if (organization === undefined) return <SettingsLoadingCard />;
   return (
     <SubagentsSection
@@ -185,7 +225,15 @@ function OrgSubagentsSection() {
         setBusy(key);
         setTaskLimits({
           params: { orgId: organization.id },
-          payload: { [key]: value ?? null },
+          payload: taskLimitsPayload(
+            key,
+            value,
+            {
+              concurrent: organization.taskConcurrentLimit ?? undefined,
+              nestedDepth: organization.taskNestedDepth ?? undefined,
+            },
+            defaultTaskLimits,
+          ),
           reactivityKeys: orgKeys,
         })
           .catch((error) =>

@@ -6,14 +6,18 @@ import {
   type FeedbackSettings,
   readAgentPreferences,
   readFeedbackSettings,
+  type SettingsQuery,
+  settingsQuery,
 } from "./agent-settings";
 
 /** The signed-in org (kiki has one org per session until the shell picks one), and whether its list is refetching. */
 export function useActiveOrganization() {
   const result = useAtomValue(organizationsAtom);
+  const query = settingsQuery(result, (items) => items[0]);
   return {
-    organization: AsyncResult.isSuccess(result) ? result.value[0] : undefined,
-    waiting: result.waiting,
+    organization: query.value,
+    waiting: query.loading,
+    failed: query.failed,
   };
 }
 
@@ -30,25 +34,26 @@ export function useIsAdmin() {
   };
 }
 
-export function useAgentPreferences() {
-  const result = useAtomValue(currentUserAtom);
-  return AsyncResult.isSuccess(result)
-    ? readAgentPreferences(result.value.preferences)
-    : undefined;
+export function useAgentPreferences(): SettingsQuery<
+  ReturnType<typeof readAgentPreferences>
+> {
+  return settingsQuery(useAtomValue(currentUserAtom), (user) =>
+    readAgentPreferences(user.preferences),
+  );
 }
 
 const pending: Atom.Atom<AsyncResult.AsyncResult<unknown, unknown>> = Atom.make(
   AsyncResult.initial(true),
 );
 
-export function useFeedbackSettings(): FeedbackSettings | undefined {
-  const { organization } = useActiveOrganization();
+export function useFeedbackSettings(): SettingsQuery<FeedbackSettings> {
+  const { organization, failed: orgFailed } = useActiveOrganization();
   const atom: Atom.Atom<AsyncResult.AsyncResult<unknown, unknown>> =
     organization === undefined
       ? pending
       : feedbackSettingsAtom(organization.id);
-  const result = useAtomValue(atom);
-  return organization !== undefined && AsyncResult.isSuccess(result)
-    ? readFeedbackSettings(result.value)
-    : undefined;
+  const query = settingsQuery(useAtomValue(atom), readFeedbackSettings);
+  return organization === undefined
+    ? { value: undefined, loading: false, failed: orgFailed }
+    : query;
 }

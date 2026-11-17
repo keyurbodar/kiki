@@ -2,7 +2,10 @@ import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
 import { toast } from "sonner";
-import { SettingsLoadingCard } from "@/components/settings-page";
+import {
+  SettingsLoadingCard,
+  SettingsSection,
+} from "@/components/settings-page";
 import {
   agentSettingsKeys,
   configureFeedbackAtom,
@@ -12,10 +15,15 @@ import {
   updatePreferencesAtom,
 } from "@/data/atoms/agent-settings";
 import { reactivityKeys } from "@/data/atoms/conventions";
+import { Button } from "@/primitives/button";
+import { SettingsRow } from "@/primitives/settings-row";
 import {
   errorMessage,
   type FeedbackSettings,
   type GitPreferences,
+  patchGithubPreferences,
+  patchGitPreferences,
+  patchSigningPreferences,
   SettingsAgentPage,
   useActiveOrganization,
   useAgentPreferences,
@@ -39,8 +47,9 @@ export function GitSettingsPage() {
 }
 
 function GitYou() {
-  const preferences = useAgentPreferences();
-  const feedback = useFeedbackSettings();
+  const { failed } = useActiveOrganization();
+  const preferencesQuery = useAgentPreferences();
+  const feedbackQuery = useFeedbackSettings();
   const signingResult = useAtomValue(gitSigningAtom);
   const refreshSigning = useAtomRefresh(gitSigningAtom);
   const updatePreferences = useAtomSet(updatePreferencesAtom, {
@@ -49,6 +58,30 @@ function GitYou() {
   const ensureSigning = useAtomSet(ensureGitSigningAtom, { mode: "promise" });
   const rotateSigning = useAtomSet(rotateGitSigningAtom, { mode: "promise" });
   const [busy, setBusy] = useState<string | null>(null);
+  if (
+    preferencesQuery.failed ||
+    feedbackQuery.failed ||
+    failed ||
+    AsyncResult.isFailure(signingResult)
+  )
+    return (
+      <SettingsSection title="Git & pull requests">
+        <SettingsRow
+          label="Could not load settings"
+          description="Check your connection and try again"
+        >
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => window.location.reload()}
+          >
+            Retry
+          </Button>
+        </SettingsRow>
+      </SettingsSection>
+    );
+  const preferences = preferencesQuery.value;
+  const feedback = feedbackQuery.value;
   if (preferences === undefined || feedback === undefined)
     return <SettingsLoadingCard />;
   const signing = AsyncResult.isSuccess(signingResult)
@@ -58,7 +91,7 @@ function GitYou() {
   const updateGit = (patch: GitPatch) => {
     setBusy(Object.keys(patch)[0] ?? "git");
     return updatePreferences({
-      payload: { git: patch },
+      payload: { git: patchGitPreferences(preferences, patch) },
       reactivityKeys: userKeys,
     })
       .then(() => true)
@@ -71,7 +104,7 @@ function GitYou() {
   const updateGithub = (key: keyof FeedbackSettings, value: unknown) => {
     setBusy(key);
     updatePreferences({
-      payload: { github: { [key]: value ?? null } },
+      payload: { github: patchGithubPreferences(preferences, key, value) },
       reactivityKeys: userKeys,
     })
       .catch((error) =>
@@ -99,7 +132,9 @@ function GitYou() {
           (signCommits ? ensureSigning({}) : Promise.resolve(undefined))
             .then(() =>
               updatePreferences({
-                payload: { gitSigning: { signCommits } },
+                payload: {
+                  gitSigning: patchSigningPreferences(preferences, signCommits),
+                },
                 reactivityKeys: userKeys,
               }),
             )
@@ -139,11 +174,29 @@ function GitYou() {
 }
 
 function GitOrg() {
-  const { organization } = useActiveOrganization();
-  const feedback = useFeedbackSettings();
+  const { organization, failed } = useActiveOrganization();
+  const feedbackQuery = useFeedbackSettings();
   const configure = useAtomSet(configureFeedbackAtom, { mode: "promise" });
   const { isAdmin, adminReason } = useIsAdmin();
   const [busy, setBusy] = useState<string | null>(null);
+  if (feedbackQuery.failed || failed)
+    return (
+      <SettingsSection title="Git & pull requests">
+        <SettingsRow
+          label="Could not load settings"
+          description="Check your connection and try again"
+        >
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => window.location.reload()}
+          >
+            Retry
+          </Button>
+        </SettingsRow>
+      </SettingsSection>
+    );
+  const feedback = feedbackQuery.value;
   if (feedback === undefined || organization === undefined)
     return <SettingsLoadingCard />;
   const save = (key: keyof FeedbackSettings, value: unknown) => {
@@ -168,7 +221,7 @@ function GitOrg() {
       disabled={!isAdmin}
       disabledReason={adminReason}
       onModeChange={save}
-      onAgeChange={(days) => save("conflictMaxThreadAgeDays", days)}
+      onAgeChange={(days) => save("conflictMaxThreadAgeDays", days ?? 3)}
       onBotAllowlistChange={(logins) => save("botAllowlist", logins)}
       onDraftDefaultChange={(draft) => save("prDraftDefault", draft)}
       onBadgeChange={(shown) => save("prBadge", shown)}
