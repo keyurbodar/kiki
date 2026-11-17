@@ -25,7 +25,7 @@ import { cx } from "../ui/cx.ts";
 import { PlusGlyph } from "../ui/glyphs.tsx";
 
 export const fieldCard = "flex flex-col gap-4 p-4";
-export const fieldDivider = "border-t-[0.5px] border-border-1 pt-4";
+export const fieldDivider = "border-t border-border-1 pt-4";
 const labelClass = "flex flex-col gap-1.5 text-sm font-medium text-foreground";
 
 export function FieldRow({
@@ -381,12 +381,13 @@ export function RadioCard({
   readonly onSelect: () => void;
 }) {
   return (
+    // biome-ignore lint/a11y/useSemanticElements: Capy renders its radio cards as buttons with role radio
     <button
       type="button"
       role="radio"
       aria-checked={checked}
       onClick={onSelect}
-      className="flex w-full cursor-pointer select-none flex-row items-center gap-3 overflow-clip rounded-(--radius-card) border-[0.5px] border-(--card-hairline) bg-card px-4 py-3 text-left shadow-card transition-colors duration-fast hover:bg-card-hover focus-visible:outline-ring-inset disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-55"
+      className="flex w-full cursor-pointer select-none flex-row items-center gap-3 overflow-clip rounded-(--radius-card) border border-(--card-hairline) bg-card px-4 py-3 text-left shadow-card transition-colors duration-fast hover:bg-card-hover focus-visible:outline-ring-inset disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-55"
     >
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="flex items-center gap-2 text-sm font-medium text-foreground">
@@ -398,7 +399,7 @@ export function RadioCard({
       </span>
       <span
         className={cx(
-          "flex size-4 shrink-0 items-center justify-center rounded-full border-[0.5px] transition-colors duration-fast",
+          "flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors duration-fast",
           checked
             ? "border-transparent bg-primary"
             : "border-[light-dark(var(--border-3),var(--muted-foreground-3))] bg-input",
