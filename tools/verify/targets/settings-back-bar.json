@@ -1,0 +1,23 @@
+{
+  "defaults": { "maxMismatch": 100 },
+  "targets": [
+    {
+      "id": "settings-themes",
+      "route": "/settings/appearance/themes",
+      "viewport": "1378x803",
+      "variants": { "default/dark": { "frame": "IBgFko0bsV" } }
+    },
+    {
+      "id": "settings-notifications-device",
+      "route": "/settings/notifications/device",
+      "viewport": "1378x803",
+      "variants": { "default/dark": { "frame": "9fwVWIB_uQ" } }
+    },
+    {
+      "id": "settings-cloud-credentials-gcp",
+      "route": "/settings/cloud-credentials/gcp",
+      "viewport": "1425x803",
+      "variants": { "default/dark": { "frame": "NAEffi5Xjw" } }
+    }
+  ]
+}

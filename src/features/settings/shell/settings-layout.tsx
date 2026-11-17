@@ -1,4 +1,5 @@
 import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { cx } from "class-variance-authority";
 import { type ReactNode, useEffect, useState } from "react";
 import { AppTopBar } from "@/components/app-top-bar";
 import {
@@ -108,7 +109,10 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
   return (
     <>
       <AppTopBar
-        className="sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center bg-panel px-2 md:hidden"
+        className={cx(
+          "sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center bg-panel px-2",
+          crumb === undefined && "md:hidden",
+        )}
         leading={crumb ? <SettingsCrumbLink crumb={crumb} /> : undefined}
         trailing={<MobileNavTrigger />}
       />
