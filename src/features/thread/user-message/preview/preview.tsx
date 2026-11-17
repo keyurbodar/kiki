@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "@/styles.css";
+import type { FileId } from "@/data/api/schemas/files";
 import type { FileRef } from "@/data/events";
 import { AgentMessage } from "@/features/thread/agent-message";
 import {
@@ -28,7 +29,7 @@ const shot = (
   width: number,
   height: number,
 ): FileRef => ({
-  fileId: `file_${id}`,
+  fileId: `file_${id}` as FileId,
   name,
   mediaType: "image/png",
   sizeBytes: 218_112,
@@ -41,7 +42,7 @@ const two = shot("two", "canvas.png", 960, 540);
 const three = shot("three", "settings.png", 720, 720);
 const four = shot("four", "thread.png", 540, 960);
 const brief: FileRef = {
-  fileId: "file_brief",
+  fileId: "file_brief" as FileId,
   name: "brief.pdf",
   mediaType: "application/pdf",
   sizeBytes: 64_512,
