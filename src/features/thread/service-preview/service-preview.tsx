@@ -19,7 +19,11 @@ const usePreviews = (orgId: string, jamId: string) => {
       }),
     [jamId, orgId],
   );
-  return useAtomValue(atom) as { _tag: string; value?: unknown; cause?: unknown };
+  return useAtomValue(atom) as {
+    _tag: string;
+    value?: unknown;
+    cause?: unknown;
+  };
 };
 
 const useHandoff = () => {

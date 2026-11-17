@@ -30,9 +30,11 @@ it("ranks port, history, URL and search suggestions", () => {
     "history",
     "search",
   ]);
-  expect(suggestionValue(suggestions[2]!)).toBe(
-    "https://www.google.com/search?q=example",
-  );
+  expect(
+    suggestionValue(
+      suggestions[2] ?? { kind: "search", query: "", engine: "google" },
+    ),
+  ).toBe("https://www.google.com/search?q=example");
 });
 
 it("omits unmatched ports and empty search suggestions", () => {
