@@ -224,7 +224,7 @@ export function IssuesPage() {
               : "mr-0 w-0 opacity-0")
           }
         >
-          <SidebarTrigger className="size-(--h-control-sm)!" />
+          <SidebarTrigger />
         </span>
         {searchOpen ? (
           <span className="ml-2.5 flex min-w-0 flex-1 items-center gap-1.5">
