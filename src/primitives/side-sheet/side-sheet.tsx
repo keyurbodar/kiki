@@ -74,14 +74,21 @@ export function SideSheetContent({
   ...props
 }: SideSheetContentProps) {
   const { phone } = useContext(SideSheetContext);
-  if (phone)
+  if (phone) {
+    const drawerClassName =
+      typeof className === "function"
+        ? (className as unknown as (state: object) => string | undefined)({})
+        : className;
     return (
       <DrawerContent
-        {...({ className, ...props } as ComponentProps<typeof DrawerContent>)}
+        {...({ className: drawerClassName, ...props } as ComponentProps<
+          typeof DrawerContent
+        >)}
       >
         {children}
       </DrawerContent>
     );
+  }
   return (
     <BaseDialog.Portal>
       <SideSheetOverlay />

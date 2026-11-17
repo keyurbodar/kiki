@@ -89,4 +89,16 @@ describe("SideSheet", () => {
     expect(slot("side-sheet-close")).toBeNull();
     expect(slot("side-sheet-footer")?.className).not.toContain("border-t");
   });
+  it("applies className callbacks on the phone drawer path", async () => {
+    mockMedia(() => true);
+    render(
+      <SideSheet open>
+        <SideSheetContent className={() => "custom-panel"}>
+          panel
+        </SideSheetContent>
+      </SideSheet>,
+    );
+    await vi.waitFor(() => expect(slot("drawer-content")).not.toBeNull());
+    expect(slot("drawer-content")?.className).toContain("custom-panel");
+  });
 });
