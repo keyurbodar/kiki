@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { DriveDetailPage } from "@/features/drive/drive-detail-page";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/drive_/$scope")({
@@ -8,5 +8,15 @@ export const Route = createFileRoute("/_app/drive_/$scope")({
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="Drive" path="/drive/$scope" />;
+  const { scope } = Route.useParams();
+  const { file } = Route.useSearch();
+  return (
+    <DriveDetailPage
+      mount={{
+        kind: "directory",
+        scope: scope === "organization" ? "organization" : "personal",
+      }}
+      file={file}
+    />
+  );
 }
