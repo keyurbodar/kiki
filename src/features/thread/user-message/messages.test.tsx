@@ -7,6 +7,15 @@ import { UserMessage, type UserMessageRow } from "./user-message";
 
 afterEach(cleanup);
 
+const shotFile = {
+  fileId: "file_shot",
+  name: "shot.png",
+  mediaType: "image/png",
+  sizeBytes: 24_576,
+  width: 960,
+  height: 540,
+};
+
 const userRow = {
   id: "row_user",
   eventId: "01JAAAAAAAAAAAAAAAAAAAAAAA",
@@ -23,6 +32,19 @@ const userRow = {
 } as unknown as UserMessageRow;
 
 describe("UserMessage", () => {
+  it("renders attachments above the body", () => {
+    render(<UserMessage row={{ ...userRow, files: [shotFile] } as never} />);
+    const gallery = document.querySelector("[data-slot=attachment-gallery]");
+    expect(gallery).not.toBeNull();
+    expect(
+      document.querySelector('[aria-label="Preview shot.png"]'),
+    ).not.toBeNull();
+    const bubble = screen.getByText("Can you check the build?");
+    expect(gallery?.compareDocumentPosition(bubble) ?? 0).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+  });
+
   it("renders the viewer's own message without a header", () => {
     render(
       <MessageActionsProvider
@@ -64,6 +86,39 @@ describe("UserMessage", () => {
 });
 
 describe("AgentMessage", () => {
+  it("renders its files as a gallery after the sections", () => {
+    render(
+      <AgentMessage
+        row={
+          {
+            id: "row_agent",
+            eventId: "01JBBBBBBBBBBBBBBBBBBBBBBB",
+            createdAt: new Date(2026, 10, 17, 9, 1),
+            type: "agent-message",
+            settled: true,
+            interrupted: false,
+            turnCloses: true,
+            text: "Two shots attached.",
+            files: [{ file: shotFile, title: "Home page" }],
+            uploads: [],
+            placed: [],
+            placing: [],
+            modelId: "sample-model",
+          } as never
+        }
+      />,
+    );
+    const gallery = document.querySelector("[data-slot=attachment-gallery]");
+    const section = document.querySelector("[data-slot=message-section]");
+    expect(gallery).not.toBeNull();
+    expect(
+      document.querySelector('[aria-label="Preview Home page"]'),
+    ).not.toBeNull();
+    expect(section?.compareDocumentPosition(gallery as Node) ?? 0).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+  });
+
   it("renders one section per block and the interrupted status", () => {
     render(
       <AgentMessage
