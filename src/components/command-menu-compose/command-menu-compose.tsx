@@ -23,7 +23,10 @@ export type ComposeSubmission = {
   text: string;
 };
 
-export type CommandMenuComposeProps = ComponentProps<"div"> & {
+export type CommandMenuComposeProps = Omit<
+  ComponentProps<"div">,
+  "onSubmit"
+> & {
   project?: ComposeProject;
   projects?: ReadonlyArray<ComposeProject>;
   onProjectChange?: (project: ComposeProject) => void;
