@@ -1,6 +1,8 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { expect, it } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, expect, it } from "vitest";
 import { WorkGroup } from "./work-group";
+
+afterEach(cleanup);
 
 const at = (ms: number) => new Date(Date.UTC(2026, 0, 1, 12, 0, 0) + ms);
 
@@ -27,7 +29,7 @@ const row = (live: boolean, expanded = false) =>
         turnCloses: false,
       },
     ],
-  }) as Parameters<typeof WorkGroup>[0]["row"];
+  }) as unknown as Parameters<typeof WorkGroup>[0]["row"];
 
 it("labels a settled group with its active time and failures", () => {
   render(<WorkGroup row={row(false)} />);

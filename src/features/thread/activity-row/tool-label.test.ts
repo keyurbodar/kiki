@@ -65,6 +65,6 @@ describe("toolLabel", () => {
   });
 
   it("truncates long commands", () => {
-    expect(shortenCommand("FOO=1 " + "x".repeat(60))).toHaveLength(40);
+    expect(shortenCommand(`FOO=1 ${"x".repeat(60)}`)).toHaveLength(40);
   });
 });
