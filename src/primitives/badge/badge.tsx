@@ -25,7 +25,7 @@ export const badgeVariants = cva(
         auto: "h-auto px-0.5 gap-1 [&_svg:not([class*='size-'])]:size-(--icon-xs)",
       },
       interactive: {
-        true: "relative cursor-pointer outline-none transition-colors duration-100 focus-visible:outline-ring-inset hover:text-[var(--intent-text-hover,var(--fg))] data-[popup-open]:text-[var(--intent-text-hover,var(--fg))] pointer-coarse:after:absolute pointer-coarse:after:top-1/2 pointer-coarse:after:left-1/2 pointer-coarse:after:size-full pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11 pointer-coarse:after:-translate-x-1/2 pointer-coarse:after:-translate-y-1/2",
+        true: "relative cursor-pointer outline-none transition-colors duration-hover focus-visible:outline-ring-inset hover:text-[var(--intent-text-hover,var(--fg))] data-[popup-open]:text-[var(--intent-text-hover,var(--fg))] pointer-coarse:after:absolute pointer-coarse:after:top-1/2 pointer-coarse:after:left-1/2 pointer-coarse:after:size-full pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11 pointer-coarse:after:-translate-x-1/2 pointer-coarse:after:-translate-y-1/2",
         false: "select-none",
       },
     },

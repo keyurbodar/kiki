@@ -5,7 +5,7 @@ import { motion } from "@/lib/motion";
 import { Icon } from "@/primitives/icon";
 
 const checkboxBoxClassName =
-  "relative flex size-4 shrink-0 items-center justify-center rounded-(--radius-sm) border-hairline border-border-3 bg-input text-primary-foreground transition-colors duration-100 data-[checked]:border-transparent data-[checked]:bg-primary data-[checked]:[--focus-ring:var(--primary-text)] data-[indeterminate]:border-transparent data-[indeterminate]:bg-primary data-[indeterminate]:[--focus-ring:var(--primary-text)]";
+  "relative flex size-4 shrink-0 items-center justify-center rounded-(--radius-sm) border-hairline border-border-3 bg-input text-primary-foreground transition-colors duration-hover data-[checked]:border-transparent data-[checked]:bg-primary data-[checked]:[--focus-ring:var(--primary-text)] data-[indeterminate]:border-transparent data-[indeterminate]:bg-primary data-[indeterminate]:[--focus-ring:var(--primary-text)]";
 
 export type CheckboxProps = ComponentProps<typeof BaseCheckbox.Root>;
 
