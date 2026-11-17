@@ -9,11 +9,11 @@ import { ApiClient, makeApiClientLayer } from "./ApiClient.ts";
 const orgId = OrgId.make("org_sample_acme");
 
 describe("KikiApi", () => {
-  it("declares all 61 groups and 711 endpoints", () => {
+  it("declares all 62 groups and 712 endpoints", () => {
     const groups = Object.values(KikiApi.groups);
     const endpoints = groups.flatMap((group) => Object.keys(group.endpoints));
-    assert.strictEqual(groups.length, 61);
-    assert.strictEqual(endpoints.length, 711);
+    assert.strictEqual(groups.length, 62);
+    assert.strictEqual(endpoints.length, 712);
   });
 
   it("marks the methods api.md had to infer", () => {
