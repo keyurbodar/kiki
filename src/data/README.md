@@ -6,7 +6,7 @@ Everything the app reads or writes goes through one Effect `HttpApi` definition 
 
 | Path                    | What lives there                                                                                       |
 | ----------------------- | ------------------------------------------------------------------------------------------------------ |
-| `api/Api.ts`            | `KikiApi`, the root `HttpApi` with all 60 groups, plus `groupIds`.                                     |
+| `api/Api.ts`            | `KikiApi`, the root `HttpApi` with all 61 groups, plus `groupIds`.                                     |
 | `api/groups/<group>.ts` | One `HttpApiGroup` per group, with every endpoint from Capy's bundle (703 in total).                   |
 | `api/schemas/`          | Domain schemas decoded from the bundle (`ids`, `user`, `organization`, `project`, `thread`, `errors`). |
 | `api/undecoded.ts`      | `Undecoded` and `UndecodedQuery`, placeholders for shapes nobody has decoded yet.                      |
