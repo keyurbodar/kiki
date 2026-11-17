@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { SettingsConfirmDialog } from "@/features/settings/confirm-dialog";
-import { Button } from "@/primitives/button";
+import { Button, ButtonIcon } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { CopyField } from "@/primitives/copy-field";
 import { Icon } from "@/primitives/icon";
@@ -95,7 +95,9 @@ export function ProfilePage({
                   title="Adjust profile picture"
                   onClick={() => fileInput.current?.click()}
                 >
-                  <Icon name="pencil" size="sm" />
+                  <ButtonIcon>
+                    <Icon name="pencil" size="sm" />
+                  </ButtonIcon>
                 </Button>
               </span>
               <input
@@ -143,7 +145,9 @@ export function ProfilePage({
                 aria-label="Change email"
                 onClick={() => email.setOpen(true)}
               >
-                <Icon name="pencil" size="sm" />
+                <ButtonIcon>
+                  <Icon name="pencil" size="sm" />
+                </ButtonIcon>
               </Button>
             </SettingsRow>
             <SettingsRow
