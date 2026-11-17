@@ -1,148 +1,258 @@
-import { isoMinutesAgo, people, presetThemeIds } from "../fixtures/world.ts";
+import {
+  ExploreCard,
+  type ExploreContent,
+  ExploreListing,
+  type ExplorePluginServer,
+  ExploreVersion,
+  type ListingSetup,
+} from "../../api/schemas/explore.ts";
+import { minutesAgo } from "../fixtures/time.ts";
 
-export type ListingKind = "plugin" | "skill" | "theme";
+const day = 24 * 60;
 
-export interface PublicListing {
-  readonly kind: ListingKind;
-  readonly slug: string;
-  readonly name: string;
-  readonly displayName: string;
-  readonly description: string;
-  readonly authorId: string;
-  readonly icon: { readonly url: string; readonly mimeType: string };
-  readonly wallpaper: { readonly url: string; readonly mimeType: string };
-  readonly featured: boolean;
-  readonly installs: number;
-  readonly rating: number;
-  readonly createdAt: string;
-  readonly updatedAt: string;
-}
+const edgeSkillNames = [
+  [
+    "workers-sdk",
+    "Build, debug, or review edge worker applications that use the workers SDK",
+  ],
+  [
+    "analytics-pipelines",
+    "Build and troubleshoot analytics pipelines, catalogs, and SQL over stored tables. Use for streaming data into object storage, managing catalogs, or querying those tables; also use for requests that name the older pipeline products",
+  ],
+  [
+    "edge-platform",
+    "Discover and choose edge platform products for apps, APIs, agents, storage, networking, and security. Use for architecture and product selection, including when the user describes a need without naming a product; then find the relevant skill or documentation",
+  ],
+  [
+    "edge-email",
+    "Implement or troubleshoot email sending and routing integrations and their delivery configuration",
+  ],
+  [
+    "zero-trust",
+    "Design, configure, troubleshoot, or review zero trust and secure access deployments. Use zero-trust-migrations for migration planning from other vendors",
+  ],
+  [
+    "zero-trust-migrations",
+    "Plan a migration from another secure access vendor",
+  ],
+  ["dns-records", "Create, update, and audit DNS records for a zone"],
+  ["cache-rules", "Tune cache rules and purge content"],
+  ["kv-storage", "Read and write key-value storage from workers"],
+  ["object-storage", "Manage buckets, objects, and lifecycle rules"],
+  ["queues", "Produce and consume queue messages from workers"],
+  ["durable-objects", "Design stateful coordination with durable objects"],
+  ["images", "Resize, optimize, and serve images at the edge"],
+  ["web-analytics", "Read traffic and performance analytics for a site"],
+  ["waf-rules", "Write and test firewall rules"],
+  ["load-balancing", "Configure pools, monitors, and steering"],
+] as const;
 
-const iconUrl = (kind: ListingKind, slug: string) =>
-  `https://icons.example.com/explore/${kind}/${slug}.png`;
+const trackerSkillNames = [
+  [
+    "tracker-create-alert",
+    "Create alerts with the workflow engine API. Use when asked to create alerts, set up notifications, configure issue priority alerts, or build workflow automations. Supports email, chat, paging, and other notification actions",
+  ],
+  [
+    "tracker-debug-issue",
+    "Debug and fix a tracked issue: find it by link, ID, or search, pull full context (stack trace, breadcrumbs, trace, logs), optionally run the root-cause tool, apply the code fix, and resolve it via a fixing commit or pull request",
+  ],
+  [
+    "tracker-fix-stack-traces",
+    "Make stack traces readable: upload source maps for JavaScript and TypeScript, or debug files for native and mobile builds. Use when frames show minified names, bundled paths, or method names with no file or line",
+  ],
+  [
+    "tracker-get-started",
+    "Guided entry point for using the tracker through your agent. Orients you to your current setup and, for a new project, sets up the tracker end to end with sane defaults",
+  ],
+  [
+    "tracker-instrument",
+    "Instrument an application: detect the platform, install and initialize the SDK if needed, and wire up any signal, from error monitoring and tracing to logging and metrics",
+  ],
+  ["tracker-releases", "Create releases and associate commits"],
+  ["tracker-performance", "Find slow transactions and spans"],
+  ["tracker-replays", "Review session replays for an issue"],
+] as const;
 
-const wallpaperUrl = (slug: string) =>
-  `https://wallpapers.example.com/themes/${slug}.png`;
-
-const listing = (
-  kind: ListingKind,
-  slug: string,
+const oauthServer = (
   displayName: string,
-  description: string,
-  authorId: string,
-  featured: boolean,
-  installs: number,
-  rating: number,
-  updatedMinutesAgo: number,
-): PublicListing => ({
-  kind,
-  slug,
-  name: slug,
+  url: string,
+): ExplorePluginServer => ({
   displayName,
-  description,
-  authorId,
-  icon: { url: iconUrl(kind, slug), mimeType: "image/png" },
-  wallpaper: { url: wallpaperUrl(slug), mimeType: "image/png" },
-  featured,
-  installs,
-  rating,
-  createdAt: isoMinutesAgo(updatedMinutesAgo + 60 * 24),
-  updatedAt: isoMinutesAgo(updatedMinutesAgo),
+  transport: "http",
+  placement: "backend",
+  url,
+  command: null,
+  auth: "oauth",
+  connection: "organization",
+  scopes: [],
+  secrets: [],
 });
 
-export const sampleListings: ReadonlyArray<PublicListing> = [
-  listing(
-    "plugin",
-    "release-notes",
-    "Release Notes",
-    "Collects release notes from linked pull requests into a changelog.",
-    people.sam.id,
-    true,
-    1840,
-    4.8,
-    45,
+const pluginContent = (
+  skills: ReadonlyArray<readonly [string, string]>,
+  server: ExplorePluginServer,
+  repository: string,
+): ExploreContent => ({
+  kind: "plugin",
+  plugin: {
+    servers: [server],
+    skills: skills.map(([name, description]) => ({
+      name,
+      description,
+      content: `# ${name}\n\n${description}.`,
+    })),
+    repository,
+    path: ".",
+    commit: "4f1c2a9b7e3d5c8a0b6f2e1d9c7a5b3e1f0d2c4a",
+    license: "MIT",
+    warnings: [],
+    prerequisites: null,
+  },
+});
+
+const card = (
+  fields: Partial<ExploreCard> &
+    Pick<ExploreCard, "kind" | "slug" | "displayName" | "description">,
+) =>
+  new ExploreCard({
+    source: "catalog",
+    maker: null,
+    accent: null,
+    category: null,
+    firstListedAt: minutesAgo(40 * day),
+    featuredRank: null,
+    hasIcon: false,
+    repository: null,
+    stars: null,
+    starsCheckedAt: null,
+    adds: null,
+    version: null,
+    versionId: null,
+    theme: null,
+    builtIn: null,
+    createdAt: minutesAgo(40 * day),
+    updatedAt: minutesAgo(30 * day),
+    ...fields,
+  });
+
+const firstListing = (id: string, version: string, daysAgo: number) =>
+  new ExploreVersion({
+    id,
+    version,
+    notes: "First listing in Explore",
+    createdAt: minutesAgo(daysAgo * day),
+  });
+
+const skillMarkdown = [
+  "---",
+  "name: debugging-playbook",
+  "description: Debug hard bugs with a tight feedback loop",
+  "---",
+  "",
+  "# Debugging playbook",
+  "",
+  ...Array.from(
+    { length: 132 },
+    (_, line) => `Step ${line + 1}: narrow the failing case.`,
   ),
-  listing(
-    "plugin",
-    "error-tracker",
-    "Error Tracker",
-    "Links failing requests to the thread that introduced them.",
-    people.alex.id,
-    true,
-    920,
-    4.6,
-    2 * 60 * 24,
-  ),
-  listing(
-    "plugin",
-    "docs-search",
-    "Docs Search",
-    "Searches the project docs from the command palette.",
-    people.priya.id,
-    false,
-    310,
-    4.3,
-    6 * 60 * 24,
-  ),
-  listing(
-    "skill",
-    "code-review",
-    "Code Review",
-    "Reviews a pull request against the project's contributing guide.",
-    people.sam.id,
-    true,
-    2760,
-    4.9,
-    3 * 60,
-  ),
-  listing(
-    "skill",
-    "release-checklist",
-    "Release Checklist",
-    "Walks through the release steps and records each result.",
-    people.alex.id,
-    false,
-    480,
-    4.5,
-    4 * 60 * 24,
-  ),
-  listing(
-    "theme",
-    presetThemeIds[0],
-    "Absolutely",
-    "A bright, high-contrast theme for focused work.",
-    people.jordan.id,
-    true,
-    5120,
-    4.9,
-    12 * 60 * 24,
-  ),
-  listing(
-    "theme",
-    presetThemeIds[2],
-    "Catppuccin",
-    "A soft pastel theme with a calm palette.",
-    people.casey.id,
-    false,
-    3910,
-    4.8,
-    8 * 60 * 24,
-  ),
-  listing(
-    "theme",
-    presetThemeIds[10],
-    "Linear",
-    "A dark, minimal theme for long sessions.",
-    people.priya.id,
-    false,
-    2280,
-    4.7,
-    15 * 60 * 24,
-  ),
+].join("\n");
+
+const reproLoop = [
+  "#!/usr/bin/env bash",
+  "set -euo pipefail",
+  ...Array.from({ length: 43 }, (_, line) => `echo "attempt ${line + 1}"`),
+].join("\n");
+
+const debuggingSetup: ListingSetup = {
+  prompt:
+    "Help the person reproduce and fix one bug with the debugging playbook.",
+  automations: [],
+};
+
+export const sampleListings: ReadonlyArray<ExploreListing> = [
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "edge-platform",
+      displayName: "Edge Platform",
+      description: "Manage workers, zones, and edge configuration",
+      repository: "northwind/skills",
+      version: "1.0.1",
+      versionId: "plv_sample_edge_101",
+      category: "deployment",
+    }),
+    content: pluginContent(
+      edgeSkillNames,
+      oauthServer("Edge Platform", "https://mcp.northwind.example/mcp"),
+      "northwind/skills",
+    ),
+    setup: null,
+    versions: [firstListing("plv_sample_edge_101", "1.0.1", 41)],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "error-tracker",
+      displayName: "Error Tracker",
+      description: "Investigate errors, traces, and affected releases",
+      repository: "globex/tracker-plugin",
+      version: "1.4.0",
+      versionId: "plv_sample_tracker_140",
+      category: "monitoring",
+    }),
+    content: pluginContent(
+      trackerSkillNames,
+      oauthServer("Error Tracker", "https://mcp.globex.example/mcp"),
+      "globex/tracker-plugin",
+    ),
+    setup: null,
+    versions: [firstListing("plv_sample_tracker_140", "1.4.0", 41)],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "skill",
+      slug: "debugging-playbook",
+      displayName: "Debugging Playbook",
+      description:
+        "Debug hard bugs and slow code by first building a tight pass/fail feedback loop, then reproducing, narrowing, and fixing.",
+      maker: { name: "Alex Morgan" },
+      repository: "acme/skills",
+      stars: 12_480,
+      starsCheckedAt: minutesAgo(2 * day),
+      version: "1.0.0",
+      versionId: "skv_sample_debugging_100",
+    }),
+    content: {
+      kind: "skill",
+      skill: {
+        name: "debugging-playbook",
+        description: "Debug hard bugs with a tight feedback loop",
+        files: [
+          {
+            path: "agents/openai.yaml",
+            content:
+              "name: debugging-playbook\nmodel: default\ntools: []\nversion: 1",
+          },
+          { path: "scripts/repro-loop.template.sh", content: reproLoop },
+          { path: "SKILL.md", content: skillMarkdown },
+        ],
+        starters: [
+          "Find why the checkout test fails only on CI",
+          "Track down the 3x slowdown on the reports page",
+        ],
+        source: {
+          repository: "acme/skills",
+          path: "skills/debugging-playbook",
+          commit: "9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b",
+        },
+      },
+    },
+    setup: debuggingSetup,
+    versions: [firstListing("skv_sample_debugging_100", "1.0.0", 20)],
+  }),
 ];
 
-export const listingKinds: ReadonlyArray<ListingKind> = [
-  "plugin",
-  "skill",
-  "theme",
-];
+export const findSampleListing = (kind: string, slug: string) =>
+  sampleListings.find(
+    (listing) => listing.card.kind === kind && listing.card.slug === slug,
+  );

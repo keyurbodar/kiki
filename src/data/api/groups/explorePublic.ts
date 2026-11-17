@@ -1,5 +1,12 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import {
+  ExploreListing,
+  ExploreNotFound,
+  ExploreRateLimited,
+  ListingKind,
+  ListingSlug,
+} from "../schemas/explore.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class ExplorePublicGroup extends HttpApiGroup.make("explorePublic").add(
@@ -12,8 +19,9 @@ export class ExplorePublicGroup extends HttpApiGroup.make("explorePublic").add(
     success: Undecoded,
   }),
   HttpApiEndpoint.get("listing", "/explore/listings/:kind/:slug", {
-    params: { kind: Schema.String, slug: Schema.String },
-    success: Undecoded,
+    params: { kind: ListingKind, slug: ListingSlug },
+    success: ExploreListing,
+    error: [ExploreNotFound, ExploreRateLimited],
   }),
   HttpApiEndpoint.get("wallpaperImage", "/explore/themes/:slug/wallpaper", {
     params: { slug: Schema.String },
