@@ -654,7 +654,13 @@ const gitStatuses = [
 const isGitStatus = (status: string): status is (typeof gitStatuses)[number] =>
   (gitStatuses as readonly string[]).includes(status);
 
-export function PullRail({ pull }: { pull: Pull }) {
+export function PullRail({
+  pull,
+  onOpenFile,
+}: {
+  pull: Pull;
+  onOpenFile?: (path: string) => void;
+}) {
   const orgId = usePullOrgId();
   const [query, setQuery] = useState("");
   const diff = resultValue(useAtomValue(pullDiffAtom(orgId, pull.id)));
@@ -769,6 +775,7 @@ export function PullRail({ pull }: { pull: Pull }) {
             gitStatus={tree.gitStatus}
             filter={query}
             initialExpansion="open"
+            onOpen={onOpenFile}
             className="min-h-0"
           />
         </div>
@@ -817,6 +824,17 @@ export function PullView({
   const select = (next: PullTab) => {
     setLocalTab(next);
     onTabChange?.(next);
+  };
+  const [opened, setOpened] = useState<{ file: string; seq: number } | null>(
+    null,
+  );
+  const anchor = useMemo(
+    () => (opened === null ? null : { file: opened.file, nonce: opened.seq }),
+    [opened],
+  );
+  const openFile = (file: string) => {
+    setOpened((previous) => ({ file, seq: (previous?.seq ?? 0) + 1 }));
+    select("diff");
   };
   return (
     <div className="@container/pull flex min-h-0 flex-1 flex-col">
@@ -871,14 +889,14 @@ export function PullView({
               </ScrollAreaViewport>
             </ScrollArea>
           ) : current === "diff" ? (
-            <DiffTab pull={pullRef} />
+            <DiffTab pull={pullRef} anchor={anchor} />
           ) : (
             <TabPlaceholder line="Guide" />
           )}
         </div>
         {host === "page" && current !== "guide" && (
           <div className="hidden w-76 shrink-0 @5xl/pull:flex">
-            <PullRail pull={pull} />
+            <PullRail pull={pull} onOpenFile={openFile} />
           </div>
         )}
       </div>

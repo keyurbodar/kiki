@@ -84,9 +84,10 @@ export function DiffTab({
     return () => cancelAnimationFrame(frame);
   });
 
+  const diffLoaded = diffState.status !== "loading";
   useEffect(() => {
-    if (anchor !== null) return focusAnchor(anchor);
-  }, [anchor]);
+    if (anchor !== null && diffLoaded) return focusAnchor(anchor);
+  }, [anchor, diffLoaded]);
 
   if (diffState.status === "loading") return null;
   if (diffState.status === "failed")
