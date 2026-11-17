@@ -1,11 +1,10 @@
 // biome-ignore-all lint/a11y: Capy's directory table is an ARIA grid of div subgrid rows (role table/row/cell), class for class from the bundle
-import { useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
 import { DateTime } from "effect";
 import { useState } from "react";
 import type { OrgId } from "@/data/api/schemas/ids";
-import { driveScopeDirectoryAtom } from "@/data/atoms/drive";
 import { Button } from "@/primitives/button";
+import { useIsNarrow } from "@/primitives/sidebar";
 import { BuildingIcon, InboxIcon, ShareIcon, UserIcon } from "../icons";
 import { formatBytes, formatRelativeTime } from "../lib/format";
 import { targetRoute } from "../lib/mount";
@@ -17,6 +16,7 @@ import {
   directoryRows,
   driveOrderings,
 } from "../lib/scopes";
+import { type ScopeDirectory, ScopeDirectoryProvider } from "./directory";
 import {
   DirectoryTable,
   DirectoryTableCell,
@@ -29,9 +29,8 @@ import {
 import { DriveDisplayMenu } from "./display-menu";
 import { DriveTopBar } from "./drive-top-bar";
 import { useDriveNames } from "./names";
-import { resultValue, useDriveSession } from "./session";
+import { useDriveSession } from "./session";
 import { DriveUsageFooter, usageSegments } from "./usage-footer";
-import { useNarrow } from "./use-narrow";
 
 const pageSize = 50;
 const orderingKey = "capy-web:volume-ordering";
@@ -51,7 +50,7 @@ export function DrivePage() {
   const [ordering, setOrdering] = useState(storedOrdering);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const narrow = useNarrow();
+  const narrow = useIsNarrow();
   const changeOrdering = (next: DriveOrdering) => {
     localStorage.setItem(orderingKey, JSON.stringify(next));
     setOrdering(next);
@@ -125,7 +124,26 @@ const toSummary = (summary: {
 const matches = (row: DriveScopeRow, term: string) =>
   [row.label, row.scopeLabel].some((text) => text.toLowerCase().includes(term));
 
-function DriveDirectory({
+function DriveDirectory(props: DriveDirectoryProps) {
+  return (
+    <ScopeDirectoryProvider orgId={props.orgId}>
+      {(directory) => <DirectoryView {...props} directory={directory} />}
+    </ScopeDirectoryProvider>
+  );
+}
+
+interface DriveDirectoryProps {
+  readonly orgId: OrgId;
+  readonly orgName: string | undefined;
+  readonly userId: string | undefined;
+  readonly ordering: DriveOrdering;
+  readonly search: string;
+  readonly page: number;
+  readonly onPage: (page: number) => void;
+  readonly narrow: boolean;
+}
+
+function DirectoryView({
   orgId,
   orgName,
   userId,
@@ -134,40 +152,54 @@ function DriveDirectory({
   page,
   onPage,
   narrow,
-}: {
-  orgId: OrgId;
-  orgName: string | undefined;
-  userId: string | undefined;
-  ordering: DriveOrdering;
-  search: string;
-  page: number;
-  onPage: (page: number) => void;
-  narrow: boolean;
-}) {
-  const directory = resultValue(useAtomValue(driveScopeDirectoryAtom(orgId)));
+  directory,
+}: DriveDirectoryProps & { readonly directory: ScopeDirectory }) {
   const names = useDriveNames(orgId, orgName, userId);
   const [active, setActive] = useState<string>();
-  const rows = directoryRows(
-    (directory?.items ?? []).map(toSummary),
-    names,
-  ).toSorted(compareRows(ordering));
+  const rows = directoryRows(directory.items.map(toSummary), names).toSorted(
+    compareRows(ordering),
+  );
   const term = search.trim().toLowerCase();
   const searching = term !== "";
   const listed = searching ? rows.filter((row) => matches(row, term)) : rows;
   const pageCount = Math.max(1, Math.ceil(listed.length / pageSize));
   const current = Math.min(page, pageCount);
   const visible = listed.slice((current - 1) * pageSize, current * pageSize);
-  const total = Math.max(directory?.totalScopes ?? 0, rows.length);
+  const total = Math.max(directory.totalScopes, rows.length);
   const now = Date.now();
-  const storage = directory?.storage;
+  const storage = directory.storage;
+  if (directory.failed) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 px-6 py-16 text-center">
+        <p className="text-sm font-medium text-foreground">
+          Capy Drive is unavailable
+        </p>
+        <p className="max-w-xs text-xs text-muted-foreground-2">
+          Could not read this organization's drives.
+        </p>
+        <Button size="sm" variant="soft" onClick={directory.refresh}>
+          Try again
+        </Button>
+      </div>
+    );
+  }
+  if (directory.loading) {
+    return (
+      <div className="flex flex-col gap-3 px-6 py-4">
+        <div className="h-8 w-full animate-skeleton-pulse rounded bg-secondary" />
+        <div className="h-8 w-full animate-skeleton-pulse rounded bg-secondary" />
+        <div className="h-8 w-2/3 animate-skeleton-pulse rounded bg-secondary" />
+      </div>
+    );
+  }
   return (
     <div className="flex w-full flex-col gap-5 px-6 py-4">
       <div className="-mx-4">
         <DirectoryTable
           columns={
             narrow
-              ? "minmax(0,1fr) minmax(3rem,auto) minmax(3.5rem,auto)"
-              : "minmax(0,3fr) minmax(0,1.6fr) minmax(3.5rem,auto) minmax(4.5rem,auto) minmax(6rem,auto)"
+              ? "minmax(0,1fr) minmax(min-content,auto) minmax(min-content,auto)"
+              : "minmax(0,3fr) minmax(0,1.6fr) minmax(min-content,auto) minmax(min-content,auto) minmax(min-content,auto)"
           }
         >
           <DirectoryTableHeader>
@@ -202,7 +234,7 @@ function DriveDirectory({
               </DirectoryTableCell>
             </DirectoryTableRow>
           )}
-          {storage !== undefined && storage.usedBytes > 0 && (
+          {storage !== null && storage.usedBytes > 0 && (
             <DriveUsageFooter
               facts={storage}
               segments={usageSegments(rows)}

@@ -113,7 +113,7 @@ export function DriveUsageFooter({
                 >
                   <div
                     className={[
-                      "h-0.75 w-full transition-[filter] duration-100",
+                      "h-0.75 w-full transition-[filter] duration-hover",
                       index === 0 && "rounded-l-full",
                       last && "rounded-r-full",
                       full

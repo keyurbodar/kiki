@@ -80,6 +80,13 @@
 }
 
 @utility scroll-fade-y {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black var(--_scroll-fade-top),
+    black calc(100% - var(--_scroll-fade-bottom)),
+    transparent
+  );
   mask-image: linear-gradient(
     to bottom,
     transparent,
@@ -93,4 +100,56 @@
     animation-fill-mode: both;
     animation-timeline: scroll(self);
   }
+}
+
+/* Thread cost series colour (features/thread/cost-badge): one hue per row in --cost-hue. */
+@utility scroll-fade-x {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black var(--_scroll-fade-left),
+    black calc(100% - var(--_scroll-fade-right)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black var(--_scroll-fade-left),
+    black calc(100% - var(--_scroll-fade-right)),
+    transparent
+  );
+  @supports (animation-timeline: scroll()) {
+    animation-name: _scroll-fade-x;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(self inline);
+  }
+}
+
+@utility scroll-fade-b {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black 0%,
+    black calc(100% - var(--_scroll-fade-bottom)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    black 0%,
+    black calc(100% - var(--_scroll-fade-bottom)),
+    transparent 100%
+  );
+  @supports (animation-timeline: scroll()) {
+    animation-name: _scroll-fade-b;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(self);
+  }
+}
+
+@utility cost-swatch {
+  background-color: light-dark(
+    oklch(0.56 0.14 var(--cost-hue)),
+    oklch(0.74 0.12 var(--cost-hue))
+  );
 }
