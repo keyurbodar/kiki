@@ -299,7 +299,9 @@ describe("SetupBody", () => {
 
   it("renders the exact empty copy, loading state and show all control", () => {
     const setupRouter = createRouter({
-      routeTree: createRootRoute({ component: () => <SetupBody {...emptyProps} /> }),
+      routeTree: createRootRoute({
+        component: () => <SetupBody {...emptyProps} />,
+      }),
       history: createMemoryHistory({ initialEntries: ["/"] }),
     });
     render(<RouterProvider router={setupRouter} />);
