@@ -13,6 +13,7 @@ import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { ExploreFrame } from "../explore-frame";
 import { type ListingCard, ListingIcon, ListingRow } from "../listing-card";
 import { useOrgId } from "../listing-detail/explore-session";
+import { PluginCategoryControl, PluginShelves } from "../plugin-shelves";
 import { ThemeBrowse } from "../theme-browse";
 import type { ThemeCardPreview, ThemeListingCard } from "../theme-detail";
 import peerArt from "./assets/peer.svg";
@@ -241,6 +242,15 @@ export function ExplorePage({ kind, search, onSearch }: ExplorePageProps) {
       />
     ) : cards === undefined ? (
       <ExplorePageSkeleton />
+    ) : kind === "plugin" ? (
+      <PluginShelves
+        cards={cards}
+        search={search}
+        onSearch={onSearch}
+        renderCard={(card) => (
+          <ListingRow key={card.slug} card={toListingCard(card)} />
+        )}
+      />
     ) : cards.length === 0 ? (
       search.q === undefined ? (
         <ExploreEmptyState
@@ -301,31 +311,36 @@ export function ExplorePage({ kind, search, onSearch }: ExplorePageProps) {
           </div>
           <ExploreSearchField search={search} onSearch={onSearch} kind={kind} />
         </div>
-        <nav
-          aria-label="Explore types"
-          className="-ml-2 flex items-center gap-1"
-        >
-          {exploreKinds.map((each) => (
-            <Button
-              key={each}
-              data-track-owner="features/explore/explore-page.tsx#ExplorePage:Button.1"
-              variant="ghost"
-              size="sm"
-              data-selected={each === kind ? "" : undefined}
-              aria-current={each === kind ? "true" : undefined}
-              render={
-                <Link
-                  data-track-owner="features/explore/explore-page.tsx#ExplorePage:Link.1"
-                  to="/explore"
-                  search={exploreSearchFor(search, each)}
-                  resetScroll={false}
-                />
-              }
-            >
-              {exploreLabels[each]}
-            </Button>
-          ))}
-        </nav>
+        <div className="flex items-center justify-between gap-3">
+          <nav
+            aria-label="Explore types"
+            className="-ml-2 flex items-center gap-1"
+          >
+            {exploreKinds.map((each) => (
+              <Button
+                key={each}
+                data-track-owner="features/explore/explore-page.tsx#ExplorePage:Button.1"
+                variant="ghost"
+                size="sm"
+                data-selected={each === kind ? "" : undefined}
+                aria-current={each === kind ? "true" : undefined}
+                render={
+                  <Link
+                    data-track-owner="features/explore/explore-page.tsx#ExplorePage:Link.1"
+                    to="/explore"
+                    search={exploreSearchFor(search, each)}
+                    resetScroll={false}
+                  />
+                }
+              >
+                {exploreLabels[each]}
+              </Button>
+            ))}
+          </nav>
+          {kind === "plugin" && (
+            <PluginCategoryControl search={search} onSearch={onSearch} />
+          )}
+        </div>
       </header>
       <ScrollArea className="flex-1" scrollRestorationId="explore-list">
         <div className={`${pageClassName} min-h-full gap-9 pt-3 pb-18`}>
