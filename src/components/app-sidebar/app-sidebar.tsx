@@ -108,7 +108,7 @@ function SidebarBarLink({
         />
       }
       variant="ghost"
-      size="icon-sm"
+      size="sm"
       aria-label={label}
       data-selected={active ? "" : undefined}
       className={barLinkButton}
