@@ -5,7 +5,7 @@ import {
   createRouter,
   RouterProvider,
 } from "@tanstack/react-router";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 import { AppLayout } from "./app-layout";
 
@@ -45,4 +45,13 @@ it("hosts the settings sidebar panel on settings routes", async () => {
   expect(
     container.querySelector("[data-slot=settings-sidebar]"),
   ).not.toBeNull();
+});
+
+it("opens the command palette from the shell", async () => {
+  const { container } = await renderAt("/pulls");
+  expect(container.querySelector("[data-slot=sidebar-wrapper]")).not.toBeNull();
+  expect(document.querySelector("[data-slot=command-menu]")).toBeNull();
+  fireEvent.keyDown(document, { key: "k", metaKey: true });
+  expect(await screen.findByRole("dialog")).toBeTruthy();
+  expect(document.querySelectorAll("[data-slot=command-menu]").length).toBe(1);
 });

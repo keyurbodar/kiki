@@ -2,6 +2,7 @@ import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import { type ReactNode, useEffect } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
+import { CommandPaletteHost } from "@/features/command-palette";
 import { SettingsSidebarPanel } from "@/features/settings/shell";
 import { useSidebarThreads } from "@/features/sidebar/sidebar-threads-data";
 import { SidebarThreadsPanel } from "@/features/sidebar/sidebar-threads-panel";
@@ -33,6 +34,7 @@ export function AppLayout({ children, banner }: AppLayoutProps) {
         <div className="flex min-h-0 flex-1">
           <AppShellBody banner={banner}>{children}</AppShellBody>
         </div>
+        <CommandPaletteHost />
       </div>
     </SidebarProvider>
   );
