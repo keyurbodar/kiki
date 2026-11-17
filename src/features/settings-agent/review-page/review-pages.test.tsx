@@ -28,8 +28,12 @@ describe("review settings pages", () => {
     expect(
       await screen.findByText("Capy auto routes review for you"),
     ).toBeTruthy();
-    expect(await screen.findByText("Author is any of dependabot-sample")).toBeTruthy();
-    expect(await screen.findByText("**/bun.lock,**/*.generated.ts")).toBeTruthy();
+    expect(
+      await screen.findByText("Author is any of dependabot-sample"),
+    ).toBeTruthy();
+    expect(
+      await screen.findByText("**/bun.lock,**/*.generated.ts"),
+    ).toBeTruthy();
     expect(
       screen.getByRole("switch", { name: "Generate pull request guides" }),
     ).toBeTruthy();
