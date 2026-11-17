@@ -1,4 +1,6 @@
+import type { ThreadPreviewProps } from "@/components/thread-preview";
 import type { ThreadRunStatus } from "@/components/thread-status";
+import type { ThreadCard } from "@/data/api/schemas/thread";
 
 export type SidebarMode = "threads" | "captains";
 export type SidebarDensity = "compact" | "detailed";
@@ -16,6 +18,25 @@ export type SidebarProject = {
 
 export type SidebarMachine = { kind: "cloud" | "device"; name: string };
 
+/**
+ * Everything the hover card can draw that the data layer already carries. Each
+ * field is optional: omitting it drops that part of the card, and the component
+ * never fills a missing value in.
+ */
+export type SidebarThreadPreview = Pick<
+  ThreadPreviewProps,
+  | "code"
+  | "description"
+  | "project"
+  | "model"
+  | "members"
+  | "asks"
+  | "crew"
+  | "issues"
+  | "tasks"
+  | "multirepo"
+> & { card?: ThreadCard };
+
 export type SidebarThread = {
   id: string;
   title: string | null;
@@ -26,7 +47,7 @@ export type SidebarThread = {
   age: string;
   projectId: string | null;
   machine: SidebarMachine | null;
-};
+} & SidebarThreadPreview;
 
 export type SidebarSectionKind =
   | "pinned"
