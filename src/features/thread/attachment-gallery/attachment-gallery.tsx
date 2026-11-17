@@ -690,10 +690,11 @@ export function AudioPlayer({
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState<number>();
+  const [ready, setReady] = useState(false);
   const [errored, setErrored] = useState(false);
   const label = entry.title ?? entry.file.name;
   const broken = errored || unavailable;
-  const playable = url !== undefined && !broken;
+  const playable = url !== undefined && !broken && ready;
   const fraction =
     duration === undefined || duration === 0 ? 0 : Math.min(1, time / duration);
   const toggle = () => {
@@ -711,6 +712,7 @@ export function AudioPlayer({
           src={url}
           crossOrigin="anonymous"
           preload="metadata"
+          onLoadedMetadata={() => setReady(true)}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
           onEnded={() => setPlaying(false)}
