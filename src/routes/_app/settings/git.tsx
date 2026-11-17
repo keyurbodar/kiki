@@ -1,10 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { GitSettingsPage } from "@/features/settings-agent/git";
 
 export const Route = createFileRoute("/_app/settings/git")({
-  component: RouteComponent,
+  component: GitSettingsPage,
 });
-
-function RouteComponent() {
-  return <RoutePlaceholder title="/settings/git" path="/settings/git" />;
-}
