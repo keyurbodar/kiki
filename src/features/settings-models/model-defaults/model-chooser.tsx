@@ -1,10 +1,10 @@
-import type { ReactNode } from "react";
 import { useState } from "react";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
+import { SettingsRow } from "@/primitives/settings-row";
 import {
   filterCatalog,
   type ModelEntry,
@@ -17,6 +17,10 @@ import {
 const triggerClass = "w-full justify-between @xl:w-64";
 export const modelRowClass =
   "@max-xl:flex-col @max-xl:items-stretch @max-xl:gap-3";
+const cardChrome =
+  "flex flex-col overflow-clip bg-card rounded-(--radius-card) border-hairline border-(--card-hairline) shadow-card divide-y-hairline divide-border-1";
+const badgeChrome =
+  "inline-flex w-fit min-w-8 items-center justify-center gap-1 rounded-full border-hairline border-(--border-2) bg-(--button) h-(--h-badge-xs) px-1.5 text-xs font-normal select-none";
 
 export function ClaudeMark({ className }: { className?: string }) {
   return (
@@ -139,7 +143,7 @@ export function ModelChooser({
         <ModelTriggerLabel selection={value} catalog={catalog} />
         <span className="flex shrink-0 items-center gap-1.5">
           {badge !== undefined && (
-            <Badge size="xs" color="neutral">
+            <Badge size="xs" color="neutral" className={badgeChrome}>
               {badge}
             </Badge>
           )}
@@ -208,6 +212,21 @@ export type DefaultModelsSectionProps = {
   onSaveSurface: (surface: string, value: ModelSelection | null) => void;
 };
 
+const surfaces = [
+  {
+    surface: "slack",
+    id: "slack-default-model",
+    label: "Slack",
+    description: "Used for threads you start from Slack",
+  },
+  {
+    surface: "linear",
+    id: "linear-default-model",
+    label: "Linear",
+    description: "Used for threads started from Linear issues",
+  },
+];
+
 export function DefaultModelsSection({
   catalog,
   webValue,
@@ -219,23 +238,13 @@ export function DefaultModelsSection({
   onSaveOrg,
   onSaveSurface,
 }: DefaultModelsSectionProps) {
-  const surfaces = [
-    {
-      surface: "slack",
-      id: "slack-default-model",
-      label: "Slack",
-      description: "Used for threads you start from Slack",
-    },
-    {
-      surface: "linear",
-      id: "linear-default-model",
-      label: "Linear",
-      description: "Used for threads started from Linear issues",
-    },
-  ];
   return (
-    <Card rows className="@container">
-      <ModelRow label="Web" description="Set by your pick in the home composer">
+    <Card rows className={`${cardChrome} @container`}>
+      <SettingsRow
+        label="Web"
+        description="Set by your pick in the home composer"
+        className={modelRowClass}
+      >
         <ModelChooser
           value={webValue}
           catalog={catalog}
@@ -247,13 +256,14 @@ export function DefaultModelsSection({
           }}
           onChange={onSaveWeb}
         />
-      </ModelRow>
+      </SettingsRow>
       {surfaces.map((item) => (
-        <ModelRow
+        <SettingsRow
           key={item.surface}
           id={item.id}
           label={item.label}
           description={item.description}
+          className={modelRowClass}
         >
           <ModelChooser
             value={surfaceValues[item.surface] ?? null}
@@ -268,12 +278,13 @@ export function DefaultModelsSection({
             }}
             onChange={(value) => onSaveSurface(item.surface, value)}
           />
-        </ModelRow>
+        </SettingsRow>
       ))}
-      <ModelRow
+      <SettingsRow
         id="org-default-model"
         label="Organization default"
         description="For members without a web default, and service users"
+        className={modelRowClass}
       >
         {isAdmin ? (
           <ModelChooser
@@ -297,39 +308,7 @@ export function DefaultModelsSection({
             />
           </Button>
         )}
-      </ModelRow>
+      </SettingsRow>
     </Card>
-  );
-}
-
-function ModelRow({
-  id,
-  label,
-  description,
-  children,
-}: {
-  id?: string;
-  label: string;
-  description: string;
-  children: ReactNode;
-}) {
-  return (
-    <div
-      id={id}
-      data-slot="settings-row"
-      className={`group/row flex gap-6 p-4 items-center justify-between ${modelRowClass}`}
-    >
-      <div className="flex min-w-0 items-center gap-3">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <div className="text-sm font-medium text-foreground">{label}</div>
-          <div className="text-sm font-normal text-muted-foreground-2">
-            {description}
-          </div>
-        </div>
-      </div>
-      <div className="relative flex shrink-0 items-center gap-2">
-        {children}
-      </div>
-    </div>
   );
 }
