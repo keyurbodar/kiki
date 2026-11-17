@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/primitives/dialog";
+import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import {
   Menu,
@@ -29,9 +30,7 @@ import {
 import { SettingsRow } from "@/primitives/settings-row";
 import { Table } from "@/primitives/table";
 import {
-  CheckmarkIcon,
   catalogRow,
-  DotGridHorizontalIcon,
   type FeedbackMode,
   type FeedbackOverrides,
   type FeedbackSettings,
@@ -39,7 +38,6 @@ import {
   InheritedSelect,
   menuCheckClass,
   menuIconSlot,
-  PlusSmallIcon,
   relativeTime,
   type SettingsScope,
   useActiveOrganization,
@@ -358,7 +356,7 @@ function BotAllowlist({
                   className="-my-1"
                   onClick={() => setAdding(true)}
                 >
-                  <PlusSmallIcon className={buttonIconClass} />
+                  <Icon name="plus-medium" className={buttonIconClass} />
                 </Button>
               </th>
             </tr>
@@ -462,7 +460,7 @@ function BotAllowlistRow({
               />
             }
           >
-            <DotGridHorizontalIcon className={buttonIconClass} />
+            <Icon name="dot-grid-1x3-horizontal" className={buttonIconClass} />
           </MenuTrigger>
           <MenuContent align="end" className="w-48">
             {suggestion === null ? null : (
@@ -572,7 +570,7 @@ function AddBotDialog({
                         {bot.login}
                       </span>
                       {already ? (
-                        <CheckmarkIcon className={menuCheckClass} />
+                        <Icon name="checkmark-1" className={menuCheckClass} />
                       ) : null}
                     </button>
                   );

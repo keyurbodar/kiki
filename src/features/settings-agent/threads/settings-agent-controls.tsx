@@ -2,6 +2,7 @@ import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useState } from "react";
 import { SettingsPage } from "@/components/settings-page";
 import { Button, type ButtonVariants } from "@/primitives/button";
+import { Icon } from "@/primitives/icon";
 import {
   InheritedMenu,
   InheritedMenuTrigger,
@@ -16,12 +17,6 @@ import {
   type SettingsScope,
   settingsAgentPageCopy,
 } from "./agent-settings";
-import {
-  ArrowRotateCounterClockwiseIcon,
-  CheckmarkIcon,
-  ChevronDownSmallIcon,
-  EditSmallIcon,
-} from "./icons";
 
 const cx = (...parts: Array<string | false | null | undefined>) =>
   parts.filter(Boolean).join(" ");
@@ -136,7 +131,7 @@ export function InheritedSelect<V extends string>({
             <InheritedTag>{inheritedTag}</InheritedTag>
           ) : null}
         </span>
-        <ChevronDownSmallIcon className={buttonIconClass} />
+        <Icon name="chevron-down-small" className={buttonIconClass} />
       </InheritedMenuTrigger>
       <MenuContent align="end">
         {inherits ? (
@@ -147,7 +142,7 @@ export function InheritedSelect<V extends string>({
                 <>
                   {inherited === undefined ? null : labelOf(inherited)}
                   {usesInherited ? (
-                    <CheckmarkIcon className={menuCheckClass} />
+                    <Icon name="checkmark-1" className={menuCheckClass} />
                   ) : null}
                 </>
               }
@@ -168,7 +163,7 @@ export function InheritedSelect<V extends string>({
                 <>
                   {option.trailing}
                   {value === option.value ? (
-                    <CheckmarkIcon className={menuCheckClass} />
+                    <Icon name="checkmark-1" className={menuCheckClass} />
                   ) : null}
                 </>
               }
@@ -252,7 +247,7 @@ export function InheritedNumberField({
       >
         {inherited}
         <InheritedTag>{inheritedTag}</InheritedTag>
-        <EditSmallIcon className={buttonIconClass} />
+        <Icon name="edit-small-1" className={buttonIconClass} />
       </Button>
     );
   }
@@ -297,7 +292,10 @@ export function InheritedNumberField({
             />
           }
         >
-          <ArrowRotateCounterClockwiseIcon className={buttonIconClass} />
+          <Icon
+            name="arrow-rotate-counter-clockwise"
+            className={buttonIconClass}
+          />
         </TooltipTrigger>
         <TooltipContent>{resetLabel}</TooltipContent>
       </Tooltip>

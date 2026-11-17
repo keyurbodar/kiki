@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-router";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+import { sampleFeedbackSettings } from "@/data/mocks/feedback-settings/fixtures";
 import { routeTree } from "@/routeTree.gen";
 
 afterEach(cleanup);
@@ -68,8 +69,9 @@ describe("/settings/git", () => {
     expect(
       (screen.getByLabelText("Branch prefix") as HTMLInputElement).value,
     ).toBe("capy");
-    expect(await screen.findByText("Ready for review")).toBeTruthy();
-    expect(screen.getByText("acme-review[bot]")).toBeTruthy();
+    expect(await screen.findByText("Open pull requests as")).toBeTruthy();
+    for (const login of sampleFeedbackSettings.botAllowlist)
+      expect(screen.getByText(login)).toBeTruthy();
   });
 
   it("opens on the Org scope for the org default model link", async () => {

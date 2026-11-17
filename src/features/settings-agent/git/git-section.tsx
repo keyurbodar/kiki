@@ -28,10 +28,7 @@ import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
 import {
   type AgentPreferences,
-  CheckmarkIcon,
-  ChevronDownSmallIcon,
   catalogRow,
-  DotGridHorizontalIcon,
   MenuOption,
   menuCheckClass,
   menuIconSlot,
@@ -109,7 +106,7 @@ export function GitSettingsSection({
               }
             >
               {selected.label}
-              <ChevronDownSmallIcon className={buttonIconClass} />
+              <Icon name="chevron-down-small" className={buttonIconClass} />
             </MenuTrigger>
             <MenuContent align="end" className="min-w-80">
               {commitAuthorOptions.map((option) => (
@@ -123,7 +120,7 @@ export function GitSettingsSection({
                     description={option.description}
                     trailing={
                       option === selected ? (
-                        <CheckmarkIcon className={menuCheckClass} />
+                        <Icon name="checkmark-1" className={menuCheckClass} />
                       ) : undefined
                     }
                   />
@@ -164,12 +161,15 @@ export function GitSettingsSection({
                     />
                   }
                 >
-                  <DotGridHorizontalIcon className={buttonIconClass} />
+                  <Icon
+                    name="dot-grid-1x3-horizontal"
+                    className={buttonIconClass}
+                  />
                 </MenuTrigger>
                 <MenuContent align="end" className="w-48">
                   <MenuItem onClick={() => setViewingKey(true)}>
                     <span className={menuIconSlot}>
-                      <Icon name="key-2" size="sm" />
+                      <Icon name="key-1" size="sm" />
                     </span>
                     View key
                   </MenuItem>
@@ -188,7 +188,7 @@ export function GitSettingsSection({
                   <MenuSeparator />
                   <MenuItem onClick={onRotate}>
                     <span className={menuIconSlot}>
-                      <Icon name="rotate" size="sm" />
+                      <Icon name="arrow-rotate-clockwise" size="sm" />
                     </span>
                     Rotate key
                   </MenuItem>
