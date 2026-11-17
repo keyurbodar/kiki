@@ -218,6 +218,20 @@ function ImagesGlyph(props: ComponentProps<"svg">) {
   );
 }
 
+export function MediaSkeletonRow({ width }: { width: string }) {
+  return (
+    <div className="flex h-[calc(var(--spacing)*3.9)] items-center gap-3">
+      <span className="shimmer-surface shimmer-surface-motion-safe h-2.5 w-4 shrink-0 rounded" />
+      <span
+        className={cx(
+          "shimmer-surface shimmer-surface-motion-safe h-2.5 rounded",
+          width,
+        )}
+      />
+    </div>
+  );
+}
+
 export type MediaPlayBadgeProps = { size?: "md" | "sm" };
 
 export function MediaPlayBadge({ size = "md" }: MediaPlayBadgeProps) {
