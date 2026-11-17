@@ -42,6 +42,7 @@ import { OrgsGroup } from "./groups/orgs.ts";
 import { PaperGroup } from "./groups/paper.ts";
 import { PluginsGroup } from "./groups/plugins.ts";
 import { ProjectsGroup } from "./groups/projects.ts";
+import { PromotionsGroup } from "./groups/promotions.ts";
 import { PullsGroup } from "./groups/pulls.ts";
 import { PushGroup } from "./groups/push.ts";
 import { ReferralsGroup } from "./groups/referrals.ts";
@@ -104,6 +105,7 @@ export class KikiApi extends HttpApi.make("kiki").add(
   PaperGroup,
   PluginsGroup,
   ProjectsGroup,
+  PromotionsGroup,
   PullsGroup,
   PushGroup,
   ReferralsGroup,
@@ -167,6 +169,7 @@ export const groupIds = [
   "paper",
   "plugins",
   "projects",
+  "promotions",
   "pulls",
   "push",
   "referrals",
