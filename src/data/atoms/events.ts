@@ -17,6 +17,9 @@ const contextUsageQuery = Atom.family((key: string) => {
 export const contextUsageAtom = (orgId: string, jamId: string) =>
   contextUsageQuery(`${orgId}/${jamId}`);
 
+/** `POST jams/:jamId/message`: sends a composer message to a thread. */
+export const sendMessageAtom = ApiClient.mutation("events", "message");
+
 /** `POST messages/:eventId/send-now`: promotes a queued message. */
 export const sendNowMessageAtom = ApiClient.mutation(
   "events",

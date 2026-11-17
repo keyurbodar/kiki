@@ -19,6 +19,7 @@ import {
   takeoverKey,
 } from "@/features/thread/composer-takeover";
 import { JamChat } from "@/features/thread/jam-chat";
+import { useComposerSend } from "@/features/thread/use-composer-send";
 import { ChatSkeleton } from "./chat-skeleton";
 
 type ClarifyRow = Extract<TimelineRow, { type: "clarify" }>;
@@ -129,6 +130,8 @@ export function ThreadView({
   composer,
   takeover,
 }: ThreadViewProps) {
+  const submit = useComposerSend(threadId);
+
   const [hidden, setHidden] = useState<ReadonlySet<string>>(
     () => new Set<string>(),
   );
@@ -195,7 +198,7 @@ export function ThreadView({
           <div className="min-h-0 px-4 pb-[calc(var(--spacing)+var(--safe-bottom))]">
             <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col justify-end">
               {active === undefined ? (
-                (composer ?? <Composer />)
+                (composer ?? <Composer onSubmit={submit} />)
               ) : (
                 <ComposerTakeover {...active} />
               )}
