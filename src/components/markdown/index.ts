@@ -4,6 +4,7 @@ export * from "./code-wrap";
 export * from "./components";
 export * from "./gallery";
 export * from "./markdown";
+export * from "./mermaid";
 export {
   hasMath,
   type MarkdownTreeTransform,
@@ -12,3 +13,5 @@ export {
   videoUrl,
 } from "./pipeline";
 export * from "./video";
+export * from "./visual";
+export { visualKit } from "./visual-kit";

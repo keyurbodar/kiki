@@ -4,12 +4,11 @@ import {
   createContext,
   type ReactNode,
   useContext,
-  useId,
   useMemo,
 } from "react";
 import { MarkdownChip } from "@/components/markdown-chips";
-import { CodeBlock } from "./code-block";
 import { MarkdownGallery } from "./gallery";
+import { MarkdownMermaid } from "./mermaid";
 import type { MarkdownTreeTransform } from "./pipeline";
 import { MarkdownVideo } from "./video";
 
@@ -54,18 +53,6 @@ export type MarkdownComponents = {
   transforms: readonly MarkdownTreeTransform[];
 };
 
-function DefaultMermaid({ text, complete }: MarkdownMermaidProps) {
-  const key = useId();
-  return (
-    <CodeBlock
-      text={text}
-      language="mermaid"
-      complete={complete}
-      blockKey={key}
-    />
-  );
-}
-
 function DefaultGallery({ children }: { children?: ReactNode }) {
   return <MarkdownGallery>{children}</MarkdownGallery>;
 }
@@ -106,7 +93,7 @@ function DefaultChip({
 }
 
 export const defaultMarkdownComponents: MarkdownComponents = {
-  mermaid: DefaultMermaid,
+  mermaid: MarkdownMermaid,
   fences: {},
   gallery: DefaultGallery,
   video: DefaultVideo,

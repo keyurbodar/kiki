@@ -1,10 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { DrivePage } from "@/features/drive/drive-page";
 
 export const Route = createFileRoute("/_app/drive")({
-  component: RouteComponent,
+  component: DrivePage,
 });
-
-function RouteComponent() {
-  return <RoutePlaceholder title="Capy Drive" path="/drive" />;
-}
