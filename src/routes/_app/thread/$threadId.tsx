@@ -25,7 +25,7 @@ import {
 } from "@/features/thread/thread-view";
 import { useThreadTimeline } from "@/features/thread/timeline";
 import { useSideThreads } from "@/features/thread-panes/side-threads";
-import { findPane } from "@/features/thread-panes/thread-pane";
+import { findPane, isRetiredPane } from "@/features/thread-panes/thread-pane";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/thread/$threadId")({
@@ -34,12 +34,12 @@ export const Route = createFileRoute("/_app/thread/$threadId")({
 });
 
 /**
- * Capy opens a thread with its chat alone and drops a `pane` it does not
- * recognise from the URL; a pane the registry has not landed renders nothing
- * rather than guessing at another pane.
+ * Capy opens a thread with its chat alone; a pane the registry has not landed
+ * renders nothing rather than guessing at another pane, and the ids we retired
+ * (Capy has no such pane) are dropped from the URL instead of being kept.
  */
 const paneFor = (pane: string | undefined) =>
-  pane === undefined ? undefined : findPane(pane);
+  pane === undefined || isRetiredPane(pane) ? undefined : findPane(pane);
 
 export type ThreadRouteProps = {
   threadId: string;
@@ -131,16 +131,16 @@ export function ThreadScreen({
   pane: string | undefined;
 }) {
   const navigate = useNavigate();
-  const known = pane === undefined || findPane(pane) !== undefined;
+  const retired = isRetiredPane(pane);
   useEffect(() => {
-    if (known) return;
+    if (!retired) return;
     void navigate({
       to: "/thread/$threadId",
       params: { threadId },
       search: {},
       replace: true,
     });
-  }, [known, navigate, threadId]);
+  }, [retired, navigate, threadId]);
   return (
     <ThreadRoute
       threadId={threadId}

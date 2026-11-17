@@ -20,7 +20,7 @@ import { ThreadScreen } from "@/routes/_app/thread/$threadId";
 
 afterEach(cleanup);
 
-async function renderThread(pane?: string) {
+async function renderThread(search?: string) {
   const rootRoute = createRootRoute({ component: () => <Outlet /> });
   const threadRoute = createRoute({
     getParentRoute: () => rootRoute,
@@ -36,9 +36,9 @@ async function renderThread(pane?: string) {
     routeTree: rootRoute.addChildren([threadRoute]),
     history: createMemoryHistory({
       initialEntries: [
-        pane === undefined
+        search === undefined
           ? "/thread/jam_sample_0001"
-          : `/thread/jam_sample_0001?pane=${pane}`,
+          : `/thread/jam_sample_0001?${search}`,
       ],
     }),
   });
@@ -53,17 +53,32 @@ async function renderThread(pane?: string) {
 describe("thread route with a pane", () => {
   for (const pane of ["overview", "files"]) {
     it(`mounts the ${pane} pane without the error boundary`, async () => {
-      await renderThread(pane);
+      await renderThread(`pane=${pane}`);
       expect(screen.queryByText("Something went wrong")).toBeNull();
     });
   }
 
-  it("drops a pane id no entry defines, the way Capy drops an unknown pane", async () => {
-    const router = await renderThread("threads");
+  for (const pane of ["threads", "all-threads", "pull-requests"]) {
+    it(`drops the retired ${pane} id from the URL and renders the chat`, async () => {
+      const router = await renderThread(`pane=${pane}`);
+      expect(screen.queryByText("Something went wrong")).toBeNull();
+      await waitFor(() => expect(router.state.location.search).toEqual({}));
+      expect(router.state.location.pathname).toBe("/thread/jam_sample_0001");
+      expect(screen.queryByPlaceholderText("Search side threads")).toBeNull();
+    });
+  }
+
+  it("keeps a pane target Capy opens by tab key, such as a service preview", async () => {
+    const router = await renderThread("pane=service-preview%3Am1%3A3000");
     expect(screen.queryByText("Something went wrong")).toBeNull();
-    await waitFor(() => expect(router.state.location.search).toEqual({}));
-    expect(router.state.location.pathname).toBe("/thread/jam_sample_0001");
-    expect(screen.queryByPlaceholderText("Search side threads")).toBeNull();
+    expect(router.state.location.search).toEqual({
+      pane: "service-preview:m1:3000",
+    });
+  });
+
+  it("keeps a registered pane id in the URL", async () => {
+    const router = await renderThread("pane=overview");
+    expect(router.state.location.search).toEqual({ pane: "overview" });
   });
 });
 
