@@ -1,15 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { ReviewRepositoriesPage } from "@/features/settings-agent/review-page";
 
 export const Route = createFileRoute("/_app/settings/review_/repositories")({
-  component: RouteComponent,
+  component: ReviewRepositoriesPage,
 });
-
-function RouteComponent() {
-  return (
-    <RoutePlaceholder
-      title="/settings/review/repositories"
-      path="/settings/review/repositories"
-    />
-  );
-}
