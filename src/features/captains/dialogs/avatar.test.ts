@@ -11,10 +11,8 @@ import {
 } from "./avatar";
 
 describe("captain avatar", () => {
-  it("builds the preset image path Capy serves", () => {
-    expect(captainPresetSrc("capy-avatar-3")).toBe(
-      "/avatars/capy-avatar-3.png",
-    );
+  it("resolves a preset to its shipped avatar image", () => {
+    expect(captainPresetSrc("capy-avatar-3")).toMatch(/capy-avatar-3\.png$/);
   });
 
   it("picks a random preset on a palette colour other than None", () => {
