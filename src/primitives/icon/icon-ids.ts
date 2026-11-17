@@ -1,5 +1,7 @@
 /* Generated from Capy's icon components in the production bundle. */
 export const ICON_IDS = [
+  "star",
+  "magnifying-glass",
   "3d-sphere",
   "agent",
   "alignment-center",
@@ -354,6 +356,8 @@ export const ICON_IDS = [
 export type IconId = (typeof ICON_IDS)[number];
 
 export const ICON_KEYWORDS: Record<IconId, string> = {
+  star: "star, favorite, award, rating",
+  "magnifying-glass": "magnifying-glass, search, find, zoom",
   "3d-sphere": "3d-sphere",
   agent: "agent, flow, diagram, org",
   "alignment-center": "alignment-center",
