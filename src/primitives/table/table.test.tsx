@@ -133,6 +133,24 @@ describe("Table", () => {
   });
 });
 
+describe("Table flush", () => {
+  it("drops the gutter and narrow-screen floors instead of overriding them", () => {
+    render(
+      <>
+        <Table aria-label="padded" />
+        <Table aria-label="flush" flush />
+      </>,
+    );
+    const padded = screen.getByRole("table", { name: "padded" }).className;
+    const flush = screen.getByRole("table", { name: "flush" }).className;
+    expect(padded).toContain("px-4");
+    expect(padded).toContain("max-md:[--table-fluid-min:8rem]");
+    expect(flush).not.toContain("px-");
+    expect(flush).not.toContain("max-md:[--table-fluid-min:8rem]");
+    expect(flush).toContain("scroll-fade-x");
+  });
+});
+
 describe("TableHeaderCell", () => {
   it("shows the sort arrow only when sorted", () => {
     render(

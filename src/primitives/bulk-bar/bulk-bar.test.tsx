@@ -21,6 +21,17 @@ it("shows the count and clears the selection", () => {
   expect(screen.getByRole("button", { name: "Archive" })).toBeTruthy();
 });
 
+it("leaves the count and clear button out when not given", () => {
+  render(
+    <BulkBar>
+      <span>custom</span>
+    </BulkBar>,
+  );
+  expect(screen.queryByText(/selected/)).toBeNull();
+  expect(screen.queryByRole("button", { name: "Clear selection" })).toBeNull();
+  expect(screen.getByText("custom")).toBeTruthy();
+});
+
 it("keeps a disabled action reachable for its tooltip", () => {
   render(
     <>

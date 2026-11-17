@@ -14,7 +14,7 @@ import { Card } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
 
 export const tableVariants = cva(
-  "isolate grid w-full overflow-x-auto overscroll-x-contain px-4 [--table-fluid-min:0] [--table-lead-min:0] max-md:[--table-fluid-min:8rem] max-md:[--table-lead-min:10rem] max-md:[--table-auto-min:auto] max-md:[clip-path:inset(0_0_0_0.5rem)]",
+  "isolate grid w-full overflow-x-auto overscroll-x-contain [--table-fluid-min:0] [--table-lead-min:0] max-md:[--table-auto-min:auto]",
   {
     variants: {
       density: {
@@ -23,8 +23,9 @@ export const tableVariants = cva(
         compact: "[--table-row-h:2rem]",
       },
       flush: {
-        true: "scrollbar-hide scroll-fade-x px-0 [overflow-wrap:normal] [--scroll-fade-ramp:1.5rem] max-md:[clip-path:none] max-md:[--table-fluid-min:0] max-md:[--table-lead-min:0] [&_[role=cell]:last-child]:pr-0 [&_[role=columnheader]]:whitespace-normal [&_[role=columnheader]:last-child]:pr-0",
-        false: "",
+        true: "scrollbar-hide scroll-fade-x [overflow-wrap:normal] [--scroll-fade-ramp:1.5rem] [&_[role=cell]:last-child]:pr-0 [&_[role=columnheader]]:whitespace-normal [&_[role=columnheader]:last-child]:pr-0",
+        false:
+          "px-4 max-md:[--table-fluid-min:8rem] max-md:[--table-lead-min:10rem] max-md:[clip-path:inset(0_0_0_0.5rem)]",
       },
     },
     defaultVariants: { density: "directory", flush: false },
@@ -252,9 +253,8 @@ export function TableGroup({
     <div
       role="row"
       className={cx(
-        "relative col-span-full mb-0.5 grid h-8 grid-cols-subgrid items-center",
-        !inCard && "[--table-lead-bg:var(--section)]",
-        inCard && "mt-2 mb-0",
+        "relative col-span-full grid h-8 grid-cols-subgrid items-center",
+        inCard ? "mt-2" : "mb-0.5 [--table-lead-bg:var(--section)]",
         className,
       )}
     >

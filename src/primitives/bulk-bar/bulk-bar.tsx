@@ -6,8 +6,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 
 export type BulkBarProps = ComponentProps<"div"> & {
   /** Number of selected items, shown as "<count> selected". */
-  count: number;
-  onClear: () => void;
+  count?: number;
+  /** Adds the clear-selection button. */
+  onClear?: () => void;
 };
 
 /** Floating selection bar pinned to the bottom of the nearest positioned ancestor. */
@@ -28,20 +29,24 @@ export function BulkBar({
       {...props}
     >
       <div className="pointer-events-auto flex w-max max-w-[calc(100%-1rem)] items-center gap-0.5 rounded-(--radius-card) border-hairline border-border-2 bg-popover p-1 shadow-overlay">
-        <span className="px-2 text-sm font-medium whitespace-nowrap text-foreground tabular-nums">
-          {count} selected
-        </span>
+        {count !== undefined && (
+          <span className="px-2 text-sm font-medium whitespace-nowrap text-foreground tabular-nums">
+            {count} selected
+          </span>
+        )}
         {children}
-        <BulkBarAction label="Clear selection">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Clear selection"
-            onClick={onClear}
-          >
-            <Icon name="cross-medium" size={null} />
-          </Button>
-        </BulkBarAction>
+        {onClear !== undefined && (
+          <BulkBarAction label="Clear selection">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Clear selection"
+              onClick={onClear}
+            >
+              <Icon name="cross-medium" size={null} />
+            </Button>
+          </BulkBarAction>
+        )}
       </div>
     </div>
   );
