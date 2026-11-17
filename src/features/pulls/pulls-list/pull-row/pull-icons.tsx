@@ -1,5 +1,5 @@
 import type { SVGProps } from "react";
-import type { PullState } from "@/data/api/schemas/pull";
+import type { PullState } from "@/features/pulls/pulls-page/data/pull";
 
 /**
  * Central icons Capy's pulls screens use that the shared sprite does not carry

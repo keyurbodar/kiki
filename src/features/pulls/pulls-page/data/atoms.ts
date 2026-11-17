@@ -1,15 +1,16 @@
 import { Atom } from "effect/reactivity";
-import type { OrgId } from "../api/schemas/ids.ts";
-import type { PullState } from "../api/schemas/pull.ts";
-import { ApiClient } from "../client/ApiClient.ts";
-import { queryTimeToLive, reactivityKeys } from "./conventions.ts";
+import { queryTimeToLive } from "@/data/atoms/conventions";
+import { ApiClient } from "@/data/client/ApiClient";
+
+/** The reactivity key every pulls query and mutation shares. */
+export const pullsReactivityKey = (orgId: string) => `pulls:${orgId}`;
 
 /** The server-side part of the /pulls filters, as Capy's `pulls.list` takes it. */
 export interface PullListRequest {
   readonly projectIds: ReadonlyArray<string>;
   readonly excludedProjectIds: ReadonlyArray<string>;
-  readonly states: ReadonlyArray<PullState>;
-  readonly excludedStates: ReadonlyArray<PullState>;
+  readonly states: ReadonlyArray<string>;
+  readonly excludedStates: ReadonlyArray<string>;
   readonly authors: ReadonlyArray<string>;
   readonly repos: ReadonlyArray<string>;
   readonly labels: ReadonlyArray<string>;
@@ -19,42 +20,48 @@ export interface PullListRequest {
   readonly limit: number;
 }
 
-const listOrUndefined = <A>(list: ReadonlyArray<A>) =>
-  list.length === 0 ? undefined : [...list];
+export const toListQuery = (request: PullListRequest) => {
+  const query: Record<string, string | Array<string>> = {
+    limit: String(request.limit),
+  };
+  const lists = {
+    projectIds: request.projectIds,
+    excludedProjectIds: request.excludedProjectIds,
+    state: request.states,
+    excludedState: request.excludedStates,
+    authors: request.authors,
+    repos: request.repos,
+    labels: request.labels,
+    captainIds: request.captainIds,
+  };
+  for (const [key, list] of Object.entries(lists)) {
+    if (list.length > 0) query[key] = [...list];
+  }
+  if (request.updatedAfter !== null) {
+    query.updatedAfter = new Date(request.updatedAfter).toISOString();
+  }
+  if (request.search !== "") query.search = request.search;
+  return query;
+};
 
 const pullsQuery = Atom.family((key: string) => {
   const { orgId, request } = JSON.parse(key) as {
-    orgId: OrgId;
+    orgId: string;
     request: PullListRequest;
   };
   return ApiClient.query("pulls", "list", {
     params: { orgId },
-    query: {
-      projectIds: listOrUndefined(request.projectIds),
-      excludedProjectIds: listOrUndefined(request.excludedProjectIds),
-      state: listOrUndefined(request.states),
-      excludedState: listOrUndefined(request.excludedStates),
-      authors: listOrUndefined(request.authors),
-      repos: listOrUndefined(request.repos),
-      labels: listOrUndefined(request.labels),
-      captainIds: listOrUndefined(request.captainIds),
-      updatedAfter:
-        request.updatedAfter === null
-          ? undefined
-          : new Date(request.updatedAfter).toISOString(),
-      search: request.search === "" ? undefined : request.search,
-      limit: String(request.limit),
-    },
-    reactivityKeys: [reactivityKeys.pulls(orgId)],
+    query: toListQuery(request),
+    reactivityKeys: [pullsReactivityKey(orgId)],
     timeToLive: queryTimeToLive,
   });
 });
 
-export const pullsAtom = (orgId: OrgId, request: PullListRequest) =>
+export const pullsAtom = (orgId: string, request: PullListRequest) =>
   pullsQuery(JSON.stringify({ orgId, request }));
 
 const branchesQuery = Atom.family((key: string) => {
-  const [orgId, repo] = key.split("\u0000") as [OrgId, string];
+  const { orgId, repo } = JSON.parse(key) as { orgId: string; repo: string };
   return ApiClient.query("pulls", "branches", {
     params: { orgId },
     query: { repo },
@@ -62,10 +69,10 @@ const branchesQuery = Atom.family((key: string) => {
   });
 });
 
-export const pullBranchesAtom = (orgId: OrgId, repo: string) =>
-  branchesQuery(`${orgId}\u0000${repo}`);
+export const pullBranchesAtom = (orgId: string, repo: string) =>
+  branchesQuery(JSON.stringify({ orgId, repo }));
 
-export const installationReposAtom = Atom.family((orgId: OrgId) =>
+export const installationReposAtom = Atom.family((orgId: string) =>
   ApiClient.query("integrations", "listGitHubInstallationRepos", {
     params: { orgId },
     timeToLive: queryTimeToLive,
