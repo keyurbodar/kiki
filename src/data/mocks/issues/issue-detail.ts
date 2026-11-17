@@ -297,7 +297,9 @@ export const toIssueSummary = (world: IssueWorld, row: WorldIssue) => {
     return s !== undefined && toIssueState(s).type === "closed";
   };
   const status = state ? styleOf(state).status : "todo";
+  const assigneeIds = row.assigneeIds.filter((id) => id.length > 0);
   const assignee = row.assigneeId ? personActor(row.assigneeId) : null;
+  const assignees = assigneeIds.map((id) => personActor(id));
   const blockedBy = relations
     .filter((relation) => relation.relation === "blocked_by")
     .flatMap((relation) => relationRef(world, relation.code));
@@ -315,7 +317,7 @@ export const toIssueSummary = (world: IssueWorld, row: WorldIssue) => {
     visibility: "org",
     accessJamId: null,
     assignee,
-    assignees: assignee ? [assignee] : [],
+    assignees,
     labels: world.labels
       .filter((label) => row.labelIds.includes(label.id))
       .map(toIssueLabel),
