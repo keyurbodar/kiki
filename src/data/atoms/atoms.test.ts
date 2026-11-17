@@ -48,7 +48,7 @@ describe("data atoms over MockServices", () => {
         registry,
         threadsAtom(orgId, docs),
       );
-      assert.strictEqual(all.items.length, 6);
+      assert.strictEqual(all.items.length, 10);
       assert.deepStrictEqual(
         scoped.items.map((thread) => thread.title),
         ["Write the getting started guide"],

@@ -97,7 +97,7 @@ describe("jams mock", () => {
       const page = yield* AtomRegistry.getResult(registry, listAtom);
       assert.deepStrictEqual(
         page.items.map((thread) => thread.threadNumber),
-        [41, 40, 39, 38, 37, 36],
+        [41, 48, 40, 47, 46, 39, 38, 45, 37, 36],
       );
       const counts = yield* AtomRegistry.getResult(registry, countsAtom);
       assert.strictEqual(counts.pinned, 2);

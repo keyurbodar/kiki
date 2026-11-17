@@ -214,6 +214,34 @@ export const threads = {
     title: "Upgrade the bundler",
     projectId: projects.web.id,
   },
+  /**
+   * The jam ids our parity captures navigate to. Their history is seeded in
+   * events/fixtures.ts, their cards and children beside the sample rows.
+   */
+  capturePipeline: {
+    id: "jam_01M7FSZ5JHHYSDA2WM61W88WEG",
+    number: 48,
+    title: "Wire the retry budget into the release pipeline",
+    projectId: projects.web.id,
+  },
+  captureFiles: {
+    id: "jam_01M7MFTGG7Q15WKEF7TW3PQG37",
+    number: 47,
+    title: "Shard the release test suite",
+    projectId: projects.web.id,
+  },
+  captureSideParent: {
+    id: "jam_01M7MMQJAA80M4FEDRSNZVFGG5",
+    number: 46,
+    title: "Plan the pipeline hardening work",
+    projectId: projects.web.id,
+  },
+  captureProbe: {
+    id: "jam_01M7FP6GKY49R183VW3NBE3Y2Z",
+    number: 45,
+    title: "Trace the flaky shard timeout",
+    projectId: projects.web.id,
+  },
 } as const;
 
 export const captains = [
@@ -513,6 +541,34 @@ export const pulls = [
     updatedAt: isoMinutesAgo(12 * day),
   },
   xinPull,
+  {
+    id: "pr_sample_312",
+    repo: "acme/web",
+    number: 312,
+    title: "Shard the release test suite",
+    state: "ready" as PullState,
+    authorId: people.alex.id,
+    headRef: "feat/shard-suite",
+    baseRef: "main",
+    additions: 186,
+    deletions: 64,
+    threadId: threads.captureFiles.id,
+    updatedAt: isoMinutesAgo(44),
+  },
+  {
+    id: "pr_sample_313",
+    repo: "acme/web",
+    number: 313,
+    title: "Retry a shard twice before failing the release",
+    state: "draft" as PullState,
+    authorId: people.alex.id,
+    headRef: "fix/shard-retry",
+    baseRef: "main",
+    additions: 34,
+    deletions: 19,
+    threadId: threads.capturePipeline.id,
+    updatedAt: isoMinutesAgo(4),
+  },
 ] as const;
 
 export const machines = [
@@ -542,6 +598,42 @@ export const machines = [
     status: "stopped",
     threadId: threads.bundler.id,
     createdAt: isoMinutesAgo(10 * day),
+  },
+  {
+    id: "machine_sample_cloud4",
+    kind: "cloud",
+    name: "Cloud machine",
+    size: "large",
+    status: "running",
+    threadId: threads.capturePipeline.id,
+    createdAt: isoMinutesAgo(3 * hour),
+  },
+  {
+    id: "machine_sample_cloud5",
+    kind: "cloud",
+    name: "Cloud machine",
+    size: "medium",
+    status: "running",
+    threadId: threads.captureFiles.id,
+    createdAt: isoMinutesAgo(2 * hour),
+  },
+  {
+    id: "machine_sample_cloud6",
+    kind: "cloud",
+    name: "Cloud machine",
+    size: "large",
+    status: "sleeping",
+    threadId: threads.captureSideParent.id,
+    createdAt: isoMinutesAgo(4 * hour),
+  },
+  {
+    id: "machine_sample_cloud7",
+    kind: "cloud",
+    name: "Cloud machine",
+    size: "small",
+    status: "sleeping",
+    threadId: threads.captureProbe.id,
+    createdAt: isoMinutesAgo(6 * hour),
   },
 ] as const;
 

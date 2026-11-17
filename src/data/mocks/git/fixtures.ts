@@ -290,6 +290,113 @@ const incidentFiles: ReadonlyArray<GitFile> = [
   ),
 ];
 
+const shardsPath = "scripts/release/shards.ts";
+const shardsContent = [
+  "export const shards = [1, 2, 3, 4, 5, 6] as const;",
+  "export type Shard = (typeof shards)[number];",
+  "",
+  "export const shardOf = (path: string, perShard = 40) =>",
+  "  ((path.length % shards.length) + 1) as Shard;",
+  "",
+].join("\n");
+
+const shardsBaseline = [
+  'export const shards = ["all"] as const;',
+  "export type Shard = (typeof shards)[number];",
+  "",
+  "export const shardOf = () => 1 as Shard;",
+  "",
+].join("\n");
+
+const specPath = "tests/checkout/checkout.spec.ts";
+const specContent = [
+  'import { describe, expect, it } from "vitest";',
+  'import { gateway } from "./gateway.ts";',
+  "",
+  'describe("checkout", () => {',
+  '  it("submits an order once the gateway answers", async () => {',
+  "    await gateway.answered();",
+  '    expect(await gateway.submit()).toBe("accepted");',
+  "  });",
+  "});",
+  "",
+].join("\n");
+
+const specBaseline = [
+  'import { describe, expect, it } from "vitest";',
+  'import { gateway } from "./gateway.ts";',
+  "",
+  'describe("checkout", () => {',
+  '  it("submits an order once the gateway answers", async () => {',
+  "    await gateway.waitFor(30_000);",
+  '    expect(await gateway.submit()).toBe("accepted");',
+  "  });",
+  "});",
+  "",
+].join("\n");
+
+const pipelinePath = "src/ci/pipeline.ts";
+const pipelineContent = [
+  'import { runTests, type Shard } from "./run.ts";',
+  "",
+  "export const runShard = async (shard: Shard, budget = 2) => {",
+  "  const spent = await runTests(shard);",
+  '  console.log("shard " + shard + ": " + spent + " of " + budget + " retries");',
+  "};",
+  "",
+].join("\n");
+
+const pipelineBaseline = [
+  'import { runTests, type Shard } from "./run.ts";',
+  "",
+  "export const runShard = async (shard: Shard) => {",
+  "  await runTests(shard);",
+  "};",
+  "",
+].join("\n");
+
+const shardFiles: ReadonlyArray<GitFile> = [
+  file(shardsPath, shardsContent, "typescript", 44),
+  file(specPath, specContent, "typescript", 40),
+  file(
+    "README.md",
+    [
+      "# Web app",
+      "",
+      "The release suite runs in six shards; see `scripts/release/shards.ts`.",
+      "",
+    ].join("\n"),
+    "markdown",
+    72,
+  ),
+];
+
+const retryBudgetFiles: ReadonlyArray<GitFile> = [
+  file(
+    "scripts/release/lib/retry.sh",
+    [
+      "#!/usr/bin/env bash",
+      "",
+      "budget=$RETRY_BUDGET",
+      '[ -z "$budget" ] && budget=2',
+      "spent=0",
+      "",
+      'until ./shard.sh "$SHARD"; do',
+      "  spent=$((spent + 1))",
+      '  if [ "$spent" -ge "$budget" ]; then',
+      '    echo "shard $SHARD spent its retry budget" >&2',
+      "    exit 1",
+      "  fi",
+      "done",
+      "",
+    ].join("\n"),
+    "shell",
+    34,
+  ),
+  file(specPath, specContent, "typescript", 36),
+  file(pipelinePath, pipelineContent, "typescript", 18),
+];
+
 type WorldThread = (typeof world.threads)[keyof typeof world.threads];
 
 const turnsFor = (
@@ -415,6 +522,32 @@ export const initialGitStates: ReadonlyMap<string, GitThreadState> = new Map([
       branch: world.branches[3],
       files: bundlerFiles,
       staged: ["vite.config.ts"],
+    }),
+  ],
+  [
+    world.threads.capturePipeline.id,
+    stateFor(world.threads.capturePipeline, {
+      repo: webRepo,
+      branch: "fix/shard-retry",
+      files: retryBudgetFiles,
+      staged: ["scripts/release/lib/retry.sh", pipelinePath],
+      baselineEdits: {
+        [specPath]: specBaseline,
+        [pipelinePath]: pipelineBaseline,
+      },
+    }),
+  ],
+  [
+    world.threads.captureFiles.id,
+    stateFor(world.threads.captureFiles, {
+      repo: webRepo,
+      branch: "feat/shard-suite",
+      files: shardFiles,
+      staged: [shardsPath],
+      baselineEdits: {
+        [shardsPath]: shardsBaseline,
+        [specPath]: specBaseline,
+      },
     }),
   ],
 ]);
