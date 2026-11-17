@@ -1,11 +1,7 @@
-import {
-  useAtomRefresh,
-  useAtomSet,
-  useAtomValue,
-} from "@effect/atom-react";
+import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
+import { Link } from "@tanstack/react-router";
 import { DateTime } from "effect";
 import { AsyncResult } from "effect/reactivity";
-import { Link } from "@tanstack/react-router";
 import { type ReactNode, useState } from "react";
 import { toast } from "sonner";
 import type {
@@ -73,7 +69,11 @@ import {
   EditablePageTitle,
   StatusDot,
 } from "./parts";
-import { useCurrentUserId, useOrgAdmin, useQueryState } from "./use-api-context";
+import {
+  useCurrentUserId,
+  useOrgAdmin,
+  useQueryState,
+} from "./use-api-context";
 
 const menuSearchInput =
   "h-(--h-menu-row) w-full min-w-0 bg-transparent px-2 text-sm font-normal text-foreground outline-none placeholder:text-muted-foreground-3";
@@ -325,7 +325,9 @@ function ServiceUserDetailContent({
 
   const servicesText = row.subscriptionServices.map(serviceLabel).join(", ");
   const subscriptionOwner =
-    row.subscriptionOwnerUserId === viewerId ? "You" : row.subscriptionOwnerUserId;
+    row.subscriptionOwnerUserId === viewerId
+      ? "You"
+      : row.subscriptionOwnerUserId;
 
   const keyDialogUsers = allUsers.rows.some((user) => user.id === row.id)
     ? allUsers.rows
@@ -455,7 +457,11 @@ function ServiceUserDetailContent({
               ariaLabel="Service-user name"
               maxLength={255}
               onSave={(name) =>
-                save({ name }, "save service-user name", "Service-user name saved")
+                save(
+                  { name },
+                  "save service-user name",
+                  "Service-user name saved",
+                )
               }
             />
             <EditablePageDescription
@@ -592,7 +598,9 @@ function ServiceUserDetailContent({
               }
             >
               <Button variant="ghost" size="sm" disabled={pending !== null}>
-                {row.model === null ? "Organization default" : row.model.modelId}
+                {row.model === null
+                  ? "Organization default"
+                  : row.model.modelId}
               </Button>
             </SettingsRow>
             <SettingsRow
@@ -684,7 +692,11 @@ function ServiceUserDetailContent({
                   Retry
                 </Button>
               )}
-              <Button size="sm" variant="ghost" onClick={() => setCreatingKey(true)}>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setCreatingKey(true)}
+              >
                 Create API key
               </Button>
             </SettingsRow>
@@ -721,7 +733,9 @@ function ServiceUserDetailContent({
           disable({ params: reasons, reactivityKeys: keysRefresh })
             .then(() => toast.success("Service user disabled"))
             .catch((error: unknown) =>
-              toast.error(errorMessage(error, "Could not disable service user")),
+              toast.error(
+                errorMessage(error, "Could not disable service user"),
+              ),
             )
             .finally(() => setPending(null));
         }}

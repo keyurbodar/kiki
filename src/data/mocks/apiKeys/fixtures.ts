@@ -10,17 +10,18 @@ import {
   UserId,
 } from "../../api/schemas/ids.ts";
 import {
-  apiKeys as worldApiKeys,
   isoMinutesAgo,
   projects,
   viewer,
+  apiKeys as worldApiKeys,
 } from "../fixtures/world.ts";
 
 const day = 24 * 60;
 const at = (iso: string) => DateTime.makeUnsafe(iso);
 
 /** Capy shows the first five characters and the last four of the token. */
-export const tokenHintFor = (token: string) => `${token.slice(0, 5)}…${token.slice(-4)}`;
+export const tokenHintFor = (token: string) =>
+  `${token.slice(0, 5)}…${token.slice(-4)}`;
 
 /** World keys act as their creator (human principal). */
 export const worldKeys = worldApiKeys.map(

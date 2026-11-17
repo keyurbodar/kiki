@@ -71,7 +71,9 @@ export const sortApiKeys = (
   });
 
 /** Enabled first, then by name. */
-export const sortServiceUsers = <T extends Pick<ServiceUser, "disabledAt" | "name">>(
+export const sortServiceUsers = <
+  T extends Pick<ServiceUser, "disabledAt" | "name">,
+>(
   users: ReadonlyArray<T>,
 ) =>
   users.toSorted(

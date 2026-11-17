@@ -79,7 +79,9 @@ function ApiSettingsContent({ orgId }: { orgId: OrgId }) {
   );
   const sortedUsers = sortServiceUsers(users.rows);
   const sortedKeys = sortApiKeys(keys.rows, usersById);
-  const revokedCount = sortedKeys.filter((key) => key.revokedAt !== null).length;
+  const revokedCount = sortedKeys.filter(
+    (key) => key.revokedAt !== null,
+  ).length;
   const visibleKeys = showRevoked
     ? sortedKeys
     : sortedKeys.filter((key) => key.revokedAt === null);
@@ -190,7 +192,9 @@ function ApiSettingsContent({ orgId }: { orgId: OrgId }) {
                         size="sm"
                         onClick={() => setShowRevoked((shown) => !shown)}
                       >
-                        {showRevoked ? "Hide revoked" : `Show ${revokedCount} revoked`}
+                        {showRevoked
+                          ? "Hide revoked"
+                          : `Show ${revokedCount} revoked`}
                       </Button>
                     )
                   }
@@ -231,7 +235,9 @@ function ApiSettingsContent({ orgId }: { orgId: OrgId }) {
                       )}
                       <ApiKeyStatusBadge
                         state={apiKeyState(key, usersById)}
-                        expiresAt={key.expiresAt === null ? null : toDate(key.expiresAt)}
+                        expiresAt={
+                          key.expiresAt === null ? null : toDate(key.expiresAt)
+                        }
                       />
                     </SettingsRowLink>
                   );

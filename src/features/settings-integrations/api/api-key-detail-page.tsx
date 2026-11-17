@@ -2,7 +2,11 @@ import { useAtomSet } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import type { ApiKey, ApiKeyId, ServiceUser } from "@/data/api/schemas/api-keys";
+import type {
+  ApiKey,
+  ApiKeyId,
+  ServiceUser,
+} from "@/data/api/schemas/api-keys";
 import type { OrgId } from "@/data/api/schemas/ids";
 import {
   apiKeysAtom,
@@ -22,7 +26,12 @@ import {
   SettingsSection,
   useActiveOrgId,
 } from "../shared";
-import { apiKeyState, errorMessage, formatTimestamp, toDate } from "./api-state";
+import {
+  apiKeyState,
+  errorMessage,
+  formatTimestamp,
+  toDate,
+} from "./api-state";
 import { ProjectIcon } from "./icons";
 import {
   ApiKeyStatusBadge,
@@ -111,7 +120,8 @@ function ApiKeyDetailContent({
       ? users.rows.find((user) => user.id === apiKey.principalUserId)
       : undefined;
   const projectName = (projectId: string) =>
-    projects.rows.find((project) => project.id === projectId)?.name ?? projectId;
+    projects.rows.find((project) => project.id === projectId)?.name ??
+    projectId;
   const state = apiKeyState(
     apiKey,
     new Map<string, ServiceUser>(users.rows.map((user) => [user.id, user])),
@@ -205,7 +215,12 @@ function ApiKeyDetailContent({
         <SettingsSection title="Details">
           <Card rows>
             <SettingsRow label="Key ID">
-              <CopyValue className="w-56" size="sm" value={apiKey.id} label="key ID" />
+              <CopyValue
+                className="w-56"
+                size="sm"
+                value={apiKey.id}
+                label="key ID"
+              />
             </SettingsRow>
             <SettingsRow label="Token hint">
               {apiKey.tokenHint === null ? (
@@ -245,7 +260,9 @@ function ApiKeyDetailContent({
               )}
             </SettingsRow>
             <SettingsRow label="Created by">
-              <span className="text-sm text-muted-foreground-1">{creatorName}</span>
+              <span className="text-sm text-muted-foreground-1">
+                {creatorName}
+              </span>
             </SettingsRow>
             <SettingsRow label="Created">
               <span className="text-sm text-muted-foreground-1">
@@ -262,7 +279,9 @@ function ApiKeyDetailContent({
             <SettingsRow label="Status">
               <ApiKeyStatusBadge
                 state={state}
-                expiresAt={apiKey.expiresAt === null ? null : toDate(apiKey.expiresAt)}
+                expiresAt={
+                  apiKey.expiresAt === null ? null : toDate(apiKey.expiresAt)
+                }
               />
               {apiKey.revokedAt !== null && (
                 <span className="text-xs text-muted-foreground-2">

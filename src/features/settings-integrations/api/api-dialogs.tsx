@@ -234,7 +234,9 @@ export function CreateApiKeyDialog({
         serviceUserId:
           principal === "human" ? undefined : ServiceUserId.make(principal),
         expiresAt:
-          expiresAt === undefined ? undefined : DateTime.fromDateUnsafe(expiresAt),
+          expiresAt === undefined
+            ? undefined
+            : DateTime.fromDateUnsafe(expiresAt),
       },
       reactivityKeys: apiSettingsKeys.apiSettings(orgId),
     })
@@ -287,10 +289,15 @@ export function CreateApiKeyDialog({
                     ...(lockedServiceUserId === undefined
                       ? [["human", "You"]]
                       : []),
-                    ...serviceUsers.map((user) => [user.id, principalLabel(user)]),
+                    ...serviceUsers.map((user) => [
+                      user.id,
+                      principalLabel(user),
+                    ]),
                   ])}
                   value={principal}
-                  onValueChange={(value) => value !== null && setPrincipal(value)}
+                  onValueChange={(value) =>
+                    value !== null && setPrincipal(value)
+                  }
                   disabled={lockedServiceUserId !== undefined}
                 >
                   <MenuSelectTrigger className="w-full">
@@ -365,7 +372,11 @@ export function CreateApiKeyDialog({
             <DialogBody>
               <CopyValue value={plaintext} label="API key" />
             </DialogBody>
-            <ConnectFooter help={apiKeyHelp} onCancel={close} cancelLabel="Done" />
+            <ConnectFooter
+              help={apiKeyHelp}
+              onCancel={close}
+              cancelLabel="Done"
+            />
           </>
         )}
       </DialogContent>

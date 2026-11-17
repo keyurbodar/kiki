@@ -16,7 +16,9 @@ const now = Date.parse("2026-03-02T09:00:00.000Z");
 const at = (iso: string) => DateTime.makeUnsafe(iso);
 const svc = ServiceUserId.make("svc_sample_bot");
 
-const key = (overrides: Partial<ConstructorParameters<typeof ApiKey>[0]> = {}) =>
+const key = (
+  overrides: Partial<ConstructorParameters<typeof ApiKey>[0]> = {},
+) =>
   new ApiKey({
     id: "key_sample_1" as ApiKeyId,
     name: "CI",
@@ -35,9 +37,27 @@ describe("apiKeyState", () => {
   const users = new Map([[svc as string, { disabledAt: null }]]);
 
   it("maps revoked, expired, expiring and active keys", () => {
-    expect(apiKeyState(key({ revokedAt: at("2026-02-02T00:00:00.000Z") }), users, now)).toBe("revoked");
-    expect(apiKeyState(key({ expiresAt: at("2026-03-01T00:00:00.000Z") }), users, now)).toBe("expired");
-    expect(apiKeyState(key({ expiresAt: at("2026-04-01T00:00:00.000Z") }), users, now)).toBe("expires");
+    expect(
+      apiKeyState(
+        key({ revokedAt: at("2026-02-02T00:00:00.000Z") }),
+        users,
+        now,
+      ),
+    ).toBe("revoked");
+    expect(
+      apiKeyState(
+        key({ expiresAt: at("2026-03-01T00:00:00.000Z") }),
+        users,
+        now,
+      ),
+    ).toBe("expired");
+    expect(
+      apiKeyState(
+        key({ expiresAt: at("2026-04-01T00:00:00.000Z") }),
+        users,
+        now,
+      ),
+    ).toBe("expires");
     expect(apiKeyState(key(), users, now)).toBe("active");
   });
 
@@ -46,19 +66,33 @@ describe("apiKeyState", () => {
     expect(apiKeyState(serviceKey, users, now)).toBe("active");
     expect(apiKeyState(serviceKey, new Map(), now)).toBe("unavailable");
     expect(
-      apiKeyState(serviceKey, new Map([[svc as string, { disabledAt: at("2026-02-03T00:00:00.000Z") }]]), now),
+      apiKeyState(
+        serviceKey,
+        new Map([
+          [svc as string, { disabledAt: at("2026-02-03T00:00:00.000Z") }],
+        ]),
+        now,
+      ),
     ).toBe("disabled");
   });
 
   it("sorts live keys first, then newest", () => {
-    const old = key({ id: "key_sample_old" as ApiKeyId, createdAt: at("2026-01-01T00:00:00.000Z") });
-    const revoked = key({ id: "key_sample_rev" as ApiKeyId, revokedAt: at("2026-02-05T00:00:00.000Z"), createdAt: at("2026-02-10T00:00:00.000Z") });
-    const fresh = key({ id: "key_sample_new" as ApiKeyId, createdAt: at("2026-02-20T00:00:00.000Z") });
-    expect(sortApiKeys([revoked, old, fresh], users, now).map((k) => k.id)).toEqual([
-      "key_sample_new",
-      "key_sample_old",
-      "key_sample_rev",
-    ]);
+    const old = key({
+      id: "key_sample_old" as ApiKeyId,
+      createdAt: at("2026-01-01T00:00:00.000Z"),
+    });
+    const revoked = key({
+      id: "key_sample_rev" as ApiKeyId,
+      revokedAt: at("2026-02-05T00:00:00.000Z"),
+      createdAt: at("2026-02-10T00:00:00.000Z"),
+    });
+    const fresh = key({
+      id: "key_sample_new" as ApiKeyId,
+      createdAt: at("2026-02-20T00:00:00.000Z"),
+    });
+    expect(
+      sortApiKeys([revoked, old, fresh], users, now).map((k) => k.id),
+    ).toEqual(["key_sample_new", "key_sample_old", "key_sample_rev"]);
   });
 });
 
@@ -75,7 +109,11 @@ describe("helpers", () => {
       { name: "Alpha", disabledAt: at("2026-01-01T00:00:00.000Z") },
       { name: "alpha", disabledAt: null },
     ];
-    expect(sortServiceUsers(rows).map((row) => row.name)).toEqual(["alpha", "beta", "Alpha"]);
+    expect(sortServiceUsers(rows).map((row) => row.name)).toEqual([
+      "alpha",
+      "beta",
+      "Alpha",
+    ]);
   });
 
   it("lists only uncarried private projects on live keys", () => {
@@ -83,13 +121,22 @@ describe("helpers", () => {
       { projectId: ProjectId.make("proj_sample_web"), carried: true },
       { projectId: ProjectId.make("proj_sample_docs"), carried: false },
     ];
-    expect(unreachedProjects({ revokedAt: null, privateProjects })).toHaveLength(1);
-    expect(unreachedProjects({ revokedAt: at("2026-01-01T00:00:00.000Z"), privateProjects })).toHaveLength(0);
+    expect(
+      unreachedProjects({ revokedAt: null, privateProjects }),
+    ).toHaveLength(1);
+    expect(
+      unreachedProjects({
+        revokedAt: at("2026-01-01T00:00:00.000Z"),
+        privateProjects,
+      }),
+    ).toHaveLength(0);
   });
 
   it("computes mint expiry dates", () => {
     expect(expirationDate("never", "", now)).toBeUndefined();
-    expect(expirationDate("30", "", now)?.getTime()).toBe(now + 30 * 86_400_000);
+    expect(expirationDate("30", "", now)?.getTime()).toBe(
+      now + 30 * 86_400_000,
+    );
     expect(expirationDate("custom", "not-a-date", now)).toBeUndefined();
     expect(expirationDate("custom", "2026-05-01", now)?.getDate()).toBe(1);
   });

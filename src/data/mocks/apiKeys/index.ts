@@ -61,7 +61,10 @@ export const ApiKeysMock = mockGroup("apiKeys", (handlers) =>
         }),
       )
       .handle("rename", ({ params, payload }) =>
-        update(params.keyId, (key) => new ApiKey({ ...key, name: payload.name })),
+        update(
+          params.keyId,
+          (key) => new ApiKey({ ...key, name: payload.name }),
+        ),
       )
       .handle("revoke", ({ params }) =>
         update(params.keyId, (key) =>

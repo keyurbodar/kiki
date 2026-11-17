@@ -4,18 +4,26 @@ import { OrgId, ProjectId, ServiceUserId, Timestamp, UserId } from "./ids.ts";
 import { ModelSelection } from "./organization.ts";
 import { ProjectIcon } from "./project.ts";
 
-export const ApiKeyId = Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(255)).pipe(
-  Schema.brand("Core.ApiKeyId"),
-);
+export const ApiKeyId = Schema.String.check(
+  Schema.isMinLength(1),
+  Schema.isMaxLength(255),
+).pipe(Schema.brand("Core.ApiKeyId"));
 export type ApiKeyId = typeof ApiKeyId.Type;
 
 export const PrincipalKind = Schema.Literals(["human", "service"]);
 export type PrincipalKind = typeof PrincipalKind.Type;
 
-export const ServiceUserRole = Schema.Literals(["read_only", "read_write", "admin"]);
+export const ServiceUserRole = Schema.Literals([
+  "read_only",
+  "read_write",
+  "admin",
+]);
 export type ServiceUserRole = typeof ServiceUserRole.Type;
 
-export const ProjectAccessMode = Schema.Literals(["all_org_projects", "allowlist"]);
+export const ProjectAccessMode = Schema.Literals([
+  "all_org_projects",
+  "allowlist",
+]);
 export type ProjectAccessMode = typeof ProjectAccessMode.Type;
 
 /** Capy decodes unknown members to "unsupported"; kept as a plain string here. */

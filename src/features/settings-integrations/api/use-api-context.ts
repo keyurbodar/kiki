@@ -1,6 +1,6 @@
 import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
-import { type Atom, AsyncResult } from "effect/reactivity";
+import { AsyncResult, type Atom } from "effect/reactivity";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
 
 /** Capy's useOrgAdmin: admins and owners may manage admin service users. */
@@ -12,7 +12,9 @@ export function useOrgAdmin() {
   const isAdmin = accessLevel === "admin" || accessLevel === "owner";
   return {
     isAdmin,
-    adminReason: isAdmin ? undefined : "Only organization admins can change this",
+    adminReason: isAdmin
+      ? undefined
+      : "Only organization admins can change this",
   };
 }
 

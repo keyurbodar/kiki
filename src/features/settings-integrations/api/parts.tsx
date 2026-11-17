@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
@@ -33,6 +33,7 @@ export function Field({
   children: ReactNode;
 }) {
   return (
+    // biome-ignore lint/a11y/noLabelWithoutControl: the control arrives as children, like Capy's Field
     <label className="flex flex-col gap-1.5 text-sm font-medium text-foreground">
       <span>
         {label}
@@ -177,7 +178,7 @@ export function SearchCardListHeader({
 
 /**
  * ui/copy-field.tsx `CopyField` (non-secret path) until the primitive takes
- * value/label/size. Copied state clears after 1.5s like Capy's.
+ * value/label/size. Copied state clears on Capy's timer.
  */
 export function CopyValue({
   value,
@@ -301,7 +302,6 @@ export function ConnectFooter({
           size="auto-xs"
           className="focus-gutter mr-auto"
           render={
-            // biome-ignore lint/a11y/useAnchorContent: Button renders the label into the anchor
             <a href={help.href} target="_blank" rel="noopener noreferrer" />
           }
         >
@@ -309,7 +309,12 @@ export function ConnectFooter({
           <ArrowUpRightIcon className="size-(--icon-xs)" />
         </Button>
       )}
-      <Button type="button" variant="ghost" disabled={disabled} onClick={onCancel}>
+      <Button
+        type="button"
+        variant="ghost"
+        disabled={disabled}
+        onClick={onCancel}
+      >
         {cancelLabel}
       </Button>
       {children}
@@ -318,8 +323,11 @@ export function ConnectFooter({
 }
 
 /** Button's `loading`/`loadingLabel` until the primitive grows them. */
-export const busyLabel = (busy: boolean, label: string, loadingLabel: string) =>
-  busy ? loadingLabel : label;
+export const busyLabel = (
+  busy: boolean,
+  label: string,
+  loadingLabel: string,
+) => (busy ? loadingLabel : label);
 
 /** editable-page-fields.tsx `EditablePageTitle`. */
 export function EditablePageTitle({
@@ -398,6 +406,3 @@ export function EditablePageDescription({
     />
   );
 }
-
-/** Focus target after a destructive action, like Capy's headingRef focus. */
-export const useFocusAfter = () => useRef<HTMLHeadingElement>(null);

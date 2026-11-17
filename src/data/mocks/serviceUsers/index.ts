@@ -11,15 +11,17 @@ import { viewer } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { sampleServiceUsers } from "./fixtures.ts";
 
-const summary = ({ projectIds: _p, subscriptionServices: _s, ...row }: ServiceUserDetail) =>
-  new ServiceUser(row);
+const summary = ({
+  projectIds: _p,
+  subscriptionServices: _s,
+  ...row
+}: ServiceUserDetail) => new ServiceUser(row);
 
 export const ServiceUsersMock = mockGroup("serviceUsers", (handlers) =>
   Effect.gen(function* () {
     const db = yield* MockDb;
-    const users = yield* Ref.make<ReadonlyArray<ServiceUserDetail>>(
-      sampleServiceUsers,
-    );
+    const users =
+      yield* Ref.make<ReadonlyArray<ServiceUserDetail>>(sampleServiceUsers);
 
     const find = (serviceUserId: ServiceUserId) =>
       Ref.get(users).pipe(

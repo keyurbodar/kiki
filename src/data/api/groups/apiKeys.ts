@@ -1,3 +1,4 @@
+import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
 import {
   ApiKey,
@@ -10,7 +11,6 @@ import {
   RenameApiKeyRequest,
 } from "../schemas/api-keys.ts";
 import { OrgId } from "../schemas/ids.ts";
-import { Schema } from "effect";
 
 export class ApiKeysGroup extends HttpApiGroup.make("apiKeys").add(
   HttpApiEndpoint.post("mint", "/orgs/:orgId/api-keys", {
