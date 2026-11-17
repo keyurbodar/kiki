@@ -40,6 +40,19 @@ it("draws one chevron on a row that opens a panel", () => {
   expect(trigger?.querySelectorAll("svg").length).toBe(1);
 });
 
+it("keeps the clock on a row that has no panel to open", () => {
+  const { container } = render(
+    <ActivityRow
+      row={toolRow({
+        args: {},
+        result: { blocks: [], isError: false, settledAt: at(2_400) },
+      })}
+    />,
+  );
+  expect(container.querySelector("[data-slot=collapsible-trigger]")).toBeNull();
+  expect(container.textContent).toContain("3s");
+});
+
 it("keeps a row without a panel static and chevronless", () => {
   const { container } = render(
     <ActivityRow row={toolRow({ args: {}, result: undefined })} />,
