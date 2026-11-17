@@ -119,7 +119,7 @@ export function NewIssueDialog({
         if (!next) reset();
       }}
     >
-      <DialogContent className="new-issue-dialog max-w-2xl">
+      <DialogContent className="new-issue-dialog max-w-2xl!">
         <div className="flex items-center gap-1.5 px-5 pt-4">
           <ProjectPicker
             projects={projects}

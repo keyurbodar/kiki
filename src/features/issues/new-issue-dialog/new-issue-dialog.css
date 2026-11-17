@@ -15,6 +15,10 @@ body:has(.new-issue-dialog) [data-slot="popover-content"] > button {
   @apply relative flex h-(--h-menu-row) w-full min-w-0 shrink-0 cursor-pointer items-center gap-2 rounded px-2 text-left text-sm font-normal text-foreground outline-none select-none hover:bg-popover-hover focus-visible:bg-popover-hover;
 }
 
+body:has(.new-issue-dialog) [data-slot="popover-content"] [data-slot="button"] {
+  @apply inline-flex size-(--h-control-xs) shrink-0 cursor-pointer items-center justify-center rounded text-muted-foreground-1 hover:bg-secondary hover:text-foreground disabled:opacity-55 [&_svg]:size-(--icon-xs);
+}
+
 /* Menu rows inside this unit's menus, until the Menu primitive is filled. */
 .new-issue-menu [data-slot="menu-item"],
 .new-issue-menu [data-slot="menu-checkbox-item"] {
