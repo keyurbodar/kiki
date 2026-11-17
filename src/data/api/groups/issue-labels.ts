@@ -1,11 +1,12 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { IssueLabelList } from "../schemas/issue.ts";
 import { Undecoded } from "../undecoded.ts";
 
 export class IssueLabelsGroup extends HttpApiGroup.make("issue-labels").add(
   HttpApiEndpoint.get("labels", "/orgs/:orgId/issue-labels", {
     params: { orgId: Schema.String },
-    success: Undecoded,
+    success: IssueLabelList,
   }),
   HttpApiEndpoint.post("createLabel", "/orgs/:orgId/issue-labels", {
     params: { orgId: Schema.String },
