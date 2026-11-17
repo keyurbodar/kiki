@@ -1,4 +1,7 @@
-import { useState } from "react";
+/** biome-ignore-all lint/a11y/useSemanticElements: Capy renders history as an ARIA grid of divs over CSS subgrid */
+/** biome-ignore-all lint/a11y/noNoninteractiveTabindex: the grid rows and cells are static */
+/** biome-ignore-all lint/a11y/useFocusableInteractive: rows and cells are not interactive */
+import { type CSSProperties, useState } from "react";
 import { toast } from "sonner";
 import { ReferralInviteDialog } from "@/components/referral-invite-dialog";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
@@ -7,7 +10,6 @@ import { Card } from "@/primitives/card";
 import { CopyField } from "@/primitives/copy-field";
 import { Input } from "@/primitives/input";
 import { SettingsRow } from "@/primitives/settings-row";
-import { Table } from "@/primitives/table";
 import {
   kickbackProgress,
   kickbackTarget,
@@ -172,45 +174,60 @@ export function ReferralsPage({
           description="Credit rewards and transfers, newest first"
         >
           <Card className="py-2">
-            <Table>
-              <thead>
-                <tr>
-                  <th>Entry</th>
-                  <th className="text-right">Amount</th>
-                  <th className="text-right">Balance</th>
-                </tr>
-              </thead>
-              <tbody>
-                {summary.history.length === 0 ? (
-                  <tr>
-                    <td colSpan={3}>No rewards or applied credits yet</td>
-                  </tr>
-                ) : (
-                  summary.history.map((entry) => (
-                    <tr key={entry.id}>
-                      <td>
-                        <span className="flex min-w-0 flex-col gap-0.5">
-                          <span className="min-w-0 text-sm font-medium text-foreground">
-                            {entry.title}
-                          </span>
-                          {entry.detail && (
-                            <span className="text-xs font-normal text-muted-foreground-2">
-                              {entry.detail}
-                            </span>
-                          )}
+            <div
+              role="table"
+              className="grid"
+              style={
+                {
+                  "--table-auto-min": "calc(var(--spacing) * 18)",
+                  gridTemplateColumns:
+                    "minmax(0,3fr) minmax(var(--table-auto-min),auto) minmax(var(--table-auto-min),auto)",
+                } as CSSProperties
+              }
+            >
+              <div role="row" className="group/head contents">
+                <div role="columnheader">Entry</div>
+                <div role="columnheader">Amount</div>
+                <div role="columnheader">Balance</div>
+              </div>
+              {summary.history.length === 0 ? (
+                <div
+                  role="row"
+                  className="relative col-span-full grid grid-cols-subgrid"
+                >
+                  <div role="cell" className="col-span-full">
+                    No rewards or applied credits yet
+                  </div>
+                </div>
+              ) : (
+                summary.history.map((entry) => (
+                  <div
+                    role="row"
+                    key={entry.id}
+                    className="relative col-span-full grid grid-cols-subgrid"
+                  >
+                    <div role="cell">
+                      <span className="flex min-w-0 flex-col gap-0.5">
+                        <span className="min-w-0 text-sm font-medium text-foreground">
+                          {entry.title}
                         </span>
-                      </td>
-                      <td className="text-right text-sm font-medium text-foreground tabular-nums">
-                        {signedUsd(entry.delta)}
-                      </td>
-                      <td className="text-right tabular-nums">
-                        {usd(entry.balance)}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </Table>
+                        {entry.detail && (
+                          <span className="text-xs font-normal text-muted-foreground-2">
+                            {entry.detail}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <div role="cell" className="text-right tabular-nums">
+                      {signedUsd(entry.delta)}
+                    </div>
+                    <div role="cell" className="text-right tabular-nums">
+                      {usd(entry.balance)}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </Card>
         </SettingsSection>
       </SettingsPage>
