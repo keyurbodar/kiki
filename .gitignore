@@ -19,3 +19,6 @@ playwright/.cache/
 # OS / editor
 .DS_Store
 *.log
+
+# bun cache
+.bun/
