@@ -1,9 +1,6 @@
 {
   "matrix": {
-    "scheme": [
-      "dark",
-      "light"
-    ]
+    "scheme": ["dark", "light"]
   },
   "defaults": {
     "maxMismatch": 100
@@ -50,14 +47,8 @@
       "state": "zoomed in twice, 156%",
       "viewport": "1440x900",
       "steps": [
-        [
-          "click",
-          "button[aria-label=\"Zoom in\"]"
-        ],
-        [
-          "click",
-          "button[aria-label=\"Zoom in\"]"
-        ]
+        ["click", "button[aria-label=\"Zoom in\"]"],
+        ["click", "button[aria-label=\"Zoom in\"]"]
       ],
       "capture": {
         "[data-slot=\"pan-zoom-controls\"]": [],
@@ -74,12 +65,7 @@
       "route": "/__media-lightbox",
       "state": "second item shown from the strip",
       "viewport": "1440x900",
-      "steps": [
-        [
-          "click",
-          "button[aria-label=\"Show sit.svg\"]"
-        ]
-      ],
+      "steps": [["click", "button[aria-label=\"Show sit.svg\"]"]],
       "capture": {
         "[data-slot=\"lightbox-strip\"]": []
       }
