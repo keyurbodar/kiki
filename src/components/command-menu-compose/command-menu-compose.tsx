@@ -111,10 +111,7 @@ export function CommandMenuCompose({
       {...props}
     >
       <div className={composeHeaderClass}>
-        <div
-          data-slot="project-select"
-          className="flex min-w-0 items-center"
-        >
+        <div data-slot="project-select" className="flex min-w-0 items-center">
           <select
             aria-label="Project"
             className="h-(--h-control-sm) max-w-48 cursor-pointer truncate rounded bg-transparent text-sm font-medium text-foreground outline-none"
