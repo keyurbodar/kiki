@@ -194,7 +194,11 @@ export type ThreadsPageViewProps = {
   failed: boolean;
   onRetry?: () => void;
   onCreateFolder?: (name: string) => void;
-  folders?: ReadonlyArray<{ id: string; name: string }>;
+  folders?: ReadonlyArray<{
+    id: string;
+    name: string;
+    members: ReadonlyArray<ThreadListItem>;
+  }>;
   folderSections?: ReadonlyArray<ThreadSection>;
   onMoveThreads?: (ids: ReadonlyArray<string>, folderId: string) => void;
   onArchive?: (ids: ReadonlyArray<string>, archived: boolean) => void;
@@ -216,7 +220,6 @@ export function ThreadsPageView({
   onRetry,
   onCreateFolder,
   folders = [],
-  folderSections = [],
   onMoveThreads,
   onArchive,
   onRename,
@@ -236,12 +239,7 @@ export function ThreadsPageView({
   const activeKey = activeViewKey(state);
   const dirty = activeKey === undefined;
   const projectMap = new Map(projects.map((project) => [project.id, project]));
-  const visible = filterThreads(
-    [...captains, ...threads],
-    filters,
-    viewerId,
-    now,
-  );
+  const filedMembers = folders.flatMap((folder) => folder.members);
   const authorOptions = [
     ...(viewerId === undefined
       ? []
@@ -305,6 +303,14 @@ export function ThreadsPageView({
     },
   });
   const searching = term.trim().length > 0;
+  const visible = filterThreads(
+    searching
+      ? [...captains, ...threads, ...filedMembers]
+      : [...captains, ...threads],
+    filters,
+    viewerId,
+    now,
+  );
   const shown = searching
     ? visible.filter((thread) =>
         (thread.title ?? "").toLowerCase().includes(term.trim().toLowerCase()),
@@ -321,7 +327,17 @@ export function ThreadsPageView({
       id === null ? "No project" : (projectMap.get(id)?.name ?? "No project"),
     authorName: (id) => (id === viewerId ? "You" : "Unknown"),
   });
-  const sections = [...folderSections, ...built];
+  const sections = [
+    ...(searching
+      ? []
+      : folders.map((folder) => ({
+          id: folder.id,
+          label: folder.name,
+          members: filterThreads(folder.members, filters, viewerId, now),
+          showCount: true,
+        }))),
+    ...built,
+  ];
   const chips = threadFilterChips(filters, setFilters, {
     member: (id) => (id === viewerId ? "Me" : id),
     project: (id) => projectMap.get(id)?.name ?? id,
@@ -814,7 +830,9 @@ function ThreadsPageLoaded({
     filed.flatMap((folder) => folder.members.map((thread) => thread.id)),
   );
   const unfiled =
-    AsyncResult.isSuccess(list) && state.showFiledThreads
+    AsyncResult.isSuccess(list) &&
+    state.showFiledThreads &&
+    state.filters.archived !== "only"
       ? list.value.map(toListItem).filter((thread) => !filedIds.has(thread.id))
       : AsyncResult.isSuccess(list)
         ? list.value.map(toListItem)

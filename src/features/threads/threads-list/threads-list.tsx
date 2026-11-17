@@ -83,7 +83,7 @@ export type ThreadRowProps = {
   checked: boolean;
   selectionMode: boolean;
   onCheck: (id: string) => void;
-  onArchive?: (id: string) => void;
+  onArchive?: (id: string, archived: boolean) => void;
   onRename?: (id: string, title: string) => void;
   icons?: ThreadsListIcons;
 };
@@ -248,7 +248,7 @@ export function ThreadRow({
           >
             Rename
           </MenuItem>
-          <MenuItem onClick={() => onArchive?.(thread.id)}>
+          <MenuItem onClick={() => onArchive?.(thread.id, !thread.archived)}>
             {thread.archived ? "Unarchive" : "Archive"}
           </MenuItem>
           <MenuSeparator />
