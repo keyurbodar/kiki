@@ -213,14 +213,14 @@ export type SettingsQuery<T> = {
 };
 
 /** Keeps pending, failed and empty responses distinct so the UI never spins forever. */
-export const settingsQuery = <A, E>(
+export const settingsQuery = <A, E, T>(
   result: AsyncResult.AsyncResult<A, E>,
   read: (value: A) => T,
 ): SettingsQuery<T> => {
   const value = AsyncResult.isSuccess(result)
     ? read(result.value)
     : AsyncResult.isFailure(result) && result.previousSuccess._tag === "Some"
-      ? read(result.previousSuccess.value)
+      ? read(result.previousSuccess.value as A)
       : undefined;
   return {
     value,

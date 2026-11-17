@@ -242,11 +242,9 @@ function SigningKeyDialog({
             {signing.fingerprint === null ? null : (
               <CopyField
                 className="w-56"
-                aria-label="fingerprint"
-                title={signing.fingerprint.slice(-16)}
-              >
-                {signing.fingerprint.slice(-16)}
-              </CopyField>
+                value={signing.fingerprint.slice(-16)}
+                label="fingerprint"
+              />
             )}
           </div>
           <div className="flex items-center justify-between gap-3">

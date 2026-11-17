@@ -34,16 +34,15 @@ import {
   archiveIdleValue,
   defaultTaskLimits,
   errorMessage,
-  patchTaskLimits,
   type SettingsScope,
   type TaskLimitKey,
   type TaskLimits,
-  taskLimitsPayload,
   titlePromptMaxLength,
   titleTriggerChoice,
   titleTriggerOptions,
   titleTriggersFor,
 } from "./agent-settings";
+import { patchTaskLimits, taskLimitsPayload } from "./setting-payloads";
 import {
   InheritedNumberField,
   InheritedSelect,
