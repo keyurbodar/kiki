@@ -13,6 +13,7 @@ import { Route as Char91__captainDialogChar93RouteImport } from './routes/[__cap
 import { Route as Char91__chipsChar93RouteImport } from './routes/[__chips]'
 import { Route as Char91__composerChar93RouteImport } from './routes/[__composer]'
 import { Route as Char91__composerFooterChar93RouteImport } from './routes/[__composer-footer]'
+import { Route as Char91__mediaLightboxChar93RouteImport } from './routes/[__media-lightbox]'
 import { Route as Char91__modelPickerChar93RouteImport } from './routes/[__model-picker]'
 import { Route as Char91__threadDeviceChar93RouteImport } from './routes/[__thread-device]'
 import { Route as Char91__tokensChar93RouteImport } from './routes/[__tokens]'
@@ -196,6 +197,12 @@ const Char91__composerFooterChar93Route =
   Char91__composerFooterChar93RouteImport.update({
     id: '/__composer-footer',
     path: '/__composer-footer',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91__mediaLightboxChar93Route =
+  Char91__mediaLightboxChar93RouteImport.update({
+    id: '/__media-lightbox',
+    path: '/__media-lightbox',
     getParentRoute: () => rootRouteImport,
   } as any)
 const Char91__modelPickerChar93Route =
@@ -1087,6 +1094,7 @@ export interface FileRoutesByFullPath {
   '/__chips': typeof Char91__chipsChar93Route
   '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
   '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
@@ -1253,6 +1261,7 @@ export interface FileRoutesByTo {
   '/__chips': typeof Char91__chipsChar93Route
   '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
   '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
@@ -1419,6 +1428,7 @@ export interface FileRoutesById {
   '/__chips': typeof Char91__chipsChar93Route
   '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
   '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
@@ -1588,6 +1598,7 @@ export interface FileRouteTypes {
     | '/__chips'
     | '/__composer'
     | '/__composer-footer'
+    | '/__media-lightbox'
     | '/__model-picker'
     | '/__thread-device'
     | '/__tokens'
@@ -1754,6 +1765,7 @@ export interface FileRouteTypes {
     | '/__chips'
     | '/__composer'
     | '/__composer-footer'
+    | '/__media-lightbox'
     | '/__model-picker'
     | '/__thread-device'
     | '/__tokens'
@@ -1919,6 +1931,7 @@ export interface FileRouteTypes {
     | '/__chips'
     | '/__composer'
     | '/__composer-footer'
+    | '/__media-lightbox'
     | '/__model-picker'
     | '/__thread-device'
     | '/__tokens'
@@ -2088,6 +2101,7 @@ export interface RootRouteChildren {
   Char91__chipsChar93Route: typeof Char91__chipsChar93Route
   Char91__composerChar93Route: typeof Char91__composerChar93Route
   Char91__composerFooterChar93Route: typeof Char91__composerFooterChar93Route
+  Char91__mediaLightboxChar93Route: typeof Char91__mediaLightboxChar93Route
   Char91__modelPickerChar93Route: typeof Char91__modelPickerChar93Route
   Char91__threadDeviceChar93Route: typeof Char91__threadDeviceChar93Route
   Char91__tokensChar93Route: typeof Char91__tokensChar93Route
@@ -2142,6 +2156,13 @@ declare module '@tanstack/react-router' {
       path: '/__composer-footer'
       fullPath: '/__composer-footer'
       preLoaderRoute: typeof Char91__composerFooterChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__media-lightbox': {
+      id: '/__media-lightbox'
+      path: '/__media-lightbox'
+      fullPath: '/__media-lightbox'
+      preLoaderRoute: typeof Char91__mediaLightboxChar93RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/__model-picker': {
@@ -3628,6 +3649,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91__chipsChar93Route: Char91__chipsChar93Route,
   Char91__composerChar93Route: Char91__composerChar93Route,
   Char91__composerFooterChar93Route: Char91__composerFooterChar93Route,
+  Char91__mediaLightboxChar93Route: Char91__mediaLightboxChar93Route,
   Char91__modelPickerChar93Route: Char91__modelPickerChar93Route,
   Char91__threadDeviceChar93Route: Char91__threadDeviceChar93Route,
   Char91__tokensChar93Route: Char91__tokensChar93Route,
