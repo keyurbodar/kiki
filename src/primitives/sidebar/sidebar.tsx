@@ -20,7 +20,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 export const SIDEBAR_DEFAULT_WIDTH = 240;
 export const SIDEBAR_MIN_WIDTH = 224;
 export const SIDEBAR_MAX_WIDTH = 330;
-export const SIDEBAR_CLOSE_WIDTH = SIDEBAR_MIN_WIDTH / 2;
+export const SIDEBAR_COLLAPSE_THRESHOLD = SIDEBAR_MIN_WIDTH / 2;
 export const SIDEBAR_KEY_STEP = 8;
 export const SIDEBAR_KEY_STEP_LARGE = 32;
 export const SIDEBAR_WIDTH_KEY = "capy:web:sidebar-width";
@@ -41,6 +41,11 @@ const writeStorage = (key: string, value: string) => {
   try {
     globalThis.localStorage.setItem(key, value);
   } catch {}
+};
+
+export const readStoredSidebarOpen = () => {
+  const raw = readStorage(SIDEBAR_OPEN_KEY);
+  return raw === null ? null : raw === "true";
 };
 
 export const readStoredSidebarWidth = () => {
@@ -69,12 +74,16 @@ const subscribeNarrow = (onChange: () => void) => {
   return () => query?.removeEventListener("change", onChange);
 };
 
-const getNarrow = () => getNarrowQuery()?.matches ?? false;
+export const isNarrowViewport = () => getNarrowQuery()?.matches ?? false;
 
 const getServerNarrow = () => false;
 
 export function useIsNarrow() {
-  return useSyncExternalStore(subscribeNarrow, getNarrow, getServerNarrow);
+  return useSyncExternalStore(
+    subscribeNarrow,
+    isNarrowViewport,
+    getServerNarrow,
+  );
 }
 
 export type SidebarState = { open: boolean; isNarrow: boolean; width: number };
@@ -101,10 +110,6 @@ export function useSidebarOpenMobile() {
   if (open === null)
     throw TypeError("useSidebarOpenMobile must be inside SidebarProvider");
   return open;
-}
-
-export function useOptionalSidebarOpenMobile() {
-  return useContext(SidebarOpenMobileContext);
 }
 
 export function useSidebarActions() {
@@ -147,12 +152,22 @@ const toggleOpen = (open: boolean) => {
 
 export type SidebarWrapperProps = ComponentProps<"div">;
 
-export function SidebarWrapper({
-  className,
-  style,
-  children,
-  ...props
-}: SidebarWrapperProps) {
+export function SidebarWrapper({ className, ...props }: SidebarWrapperProps) {
+  return (
+    <div
+      data-slot="sidebar-wrapper"
+      className={cx(
+        "flex h-dvh w-full overflow-hidden bg-chrome pt-(--safe-top) max-md:bg-panel",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export type SidebarProviderProps = SidebarWrapperProps;
+
+export function SidebarProvider({ style, ...props }: SidebarProviderProps) {
   const isNarrow = useIsNarrow();
   const [open, setOpenState] = useState(true);
   const [openMobile, setOpenMobile] = useState(false);
@@ -162,8 +177,8 @@ export function SidebarWrapper({
   useLayoutEffect(() => {
     const storedWidth = readStoredSidebarWidth();
     if (storedWidth !== null) setWidthState(clampSidebarWidth(storedWidth));
-    const storedOpen = readStorage(SIDEBAR_OPEN_KEY);
-    if (storedOpen !== null) setOpenState(storedOpen === "true");
+    const storedOpen = readStoredSidebarOpen();
+    if (storedOpen !== null) setOpenState(storedOpen);
   }, []);
 
   const [actions] = useState<SidebarActions>(() => ({
@@ -173,7 +188,7 @@ export function SidebarWrapper({
     },
     setOpenMobile,
     toggle: () => {
-      if (getNarrow()) setOpenMobile((value) => !value);
+      if (isNarrowViewport()) setOpenMobile((value) => !value);
       else setOpenState(toggleOpen);
     },
     setWidth: (next) => {
@@ -191,12 +206,7 @@ export function SidebarWrapper({
     <SidebarStateContext.Provider value={{ open, isNarrow, width }}>
       <SidebarOpenMobileContext.Provider value={openMobile}>
         <SidebarActionsContext.Provider value={actions}>
-          <div
-            data-slot="sidebar-wrapper"
-            className={cx(
-              "flex h-dvh w-full overflow-hidden bg-chrome pt-(--safe-top) max-md:bg-panel",
-              className,
-            )}
+          <SidebarWrapper
             style={
               {
                 "--sidebar-width": `var(--sidebar-width-user, ${width}px)`,
@@ -204,16 +214,12 @@ export function SidebarWrapper({
               } as CSSProperties
             }
             {...props}
-          >
-            {children}
-          </div>
+          />
         </SidebarActionsContext.Provider>
       </SidebarOpenMobileContext.Provider>
     </SidebarStateContext.Provider>
   );
 }
-
-export const SidebarProvider = SidebarWrapper;
 
 export type SidebarProps = { children?: ReactNode };
 
@@ -338,7 +344,7 @@ export function SidebarRail({ className, ...props }: SidebarRailProps) {
     const current = drag.current;
     if (!current || event.pointerId !== current.pointerId) return;
     const next = current.startWidth + event.clientX - current.startX;
-    if (next < SIDEBAR_CLOSE_WIDTH) {
+    if (next < SIDEBAR_COLLAPSE_THRESHOLD) {
       if (event.currentTarget.hasPointerCapture(current.pointerId))
         event.currentTarget.releasePointerCapture(current.pointerId);
       finish(false);

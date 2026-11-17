@@ -14,8 +14,8 @@ import {
 
 export const RIGHT_PANEL_DEFAULT_WIDTH = 520;
 export const RIGHT_PANEL_MIN_WIDTH = 320;
-export const RIGHT_PANEL_CLOSE_WIDTH = RIGHT_PANEL_MIN_WIDTH / 2;
-export const RIGHT_PANEL_FULLSCREEN_OVERSHOOT = 64;
+export const RIGHT_PANEL_CLOSE_THRESHOLD = RIGHT_PANEL_MIN_WIDTH / 2;
+export const RIGHT_PANEL_FULLSCREEN_SLACK = 64;
 export const RIGHT_PANEL_KEY_STEP = 8;
 export const RIGHT_PANEL_KEY_STEP_LARGE = 32;
 export const RIGHT_PANEL_MAIN_MIN_REM = 20;
@@ -42,7 +42,7 @@ const setGroupWidth = (panel: HTMLElement, width: number) =>
     .closest<HTMLElement>("[data-slot=right-panel-group]")
     ?.style.setProperty("--right-panel-width", `${width}px`);
 
-const maxRightPanelWidth = (panel: HTMLElement) => {
+export const maxRightPanelWidth = (panel: HTMLElement) => {
   const rem =
     Number.parseFloat(getComputedStyle(document.documentElement).fontSize) ||
     16;
@@ -269,14 +269,14 @@ export function RightPanelRail({
     if (!current || event.pointerId !== current.pointerId) return;
     const next = current.startWidth + current.startX - event.clientX;
     if (Math.abs(event.clientX - current.startX) > 2) current.moved = true;
-    if (next < RIGHT_PANEL_CLOSE_WIDTH && onClose !== undefined) {
+    if (next < RIGHT_PANEL_CLOSE_THRESHOLD && onClose !== undefined) {
       release(event, current.pointerId);
       finish(false);
       onClose();
       return;
     }
     const max = maxRightPanelWidth(current.panel);
-    if (next > max + RIGHT_PANEL_FULLSCREEN_OVERSHOOT && onFullscreen) {
+    if (next > max + RIGHT_PANEL_FULLSCREEN_SLACK && onFullscreen) {
       release(event, current.pointerId);
       finish(false);
       onFullscreen();
