@@ -52,6 +52,7 @@ const review = toCapyReview({
   rounds: [
     {
       requestId: "q1",
+      headSha: "abc1234",
       status: "completed",
       createdAt: at(11).toISOString(),
       settledAt: at(12).toISOString(),
@@ -59,8 +60,18 @@ const review = toCapyReview({
     },
   ],
   findings: [
-    { id: "f1", requestId: "q1", status: "open" },
-    { id: "f2", requestId: "q1", status: "resolved" },
+    {
+      id: "f1",
+      requestId: "q1",
+      status: "open",
+      kind: "issue",
+      severity: "high",
+      summary: "Retry cap is off by one",
+      detail: "The second attempt still throws.",
+      file: "src/checkout/retry.ts",
+      startLine: 24,
+    },
+    { id: "f2", requestId: "q1", status: "irrelevant" },
   ],
 });
 
@@ -107,6 +118,30 @@ describe("buildActivityItems", () => {
       null,
     );
     expect(rows.map(activityItemKey)).toEqual(["opened", "terminal:Closed"]);
+  });
+});
+
+describe("toCapyReview", () => {
+  it("keeps the finding and round fields the UI renders", () => {
+    const [finding, irrelevant] = review.findings;
+    expect(finding).toMatchObject({
+      severity: "high",
+      title: "Retry cap is off by one",
+      body: "The second attempt still throws.",
+      path: "src/checkout/retry.ts",
+      line: 24,
+    });
+    expect(irrelevant).toMatchObject({
+      status: "irrelevant",
+      title: "",
+      body: "",
+      path: null,
+      line: null,
+      severity: null,
+    });
+    expect(review.rounds[0]).toMatchObject({ headSha: "abc1234" });
+    expect(review.threadId).toBeNull();
+    expect(review.reviewedHeadSha).toBeNull();
   });
 });
 

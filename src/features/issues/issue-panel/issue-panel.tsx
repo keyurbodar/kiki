@@ -91,7 +91,7 @@ export function IssuePanel({
       open={code !== undefined}
       onOpenChange={(open) => !open && close()}
     >
-      <SideSheetContent className="fixed inset-y-0 right-0 flex w-full max-w-2xl flex-col bg-panel shadow-plate">
+      <SideSheetContent className="md:fixed md:inset-y-0 md:right-0 md:flex md:w-full md:max-w-2xl md:flex-col md:bg-panel md:shadow-plate">
         {code !== undefined && (
           <IssuePanelBody
             key={code}

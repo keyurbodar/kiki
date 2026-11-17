@@ -1,4 +1,3 @@
-import { Input } from "@/primitives/input";
 import { OtpInput } from "@/primitives/otp-input";
 
 export const codeLength = 6;
@@ -18,21 +17,12 @@ export function CodeField({
   autoFocus?: boolean;
 }) {
   return (
-    <OtpInput>
-      <Input
-        aria-label="Verification code"
-        inputMode="numeric"
-        autoComplete="one-time-code"
-        font="numeric"
-        maxLength={codeLength}
-        autoFocus={autoFocus}
-        value={value}
-        onChange={(event) => {
-          const next = sanitizeCode(event.currentTarget.value);
-          onChange(next);
-          if (next.length === codeLength && next !== value) onComplete(next);
-        }}
-      />
-    </OtpInput>
+    <OtpInput
+      value={value}
+      onChange={(next) => onChange(sanitizeCode(next))}
+      onComplete={onComplete}
+      length={codeLength}
+      autoFocus={autoFocus}
+    />
   );
 }

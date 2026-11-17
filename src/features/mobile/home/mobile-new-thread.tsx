@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Composer } from "@/components/composer";
 import { projectsAtom } from "@/data/atoms/projects";
 import { organizationsAtom } from "@/data/atoms/session";
+import { useComposerSend } from "@/features/thread/use-composer-send";
 import { Button } from "@/primitives/button";
 import { MobileHome } from "./mobile-home";
 
@@ -26,6 +27,7 @@ function MobileNewThreadForOrg({
     () => [],
   );
   const [selectedId, setSelectedId] = useState<string>();
+  const submit = useComposerSend();
   return (
     <MobileHome
       projects={projects.map((project) => ({
@@ -38,7 +40,7 @@ function MobileNewThreadForOrg({
           Cloud
         </Button>
       }
-      composer={<Composer />}
+      composer={<Composer onSubmit={submit} />}
       onSelectProject={setSelectedId}
       onNewProject={() => {}}
       onManageProjects={() => {}}

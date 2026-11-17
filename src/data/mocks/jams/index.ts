@@ -148,7 +148,7 @@ const activity = () => minutesAgo(0);
 
 export const JamsMock = mockGroup("jams", (handlers) =>
   Effect.gen(function* () {
-    const { threadPins, threadTagAssignments, threadFolderItems } =
+    const { jams, threadPins, threadTagAssignments, threadFolderItems } =
       yield* MockDb;
     const threads = yield* Ref.make<ReadonlyArray<ThreadCard>>(sampleThreads);
 
@@ -452,6 +452,7 @@ export const JamsMock = mockGroup("jams", (handlers) =>
         Effect.gen(function* () {
           const input = fields(payload);
           const title = stringValue(input, "title", "New project thread");
+          const message = stringValue(input, "message", "");
           const project = Object.values(world.projects).find(
             (candidate) => candidate.id === params.projectId,
           );
@@ -468,7 +469,7 @@ export const JamsMock = mockGroup("jams", (handlers) =>
             status: "working",
             archived: false,
             pulls: [],
-            preview: null,
+            preview: message === "" ? null : message,
             hasUnreads: false,
             createdAt: activity(),
             updatedAt: activity(),
@@ -480,6 +481,15 @@ export const JamsMock = mockGroup("jams", (handlers) =>
             ...rows,
             {
               ...accessTemplate(created.id),
+            },
+          ]);
+          yield* Ref.update(jams, (rows) => [
+            ...rows,
+            {
+              id: created.id,
+              number: created.threadNumber ?? 0,
+              title,
+              projectId: project.id,
             },
           ]);
           return { ...threadJSON(created), projectId: project.id };
@@ -1210,6 +1220,7 @@ const threadJSON = (thread: ThreadCard) => ({
   status: thread.status,
   archived: thread.archived,
   projectId: thread.projectId,
+  userId: thread.userId,
   preview: thread.preview,
   hasUnreads: thread.hasUnreads,
   createdAt: DateTime.formatIso(thread.createdAt),

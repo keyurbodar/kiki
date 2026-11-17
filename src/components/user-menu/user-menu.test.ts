@@ -3,6 +3,7 @@ import { resolveActiveOrgId } from "@/data/atoms/session";
 import { setupRestoreState, toOnboardingStatus } from "./use-setup-restore";
 import { avatarInitials } from "./user-avatar";
 import {
+  logOut,
   settingsShortcutLabel,
   supportMailto,
   userDisplayName,
@@ -101,5 +102,29 @@ describe("finish setting up", () => {
       setupRestoreState({ dismissed: true, steps: [step(true, false)] })
         .restorable,
     ).toBe(false);
+  });
+});
+
+describe("log out", () => {
+  it("signs out, then clears the organization and leaves for sign in", async () => {
+    const calls: string[] = [];
+    await logOut({
+      signOut: async () => {
+        calls.push("signOut");
+      },
+      clearOrganization: () => calls.push("clear"),
+      goToSignIn: () => calls.push("signIn"),
+    });
+    expect(calls).toEqual(["signOut", "clear", "signIn"]);
+  });
+
+  it("stays put when signing out fails", async () => {
+    const calls: string[] = [];
+    await logOut({
+      signOut: () => Promise.reject(new Error("offline")),
+      clearOrganization: () => calls.push("clear"),
+      goToSignIn: () => calls.push("signIn"),
+    });
+    expect(calls).toEqual([]);
   });
 });

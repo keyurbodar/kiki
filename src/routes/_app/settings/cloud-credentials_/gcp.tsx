@@ -1,15 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { ProviderListPage } from "@/features/settings-integrations/cloud-credentials";
 
 export const Route = createFileRoute("/_app/settings/cloud-credentials_/gcp")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  return (
-    <RoutePlaceholder
-      title="/settings/cloud-credentials/gcp"
-      path="/settings/cloud-credentials/gcp"
-    />
-  );
+  return <ProviderListPage provider="gcp" />;
 }

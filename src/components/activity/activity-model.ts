@@ -41,6 +41,7 @@ export type PullReview = {
 
 export type ReviewRound = {
   readonly requestId: string;
+  readonly headSha: string | null;
   readonly status: "pending" | "running" | "completed" | "failed" | "stale";
   readonly title: string | null;
   readonly failureMessage: string | null;
@@ -49,11 +50,18 @@ export type ReviewRound = {
   readonly settledAt: Date | null;
 };
 
+export type ReviewSeverity = "low" | "medium" | "high";
+
 export type ReviewFinding = {
   readonly id: string;
   readonly requestId: string;
   readonly kind: string;
   readonly status: string;
+  readonly severity: ReviewSeverity | null;
+  readonly title: string;
+  readonly body: string;
+  readonly path: string | null;
+  readonly line: number | null;
 };
 
 export type PullActivityData = {
@@ -63,6 +71,8 @@ export type PullActivityData = {
 };
 
 export type CapyReviewData = {
+  readonly threadId: string | null;
+  readonly reviewedHeadSha: string | null;
   readonly rounds: ReadonlyArray<ReviewRound>;
   readonly findings: ReadonlyArray<ReviewFinding>;
 };
@@ -111,6 +121,9 @@ const list = (value: unknown): ReadonlyArray<unknown> =>
 
 const str = (value: unknown): string | null =>
   typeof value === "string" && value.length > 0 ? value : null;
+
+const num = (value: unknown): number | null =>
+  typeof value === "number" && Number.isFinite(value) ? value : null;
 
 const bot = (login: string, raw: Json) =>
   raw.authorIsBot === true || login.endsWith("[bot]");
@@ -191,9 +204,18 @@ const roundStatuses = new Set([
   "stale",
 ]);
 
+const severities: ReadonlyArray<ReviewSeverity> = ["low", "medium", "high"];
+
+const severityOf = (value: unknown): ReviewSeverity | null => {
+  const severity = str(value);
+  return severities.find((candidate) => candidate === severity) ?? null;
+};
+
 export const toCapyReview = (value: unknown): CapyReviewData => {
   const raw = record(value);
   return {
+    threadId: str(raw.threadId),
+    reviewedHeadSha: str(raw.reviewedHeadSha),
     rounds: list(raw.rounds).flatMap((item) => {
       const round = record(item);
       const requestId = str(round.requestId);
@@ -210,6 +232,7 @@ export const toCapyReview = (value: unknown): CapyReviewData => {
       return [
         {
           requestId,
+          headSha: str(round.headSha) ?? str(round.observingHeadSha),
           status: status as ReviewRound["status"],
           title: str(round.title),
           failureMessage: str(round.failureMessage),
@@ -230,6 +253,11 @@ export const toCapyReview = (value: unknown): CapyReviewData => {
           requestId,
           kind: str(finding.kind) ?? "issue",
           status: str(finding.status) ?? "open",
+          severity: severityOf(finding.severity),
+          title: str(finding.summary) ?? str(finding.title) ?? "",
+          body: str(finding.detail) ?? str(finding.body) ?? "",
+          path: str(finding.file) ?? str(finding.path),
+          line: num(finding.line) ?? num(finding.startLine),
         },
       ];
     }),
