@@ -100,8 +100,14 @@ describe("jams mock", () => {
         [41, 40, 39, 38, 37, 36],
       );
       const counts = yield* AtomRegistry.getResult(registry, countsAtom);
-      assert.strictEqual((counts as { readonly total: number }).total, 7);
-      assert.strictEqual((counts as { readonly asks: number }).asks, 1);
+      assert.strictEqual(counts.pinned, 2);
+      assert.deepStrictEqual(
+        counts.folders.map((folder) => [folder.folderId, folder.count]),
+        [
+          ["fld_sample_release", 2],
+          ["fld_sample_research", 1],
+        ],
+      );
       const issues = yield* AtomRegistry.getResult(
         registry,
         ApiClient.query("jams", "threadIssues", {
@@ -157,7 +163,10 @@ describe("jams mock", () => {
         { params: { orgId: org }, payload: { jamIds: [createdId] } },
         registry,
       );
-      assert.isTrue((deleted as { readonly ok: boolean }).ok);
+      assert.deepStrictEqual(
+        (deleted as { readonly outcomes: unknown }).outcomes,
+        [{ jamId: createdId, outcome: "ok" }],
+      );
       const afterDelete = yield* AtomRegistry.getResult(registry, listAtom, {
         suspendOnWaiting: true,
       });
@@ -424,10 +433,10 @@ describe("jams mock", () => {
         },
         registry,
       );
-      const countsAfter = (yield* AtomRegistry.getResult(registry, countsAtom, {
+      const countsAfter = yield* AtomRegistry.getResult(registry, countsAtom, {
         suspendOnWaiting: true,
-      })) as { readonly total: number };
-      assert.isTrue(countsAfter.total > 0);
+      });
+      assert.isTrue(countsAfter.pinned > 0);
     }),
   );
 });

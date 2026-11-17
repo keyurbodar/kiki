@@ -1,188 +1,203 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
+import {
+  JamId,
+  OrgId,
+  ThreadFolderId,
+  ThreadTagId,
+} from "../../api/schemas/ids.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
-import { orgId, people, threads, world } from "../fixtures/world.ts";
+import { orgId, threads, world } from "../fixtures/world.ts";
 
-interface Folder {
-  readonly id: string;
-  readonly name: string;
-  readonly hidden?: boolean;
-}
-interface Tag {
-  readonly id: string;
-  readonly name: string;
-  readonly deletedAt?: string | null;
-}
-
-const key = `threadOrganization:${orgId}`;
-const folderId = world.threadFolders[0].id;
-const tagId = world.threadTags[0].id;
-const jamId = threads.checkoutTest.id;
-
-const manifestAtom = ApiClient.query("threadOrganization", "manifest", {
-  params: { orgId },
-  reactivityKeys: [key],
-});
-const boardAtom = ApiClient.query("threadOrganization", "board", {
-  params: { orgId },
-  reactivityKeys: [key],
-});
-const tagsAtom = ApiClient.query("threadOrganization", "listTags", {
-  params: { orgId },
-  query: {},
-  reactivityKeys: [key],
-});
-const tagsForThreadAtom = ApiClient.query(
-  "threadOrganization",
-  "tagsForThread",
-  {
-    params: { orgId, jamId },
-    reactivityKeys: [key],
-  },
-);
-
-const createFolder = ApiClient.mutation("threadOrganization", "createFolder");
-const deleteFolder = ApiClient.mutation("threadOrganization", "deleteFolder");
-const createTag = ApiClient.mutation("threadOrganization", "createTag");
-const deleteTag = ApiClient.mutation("threadOrganization", "deleteTag");
+const org = OrgId.make(orgId);
+const keys = [`threads:${orgId}`, `threadOrganization:${orgId}`];
+const release = ThreadFolderId.make(world.threadFolders[0].id);
+const frontend = ThreadTagId.make(world.threadTags[0].id);
+const checkout = JamId.make(threads.checkoutTest.id);
+const rateLimit = JamId.make(threads.rateLimit.id);
 
 describe("threadOrganization mock", () => {
-  it.effect("returns every GET endpoint", () =>
+  it.effect("decodes folders, tags and the board", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
-      const manifest = yield* AtomRegistry.getResult(registry, manifestAtom);
-      const board = yield* AtomRegistry.getResult(registry, boardAtom);
-      const tags = yield* AtomRegistry.getResult(registry, tagsAtom);
-      const forThread = yield* AtomRegistry.getResult(
+      const folders = yield* AtomRegistry.getResult(
         registry,
-        tagsForThreadAtom,
+        ApiClient.query("threadOrganization", "manifest", {
+          params: { orgId: org },
+          reactivityKeys: keys,
+        }),
       );
-      assert.isAtLeast((manifest as ReadonlyArray<Folder>).length, 1);
-      assert.isAtLeast((board as ReadonlyArray<unknown>).length, 1);
-      assert.isAtLeast((tags as ReadonlyArray<Tag>).length, 1);
-      assert.isAtLeast((forThread as ReadonlyArray<Tag>).length, 1);
+      assert.deepStrictEqual(
+        folders.map((folder) => [
+          folder.name,
+          folder.visibility,
+          folder.viewerRole,
+        ]),
+        [
+          ["Release", "shared", "owner"],
+          ["Research", "private", "owner"],
+        ],
+      );
+      const tags = yield* AtomRegistry.getResult(
+        registry,
+        ApiClient.query("threadOrganization", "listTags", {
+          params: { orgId: org },
+          query: {},
+          reactivityKeys: keys,
+        }),
+      );
+      assert.deepStrictEqual(
+        tags.map((tag) => tag.color),
+        ["primary", "blue", "destructive"],
+      );
+      const assigned = yield* AtomRegistry.getResult(
+        registry,
+        ApiClient.query("threadOrganization", "tagsForThread", {
+          params: { orgId: org, jamId: checkout },
+          reactivityKeys: keys,
+        }),
+      );
+      assert.deepStrictEqual(
+        assigned.map((tag) => tag.name),
+        ["frontend", "urgent"],
+      );
+      const board = yield* AtomRegistry.getResult(
+        registry,
+        ApiClient.query("threadOrganization", "board", {
+          params: { orgId: org },
+          reactivityKeys: keys,
+        }),
+      );
+      assert.strictEqual(board[0]?.items.length, 3);
+      assert.isTrue(board[0]?.items[0]?.pinned);
     }),
   );
 
-  it.effect("refreshes the manifest after folder create and delete", () =>
+  it.effect("pins, files and tags threads the jams list reads", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
-      registry.mount(manifestAtom);
-      yield* AtomRegistry.getResult(registry, manifestAtom);
+      const list = ApiClient.query("jams", "list", {
+        params: { orgId: org },
+        query: {},
+        reactivityKeys: keys,
+      });
+      const counts = ApiClient.query("jams", "counts", {
+        params: { orgId: org },
+        query: {},
+        reactivityKeys: keys,
+      });
+      const before = yield* AtomRegistry.getResult(registry, counts);
+      assert.strictEqual(before.pinned, 2);
 
-      registry.set(createFolder, {
-        params: { orgId },
-        payload: { name: "Launch checklist", ownerId: people.sam.id },
-        reactivityKeys: [key],
+      const pin = ApiClient.mutation("threadOrganization", "pin");
+      registry.set(pin, {
+        params: { orgId: org },
+        payload: { jamIds: [rateLimit, JamId.make("jam_missing")] },
+        reactivityKeys: keys,
       });
-      const created = yield* AtomRegistry.getResult(registry, createFolder);
-      const afterCreate = yield* AtomRegistry.getResult(
-        registry,
-        manifestAtom,
-        {
-          suspendOnWaiting: true,
-        },
-      );
-      assert.include(
-        (afterCreate as ReadonlyArray<Folder>).map((folder) => folder.name),
-        "Launch checklist",
+      const pinned = yield* AtomRegistry.getResult(registry, pin);
+      assert.deepStrictEqual(
+        pinned.outcomes.map((outcome) => outcome.outcome),
+        ["ok", "not_found"],
       );
 
-      registry.set(deleteFolder, {
-        params: { orgId, folderId: (created as Folder).id },
-        reactivityKeys: [key],
+      const add = ApiClient.mutation("threadOrganization", "addToFolder");
+      registry.set(add, {
+        params: { orgId: org, folderId: release },
+        payload: { jamIds: [rateLimit] },
+        reactivityKeys: keys,
       });
-      yield* AtomRegistry.getResult(registry, deleteFolder);
-      const afterDelete = yield* AtomRegistry.getResult(
-        registry,
-        manifestAtom,
-        {
-          suspendOnWaiting: true,
-        },
-      );
-      assert.notInclude(
-        (afterDelete as ReadonlyArray<Folder>).map((folder) => folder.name),
-        "Launch checklist",
-      );
-    }),
-  );
+      const added = yield* AtomRegistry.getResult(registry, add);
+      assert.strictEqual(added.items.at(-1)?.jamId, rateLimit);
 
-  it.effect("calls the remaining folder and tag mutations", () =>
-    Effect.gen(function* () {
-      const registry = AtomRegistry.make();
-      const fire = (
-        endpoint: string,
-        params: Record<string, string>,
-        payload?: Record<string, unknown>,
-        query?: Record<string, string>,
-      ) => {
-        const atom = ApiClient.mutation(
-          "threadOrganization",
-          endpoint as never,
-        );
-        registry.set(atom, {
-          params: { orgId, ...params },
-          ...(payload ? { payload } : {}),
-          ...(query ? { query } : {}),
-          reactivityKeys: [key],
-        } as never);
-        return AtomRegistry.getResult(registry, atom);
-      };
-      const target = threads.bundler.id;
-      assert.strictEqual(
-        (
-          (yield* fire(
-            "renameFolder",
-            { folderId },
-            { name: "Shipping" },
-          )) as Folder
-        ).name,
-        "Shipping",
-      );
-      yield* fire("setFolderAccess", { folderId }, { access: "private" });
-      yield* fire("setFolderHidden", { folderId }, { hidden: true });
-      yield* fire("setFolderHidden", { folderId }, { hidden: false });
-      yield* fire("addToFolder", { folderId }, { threadId: target });
-      yield* fire("removeFromFolder", { folderId }, undefined, {
-        threadId: target,
+      const assign = ApiClient.mutation("threadOrganization", "assignTag");
+      registry.set(assign, {
+        params: { orgId: org, tagId: frontend },
+        payload: { jamIds: [rateLimit] },
+        reactivityKeys: keys,
       });
-      yield* fire("reorderFolderItems", { folderId }, { itemIds: [] });
-      yield* fire("leaveFolder", { folderId });
-      yield* fire("shareFolder", { folderId }, { memberId: people.casey.id });
-      yield* fire("unshareFolder", { folderId }, undefined, {
-        memberId: people.casey.id,
-      });
-      yield* fire("setFolderOwner", { folderId }, { ownerId: people.alex.id });
-      yield* fire("reorderFolders", {}, { folderIds: [folderId] });
-      yield* fire("pin", {}, { jamId });
-      yield* fire("assignTag", { tagId }, { jamId });
-      yield* fire("unassignTag", { tagId }, undefined, { jamId });
-      yield* fire("unpin", {}, { jamId });
-      yield* fire("updateTag", { tagId }, { name: "frontend" });
-      yield* fire("restoreTag", { tagId });
+      yield* AtomRegistry.getResult(registry, assign);
 
-      registry.set(createTag, {
-        params: { orgId },
-        payload: { name: "security", color: "danger" },
-        reactivityKeys: [key],
-      });
-      const tag = (yield* AtomRegistry.getResult(registry, createTag)) as Tag;
-      assert.strictEqual(tag.name, "security");
-
-      registry.mount(tagsAtom);
-      yield* AtomRegistry.getResult(registry, tagsAtom);
-      registry.set(deleteTag, {
-        params: { orgId, tagId: tag.id },
-        reactivityKeys: [key],
-      });
-      yield* AtomRegistry.getResult(registry, deleteTag);
-      const afterDelete = yield* AtomRegistry.getResult(registry, tagsAtom, {
+      const after = yield* AtomRegistry.getResult(registry, counts, {
         suspendOnWaiting: true,
       });
+      assert.strictEqual(after.pinned, 3);
+      const page = yield* AtomRegistry.getResult(registry, list, {
+        suspendOnWaiting: true,
+      });
+      const card = page.items.find((thread) => thread.id === rateLimit);
+      assert.isTrue(card?.pinned);
+      assert.deepStrictEqual(card?.tagIds, [frontend]);
+    }),
+  );
+
+  it.effect("creates, renames and deletes folders and tags", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const create = ApiClient.mutation("threadOrganization", "createFolder");
+      registry.set(create, {
+        params: { orgId: org },
+        payload: { name: "Ops", visibility: "private" },
+        reactivityKeys: keys,
+      });
+      const folder = yield* AtomRegistry.getResult(registry, create);
+      assert.strictEqual(folder.section, "threads");
+
+      const rename = ApiClient.mutation("threadOrganization", "renameFolder");
+      registry.set(rename, {
+        params: { orgId: org, folderId: folder.id },
+        payload: { name: "Operations" },
+        reactivityKeys: keys,
+      });
+      assert.strictEqual(
+        (yield* AtomRegistry.getResult(registry, rename)).name,
+        "Operations",
+      );
+
+      const remove = ApiClient.mutation("threadOrganization", "deleteFolder");
+      registry.set(remove, {
+        params: { orgId: org, folderId: folder.id },
+        reactivityKeys: keys,
+      });
+      yield* AtomRegistry.getResult(registry, remove);
+
+      const createTag = ApiClient.mutation("threadOrganization", "createTag");
+      registry.set(createTag, {
+        params: { orgId: org },
+        payload: { name: "infra", color: "lime" },
+        reactivityKeys: keys,
+      });
+      const tag = yield* AtomRegistry.getResult(registry, createTag);
+      const deleteTag = ApiClient.mutation("threadOrganization", "deleteTag");
+      registry.set(deleteTag, {
+        params: { orgId: org, tagId: tag.id },
+        reactivityKeys: keys,
+      });
+      yield* AtomRegistry.getResult(registry, deleteTag);
+      const deleted = yield* AtomRegistry.getResult(
+        registry,
+        ApiClient.query("threadOrganization", "listTags", {
+          params: { orgId: org },
+          query: { deleted: "true" },
+          reactivityKeys: keys,
+        }),
+      );
+      assert.deepStrictEqual(
+        deleted.map((row) => row.name),
+        ["infra"],
+      );
+
+      const manifest = yield* AtomRegistry.getResult(
+        registry,
+        ApiClient.query("threadOrganization", "manifest", {
+          params: { orgId: org },
+          reactivityKeys: keys,
+        }),
+      );
       assert.notInclude(
-        (afterDelete as ReadonlyArray<Tag>).map((row) => row.name),
-        "security",
+        manifest.map((row) => row.id),
+        folder.id,
       );
     }),
   );
