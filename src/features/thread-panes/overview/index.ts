@@ -27,9 +27,6 @@ export {
 export {
   ChildJamMenu,
   type ChildJamMenuProps,
-  DiffStat,
-  LocalPullRowView,
-  OverviewSkeleton,
   PortRow,
   PullRow,
   PullSortMenu,
