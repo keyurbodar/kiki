@@ -1,5 +1,4 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { MobileSettingsSheet } from "@/features/mobile/settings";
 import { SettingsLayout } from "@/features/settings/shell";
 import { Toaster } from "@/primitives/toaster";
 
@@ -9,7 +8,7 @@ export const Route = createFileRoute("/_app/settings")({
 
 function RouteComponent() {
   return (
-    <SettingsLayout MobileSheet={MobileSettingsSheet}>
+    <SettingsLayout>
       <Outlet />
       <Toaster position="bottom-right" />
     </SettingsLayout>
