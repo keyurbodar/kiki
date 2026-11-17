@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as Char91__chipsChar93RouteImport } from './routes/[__chips]'
 import { Route as Char91__composerChar93RouteImport } from './routes/[__composer]'
 import { Route as Char91__composerFooterChar93RouteImport } from './routes/[__composer-footer]'
+import { Route as Char91__modelPickerChar93RouteImport } from './routes/[__model-picker]'
 import { Route as Char91__threadDeviceChar93RouteImport } from './routes/[__thread-device]'
 import { Route as Char91__tokensChar93RouteImport } from './routes/[__tokens]'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
@@ -188,6 +189,12 @@ const Char91__composerFooterChar93Route =
   Char91__composerFooterChar93RouteImport.update({
     id: '/__composer-footer',
     path: '/__composer-footer',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91__modelPickerChar93Route =
+  Char91__modelPickerChar93RouteImport.update({
+    id: '/__model-picker',
+    path: '/__model-picker',
     getParentRoute: () => rootRouteImport,
   } as any)
 const Char91__threadDeviceChar93Route =
@@ -1072,6 +1079,7 @@ export interface FileRoutesByFullPath {
   '/__chips': typeof Char91__chipsChar93Route
   '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
@@ -1236,6 +1244,7 @@ export interface FileRoutesByTo {
   '/__chips': typeof Char91__chipsChar93Route
   '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
@@ -1400,6 +1409,7 @@ export interface FileRoutesById {
   '/__chips': typeof Char91__chipsChar93Route
   '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
@@ -1567,6 +1577,7 @@ export interface FileRouteTypes {
     | '/__chips'
     | '/__composer'
     | '/__composer-footer'
+    | '/__model-picker'
     | '/__thread-device'
     | '/__tokens'
     | '/design'
@@ -1731,6 +1742,7 @@ export interface FileRouteTypes {
     | '/__chips'
     | '/__composer'
     | '/__composer-footer'
+    | '/__model-picker'
     | '/__thread-device'
     | '/__tokens'
     | '/design'
@@ -1894,6 +1906,7 @@ export interface FileRouteTypes {
     | '/__chips'
     | '/__composer'
     | '/__composer-footer'
+    | '/__model-picker'
     | '/__thread-device'
     | '/__tokens'
     | '/design'
@@ -2061,6 +2074,7 @@ export interface RootRouteChildren {
   Char91__chipsChar93Route: typeof Char91__chipsChar93Route
   Char91__composerChar93Route: typeof Char91__composerChar93Route
   Char91__composerFooterChar93Route: typeof Char91__composerFooterChar93Route
+  Char91__modelPickerChar93Route: typeof Char91__modelPickerChar93Route
   Char91__threadDeviceChar93Route: typeof Char91__threadDeviceChar93Route
   Char91__tokensChar93Route: typeof Char91__tokensChar93Route
   DesignRoute: typeof DesignRoute
@@ -2107,6 +2121,13 @@ declare module '@tanstack/react-router' {
       path: '/__composer-footer'
       fullPath: '/__composer-footer'
       preLoaderRoute: typeof Char91__composerFooterChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__model-picker': {
+      id: '/__model-picker'
+      path: '/__model-picker'
+      fullPath: '/__model-picker'
+      preLoaderRoute: typeof Char91__modelPickerChar93RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/__thread-device': {
@@ -3585,6 +3606,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91__chipsChar93Route: Char91__chipsChar93Route,
   Char91__composerChar93Route: Char91__composerChar93Route,
   Char91__composerFooterChar93Route: Char91__composerFooterChar93Route,
+  Char91__modelPickerChar93Route: Char91__modelPickerChar93Route,
   Char91__threadDeviceChar93Route: Char91__threadDeviceChar93Route,
   Char91__tokensChar93Route: Char91__tokensChar93Route,
   DesignRoute: DesignRoute,
