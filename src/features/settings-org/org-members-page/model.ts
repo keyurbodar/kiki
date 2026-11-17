@@ -2,10 +2,10 @@ import { DateTime } from "effect";
 import { UserId } from "@/data/api/schemas/ids";
 import {
   Invitation,
-  OrganizationMember,
   type InvitationRow,
   type InviteOutcome,
   type MemberRow,
+  OrganizationMember,
 } from "@/data/api/schemas/member";
 import type { AccessLevel } from "@/data/api/schemas/organization";
 
@@ -160,8 +160,7 @@ export const memberSortValue = (
 ) => {
   if (key === "name") return memberName(member);
   if (key === "email") return member.email ?? "";
-  if (key === "status")
-    return roleRank[rowAccessLevel(member) as AccessLevel];
+  if (key === "status") return roleRank[rowAccessLevel(member) as AccessLevel];
   return toDate(
     "createdAt" in member ? member.createdAt : member.joinedAt,
   ).getTime();
@@ -193,7 +192,11 @@ export const matchesMember = (
   _mfaLevel: MfaLevel,
 ) =>
   (role === "all" ||
-    ("accessLevel" in member ? member.accessLevel : member.role) === role) &&
+    ("accessLevel" in member ? member.accessLevel : member.role) === role ||
+    (role === "neither" &&
+      !("mfaExtension" in member
+        ? member.mfaExtension !== null
+        : member.enterpriseSso || member.passkeyTrusted || member.mfaEnabled))) &&
   `${memberName(member)} ${member.email ?? ""}`
     .toLowerCase()
     .includes(normalized(query));

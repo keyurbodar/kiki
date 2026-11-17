@@ -74,8 +74,6 @@ import { Textarea } from "@/primitives/textarea";
 import {
   assignableRoles,
   defaultSort,
-  fromInvitationRow,
-  fromMemberRow,
   type ExtendDays,
   errorMessage,
   extendedDeadline,
@@ -83,6 +81,8 @@ import {
   extensionAfter,
   formatJoined,
   formatShortDate,
+  fromInvitationRow,
+  fromMemberRow,
   invitationSortValue,
   type MfaLevel,
   matchesInactive,
@@ -109,7 +109,8 @@ const outcomeList = (value: unknown): ReadonlyArray<InviteOutcome> =>
   Array.isArray(value)
     ? (value as ReadonlyArray<InviteOutcome>)
     : value !== null && typeof value === "object" && "invitations" in value
-      ? ((value as { invitations: ReadonlyArray<InviteOutcome> }).invitations ?? [])
+      ? ((value as { invitations: ReadonlyArray<InviteOutcome> }).invitations ??
+        [])
       : [];
 
 const columns =
@@ -125,7 +126,11 @@ const valueOr = <A,>(
   fallback: A,
 ) => (AsyncResult.isSuccess(result) ? result.value : fallback);
 
-const matchesInactiveRow = (member: OrganizationMember, query: string, role: RoleFilter) =>
+const matchesInactiveRow = (
+  member: OrganizationMember,
+  query: string,
+  role: RoleFilter,
+) =>
   matchesInactive(
     {
       id: member.userId,
@@ -393,7 +398,9 @@ function InactiveMemberRows({
   const restore = useAtomSet(restoreMemberAtom, { mode: "promise" });
   const [restoring, setRestoring] = useState<string | null>(null);
   const rows = sortRows(
-    members.filter((member) => member.disabled && matchesInactiveRow(member, query, role)),
+    members.filter(
+      (member) => member.disabled && matchesInactiveRow(member, query, role),
+    ),
     (member) =>
       sort.key === "status" ? "Inactive" : memberSortValue(member, sort.key),
     sort.direction,
@@ -757,11 +764,16 @@ function OrgMembersContent({
   const invitationRows: ReadonlyArray<InvitationRowData> =
     AsyncResult.isSuccess(invitationResult) &&
     "invitations" in (invitationResult.value as object)
-      ? ((invitationResult.value as { invitations: ReadonlyArray<InvitationRowData> })
-          .invitations ?? [])
+      ? ((
+          invitationResult.value as {
+            invitations: ReadonlyArray<InvitationRowData>;
+          }
+        ).invitations ?? [])
       : valueOr(invitationResult as never, noInvitationRows);
-  const members: ReadonlyArray<OrganizationMember> = memberRows.map(fromMemberRow);
-  const invitations: ReadonlyArray<Invitation> = invitationRows.map(fromInvitationRow);
+  const members: ReadonlyArray<OrganizationMember> =
+    memberRows.map(fromMemberRow);
+  const invitations: ReadonlyArray<Invitation> =
+    invitationRows.map(fromInvitationRow);
   const setRole = useAtomSet(setMemberRoleAtom, { mode: "promise" });
   const removeMember = useAtomSet(removeMemberAtom, { mode: "promise" });
   const grantOwner = useAtomSet(grantOwnerAtom, { mode: "promise" });

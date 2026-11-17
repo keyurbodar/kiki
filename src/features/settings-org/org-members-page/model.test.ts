@@ -13,6 +13,7 @@ import {
   extendedDeadline,
   extensionAfter,
   invitationSortValue,
+  isRemoved,
   matchesInactive,
   matchesInvitation,
   matchesMember,
@@ -23,7 +24,6 @@ import {
   parseEmails,
   roleArticle,
   roleItemDisabled,
-  isRemoved,
   sortRows,
   summarizeInvites,
 } from "./model";
@@ -206,8 +206,12 @@ describe("roles", () => {
 
   it("keeps owner changes to owners and never demotes the last owner", () => {
     const owner = row({ role: "owner" });
-    expect(roleItemDisabled("owner", row({ role: "member" }), false, false)).toBe(true);
-    expect(roleItemDisabled("admin", row({ role: "member" }), false, false)).toBe(false);
+    expect(
+      roleItemDisabled("owner", row({ role: "member" }), false, false),
+    ).toBe(true);
+    expect(
+      roleItemDisabled("admin", row({ role: "member" }), false, false),
+    ).toBe(false);
     expect(roleItemDisabled("admin", owner, true, true)).toBe(true);
     expect(roleItemDisabled("admin", owner, true, false)).toBe(false);
   });

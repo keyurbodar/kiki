@@ -210,7 +210,9 @@ export function InvitationsTable({
   );
 }
 
-const resultList = <A,>(result: AsyncResult.AsyncResult<unknown, unknown>): ReadonlyArray<A> | undefined => {
+const resultList = <A,>(
+  result: AsyncResult.AsyncResult<unknown, unknown>,
+): ReadonlyArray<A> | undefined => {
   if (!AsyncResult.isSuccess(result)) return undefined;
   const value = result.value;
   if (Array.isArray(value)) return value as ReadonlyArray<A>;
