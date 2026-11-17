@@ -31,6 +31,7 @@ import {
   ResponsiveMenuSeparator,
   ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
+import { SettingsRow } from "@/primitives/settings-row";
 import { IssueLabelsSection } from "../issue-labels-section";
 import { StateEditorDialog } from "../issue-state-editor";
 import { stateIconGlyph } from "../issue-state-editor/state-icons";
@@ -311,23 +312,19 @@ function StateRow({
           updateState={updateState}
         />
       ) : (
-        <div className="flex items-center justify-between gap-6 p-4">
-          <span className="flex min-w-0 items-center gap-2.5">
-            {stateIconGlyph(state.icon, state.color)}
-            <span className="text-sm font-medium text-foreground">
+        <SettingsRow
+          label={
+            <span className="flex items-center gap-2.5">
+              {stateIconGlyph(state.icon, state.color)}
               {state.name}
+              {state.isDefault && (
+                <span className="text-xs font-normal text-muted-foreground-2">
+                  Default
+                </span>
+              )}
             </span>
-            {state.isDefault && (
-              <span className="text-xs font-normal text-muted-foreground-2">
-                Default
-              </span>
-            )}
-          </span>
-          <span className="flex shrink-0 items-center gap-2">
-            <span className="w-20 text-right text-xs font-normal text-muted-foreground-2 tabular-nums">
-              {count === undefined ? null : countLabel(count)}
-            </span>
-            <Badge>{state.type === "open" ? "Open" : "Closed"}</Badge>
+          }
+          actions={
             <StateRowMenu
               state={state}
               onRename={onRename}
@@ -335,8 +332,15 @@ function StateRow({
               onSetDefault={onSetDefault}
               onDelete={onDelete}
             />
+          }
+        >
+          <span className="w-20 text-right text-xs font-normal text-muted-foreground-2 tabular-nums">
+            {count === undefined ? null : countLabel(count)}
           </span>
-        </div>
+          <span className="flex w-14 justify-end pointer-coarse:w-18">
+            <Badge>{state.type === "open" ? "Open" : "Closed"}</Badge>
+          </span>
+        </SettingsRow>
       )}
     </div>
   );

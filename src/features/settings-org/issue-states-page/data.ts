@@ -27,6 +27,15 @@ const num = (value: unknown) =>
 const list = (value: unknown): ReadonlyArray<unknown> =>
   Array.isArray(value) ? value : [];
 
+const issueColorAliases: Readonly<Record<string, string>> = {
+  danger: "red",
+  primary: "blue",
+  success: "green",
+  warning: "orange",
+  info: "blue",
+  default: "gray",
+};
+
 export const decodeStates = (value: unknown): ReadonlyArray<IssueState> => {
   const source = row(value);
   return list(Array.isArray(value) ? value : source.states).map((entry) => {
@@ -43,6 +52,8 @@ export const decodeStates = (value: unknown): ReadonlyArray<IssueState> => {
   });
 };
 
+const labelColor = (value: string) => issueColorAliases[value] ?? value;
+
 export const decodeLabels = (value: unknown): ReadonlyArray<IssueLabel> => {
   const source = row(value);
   return list(Array.isArray(value) ? value : source.labels).map((entry) => {
@@ -50,7 +61,7 @@ export const decodeLabels = (value: unknown): ReadonlyArray<IssueLabel> => {
     return {
       id: str(item.id),
       name: str(item.name),
-      color: str(item.color, "gray"),
+      color: labelColor(str(item.color, "gray")),
     };
   });
 };
