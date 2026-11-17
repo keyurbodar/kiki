@@ -1,84 +1,388 @@
-import { Effect, Ref } from "effect";
+import { DateTime, Effect, Ref } from "effect";
+import type { IssueRelationKind } from "../../api/schemas/issue.ts";
+import { IssueList, IssueRelationPage } from "../../api/schemas/issue.ts";
 import { fields, MockDb, missing, newId, type Row } from "../db/MockDb.ts";
-import { isoMinutesAgo, people } from "../fixtures/world.ts";
+import { fixtureNow } from "../fixtures/time.ts";
+import { isoMinutesAgo, org, viewer } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
+import { issueActivity, threadIssueIds } from "./fixtures.ts";
 import {
-  issueActivity,
-  issueComments,
-  issueLinks,
-  issueRelations,
-  threadIssueIds,
-} from "./fixtures.ts";
+  extraOf,
+  type IssueExtra,
+  type IssueWorld,
+  issueExtras,
+  statusOfState,
+  toIssueDetail,
+  toIssueStateList,
+  toIssueSummary,
+} from "./issue-detail.ts";
 
 type IssueRow = Row<"issues">;
 
-const asText = (value: unknown, fallback: string) =>
-  typeof value === "string" ? value : fallback;
-
-const asString = (value: unknown) => String(value ?? "");
-
-function findIssue(code: string) {
-  return Effect.gen(function* () {
-    const { issues } = yield* MockDb;
-    const issue = (yield* Ref.get(issues)).find(
-      (row) => row.code === code || row.id === code,
-    );
-    if (!issue) return yield* missing("issues", code);
-    return issue;
-  });
-}
-
-const summary = (issue: IssueRow) => ({
-  id: issue.id,
-  code: issue.code,
-  title: issue.title,
-  stateId: issue.stateId,
-  assigneeId: issue.assigneeId,
-  priority: issue.priority,
-  updatedAt: issue.updatedAt,
-});
+const pullMatches = (ref: string, pull: Row<"pulls">) => {
+  const trimmed = ref.trim().replace(/^https:\/\/github\.com\//u, "");
+  return (
+    trimmed === `${pull.repo}#${pull.number}` ||
+    trimmed === `${pull.repo}/pull/${pull.number}` ||
+    trimmed === `#${pull.number}` ||
+    trimmed === String(pull.number)
+  );
+};
 
 export const IssuesMock = mockGroup("issues", (handlers) =>
   Effect.gen(function* () {
-    const { issues, issueStates, issueLabels, pulls, captains } = yield* MockDb;
-    const prefix = yield* Ref.make("ACME");
-    const comments = yield* Ref.make<ReadonlyArray<Record<string, unknown>>>([
-      ...issueComments,
-    ]);
-    const links = yield* Ref.make<ReadonlyArray<Record<string, unknown>>>([
-      ...issueLinks,
-    ]);
-    const relations = yield* Ref.make<ReadonlyArray<Record<string, unknown>>>([
-      ...issueRelations,
-    ]);
-    const seen = yield* Ref.make<ReadonlyArray<string>>([]);
-    const unread = yield* Ref.make<ReadonlyArray<string>>([]);
-    const subscriptions = yield* Ref.make<Readonly<Record<string, boolean>>>(
-      {},
-    );
+    const db = yield* MockDb;
+    const extras = yield* Ref.make<Record<string, IssueExtra>>(issueExtras);
+    const prefix = yield* Ref.make<string>(org.issuePrefix);
+
+    const snapshot = Effect.gen(function* () {
+      const world: IssueWorld = {
+        issues: yield* Ref.get(db.issues),
+        states: yield* Ref.get(db.issueStates),
+        labels: yield* Ref.get(db.issueLabels),
+        pulls: yield* Ref.get(db.pulls),
+        extras: yield* Ref.get(extras),
+      };
+      return world;
+    });
+
+    const find = (code: string) =>
+      Effect.gen(function* () {
+        const world = yield* snapshot;
+        const row = world.issues.find((issue) => issue.code === code);
+        if (!row) return yield* missing("issues", code);
+        return { world, row };
+      });
+
+    const detail = (code: string) =>
+      find(code).pipe(
+        Effect.map(({ world, row }) => toIssueDetail(world, row)),
+      );
+
+    const patchRow = (code: string, patch: Partial<IssueRow>) =>
+      Ref.update(db.issues, (rows) =>
+        rows.map((row) =>
+          row.code === code
+            ? {
+                ...row,
+                ...patch,
+                updatedAt: DateTime.formatIso(fixtureNow),
+              }
+            : row,
+        ),
+      );
+
+    const patchExtra = (code: string, patch: Partial<IssueExtra>) =>
+      Ref.update(extras, (all) => ({
+        ...all,
+        [code]: { ...extraOf(all, code), ...patch },
+      }));
+
+    const setRelations = (
+      code: string,
+      update: (relations: IssueExtra["relations"]) => IssueExtra["relations"],
+    ) =>
+      Ref.update(extras, (all) => {
+        const current = extraOf(all, code);
+        return {
+          ...all,
+          [code]: { ...current, relations: update(current.relations) },
+        };
+      });
 
     return handlers
+      .handle("states", () =>
+        Ref.get(db.issueStates).pipe(Effect.map(toIssueStateList)),
+      )
+      .handle("list", ({ query }) =>
+        Effect.gen(function* () {
+          const world = yield* snapshot;
+          const stateIds = [query.stateId ?? []].flat();
+          const assigneeIds = [query.assigneeId ?? []].flat();
+          const search = String(query.search ?? "")
+            .trim()
+            .toLowerCase();
+          const issues = world.issues.filter(
+            (row) =>
+              (stateIds.length === 0 || stateIds.includes(row.stateId)) &&
+              (assigneeIds.length === 0 ||
+                assigneeIds.includes(row.assigneeId ?? "")) &&
+              (search === "" ||
+                row.title.toLowerCase().includes(search) ||
+                row.code.toLowerCase().includes(search)),
+          );
+          return new IssueList({
+            issues: issues.map((row) => toIssueSummary(world, row)),
+            cursor: null,
+            prefix: yield* Ref.get(prefix),
+          });
+        }),
+      )
+      .handle("summariesByCode", ({ query }) =>
+        snapshot.pipe(
+          Effect.map((world) => {
+            const codes = [query.codes ?? []].flat();
+            return world.issues
+              .filter((row) => codes.includes(row.code))
+              .map((row) => toIssueSummary(world, row));
+          }),
+        ),
+      )
+      .handle("get", ({ params }) => detail(params.code))
+      .handle("create", ({ payload }) =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(db.issues);
+          const states = yield* Ref.get(db.issueStates);
+          const number = Math.max(0, ...rows.map((row) => row.number)) + 1;
+          const code = `${yield* Ref.get(prefix)}-${number}`;
+          const now = DateTime.formatIso(fixtureNow);
+          const stateId =
+            payload.stateId ??
+            states.find((state) => state.isDefault)?.id ??
+            states[0]?.id ??
+            "";
+          const row: IssueRow = {
+            id: `iss_mock_${number}`,
+            number,
+            code,
+            title: payload.title,
+            stateId,
+            projectId: payload.projectId,
+            assigneeId:
+              payload.assignee?.kind === "user" ? payload.assignee.id : null,
+            creatorId: viewer.id,
+            labelIds: [...(payload.labelIds ?? [])],
+            threadIds: [],
+            pullIds: [],
+            parentCode: payload.parentCode ?? null,
+            priority: payload.priority ?? "normal",
+            createdAt: now,
+            updatedAt: now,
+          };
+          yield* Ref.update(db.issues, (all) => [...all, row]);
+          yield* patchExtra(code, {
+            description: payload.description ?? "",
+            ...(payload.dueAt ? { dueAt: payload.dueAt } : {}),
+            subscribed: true,
+          });
+          return yield* detail(code);
+        }),
+      )
+      .handle("update", ({ params, payload }) =>
+        Effect.gen(function* () {
+          const { world } = yield* find(params.code);
+          const stateFromStatus =
+            payload.status === undefined
+              ? undefined
+              : world.states.find(
+                  (state) => statusOfState(state) === payload.status,
+                )?.id;
+          yield* patchRow(params.code, {
+            ...(payload.title !== undefined ? { title: payload.title } : {}),
+            ...(payload.stateId !== undefined
+              ? { stateId: payload.stateId }
+              : stateFromStatus !== undefined
+                ? { stateId: stateFromStatus }
+                : {}),
+            ...(payload.priority !== undefined
+              ? { priority: payload.priority }
+              : {}),
+            ...(payload.assignee !== undefined
+              ? {
+                  assigneeId:
+                    payload.assignee?.kind === "user"
+                      ? payload.assignee.id
+                      : null,
+                }
+              : {}),
+            ...(payload.labelIds !== undefined
+              ? { labelIds: [...payload.labelIds] }
+              : {}),
+            ...(payload.parentCode !== undefined
+              ? { parentCode: payload.parentCode }
+              : {}),
+          });
+          if (payload.description !== undefined) {
+            yield* patchExtra(params.code, {
+              description: payload.description,
+            });
+          }
+          if (payload.dueAt !== undefined) {
+            const current = extraOf(yield* Ref.get(extras), params.code);
+            const { dueAt: _dropped, ...rest } = current;
+            yield* Ref.update(extras, (all) => ({
+              ...all,
+              [params.code]:
+                payload.dueAt === null
+                  ? rest
+                  : { ...rest, dueAt: payload.dueAt ?? undefined },
+            }));
+          }
+          return yield* detail(params.code);
+        }),
+      )
+      .handle("link", ({ params, payload }) =>
+        Effect.gen(function* () {
+          const { row } = yield* find(params.code);
+          const pulls = yield* Ref.get(db.pulls);
+          const pull = pulls.find((candidate) =>
+            pullMatches(payload.ref, candidate),
+          );
+          if (!pull) return yield* missing("pulls", payload.ref);
+          if (!row.pullIds.includes(pull.id)) {
+            yield* patchRow(params.code, {
+              pullIds: [...row.pullIds, pull.id],
+            });
+          }
+          return yield* detail(params.code);
+        }),
+      )
+      .handle("unlink", ({ params, payload }) =>
+        Effect.gen(function* () {
+          const { row } = yield* find(params.code);
+          const target = payload.target;
+          yield* patchRow(
+            params.code,
+            target.kind === "pull"
+              ? { pullIds: row.pullIds.filter((id) => id !== target.pullId) }
+              : {
+                  threadIds: row.threadIds.filter((id) => id !== target.jamId),
+                },
+          );
+          return yield* detail(params.code);
+        }),
+      )
+      .handle("relate", ({ params, payload }) =>
+        Effect.gen(function* () {
+          yield* find(params.code);
+          yield* find(payload.issue);
+          yield* setRelations(payload.issue, (relations) =>
+            relations.filter((relation) => relation.code !== params.code),
+          );
+          yield* setRelations(params.code, (relations) => [
+            ...relations.filter((relation) => relation.code !== payload.issue),
+            {
+              relation: payload.relation as IssueRelationKind,
+              code: payload.issue,
+            },
+          ]);
+          return yield* detail(params.code);
+        }),
+      )
+      .handle("unrelate", ({ params, payload }) =>
+        Effect.gen(function* () {
+          yield* find(params.code);
+          yield* setRelations(params.code, (relations) =>
+            relations.filter((relation) => relation.code !== payload.issue),
+          );
+          yield* setRelations(payload.issue, (relations) =>
+            relations.filter((relation) => relation.code !== params.code),
+          );
+          return yield* detail(params.code);
+        }),
+      )
+      .handle("relations", ({ params, query }) =>
+        detail(params.code).pipe(
+          Effect.map((issue) => {
+            const all = issue.relations ?? [];
+            const offset = query.offset ?? 0;
+            return new IssueRelationPage({
+              relations: all.slice(offset, offset + query.limit),
+              total: all.length,
+            });
+          }),
+        ),
+      )
+      .handle("setSubscription", ({ params, payload }) =>
+        Effect.gen(function* () {
+          yield* find(params.code);
+          yield* patchExtra(params.code, { subscribed: payload.subscribed });
+          return (yield* detail(params.code)).issue.viewer;
+        }),
+      )
+      .handle("markUnread", ({ params }) =>
+        Effect.gen(function* () {
+          yield* find(params.code);
+          yield* patchExtra(params.code, { unread: true });
+          return (yield* detail(params.code)).issue.viewer;
+        }),
+      )
+      .handle("markSeen", ({ params }) =>
+        Effect.gen(function* () {
+          yield* find(params.code);
+          yield* patchExtra(params.code, { unread: false });
+          return (yield* detail(params.code)).issue.viewer;
+        }),
+      )
+      .handle("summary", ({ params }) =>
+        Effect.gen(function* () {
+          const world = yield* snapshot;
+          const row = world.issues.find((issue) => issue.id === params.issueId);
+          if (!row) return yield* missing("issues", params.issueId);
+          return toIssueSummary(world, row);
+        }),
+      )
+      .handle("byPull", ({ params }) =>
+        Effect.gen(function* () {
+          const world = yield* snapshot;
+          const explicit = world.issues.filter((row) =>
+            row.pullIds.includes(params.pullId),
+          );
+          const threadId = world.pulls.find(
+            (pull) => pull.id === params.pullId,
+          )?.threadId;
+          const rows =
+            explicit.length > 0 || !threadId
+              ? explicit
+              : world.issues.filter((row) => row.threadIds.includes(threadId));
+          return rows.map((row) => toIssueSummary(world, row));
+        }),
+      )
+      .handle("comment", ({ params, payload }) =>
+        Effect.gen(function* () {
+          const { row } = yield* find(params.code);
+          const current = extraOf(yield* Ref.get(extras), params.code);
+          yield* patchExtra(params.code, {
+            comments: [
+              ...current.comments,
+              {
+                authorId: viewer.id,
+                body: payload.body,
+                createdAt: DateTime.formatIso(fixtureNow),
+              },
+            ],
+          });
+          const detailNow = yield* detail(row.code);
+          const posted = detailNow.comments.at(-1);
+          if (!posted) return yield* missing("issues", params.code);
+          return posted;
+        }),
+      )
       .handle("captainActivity", ({ params }) =>
         Effect.gen(function* () {
-          const captain = (yield* Ref.get(captains)).find(
+          const captain = (yield* Ref.get(db.captains)).find(
             (row) => row.id === params.jamId,
           );
           if (!captain) return yield* missing("captains", params.jamId);
           const threadIds = new Set(captain.crew);
-          const rows = yield* Ref.get(issues);
-          const allPulls = yield* Ref.get(pulls);
+          const rows = yield* Ref.get(db.issues);
+          const crewPullIds = new Set(
+            (yield* Ref.get(db.pulls))
+              .filter((pull) => threadIds.has(pull.threadId ?? ""))
+              .map((pull) => pull.id),
+          );
           const items = rows
             .filter(
               (issue) =>
                 issue.threadIds.some((id) => threadIds.has(id)) ||
-                issue.pullIds.some((id) =>
-                  allPulls.some(
-                    (pull) =>
-                      pull.id === id && threadIds.has(pull.threadId ?? ""),
-                  ),
-                ),
+                issue.pullIds.some((id) => crewPullIds.has(id)),
             )
-            .map(summary);
+            .map((issue) => ({
+              id: issue.id,
+              code: issue.code,
+              title: issue.title,
+              stateId: issue.stateId,
+            }));
           const activity = issueActivity.filter((entry) => {
             const threadId = Object.entries(threadIssueIds).find(
               ([, code]) => code === entry.issueCode,
@@ -93,31 +397,32 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
       )
       .handle("setPrefix", ({ payload }) =>
         Effect.gen(function* () {
-          const value = asText(fields(payload).prefix, "ACME");
+          const input = fields(payload).prefix;
+          const value = typeof input === "string" ? input : org.issuePrefix;
           yield* Ref.set(prefix, value);
           return { prefix: value };
         }),
       )
-      .handle("states", () => Ref.get(issueStates))
       .handle("createState", ({ payload }) =>
         Effect.gen(function* () {
           const input = fields(payload);
-          const rows = yield* Ref.get(issueStates);
+          const rows = yield* Ref.get(db.issueStates);
           const state = {
             id: newId("ist"),
-            name: asText(input.name, "New state"),
-            category: asText(input.category, "started"),
-            color: asText(input.color, "default"),
+            name: typeof input.name === "string" ? input.name : "New state",
+            category:
+              typeof input.category === "string" ? input.category : "started",
+            color: typeof input.color === "string" ? input.color : "default",
             position: rows.length,
             isDefault: false,
           };
-          yield* Ref.set(issueStates, [...rows, state]);
+          yield* Ref.set(db.issueStates, [...rows, state]);
           return state;
         }),
       )
       .handle("updateState", ({ params, payload }) =>
         Effect.gen(function* () {
-          const rows = yield* Ref.get(issueStates);
+          const rows = yield* Ref.get(db.issueStates);
           const current = rows.find((row) => row.id === params.stateId);
           if (!current) return yield* missing("issueStates", params.stateId);
           const input = fields(payload);
@@ -130,7 +435,7 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
               : {}),
           };
           yield* Ref.set(
-            issueStates,
+            db.issueStates,
             rows.map((row) => (row.id === current.id ? updated : row)),
           );
           return updated;
@@ -139,305 +444,50 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
       .handle("stateCounts", () =>
         Effect.gen(function* () {
           const counts: Record<string, number> = {};
-          for (const issue of yield* Ref.get(issues)) {
+          for (const issue of yield* Ref.get(db.issues)) {
             counts[issue.stateId] = (counts[issue.stateId] ?? 0) + 1;
           }
           return counts;
         }),
       )
-      .handle("reorderStates", ({ payload }) => {
-        const input = fields(payload);
-        const order = Array.isArray(input.stateIds)
-          ? input.stateIds.map(asString)
-          : [];
-        return Effect.gen(function* () {
-          const rows = yield* Ref.get(issueStates);
+      .handle("reorderStates", ({ payload }) =>
+        Effect.gen(function* () {
+          const input = fields(payload);
+          const order = Array.isArray(input.stateIds)
+            ? input.stateIds.map((id) => String(id))
+            : [];
+          const rows = yield* Ref.get(db.issueStates);
           const ordered = [
-            ...order
-              .map((id) => rows.find((row) => row.id === id))
-              .filter(
-                (row): row is NonNullable<typeof row> => row !== undefined,
-              )
-              .map((row, position) => ({ ...row, position })),
-            ...rows
-              .filter((row) => !order.includes(row.id))
-              .map((row, index) => ({
-                ...row,
-                position: order.length + index,
-              })),
-          ];
-          yield* Ref.set(issueStates, ordered);
+            ...order.flatMap((id) => rows.filter((row) => row.id === id)),
+            ...rows.filter((row) => !order.includes(row.id)),
+          ].map((row, position) => ({ ...row, position }));
+          yield* Ref.set(db.issueStates, ordered);
           return ordered;
-        });
-      })
-      .handle("summariesByCode", ({ query }) =>
-        Effect.gen(function* () {
-          const search = asString(query.search).toLowerCase();
-          const rows = yield* Ref.get(issues);
-          return rows
-            .filter(
-              (issue) =>
-                search.length === 0 ||
-                issue.code.toLowerCase().includes(search) ||
-                issue.title.toLowerCase().includes(search),
-            )
-            .map((issue) => ({
-              ...summary(issue),
-              description: issue.title,
-              projectId: issue.projectId,
-            }));
-        }),
-      )
-      .handle("summary", ({ params }) =>
-        findIssue(params.issueId).pipe(
-          Effect.map((issue) => ({
-            ...summary(issue),
-            description: issue.title,
-            projectId: issue.projectId,
-          })),
-        ),
-      )
-      .handle("list", ({ query }) =>
-        Effect.gen(function* () {
-          const rows = yield* Ref.get(issues);
-          const states = yield* Ref.get(issueStates);
-          const labels = yield* Ref.get(issueLabels);
-          const stateId =
-            query.stateId === undefined ? undefined : asString(query.stateId);
-          const assigneeId =
-            query.assigneeId === undefined
-              ? undefined
-              : asString(query.assigneeId);
-          const search = asString(query.search).toLowerCase();
-          const matching = rows
-            .filter(
-              (issue) => stateId === undefined || issue.stateId === stateId,
-            )
-            .filter(
-              (issue) =>
-                assigneeId === undefined || issue.assigneeId === assigneeId,
-            )
-            .filter(
-              (issue) =>
-                search.length === 0 ||
-                issue.title.toLowerCase().includes(search) ||
-                issue.code.toLowerCase().includes(search),
-            );
-          const decorated = matching.map((issue) => ({
-            ...issue,
-            state: states.find((state) => state.id === issue.stateId),
-            labels: labels.filter((label) => issue.labelIds.includes(label.id)),
-          }));
-          if (query.cursor !== undefined) {
-            return { items: decorated, cursor: null };
-          }
-          return decorated;
-        }),
-      )
-      .handle("create", ({ payload }) =>
-        Effect.gen(function* () {
-          const input = fields(payload);
-          const rows = yield* Ref.get(issues);
-          const currentPrefix = yield* Ref.get(prefix);
-          const number = Math.max(0, ...rows.map((issue) => issue.number)) + 1;
-          const issue = {
-            id: newId("iss"),
-            number,
-            code: `${currentPrefix}-${number}`,
-            title: asText(input.title, "New issue"),
-            stateId: asText(input.stateId, "ist_sample_todo"),
-            projectId: asText(input.projectId, "proj_sample_web"),
-            assigneeId:
-              typeof input.assigneeId === "string" ? input.assigneeId : null,
-            creatorId: people.alex.id,
-            labelIds: Array.isArray(input.labelIds)
-              ? input.labelIds.map(asString)
-              : [],
-            threadIds: [],
-            pullIds: [],
-            parentCode:
-              typeof input.parentCode === "string" ? input.parentCode : null,
-            priority: asText(input.priority, "normal"),
-            createdAt: isoMinutesAgo(0),
-            updatedAt: isoMinutesAgo(0),
-          };
-          yield* Ref.set(issues, [...rows, issue]);
-          return issue;
-        }),
-      )
-      .handle("get", ({ params }) => findIssue(params.code))
-      .handle("update", ({ params, payload }) =>
-        Effect.gen(function* () {
-          const issue = yield* findIssue(params.code);
-          const input = fields(payload);
-          const updated = {
-            ...issue,
-            ...(typeof input.title === "string" ? { title: input.title } : {}),
-            ...(typeof input.stateId === "string"
-              ? { stateId: input.stateId }
-              : {}),
-            ...(typeof input.projectId === "string"
-              ? { projectId: input.projectId }
-              : {}),
-            ...(typeof input.priority === "string"
-              ? { priority: input.priority }
-              : {}),
-            ...(typeof input.assigneeId === "string"
-              ? { assigneeId: input.assigneeId }
-              : {}),
-            updatedAt: isoMinutesAgo(0),
-          };
-          yield* Ref.update(issues, (rows) =>
-            rows.map((row) => (row.id === issue.id ? updated : row)),
-          );
-          return updated;
-        }),
-      )
-      .handle("comment", ({ params, payload }) =>
-        Effect.gen(function* () {
-          const issue = yield* findIssue(params.code);
-          const comment = {
-            id: newId("cmt"),
-            issueCode: issue.code,
-            authorId: people.alex.id,
-            body: asText(fields(payload).body, "Comment"),
-            createdAt: isoMinutesAgo(0),
-          };
-          yield* Ref.update(comments, (rows) => [...rows, comment]);
-          return comment;
         }),
       )
       .handle("fileUrl", ({ params }) =>
         Effect.succeed({
-          url: `https://files.example.com/acme/issues/${asString(params.code)}/files/${asString(params.fileId)}`,
+          url: `https://files.example.com/acme/issues/${params.code}/files/${params.fileId}`,
           fileName: "checkout-log.txt",
           expiresAt: isoMinutesAgo(-60),
         }),
       )
-      .handle("link", ({ params, payload }) =>
-        Effect.gen(function* () {
-          const issue = yield* findIssue(params.code);
-          const input = fields(payload);
-          const link = {
-            id: newId("lnk"),
-            issueCode: issue.code,
-            url: asText(input.url, "https://example.com"),
-            title: asText(input.title, "Link"),
-            kind: asText(input.kind, "other"),
-            createdAt: isoMinutesAgo(0),
-          };
-          yield* Ref.update(links, (rows) => [...rows, link]);
-          return link;
-        }),
-      )
-      .handle("unlink", ({ params, query }) =>
-        Effect.gen(function* () {
-          const issue = yield* findIssue(params.code);
-          const linkId = asString(query.linkId);
-          yield* Ref.set(
-            links,
-            (yield* Ref.get(links)).filter((row) => row.id !== linkId),
-          );
-          return { ok: true, issueCode: issue.code, linkId };
-        }),
-      )
-      .handle("relate", ({ params, payload }) =>
-        Effect.gen(function* () {
-          const issue = yield* findIssue(params.code);
-          const input = fields(payload);
-          const relation = {
-            id: newId("rel"),
-            issueCode: issue.code,
-            relatedCode: asText(input.relatedCode, "ACME-1"),
-            kind: asText(input.kind, "related"),
-            createdAt: isoMinutesAgo(0),
-          };
-          yield* Ref.update(relations, (rows) => [...rows, relation]);
-          return relation;
-        }),
-      )
-      .handle("relations", ({ params }) =>
-        findIssue(params.code).pipe(
-          Effect.flatMap((issue) =>
-            Ref.get(relations).pipe(
-              Effect.map((rows) =>
-                rows.filter((row) => row.issueCode === issue.code),
-              ),
-            ),
-          ),
-        ),
-      )
-      .handle("unrelate", ({ params, query }) =>
-        Effect.gen(function* () {
-          const issue = yield* findIssue(params.code);
-          const relationId = asString(query.relationId);
-          yield* Ref.set(
-            relations,
-            (yield* Ref.get(relations)).filter((row) => row.id !== relationId),
-          );
-          return { ok: true, issueCode: issue.code, relationId };
-        }),
-      )
-      .handle("markSeen", ({ params }) =>
-        findIssue(params.code).pipe(
-          Effect.flatMap((issue) =>
-            Ref.update(seen, (rows) =>
-              rows.includes(issue.code) ? rows : [...rows, issue.code],
-            ).pipe(Effect.as({ ok: true, issueCode: issue.code })),
-          ),
-        ),
-      )
-      .handle("setSubscription", ({ params, payload }) =>
-        Effect.gen(function* () {
-          const issue = yield* findIssue(params.code);
-          const subscribed = fields(payload).subscribed !== false;
-          yield* Ref.update(subscriptions, (rows) => ({
-            ...rows,
-            [issue.code]: subscribed,
-          }));
-          return { issueCode: issue.code, subscribed };
-        }),
-      )
-      .handle("markUnread", ({ params }) =>
-        findIssue(params.code).pipe(
-          Effect.flatMap((issue) =>
-            Ref.update(unread, (rows) =>
-              rows.includes(issue.code) ? rows : [...rows, issue.code],
-            ).pipe(Effect.as({ ok: true, issueCode: issue.code })),
-          ),
-        ),
-      )
       .handle("assignedCount", () =>
-        Ref.get(issues).pipe(
+        Ref.get(db.issues).pipe(
           Effect.map((rows) => rows.filter((row) => row.assigneeId).length),
         ),
       )
       .handle("mentionCount", ({ query }) =>
-        Effect.gen(function* () {
-          const userId = asString(query.userId || people.alex.id);
-          const subscribed = yield* Ref.get(subscriptions);
-          const rows = yield* Ref.get(issues);
-          return rows.filter(
-            (issue) =>
-              issue.assigneeId === userId || subscribed[issue.code] === true,
-          ).length;
-        }),
-      )
-      .handle("byPull", ({ params }) =>
-        Effect.gen(function* () {
-          const rows = yield* Ref.get(issues);
-          const matching = rows.filter((issue) =>
-            issue.pullIds.includes(params.pullId),
-          );
-          if (matching.length > 0) return matching;
-          const pull = (yield* Ref.get(pulls)).find(
-            (row) => row.id === params.pullId,
-          );
-          if (!pull) return yield* missing("pulls", params.pullId);
-          return rows.filter((issue) =>
-            issue.threadIds.includes(pull.threadId ?? ""),
-          );
-        }),
+        snapshot.pipe(
+          Effect.map(
+            (world) =>
+              world.issues.filter(
+                (issue) =>
+                  issue.assigneeId === String(query.userId ?? viewer.id) ||
+                  extraOf(world.extras, issue.code).subscribed,
+              ).length,
+          ),
+        ),
       );
   }),
 );

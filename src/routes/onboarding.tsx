@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { OnboardingPage } from "@/features/onboarding/onboarding";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/onboarding")({
@@ -19,5 +19,5 @@ export const Route = createFileRoute("/onboarding")({
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="Onboarding" path="/onboarding" />;
+  return <OnboardingPage search={Route.useSearch()} />;
 }
