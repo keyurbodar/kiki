@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { cx } from "@/components/view-toolbar";
 import type { PullSection } from "@/features/pulls/pulls-page/model";
 import {
@@ -77,13 +77,10 @@ export function PullsList({
       section.members.map((pull) => 1 + String(pull.number).length),
     ),
   );
-  const rowCount = sections.reduce(
-    (count, section) => count + section.members.length,
-    0,
-  );
-  const listRef = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    const root = listRef.current;
+  const observerRef = useRef<ResizeObserver | null>(null);
+  const attachList = useCallback((root: HTMLDivElement | null) => {
+    observerRef.current?.disconnect();
+    observerRef.current = null;
     if (root === null) return;
     const measure = () => {
       root.style.setProperty("--pull-code-width", "max-content");
@@ -96,10 +93,9 @@ export function PullsList({
       }
     };
     measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(root);
-    return () => observer.disconnect();
-  }, [longestCode, rowCount]);
+    observerRef.current = new ResizeObserver(measure);
+    observerRef.current.observe(root);
+  }, []);
   if (sections.length === 0) {
     return loading === true ? (
       <div
@@ -122,7 +118,7 @@ export function PullsList({
   }
   return (
     <div
-      ref={listRef}
+      ref={attachList}
       className="@container/list flex flex-col px-2 pt-1"
       style={{ "--pull-code-width": `${longestCode + 1}ch` } as never}
     >
