@@ -1,5 +1,6 @@
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+import { buttonVariants } from "@/primitives/button";
 import { Composer } from "./composer";
 import {
   type ComposerFieldHeight,
@@ -63,7 +64,9 @@ describe("composer control hitboxes", () => {
     expect(buttons).toHaveLength(2);
     for (const button of buttons) {
       expect(button.className).toContain("size-(--h-control-sm)");
-      expect(button.className).not.toContain("w-(");
+      expect(button.className).toBe(
+        buttonVariants({ variant: "ghost", size: "icon-sm" }),
+      );
     }
   });
 });
