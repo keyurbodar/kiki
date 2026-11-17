@@ -102,19 +102,44 @@ export const sampleSettings = {
   availableModels: models.map((model) => model.id),
 } as const;
 
-/** Catalog rows ST10's models table renders: world models plus Capy's catalog fields. */
-export const sampleCatalogModels = models.map((model) => ({
-  id: model.id,
-  name: model.label,
-  label: model.label,
-  provider: model.provider,
-  tier: model.tier,
+/**
+ * The model the app starts from (`defaultModelId`) as Capy serves it to a member
+ * with a Claude seat: without this row the world's catalog cannot resolve the
+ * default, and every model trigger falls back to the raw id with no provider
+ * mark, no name and no effort summary.
+ */
+const defaultCatalogModel = {
+  id: "anthropic/claude-opus-5-5",
+  name: "Claude Opus 5.5",
+  label: "Claude Opus 5.5",
+  provider: "anthropic",
+  tier: "peak",
   enabled: true,
-  efforts: model.tier === "peak" ? ["low", "medium", "high"] : ["low", "high"],
-  fast: model.tier !== "peak",
-  pro: model.tier === "peak",
-  limits: { context: 200_000, output: 64_000 },
-}));
+  efforts: ["low", "medium", "high", "xhigh", "max"],
+  defaultEffort: "medium",
+  fast: true,
+  pro: false,
+  limits: { context: 1_000_000, output: 128_000 },
+  route: { kind: "member_seat", service: "claude", label: "Claude" },
+} as const;
+
+/** Catalog rows ST10's models table renders: world models plus Capy's catalog fields. */
+export const sampleCatalogModels = [
+  ...models.map((model) => ({
+    id: model.id,
+    name: model.label,
+    label: model.label,
+    provider: model.provider,
+    tier: model.tier,
+    enabled: true,
+    efforts:
+      model.tier === "peak" ? ["low", "medium", "high"] : ["low", "high"],
+    fast: model.tier !== "peak",
+    pro: model.tier === "peak",
+    limits: { context: 200_000, output: 64_000 },
+  })),
+  defaultCatalogModel,
+];
 
 /** models.routing as Capy serves it: seats, credentials, per-model routes and org settings. */
 export const sampleRoutingPayload = {
