@@ -1,6 +1,7 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
 import { InferredMethod } from "../annotations.ts";
+import { CompleteMcpOAuthRequest, McpOAuthCompletion } from "../schemas/mcp.ts";
 import { Undecoded } from "../undecoded.ts";
 
 export class McpGroup extends HttpApiGroup.make("mcp").add(
@@ -9,8 +10,8 @@ export class McpGroup extends HttpApiGroup.make("mcp").add(
     success: Undecoded,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.post("completeOAuth", "/mcp/oauth/complete", {
-    payload: Undecoded,
-    success: Undecoded,
+    payload: CompleteMcpOAuthRequest,
+    success: McpOAuthCompletion,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.get("listSetups", "/orgs/:orgId/jams/:jamId/mcp-setups", {
     params: { orgId: Schema.String, jamId: Schema.String },

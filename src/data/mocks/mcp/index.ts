@@ -1,4 +1,5 @@
 import { DateTime, Effect, Ref } from "effect";
+import { McpOAuthCompletion } from "../../api/schemas/mcp.ts";
 import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { mockGroup } from "../mockGroup.ts";
@@ -85,20 +86,27 @@ export const McpMock = mockGroup("mcp", (handlers) =>
       )
       .handle("completeOAuth", ({ payload }) =>
         Effect.gen(function* () {
-          const input = fields(payload);
-          const state = text(input.state, "state_sample_errors");
+          const { state } = payload;
           const states = yield* Ref.get(oauthStates);
           if (!(state in states)) {
             return yield* Effect.die(
               new Error(`mcp.oauthStates: no row ${state}`),
             );
           }
-          const session = `oauth_session_mock_${state}`;
+          if (payload.error !== undefined) {
+            return new McpOAuthCompletion({
+              result: "denied",
+              destination: "/settings/mcp",
+            });
+          }
           yield* Ref.update(oauthSessions, (rows) => ({
             ...rows,
-            [state]: session,
+            [state]: `oauth_session_mock_${state}`,
           }));
-          return { state, session, connected: true };
+          return new McpOAuthCompletion({
+            result: "connected",
+            destination: "/settings/mcp",
+          });
         }),
       )
       .handle("listSetups", ({ params }) =>

@@ -40,6 +40,9 @@ export interface PullsPagePrefs {
   readonly grouping: Grouping;
   readonly showEmptySections: boolean;
   readonly pinned: ReadonlyArray<string>;
+  readonly collapsedSections: ReadonlyArray<string>;
+  readonly search: string;
+  readonly searchOpen: boolean;
 }
 
 export const emptyFilters: PullFilters = {
@@ -91,6 +94,9 @@ export const defaultPrefs: PullsPagePrefs = {
   grouping: "state",
   showEmptySections: false,
   pinned: [],
+  collapsedSections: [],
+  search: "",
+  searchOpen: false,
 };
 
 export const stateOptions: ReadonlyArray<{ value: PullState; label: string }> =
@@ -192,24 +198,28 @@ const serverUpdatedAfter = (filters: PullFilters, now: number) => {
   return dateRangeBounds(range, now).after?.getTime() ?? null;
 };
 
-/** The request the list endpoint gets for these filters. */
+/**
+ * The request the list endpoint gets for these filters. A search spans every
+ * state, matching the Results section, so the tab's state filter is dropped.
+ */
 export const toListRequest = (
   filters: PullFilters,
   search: string,
   now: number,
   limit: number,
 ): PullListRequest => {
-  const negative = (axis: NegativeAxis) => isNegative(filters, axis);
+  const scoped = search === "" ? filters : { ...filters, states: [] };
+  const negative = (axis: NegativeAxis) => isNegative(scoped, axis);
   return {
-    projectIds: negative("projects") ? [] : filters.projects,
-    excludedProjectIds: negative("projects") ? filters.projects : [],
-    states: negative("states") ? [] : filters.states,
-    excludedStates: negative("states") ? filters.states : [],
-    authors: negative("authors") ? [] : filters.authors,
-    repos: negative("repos") ? [] : filters.repos,
-    labels: filters.labels,
-    captainIds: filters.captains,
-    updatedAfter: serverUpdatedAfter(filters, now),
+    projectIds: negative("projects") ? [] : scoped.projects,
+    excludedProjectIds: negative("projects") ? scoped.projects : [],
+    states: negative("states") ? [] : scoped.states,
+    excludedStates: negative("states") ? scoped.states : [],
+    authors: negative("authors") ? [] : scoped.authors,
+    repos: negative("repos") ? [] : scoped.repos,
+    labels: scoped.labels,
+    captainIds: scoped.captains,
+    updatedAfter: serverUpdatedAfter(scoped, now),
     search,
     limit,
   };
@@ -367,8 +377,26 @@ export const emptyText = (
 export const summarize = (names: ReadonlyArray<string>, noun: string) =>
   names.length <= 2 ? names.join(", ") : `${names.length} ${noun}`;
 
-/** Row code the list prints: `#12`, as Capy's rows do (its `Ir` also prefixes the repo when the list spans several, which this list does not). */
-export const pullCode = (pull: PullCard) => `#${pull.number}`;
+/** Row code the list prints: `#12`, or `web#12` once the rows span repositories. */
+export const pullCode = (pull: PullCard, prefix = "") =>
+  prefix === "" ? `#${pull.number}` : `${prefix}#${pull.number}`;
+
+/**
+ * Code prefixes for the visible rows: none while they all come from one
+ * repository, the short repository name once they span several, and the full
+ * name when two owners' repositories share a short name.
+ */
+export const codePrefixes = (repos: ReadonlyArray<string>) => {
+  const unique = [...new Set(repos)];
+  const shortNames = unique.map(repoName);
+  const collide = new Set(shortNames).size !== unique.length;
+  return new Map(
+    unique.map((repo) => [
+      repo,
+      unique.length < 2 ? "" : collide ? repo : repoName(repo),
+    ]),
+  );
+};
 
 const minute = 60 * 1000;
 
