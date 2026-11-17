@@ -2,7 +2,7 @@ import type { SVGProps } from "react";
 import type { PullState } from "@/features/pulls/pulls-page/data/pull";
 import { Icon } from "@/primitives/icon";
 
-type GlyphProps = Omit<SVGProps<SVGSVGElement>, "children">;
+type GlyphProps = Omit<SVGProps<SVGSVGElement>, "children" | "name">;
 
 export function PullRequestGlyph(props: GlyphProps) {
   return <Icon name="pull-request" size="sm" {...props} />;

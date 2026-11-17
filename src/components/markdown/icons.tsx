@@ -1,7 +1,7 @@
 import type { SVGProps } from "react";
 import { Icon } from "@/primitives/icon";
 
-type GlyphProps = Omit<SVGProps<SVGSVGElement>, "children">;
+type GlyphProps = Omit<SVGProps<SVGSVGElement>, "children" | "name">;
 
 export const ExpandIcon = (props: GlyphProps) => (
   <Icon name="expand-45" size="base" {...props} />

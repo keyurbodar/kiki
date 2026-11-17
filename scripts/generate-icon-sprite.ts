@@ -26,7 +26,8 @@
 
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const CHUNK_DIRS = [
   process.env.KIKI_ICON_CHUNKS,
@@ -34,7 +35,11 @@ const CHUNK_DIRS = [
   "/home/ubuntu/.capy/work/kiki-wp/chunks",
 ].filter((dir): dir is string => typeof dir === "string" && dir.length > 0);
 
-const ICON_DIR = join(import.meta.dir, "..", "src/primitives/icon");
+const ICON_DIR = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "src/primitives/icon",
+);
 const SPRITE_PATH = join(ICON_DIR, "sprite.svg");
 const IDS_PATH = join(ICON_DIR, "icon-ids.ts");
 
@@ -60,8 +65,9 @@ const kebab = (name: string) =>
 function matchingBrace(text: string, start: number): number {
   let depth = 0;
   for (let index = start; index < text.length; index += 1) {
-    if (text[index] === "{") depth += 1;
-    else if (text[index] === "}") {
+    const character = text.charAt(index);
+    if (character === "{") depth += 1;
+    else if (character === "}") {
       depth -= 1;
       if (depth === 0) return index;
     }
@@ -73,10 +79,17 @@ function attributesOf(raw: string): Attribute[] | null {
   // Anything left after the literal pairs is computed, and a computed attribute
   // would have to be invented, so such a glyph is skipped instead.
   if (raw.replace(ATTRIBUTE, "").replace(/[,\s]/g, "").length > 0) return null;
-  return [...raw.matchAll(ATTRIBUTE)].map(([, name, value]) => [
-    kebab(name),
-    value.startsWith("`") ? value.slice(1, -1) : value,
-  ]);
+  const attributes: Attribute[] = [];
+  for (const match of raw.matchAll(ATTRIBUTE)) {
+    const name = match[1];
+    const value = match[2];
+    if (name === undefined || value === undefined) return null;
+    attributes.push([
+      kebab(name),
+      value.startsWith("`") ? value.slice(1, -1) : value,
+    ]);
+  }
+  return attributes;
 }
 
 function childrenOf(text: string, from: number): Child[] | null {
@@ -91,12 +104,14 @@ function childrenOf(text: string, from: number): Child[] | null {
     if (close < 0) break;
     const attributes = attributesOf(text.slice(open + 1, close));
     if (attributes === null) return null;
-    children.push([element[1], attributes]);
+    const tag = element[1];
+    if (tag === undefined) break;
+    children.push([tag, attributes]);
     cursor = close + 1;
-    while (cursor < text.length && /\s/.test(text[cursor])) cursor += 1;
-    if (text[cursor] === ")") cursor += 1;
-    while (cursor < text.length && /\s/.test(text[cursor])) cursor += 1;
-    if (text[cursor] !== ",") break;
+    while (cursor < text.length && /\s/.test(text.charAt(cursor))) cursor += 1;
+    if (text.charAt(cursor) === ")") cursor += 1;
+    while (cursor < text.length && /\s/.test(text.charAt(cursor))) cursor += 1;
+    if (text.charAt(cursor) !== ",") break;
     cursor += 1;
   }
   return children.length > 0 ? children : null;
@@ -107,14 +122,16 @@ function glyphsIn(text: string): Map<string, Glyph[]> {
   const aria = /ariaLabel:`([^`]*)`/g;
   let label = aria.exec(text);
   while (label !== null) {
-    const name = label[1].split(",")[0]?.trim() ?? "";
+    const labelText = label[1];
+    if (labelText === undefined) break;
+    const name = labelText.split(",")[0]?.trim() ?? "";
     if (ICON_NAME.test(name)) {
       const children = childrenOf(text, label.index + label[0].length);
       if (children !== null) {
         const glyphs = found.get(name) ?? [];
         const rendered = render(children);
         if (!glyphs.some((glyph) => render(glyph.children) === rendered)) {
-          glyphs.push({ label: label[1], children });
+          glyphs.push({ label: labelText, children });
         }
         found.set(name, glyphs);
       }
@@ -168,8 +185,10 @@ for (const [name, glyphs] of collected) {
       Number(stroked(a) > 0) - Number(stroked(b) > 0) ||
       b.children.length - a.children.length,
   );
-  named.set(name, ordered[0]);
-  if (ordered.length > 1) named.set(`${name}-outline`, ordered[1]);
+  const [primary, outline] = ordered;
+  if (primary === undefined) continue;
+  named.set(name, primary);
+  if (outline !== undefined) named.set(`${name}-outline`, outline);
   if (ordered.length > 2) {
     console.warn(`${name}: ${ordered.length} glyphs, keeping the first two`);
   }
@@ -214,10 +233,12 @@ const idsSource = [
 ].join("\n");
 
 const check = process.argv.includes("--check");
-const stale = [
-  [SPRITE_PATH, sprite],
-  [IDS_PATH, idsSource],
-].filter(([path, next]) => readFileSync(path, "utf8") !== next);
+const stale: Array<[string, string]> = (
+  [
+    [SPRITE_PATH, sprite],
+    [IDS_PATH, idsSource],
+  ] satisfies Array<[string, string]>
+).filter(([path, next]) => readFileSync(path, "utf8") !== next);
 
 console.log(
   `${names.length} glyphs from ${collected.size} bundle names (${names.length - collected.size} outline variants)`,

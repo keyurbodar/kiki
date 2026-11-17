@@ -1,7 +1,7 @@
 import { createElement as h, type SVGProps } from "react";
 import { Icon } from "@/primitives/icon";
 
-export type GlyphProps = Omit<SVGProps<SVGSVGElement>, "children">;
+export type GlyphProps = Omit<SVGProps<SVGSVGElement>, "children" | "name">;
 
 export const DotsHorizontal = (props: GlyphProps) =>
   h(Icon, { ...props, name: "dot-grid-1x3-horizontal", size: "sm" });

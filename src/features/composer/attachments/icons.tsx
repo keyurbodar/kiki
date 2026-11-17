@@ -1,7 +1,7 @@
 import type { SVGProps } from "react";
 import { Icon } from "@/primitives/icon";
 
-type GlyphProps = Omit<SVGProps<SVGSVGElement>, "children">;
+type GlyphProps = Omit<SVGProps<SVGSVGElement>, "children" | "name">;
 
 export function ImagesIcon({ className, ...props }: GlyphProps) {
   return (
