@@ -7,6 +7,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FileRef } from "@/data/events";
+import { FileId } from "@/data/events/ids";
 import {
   AttachmentGallery,
   AudioTranscript,
@@ -41,7 +42,7 @@ const failingSource: AttachmentSource = {
 };
 
 const file = (overrides: Partial<FileRef> = {}): FileRef => ({
-  fileId: "file_1",
+  fileId: FileId.make("file_1"),
   name: "photo.png",
   mediaType: "image/png",
   sizeBytes: 2048,
@@ -52,7 +53,7 @@ const file = (overrides: Partial<FileRef> = {}): FileRef => ({
 
 const image = (index: number, overrides: Partial<FileRef> = {}) => ({
   file: file({
-    fileId: `file_${index}`,
+    fileId: FileId.make(`file_${index}`),
     name: `photo-${index}.png`,
     ...overrides,
   }),
@@ -96,7 +97,7 @@ it("limits a five-image gallery to four tiles and shows +1", () => {
 describe("file attachments", () => {
   const notes = {
     file: file({
-      fileId: "file_6",
+      fileId: FileId.make("file_6"),
       name: "notes.pdf",
       mediaType: "application/pdf",
     }),
@@ -121,7 +122,7 @@ describe("file attachments", () => {
 describe("audio attachments", () => {
   const memo = {
     file: file({
-      fileId: "file_7",
+      fileId: FileId.make("file_7"),
       name: "memo.m4a",
       mediaType: "audio/mp4",
       transcript: "Sample transcript",
@@ -170,7 +171,7 @@ describe("compact variant", () => {
 
   it("renders busy cards while pending", () => {
     renderGallery({
-      entries: [{ ...entries[0], title: "Pending" }],
+      entries: [{ ...image(1), title: "Pending" }],
       variant: "compact",
       pending: true,
     });

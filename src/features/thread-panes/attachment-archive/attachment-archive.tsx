@@ -41,7 +41,12 @@ const track = (owner: string) =>
 const DIRECTORY_PAGE = 150;
 
 type ArchiveLoad =
-  | { status: "loaded"; bytes: Uint8Array; members: Map<string, ArchiveMember> }
+  | {
+      status: "loaded";
+      bytes: Uint8Array;
+      members: Map<string, ArchiveMember>;
+      folders: string[];
+    }
   | { status: "refused"; reason: string }
   | { status: "failed"; url: string };
 
@@ -86,6 +91,7 @@ export function useArchive(
                   status: "loaded",
                   bytes,
                   members: indexMembers(directory.members),
+                  folders: directory.folders,
                 },
         });
       })
@@ -179,6 +185,7 @@ export type ArchiveDirectoryProps = {
   rootLabel: string;
   path: string;
   files: ReadonlyArray<{ path: string; sizeBytes: number }>;
+  explicitFolders?: ReadonlyArray<string>;
   decorations?: ReadonlyMap<string, string>;
   trailing?: React.ReactNode;
   onOpenDirectory: (path: string) => void;
@@ -189,13 +196,14 @@ export function ArchiveDirectory({
   rootLabel,
   path,
   files,
+  explicitFolders,
   decorations,
   trailing,
   onOpenDirectory,
   onOpenFile,
 }: ArchiveDirectoryProps) {
   const [pages, setPages] = useState(1);
-  const entries = listDirectory(files, path);
+  const entries = listDirectory(files, path, explicitFolders);
   const totals = directoryTotals(files, path);
   const shown = entries.slice(0, pages * DIRECTORY_PAGE);
   const crumbs = path === "" ? [] : path.split("/");

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FileRef } from "@/data/events";
+import { FileId } from "@/data/events/ids";
 import {
   attachmentKind,
   type ComposerUpload,
@@ -16,7 +17,7 @@ import {
 } from "./attachment-format";
 
 const file = (overrides: Partial<FileRef> = {}): FileRef => ({
-  fileId: "file_1",
+  fileId: FileId.make("file_1"),
   name: "photo.png",
   mediaType: "image/png",
   sizeBytes: 2048,
@@ -119,8 +120,8 @@ describe("keyAttachments", () => {
 
   it("keys by fileId and title or name", () => {
     const [withTitle, withName] = keyAttachments([
-      { file: file({ fileId: "file_2" }), title: "A title" },
-      { file: file({ fileId: "file_3" }) },
+      { file: file({ fileId: FileId.make("file_2") }), title: "A title" },
+      { file: file({ fileId: FileId.make("file_3") }) },
     ]);
     expect(withTitle?.key).toBe(JSON.stringify(["file_2", "A title"]));
     expect(withName?.key).toBe(JSON.stringify(["file_3", "photo.png"]));
@@ -130,13 +131,13 @@ describe("keyAttachments", () => {
 describe("splitAttachments", () => {
   it("groups media, audio and files using titles as labels", () => {
     const media = {
-      file: file({ fileId: "file_1" }),
+      file: file({ fileId: FileId.make("file_1") }),
       title: "Snapshot",
       key: "media",
     };
     const video = {
       file: file({
-        fileId: "file_2",
+        fileId: FileId.make("file_2"),
         name: "clip.mp4",
         mediaType: "video/mp4",
       }),
@@ -144,7 +145,7 @@ describe("splitAttachments", () => {
     };
     const audio = {
       file: file({
-        fileId: "file_3",
+        fileId: FileId.make("file_3"),
         name: "memo.m4a",
         mediaType: "audio/mp4",
       }),
@@ -152,7 +153,7 @@ describe("splitAttachments", () => {
     };
     const document = {
       file: file({
-        fileId: "file_4",
+        fileId: FileId.make("file_4"),
         name: "notes.pdf",
         mediaType: "application/pdf",
       }),
