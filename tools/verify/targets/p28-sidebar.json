@@ -1,0 +1,87 @@
+{
+  "matrix": {
+    "theme": ["default"],
+    "scheme": ["dark", "light"]
+  },
+  "defaults": {
+    "maxMismatch": 2
+  },
+  "targets": [
+    {
+      "id": "p28-pulls",
+      "route": "/pulls",
+      "viewport": "1440x818",
+      "expect": {
+        "[data-slot=sidebar-wrapper]": {
+          "background-color": "var(--chrome)"
+        },
+        "[data-slot=sidebar-gap]": {
+          "width": "240px"
+        },
+        "[data-slot=sidebar-container]": {
+          "width": "240px",
+          "position": "fixed",
+          "z-index": "50",
+          "left": "0px"
+        },
+        "[data-slot=sidebar-rail]": {
+          "width": "16px",
+          "cursor": "col-resize"
+        },
+        "[data-slot=sidebar-content]": {
+          "opacity": "1"
+        },
+        "[data-slot=sidebar-panel]": {
+          "margin-top": "8px",
+          "margin-right": "8px",
+          "margin-bottom": "8px",
+          "border-top-left-radius": "12px",
+          "background-color": "var(--panel)"
+        }
+      },
+      "variants": {
+        "default/dark": {
+          "frame": "PgFMS6eUl-"
+        }
+      }
+    },
+    {
+      "id": "p28-issues",
+      "route": "/issues",
+      "viewport": "1440x818",
+      "expect": {
+        "[data-slot=sidebar-gap]": {
+          "width": "240px"
+        },
+        "[data-slot=sidebar-panel]": {
+          "margin-top": "8px",
+          "margin-right": "8px",
+          "border-top-left-radius": "12px"
+        }
+      },
+      "variants": {
+        "default/dark": {
+          "frame": "KcMpCOQilR"
+        }
+      }
+    },
+    {
+      "id": "p28-sidebar-closed",
+      "route": "/pulls",
+      "state": "sidebar collapsed with mod+B",
+      "viewport": "1440x818",
+      "steps": [["press", "Control+b"], ["wait", "500"]],
+      "expect": {
+        "[data-slot=sidebar-gap]": {
+          "width": "0px"
+        },
+        "[data-slot=sidebar-content]": {
+          "opacity": "0"
+        },
+        "[data-slot=sidebar-panel]": {
+          "margin-left": "8px"
+        }
+      }
+    }
+  ]
+}
