@@ -10,14 +10,9 @@ type Node = {
 const DEV_ONLY_ROUTES = new Set([
   "/__tokens",
   "/__composer-footer",
-const DEV_ONLY_ROUTES = new Set([
-  "/__tokens",
-  "/__composer-footer",
   "/__composer",
   "/__thread-device",
   "/__chips",
-  "/__model-picker",
-]);
   "/__model-picker",
 ]);
 
