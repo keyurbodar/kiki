@@ -244,7 +244,10 @@ export function recolorMermaidSvg(svg: string) {
     const color = style.match(FILL)?.[1]?.trim();
     if (color === undefined) continue;
     block.setAttribute("data-mermaid-block", "");
-    block.setAttribute("style", `${style};--mermaid-block-fill:${color}`);
+    block.setAttribute(
+      "style",
+      `${style.replace(FILL, "")};--mermaid-block-fill:${color}`,
+    );
   }
   for (const { shape, labels, color } of styled) {
     shape.removeAttribute("fill-opacity");

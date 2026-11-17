@@ -86,11 +86,10 @@
 }
 
 .pele .pele-rect[data-mermaid-block] {
-  /* biome-ignore lint/complexity/noImportantStyles: pele writes the fill inline; the recoloured block fill must win over it */
   fill: oklch(
     from var(--mermaid-block-fill) var(--mermaid-block-lightness)
       var(--mermaid-block-chroma) h
-  ) !important;
+  );
 }
 
 .pele .pele-edge-label text {

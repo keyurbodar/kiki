@@ -80,7 +80,7 @@ const CHART = `<style>
 
 const STATS = `<div>
   <app-stat label="Deploys" value="48" delta="+12%" note="last 30 days"></app-stat>
-  <app-stat label="Median build" value="3m 12s" delta="-18s"></app-stat>
+  <app-stat label="Median build" value="3.2 min" delta="-0.3 min"></app-stat>
   <app-stat label="Failed runs" value="4" delta="+1"></app-stat>
 </div>
 <app-table columns='[{"key":"service","label":"Service"},{"key":"p50","label":"p50"},{"key":"p95","label":"p95"}]'
