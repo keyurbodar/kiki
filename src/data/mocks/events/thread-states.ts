@@ -1,5 +1,6 @@
 import type { EventRowEncoded } from "@/data/events";
 import { threads } from "../fixtures/world.ts";
+import { eventId } from "./event-ids.ts";
 
 /**
  * Thread route seeds for states the transcript builder derives into distinct
@@ -20,18 +21,6 @@ const file = (name: string) => ({
   sizeBytes: 512,
 });
 
-const ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-
-const base32 = (value: number, length: number) => {
-  let output = "";
-  let rest = value;
-  for (let index = 0; index < length; index += 1) {
-    output = ALPHABET[rest % 32] + output;
-    rest = Math.floor(rest / 32);
-  }
-  return output;
-};
-
 const row = (
   jamId: string,
   sequence: number,
@@ -41,10 +30,7 @@ const row = (
 ): EventRowEncoded => {
   const ms = Date.UTC(2026, 10, 17, 9, 0, 0) + sequence * 5_000;
   return {
-    id:
-      base32(ms, 10) +
-      base32(threadIds[jamId as keyof typeof threadIds] ?? 0, 2) +
-      base32(sequence, 14),
+    id: eventId(ms, sequence, threadIds[jamId as keyof typeof threadIds] ?? 0),
     jamId,
     kind,
     state,

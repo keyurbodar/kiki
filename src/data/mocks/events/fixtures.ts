@@ -61,21 +61,9 @@ export const emptyContextUsage = {
   bound: "context",
 } as const;
 
+import type { EventRowEncoded } from "@/data/events";
 import { isoMinutesAgo, people, threads } from "../fixtures/world.ts";
-
-export type EventState = "queued" | "streaming" | "committed" | "cancelled";
-
-export interface StoredEvent {
-  readonly id: string;
-  readonly jamId: string;
-  readonly kind: string;
-  readonly state: EventState;
-  readonly actorId: string;
-  readonly createdAt: string;
-  readonly text?: string;
-  readonly command?: string;
-  readonly summary?: string;
-}
+import { eventId } from "./event-ids.ts";
 
 export interface EventOutlineSection {
   readonly id: string;
@@ -91,89 +79,181 @@ export interface MessageVersionRow {
   readonly live: boolean;
 }
 
-export const seedEvents: ReadonlyArray<StoredEvent> = [
-  {
-    id: "evt_sample_context",
-    jamId: threads.checkoutTest.id,
-    kind: "context",
-    state: "committed",
-    actorId: people.alex.id,
-    createdAt: isoMinutesAgo(90),
-    text: "Fix a flaky checkout test in acme/web.",
-  },
-  {
-    id: "evt_sample_message",
-    jamId: threads.checkoutTest.id,
-    kind: "message",
-    state: "committed",
-    actorId: people.alex.id,
-    createdAt: isoMinutesAgo(85),
-    text: "The checkout test times out when the payment gateway is slow.",
-  },
-  {
-    id: "evt_sample_assistant",
-    jamId: threads.checkoutTest.id,
-    kind: "assistant",
-    state: "committed",
-    actorId: people.sam.id,
-    createdAt: isoMinutesAgo(80),
-    text: "I'll add a bounded retry around the gateway call.",
-  },
-  {
-    id: "evt_sample_tool",
-    jamId: threads.checkoutTest.id,
-    kind: "tool_result",
-    state: "committed",
-    actorId: people.sam.id,
-    createdAt: isoMinutesAgo(75),
-    text: "Updated src/checkout/retry.ts",
-  },
-  {
-    id: "evt_sample_queued00000000000000001",
-    jamId: threads.checkoutTest.id,
-    kind: "message",
-    state: "queued",
-    actorId: people.priya.id,
-    createdAt: isoMinutesAgo(3),
-    text: "Also check the timeout on the staging environment.",
-  },
-  {
-    id: "evt_sample_docs",
-    jamId: threads.gettingStarted.id,
-    kind: "message",
-    state: "committed",
-    actorId: people.priya.id,
-    createdAt: isoMinutesAgo(24 * 60),
-    text: "Draft the getting started guide for the API.",
-  },
-  {
-    id: "evt_sample_command",
-    jamId: threads.gettingStarted.id,
-    kind: "control",
-    state: "committed",
-    actorId: people.sam.id,
-    createdAt: isoMinutesAgo(20 * 60),
-    command: "compact",
-  },
+const checkoutJam = threads.checkoutTest.id;
+const docsJam = threads.gettingStarted.id;
+
+const user = (userId: string) => ({ type: "user" as const, userId });
+const agent = (jamId: string) => ({ type: "agent" as const, jamId });
+const web = (userId: string) => ({ type: "web" as const, userId });
+const systemActor = { type: "system" as const, service: "system" as const };
+const sys = { type: "system" as const };
+
+const sampleModel = {
+  modelId: "anthropic/claude-sample",
+  providerModelId: "claude-sample",
+};
+
+const sampleUsage = {
+  inputTokens: 1_200,
+  outputTokens: 240,
+  cacheReadTokens: 0,
+  cacheWriteTokens: 0,
+};
+
+const retryCallId = "toolu_sample_retry";
+
+const at = {
+  prompt: isoMinutesAgo(90),
+  followUp: isoMinutesAgo(85),
+  turn: isoMinutesAgo(80),
+  result: isoMinutesAgo(75),
+  queued: isoMinutesAgo(3),
+  docs: isoMinutesAgo(24 * 60),
+  command: isoMinutesAgo(20 * 60),
+};
+
+/** The ids the outline and the message versions below point at. */
+const ids = {
+  prompt: eventId(at.prompt, 1),
+  followUp: eventId(at.followUp, 2),
+  edit: eventId(at.followUp, 21),
+  turn: eventId(at.turn, 3),
+  result: eventId(at.result, 4),
+  queued: eventId(at.queued, 5),
+  docs: eventId(at.docs, 6),
+  command: eventId(at.command, 7),
+};
+
+/** One seeded row, in the encoded shape `GET events` serves and the client decodes. */
+const row = (
+  jamId: string,
+  createdAt: string,
+  sequence: number,
+  kind: EventRowEncoded["kind"],
+  payload: object,
+  state: EventRowEncoded["state"] = "committed",
+): EventRowEncoded =>
+  ({
+    id: eventId(createdAt, sequence),
+    jamId,
+    kind,
+    state,
+    createdAt,
+    payload,
+  }) as EventRowEncoded;
+
+export const seedEvents: ReadonlyArray<EventRowEncoded> = [
+  row(
+    checkoutJam,
+    at.prompt,
+    1,
+    "message",
+    {
+      actor: user(people.alex.id),
+      origin: web(people.alex.id),
+      text: "Fix a flaky checkout test in acme/web.",
+      files: [],
+      delivery: "queue",
+    },
+    "answered",
+  ),
+  row(
+    checkoutJam,
+    at.followUp,
+    2,
+    "message",
+    {
+      actor: user(people.alex.id),
+      origin: web(people.alex.id),
+      text: "The checkout test times out when the payment gateway is slow.",
+      files: [],
+      delivery: "queue",
+    },
+    "answered",
+  ),
+  row(checkoutJam, at.turn, 3, "assistant", {
+    actor: agent(checkoutJam),
+    origin: sys,
+    model: sampleModel,
+    route: { source: "capy" },
+    usage: sampleUsage,
+    stopReason: "tool_use",
+    blocks: [
+      {
+        id: "blk_sample_retry_text",
+        type: "text",
+        text: "I'll add a bounded retry around the gateway call.",
+      },
+      {
+        id: "blk_sample_retry_call",
+        type: "tool_use",
+        toolCallId: retryCallId,
+        toolName: "write",
+        args: { path: "src/checkout/retry.ts" },
+      },
+    ],
+  }),
+  row(checkoutJam, at.result, 4, "tool_result", {
+    actor: agent(checkoutJam),
+    origin: sys,
+    assistantEventId: ids.turn,
+    toolCallId: retryCallId,
+    isError: false,
+    blocks: [{ type: "text", text: "Updated src/checkout/retry.ts" }],
+    data: { path: "src/checkout/retry.ts", changed: 12 },
+  }),
+  row(
+    checkoutJam,
+    at.queued,
+    5,
+    "message",
+    {
+      actor: user(people.priya.id),
+      origin: web(people.priya.id),
+      text: "Also check the timeout on the staging environment.",
+      files: [],
+      delivery: "queue",
+    },
+    "pending",
+  ),
+  row(
+    docsJam,
+    at.docs,
+    6,
+    "message",
+    {
+      actor: user(people.priya.id),
+      origin: web(people.priya.id),
+      text: "Draft the getting started guide for the API.",
+      files: [],
+      delivery: "queue",
+    },
+    "answered",
+  ),
+  row(docsJam, at.command, 7, "control", {
+    actor: systemActor,
+    origin: sys,
+    command: { type: "compact" },
+  }),
 ];
 
 export const outline: ReadonlyArray<EventOutlineSection> = [
   {
     id: "sec_sample_context",
     label: "Starting context",
-    eventId: "evt_sample_context",
+    eventId: ids.prompt,
     children: [],
   },
   {
     id: "sec_sample_investigation",
     label: "Investigation",
-    eventId: "evt_sample_message",
-    children: ["evt_sample_tool"],
+    eventId: ids.followUp,
+    children: [ids.result],
   },
   {
     id: "sec_sample_next",
     label: "Follow-up",
-    eventId: "evt_sample_queued00000000000000001",
+    eventId: ids.queued,
     children: [],
   },
 ];
@@ -181,25 +261,25 @@ export const outline: ReadonlyArray<EventOutlineSection> = [
 export const messageVersions: Readonly<
   Record<string, ReadonlyArray<MessageVersionRow>>
 > = {
-  evt_sample_message: [
+  [ids.followUp]: [
     {
-      id: "evt_sample_message",
+      id: ids.followUp,
       text: "The checkout test times out when the payment gateway is slow.",
-      createdAt: isoMinutesAgo(85),
+      createdAt: at.followUp,
       live: true,
     },
     {
-      id: "evt_sample_message_v1",
+      id: ids.edit,
       text: "The checkout test times out when the gateway is slow.",
       createdAt: isoMinutesAgo(84),
       live: false,
     },
   ],
-  evt_sample_queued00000000000000001: [
+  [ids.queued]: [
     {
-      id: "evt_sample_queued00000000000000001",
+      id: ids.queued,
       text: "Also check the timeout on the staging environment.",
-      createdAt: isoMinutesAgo(3),
+      createdAt: at.queued,
       live: true,
     },
   ],

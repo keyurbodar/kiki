@@ -1,8 +1,10 @@
 import { assert, describe, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import { AtomRegistry } from "effect/reactivity";
+import { EventId } from "@/data/events";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId, threads } from "../fixtures/world.ts";
+import { messageVersions } from "./fixtures.ts";
 
 interface StoredEvent {
   readonly id: string;
@@ -16,8 +18,9 @@ interface EventList {
   readonly cursor: string | null;
 }
 
+const decodeEventId = Schema.decodeUnknownSync(EventId);
 const jamId = threads.checkoutTest.id;
-const messageEventId = "evt_sample_message";
+const messageEventId = Object.keys(messageVersions)[0] as string;
 const key = `events:${orgId}:${jamId}`;
 
 const listAtom = ApiClient.query("events", "list", {
@@ -145,12 +148,12 @@ describe("events mock", () => {
         atom("compact"),
         { params: { orgId, jamId }, reactivityKeys: [key] },
       );
-      assert.isTrue(compacted.id.startsWith("evt_mock_compact"));
+      assert.strictEqual(decodeEventId(compacted.id), compacted.id);
       const interrupted = yield* mutate<{ id: string }>(atom("interrupt"), {
         params: { orgId, jamId },
         reactivityKeys: [key],
       });
-      assert.isTrue(interrupted.id.startsWith("evt_mock_interrupt"));
+      assert.strictEqual(decodeEventId(interrupted.id), interrupted.id);
       const reAdmitted = yield* mutate<{ id: string; deduped: boolean }>(
         atom("message"),
         {

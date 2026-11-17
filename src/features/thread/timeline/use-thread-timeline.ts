@@ -68,6 +68,9 @@ export const expandedIdsAtom = Atom.family((_key: string) =>
  * Loads the newest history page, then follows the realtime socket: a
  * `jam_event` hint refetches after the newest stored event, a delta advances
  * the live turn. Mount it while the thread is on screen.
+ *
+ * The feed is read with `get.once`: a reactive read would make this effect a
+ * dependent of the atom it writes, so every page it stores would re-run it.
  */
 export const threadSyncAtom = Atom.family((key: string) =>
   timelineRuntime.atom((get) =>
@@ -75,7 +78,7 @@ export const threadSyncAtom = Atom.family((key: string) =>
       const feedAtom = threadFeedAtom(key);
       const { jamId } = splitKey(key);
       const first = yield* fetchPage(key, {});
-      get.set(feedAtom, historyLoaded(get(feedAtom), first));
+      get.set(feedAtom, historyLoaded(get.once(feedAtom), first));
       const socket = yield* RealtimeSocket;
       yield* socket.send(
         JSON.stringify({ type: "subscribe", scopes: [`jam:${jamId}`] }),
@@ -86,11 +89,11 @@ export const threadSyncAtom = Atom.family((key: string) =>
         ),
         Stream.runForEach((message) =>
           Effect.gen(function* () {
-            const feed = get(feedAtom);
+            const feed = get.once(feedAtom);
             const action = applyRealtime(feed, message, jamId, new Date());
             if (action.kind === "delta") get.set(feedAtom, action.feed);
             if (action.kind !== "refetch") return;
-            const current = get(feedAtom);
+            const current = get.once(feedAtom);
             const hint =
               message.type === "hint" ? hintScope(message) : undefined;
             const after =
@@ -99,7 +102,7 @@ export const threadSyncAtom = Atom.family((key: string) =>
                 : undefined;
             const query = after === undefined ? {} : { after };
             const page = yield* fetchPage(key, query);
-            get.set(feedAtom, newerLoaded(get(feedAtom), page));
+            get.set(feedAtom, newerLoaded(get.once(feedAtom), page));
           }),
         ),
       );
