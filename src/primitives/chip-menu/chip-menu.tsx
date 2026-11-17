@@ -1,4 +1,5 @@
 import { Menu as BaseMenu } from "@base-ui/react/menu";
+import { cx } from "class-variance-authority";
 import {
   type ComponentProps,
   type KeyboardEvent,
@@ -8,7 +9,13 @@ import {
 import { rankByQuery } from "@/lib/search-rank";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
-import { MenuContent, MenuSearchRow } from "@/primitives/menu";
+import {
+  MenuContent,
+  MenuSearchRow,
+  menuCheckClassName,
+  menuIconClassName,
+  menuSearchInputClassName,
+} from "@/primitives/menu";
 import {
   ResponsiveMenu,
   ResponsiveMenuItem,
@@ -20,7 +27,7 @@ export type ChipMenuOption<Value extends string = string> = {
   icon?: ReactNode;
 };
 
-export type ChipMenuProps<Value extends string = string> = {
+export type ChipMenuPickerProps<Value extends string = string> = {
   ariaLabel?: string;
   prefix?: ReactNode;
   current: Value;
@@ -30,6 +37,12 @@ export type ChipMenuProps<Value extends string = string> = {
   disabled?: boolean;
   title?: string;
 };
+
+export type ChipMenuRootProps = ComponentProps<typeof BaseMenu.Root>;
+
+export type ChipMenuProps<Value extends string = string> =
+  | ChipMenuPickerProps<Value>
+  | ChipMenuRootProps;
 
 export type ChipMenuTriggerProps = ComponentProps<typeof BaseMenu.Trigger>;
 
@@ -44,7 +57,14 @@ const keepMenuKey = (event: KeyboardEvent) =>
   event.key === "ArrowDown" ||
   event.key === "ArrowUp";
 
-export function ChipMenu<Value extends string = string>({
+export function ChipMenu<Value extends string = string>(
+  props: ChipMenuProps<Value>,
+) {
+  if (!("options" in props)) return <BaseMenu.Root {...props} />;
+  return <ChipMenuPicker {...props} />;
+}
+
+function ChipMenuPicker<Value extends string>({
   ariaLabel,
   prefix,
   current,
@@ -53,7 +73,7 @@ export function ChipMenu<Value extends string = string>({
   searchPlaceholder,
   disabled,
   title,
-}: ChipMenuProps<Value>) {
+}: ChipMenuPickerProps<Value>) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const needle = query.trim().toLowerCase();
@@ -109,7 +129,7 @@ export function ChipMenu<Value extends string = string>({
         {searchPlaceholder === undefined ? null : (
           <MenuSearchRow>
             <input
-              className="h-(--h-menu-row) w-full min-w-0 bg-transparent px-2 text-sm font-normal text-foreground outline-none placeholder:text-muted-foreground-3"
+              className={menuSearchInputClassName}
               aria-label={searchPlaceholder}
               placeholder={searchPlaceholder}
               value={query}
@@ -129,9 +149,7 @@ export function ChipMenu<Value extends string = string>({
               onClick={() => onPick(option.value)}
             >
               {option.icon === undefined ? null : (
-                <span className="flex size-(--icon-sm) shrink-0 items-center justify-center text-icon-muted in-data-[intent=danger]:text-destructive">
-                  {option.icon}
-                </span>
+                <span className={menuIconClassName}>{option.icon}</span>
               )}
               <span className="mask-fade-r min-w-0 flex-1 overflow-hidden whitespace-nowrap">
                 {option.label}
@@ -139,8 +157,8 @@ export function ChipMenu<Value extends string = string>({
               {option.value === current ? (
                 <Icon
                   name="checkmark-1"
-                  size="sm"
-                  className="ml-auto text-foreground"
+                  size={null}
+                  className={cx("ml-auto", menuCheckClassName)}
                 />
               ) : null}
             </ResponsiveMenuItem>

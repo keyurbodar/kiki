@@ -6,7 +6,7 @@ import {
   within,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ChipMenu } from "./chip-menu";
+import { ChipMenu, ChipMenuTrigger } from "./chip-menu";
 
 afterEach(cleanup);
 
@@ -114,5 +114,20 @@ describe("ChipMenu", () => {
       key: "Enter",
     });
     expect(onPick).not.toHaveBeenCalled();
+  });
+});
+
+describe("ChipMenu as a menu root", () => {
+  it("still composes a custom trigger without options", () => {
+    const onOpenChange = vi.fn();
+    render(
+      <ChipMenu onOpenChange={onOpenChange}>
+        <ChipMenuTrigger>Open</ChipMenuTrigger>
+      </ChipMenu>,
+    );
+    const trigger = screen.getByRole("button", { name: "Open" });
+    expect(trigger.dataset.slot).toBe("menu-trigger");
+    fireEvent.click(trigger);
+    expect(onOpenChange.mock.calls[0]?.[0]).toBe(true);
   });
 });

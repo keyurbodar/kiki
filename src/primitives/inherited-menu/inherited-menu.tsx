@@ -1,9 +1,8 @@
 import { Menu as BaseMenu } from "@base-ui/react/menu";
-import { cx } from "class-variance-authority";
 import type { ComponentProps, ReactNode } from "react";
 import { Button, type ButtonVariants } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
-import { MenuContent } from "@/primitives/menu";
+import { MenuContent, MenuRow, menuCheckClassName } from "@/primitives/menu";
 import {
   ResponsiveMenu,
   ResponsiveMenuItem,
@@ -17,7 +16,7 @@ export type InheritedMenuOption<Value extends string = string> = {
   disabled?: boolean;
 };
 
-export type InheritedMenuProps<Value extends string = string> = {
+export type InheritedMenuPickerProps<Value extends string = string> = {
   value: Value | undefined;
   inherits?: boolean;
   inherited?: Value;
@@ -31,6 +30,12 @@ export type InheritedMenuProps<Value extends string = string> = {
   "aria-label"?: string;
   onChange: (value: Value | undefined) => void;
 };
+
+export type InheritedMenuRootProps = ComponentProps<typeof BaseMenu.Root>;
+
+export type InheritedMenuProps<Value extends string = string> =
+  | InheritedMenuPickerProps<Value>
+  | InheritedMenuRootProps;
 
 export type InheritedMenuTriggerProps = ComponentProps<typeof BaseMenu.Trigger>;
 
@@ -46,48 +51,18 @@ export function InheritedTag({ children }: InheritedTagProps) {
   );
 }
 
-type RowProps = {
-  label: ReactNode;
-  description?: ReactNode;
-  trailing?: ReactNode;
-  rich: boolean;
-};
-
-function Row({ label, description, trailing, rich }: RowProps) {
-  return (
-    <span
-      data-slot="menu-row"
-      className="flex min-w-0 flex-1 items-center gap-2 text-left"
-    >
-      <span className="flex min-w-0 flex-1 flex-col justify-center">
-        <span className="line-clamp-1 min-w-0 text-sm font-normal text-foreground in-data-[intent=danger]:text-destructive">
-          {label}
-        </span>
-        {description ? (
-          <span className="line-clamp-1 min-w-0 text-xs font-normal text-muted-foreground-2">
-            {description}
-          </span>
-        ) : null}
-      </span>
-      {trailing ? (
-        <span
-          className={cx(
-            "ml-auto flex shrink-0 items-center gap-1.5 text-sm font-normal text-muted-foreground-1",
-            rich && "h-5 self-start",
-          )}
-        >
-          {trailing}
-        </span>
-      ) : null}
-    </span>
-  );
-}
-
 function Check() {
-  return <Icon name="checkmark-1" size="sm" className="text-foreground" />;
+  return <Icon name="checkmark-1" size={null} className={menuCheckClassName} />;
 }
 
-export function InheritedMenu<Value extends string = string>({
+export function InheritedMenu<Value extends string = string>(
+  props: InheritedMenuProps<Value>,
+) {
+  if (!("options" in props)) return <BaseMenu.Root {...props} />;
+  return <InheritedMenuPicker {...props} />;
+}
+
+function InheritedMenuPicker<Value extends string>({
   value,
   inherits = false,
   inherited,
@@ -100,7 +75,7 @@ export function InheritedMenu<Value extends string = string>({
   className,
   "aria-label": ariaLabel,
   onChange,
-}: InheritedMenuProps<Value>) {
+}: InheritedMenuPickerProps<Value>) {
   const usesInherited = inherits && value === undefined;
   const labelOf = (key: Value | undefined) =>
     options.find((option) => option.value === key)?.label ?? "";
@@ -135,9 +110,8 @@ export function InheritedMenu<Value extends string = string>({
       <MenuContent align="end">
         {inherits ? (
           <ResponsiveMenuItem onClick={() => onChange(undefined)}>
-            <Row
+            <MenuRow
               label={inheritedLabel}
-              rich={false}
               trailing={
                 <>
                   {inherited === undefined ? null : labelOf(inherited)}
@@ -153,10 +127,10 @@ export function InheritedMenu<Value extends string = string>({
             disabled={option.disabled}
             onClick={() => onChange(option.value)}
           >
-            <Row
+            <MenuRow
               label={option.label}
               description={option.description}
-              rich={option.description !== undefined}
+              density={option.description === undefined ? undefined : "rich"}
               trailing={
                 <>
                   {option.trailing}

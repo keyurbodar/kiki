@@ -6,7 +6,7 @@ import {
   within,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { InheritedMenu } from "./inherited-menu";
+import { InheritedMenu, InheritedMenuTrigger } from "./inherited-menu";
 
 afterEach(cleanup);
 
@@ -107,5 +107,18 @@ describe("InheritedMenu", () => {
     );
     expect(trigger().getAttribute("title")).toBe("Admins only");
     expect(trigger().hasAttribute("disabled")).toBe(true);
+  });
+});
+
+describe("InheritedMenu as a menu root", () => {
+  it("still composes a custom trigger without options", () => {
+    render(
+      <InheritedMenu>
+        <InheritedMenuTrigger>Pick</InheritedMenuTrigger>
+      </InheritedMenu>,
+    );
+    expect(screen.getByRole("button", { name: "Pick" }).dataset.slot).toBe(
+      "menu-trigger",
+    );
   });
 });
