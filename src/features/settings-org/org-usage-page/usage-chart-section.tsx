@@ -75,9 +75,13 @@ export function UsageChartSection({
           </div>
         ) : (
           <SpendChart
+            className="h-52"
             series={series}
             formatValue={formatCredits}
             formatBucket={(start) =>
+              formatBucketLabel(new Date(start), series.bucket, range.timeZone)
+            }
+            formatRange={(start) =>
               formatBucketLabel(new Date(start), series.bucket, range.timeZone)
             }
           />
