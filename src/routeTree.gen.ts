@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as Char91__composerFooterChar93RouteImport } from './routes/[__composer-footer]'
+import { Route as Char91__p21Char93RouteImport } from './routes/[__p21]'
 import { Route as Char91__tokensChar93RouteImport } from './routes/[__tokens]'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
@@ -177,6 +178,11 @@ const Char91__composerFooterChar93Route =
     path: '/__composer-footer',
     getParentRoute: () => rootRouteImport,
   } as any)
+const Char91__p21Char93Route = Char91__p21Char93RouteImport.update({
+  id: '/__p21',
+  path: '/__p21',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char91__tokensChar93Route = Char91__tokensChar93RouteImport.update({
   id: '/__tokens',
   path: '/__tokens',
@@ -1051,6 +1057,7 @@ const AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__p21': typeof Char91__p21Char93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
@@ -1212,6 +1219,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__p21': typeof Char91__p21Char93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
@@ -1373,6 +1381,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteRouteWithChildren
   '/_auth': typeof AuthRouteRouteWithChildren
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__p21': typeof Char91__p21Char93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
@@ -1537,6 +1546,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/__composer-footer'
+    | '/__p21'
     | '/__tokens'
     | '/design'
     | '/desktop'
@@ -1698,6 +1708,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/__composer-footer'
+    | '/__p21'
     | '/__tokens'
     | '/design'
     | '/desktop'
@@ -1858,6 +1869,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_auth'
     | '/__composer-footer'
+    | '/__p21'
     | '/__tokens'
     | '/design'
     | '/desktop'
@@ -2022,6 +2034,7 @@ export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   Char91__composerFooterChar93Route: typeof Char91__composerFooterChar93Route
+  Char91__p21Char93Route: typeof Char91__p21Char93Route
   Char91__tokensChar93Route: typeof Char91__tokensChar93Route
   DesignRoute: typeof DesignRoute
   DesktopRoute: typeof DesktopRoute
@@ -2053,6 +2066,13 @@ declare module '@tanstack/react-router' {
       path: '/__composer-footer'
       fullPath: '/__composer-footer'
       preLoaderRoute: typeof Char91__composerFooterChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__p21': {
+      id: '/__p21'
+      path: '/__p21'
+      fullPath: '/__p21'
+      preLoaderRoute: typeof Char91__p21Char93RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/__tokens': {
@@ -3522,6 +3542,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   AuthRouteRoute: AuthRouteRouteWithChildren,
   Char91__composerFooterChar93Route: Char91__composerFooterChar93Route,
+  Char91__p21Char93Route: Char91__p21Char93Route,
   Char91__tokensChar93Route: Char91__tokensChar93Route,
   DesignRoute: DesignRoute,
   DesktopRoute: DesktopRoute,
