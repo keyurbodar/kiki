@@ -42,10 +42,13 @@ export type MockTables = {
   readonly [K in TableName]: Ref.Ref<ReadonlyArray<Row<K>>>;
 };
 
+let sequence = 0;
+
 /**
  * The fake org's mutable state, shared by every mock group so a write in one
  * group (say, a new issue state) shows up in another (the issues list).
- * Each `MockServices` build seeds a fresh copy from `fixtures/world.ts`.
+ * Each `MockServices` build seeds a fresh copy from `fixtures/world.ts` and
+ * restarts the `newId` sequence, so ids are deterministic per build.
  */
 export class MockDb extends Context.Service<MockDb, MockTables>()(
   "kiki/MockDb",
@@ -53,6 +56,9 @@ export class MockDb extends Context.Service<MockDb, MockTables>()(
   static readonly layer = Layer.effect(
     MockDb,
     Effect.gen(function* () {
+      yield* Effect.sync(() => {
+        sequence = 0;
+      });
       const entries = yield* Effect.forEach(tables, (name) =>
         Ref.make(structuredClone(world[name]) as ReadonlyArray<unknown>).pipe(
           Effect.map((ref) => [name, ref] as const),
@@ -75,8 +81,6 @@ export const fields = (payload: unknown): Record<string, unknown> =>
  */
 export const missing = (table: TableName, id: string) =>
   Effect.die(new Error(`MockDb.${table}: no row ${id}`));
-
-let sequence = 0;
 
 /** A fresh id for a row a mock creates, e.g. `newId("lbl")` → `lbl_mock_1`. */
 export const newId = (prefix: string) => `${prefix}_mock_${++sequence}`;
