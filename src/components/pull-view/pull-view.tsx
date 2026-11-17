@@ -1,11 +1,12 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { toCapyReview } from "@/components/activity";
 import { cx } from "@/components/activity-card";
 import { CapyMark } from "@/components/capy-logo";
 import { DiffTab, type PullRef } from "@/components/diff-tab";
+import { FileTree } from "@/components/file-tree";
 import { OverviewTab } from "@/components/overview-tab";
 import { PullViewTab } from "@/components/pull-view-tab";
 import {
@@ -47,12 +48,7 @@ import {
 } from "./atoms";
 import { copyText } from "./clipboard";
 import { usePullOrgId } from "./context";
-import {
-  buildFileTree,
-  type FileTreeNode,
-  filterFiles,
-  toDiffFiles,
-} from "./file-tree-model";
+import { filterFiles, toDiffFiles } from "./file-tree-model";
 import {
   ArrowShareRightIcon,
   BranchIcon,
@@ -646,53 +642,17 @@ export function PullPanelHeader({
   );
 }
 
-function FileTreeRows({
-  nodes,
-  depth,
-}: {
-  nodes: ReadonlyArray<FileTreeNode>;
-  depth: number;
-}) {
-  return nodes.map((node) =>
-    node.kind === "dir" ? (
-      <div key={`d:${node.path}`} className="flex flex-col">
-        <div className="flex h-6 items-center gap-1.5 px-2 text-sm text-muted-foreground-2">
-          <Icon name="folder-open" size="xs" className="text-icon-muted" />
-          <span className="min-w-0 truncate">{node.name}</span>
-        </div>
-        <div className="ml-3.5 border-l-hairline border-border-1 pl-1.5">
-          <FileTreeRows nodes={node.children} depth={depth + 1} />
-        </div>
-      </div>
-    ) : (
-      <div
-        key={`f:${node.file.path}`}
-        className="flex h-6 items-center gap-1.5 rounded px-2 text-sm text-foreground hover:bg-secondary"
-      >
-        <Icon name="file-text" size="xs" className="text-icon-muted" />
-        <span
-          className={cx(
-            "min-w-0 flex-1 truncate",
-            node.file.status === "added" && "text-diff-add",
-          )}
-        >
-          {node.name}
-        </span>
-        <span className="shrink-0 text-xs tabular-nums">
-          {node.file.additions > 0 && (
-            <span className="text-diff-add">+{node.file.additions}</span>
-          )}
-          {node.file.deletions > 0 && (
-            <span className="ml-1 text-diff-del">-{node.file.deletions}</span>
-          )}
-        </span>
-        {node.file.status === "added" && (
-          <span className="shrink-0 text-xs text-diff-add">A</span>
-        )}
-      </div>
-    ),
-  );
-}
+const gitStatuses = [
+  "added",
+  "deleted",
+  "ignored",
+  "modified",
+  "renamed",
+  "untracked",
+] as const;
+
+const isGitStatus = (status: string): status is (typeof gitStatuses)[number] =>
+  (gitStatuses as readonly string[]).includes(status);
 
 export function PullRail({ pull }: { pull: Pull }) {
   const orgId = usePullOrgId();
@@ -701,8 +661,28 @@ export function PullRail({ pull }: { pull: Pull }) {
   const rawReview = resultValue(useAtomValue(pullReviewAtom(orgId, pull.id)));
   const parsedReview =
     rawReview === undefined ? undefined : toCapyReview(rawReview);
-  const files = diff === undefined ? [] : toDiffFiles(diff);
-  const visible = filterFiles(files, query);
+  const files = useMemo(
+    () => (diff === undefined ? [] : toDiffFiles(diff)),
+    [diff],
+  );
+  const visible = useMemo(() => filterFiles(files, query), [files, query]);
+  const tree = useMemo(
+    () => ({
+      paths: visible.map((file) => file.path),
+      stats: new Map(
+        visible.map((file) => [
+          file.path,
+          { additions: file.additions, deletions: file.deletions },
+        ]),
+      ),
+      gitStatus: visible.flatMap((file) =>
+        isGitStatus(file.status)
+          ? [{ path: file.path, status: file.status }]
+          : [],
+      ),
+    }),
+    [visible],
+  );
   const requestReview = useAtomSet(requestReviewAtom, { mode: "promise" });
   const railReview: CapyReview | null | undefined =
     parsedReview === undefined
@@ -784,7 +764,13 @@ export function PullRail({ pull }: { pull: Pull }) {
           </label>
         </div>
         <div className="flex min-h-0 flex-1 flex-col pt-1">
-          <FileTreeRows nodes={buildFileTree(visible)} depth={0} />
+          <FileTree
+            paths={tree.paths}
+            stats={tree.stats}
+            gitStatus={tree.gitStatus}
+            initialExpansion="open"
+            className="min-h-0"
+          />
         </div>
       </div>
     </div>
