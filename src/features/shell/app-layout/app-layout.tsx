@@ -1,8 +1,11 @@
-import { useRouterState } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import { type ReactNode, useEffect } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SettingsSidebarPanel } from "@/features/settings/shell";
+import { useSidebarThreads } from "@/features/sidebar/sidebar-threads-data";
+import { SidebarThreadsPanel } from "@/features/sidebar/sidebar-threads-panel";
+import { openCommandPalette } from "@/lib/command-palette-events";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
@@ -73,6 +76,8 @@ function AppShellBody({ children, banner }: AppLayoutProps) {
   const openMobile = useSidebarOpenMobile();
   const { setOpenMobile, toggle } = useSidebarActions();
   const pathname = useRouterState({ select: selectPathname });
+  const navigate = useNavigate();
+  const threads = useSidebarThreads();
 
   useSidebarShortcut(toggle);
   useEffect(() => {
@@ -87,8 +92,22 @@ function AppShellBody({ children, banner }: AppLayoutProps) {
       trigger={<SidebarToggle onClick={onToggle} />}
     />
   );
-  const desktopNav = settings ? settingsNav(toggle) : <AppSidebar />;
-  const mobileNav = settings ? settingsNav(closeMobile) : <AppSidebar />;
+  const appNav = (onToggle: () => void) => (
+    <AppSidebar
+      mode={threads.view.mode}
+      onModeChange={threads.setMode}
+      onSidebarToggle={onToggle}
+      threadsSlot={
+        <SidebarThreadsPanel
+          controller={threads}
+          onNewThread={() => navigate({ to: "/new" })}
+          onSearch={() => openCommandPalette("thread")}
+        />
+      }
+    />
+  );
+  const desktopNav = settings ? settingsNav(toggle) : appNav(toggle);
+  const mobileNav = settings ? settingsNav(closeMobile) : appNav(closeMobile);
 
   return (
     <>

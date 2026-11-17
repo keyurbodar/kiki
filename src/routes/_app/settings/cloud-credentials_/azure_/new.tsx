@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { CloudSetupPage } from "@/features/settings-integrations/cloud-credentials";
 
 export const Route = createFileRoute(
   "/_app/settings/cloud-credentials_/azure_/new",
@@ -8,10 +8,5 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-  return (
-    <RoutePlaceholder
-      title="/settings/cloud-credentials/azure/new"
-      path="/settings/cloud-credentials/azure/new"
-    />
-  );
+  return <CloudSetupPage provider="azure" />;
 }

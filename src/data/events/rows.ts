@@ -425,9 +425,8 @@ export const WorkGroupRow = Schema.Struct({
   ...base,
   type: Schema.Literal("work-group"),
   activeMs: Schema.Number,
-  failures: Schema.Array(
-    Schema.Struct({ key: Schema.String, failed: Schema.Boolean }),
-  ),
+  /** Failed calls in the group, not counting ones the agent retried successfully. */
+  failures: Schema.Number,
   entries: Schema.Array(GroupEntry),
   chunks: Schema.Array(Schema.Unknown),
   live: Schema.Boolean,

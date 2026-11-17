@@ -1,5 +1,12 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CapyMark } from "@/components/capy-logo";
+import {
+  DitherShader,
+  lightenHex,
+  resolveShaderColor,
+  SHADER_TRANSPARENT,
+  useShaderEnvironment,
+} from "@/primitives/dither";
 import { DITHER_COVER } from "@/tokens/effects";
 import {
   coverFrame,
@@ -21,7 +28,18 @@ export function DitherCover({ onDone, frozenAt }: DitherCoverProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const markRef = useRef<HTMLSpanElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fabricRef = useRef<HTMLDivElement>(null);
   const onDoneRef = useRef(onDone);
+  const { ready, reducedMotion } = useShaderEnvironment();
+  const [fabric, setFabric] = useState<string>();
+  const showFabric = ready && !reducedMotion && fabric !== undefined;
+
+  useEffect(() => {
+    const dark = document.documentElement.classList.contains("dark");
+    const base = resolveShaderColor(dark ? "var(--bg)" : "var(--fg)");
+    if (base !== undefined)
+      setFabric(lightenHex(base, DITHER_COVER.fabricLighten));
+  }, []);
 
   useEffect(() => {
     onDoneRef.current = onDone;
@@ -56,6 +74,11 @@ export function DitherCover({ onDone, frozenAt }: DitherCoverProps) {
     const render = (elapsed: number) => {
       const frame = coverFrame(elapsed);
       root.style.opacity = String(frame.opacity);
+      const fabricLayer = fabricRef.current;
+      if (fabricLayer)
+        fabricLayer.style.opacity = String(
+          1 - (1 - Math.min(1, elapsed / DITHER_COVER.fabricInMs)) ** 3,
+        );
       draw(frame.reveal);
     };
 
@@ -90,6 +113,14 @@ export function DitherCover({ onDone, frozenAt }: DitherCoverProps) {
     let start: number | undefined;
     let raf = 0;
     const tick = (now: number) => {
+      if (
+        start === undefined &&
+        showFabric &&
+        !fabricRef.current?.querySelector("canvas")
+      ) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
       start ??= now;
       const elapsed = now - start;
       render(elapsed);
@@ -101,7 +132,7 @@ export function DitherCover({ onDone, frozenAt }: DitherCoverProps) {
       cancelled = true;
       cancelAnimationFrame(raf);
     };
-  }, [frozenAt]);
+  }, [frozenAt, showFabric]);
 
   return (
     <div
@@ -113,6 +144,21 @@ export function DitherCover({ onDone, frozenAt }: DitherCoverProps) {
       <span ref={markRef} className="absolute size-0 overflow-hidden">
         <CapyMark className="h-10" />
       </span>
+      {showFabric ? (
+        <div ref={fabricRef} className="pointer-events-none absolute inset-0">
+          <DitherShader
+            animate
+            frame={DITHER_COVER.fabricFrame}
+            animationSpeed={DITHER_COVER.fabricSpeed}
+            colorBack={SHADER_TRANSPARENT}
+            colorFront={fabric}
+            shape={DITHER_COVER.shape}
+            type={DITHER_COVER.type}
+            size={DITHER_COVER.pixelSize}
+            scale={DITHER_COVER.scale}
+          />
+        </div>
+      ) : null}
       <canvas
         ref={canvasRef}
         width={GRID}

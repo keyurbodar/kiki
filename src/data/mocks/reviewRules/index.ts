@@ -2,17 +2,43 @@ import { DateTime, Effect, Ref } from "effect";
 import { fields, newId } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { mockGroup } from "../mockGroup.ts";
-import { type ReviewRule, sampleReviewRules } from "./fixtures.ts";
+import {
+  allRepositories,
+  type ReviewRule,
+  type ReviewRuleFile,
+  type ReviewRuleScope,
+  sampleReviewRules,
+} from "./fixtures.ts";
 
 const text = (value: unknown) =>
   typeof value === "string" && value.length > 0 ? value : undefined;
 
-const strings = (value: unknown): ReadonlyArray<string> | undefined => {
-  if (!Array.isArray(value)) return undefined;
-  const values = value.filter(
-    (item): item is string => typeof item === "string" && item.length > 0,
-  );
-  return values.length > 0 ? values : undefined;
+const scopesOf = (
+  value: unknown,
+): ReadonlyArray<ReviewRuleScope> | undefined => {
+  if (!Array.isArray(value) || value.length === 0) return undefined;
+  return value.map((scope) => {
+    const input = fields(scope);
+    return {
+      repo: text(input.repo) ?? null,
+      paths: Array.isArray(input.paths)
+        ? input.paths.filter((path): path is string => typeof path === "string")
+        : [],
+      githubRepoId: null,
+      covered: true,
+      heldByCaller: true,
+    };
+  });
+};
+
+const fileOf = (value: unknown): ReviewRuleFile | null | undefined => {
+  if (value === null) return null;
+  const input = fields(value);
+  const repo = text(input.repo);
+  const path = text(input.path);
+  return repo === undefined || path === undefined
+    ? undefined
+    : { repo, path, githubRepoId: 0, covered: true };
 };
 
 export const ReviewRulesMock = mockGroup("reviewRules", (handlers) =>
@@ -41,8 +67,9 @@ export const ReviewRulesMock = mockGroup("reviewRules", (handlers) =>
             rules: rows.filter(
               (row) =>
                 repo === undefined ||
-                row.scopes.includes(repo) ||
-                row.scopes.includes("*"),
+                row.scopes.some(
+                  (scope) => scope.repo === null || scope.repo === repo,
+                ),
             ),
             nextCursor: null,
           };
@@ -57,8 +84,9 @@ export const ReviewRulesMock = mockGroup("reviewRules", (handlers) =>
       .handle("create", ({ payload }) =>
         Effect.gen(function* () {
           const input = fields(payload);
-          const body = text(input.body);
-          if (body === undefined) {
+          const body = text(input.body) ?? "";
+          const file = fileOf(input.file) ?? null;
+          if (body === "" && file === null) {
             return yield* Effect.die(
               new Error("reviewRules.create: body is required"),
             );
@@ -67,8 +95,8 @@ export const ReviewRulesMock = mockGroup("reviewRules", (handlers) =>
           const row: ReviewRule = {
             id: newId("rrule"),
             body,
-            scopes: strings(input.scopes) ?? ["*"],
-            file: text(input.file) ?? null,
+            scopes: scopesOf(input.scopes) ?? [allRepositories],
+            file,
             status: text(input.status) ?? "active",
             source: "manual",
             sourceRef: null,
@@ -90,9 +118,9 @@ export const ReviewRulesMock = mockGroup("reviewRules", (handlers) =>
           const updated: ReviewRule = {
             ...current,
             body: text(input.body) ?? current.body,
-            scopes: strings(input.scopes) ?? current.scopes,
+            scopes: scopesOf(input.scopes) ?? current.scopes,
             file:
-              input.file === null ? null : (text(input.file) ?? current.file),
+              fileOf(input.file) ?? (input.file === null ? null : current.file),
             status: text(input.status) ?? current.status,
             updatedAt: DateTime.formatIso(minutesAgo(0)),
           };

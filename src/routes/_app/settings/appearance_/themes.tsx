@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { YourThemesPage } from "@/features/settings-appearance/theme-publish";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/settings/appearance_/themes")({
@@ -8,10 +8,19 @@ export const Route = createFileRoute("/_app/settings/appearance_/themes")({
 });
 
 function RouteComponent() {
+  const { page } = Route.useSearch();
+  const navigate = Route.useNavigate();
   return (
-    <RoutePlaceholder
-      title="/settings/appearance/themes"
-      path="/settings/appearance/themes"
+    <YourThemesPage
+      page={Number(page ?? "1") || 1}
+      onPage={(next) =>
+        void navigate({
+          search: (prev) => ({
+            ...prev,
+            page: next === 1 ? undefined : String(next),
+          }),
+        })
+      }
     />
   );
 }
