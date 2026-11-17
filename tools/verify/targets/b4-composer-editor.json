@@ -1,0 +1,86 @@
+{
+  "matrix": {
+    "scheme": ["dark", "light"]
+  },
+  "defaults": {
+    "maxMismatch": 2
+  },
+  "targets": [
+    {
+      "id": "composer-idle",
+      "route": "/__composer?mode={scheme}",
+      "state": "idle composer card",
+      "theme": "default",
+      "viewport": "740x160",
+      "capture": {
+        "[data-slot=composer]": []
+      },
+      "expect": {
+        "[data-slot=composer]": {
+          "border-radius": "var(--radius-card)"
+        }
+      }
+    },
+    {
+      "id": "composer-slash",
+      "route": "/__composer?mode={scheme}",
+      "state": "slash menu open",
+      "theme": "default",
+      "viewport": "1024x640",
+      "steps": [
+        ["click", "[data-lexical-editor]"],
+        ["keyboard", "type", "/"],
+        ["wait", "[role=listbox]"]
+      ],
+      "capture": {
+        "[role=listbox]": []
+      },
+      "expect": {
+        "[role=listbox]": {
+          "width": "320px",
+          "border-top-width": "0.5px",
+          "background-color": "var(--popover)",
+          "border-radius": "var(--radius-overlay)",
+          "padding-top": "4px"
+        }
+      }
+    },
+    {
+      "id": "composer-mention",
+      "route": "/__composer?mode={scheme}",
+      "state": "mention menu open",
+      "theme": "default",
+      "viewport": "1024x640",
+      "steps": [
+        ["click", "[data-lexical-editor]"],
+        ["keyboard", "type", "@"],
+        ["wait", "[role=listbox]"]
+      ],
+      "capture": {
+        "[role=listbox]": []
+      },
+      "expect": {
+        "[role=listbox]": {
+          "width": "320px",
+          "border-top-width": "0.5px",
+          "background-color": "var(--popover)",
+          "border-radius": "var(--radius-overlay)"
+        }
+      }
+    },
+    {
+      "id": "composer-plus",
+      "route": "/__composer?mode={scheme}",
+      "state": "add-to-message menu open",
+      "theme": "default",
+      "viewport": "1024x640",
+      "steps": [
+        ["click", "button[aria-label='Add to message']"],
+        ["wait", "[role=menu]"]
+      ],
+      "capture": {
+        "[role=menu]": []
+      }
+    }
+  ]
+}

@@ -44,6 +44,8 @@
   --crop-editor-grid:
     linear-gradient(to right, rgba(255, 255, 255, 0.35) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.35) 1px, transparent 1px);
+  /* Pulls list: measured from the widest `#N` code cell at runtime. */
+  --pull-code-width: 2.25rem;
 }
 
 :root {

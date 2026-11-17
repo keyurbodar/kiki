@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { ServerPage } from "@/features/settings-mcp";
 
 export const Route = createFileRoute(
   "/_app/settings/projects_/$projectId_/mcp_/$serverId",
@@ -8,10 +8,8 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
+  const { projectId, serverId } = Route.useParams();
   return (
-    <RoutePlaceholder
-      title="MCP server"
-      path="/settings/projects/$projectId/mcp/$serverId"
-    />
+    <ServerPage mount={{ kind: "project", projectId }} serverId={serverId} />
   );
 }

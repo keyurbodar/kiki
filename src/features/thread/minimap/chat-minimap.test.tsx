@@ -3,6 +3,7 @@ import type { Actor, Origin } from "@/data/events";
 import { SAMPLE } from "@/data/events/fixtures";
 import {
   type ChatMinimapItem,
+  chatColumnWidth,
   chatGutter,
   isMinimapPersistent,
   isRowInView,
@@ -28,21 +29,30 @@ const item = (overrides: Partial<ChatMinimapItem> = {}): ChatMinimapItem => ({
 });
 
 describe("chat minimap geometry", () => {
+  it("resolves the chat column from the root font size", () => {
+    expect(chatColumnWidth(16)).toBe(896);
+    expect(chatColumnWidth(20)).toBe(1120);
+    expect(chatGutter(1200, chatColumnWidth(20))).toBe(40);
+  });
+
   it("measures the gutter beside the chat column", () => {
-    expect(chatGutter(1000)).toBe(52);
-    expect(chatGutter(500)).toBe(0);
-    expect(chatGutter(Number.NaN)).toBe(0);
+    expect(chatGutter(1000, 896)).toBe(52);
+    expect(chatGutter(500, 896)).toBe(0);
+    expect(chatGutter(Number.NaN, 896)).toBe(0);
+    expect(chatGutter(1000, Number.NaN)).toBe(0);
   });
 
   it("keeps the rail visible only in a wide gutter", () => {
-    expect(isMinimapPersistent(1000)).toBe(true);
-    expect(isMinimapPersistent(980)).toBe(false);
+    expect(isMinimapPersistent(1000, 896)).toBe(true);
+    expect(isMinimapPersistent(980, 896)).toBe(false);
+    expect(isMinimapPersistent(1000, chatColumnWidth(20))).toBe(false);
   });
 
   it("sizes the hit strip from the gutter", () => {
-    expect(minimapHitStrip(1000)).toBe(40);
-    expect(minimapHitStrip(930)).toBe(5);
-    expect(minimapHitStrip(500)).toBe(0);
+    expect(minimapHitStrip(1000, 896)).toBe(40);
+    expect(minimapHitStrip(930, 896)).toBe(5);
+    expect(minimapHitStrip(500, 896)).toBe(0);
+    expect(minimapHitStrip(1000, chatColumnWidth(20))).toBe(0);
   });
 });
 

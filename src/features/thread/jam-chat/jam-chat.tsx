@@ -68,6 +68,8 @@ export type JamChatProps = ComponentProps<"div"> & {
   header?: ReactNode;
   initialLoading?: boolean;
   now?: number;
+  /** Called when the list scrolls to its newest-first start, to page older history in. */
+  onStartReached?: () => void;
 };
 
 /** The thread's chat timeline: a virtualised list of rows with stamps, row gaps and the scroll-to-end pill. */
@@ -77,6 +79,7 @@ export function JamChat({
   header,
   initialLoading = false,
   now,
+  onStartReached,
   className,
   style,
   children,
@@ -129,6 +132,7 @@ export function JamChat({
           maintainVisibleContentPosition
           onScroll={handleScroll}
           onViewableItemsChanged={handleViewable}
+          onStartReached={onStartReached}
           className={chatScroller}
           ListHeaderComponent={
             <div>

@@ -106,7 +106,7 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
             (row) =>
               (stateIds.length === 0 || stateIds.includes(row.stateId)) &&
               (assigneeIds.length === 0 ||
-                assigneeIds.includes(row.assigneeId ?? "")) &&
+                row.assigneeIds.some((id) => assigneeIds.includes(id))) &&
               (search === "" ||
                 row.title.toLowerCase().includes(search) ||
                 row.code.toLowerCase().includes(search)),
@@ -150,6 +150,12 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
             projectId: payload.projectId,
             assigneeId:
               payload.assignee?.kind === "user" ? payload.assignee.id : null,
+            assigneeIds:
+              payload.assignees !== undefined
+                ? payload.assignees.map((entry) => entry.id)
+                : payload.assignee?.kind === "user"
+                  ? [payload.assignee.id]
+                  : [],
             creatorId: viewer.id,
             labelIds: [...(payload.labelIds ?? [])],
             threadIds: [],
@@ -187,14 +193,25 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
             ...(payload.priority !== undefined
               ? { priority: payload.priority }
               : {}),
-            ...(payload.assignee !== undefined
+            ...(payload.assignees !== undefined
               ? {
+                  assigneeIds: payload.assignees.map((entry) => entry.id),
                   assigneeId:
-                    payload.assignee?.kind === "user"
-                      ? payload.assignee.id
-                      : null,
+                    payload.assignees.find((entry) => entry.kind === "user")
+                      ?.id ?? null,
                 }
-              : {}),
+              : payload.assignee !== undefined
+                ? {
+                    assigneeId:
+                      payload.assignee?.kind === "user"
+                        ? payload.assignee.id
+                        : null,
+                    assigneeIds:
+                      payload.assignee?.kind === "user"
+                        ? [payload.assignee.id]
+                        : [],
+                  }
+                : {}),
             ...(payload.labelIds !== undefined
               ? { labelIds: [...payload.labelIds] }
               : {}),
@@ -474,19 +491,24 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
       )
       .handle("assignedCount", () =>
         Ref.get(db.issues).pipe(
-          Effect.map((rows) => rows.filter((row) => row.assigneeId).length),
+          Effect.map(
+            (rows) => rows.filter((row) => row.assigneeIds.length > 0).length,
+          ),
         ),
       )
       .handle("mentionCount", ({ query }) =>
         snapshot.pipe(
-          Effect.map(
-            (world) =>
-              world.issues.filter(
-                (issue) =>
-                  issue.assigneeId === String(query.userId ?? viewer.id) ||
-                  extraOf(world.extras, issue.code).subscribed,
-              ).length,
-          ),
+          Effect.map((world) => {
+            const target =
+              query.userId === undefined ? viewer.id : String(query.userId);
+            return target === viewer.id
+              ? world.issues.reduce(
+                  (total, issue) =>
+                    total + extraOf(world.extras, issue.code).mentions,
+                  0,
+                )
+              : 0;
+          }),
         ),
       );
   }),

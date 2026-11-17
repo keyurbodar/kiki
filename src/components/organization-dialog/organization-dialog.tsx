@@ -36,6 +36,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/primitives/dialog";
+import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import { Label } from "@/primitives/label";
 import { SettingsRow } from "@/primitives/settings-row";
@@ -171,7 +172,7 @@ export function OrganizationDialogView({
                 onSelect={() =>
                   setState((current) => ({ ...current, choice: "create" }))
                 }
-                icon={<BuildingsIcon />}
+                icon={<Icon name="buildings" />}
                 label="Create a new organization"
                 description="Start a workspace for your team and projects"
               />
@@ -180,7 +181,7 @@ export function OrganizationDialogView({
                 onSelect={() =>
                   setState((current) => ({ ...current, choice: "join" }))
                 }
-                icon={<UserAddIcon />}
+                icon={<Icon name="user-add" />}
                 label="Join an existing organization"
                 description="Accept an invitation or join with your work email"
               />
@@ -256,7 +257,7 @@ export function OrganizationDialogView({
                 setState((current) => ({ ...current, step: "choose" }))
               }
             >
-              <ArrowLeftIcon />
+              <Icon name="arrow-left" />
               Back
             </Button>
             {state.step === "create" ? (
@@ -425,63 +426,5 @@ export function OrganizationDialog({
       onJoinInvitation={joinInvitation}
       onJoinOrganization={joinOrganization}
     />
-  );
-}
-
-function BuildingsIcon() {
-  return (
-    <svg
-      aria-hidden
-      data-icon="buildings"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M10 9H8" />
-      <path d="M8 13H10" />
-      <path d="M14 19V7C14 5.34315 12.6569 4 11 4H7C5.34315 4 4 5.34315 4 7V19" />
-      <path d="M20 19V11C20 9.34315 18.6569 8 17 8H14" />
-      <path d="M22 19H2" />
-    </svg>
-  );
-}
-
-function UserAddIcon() {
-  return (
-    <svg
-      aria-hidden
-      data-icon="user-add"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M11 20H7.75C6.09315 20 4.69455 18.6232 5.20302 17.0463C6.12257 14.1946 8.42872 12 12 12" />
-      <circle cx="12" cy="7.75" r="4.25" />
-      <path d="M18 14V20M21 17H15" />
-    </svg>
-  );
-}
-
-function ArrowLeftIcon() {
-  return (
-    <svg
-      aria-hidden
-      data-icon="arrow-left"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M10 6L4 12L10 18" />
-      <path d="M5 12H20" />
-    </svg>
   );
 }

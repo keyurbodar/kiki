@@ -2,10 +2,17 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { toCapyReview } from "@/components/activity";
 import { cx } from "@/components/activity-card";
 import { CapyMark } from "@/components/capy-logo";
+import { DiffTab, type PullRef } from "@/components/diff-tab";
 import { OverviewTab } from "@/components/overview-tab";
 import { PullViewTab } from "@/components/pull-view-tab";
+import {
+  type CapyReview,
+  type ReviewFinding,
+  ReviewSection,
+} from "@/components/review-section";
 import { Button } from "@/primitives/button";
 import {
   Dialog,
@@ -35,6 +42,7 @@ import {
   pullReviewAtom,
   pullThreadsAtom,
   reopenPullAtom,
+  requestReviewAtom,
   setDraftAtom,
 } from "./atoms";
 import { copyText } from "./clipboard";
@@ -50,7 +58,6 @@ import {
   BranchIcon,
   Bubble2Icon,
   ChevronDownSmallIcon,
-  ChevronRightSmallIcon,
   CrossMediumIcon,
   DotGrid1x3HorizontalIcon,
   DraftIcon,
@@ -404,7 +411,7 @@ export function PullMenu({
           {onOpenThread !== undefined && threads.length > 0 ? (
             <MenuSubmenu
               icon={<Bubble2Icon className="size-(--icon-sm)" />}
-              label="Threads"
+              label="Thread"
               className="w-64"
             >
               <PullThreadMenuItems
@@ -690,33 +697,65 @@ function FileTreeRows({
 export function PullRail({ pull }: { pull: Pull }) {
   const orgId = usePullOrgId();
   const [query, setQuery] = useState("");
-  const [reviewOpen, setReviewOpen] = useState(true);
   const diff = resultValue(useAtomValue(pullDiffAtom(orgId, pull.id)));
-  useAtomValue(pullReviewAtom(orgId, pull.id));
+  const rawReview = resultValue(useAtomValue(pullReviewAtom(orgId, pull.id)));
+  const parsedReview =
+    rawReview === undefined ? undefined : toCapyReview(rawReview);
   const files = diff === undefined ? [] : toDiffFiles(diff);
   const visible = filterFiles(files, query);
+  const requestReview = useAtomSet(requestReviewAtom, { mode: "promise" });
+  const railReview: CapyReview | null | undefined =
+    parsedReview === undefined
+      ? undefined
+      : {
+          threadId: parsedReview.threadId,
+          reviewedHeadSha: parsedReview.reviewedHeadSha,
+          rounds: parsedReview.rounds.map((round) => ({
+            status: round.status,
+            headSha: round.headSha,
+            title: round.title,
+            failureMessage: round.failureMessage,
+            failureReason: round.failureReason,
+          })),
+          findings: parsedReview.findings.map((finding) => ({
+            id: finding.id,
+            status:
+              finding.status === "irrelevant"
+                ? "irrelevant"
+                : finding.status === "resolved"
+                  ? "resolved"
+                  : "open",
+            kind: finding.kind === "note" ? "note" : "issue",
+            severity: finding.severity,
+            title: finding.title,
+            body: finding.body,
+            path: finding.path,
+            line: finding.line,
+          })),
+        };
   return (
     <div className="flex min-h-0 w-full flex-col gap-6 overflow-y-auto px-4 pt-3 pb-4">
-      <div data-pull-section="review" className="flex flex-col gap-2">
-        <div className="flex min-w-0 items-center gap-1">
-          <Button
-            data-track-owner="shared/pull-view/review-section.tsx#ReviewSection:Button.1"
-            variant="ghost"
-            size="xs"
-            className="-ml-2"
-            onClick={() => setReviewOpen((value) => !value)}
-          >
-            <span className="text-muted-foreground-2">Capy Review</span>
-            {reviewOpen ? (
-              <ChevronDownSmallIcon className="size-(--icon-sm) text-icon-muted" />
-            ) : (
-              <ChevronRightSmallIcon className="size-(--icon-sm) text-icon-muted" />
-            )}
-          </Button>
-          <span className="min-w-0 flex-1" />
-          <Bubble2Icon className="size-(--icon-sm) text-icon-muted" />
-        </div>
-      </div>
+      <ReviewSection
+        pull={{
+          id: pull.id,
+          state: pull.state === "ready" ? "open" : pull.state,
+          author: pull.author,
+          headSha: pull.headSha,
+        }}
+        review={railReview}
+        orgId={orgId}
+        collapsible
+        onRun={({ forceRefresh, tier }) =>
+          requestReview({
+            params: { orgId, pullId: pull.id },
+            payload: { forceRefresh, tier: tier ?? null },
+            reactivityKeys: pullReactivityKeys(orgId, pull.id),
+          })
+        }
+        renderFinding={(finding: ReviewFinding) => (
+          <span className="text-sm text-foreground">{finding.title}</span>
+        )}
+      />
       <div className="flex min-h-0 flex-col gap-2">
         <div className="flex items-center gap-1.5 text-xs">
           <span className="text-muted-foreground-2">Files</span>
@@ -764,7 +803,17 @@ export function PullView({
   onOpenThread,
   onChatWithCapy,
 }: PullViewProps) {
+  const orgId = usePullOrgId();
   const [localTab, setLocalTab] = useState<PullTab>(tab ?? "overview");
+  const pullRef: PullRef = {
+    id: pull.id,
+    orgId,
+    repo: pull.repo,
+    number: pull.number,
+    url: pull.url,
+    headSha: pull.headSha,
+    diffPair: { base: pull.headRef, head: pull.headRef },
+  };
   const current = tab ?? localTab;
   const select = (next: PullTab) => {
     setLocalTab(next);
@@ -822,8 +871,10 @@ export function PullView({
                 />
               </ScrollAreaViewport>
             </ScrollArea>
+          ) : current === "diff" ? (
+            <DiffTab pull={pullRef} />
           ) : (
-            <TabPlaceholder line={current === "guide" ? "Guide" : "Diff"} />
+            <TabPlaceholder line="Guide" />
           )}
         </div>
         {host === "page" && current !== "guide" && (
