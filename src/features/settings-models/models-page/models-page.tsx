@@ -49,6 +49,7 @@ import {
 } from "./connection-dialogs";
 import {
   ConnectionsCard,
+  cardChrome,
   LoadingConnections,
   useRoutingData,
 } from "./connections";
@@ -323,7 +324,7 @@ export function ModelsPage() {
           title="Members"
           description="What every member can do with their own connections"
         >
-          <Card rows>
+          <Card rows className={`${cardChrome}`}>
             <MemberRows settings={settings} />
           </Card>
         </SettingsSection>
@@ -333,7 +334,7 @@ export function ModelsPage() {
         title="When a subscription or key runs out"
         description="What a thread does when the subscription or key serving its model is out of usage"
       >
-        <Card rows>
+        <Card rows className={`${cardChrome}`}>
           <RunOutRows settings={settings} admin={admin} />
         </Card>
       </SettingsSection>

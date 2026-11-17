@@ -12,6 +12,10 @@ import {
 } from "../model-routing";
 import type { CatalogEntry, ModelsRouting } from "../model-routing/types";
 
+/** Capy's card chrome; the Card primitive is still a bare stub. */
+export const cardChrome =
+  "flex flex-col bg-card rounded-(--radius-card) border-hairline border-(--card-hairline) shadow-card";
+
 export type RoutingData = {
   admin: boolean;
   routing: ModelsRouting | undefined;
@@ -57,7 +61,7 @@ export function ConnectionsCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="overflow-visible">
+    <Card className={`${cardChrome} overflow-visible`}>
       <CardListHeader className="flex min-h-15 items-center justify-between gap-3 border-b-hairline border-border-1 py-3 pr-2 pl-4">
         <span className="min-w-0 flex-1 text-sm font-medium text-foreground">
           {label}
