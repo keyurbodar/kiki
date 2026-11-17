@@ -10,7 +10,6 @@ import {
   PaletteHint,
   paletteSeparatorClass,
 } from "@/components/command-menu-search";
-import { Composer } from "@/components/composer";
 import { ProjectSelect } from "@/components/project-select";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
@@ -167,7 +166,7 @@ export function CommandMenuCompose({
       </div>
       <div className={paletteSeparatorClass} />
       <div className={composeBodyClass}>
-        <Composer>
+        <div data-slot="composer">
           <textarea
             ref={editor}
             // biome-ignore lint/a11y/noAutofocus: the compose view focuses its editor when it opens
@@ -185,7 +184,7 @@ export function CommandMenuCompose({
               }
             }}
           />
-        </Composer>
+        </div>
       </div>
       {footer?.(
         <>
