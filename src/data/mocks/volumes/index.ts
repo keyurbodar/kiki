@@ -6,6 +6,7 @@ import {
   type DriveShareId,
   DriveShareListing,
   DriveShareNotFound,
+  DriveSharePathNotFound,
   DriveShareRestricted,
   DriveShareView,
   Volume,
@@ -31,6 +32,7 @@ import {
   VolumeVersionRow,
 } from "../../api/schemas/drive.ts";
 import { OrgId } from "../../api/schemas/ids.ts";
+import { MockDb } from "../db/MockDb.ts";
 import { fixtureNow } from "../fixtures/time.ts";
 import { org, orgId, viewer } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
@@ -46,6 +48,7 @@ import {
   sampleVolumes,
   shareId,
   versionId,
+  volumeId,
 } from "./fixtures.ts";
 
 /**
@@ -72,7 +75,7 @@ const at = (iso: string) => DateTime.makeUnsafe(iso);
 const versionDigest = (files: ReadonlyArray<FixtureFile>) =>
   digest(
     files
-      .map((file) => `${file.path}:${digest(file.content)}`)
+      .map((file) => `${file.path}:${file.mode ?? 420}:${digest(file.content)}`)
       .sort()
       .join("\n"),
   );
@@ -192,7 +195,7 @@ export const changesBetween = (
   const changes: Array<VolumeChange> = [];
   for (const file of after) {
     const old = previous.get(file.path);
-    if (old && old.content === file.content) continue;
+    if (old && old.content === file.content && old.mode === file.mode) continue;
     changes.push(
       new VolumeChange({
         path: file.path,
@@ -243,10 +246,12 @@ const nowIso = () => DateTime.formatIso(fixtureNow);
 
 export const VolumesMock = mockGroup("volumes", (handlers) =>
   Effect.gen(function* () {
+    const { driveFiles } = yield* MockDb;
     const volumes = yield* Ref.make(sampleVolumes);
     const shares = yield* Ref.make(sampleShares);
     let mintedVersions = 0;
     let mintedShares = 0;
+    let mintedVolumes = 0;
 
     const findVolume = (id: string) =>
       Effect.flatMap(Ref.get(volumes), (all) => {
@@ -372,8 +377,21 @@ export const VolumesMock = mockGroup("volumes", (handlers) =>
       });
 
     return handlers
-      .handle("agentContextPreview", ({ params }) =>
-        Effect.succeed({ organizationId: params.orgId, ...agentContext }),
+      .handle("agentContextPreview", ({ params, query }) =>
+        Effect.gen(function* () {
+          const files = yield* Ref.get(driveFiles);
+          const search = String(query.search ?? "").toLowerCase();
+          return {
+            organizationId: params.orgId,
+            ...agentContext,
+            sources: agentContext.sources.filter(
+              (source) =>
+                search.length === 0 ||
+                source.path.toLowerCase().includes(search),
+            ),
+            availableFiles: files.map((file) => file.path),
+          };
+        }),
       )
       .handle("scopeDirectory", ({ query }) =>
         Effect.map(Ref.get(volumes), (all) => {
@@ -508,7 +526,12 @@ export const VolumesMock = mockGroup("volumes", (handlers) =>
           const rows: Array<VolumeFileVersion> = [];
           let previous: FixtureFile | undefined;
           let lastSeen: FixtureFile | undefined;
-          for (const version of volume.versions) {
+          const end = volume.versions.findIndex(
+            (version) => version.id === query.before,
+          );
+          for (const version of end === -1
+            ? volume.versions
+            : volume.versions.slice(0, end)) {
             const file = version.files.find((row) => row.path === query.path);
             if (file && file.content !== previous?.content) {
               rows.push(
@@ -546,11 +569,19 @@ export const VolumesMock = mockGroup("volumes", (handlers) =>
         Effect.gen(function* () {
           const all = yield* Ref.get(volumes);
           const wanted = scopeOf(payload.scope);
-          const volume = all.find((row) => sameScope(row.scope, wanted));
+          let volume = all.find((row) => sameScope(row.scope, wanted));
           if (!volume) {
-            return yield* Effect.die(
-              new Error("volumes mock: no volume for this scope"),
-            );
+            const created: FixtureVolume = {
+              id: volumeId(`MOCK${++mintedVolumes}`),
+              namespace: "drive",
+              name: "Drive",
+              description: null,
+              archived: false,
+              scope: wanted,
+              versions: [],
+            };
+            yield* Ref.update(volumes, (rows) => [...rows, created]);
+            volume = created;
           }
           const files = new Map(
             (head(volume)?.files ?? []).map((file) => [file.path, file]),
@@ -573,7 +604,11 @@ export const VolumesMock = mockGroup("volumes", (handlers) =>
             } else {
               files.set(change.path, {
                 path: change.path,
-                content: atob(change.contentBase64),
+                content: new TextDecoder().decode(
+                  Uint8Array.from(atob(change.contentBase64), (char) =>
+                    char.charCodeAt(0),
+                  ),
+                ),
                 mode: change.mode,
               });
             }
@@ -682,7 +717,15 @@ export const VolumesMock = mockGroup("volumes", (handlers) =>
       )
       .handle("createShare", ({ params, payload }) =>
         Effect.gen(function* () {
-          yield* findVolume(params.volumeId);
+          const volume = yield* findVolume(params.volumeId);
+          if (!head(volume)?.files.some((file) => file.path === payload.path)) {
+            return yield* Effect.fail(
+              new DriveSharePathNotFound({
+                volumeId: volume.id as VolumeId,
+                path: payload.path,
+              }),
+            );
+          }
           const existing = (yield* Ref.get(shares)).find(
             (share) =>
               share.volumeId === params.volumeId && share.path === payload.path,

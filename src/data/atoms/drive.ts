@@ -76,10 +76,11 @@ export const driveFolderAtom = (
 ) => folderFamily(keyed({ orgId, volumeId, versionId, dir }));
 
 const treeFamily = Atom.family((key: string) => {
-  const { orgId, volumeId, versionId } = parse<{
+  const { orgId, volumeId, versionId, after } = parse<{
     orgId: string;
     volumeId: string;
     versionId: string;
+    after?: string;
   }>(key);
   return ApiClient.query("volumes", "tree", {
     params: {
@@ -87,18 +88,22 @@ const treeFamily = Atom.family((key: string) => {
       volumeId: volumeId as never,
       versionId: versionId as never,
     },
-    query: {},
+    query: after === undefined ? {} : { after },
     reactivityKeys: [driveReactivityKey(orgId)],
     timeToLive: queryTimeToLive,
   });
 });
 
-/** Every file of a volume version, for search and the file pane. */
+/**
+ * One page of a volume version's files. Pass the previous page's `next` as
+ * `after` to read the following page; `next` is null on the last one.
+ */
 export const driveTreeAtom = (
   orgId: string,
   volumeId: string,
   versionId: string,
-) => treeFamily(keyed({ orgId, volumeId, versionId }));
+  after?: string,
+) => treeFamily(keyed({ orgId, volumeId, versionId, after }));
 
 const fileFamily = Atom.family((key: string) => {
   const { orgId, volumeId, versionId, sha256 } = parse<{
