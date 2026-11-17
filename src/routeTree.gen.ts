@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as Char91__composerChar93RouteImport } from './routes/[__composer]'
 import { Route as Char91__composerFooterChar93RouteImport } from './routes/[__composer-footer]'
+import { Route as Char91__threadDeviceChar93RouteImport } from './routes/[__thread-device]'
 import { Route as Char91__tokensChar93RouteImport } from './routes/[__tokens]'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
@@ -181,6 +182,12 @@ const Char91__composerFooterChar93Route =
   Char91__composerFooterChar93RouteImport.update({
     id: '/__composer-footer',
     path: '/__composer-footer',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91__threadDeviceChar93Route =
+  Char91__threadDeviceChar93RouteImport.update({
+    id: '/__thread-device',
+    path: '/__thread-device',
     getParentRoute: () => rootRouteImport,
   } as any)
 const Char91__tokensChar93Route = Char91__tokensChar93RouteImport.update({
@@ -1058,6 +1065,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
@@ -1220,6 +1228,7 @@ export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
@@ -1382,6 +1391,7 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteRouteWithChildren
   '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
   '/desktop': typeof DesktopRoute
@@ -1547,6 +1557,7 @@ export interface FileRouteTypes {
     | '/'
     | '/__composer'
     | '/__composer-footer'
+    | '/__thread-device'
     | '/__tokens'
     | '/design'
     | '/desktop'
@@ -1709,6 +1720,7 @@ export interface FileRouteTypes {
     | '/'
     | '/__composer'
     | '/__composer-footer'
+    | '/__thread-device'
     | '/__tokens'
     | '/design'
     | '/desktop'
@@ -1870,6 +1882,7 @@ export interface FileRouteTypes {
     | '/_auth'
     | '/__composer'
     | '/__composer-footer'
+    | '/__thread-device'
     | '/__tokens'
     | '/design'
     | '/desktop'
@@ -2035,6 +2048,7 @@ export interface RootRouteChildren {
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   Char91__composerChar93Route: typeof Char91__composerChar93Route
   Char91__composerFooterChar93Route: typeof Char91__composerFooterChar93Route
+  Char91__threadDeviceChar93Route: typeof Char91__threadDeviceChar93Route
   Char91__tokensChar93Route: typeof Char91__tokensChar93Route
   DesignRoute: typeof DesignRoute
   DesktopRoute: typeof DesktopRoute
@@ -2073,6 +2087,13 @@ declare module '@tanstack/react-router' {
       path: '/__composer-footer'
       fullPath: '/__composer-footer'
       preLoaderRoute: typeof Char91__composerFooterChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__thread-device': {
+      id: '/__thread-device'
+      path: '/__thread-device'
+      fullPath: '/__thread-device'
+      preLoaderRoute: typeof Char91__threadDeviceChar93RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/__tokens': {
@@ -3543,6 +3564,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRouteRoute: AuthRouteRouteWithChildren,
   Char91__composerChar93Route: Char91__composerChar93Route,
   Char91__composerFooterChar93Route: Char91__composerFooterChar93Route,
+  Char91__threadDeviceChar93Route: Char91__threadDeviceChar93Route,
   Char91__tokensChar93Route: Char91__tokensChar93Route,
   DesignRoute: DesignRoute,
   DesktopRoute: DesktopRoute,
