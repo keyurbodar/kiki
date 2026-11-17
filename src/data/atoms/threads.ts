@@ -24,14 +24,28 @@ export const threadsAtom = (orgId: OrgId, projectId?: ProjectId) =>
 export type AllThreadsOptions = {
   readonly archived: boolean;
   readonly excludeFiled: boolean;
-  readonly limit?: number;
+  /** Number of threads per request, not a cap on the total. */
+  readonly pageSize?: number;
 };
+
+/** The next cursor to request, or null when the page ends the walk. */
+export const nextCursor = (
+  page: {
+    readonly items: ReadonlyArray<unknown>;
+    readonly cursor: string | null;
+  },
+  seen: ReadonlySet<string>,
+): string | null =>
+  page.cursor === null || page.items.length === 0 || seen.has(page.cursor)
+    ? null
+    : page.cursor;
 
 /** Every page of the jams list, following the cursor until it runs out. */
 export const listAllThreads = (orgId: OrgId, options: AllThreadsOptions) =>
   Effect.gen(function* () {
     const client = yield* ApiClient;
     const items: Array<ThreadCard> = [];
+    const seenCursors = new Set<string>();
     let cursor: string | null = null;
     do {
       const page: ThreadCardPage = yield* client.jams.list({
@@ -39,12 +53,15 @@ export const listAllThreads = (orgId: OrgId, options: AllThreadsOptions) =>
         query: {
           ...(options.archived ? { archived: "only" as const } : {}),
           ...(options.excludeFiled ? { filed: "exclude" as const } : {}),
-          ...(options.limit === undefined ? {} : { limit: options.limit }),
+          ...(options.pageSize === undefined
+            ? {}
+            : { limit: options.pageSize }),
           ...(cursor === null ? {} : { cursor }),
         },
       });
       items.push(...page.items);
-      cursor = page.cursor;
+      cursor = nextCursor(page, seenCursors);
+      if (cursor !== null) seenCursors.add(cursor);
     } while (cursor !== null);
     return items;
   });

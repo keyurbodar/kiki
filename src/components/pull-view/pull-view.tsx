@@ -411,7 +411,7 @@ export function PullMenu({
           {onOpenThread !== undefined && threads.length > 0 ? (
             <MenuSubmenu
               icon={<Bubble2Icon className="size-(--icon-sm)" />}
-              label="Threads"
+              label="Thread"
               className="w-64"
             >
               <PullThreadMenuItems

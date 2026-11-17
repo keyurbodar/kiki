@@ -161,6 +161,49 @@ describe("issues mock: filters and consistency", () => {
     }),
   );
 
+  it.effect("bulk assignees replace the whole set", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      yield* query(registry, "list", { params: { orgId }, query: {} });
+      const update = ApiClient.mutation("issues", "update");
+      registry.set(update, {
+        params: { orgId, code: "ACME-4" },
+        payload: {
+          assignees: [
+            { kind: "user", id: people.sam.id },
+            { kind: "user", id: people.jordan.id },
+          ],
+        },
+        reactivityKeys: [],
+      } as never);
+      const detail = (yield* AtomRegistry.getResult(registry, update)) as {
+        issue: {
+          assignee: { id: string } | null;
+          assignees: ReadonlyArray<{ id: string }>;
+        };
+      };
+      assert.strictEqual(detail.issue.assignee?.id, people.sam.id);
+      assert.deepStrictEqual(
+        detail.issue.assignees.map((actor) => actor.id),
+        [people.sam.id, people.jordan.id],
+      );
+
+      const cleared = AtomRegistry.make();
+      const clear = ApiClient.mutation("issues", "update");
+      clear &&
+        cleared.set(clear, {
+          params: { orgId, code: "ACME-4" },
+          payload: { assignees: [] },
+          reactivityKeys: [],
+        } as never);
+      const emptied = (yield* AtomRegistry.getResult(cleared, clear)) as {
+        issue: { assignee: unknown; assignees: ReadonlyArray<unknown> };
+      };
+      assert.isNull(emptied.issue.assignee);
+      assert.deepStrictEqual(emptied.issue.assignees, []);
+    }),
+  );
+
   it.effect("mentionCount counts the requested user", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
@@ -172,7 +215,16 @@ describe("issues mock: filters and consistency", () => {
         params: { orgId },
         query: { userId: people.casey.id },
       });
-      assert.notStrictEqual(forAlex, forCasey);
+      assert.strictEqual(forAlex, 3);
+      assert.strictEqual(forCasey, 0);
+      const page = yield* query<{
+        issues: ReadonlyArray<{ viewer: { mentions: number } }>;
+      }>(registry, "list", { params: { orgId }, query: {} });
+      const sum = page.issues.reduce(
+        (total, row) => total + row.viewer.mentions,
+        0,
+      );
+      assert.strictEqual(sum, forAlex);
     }),
   );
 });
