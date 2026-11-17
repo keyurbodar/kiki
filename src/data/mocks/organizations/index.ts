@@ -1,20 +1,23 @@
-import { Effect } from "effect";
+import { Effect, Ref } from "effect";
 import { Forbidden } from "../../api/schemas/errors.ts";
+import { Organization } from "../../api/schemas/organization.ts";
+import { fields } from "../db/MockDb.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { sampleOrganizations } from "./fixtures.ts";
 
 export const OrganizationsMock = mockGroup("organizations", (handlers) =>
-  Effect.succeed(
-    handlers
-      .handle("list", () => Effect.succeed(sampleOrganizations))
-      .handle("get", ({ params }) => {
-        const organization = sampleOrganizations.find(
-          (candidate) => candidate.id === params.orgId,
-        );
-        return organization
-          ? Effect.succeed(organization)
-          : Effect.fail(new Forbidden({}));
-      })
+  Effect.gen(function* () {
+    const organizations = yield* Ref.make(sampleOrganizations);
+    return handlers
+      .handle("list", () => Ref.get(organizations))
+      .handle("get", ({ params }) =>
+        Effect.gen(function* () {
+          const organization = (yield* Ref.get(organizations)).find(
+            (candidate) => candidate.id === params.orgId,
+          );
+          return organization ?? (yield* Effect.fail(new Forbidden({})));
+        }),
+      )
       .handle("listMyInvitations", () => Effect.succeed([]))
       .handle("listJoinableOrganizations", () => Effect.succeed([]))
       .handle("create", ({ payload }) => {
@@ -27,6 +30,16 @@ export const OrganizationsMock = mockGroup("organizations", (handlers) =>
             : "Workspace";
         return Effect.succeed({ id: "org_sample_new", name });
       })
-      .handle("setSharing", ({ payload }) => Effect.succeed(payload)),
-  ),
+      .handle("setSharing", ({ payload }) => Effect.succeed(payload))
+      .handle("setPullGuides", ({ params, payload }) => {
+        const enabled = fields(payload).enabled === true;
+        return Ref.update(organizations, (rows) =>
+          rows.map((row) =>
+            row.id === params.orgId
+              ? new Organization({ ...row, pullGuidesEnabled: enabled })
+              : row,
+          ),
+        ).pipe(Effect.as({ enabled }));
+      });
+  }),
 );
