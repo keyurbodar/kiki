@@ -80,7 +80,7 @@ export function AttachmentStrip({ entries, onRemove }: AttachmentStripProps) {
         return (
           <div
             key={entry.localId}
-            className="flex h-12 w-60 max-w-full items-center gap-2 rounded-(--radius-card) border-[length:calc(var(--spacing)/8)] border-border-2 bg-button py-1.5 pr-1 pl-1.5 shadow-plate"
+            className="flex h-12 w-60 max-w-full items-center gap-2 rounded-(--radius-card) border-(length:--border-width-hairline) border-border-2 bg-button py-1.5 pr-1 pl-1.5 shadow-plate"
           >
             <Content
               type={canPreview ? "button" : undefined}
