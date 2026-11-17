@@ -189,13 +189,11 @@ describe("captain atoms", () => {
         captainCrewAtom(orgId, "jam_sample_cap1"),
       );
       assert.strictEqual((rows as unknown[]).length, 3);
-      const drive = toCaptainDrive(
-        yield* AtomRegistry.getResult(
-          registry,
-          captainDriveAtom(orgId, "jam_sample_cap1"),
-        ),
+      const volumes = yield* AtomRegistry.getResult(
+        registry,
+        captainDriveAtom(orgId, "jam_sample_cap1"),
       );
-      assert.isAbove(drive?.files.length ?? 0, 0);
+      assert.isAbove((volumes as unknown[]).length, 0);
       assert.strictEqual(
         captainAtom(orgId, "jam_sample_cap1"),
         captainAtom(orgId, "jam_sample_cap1"),

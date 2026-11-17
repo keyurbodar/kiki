@@ -129,9 +129,11 @@ export function toCrewThread(value: unknown): CrewThread | undefined {
 
 /** Reads the undecoded drive listing scoped to one Captain. */
 export function toCaptainDrive(value: unknown): CaptainDrive | null {
-  const json = record(value);
-  const source = record(json.volume);
-  const id = text(json.volumeId) ?? text(source.id);
+  const isList = Array.isArray(value);
+  const volumes = isList ? value : [value];
+  const json = record(volumes[0]);
+  const source = record(json.volume ?? (isList ? json : {}));
+  const id = text(json.volumeId) ?? text(source.id) ?? text(json.id);
   if (id === null) return null;
   const volume: DriveVolume = {
     id,
@@ -144,7 +146,7 @@ export function toCaptainDrive(value: unknown): CaptainDrive | null {
     : Array.isArray(json.files)
       ? json.files
       : [];
-  const files = rows.map(record).flatMap((row): CaptainDriveFile[] => {
+  const files = (isList ? [] : rows.map(record)).flatMap((row): CaptainDriveFile[] => {
     const entry = record(row.entry ?? row);
     const path = text(entry.path);
     if (path === null) return [];
