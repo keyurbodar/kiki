@@ -67,6 +67,18 @@
     }
   }
 }
+
+/* Added by the composer (B4): values from Capy's production stylesheet. */
+
+@theme inline {
+  --shadow-composer: var(--sh-composer);
+}
+
+@theme static {
+  --spacing-code-inline-x: 3px;
+  --h-menu-group-label: 22px;
+}
+
 @utility scroll-fade-y {
   -webkit-mask-image: linear-gradient(
     to bottom,
@@ -89,6 +101,8 @@
     animation-timeline: scroll(self);
   }
 }
+
+/* Thread cost series colour (features/thread/cost-badge): one hue per row in --cost-hue. */
 @utility scroll-fade-x {
   -webkit-mask-image: linear-gradient(
     to right,
@@ -111,6 +125,7 @@
     animation-timeline: scroll(self inline);
   }
 }
+
 @utility scroll-fade-b {
   -webkit-mask-image: linear-gradient(
     to bottom,
@@ -130,4 +145,11 @@
     animation-fill-mode: both;
     animation-timeline: scroll(self);
   }
+}
+
+@utility cost-swatch {
+  background-color: light-dark(
+    oklch(0.56 0.14 var(--cost-hue)),
+    oklch(0.74 0.12 var(--cost-hue))
+  );
 }

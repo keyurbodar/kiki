@@ -100,18 +100,10 @@ export {
   type MarkdownCodeHeaderProps,
   MarkdownCodeLanguage,
   type MarkdownCodeLanguageProps,
+  MarkdownGallery,
+  type MarkdownGalleryProps,
   MarkdownTable,
   type MarkdownTableProps,
+  MarkdownVideo,
+  type MarkdownVideoProps,
 } from "./parts";
-
-export type MarkdownGalleryProps = ComponentProps<"div">;
-
-export function MarkdownGallery(props: MarkdownGalleryProps) {
-  return <div data-slot="markdown-gallery" {...props} />;
-}
-
-export type MarkdownVideoProps = ComponentProps<"div">;
-
-export function MarkdownVideo(props: MarkdownVideoProps) {
-  return <div data-slot="markdown-video" {...props} />;
-}

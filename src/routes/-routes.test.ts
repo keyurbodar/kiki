@@ -7,7 +7,12 @@ type Node = {
   children?: Record<string, Node> | Node[];
 };
 
-const DEV_ONLY_ROUTES = new Set(["/__tokens", "/__composer-footer"]);
+const DEV_ONLY_ROUTES = new Set([
+  "/__tokens",
+  "/__composer-footer",
+  "/__composer",
+  "/__thread-device",
+]);
 
 function countRoutes(node: Node): number {
   const children = Object.values(node.children ?? {}).filter(

@@ -7,7 +7,8 @@ import { sampleReviewSettings } from "./fixtures.ts";
 
 interface ReviewSetting {
   readonly repo: string;
-  readonly autoReview: boolean;
+  readonly autoReview: string;
+  readonly heldByCaller: boolean;
   readonly postStatusCheck: boolean;
 }
 
@@ -37,13 +38,14 @@ describe("reviews mock", () => {
         settingsAtom,
       )) as ReadonlyArray<ReviewSetting>;
       assert.isAbove(settings.length, 0);
-      assert.isBoolean(settings[0]!.autoReview);
+      assert.equal(settings[0]!.autoReview, "always");
+      assert.isTrue(settings[0]!.heldByCaller);
       const policy = (yield* AtomRegistry.getResult(
         registry,
         policyAtom,
       )) as SelfPolicy;
       assert.isString(policy.selfLogin);
-      assert.isFalse(policy.selfReviewed);
+      assert.isTrue(policy.selfReviewed);
     }),
   );
 
@@ -53,7 +55,7 @@ describe("reviews mock", () => {
       const repo = sampleReviewSettings[1]!.repo;
       registry.set(configure, {
         params: { orgId },
-        payload: { repo, autoReview: true, postStatusCheck: false },
+        payload: { repo, autoReview: "once", postStatusCheck: true },
         reactivityKeys: [key],
       });
       const updated = (yield* AtomRegistry.getResult(
@@ -61,19 +63,20 @@ describe("reviews mock", () => {
         configure,
       )) as ReviewSetting;
       assert.equal(updated.repo, repo);
-      assert.isTrue(updated.autoReview);
-      assert.isFalse(updated.postStatusCheck);
+      assert.equal(updated.autoReview, "once");
+      assert.isTrue(updated.heldByCaller);
+      assert.isTrue(updated.postStatusCheck);
 
       registry.set(setPolicy, {
         params: { orgId },
-        payload: { reviewed: true },
+        payload: { reviewed: false },
         reactivityKeys: [key],
       });
       const policy = (yield* AtomRegistry.getResult(
         registry,
         setPolicy,
       )) as SelfPolicy;
-      assert.isTrue(policy.selfReviewed);
+      assert.isFalse(policy.selfReviewed);
     }),
   );
 });

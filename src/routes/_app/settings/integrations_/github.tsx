@@ -1,15 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { GitHubIntegrationPage } from "@/features/settings-integrations/integrations";
 
 export const Route = createFileRoute("/_app/settings/integrations_/github")({
-  component: RouteComponent,
+  component: GitHubIntegrationPage,
 });
-
-function RouteComponent() {
-  return (
-    <RoutePlaceholder
-      title="/settings/integrations/github"
-      path="/settings/integrations/github"
-    />
-  );
-}
