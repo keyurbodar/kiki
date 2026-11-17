@@ -30,7 +30,7 @@ export function DiffStat({
   return (
     <span className="flex items-center gap-1 tabular-nums">
       <span className="text-success">+{additions}</span>
-      <span className="text-destructive">−{deletions}</span>
+      <span className="text-destructive">-{deletions}</span>
     </span>
   );
 }
@@ -83,7 +83,6 @@ export const PullRow = memo(function PullRow({
   selected,
   checked,
   selectionMode,
-  codePrefix = "",
   onCheck,
 }: {
   pull: PullCard;
@@ -91,7 +90,6 @@ export const PullRow = memo(function PullRow({
   selected: boolean;
   checked: boolean;
   selectionMode: boolean;
-  codePrefix?: string;
   onCheck: () => void;
 }) {
   const owner = pull.repo.slice(0, pull.repo.indexOf("/"));
@@ -119,7 +117,7 @@ export const PullRow = memo(function PullRow({
         </span>
         <span className="w-(--pull-code-width) shrink-0 text-sm font-normal whitespace-nowrap text-muted-foreground-2 tabular-nums @max-lg/list:hidden">
           <span className="inline-block" data-pull-code-measure>
-            {pullCode(pull, codePrefix)}
+            {pullCode(pull)}
           </span>
         </span>
         <RepoAvatar owner={owner} />

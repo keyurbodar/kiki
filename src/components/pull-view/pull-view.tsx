@@ -734,43 +734,56 @@ export function PullRail({ pull }: { pull: Pull }) {
           })),
         };
   return (
-    <div className="flex min-h-0 w-full flex-col gap-6 overflow-y-auto px-4 pt-3 pb-4">
-      <ReviewSection
-        pull={{
-          id: pull.id,
-          state: pull.state === "ready" ? "open" : pull.state,
-          author: pull.author,
-          headSha: pull.headSha,
-        }}
-        review={railReview}
-        orgId={orgId}
-        collapsible
-        onRun={({ forceRefresh, tier }) =>
-          requestReview({
-            params: { orgId, pullId: pull.id },
-            payload: { forceRefresh, tier: tier ?? null },
-            reactivityKeys: pullReactivityKeys(orgId, pull.id),
-          })
-        }
-        renderFinding={(finding: ReviewFinding) => (
-          <span className="text-sm text-foreground">{finding.title}</span>
-        )}
-      />
-      <div className="flex min-h-0 flex-col gap-2">
-        <div className="flex items-center gap-1.5 text-xs">
-          <span className="text-muted-foreground-2">Files</span>
-          <span className="text-muted-foreground-3">{files.length}</span>
+    <div className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
+      <div className="flex max-h-[50%] shrink-0 flex-col overflow-y-auto p-3">
+        <ReviewSection
+          pull={{
+            id: pull.id,
+            state: pull.state === "ready" ? "open" : pull.state,
+            author: pull.author,
+            headSha: pull.headSha,
+          }}
+          review={railReview}
+          orgId={orgId}
+          collapsible
+          onRun={({ forceRefresh, tier }) =>
+            requestReview({
+              params: { orgId, pullId: pull.id },
+              payload: { forceRefresh, tier: tier ?? null },
+              reactivityKeys: pullReactivityKeys(orgId, pull.id),
+            })
+          }
+          renderFinding={(finding: ReviewFinding) => (
+            <span className="text-sm text-foreground">{finding.title}</span>
+          )}
+        />
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col pt-2">
+        <div className="flex h-6 shrink-0 items-center gap-1.5 px-3">
+          <span className="text-xs font-medium text-muted-foreground-2">
+            Files
+          </span>
+          <span className="text-xs text-muted-foreground-3">
+            {files.length}
+          </span>
         </div>
-        <label className="flex h-(--h-control-sm) items-center gap-2 rounded border-hairline border-border-2 bg-input px-2 text-sm">
-          <Icon name="search-menu" size="xs" className="text-icon-muted" />
-          <input
-            className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground-3"
-            placeholder="Filter files"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        </label>
-        <div className="flex flex-col">
+        <div className="flex shrink-0 items-center px-3 pt-1.5 pb-1">
+          <label className="relative inline-flex w-full">
+            <input
+              aria-label="Filter files"
+              className="h-(--h-control-sm) w-full min-w-0 rounded border-hairline border-border-2 bg-input px-2 pl-7 text-sm text-foreground outline-none placeholder:text-muted-foreground-3"
+              placeholder="Filter files"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+            <Icon
+              name="search-menu"
+              size="xs"
+              className="pointer-events-none absolute top-1/2 left-2 -translate-y-1/2 text-icon-muted"
+            />
+          </label>
+        </div>
+        <div className="flex min-h-0 flex-1 flex-col pt-1">
           <FileTreeRows nodes={buildFileTree(visible)} depth={0} />
         </div>
       </div>
