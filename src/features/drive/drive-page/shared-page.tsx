@@ -22,6 +22,7 @@ import {
   MenuSeparator,
   MenuTrigger,
 } from "@/primitives/menu";
+import { ScrollArea } from "@/primitives/scroll-area";
 import { useIsNarrow } from "@/primitives/sidebar";
 import { ShareIcon } from "../icons";
 import { formatRelativeTime } from "../lib/format";
@@ -156,7 +157,11 @@ export function SharedPage() {
           onValueChange: setSearch,
         }}
       />
-      <div className="min-h-0 flex-1 overflow-y-auto md:scroll-fade-y">
+      <ScrollArea
+        className="min-h-0 flex-1"
+        viewportClassName="overscroll-contain"
+        fadeY
+      >
         <div className="flex w-full flex-col gap-5 px-6 py-4">
           {session.orgId !== undefined && (
             <SharedList
@@ -167,7 +172,7 @@ export function SharedPage() {
             />
           )}
         </div>
-      </div>
+      </ScrollArea>
     </div>
   );
 }
