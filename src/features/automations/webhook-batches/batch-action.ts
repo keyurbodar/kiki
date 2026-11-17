@@ -25,7 +25,10 @@ export function webhookBatchActionToast(
   if (action === "cancel" && batch.status === "queued")
     return { level: "info", message: "Batch is already starting" };
   if (action === "flush" && batch.runStatus === "failed")
-    return { level: "error", message: batch.failure ?? "Could not start batch" };
+    return {
+      level: "error",
+      message: batch.failure ?? "Could not start batch",
+    };
   if (action === "flush" && batch.runStatus === "skipped")
     return { level: "info", message: batch.failure ?? "Batch was skipped" };
   return {

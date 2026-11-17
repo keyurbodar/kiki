@@ -37,9 +37,7 @@ export const webhookBatchesAtom = ({
   status,
   cursor,
 }: WebhookBatchesQuery) =>
-  webhookBatchesQuery(
-    JSON.stringify({ orgId, automationId, status, cursor }),
-  );
+  webhookBatchesQuery(JSON.stringify({ orgId, automationId, status, cursor }));
 
 export const flushWebhookBatchAtom = ApiClient.mutation(
   "automations",

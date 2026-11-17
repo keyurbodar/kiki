@@ -1,8 +1,4 @@
-import {
-  useAtomRefresh,
-  useAtomSet,
-  useAtomValue,
-} from "@effect/atom-react";
+import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useEffect, useMemo, useState } from "react";
@@ -44,7 +40,7 @@ export type AutomationBatchesSectionProps = {
 };
 
 const segmentedGroup =
-  "relative flex items-center gap-0.5 rounded-lg border-[0.5px] border-border-2 bg-secondary p-0.5 [&>[data-selected]]:bg-card [&>[data-selected]]:shadow-card [&>button]:relative";
+  "relative flex items-center gap-0.5 rounded-lg border-hairline border-border-2 bg-secondary p-0.5 [&>[data-selected]]:bg-card [&>[data-selected]]:shadow-card [&>button]:relative";
 
 const usePage = (result: AsyncResult.AsyncResult<unknown, unknown>) =>
   useMemo(
@@ -128,7 +124,12 @@ function AutomationBatches({
           Incoming events
         </h2>
         <div className="flex items-center gap-2">
-          <div role="group" aria-label="Event history" className={segmentedGroup}>
+          {/* biome-ignore lint/a11y/useSemanticElements: Capy's segmented group is a div with role group */}
+          <div
+            role="group"
+            aria-label="Event history"
+            className={segmentedGroup}
+          >
             <Button
               variant="segmented"
               size="sm"

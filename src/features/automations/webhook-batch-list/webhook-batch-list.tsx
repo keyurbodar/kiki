@@ -98,7 +98,10 @@ function WebhookBatchRow({
               variant="ghost"
               size="sm"
               render={
-                <Link to="/thread/$threadId" params={{ threadId: batch.jamId }} />
+                <Link
+                  to="/thread/$threadId"
+                  params={{ threadId: batch.jamId }}
+                />
               }
             >
               View thread
