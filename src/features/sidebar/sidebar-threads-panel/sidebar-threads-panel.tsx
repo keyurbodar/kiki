@@ -25,6 +25,7 @@ function HeaderButton({
   label: string;
   onClick?: () => void;
 }) {
+  if (onClick === undefined) return null;
   return (
     <Tooltip>
       <TooltipTrigger
@@ -61,8 +62,6 @@ export function SidebarThreadsPanel({
       <>
         <HeaderButton label="New Captain" onClick={onNewCaptain} />
         <CaptainOptionsMenu
-          grouping={view.grouping}
-          onGroupingChange={sidebar.setGrouping}
           order={view.captainSort}
           onOrderChange={sidebar.setCaptainSort}
           density={view.density}

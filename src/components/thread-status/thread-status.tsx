@@ -75,6 +75,7 @@ export function ThreadStatusIcon({
   return (
     <DotGridIcon
       size={size}
+      state={state}
       data-state={state}
       role="img"
       aria-hidden={false}

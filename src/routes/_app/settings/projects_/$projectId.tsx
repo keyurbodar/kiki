@@ -1,6 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ProjectPage } from "@/features/settings-projects/project-page";
+import { RoutePlaceholder } from "@/components/route-placeholder";
 
 export const Route = createFileRoute("/_app/settings/projects_/$projectId")({
-  component: ProjectPage,
+  component: RouteComponent,
 });
+
+function RouteComponent() {
+  return (
+    <RoutePlaceholder title="Project" path="/settings/projects/$projectId" />
+  );
+}

@@ -1,22 +1,7 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
 import { OrgId } from "../schemas/ids.ts";
-import { Project, ProjectColor, ProjectIcon } from "../schemas/project.ts";
-import {
-  ProjectDependencyRepo,
-  ProjectEnvironmentVariable,
-  ProjectEnvironmentVariableValue,
-  ProjectSettingsDirectoryPage,
-  ProjectSetup,
-  ProjectSnapshotConfig,
-  ReplaceDependencyReposRequest,
-  ReplaceProjectSetupRequest,
-  SetEnvironmentVariableRequest,
-  SetEnvironmentVariablesRequest,
-  SnapshotBuild,
-  SnapshotBuildSummary,
-  StartSnapshotBuildRequest,
-} from "../schemas/project-settings.ts";
+import { Project } from "../schemas/project.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class ProjectsGroup extends HttpApiGroup.make("projects").add(
@@ -29,11 +14,8 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "/orgs/:orgId/project-settings-directory",
     {
       params: { orgId: Schema.String },
-      query: {
-        search: Schema.optional(Schema.String),
-        page: Schema.optional(Schema.String),
-      },
-      success: ProjectSettingsDirectoryPage,
+      query: UndecodedQuery,
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.get("list", "/orgs/:orgId/projects", {
@@ -48,31 +30,23 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
   }),
   HttpApiEndpoint.get("get", "/orgs/:orgId/projects/:projectId", {
     params: { orgId: Schema.String, projectId: Schema.String },
-    success: Project,
+    success: Undecoded,
   }),
   HttpApiEndpoint.patch("update", "/orgs/:orgId/projects/:projectId", {
     params: { orgId: Schema.String, projectId: Schema.String },
-    payload: Schema.Struct({
-      name: Schema.optional(Schema.NullOr(Schema.String)),
-      description: Schema.optional(Schema.NullOr(Schema.String)),
-      icon: Schema.optional(ProjectIcon),
-      color: Schema.optional(ProjectColor),
-      code: Schema.optional(Schema.String),
-      tailscaleEnabled: Schema.optional(Schema.Boolean),
-      tailscaleAcceptDns: Schema.optional(Schema.Boolean),
-    }),
-    success: Project,
+    payload: Undecoded,
+    success: Undecoded,
   }),
   HttpApiEndpoint.delete("delete", "/orgs/:orgId/projects/:projectId", {
     params: { orgId: Schema.String, projectId: Schema.String },
-    success: Project,
+    success: Undecoded,
   }),
   HttpApiEndpoint.get(
     "listDependencyRepos",
     "/orgs/:orgId/projects/:projectId/dependency-repos",
     {
       params: { orgId: Schema.String, projectId: Schema.String },
-      success: Schema.Array(ProjectDependencyRepo),
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.put(
@@ -80,8 +54,8 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "/orgs/:orgId/projects/:projectId/dependency-repos",
     {
       params: { orgId: Schema.String, projectId: Schema.String },
-      payload: ReplaceDependencyReposRequest,
-      success: Schema.Array(ProjectDependencyRepo),
+      payload: Undecoded,
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.get(
@@ -89,7 +63,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "/orgs/:orgId/projects/:projectId/environment-variables",
     {
       params: { orgId: Schema.String, projectId: Schema.String },
-      success: Schema.Array(ProjectEnvironmentVariable),
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.post(
@@ -97,8 +71,8 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "/orgs/:orgId/projects/:projectId/environment-variables",
     {
       params: { orgId: Schema.String, projectId: Schema.String },
-      payload: SetEnvironmentVariablesRequest,
-      success: Schema.Array(ProjectEnvironmentVariable),
+      payload: Undecoded,
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.put(
@@ -110,8 +84,8 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
         projectId: Schema.String,
         name: Schema.String,
       },
-      payload: SetEnvironmentVariableRequest,
-      success: Schema.Array(ProjectEnvironmentVariable),
+      payload: Undecoded,
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.delete(
@@ -123,7 +97,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
         projectId: Schema.String,
         name: Schema.String,
       },
-      success: Schema.Array(ProjectEnvironmentVariable),
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.get(
@@ -135,7 +109,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
         projectId: Schema.String,
         name: Schema.String,
       },
-      success: ProjectEnvironmentVariableValue,
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.post(
@@ -143,8 +117,8 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "/orgs/:orgId/projects/:projectId/environment-variables/personal",
     {
       params: { orgId: Schema.String, projectId: Schema.String },
-      payload: SetEnvironmentVariablesRequest,
-      success: Schema.Array(ProjectEnvironmentVariable),
+      payload: Undecoded,
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.get(
@@ -152,7 +126,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "/orgs/:orgId/projects/:projectId/environment-variables/personal",
     {
       params: { orgId: Schema.String, projectId: Schema.String },
-      success: Schema.Array(ProjectEnvironmentVariable),
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.put(
@@ -164,8 +138,8 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
         projectId: Schema.String,
         name: Schema.String,
       },
-      payload: SetEnvironmentVariableRequest,
-      success: Schema.Array(ProjectEnvironmentVariable),
+      payload: Undecoded,
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.delete(
@@ -177,7 +151,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
         projectId: Schema.String,
         name: Schema.String,
       },
-      success: Schema.Array(ProjectEnvironmentVariable),
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.get(
@@ -189,7 +163,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
         projectId: Schema.String,
         name: Schema.String,
       },
-      success: ProjectEnvironmentVariableValue,
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.get(
@@ -242,30 +216,14 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "/orgs/:orgId/projects/:projectId/repos",
     {
       params: { orgId: Schema.String, projectId: Schema.String },
-      payload: Schema.Struct({
-        repos: Schema.Array(
-          Schema.Struct({
-            repoFullName: Schema.String,
-            baseBranch: Schema.String,
-            mode: Schema.optional(Schema.Literals(["primary", "lazy"])),
-          }),
-        ),
-      }),
-      success: Project,
+      payload: Undecoded,
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.post("addRepos", "/orgs/:orgId/projects/:projectId/repos", {
     params: { orgId: Schema.String, projectId: Schema.String },
-    payload: Schema.Struct({
-      repos: Schema.Array(
-        Schema.Struct({
-          repoFullName: Schema.String,
-          baseBranch: Schema.optional(Schema.String),
-          mode: Schema.optional(Schema.Literals(["primary", "lazy"])),
-        }),
-      ),
-    }),
-    success: Project,
+    payload: Undecoded,
+    success: Undecoded,
   }),
   HttpApiEndpoint.patch(
     "setRepoMode",
@@ -277,25 +235,25 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
         owner: Schema.String,
         repo: Schema.String,
       },
-      payload: Schema.Struct({ mode: Schema.Literals(["primary", "lazy"]) }),
-      success: Project,
+      payload: Undecoded,
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.post("restore", "/orgs/:orgId/projects/:projectId/restore", {
     params: { orgId: Schema.String, projectId: Schema.String },
-    success: Project,
+    success: Undecoded,
   }),
   HttpApiEndpoint.get("getSetup", "/orgs/:orgId/projects/:projectId/setup", {
     params: { orgId: Schema.String, projectId: Schema.String },
-    success: ProjectSetup,
+    success: Undecoded,
   }),
   HttpApiEndpoint.put(
     "replaceSetup",
     "/orgs/:orgId/projects/:projectId/setup",
     {
       params: { orgId: Schema.String, projectId: Schema.String },
-      payload: ReplaceProjectSetupRequest,
-      success: ProjectSetup,
+      payload: Undecoded,
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.patch(
@@ -332,7 +290,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "/orgs/:orgId/projects/:projectId/snapshot",
     {
       params: { orgId: Schema.String, projectId: Schema.String },
-      success: ProjectSnapshotConfig,
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.post(
@@ -340,8 +298,8 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "/orgs/:orgId/projects/:projectId/snapshot/build",
     {
       params: { orgId: Schema.String, projectId: Schema.String },
-      payload: StartSnapshotBuildRequest,
-      success: SnapshotBuild,
+      payload: Undecoded,
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.get(
@@ -349,7 +307,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "/orgs/:orgId/projects/:projectId/snapshot/builds",
     {
       params: { orgId: Schema.String, projectId: Schema.String },
-      success: Schema.Array(SnapshotBuildSummary),
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.get(
@@ -361,7 +319,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
         projectId: Schema.String,
         buildId: Schema.String,
       },
-      success: SnapshotBuild,
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.get(
@@ -382,8 +340,8 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "/orgs/:orgId/projects/:projectId/snapshot/enabled",
     {
       params: { orgId: Schema.String, projectId: Schema.String },
-      payload: Schema.Struct({ enabled: Schema.Boolean }),
-      success: ProjectSnapshotConfig,
+      payload: Undecoded,
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.put(
@@ -391,8 +349,8 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "/orgs/:orgId/projects/:projectId/snapshot/repos",
     {
       params: { orgId: Schema.String, projectId: Schema.String },
-      payload: Schema.Struct({ repos: Schema.Array(Schema.String) }),
-      success: ProjectSnapshotConfig,
+      payload: Undecoded,
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.put(
@@ -400,8 +358,8 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "/orgs/:orgId/projects/:projectId/snapshot/smaller-tiers",
     {
       params: { orgId: Schema.String, projectId: Schema.String },
-      payload: Schema.Struct({ buildSmallerTiers: Schema.Boolean }),
-      success: ProjectSnapshotConfig,
+      payload: Undecoded,
+      success: Undecoded,
     },
   ),
   HttpApiEndpoint.put(

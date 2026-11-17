@@ -12,25 +12,18 @@ import {
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import {
-  MenuContent,
-  MenuLabel,
-  MenuSeparator,
-  MenuSub,
-  MenuSubTrigger,
-  MenuTrigger,
-} from "@/primitives/menu";
-import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuLabel,
+  ResponsiveMenuSeparator,
+  ResponsiveMenuSub,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 
 const menuIconClassName =
   "flex size-(--icon-sm) shrink-0 items-center justify-center text-icon-muted in-data-[intent=danger]:text-destructive";
-const menuValueClassName =
-  "ml-auto flex shrink-0 items-center gap-1.5 text-sm font-normal text-muted-foreground-1";
-const menuChevronClassName =
-  "size-(--icon-sm) shrink-0 text-muted-foreground-3";
 const menuCheckClassName = "ml-auto size-(--icon-sm) shrink-0 text-foreground";
 const menuLabelClassName =
   "mt-1 flex min-h-[calc(var(--spacing)*5.5)] items-center px-2 text-xs font-medium text-muted-foreground-2 first:mt-0";
@@ -98,19 +91,14 @@ function SubMenu({
   children: ReactNode;
 }) {
   return (
-    <MenuSub>
-      <MenuSubTrigger>
-        <MenuGlyph name={icon} />
-        <span className="min-w-0 truncate">{label}</span>
-        <span className={menuValueClassName}>
-          {value === undefined ? null : (
-            <span className="min-w-0 max-w-32 truncate">{value}</span>
-          )}
-          <Icon name="chevron-right" className={menuChevronClassName} />
-        </span>
-      </MenuSubTrigger>
-      <MenuContent className={contentClassName}>{children}</MenuContent>
-    </MenuSub>
+    <ResponsiveMenuSub
+      icon={<MenuGlyph name={icon} />}
+      label={label}
+      value={value}
+      contentClassName={contentClassName}
+    >
+      {children}
+    </ResponsiveMenuSub>
   );
 }
 
@@ -119,7 +107,7 @@ function OptionsTrigger({ label }: { label: string }) {
     <Tooltip>
       <TooltipTrigger
         render={
-          <MenuTrigger
+          <ResponsiveMenuTrigger
             render={
               <Button variant="ghost" size="icon-sm" aria-label={label} />
             }
@@ -128,7 +116,7 @@ function OptionsTrigger({ label }: { label: string }) {
               name="dot-grid-1x3-horizontal"
               className="size-(--icon-base)"
             />
-          </MenuTrigger>
+          </ResponsiveMenuTrigger>
         }
       />
       <TooltipContent side="bottom">Options</TooltipContent>
@@ -220,19 +208,25 @@ export function ThreadOptionsMenu({
   return (
     <ResponsiveMenu>
       <OptionsTrigger label="Thread options" />
-      <MenuContent align="end" className="w-60">
-        <ResponsiveMenuItem onClick={onNewFolder}>
-          <MenuGlyph name="folder-add-left" />
-          New folder
-        </ResponsiveMenuItem>
+      <ResponsiveMenuContent align="end" className="w-60">
+        {onNewFolder === undefined ? null : (
+          <ResponsiveMenuItem onClick={onNewFolder}>
+            <MenuGlyph name="folder-add-left" />
+            New folder
+          </ResponsiveMenuItem>
+        )}
         {onMarkAllRead === undefined ? null : (
           <ResponsiveMenuItem onClick={onMarkAllRead}>
             <MenuGlyph name="email-2-check" />
             Mark all as read
           </ResponsiveMenuItem>
         )}
-        <MenuSeparator className={menuSeparatorClassName} />
-        <MenuLabel className={menuLabelClassName}>View</MenuLabel>
+        {onNewFolder === undefined && onMarkAllRead === undefined ? null : (
+          <ResponsiveMenuSeparator className={menuSeparatorClassName} />
+        )}
+        <ResponsiveMenuLabel className={menuLabelClassName}>
+          View
+        </ResponsiveMenuLabel>
         <GroupingSubMenu
           grouping={grouping}
           onGroupingChange={onGroupingChange}
@@ -278,37 +272,45 @@ export function ThreadOptionsMenu({
             </ResponsiveMenuItem>
           ))}
         </SubMenu>
-        <MenuSeparator className={menuSeparatorClassName} />
-        <MenuLabel className={menuLabelClassName}>Filter</MenuLabel>
-        <ResponsiveMenuItem onClick={onSearch}>
-          <MenuGlyph name="magnifying-glass" />
-          Search threads
-        </ResponsiveMenuItem>
-        <SubMenu
-          icon="filter-1"
-          label="Filters"
-          value={filterCount > 0 ? filterCount : undefined}
-          contentClassName="w-56"
-        >
-          {filters}
-        </SubMenu>
+        {onSearch === undefined && filters === undefined ? null : (
+          <>
+            <ResponsiveMenuSeparator className={menuSeparatorClassName} />
+            <ResponsiveMenuLabel className={menuLabelClassName}>
+              Filter
+            </ResponsiveMenuLabel>
+            {onSearch === undefined ? null : (
+              <ResponsiveMenuItem onClick={onSearch}>
+                <MenuGlyph name="magnifying-glass" />
+                Search threads
+              </ResponsiveMenuItem>
+            )}
+            {filters === undefined ? null : (
+              <SubMenu
+                icon="filter-1"
+                label="Filters"
+                value={filterCount > 0 ? filterCount : undefined}
+                contentClassName="w-56"
+              >
+                {filters}
+              </SubMenu>
+            )}
+          </>
+        )}
         {onViewAll === undefined ? null : (
           <>
-            <MenuSeparator className={menuSeparatorClassName} />
+            <ResponsiveMenuSeparator className={menuSeparatorClassName} />
             <ResponsiveMenuItem onClick={onViewAll}>
               <MenuGlyph name="list-bullets" />
               View all threads
             </ResponsiveMenuItem>
           </>
         )}
-      </MenuContent>
+      </ResponsiveMenuContent>
     </ResponsiveMenu>
   );
 }
 
 export type CaptainOptionsMenuProps = {
-  grouping: SidebarGrouping;
-  onGroupingChange: (grouping: SidebarGrouping) => void;
   order: SidebarCaptainSort;
   onOrderChange: (order: SidebarCaptainSort) => void;
   density: SidebarDensity;
@@ -317,8 +319,6 @@ export type CaptainOptionsMenuProps = {
 };
 
 export function CaptainOptionsMenu({
-  grouping,
-  onGroupingChange,
   order,
   onOrderChange,
   density,
@@ -328,20 +328,16 @@ export function CaptainOptionsMenu({
   return (
     <ResponsiveMenu>
       <OptionsTrigger label="Captain options" />
-      <MenuContent align="end" className="w-60">
+      <ResponsiveMenuContent align="end" className="w-60">
         {onNewFolder === undefined ? null : (
           <>
             <ResponsiveMenuItem onClick={onNewFolder}>
               <MenuGlyph name="folder-add-left" />
               New folder
             </ResponsiveMenuItem>
-            <MenuSeparator className={menuSeparatorClassName} />
+            <ResponsiveMenuSeparator className={menuSeparatorClassName} />
           </>
         )}
-        <GroupingSubMenu
-          grouping={grouping}
-          onGroupingChange={onGroupingChange}
-        />
         <SubMenu
           icon="sort-arrow-up-down"
           label="Sort by"
@@ -369,7 +365,7 @@ export function CaptainOptionsMenu({
           )}
         </SubMenu>
         <DensitySubMenu density={density} onDensityChange={onDensityChange} />
-      </MenuContent>
+      </ResponsiveMenuContent>
     </ResponsiveMenu>
   );
 }

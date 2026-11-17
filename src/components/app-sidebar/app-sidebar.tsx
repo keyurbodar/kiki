@@ -3,6 +3,7 @@ import {
   type ComponentProps,
   type DragEvent,
   type PointerEvent,
+  type ReactNode,
   useLayoutEffect,
   useRef,
   useState,
@@ -26,9 +27,8 @@ import {
 } from "@/components/sidebar-nav-editor";
 import { SidebarReferralMenu } from "@/components/sidebar-referral-menu";
 import { SidebarSetupCard } from "@/components/sidebar-setup-card";
+import { SidebarThreads } from "@/components/sidebar-threads";
 import { UserMenu } from "@/components/user-menu";
-import { useSidebarThreads } from "@/features/sidebar/sidebar-threads-data";
-import { SidebarThreadsPanel } from "@/features/sidebar/sidebar-threads-panel";
 import { openCommandPalette } from "@/lib/command-palette-events";
 import { Button } from "@/primitives/button";
 import {
@@ -68,6 +68,7 @@ export const SIDEBAR_BAR_ITEM_WIDTH = 28;
 
 export type AppSidebarProps = ComponentProps<"div"> & {
   showModeToggle?: boolean;
+  threadsSlot?: ReactNode;
   mode?: SidebarMode;
   defaultMode?: SidebarMode;
   onModeChange?: (mode: SidebarMode) => void;
@@ -119,6 +120,7 @@ function SidebarBarLink({
 
 export function AppSidebar({
   showModeToggle = true,
+  threadsSlot,
   mode,
   defaultMode,
   onModeChange,
@@ -130,9 +132,6 @@ export function AppSidebar({
   ...props
 }: AppSidebarProps) {
   const nav = useSidebarNav(navOptions);
-  const threads = useSidebarThreads({
-    initialPrefs: { mode: mode ?? defaultMode ?? "threads" },
-  });
   const pages = sidebarNavPages(nav.entries, { memory });
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
@@ -317,11 +316,9 @@ export function AppSidebar({
           <div className="flex">
             <SidebarModeToggle
               data-track-owner="shared/app-sidebar.tsx#AppSidebar:SidebarModeToggle.1"
-              mode={mode ?? threads.view.mode}
-              onModeChange={(next) => {
-                threads.setMode(next);
-                onModeChange?.(next);
-              }}
+              mode={mode}
+              defaultMode={defaultMode}
+              onModeChange={onModeChange}
             />
           </div>
         ) : (
@@ -417,7 +414,7 @@ export function AppSidebar({
           </Tooltip>
         </div>
       </header>
-      <SidebarThreadsPanel controller={threads} />
+      {threadsSlot ?? <SidebarThreads />}
       <SidebarAnnouncements />
       <SidebarSetupCard />
       <SidebarDealReminder />

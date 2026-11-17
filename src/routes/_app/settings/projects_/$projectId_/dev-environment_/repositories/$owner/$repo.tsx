@@ -1,8 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ProjectSetupRepositoryPage } from "@/features/settings-projects/project-setup-repository-page";
+import { RoutePlaceholder } from "@/components/route-placeholder";
 
 export const Route = createFileRoute(
   "/_app/settings/projects_/$projectId_/dev-environment_/repositories/$owner/$repo",
 )({
-  component: ProjectSetupRepositoryPage,
+  component: RouteComponent,
 });
+
+function RouteComponent() {
+  return (
+    <RoutePlaceholder
+      title="Repository"
+      path="/settings/projects/$projectId/dev-environment/repositories/$owner/$repo"
+    />
+  );
+}

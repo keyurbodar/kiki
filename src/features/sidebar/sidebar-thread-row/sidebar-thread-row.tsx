@@ -11,13 +11,16 @@ import {
 import { ThreadPreview } from "@/components/thread-preview";
 import { NeedsYouDot, ThreadStatusIcon } from "@/components/thread-status";
 import { Button } from "@/primitives/button";
-import { MenuContent, MenuTrigger } from "@/primitives/menu";
 import {
   PreviewCard,
   PreviewCardContent,
   PreviewCardTrigger,
 } from "@/primitives/preview-card";
-import { ResponsiveMenu } from "@/primitives/responsive-menu";
+import {
+  ResponsiveMenu,
+  ResponsiveMenuContent,
+  ResponsiveMenuTrigger,
+} from "@/primitives/responsive-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 
 const rowTextClassName =
@@ -130,7 +133,7 @@ function ThreadRowActions({
             <Tooltip>
               <TooltipTrigger
                 render={
-                  <MenuTrigger
+                  <ResponsiveMenuTrigger
                     render={
                       <Button
                         variant="bare"
@@ -145,14 +148,14 @@ function ThreadRowActions({
                       name="dot-grid-1x3-horizontal"
                       className="size-(--icon-sm)"
                     />
-                  </MenuTrigger>
+                  </ResponsiveMenuTrigger>
                 }
               />
               <TooltipContent side="bottom">More actions</TooltipContent>
             </Tooltip>
-            <MenuContent align="end" className="w-52">
+            <ResponsiveMenuContent align="end" className="w-52">
               {actions.menu}
-            </MenuContent>
+            </ResponsiveMenuContent>
           </ResponsiveMenu>
         )}
       </span>
