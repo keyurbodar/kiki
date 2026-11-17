@@ -1,12 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { ShortcutsPage } from "@/features/settings/shortcuts-page";
 
 export const Route = createFileRoute("/_app/settings/shortcuts")({
-  component: RouteComponent,
+  component: ShortcutsPage,
 });
-
-function RouteComponent() {
-  return (
-    <RoutePlaceholder title="/settings/shortcuts" path="/settings/shortcuts" />
-  );
-}
