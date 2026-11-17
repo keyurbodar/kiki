@@ -23,13 +23,13 @@ describe("review settings pages", () => {
     expect(screen.queryByText("acme/api")).toBeNull();
   });
 
-  it("shows tiers, guides, empty filters and instructions", async () => {
+  it("shows tiers, guides, filters and instructions", async () => {
     render(<ReviewAgentConfigPage />);
     expect(
       await screen.findByText("Capy auto routes review for you"),
     ).toBeTruthy();
-    expect(await screen.findByText("No rules")).toBeTruthy();
-    expect(await screen.findByText("No ignore paths")).toBeTruthy();
+    expect(await screen.findByText("Author is any of dependabot-sample")).toBeTruthy();
+    expect(await screen.findByText("**/bun.lock,**/*.generated.ts")).toBeTruthy();
     expect(
       screen.getByRole("switch", { name: "Generate pull request guides" }),
     ).toBeTruthy();

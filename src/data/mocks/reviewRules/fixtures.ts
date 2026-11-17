@@ -1,10 +1,25 @@
 import { isoMinutesAgo, people, repos } from "../fixtures/world.ts";
 
+export interface ReviewRuleScope {
+  readonly repo: string | null;
+  readonly paths: ReadonlyArray<string>;
+  readonly githubRepoId: number | null;
+  readonly covered: boolean;
+  readonly heldByCaller: boolean;
+}
+
+export interface ReviewRuleFile {
+  readonly repo: string;
+  readonly path: string;
+  readonly githubRepoId: number;
+  readonly covered: boolean;
+}
+
 export interface ReviewRule {
   readonly id: string;
   readonly body: string;
-  readonly scopes: ReadonlyArray<string>;
-  readonly file: string | null;
+  readonly scopes: ReadonlyArray<ReviewRuleScope>;
+  readonly file: ReviewRuleFile | null;
   readonly status: string;
   readonly source: string;
   readonly sourceRef: string | null;
@@ -20,11 +35,19 @@ export interface ReviewRule {
   readonly updatedAt: string;
 }
 
+export const allRepositories: ReviewRuleScope = {
+  repo: null,
+  paths: [],
+  githubRepoId: null,
+  covered: true,
+  heldByCaller: true,
+};
+
 const rule = (
   id: string,
   body: string,
-  scopes: ReadonlyArray<string>,
-  file: string | null,
+  scopes: ReadonlyArray<ReviewRuleScope>,
+  file: ReviewRuleFile | null,
   status: string,
   firedCount: number,
 ): ReviewRule => ({
@@ -33,7 +56,7 @@ const rule = (
   scopes,
   file,
   status,
-  source: "org",
+  source: "app",
   sourceRef: null,
   createdByUserId: people.alex.id,
   createdByName: `${people.alex.firstName} ${people.alex.lastName}`,
@@ -50,7 +73,15 @@ export const sampleReviewRules: ReadonlyArray<ReviewRule> = [
   rule(
     "rrule_sample_checkout",
     "Explain retry limits when reviewing changes to the checkout flow.",
-    [repos[0]!.fullName],
+    [
+      {
+        repo: repos[0]!.fullName,
+        paths: [],
+        githubRepoId: 1001,
+        covered: true,
+        heldByCaller: true,
+      },
+    ],
     null,
     "active",
     4,
@@ -58,8 +89,13 @@ export const sampleReviewRules: ReadonlyArray<ReviewRule> = [
   rule(
     "rrule_sample_docs",
     "Check that public API changes include documentation updates.",
-    ["*"],
-    "docs/**/*.md",
+    [allRepositories],
+    {
+      repo: repos[3]!.fullName,
+      path: "docs/review-guide.md",
+      githubRepoId: 1004,
+      covered: true,
+    },
     "inactive",
     0,
   ),
