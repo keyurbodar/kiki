@@ -12,7 +12,7 @@ import {
   issueColorStyles,
 } from "@/components/issue-states";
 import { issueColors } from "@/data/api/schemas/issue";
-import { issueReactivityKeys } from "@/data/atoms/issues";
+import { reactivityKeys as dataReactivityKeys } from "@/data/atoms/conventions";
 import { ApiClient } from "@/data/client/ApiClient";
 import { Badge } from "@/primitives/badge";
 import { MenuItem } from "@/primitives/menu";
@@ -145,7 +145,7 @@ export function useCreateIssueLabel({
     create({
       params: { orgId },
       payload: { name, color: nextLabelColor(labels.length) },
-      reactivityKeys: reactivityKeys ?? [issueReactivityKeys.labels(orgId)],
+      reactivityKeys: reactivityKeys ?? [dataReactivityKeys.issueLabels(orgId)],
     })
       .then((label) => onCreated(label as IssueLabelSummary))
       .catch(() => undefined)
