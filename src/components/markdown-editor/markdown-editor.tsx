@@ -47,6 +47,7 @@ import {
 } from "lexical";
 import {
   type ComponentProps,
+  type ReactNode,
   type Ref,
   useEffect,
   useEffectEvent,
@@ -143,6 +144,7 @@ export type MarkdownEditorProps = ComponentProps<"div"> & {
   contentClassName?: string;
   inset?: keyof typeof INSETS;
   editorRef?: Ref<MarkdownEditorHandle>;
+  placeholder?: ReactNode;
 };
 
 const throwError = (error: Error) => {
