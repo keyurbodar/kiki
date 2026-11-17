@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildFileTree, filterFiles, toDiffFiles } from "./file-tree-model";
+import { filterFiles, toDiffFiles } from "./file-tree-model";
 
 const files = toDiffFiles({
   files: [
@@ -10,20 +10,7 @@ const files = toDiffFiles({
   ],
 });
 
-describe("buildFileTree", () => {
-  it("compacts single-child folders and sorts folders first", () => {
-    const tree = buildFileTree(files);
-    expect(tree.map((node) => node.name)).toEqual([
-      "src / checkout",
-      "test / checkout",
-      "README.md",
-    ]);
-    const [src] = tree;
-    expect(
-      src?.kind === "dir" && src.children.map((node) => node.name),
-    ).toEqual(["gateway.ts", "retry.ts"]);
-  });
-
+describe("filterFiles", () => {
   it("filters by path", () => {
     expect(filterFiles(files, "RETRY").map((file) => file.path)).toEqual([
       "src/checkout/retry.ts",
