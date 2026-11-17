@@ -45,6 +45,7 @@ export function CopyButton({ text, ...props }: CopyButtonProps) {
       {...props}
       variant="ghost"
       size="icon-xs"
+      className="!size-(--h-control-xs)"
       aria-label={copied ? "Copied" : "Copy code"}
       onClick={() => {
         void navigator.clipboard?.writeText(text);
@@ -96,6 +97,7 @@ export function CodeBlock({ text, language, blockKey }: CodeBlockProps) {
           <Button
             variant="ghost"
             size="icon-xs"
+            className="!size-(--h-control-xs)"
             aria-label={wrap ? "Disable line wrapping" : "Wrap lines"}
             aria-pressed={wrap}
             data-selected={wrap ? "" : undefined}

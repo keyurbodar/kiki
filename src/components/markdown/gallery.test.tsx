@@ -38,6 +38,17 @@ describe("MarkdownGallery", () => {
     ).toHaveLength(2);
   });
 
+  it("derives a single tile's aspect ratio from HTML image dimensions", () => {
+    const root = render(
+      <MarkdownGallery>
+        <img src="/landscape.png" alt="Landscape" width={1280} height={900} />
+      </MarkdownGallery>,
+    ).container;
+    const frame = root.querySelector("span[data-slot=markdown-gallery]");
+    const style = frame?.getAttribute("style") ?? "";
+    expect(style).toContain("aspect-ratio: 1.4222222222222223 / 1");
+  });
+
   it("uses fitted rows when sizes are known", () => {
     expect(fitRows(2, [1, 1])).toEqual([[0, 1]]);
     expect(fitRows(2, [3, 3])).toEqual([[0], [1]]);

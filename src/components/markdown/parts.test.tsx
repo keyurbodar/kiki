@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { fireEvent, render, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Markdown } from "./markdown";
 
@@ -16,6 +16,24 @@ describe("markdown parts", () => {
     expect(language?.textContent).toBe("ts");
     expect(classes(header)).toBe("");
     expect(classes(language)).toBe("");
+  });
+
+  it("keeps the code header actions at the 24px control size", () => {
+    const root = html("```ts\nconst a = 1;\n```");
+    for (const label of ["Wrap lines", "Copy code"]) {
+      const button = within(root).getByLabelText(label);
+      expect(classes(button)).toContain("!size-(--h-control-xs)");
+      expect(button.querySelector("svg")).not.toBeNull();
+    }
+  });
+
+  it("toggles line wrapping from the header action", () => {
+    const root = html("```ts\nconst a = 1;\n```");
+    const block = root.querySelector('[data-component="markdown-code"]');
+    const toggle = within(root).getByLabelText("Wrap lines");
+    fireEvent.click(toggle);
+    expect(block?.hasAttribute("data-wrap")).toBe(true);
+    expect(within(root).getByLabelText("Disable line wrapping")).toBe(toggle);
   });
 
   it("wraps a table in a scroll frame", () => {
