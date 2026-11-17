@@ -30,7 +30,23 @@ export interface AutomationUsage {
   readonly succeededRuns: number;
   readonly failedRuns: number;
   readonly tokensUsed: number;
+  /** Spend in credits, printed as dollars on the detail page. */
+  readonly credits?: number;
+  /** Runs per day for the last 30 days, oldest first. */
+  readonly series?: ReadonlyArray<{
+    readonly start: string;
+    readonly runs: number;
+    readonly credits: number;
+  }>;
 }
+
+/** Thirty daily buckets ending today, each with the runs given by position. */
+export const dailySeries = (runs: ReadonlyArray<number>) =>
+  Array.from({ length: 30 }, (_, index) => ({
+    start: isoMinutesAgo((29 - index) * 24 * 60),
+    runs: runs[index] ?? 0,
+    credits: 0,
+  }));
 
 export const runs: ReadonlyArray<AutomationRun> = [
   {
@@ -107,18 +123,33 @@ export const usage: Readonly<Record<string, AutomationUsage>> = {
     succeededRuns: 11,
     failedRuns: 3,
     tokensUsed: 184_000,
+    credits: 0,
+    series: dailySeries([
+      0, 1, 0, 0, 2, 1, 0, 0, 0, 1, 0, 0, 2, 0, 1, 0, 0, 0, 1, 2, 0, 0, 0, 1, 0,
+      0, 0, 1, 0, 1,
+    ]),
   },
   auto_sample_changelog: {
     totalRuns: 8,
     succeededRuns: 8,
     failedRuns: 0,
     tokensUsed: 92_400,
+    credits: 0,
+    series: dailySeries([
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+      0, 0, 1, 0, 0,
+    ]),
   },
   auto_sample_pr_followup: {
     totalRuns: 2,
     succeededRuns: 1,
     failedRuns: 0,
     tokensUsed: 18_200,
+    credits: 0,
+    series: dailySeries([
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 1, 0, 1,
+    ]),
   },
 };
 
@@ -127,6 +158,8 @@ export const defaultUsage: AutomationUsage = {
   succeededRuns: 0,
   failedRuns: 0,
   tokensUsed: 0,
+  credits: 0,
+  series: dailySeries([]),
 };
 
 /**
