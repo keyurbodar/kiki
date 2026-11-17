@@ -37,6 +37,7 @@ import {
   withRunAs,
 } from "../automation-editor/model";
 import { chevronClass } from "../automation-editor/parts";
+import { useMachineUsage } from "../automation-editor/use-machine-usage";
 import { resultValue, useOrgId } from "../automation-editor/use-org";
 import { useViewer, type Viewer } from "../automations-list";
 import { OwnerSelect } from "../owner-select";
@@ -203,6 +204,8 @@ function NewAutomationForm({
 
   const setRunAs = (value: RunAs) => setForm(withRunAs(form, value));
 
+  const machineUsage = useMachineUsage(orgId);
+
   const sections: EditorSectionsProps = {
     form,
     setForm,
@@ -210,6 +213,7 @@ function NewAutomationForm({
     serviceRunAs,
     folders: [],
     tags: [],
+    machineUsage,
   };
 
   const projectControl =

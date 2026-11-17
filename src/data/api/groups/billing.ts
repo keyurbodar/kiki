@@ -114,6 +114,17 @@ export class BillingGroup extends HttpApiGroup.make("billing").add(
     "/orgs/:orgId/billing/sso-add-on/preview",
     { params: { orgId: Schema.String }, success: Undecoded },
   ),
+  /**
+   * Contract note — `machineHourAllowance` and `machineHoursConsumed` are
+   * kiki-only, mock-only fields. They are the org's machine-hour allowance and
+   * the machine hours already spent against it, plain numbers in the same unit
+   * as the per-thread `machineHours`. Capy has no endpoint or field that
+   * carries them; kiki serves them from `mocks/billing/fixtures.ts` so the
+   * automation Limits row can print Capy's usage line. Do not treat them as a
+   * shipped part of this payload: a real backend will omit them, and every
+   * reader treats them as optional. Delete this note and the mock fields when
+   * an endpoint exists.
+   */
   HttpApiEndpoint.get("usage", "/orgs/:orgId/billing/usage", {
     params: { orgId: Schema.String },
     query: UndecodedQuery,

@@ -18,6 +18,7 @@ import {
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
 import { Checkmark, ChevronDownSmall } from "./icons";
+import { type MachineHourMeter, MachineUsageNote } from "./machine-usage";
 import {
   type AddTriggerResult,
   addScheduleTime,
@@ -74,11 +75,16 @@ const machineSizeOf = (value: string | null | undefined): MachineSize | null =>
     : null;
 
 /** The size a run's machine boots at: the automation's own, else the project's. */
+export const effectiveMachineSize = (
+  value: string | null | undefined,
+  projectDefault: string | null | undefined,
+): MachineSize | null => machineSizeOf(value) ?? machineSizeOf(projectDefault);
+
 export const machineSizeLabel = (
   value: string | null,
   projectDefault: string | null,
 ) => {
-  const chosen = machineSizeOf(value) ?? machineSizeOf(projectDefault);
+  const chosen = effectiveMachineSize(value, projectDefault);
   return chosen === null ? "Project default" : formatMachine(chosen);
 };
 
@@ -91,6 +97,8 @@ export type EditorSectionsProps = {
   tags: ReadonlyArray<MultiSelectOption>;
   /** The project's machine size, shown as inherited until the automation picks its own. */
   machineSizeDefault?: string | null;
+  /** The org's machine-hour allowance; the row leaves its usage line out without it. */
+  machineUsage?: MachineHourMeter;
 };
 
 type MachineSizeMenuProps = {
@@ -164,6 +172,7 @@ export function EditorSections({
   folders,
   tags,
   machineSizeDefault = null,
+  machineUsage,
 }: EditorSectionsProps) {
   const hasEventTriggers = form.triggers.some(isEventTrigger);
   const problems = hasDuplicateSchedules(form.triggers)
@@ -331,7 +340,20 @@ export function EditorSections({
           </SettingsRow>
           <SettingsRow
             label="Machine size"
-            description="Compute for each run's machine, project default when unset"
+            description={
+              <>
+                Compute for each run&apos;s machine, project default when unset
+                {machineUsage === undefined ? null : (
+                  <MachineUsageNote
+                    meter={machineUsage}
+                    size={effectiveMachineSize(
+                      form.machineSize,
+                      machineSizeDefault,
+                    )}
+                  />
+                )}
+              </>
+            }
           >
             <MachineSizeMenu
               value={form.machineSize}
