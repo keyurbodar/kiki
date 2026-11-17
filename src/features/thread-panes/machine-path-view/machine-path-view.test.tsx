@@ -124,7 +124,7 @@ describe("defensive parsing", () => {
   it("reads a machine file and marks missing content", () => {
     expect(parseMachineFile(file).sha).toBe("sha_1");
     expect(parseMachineFile({ content: null }).content).toBeNull();
-    expect(parseFileContent({ base64: "AAA=", size: 3 }).contentBase64).toBe(
+    expect(parseFileContent({ base64: "AAA=", size: 3 })?.contentBase64).toBe(
       "AAA=",
     );
     expect(
@@ -187,7 +187,9 @@ describe("states and dialog", () => {
       screen.getByText("Machine unavailable, showing the last read"),
     ).toBeTruthy();
     expect(screen.getByText("Machine is unreachable")).toBeTruthy();
-    fireEvent.click(screen.getAllByRole("button", { name: "Retry" })[0]);
+    const [retry] = screen.getAllByRole("button", { name: "Retry" });
+    expect(retry).toBeDefined();
+    if (retry !== undefined) fireEvent.click(retry);
     expect(onRetry).toHaveBeenCalled();
     cleanup();
     render(

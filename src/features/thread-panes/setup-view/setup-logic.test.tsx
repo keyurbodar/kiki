@@ -86,7 +86,7 @@ describe("setup status and labels", () => {
       bucket: "attention",
       label: "Last build failed",
     });
-    expect(setupStatus("ver_1", false, undefined)).toEqual({
+    expect(setupStatus("ver_1", false, undefined, undefined)).toEqual({
       bucket: "idle",
       label: "Snapshots off",
     });

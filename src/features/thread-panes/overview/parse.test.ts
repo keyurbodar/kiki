@@ -13,11 +13,7 @@ describe("overview row parsing", () => {
       createdAt: "2026-11-17T10:00:00Z",
     });
     expect(row.localIndex).toBe(3);
-    expect(row.primaryMachine).toEqual({
-      kind: "cloud",
-      name: "",
-      size: "large",
-    });
+    expect(row.machine).toEqual({ kind: "cloud", size: "large" });
     expect(row.createdAt.toISOString()).toBe("2026-11-17T10:00:00.000Z");
   });
 

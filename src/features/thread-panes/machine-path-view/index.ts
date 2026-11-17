@@ -9,10 +9,5 @@ export {
   type MachinePathConnectedProps,
   MachinePathView,
 } from "./machine-path-view";
-export {
-  MachineFileMiss,
-  type MachineFileMissProps,
-  MachinePathUnavailable,
-  type MachinePathUnavailableProps,
-} from "./machine-states";
+export { MachineFileMiss, MachinePathUnavailable } from "./machine-states";
 export * from "./parse";

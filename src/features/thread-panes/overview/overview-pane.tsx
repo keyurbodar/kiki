@@ -21,12 +21,14 @@ import type { PaneProps } from "@/features/thread-panes/thread-pane/registry";
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
 import { ConsoleGlyph, FilesGlyph, StudioDisplayGlyph } from "./glyphs";
 import {
+  allocationLabel,
   childTasks,
   diffsSummary,
   type OverviewData,
   type OverviewSurfaces,
   type OverviewTask,
   pullVia,
+  repoLabel,
   sideThreads,
   sortPulls,
   subagentPaths,
@@ -257,11 +259,16 @@ export function OverviewPane({ threadId }: OverviewPaneProps) {
     () => ({
       jamId: threadId,
       tasks: valueList(children).map(parseTask),
-      pulls: (pullRows ?? [])
-        .map((row) => parsePull(row as never))
-        .filter((pull): pull is NonNullable<typeof pull> => pull !== undefined),
-      localPulls: (localPullRows ?? [])
-        .map((row) => parseLocalPull(row as never))
+      pulls:
+        pullRows === undefined
+          ? undefined
+          : valueList(pullRows)
+              .map(parsePull)
+              .filter(
+                (pull): pull is NonNullable<typeof pull> => pull !== undefined,
+              ),
+      localPulls: valueList(localPullRows)
+        .map(parseLocalPull)
         .filter((pull): pull is NonNullable<typeof pull> => pull !== undefined),
       ports: [],
       models: [],

@@ -1,17 +1,17 @@
 import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useCallback, useState } from "react";
 import { toast } from "sonner";
 import { FileView, Preview, PreviewSource } from "@/components/file-view";
-import type { OrgId } from "@/data/api/schemas/ids";
+import { type OrgId, UserId } from "@/data/api/schemas/ids";
 import {
   driveListingAtom,
   driveWriteAtom,
   machineFileAtom,
   writeMachineFileAtom,
 } from "@/data/atoms/machine-files";
-import { organizationsAtom } from "@/data/atoms/session";
-import { Breadcrumb, BreadcrumbItem } from "@/primitives/breadcrumb";
+import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
+import { BreadcrumbItem } from "@/primitives/breadcrumb";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { CopyMachineFileDialog } from "./copy-machine-file-dialog";
@@ -68,7 +68,7 @@ export function MachinePathBody({
           aria-label="Loading file"
           className="flex flex-1 items-center justify-center p-6"
         >
-          <Icon name="dots" size="sm" className="animate-spin" />
+          <Icon name="progress-50" size="sm" className="animate-spin" />
         </div>
       );
     return (
@@ -223,6 +223,8 @@ function ConnectedBody({
   const refreshDrive = useAtomRefresh(driveAtom);
   const writeFile = useAtomSet(writeMachineFileAtom, { mode: "promiseExit" });
   const writeDrive = useAtomSet(driveWriteAtom, { mode: "promiseExit" });
+  const user = useAtomValue(currentUserAtom);
+  const userId = AsyncResult.isSuccess(user) ? user.value.id : undefined;
   const file = AsyncResult.isSuccess(fileResult)
     ? parseMachineFile(fileResult.value)
     : undefined;
@@ -233,6 +235,12 @@ function ConnectedBody({
   const copyable = file !== undefined && canCopyFile(file);
   const body = file === undefined ? undefined : copyBody(file);
   const breadcrumb = splitPath(path, machineHome);
+  const captureViewport = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (node !== null) onViewport?.(node);
+    },
+    [onViewport],
+  );
 
   const save = () => {
     if (file === undefined || saving) return;
@@ -271,10 +279,13 @@ function ConnectedBody({
     await writeDrive({
       params: { orgId },
       payload: {
-        path: drivePath,
-        ...(copyBodyValue.kind === "text"
-          ? { content: copyBodyValue.content }
-          : { contentBase64: copyBodyValue.contentBase64 }),
+        scope: userId === undefined ? {} : { userId: UserId.make(userId) },
+        expectedDigest: null,
+        changes: [
+          copyBodyValue.kind === "text"
+            ? { path: drivePath, content: copyBodyValue.content }
+            : { path: drivePath, contentBase64: copyBodyValue.contentBase64 },
+        ],
       },
       reactivityKeys: [`volume:${orgId}`],
     }).then((exit) => {
@@ -288,13 +299,13 @@ function ConnectedBody({
     <div
       data-slot="machine-path-view"
       className="relative flex min-h-0 min-w-0 flex-1 flex-col"
-      onViewportCapture={onViewport}
+      ref={captureViewport}
     >
       <div
         data-slot="machine-path-header"
         className="flex h-8 shrink-0 items-center gap-2 border-b-(length:--border-width-hairline) border-border-1 px-2 text-xs text-muted-foreground-2"
       >
-        <Breadcrumb
+        <div
           data-slot="machine-path-breadcrumb"
           className="flex min-w-0 items-center gap-1"
         >
@@ -312,7 +323,7 @@ function ConnectedBody({
           <BreadcrumbItem className="min-w-0 truncate">
             {relativePath(breadcrumb.path, workspaceRoot)}
           </BreadcrumbItem>
-        </Breadcrumb>
+        </div>
         <span
           data-slot="machine-path-actions"
           className="ml-auto flex shrink-0 items-center gap-1"

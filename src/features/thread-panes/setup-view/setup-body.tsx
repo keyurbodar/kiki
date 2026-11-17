@@ -107,7 +107,11 @@ export function BuildsSection({
     >
       {builds === undefined ? (
         <div className="flex items-center justify-center gap-2 p-4 text-xs text-muted-foreground-2">
-          <Icon name="dots" size="xs" className={dotsIcon} />
+          <Icon
+            name="progress-50"
+            size="xs"
+            className={`${dotsIcon} animate-spin`}
+          />
           Loading builds
         </div>
       ) : builds.length === 0 ? (

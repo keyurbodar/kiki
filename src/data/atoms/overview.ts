@@ -3,97 +3,46 @@ import type { OrgId } from "../api/schemas/ids.ts";
 import { ApiClient } from "../client/ApiClient.ts";
 import { queryTimeToLive } from "./conventions.ts";
 
-const key = (...parts: ReadonlyArray<string>) => parts.join("/");
+const threadKey = (orgId: OrgId, jamId: string) => `${orgId}/${jamId}`;
+const parseThreadKey = (key: string) => key.split("/") as [OrgId, string];
 
-export const overviewChildrenAtom = Atom.family((orgId: OrgId, jamId: string) =>
-  ApiClient.query("children", "list", {
+const childrenQuery = Atom.family((key: string) => {
+  const [orgId, jamId] = parseThreadKey(key);
+  return ApiClient.query("children", "list", {
     params: { orgId, jamId },
-    reactivityKeys: [key("children", orgId, jamId)],
+    reactivityKeys: [`children:${key}`],
     timeToLive: queryTimeToLive,
-  }),
-);
-
-export const overviewPullsAtom = Atom.family((orgId: OrgId, jamId: string) =>
-  ApiClient.query("pulls", "forThread", {
-    params: { orgId, jamId },
-    reactivityKeys: [key("pulls", orgId, jamId)],
-    timeToLive: queryTimeToLive,
-  }),
-);
-
-export const overviewLocalPullsAtom = Atom.family(
-  (orgId: OrgId, jamId: string) =>
-    ApiClient.query("pulls", "localPullsForThread", {
-      params: { orgId, jamId },
-      reactivityKeys: [key("local-pulls", orgId, jamId)],
-      timeToLive: queryTimeToLive,
-    }),
-);
-
-export const overviewJamsAtom = Atom.family((orgId: OrgId) =>
-  ApiClient.query("jams", "list", {
-    params: { orgId },
-    query: {},
-    reactivityKeys: [key("jams", orgId)],
-    timeToLive: queryTimeToLive,
-  }),
-);
-
-export const overviewModelsAtom = ApiClient.query("models", "list", {
-  query: {},
-  reactivityKeys: ["models"],
-  timeToLive: queryTimeToLive,
+  });
 });
 
-export const overviewGitStatusAtom = Atom.family(
-  (orgId: OrgId, jamId: string) =>
-    ApiClient.query("git", "status", {
-      params: { orgId, jamId },
-      reactivityKeys: [key("git-status", orgId, jamId)],
-      timeToLive: queryTimeToLive,
-    }),
-);
+export const overviewChildrenAtom = (orgId: OrgId, jamId: string) =>
+  childrenQuery(threadKey(orgId, jamId));
 
-export const overviewGitTurnsAtom = Atom.family((orgId: OrgId, jamId: string) =>
-  ApiClient.query("git", "turns", {
+const pullsQuery = Atom.family((key: string) => {
+  const [orgId, jamId] = parseThreadKey(key);
+  return ApiClient.query("pulls", "forThread", {
     params: { orgId, jamId },
-    reactivityKeys: [key("git-turns", orgId, jamId)],
+    reactivityKeys: [`pulls:${key}`],
     timeToLive: queryTimeToLive,
-  }),
-);
+  });
+});
 
-export const overviewMachinesAtom = Atom.family((orgId: OrgId, jamId: string) =>
-  ApiClient.query("machines", "list", {
+export const overviewPullsAtom = (orgId: OrgId, jamId: string) =>
+  pullsQuery(threadKey(orgId, jamId));
+
+const localPullsQuery = Atom.family((key: string) => {
+  const [orgId, jamId] = parseThreadKey(key);
+  return ApiClient.query("pulls", "localPullsForThread", {
     params: { orgId, jamId },
-    reactivityKeys: [key("machines", orgId, jamId)],
+    reactivityKeys: [`local-pulls:${key}`],
     timeToLive: queryTimeToLive,
-  }),
-);
+  });
+});
 
-export const overviewPortsAtom = Atom.family(
-  (orgId: OrgId, jamId: string, machineId: string) =>
-    ApiClient.query("machines", "ports", {
-      params: { orgId, jamId, machineId },
-      reactivityKeys: [key("ports", orgId, jamId, machineId)],
-      timeToLive: queryTimeToLive,
-    }),
-);
-
-export const overviewSessionsAtom = Atom.family(
-  (orgId: OrgId, jamId: string, machineId: string) =>
-    ApiClient.query("machines", "sessions", {
-      params: { orgId, jamId, machineId },
-      reactivityKeys: [key("sessions", orgId, jamId, machineId)],
-      timeToLive: queryTimeToLive,
-    }),
-);
+export const overviewLocalPullsAtom = (orgId: OrgId, jamId: string) =>
+  localPullsQuery(threadKey(orgId, jamId));
 
 export const overviewRemoveLocalPullAtom = ApiClient.mutation(
   "pulls",
   "removeLocalPull",
-);
-
-export const overviewCopyUrlAtom = ApiClient.mutation(
-  "machines",
-  "previewHandoff",
 );

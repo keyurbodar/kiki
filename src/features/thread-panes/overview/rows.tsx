@@ -13,6 +13,8 @@ import {
 import { ThreadStatus } from "@/components/thread-status";
 import {
   DiffStat,
+  LocalPullRowView,
+  localPullRowState,
   PullRequestGlyph,
   PullStateIcon,
   repoName,

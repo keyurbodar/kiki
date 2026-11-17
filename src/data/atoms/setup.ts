@@ -1,5 +1,5 @@
 import { Atom } from "effect/reactivity";
-import type { OrgId } from "../api/schemas/ids.ts";
+import { JamId, type OrgId } from "../api/schemas/ids.ts";
 import { ApiClient } from "../client/ApiClient.ts";
 import { queryTimeToLive } from "./conventions.ts";
 
@@ -19,7 +19,7 @@ const splitKey = (key: string) => key.split("/") as [OrgId, string, string];
 const threadDetailQuery = Atom.family((key: string) => {
   const [orgId, jamId] = splitKey(key);
   return ApiClient.query("jams", "get", {
-    params: { orgId, jamId },
+    params: { orgId, jamId: JamId.make(jamId) },
     reactivityKeys: [setupReactivityKeys.thread(orgId, jamId)],
     timeToLive: queryTimeToLive,
   });

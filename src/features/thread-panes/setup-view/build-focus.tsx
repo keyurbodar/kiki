@@ -101,7 +101,10 @@ export function BuildFocusView({
                     Build not found
                   </span>
                 ) : (
-                  <Icon name="dots" className={dotsIcon} />
+                  <Icon
+                    name="progress-50"
+                    className={`${dotsIcon} animate-spin`}
+                  />
                 )}
               </div>
             ) : (
