@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { VolumeScopeDirectory } from "@/data/api/schemas/drive";
-import type { VolumeId } from "@/data/api/schemas/ids";
 import { mountScope } from "../lib/mount";
 import { mergeScopePages } from "./directory";
 import { tableColumns } from "./directory-table";
