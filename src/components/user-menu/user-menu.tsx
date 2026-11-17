@@ -14,6 +14,7 @@ import {
   PlusLargeIcon,
   SettingsGearIcon,
 } from "@/components/color-theme-select";
+import { SidebarReferralMenu } from "@/components/sidebar-referral-menu";
 import type { UserProfile } from "@/data/api/schemas/user";
 import {
   currentUserAtom,
@@ -190,6 +191,7 @@ export function UserMenu({ compact = false, ...props }: UserMenuProps) {
             </span>
             Usage
           </ResponsiveMenuItem>
+          <SidebarReferralMenu />
           <ResponsiveMenuSub
             icon={<ContrastIcon />}
             label="Appearance"

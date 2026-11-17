@@ -1,9 +1,81 @@
+import { DateTime } from "effect";
+import {
+  JamId,
+  ProjectId,
+  PullRequestId,
+  UserId,
+} from "@/data/api/schemas/ids";
+import { PullRequestChip, ThreadCard } from "@/data/api/schemas/thread";
 import type { SidebarSource } from "./build-view";
 
 const at = (now: Date, hoursAgo: number) =>
   new Date(now.getTime() - hoursAgo * 60 * 60 * 1000);
 
+const previewCard = (now: Date) => {
+  const activity = DateTime.fromDateUnsafe(at(now, 0.5));
+  return new ThreadCard({
+    id: JamId.make("jam_sample_2"),
+    primaryMachine: { kind: "device", name: "workstation" },
+    title: "Add dark mode to settings",
+    titleCustom: false,
+    status: "idle",
+    archived: false,
+    archivedIdleDays: null,
+    threadNumber: 40,
+    userId: UserId.make("usr_sample_1"),
+    userType: "human",
+    takenFromUserId: null,
+    takenFromUserType: null,
+    origin: "web",
+    projectId: ProjectId.make("proj_web"),
+    slackChannel: null,
+    linearIssue: null,
+    pinned: false,
+    settledAt: null,
+    section: null,
+    member: true,
+    subscribed: true,
+    personal: false,
+    tagIds: [],
+    importing: false,
+    lastModelId: null,
+    pulls: [
+      new PullRequestChip({
+        id: PullRequestId.make("pr_sample_128"),
+        repo: "acme/web",
+        number: 128,
+        title: "Add dark mode to settings",
+        state: "ready",
+        additions: 42,
+        deletions: 7,
+        diffBreakdown: null,
+        author: "alex-sample",
+        authorAvatarUrl: "",
+        url: "https://github.com/acme/web/pull/128",
+      }),
+    ],
+    createdAt: DateTime.subtract(activity, { hours: 5 }),
+    updatedAt: activity,
+    lastActivityAt: activity,
+    preview: "Two settings screens still need the new palette.",
+    sortActivityAt: activity,
+    hasUnreads: false,
+    mentionCount: 0,
+    owed: false,
+    needsYou: false,
+    ask: null,
+    crewNeedsYou: 0,
+    participated: true,
+    crewMentionCount: 0,
+    needsYouEventId: null,
+    captain: null,
+    crewCount: 2,
+    automation: null,
+  });
+};
+
 export function sampleSidebarSource(now: Date): SidebarSource {
+  const card = previewCard(now);
   return {
     now,
     activeId: null,
@@ -25,6 +97,22 @@ export function sampleSidebarSource(now: Date): SidebarSource {
         settled: false,
         createdAt: at(now, 3),
         updatedAt: at(now, 0.1),
+      },
+      {
+        id: card.id,
+        title: card.title,
+        status: card.status,
+        needsYou: card.needsYou,
+        ask: null,
+        hasUnreads: card.hasUnreads,
+        projectId: card.projectId,
+        machine: { kind: "device", name: "workstation" },
+        settled: false,
+        createdAt: at(now, 5),
+        updatedAt: at(now, 0.5),
+        card,
+        code: "WEB-40",
+        description: "Settings needs the new palette on both screens.",
       },
     ],
     captains: [

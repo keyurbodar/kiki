@@ -2,6 +2,10 @@ import { type ComponentProps, type ReactNode, useMemo } from "react";
 import { Markdown } from "@/components/markdown";
 import type { AgentMessageRow as AgentMessageRowSchema } from "@/data/events";
 import {
+  AttachmentGallery,
+  type GalleryItem,
+} from "@/features/thread/attachment-gallery";
+import {
   BranchIcon,
   ChatBubbleIcon,
   CopyIcon,
@@ -42,11 +46,14 @@ export type AgentMessageProps = ComponentProps<"div"> & {
   row: AgentMessageRow;
   /** True while this message belongs to the live turn and text is still arriving. */
   streaming?: boolean;
+  /** Hands the clicked tile to the thread's lightbox. */
+  onOpenMedia?: (items: ReadonlyArray<GalleryItem>, index: number) => void;
 };
 
 export function AgentMessage({
   row,
   streaming = false,
+  onOpenMedia,
   className,
   ...props
 }: AgentMessageProps) {
@@ -68,6 +75,12 @@ export function AgentMessage({
           settled={row.settled && !streaming}
         />
       ))}
+      {row.files.length > 0 && (
+        <AttachmentGallery
+          entries={row.files.map(({ file, title }) => ({ file, title }))}
+          onOpenMedia={onOpenMedia}
+        />
+      )}
       {row.interrupted && <MessageStatus>Interrupted</MessageStatus>}
     </div>
   );

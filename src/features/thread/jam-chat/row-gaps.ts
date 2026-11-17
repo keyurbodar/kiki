@@ -29,27 +29,23 @@ const isDivider = (row: TimelineRow) =>
   row.type === "marker" ||
   (row.type === "user-message" && row.origin.type === "automation");
 
+/** Spacing when nothing says otherwise: only a message that opens the list leads into it. */
 export const defaultGap = (row: TimelineRow): RowGapKind =>
-  row.type === "user-message" ||
-  row.type === "marker" ||
-  (row.type === "update" && row.kind === "task" && row.outcome !== "archived")
-    ? "lead"
-    : "tight";
+  row.type === "user-message" ? "lead" : "tight";
 
 const gapBetween = (row: TimelineRow, previous?: TimelineRow): RowGapKind => {
-  if (isDivider(row) || (previous !== undefined && isDivider(previous))) {
-    return "tight";
-  }
-  if (previous === undefined || speaker(row) === undefined) {
-    return defaultGap(row);
-  }
-  return speaker(previous) === speaker(row) ? "same" : "turn";
+  if (previous === undefined) return defaultGap(row);
+  if (isDivider(row) || isDivider(previous)) return "tight";
+  const before = speaker(previous);
+  const after = speaker(row);
+  if (before === undefined || after === undefined) return "tight";
+  return before === after ? "same" : "turn";
 };
 
 /**
- * Spacing above each row and the time stamps between turns. A stamp sits
- * above the first row and above a turn that starts an hour or more after the
- * row before it.
+ * Spacing above each row and the time stamps between turns. A stamp sits above
+ * a user message that opens the list or follows the row before it by an hour
+ * or more; every other row is spaced by who spoke.
  */
 export function computeRowGaps(
   rows: readonly TimelineRow[],
@@ -57,11 +53,10 @@ export function computeRowGaps(
   return new Map(
     rows.map((row, index) => {
       const previous = rows[index - 1];
-      const opensTurn =
-        row.type === "user-message" || previous?.type === "agent-message";
+      const opensTurn = row.type === "user-message";
       const stamped =
-        previous === undefined ||
-        (opensTurn &&
+        opensTurn &&
+        (previous === undefined ||
           startedAt(row).getTime() - previous.createdAt.getTime() >= STAMP_GAP);
       return [
         rowKey(row),

@@ -10,9 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as Char91__annotationsChar93RouteImport } from './routes/[__annotations]'
+import { Route as Char91__captainDialogChar93RouteImport } from './routes/[__captain-dialog]'
 import { Route as Char91__chipsChar93RouteImport } from './routes/[__chips]'
 import { Route as Char91__composerChar93RouteImport } from './routes/[__composer]'
 import { Route as Char91__composerFooterChar93RouteImport } from './routes/[__composer-footer]'
+import { Route as Char91__markdownChar93RouteImport } from './routes/[__markdown]'
+import { Route as Char91__mediaLightboxChar93RouteImport } from './routes/[__media-lightbox]'
+import { Route as Char91__modelPickerChar93RouteImport } from './routes/[__model-picker]'
+import { Route as Char91__newThreadSelectsChar93RouteImport } from './routes/[__new-thread-selects]'
 import { Route as Char91__threadDeviceChar93RouteImport } from './routes/[__thread-device]'
 import { Route as Char91__tokensChar93RouteImport } from './routes/[__tokens]'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
@@ -181,6 +186,12 @@ const Char91__annotationsChar93Route =
     path: '/__annotations',
     getParentRoute: () => rootRouteImport,
   } as any)
+const Char91__captainDialogChar93Route =
+  Char91__captainDialogChar93RouteImport.update({
+    id: '/__captain-dialog',
+    path: '/__captain-dialog',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const Char91__chipsChar93Route = Char91__chipsChar93RouteImport.update({
   id: '/__chips',
   path: '/__chips',
@@ -195,6 +206,29 @@ const Char91__composerFooterChar93Route =
   Char91__composerFooterChar93RouteImport.update({
     id: '/__composer-footer',
     path: '/__composer-footer',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91__markdownChar93Route = Char91__markdownChar93RouteImport.update({
+  id: '/__markdown',
+  path: '/__markdown',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91__mediaLightboxChar93Route =
+  Char91__mediaLightboxChar93RouteImport.update({
+    id: '/__media-lightbox',
+    path: '/__media-lightbox',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91__modelPickerChar93Route =
+  Char91__modelPickerChar93RouteImport.update({
+    id: '/__model-picker',
+    path: '/__model-picker',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91__newThreadSelectsChar93Route =
+  Char91__newThreadSelectsChar93RouteImport.update({
+    id: '/__new-thread-selects',
+    path: '/__new-thread-selects',
     getParentRoute: () => rootRouteImport,
   } as any)
 const Char91__threadDeviceChar93Route =
@@ -1077,9 +1111,14 @@ const AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/__annotations': typeof Char91__annotationsChar93Route
+  '/__captain-dialog': typeof Char91__captainDialogChar93Route
   '/__chips': typeof Char91__chipsChar93Route
   '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__markdown': typeof Char91__markdownChar93Route
+  '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
+  '/__model-picker': typeof Char91__modelPickerChar93Route
+  '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
@@ -1242,9 +1281,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/__annotations': typeof Char91__annotationsChar93Route
+  '/__captain-dialog': typeof Char91__captainDialogChar93Route
   '/__chips': typeof Char91__chipsChar93Route
   '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__markdown': typeof Char91__markdownChar93Route
+  '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
+  '/__model-picker': typeof Char91__modelPickerChar93Route
+  '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
@@ -1407,9 +1451,14 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteRouteWithChildren
   '/_auth': typeof AuthRouteRouteWithChildren
   '/__annotations': typeof Char91__annotationsChar93Route
+  '/__captain-dialog': typeof Char91__captainDialogChar93Route
   '/__chips': typeof Char91__chipsChar93Route
   '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
+  '/__markdown': typeof Char91__markdownChar93Route
+  '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
+  '/__model-picker': typeof Char91__modelPickerChar93Route
+  '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
@@ -1575,9 +1624,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/__annotations'
+    | '/__captain-dialog'
     | '/__chips'
     | '/__composer'
     | '/__composer-footer'
+    | '/__markdown'
+    | '/__media-lightbox'
+    | '/__model-picker'
+    | '/__new-thread-selects'
     | '/__thread-device'
     | '/__tokens'
     | '/design'
@@ -1740,9 +1794,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/__annotations'
+    | '/__captain-dialog'
     | '/__chips'
     | '/__composer'
     | '/__composer-footer'
+    | '/__markdown'
+    | '/__media-lightbox'
+    | '/__model-picker'
+    | '/__new-thread-selects'
     | '/__thread-device'
     | '/__tokens'
     | '/design'
@@ -1904,9 +1963,14 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_auth'
     | '/__annotations'
+    | '/__captain-dialog'
     | '/__chips'
     | '/__composer'
     | '/__composer-footer'
+    | '/__markdown'
+    | '/__media-lightbox'
+    | '/__model-picker'
+    | '/__new-thread-selects'
     | '/__thread-device'
     | '/__tokens'
     | '/design'
@@ -2072,9 +2136,14 @@ export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   Char91__annotationsChar93Route: typeof Char91__annotationsChar93Route
+  Char91__captainDialogChar93Route: typeof Char91__captainDialogChar93Route
   Char91__chipsChar93Route: typeof Char91__chipsChar93Route
   Char91__composerChar93Route: typeof Char91__composerChar93Route
   Char91__composerFooterChar93Route: typeof Char91__composerFooterChar93Route
+  Char91__markdownChar93Route: typeof Char91__markdownChar93Route
+  Char91__mediaLightboxChar93Route: typeof Char91__mediaLightboxChar93Route
+  Char91__modelPickerChar93Route: typeof Char91__modelPickerChar93Route
+  Char91__newThreadSelectsChar93Route: typeof Char91__newThreadSelectsChar93Route
   Char91__threadDeviceChar93Route: typeof Char91__threadDeviceChar93Route
   Char91__tokensChar93Route: typeof Char91__tokensChar93Route
   DesignRoute: typeof DesignRoute
@@ -2109,6 +2178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91__annotationsChar93RouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/__captain-dialog': {
+      id: '/__captain-dialog'
+      path: '/__captain-dialog'
+      fullPath: '/__captain-dialog'
+      preLoaderRoute: typeof Char91__captainDialogChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/__chips': {
       id: '/__chips'
       path: '/__chips'
@@ -2128,6 +2204,34 @@ declare module '@tanstack/react-router' {
       path: '/__composer-footer'
       fullPath: '/__composer-footer'
       preLoaderRoute: typeof Char91__composerFooterChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__markdown': {
+      id: '/__markdown'
+      path: '/__markdown'
+      fullPath: '/__markdown'
+      preLoaderRoute: typeof Char91__markdownChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__media-lightbox': {
+      id: '/__media-lightbox'
+      path: '/__media-lightbox'
+      fullPath: '/__media-lightbox'
+      preLoaderRoute: typeof Char91__mediaLightboxChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__model-picker': {
+      id: '/__model-picker'
+      path: '/__model-picker'
+      fullPath: '/__model-picker'
+      preLoaderRoute: typeof Char91__modelPickerChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__new-thread-selects': {
+      id: '/__new-thread-selects'
+      path: '/__new-thread-selects'
+      fullPath: '/__new-thread-selects'
+      preLoaderRoute: typeof Char91__newThreadSelectsChar93RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/__thread-device': {
@@ -3604,9 +3708,14 @@ const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   AuthRouteRoute: AuthRouteRouteWithChildren,
   Char91__annotationsChar93Route: Char91__annotationsChar93Route,
+  Char91__captainDialogChar93Route: Char91__captainDialogChar93Route,
   Char91__chipsChar93Route: Char91__chipsChar93Route,
   Char91__composerChar93Route: Char91__composerChar93Route,
   Char91__composerFooterChar93Route: Char91__composerFooterChar93Route,
+  Char91__markdownChar93Route: Char91__markdownChar93Route,
+  Char91__mediaLightboxChar93Route: Char91__mediaLightboxChar93Route,
+  Char91__modelPickerChar93Route: Char91__modelPickerChar93Route,
+  Char91__newThreadSelectsChar93Route: Char91__newThreadSelectsChar93Route,
   Char91__threadDeviceChar93Route: Char91__threadDeviceChar93Route,
   Char91__tokensChar93Route: Char91__tokensChar93Route,
   DesignRoute: DesignRoute,

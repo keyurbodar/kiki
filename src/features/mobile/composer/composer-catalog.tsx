@@ -1,13 +1,20 @@
-/** Slash commands the composer menu lists, from Capy's composer command menu. */
-export type ComposerCommand = {
+import type {
+  ComposerCommand,
+  ComposerMentionKind,
+  MentionSource,
+} from "@/components/composer";
+import { MobileIcon } from "../thread/mobile-icon";
+
+/** A command the phone composer lists, from Capy's composer command menu. */
+export type MobileComposerCommand = {
   id: string;
   label: string;
   icon: string;
-  /** Typed form, shown on the right; commands without one open a submenu. */
+  /** The typed form, shown on the right; commands without one open a menu. */
   slash?: string;
 };
 
-export const composerCommands: ReadonlyArray<ComposerCommand> = [
+export const mobileComposerCommands: ReadonlyArray<MobileComposerCommand> = [
   { id: "plan", label: "Plan mode", icon: "plan", slash: "/plan" },
   { id: "model", label: "Model", icon: "agent" },
   { id: "reasoning", label: "Reasoning", icon: "brain" },
@@ -28,105 +35,102 @@ export const composerCommands: ReadonlyArray<ComposerCommand> = [
     icon: "branch-simple",
     slash: "/fork-summary",
   },
-  { id: "skills", label: "Skills", icon: "books" },
 ];
 
 /** What @ can reference, from Capy's mention menu. */
-export type MentionCategory = {
+export type MobileMentionCategory = {
   id: string;
   label: string;
   description: string;
   icon: string;
+  kind: ComposerMentionKind;
 };
 
-export const mentionCategories: ReadonlyArray<MentionCategory> = [
+export const mentionCategories: ReadonlyArray<MobileMentionCategory> = [
   {
     id: "people",
     label: "People",
     description: "Tag someone in the org",
     icon: "people",
+    kind: "user",
   },
   {
     id: "captains",
     label: "Captains",
     description: "Hand work to a Captain and its crew",
     icon: "crown",
+    kind: "captain",
   },
   {
     id: "threads",
     label: "Threads",
     description: "Reference another thread",
     icon: "thread",
+    kind: "thread",
   },
   {
     id: "pulls",
     label: "Pull requests",
     description: "Open and recent pull requests",
     icon: "pull-request",
+    kind: "pull",
   },
   {
     id: "skills",
     label: "Skills",
     description: "Skills available to the agent",
     icon: "sparkle",
+    kind: "skill",
   },
   {
     id: "plugins",
     label: "Plugins",
     description: "Plugins available to the agent",
     icon: "plugin-1",
+    kind: "plugin",
   },
   {
     id: "subagents",
     label: "Subagents",
     description: "Agents this thread spawns",
     icon: "subagents",
+    kind: "subagent",
   },
   {
     id: "devices",
     label: "Devices",
     description: "Paired computers Capy can use",
     icon: "devices",
+    kind: "device",
   },
   {
     id: "files",
     label: "Files",
     description: "Files and folders on the device",
     icon: "files",
+    kind: "file",
   },
 ];
 
-export type ComposerMenuState =
-  | { kind: "none" }
-  | { kind: "command"; query: string }
-  | { kind: "mention"; query: string; start: number };
+/** The phone's `/` menu, as the shared Composer's command list. */
+export const composerCommands = (
+  onRun: (command: MobileComposerCommand) => void,
+): ComposerCommand[] =>
+  mobileComposerCommands.map((command) => ({
+    kind: "action",
+    name: command.slash?.slice(1) ?? command.id,
+    label: command.label,
+    icon: <MobileIcon name={command.icon} />,
+    run: () => onRun(command),
+  }));
 
-/** Which menu the text before the caret opens: a leading "/word" or a trailing "@word". */
-export function composerMenuFor(text: string): ComposerMenuState {
-  const command = /^\/(\S*)$/.exec(text);
-  if (command) return { kind: "command", query: command[1] ?? "" };
-  const mention = /(^|\s)@(\S*)$/.exec(text);
-  if (mention)
-    return {
-      kind: "mention",
-      query: mention[2] ?? "",
-      start: mention.index + (mention[1] ?? "").length,
-    };
-  return { kind: "none" };
-}
-
-export const filterCommands = (query: string) => {
-  const needle = query.toLowerCase();
-  return composerCommands.filter(
-    (command) =>
-      command.label.toLowerCase().includes(needle) ||
-      command.id.includes(needle),
-  );
-};
-
-export const filterMentions = (query: string) => {
-  const needle = query.toLowerCase();
-  return mentionCategories.filter((category) =>
-    category.label.toLowerCase().includes(needle),
-  );
-};
+/** The phone's `@` menu, as the shared Composer's mention sources. */
+export const mentionSources = (): MentionSource[] =>
+  mentionCategories.map((category) => ({
+    category: category.id,
+    kind: category.kind,
+    label: category.label,
+    description: category.description,
+    icon: () => <MobileIcon name={category.icon} />,
+    search: () => [],
+  }));

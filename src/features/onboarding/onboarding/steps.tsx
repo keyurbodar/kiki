@@ -318,12 +318,12 @@ export function GitHubStep({
               data-track-owner={`${githubOwner}:Button[onClick=install]`}
               intent="accent"
               size="base"
-              disabled={installing}
-              aria-busy={installing}
+              loading={installing}
+              loadingLabel="Opening GitHub"
               onClick={onInstall}
             >
               <Icon name="github" size="sm" />
-              {installing ? "Opening GitHub" : "Connect GitHub"}
+              Connect GitHub
               <StepKey />
             </Button>
           )
@@ -554,8 +554,9 @@ export function RecommendedStep({
             data-track-owner={`${recommendedOwner}#InvitePage:Button[Send invitations]`}
             intent="accent"
             size="base"
-            disabled={emails.trim() === "" || invite.busy}
-            aria-busy={invite.busy}
+            disabled={emails.trim() === ""}
+            loading={invite.busy}
+            loadingLabel="Sending"
             onClick={() =>
               invite.send(emails).then((done) => {
                 setEmails("");
@@ -563,7 +564,7 @@ export function RecommendedStep({
               })
             }
           >
-            {invite.busy ? "Sending" : "Send invitations"}
+            Send invitations
             <StepKey />
           </Button>
         }
@@ -758,11 +759,11 @@ export function RecommendedStep({
               data-track-owner={`${recommendedOwner}#RecommendedStep:Button[onClick=onFinish].2`}
               intent="accent"
               size="base"
-              disabled={finishBusy}
-              aria-busy={finishBusy}
+              loading={finishBusy}
+              loadingLabel="Finishing"
               onClick={onFinish}
             >
-              {finishBusy ? "Finishing" : finishLabel}
+              {finishLabel}
               <StepKey mod />
             </Button>
           }

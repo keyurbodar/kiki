@@ -57,8 +57,7 @@ export function NotMePage({ token }: { token?: string | undefined }) {
           intent="danger"
           size="base"
           className="w-full"
-          disabled={state === "sending"}
-          aria-busy={state === "sending" || undefined}
+          loading={state === "sending"}
           onClick={() => {
             setState("sending");
             setError(null);

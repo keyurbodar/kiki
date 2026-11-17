@@ -10,9 +10,10 @@ import {
   chipTransform,
   MarkdownChipRenderer,
 } from "@/components/markdown-chips";
+import { MarkdownGallery } from "./gallery";
 import { MarkdownMermaid } from "./mermaid";
-import { MarkdownGallery, MarkdownVideo } from "./parts";
 import type { MarkdownTreeTransform } from "./pipeline";
+import { MarkdownVideo } from "./video";
 
 export type MarkdownMermaidProps = { text: string; complete: boolean };
 
@@ -61,12 +62,8 @@ function DefaultGallery({ children }: { children?: ReactNode }) {
   return <MarkdownGallery>{children}</MarkdownGallery>;
 }
 
-function DefaultVideo(props: ComponentProps<"video">) {
-  return (
-    <MarkdownVideo>
-      <video {...props} />
-    </MarkdownVideo>
-  );
+function DefaultVideo({ src, title }: ComponentProps<"video">) {
+  return <MarkdownVideo src={src} title={title} />;
 }
 
 function DefaultImage(props: ComponentProps<"img">) {

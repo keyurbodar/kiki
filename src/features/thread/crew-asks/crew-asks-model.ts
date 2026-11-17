@@ -61,6 +61,16 @@ export const groupCrewAsks = (
 
 export type DismissBatch = { threadIds: Set<string>; keys: Set<string> };
 
+export type CrewAsksDismiss = (batch: {
+  threadIds: string[];
+  keys: string[];
+}) => Promise<readonly CrewAskKey[]>;
+
+export type CrewAsksDismissal = {
+  dismissed: CrewAskKey[];
+  failed: boolean;
+};
+
 export const batchDismissals = (asks: readonly CrewAskKey[]) =>
   asks.reduce<DismissBatch[]>((batches, ask) => {
     const last = batches.at(-1);
@@ -80,6 +90,26 @@ export const batchDismissals = (asks: readonly CrewAskKey[]) =>
     });
     return batches;
   }, []);
+
+export const dismissCrewAsks = async (
+  asks: readonly CrewAskKey[],
+  onDismiss: CrewAsksDismiss,
+): Promise<CrewAsksDismissal> => {
+  const dismissed: CrewAskKey[] = [];
+  for (const batch of batchDismissals(asks)) {
+    try {
+      dismissed.push(
+        ...(await onDismiss({
+          threadIds: [...batch.threadIds],
+          keys: [...batch.keys],
+        })),
+      );
+    } catch {
+      return { dismissed, failed: true };
+    }
+  }
+  return { dismissed, failed: false };
+};
 
 export const crewAsksLabel = (count: number) =>
   count === 1 ? "1 crew ask" : `${count} crew asks`;

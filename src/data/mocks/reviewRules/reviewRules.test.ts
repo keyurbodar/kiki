@@ -86,4 +86,41 @@ describe("reviewRules mock", () => {
       assert.isTrue(deleted.deleted);
     }),
   );
+
+  it.effect("clears a rule body when the editor sends an empty string", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      registry.set(create, {
+        params: { orgId },
+        payload: {
+          body: "Replace this description",
+          scopes: [{ repo: null, paths: [] }],
+        },
+        reactivityKeys: [key],
+      });
+      const created = (yield* AtomRegistry.getResult(registry, create)) as {
+        rule: Rule;
+      };
+      registry.set(update, {
+        params: { orgId, id: created.rule.id },
+        payload: { body: "" },
+        reactivityKeys: [key],
+      });
+      const updated = (yield* AtomRegistry.getResult(registry, update)) as {
+        rule: Rule;
+      };
+      assert.equal(updated.rule.body, "");
+
+      const read = (yield* AtomRegistry.getResult(
+        registry,
+        getAtom(created.rule.id),
+      )) as { rule: Rule };
+      assert.equal(read.rule.body, "");
+
+      registry.set(remove, {
+        params: { orgId, id: created.rule.id },
+        reactivityKeys: [key],
+      });
+    }),
+  );
 });

@@ -2,7 +2,7 @@ import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
-import { orgId, projects } from "../fixtures/world.ts";
+import { orgId, people, projects } from "../fixtures/world.ts";
 
 interface Automation {
   readonly id: string;
@@ -198,6 +198,92 @@ describe("automations mock", () => {
         ).map((row) => row.id),
         created.id,
       );
+    }),
+  );
+});
+
+describe("automation editor fields", () => {
+  it.effect("keeps the fields the client sends and echoes them", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const create = ApiClient.mutation("automations", "create");
+      registry.set(create, {
+        params: { orgId },
+        payload: {
+          name: "Nightly triage",
+          description: "Runs after the on-call handover.",
+          prompt: "Read new issues, group them and post a summary.",
+          projectId: "proj_sample_web",
+          enabled: false,
+          triggers: [{ type: "schedule", cron: "0 3 * * *", timezone: "UTC" }],
+          threadMode: "single",
+          singleJamId: "jam_sample_0001",
+          runAsKind: "service",
+          runAsId: "svc_sample_release",
+          slackImpersonation: true,
+          quietSlackPosts: true,
+          maxRunsPerDay: 4,
+          machineSize: "medium",
+          model: { id: "anthropic/claude-opus", reasoning: "high" },
+          organize: { pin: true, tags: ["tag_sample_urgent"] },
+          creator: "Sam Rivera",
+          creatorUserId: people.sam.id,
+        },
+        reactivityKeys: [],
+      } as never);
+      const created = (yield* AtomRegistry.getResult(registry, create)) as {
+        id: string;
+        description: string | null;
+        prompt: string;
+        triggers: ReadonlyArray<{
+          type?: string;
+          cron?: string;
+          timezone?: string;
+        }>;
+        threadMode: string;
+        singleJamId: string | null;
+        runAsKind: string;
+        runAsId: string;
+        maxRunsPerDay: number | null;
+        creator: string;
+      };
+      assert.strictEqual(
+        created.prompt,
+        "Read new issues, group them and post a summary.",
+      );
+      assert.strictEqual(created.threadMode, "single");
+      assert.strictEqual(created.singleJamId, "jam_sample_0001");
+      assert.strictEqual(created.runAsKind, "service");
+      assert.strictEqual(created.runAsId, "svc_sample_release");
+      assert.strictEqual(created.maxRunsPerDay, 4);
+      assert.strictEqual(created.creator, "Sam Rivera");
+      assert.deepStrictEqual(created.triggers, [
+        { type: "schedule", cron: "0 3 * * *", timezone: "UTC" },
+      ]);
+
+      const update = ApiClient.mutation("automations", "update");
+      registry.set(update, {
+        params: { orgId, automationId: created.id },
+        payload: {
+          prompt: "Post a shorter summary.",
+          triggers: [{ type: "github", event: "pull_request.opened" }],
+          threadMode: "new",
+          singleJamId: null,
+        },
+        reactivityKeys: [],
+      } as never);
+      const updated = (yield* AtomRegistry.getResult(registry, update)) as {
+        prompt: string;
+        triggers: ReadonlyArray<{ type?: string; event?: string }>;
+        threadMode: string;
+        singleJamId: string | null;
+      };
+      assert.strictEqual(updated.prompt, "Post a shorter summary.");
+      assert.strictEqual(updated.threadMode, "new");
+      assert.isNull(updated.singleJamId);
+      assert.deepStrictEqual(updated.triggers, [
+        { type: "github", event: "pull_request.opened" },
+      ]);
     }),
   );
 });

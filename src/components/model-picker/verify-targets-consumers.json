@@ -1,0 +1,43 @@
+{
+  "matrix": {
+    "scheme": ["dark", "light"]
+  },
+  "defaults": {
+    "maxMismatch": 2
+  },
+  "targets": [
+    {
+      "id": "automation-editor-model-picker",
+      "route": "/automation/auto_sample_deps",
+      "state": "the editor's own trigger opens the picker with the rail and the card",
+      "viewport": "1440x900",
+      "steps": [
+        ["wait", "[aria-label=Model]"],
+        ["click", "[aria-label=Model]"],
+        ["wait", "[data-slot=popover-content]"],
+        ["press", "ArrowDown"],
+        ["wait", "[data-slot=picker-lab-card]"]
+      ],
+      "capture": {
+        "[data-slot=popover-content]": ["width", "background-color"],
+        "[data-slot=picker-lab-rail]": ["width", "opacity"],
+        "[data-slot=picker-lab-card]": ["width", "background-color"],
+        "[role=listbox] [role=option]": ["height"]
+      },
+      "expect": {
+        "[data-slot=popover-content]": {
+          "width": "320px"
+        },
+        "[data-slot=picker-lab-rail]": {
+          "width": "37px"
+        },
+        "[data-slot=picker-lab-card]": {
+          "width": "288px"
+        },
+        "[role=listbox] [role=option]": {
+          "height": "28px"
+        }
+      }
+    }
+  ]
+}

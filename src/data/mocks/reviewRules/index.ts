@@ -117,7 +117,7 @@ export const ReviewRulesMock = mockGroup("reviewRules", (handlers) =>
           const input = fields(payload);
           const updated: ReviewRule = {
             ...current,
-            body: text(input.body) ?? current.body,
+            body: typeof input.body === "string" ? input.body : current.body,
             scopes: scopesOf(input.scopes) ?? current.scopes,
             file:
               fileOf(input.file) ?? (input.file === null ? null : current.file),

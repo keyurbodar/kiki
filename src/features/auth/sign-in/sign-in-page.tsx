@@ -3,7 +3,6 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { type FormEvent, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
@@ -117,10 +116,7 @@ export function SignInPage({
       });
   };
 
-  const sendCode = () =>
-    run({ kind: "send-email-code", email }).then((result) => {
-      if (result?.kind === "step") toast.success("Verification code sent");
-    });
+  const sendCode = () => run({ kind: "send-email-code", email });
 
   const startPasskey = () => {
     passkeyCancelled.current = false;
@@ -171,8 +167,7 @@ export function SignInPage({
       intent="accent"
       size="base"
       className="w-full"
-      disabled={submitting}
-      aria-busy={submitting || undefined}
+      loading={submitting}
     >
       Continue
     </Button>
@@ -203,7 +198,7 @@ export function SignInPage({
           />
           {waitingForPasskey ? (
             <div className="flex w-full flex-col gap-2">
-              <Button size="base" className="w-full" disabled aria-busy>
+              <Button size="base" className="w-full" loading>
                 Waiting for your passkey
               </Button>
               <Button
@@ -268,8 +263,7 @@ export function SignInPage({
                   intent={passkeyFirst ? undefined : "accent"}
                   size="base"
                   className="w-full"
-                  disabled={submitting}
-                  aria-busy={submitting || undefined}
+                  loading={submitting}
                 >
                   Continue
                 </Button>
@@ -332,8 +326,7 @@ export function SignInPage({
               intent="accent"
               size="base"
               className="w-full"
-              disabled={submitting}
-              aria-busy={submitting || undefined}
+              loading={submitting}
             >
               Sign in
             </Button>
@@ -414,8 +407,8 @@ export function SignInPage({
               intent="accent"
               size="base"
               className="w-full"
-              disabled={submitting || code.trim() === ""}
-              aria-busy={submitting || undefined}
+              disabled={code.trim() === ""}
+              loading={submitting}
             >
               Continue
             </Button>
@@ -517,8 +510,7 @@ export function SignInPage({
               intent="accent"
               size="base"
               className="w-full"
-              disabled={submitting}
-              aria-busy={submitting || undefined}
+              loading={submitting}
             >
               Update password
             </Button>

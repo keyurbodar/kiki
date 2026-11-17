@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
+import { fields, type JamRow, MockDb, missing, newId } from "../db/MockDb.ts";
 import { isoMinutesAgo, people, projects, threads } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
@@ -59,7 +59,7 @@ const threadChip = (threadId: string | null) => {
 
 export const PullsMock = mockGroup("pulls", (handlers) =>
   Effect.gen(function* () {
-    const { issueLabels, pulls } = yield* MockDb;
+    const { issueLabels, jams, pulls } = yield* MockDb;
     const localPulls = yield* Ref.make([
       { ...defaultLocalPull, threadId: threads.checkoutTest.id },
       {
@@ -81,7 +81,9 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
     const labels = yield* Ref.make<
       ReadonlyArray<{ id: string; name: string; color: string }>
     >([...pullLabels]);
-    const linkedThreads = yield* Ref.make([...pullThreads]);
+    const linkedThreads = yield* Ref.make<ReadonlyArray<JamRow>>([
+      ...pullThreads,
+    ]);
     const viewedFiles = yield* Ref.make([...viewedPullFiles]);
 
     const findPull = (pullId: string) =>
@@ -600,7 +602,7 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
           const jamId = text(fields(payload).jamId) ?? threads.paginate.id;
           const current = yield* Ref.get(linkedThreads);
           if (current.some((item) => item.id === jamId)) return current;
-          const thread = Object.values(threads).find(
+          const thread = (yield* Ref.get(jams)).find(
             (candidate) => candidate.id === jamId,
           );
           if (!thread) {

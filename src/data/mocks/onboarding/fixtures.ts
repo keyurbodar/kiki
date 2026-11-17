@@ -1,13 +1,13 @@
 export const onboardingSteps = [
-  "create-organization",
-  "rename-organization",
   "connect-github",
-  "set-appearance",
-  "invite-team",
+  "connect-slack",
+  "invite-teammate",
+  "set-up-environment",
+  "ship-pr",
 ] as const;
 
 export const sampleOnboardingState = {
   dismissed: false,
-  completedSteps: ["create-organization", "rename-organization"],
-  skippedSteps: ["set-appearance"],
+  completedSteps: ["connect-github"],
+  skippedSteps: ["ship-pr"],
 } as const;

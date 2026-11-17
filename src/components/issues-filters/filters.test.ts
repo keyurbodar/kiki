@@ -27,6 +27,9 @@ describe("issue filter views", () => {
 
   it("uses Capy's empty copy", () => {
     expect(issueEmptyText("assigned", "")).toBe("Nothing assigned to you");
+    expect(issueEmptyText("created", "")).toBe(
+      "You haven't created an issue yet",
+    );
     expect(issueEmptyText(undefined, "")).toBe("No issues match these filters");
     expect(issueEmptyText("all", "retry")).toBe("No matching issues");
   });

@@ -54,6 +54,18 @@ it("spaces speaker changes wider than runs from one speaker", () => {
   expect(gaps.get("w1")?.gap).toBe("tight");
 });
 
+it("spaces a message after a work group like any other row", () => {
+  const gaps = computeRowGaps([user("u1", 0), work("w1", 1), agent("a1", 2)]);
+  expect(gaps.get("a1")?.gap).toBe("tight");
+});
+
+it("only stamps above a message the user sent", () => {
+  const rows = [user("u1", 0), work("w1", 1), agent("a1", 70), user("u2", 140)];
+  const gaps = computeRowGaps(rows);
+  expect(gaps.get("a1")).toEqual({ gap: "tight", stamp: undefined });
+  expect(gaps.get("u2")).toEqual({ gap: "stamp", stamp: at(140) });
+});
+
 it("keeps rows around markers tight", () => {
   const gaps = computeRowGaps([user("u1", 0), marker("m1", 1), agent("a1", 2)]);
   expect(gaps.get("m1")?.gap).toBe("tight");

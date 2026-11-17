@@ -320,6 +320,14 @@ export const describeCapyCredits = (credential: Credential) => {
     : `Serves models nothing else serves, except ${left.join(", ")} models`;
 };
 
+const carriesMetadata = (setting: ModelSetting) =>
+  setting.name !== undefined ||
+  setting.providerModelId !== undefined ||
+  setting.context !== undefined ||
+  setting.output !== undefined ||
+  setting.reasoning !== undefined ||
+  setting.images !== undefined;
+
 export const applyTick = (
   models: ReadonlyArray<ModelSetting>,
   allModels: boolean,
@@ -332,18 +340,18 @@ export const applyTick = (
   );
   const wildcard = labWildcard(change.lab);
   if (change.model === undefined) {
-    const rest = models.filter(
-      (m) =>
-        m.model !== wildcard &&
-        !(
-          labModels.has(m.model) &&
-          m.name === undefined &&
-          m.providerModelId === undefined
-        ),
-    );
+    const kept = models
+      .filter((m) => m.model !== wildcard)
+      .flatMap((m): Array<ModelSetting> => {
+        if (!labModels.has(m.model)) return [m];
+        const { excluded: _excluded, ...rest } = m;
+        if (carriesMetadata(m))
+          return [change.ticked ? rest : { ...rest, excluded: true }];
+        return [];
+      });
     return change.ticked === allModels
-      ? rest
-      : [...rest, { model: wildcard, excluded: !change.ticked }];
+      ? kept
+      : [...kept, { model: wildcard, excluded: !change.ticked }];
   }
   const labTicked = lab?.ticked ?? allModels;
   const existing = models.find((m) => m.model === change.model);

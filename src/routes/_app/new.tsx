@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { HomePage } from "@/features/home/home-page";
 import { MobileNewThread, useIsNarrow } from "@/features/mobile";
 import { searchParams } from "@/lib/search-params";
 
@@ -10,6 +10,7 @@ export const Route = createFileRoute("/_app/new")({
 
 function RouteComponent() {
   const isNarrow = useIsNarrow();
+  const { prompt } = Route.useSearch();
   if (isNarrow) return <MobileNewThread />;
-  return <RoutePlaceholder title="Capy" path="/new" />;
+  return <HomePage prompt={prompt} />;
 }

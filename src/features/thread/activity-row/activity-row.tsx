@@ -41,7 +41,7 @@ export type RowLabelProps = { text: string; live: boolean };
 
 export function RowLabel({ text, live }: RowLabelProps) {
   return (
-    <span className="inline-grid min-w-0 align-baseline">
+    <span className="inline-grid min-w-0 truncate tabular-nums [&>*]:col-start-1 [&>*]:row-start-1">
       <ShimmerText
         data-state={live ? "live" : "rest"}
         className="text-shimmer truncate"
@@ -59,17 +59,21 @@ type RowProps = {
   defaultOpen?: boolean;
 };
 
+const head = (label: ReactNode, trailing?: ReactNode) => (
+  <span className="flex min-w-0 items-baseline tabular-nums">
+    <span className="min-w-0 truncate">{label}</span>
+    {trailing}
+  </span>
+);
+
 function Row({ label, trailing, panel: body, defaultOpen }: RowProps) {
-  const head = (
-    <span className="flex min-w-0 items-baseline tabular-nums">
-      <span className="min-w-0 truncate">{label}</span>
-      {trailing}
-    </span>
-  );
   if (body === undefined) {
     return (
       <Collapsible data-closed="">
-        <div className={rowStatic}>{head}</div>
+        <div className={rowStatic}>
+          {label}
+          {trailing}
+        </div>
       </Collapsible>
     );
   }
@@ -78,9 +82,11 @@ function Row({ label, trailing, panel: body, defaultOpen }: RowProps) {
       <CollapsibleTrigger
         nativeButton={false}
         render={<div />}
+        showChevron={false}
         className={rowTrigger}
       >
-        {head}
+        {label}
+        {trailing}
         <ChevronDownSmall />
       </CollapsibleTrigger>
       <CollapsiblePanel className={panel}>{body}</CollapsiblePanel>
@@ -124,8 +130,10 @@ function ReasoningLine({
     );
   return (
     <Row
-      label={<RowLabel text={live ? "Thinking" : "Thought"} live={live} />}
-      trailing={trailing}
+      label={head(
+        <RowLabel text={live ? "Thinking" : "Thought"} live={live} />,
+        trailing,
+      )}
       panel={live ? undefined : quote}
     />
   );
@@ -135,13 +143,28 @@ function liveClock(row: ToolRow) {
   return row.phase === "running" || row.phase === "forming";
 }
 
+const toolClock =
+  "shrink-0 text-muted-foreground-2 tabular-nums motion-safe:transition-opacity motion-safe:duration-fast motion-safe:ease-out-quint motion-safe:starting:opacity-0";
+
+/** How long a settled call ran, when Capy would show it beside the label. */
+function settledMs(row: ToolRow) {
+  if (row.untimed || row.result === undefined || row.startedAt === undefined) {
+    return undefined;
+  }
+  const ms = row.result.settledAt.getTime() - row.startedAt.getTime();
+  return ms >= 1000 ? ms : undefined;
+}
+
 function ToolLine({ row, open }: { row: ToolRow; open?: boolean }) {
   const live = liveClock(row);
   const ask = row.ask === undefined ? undefined : ASK_LABELS[row.ask];
+  const done = settledMs(row);
   const trailing = ask ? (
-    <span className="shrink-0 pl-1.5 text-muted-foreground-2">{ask}</span>
+    <span className={toolClock}>{ask}</span>
   ) : live && !row.untimed ? (
     <LiveSeconds startedAt={row.startedAt} />
+  ) : done !== undefined ? (
+    <span className={toolClock}>{formatDuration(done)}</span>
   ) : undefined;
   return (
     <Row
@@ -157,12 +180,7 @@ function LiveSeconds({ startedAt }: { startedAt?: Date }) {
   const ms = useElapsedMs(startedAt, true);
   if (ms === undefined) return null;
   return (
-    <span
-      className={cx(
-        "shrink-0 pl-1.5 text-muted-foreground-2 tabular-nums",
-        elapsedEnter,
-      )}
-    >
+    <span className={cx(toolClock, elapsedEnter)}>
       <RollingNumber value={formatDuration(Math.max(1000, ms))} />
     </span>
   );
@@ -191,7 +209,7 @@ export function ActivityRow({ row, open }: ActivityRowProps) {
       return (
         <Row
           label={
-            <span className="truncate">
+            <span className="min-w-0 truncate">
               {row.toModel === undefined
                 ? `Switched providers from ${row.provider}`
                 : `Switched to ${row.toModel}`}
@@ -200,6 +218,8 @@ export function ActivityRow({ row, open }: ActivityRowProps) {
         />
       );
     case "wire":
-      return <Row label={<span className="truncate">{row.text}</span>} />;
+      return (
+        <Row label={<span className="min-w-0 truncate">{row.text}</span>} />
+      );
   }
 }

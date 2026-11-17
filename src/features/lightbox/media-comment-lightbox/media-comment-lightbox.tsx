@@ -1,5 +1,10 @@
 import { createContext, type ReactNode, useContext } from "react";
 import {
+  MediaLightbox,
+  MediaLightboxFrameContext,
+  type MediaLightboxProps,
+} from "@/components/media-lightbox";
+import {
   MediaCommentBadge,
   type MediaCommentDeliver,
   MediaCommentLayer,
@@ -28,7 +33,13 @@ export const MediaFrameActionsContext = createContext<
 
 export const useMediaFrameActions = () => useContext(MediaFrameActionsContext);
 
-export type MediaLightboxSlots<Entry> = {
+type LightboxEntry = {
+  key: string;
+  label: string;
+  kind: "image" | "video";
+};
+
+export type MediaLightboxSlots<Entry extends LightboxEntry> = {
   entries: Entry[];
   index: number;
   onIndexChange: (index: number) => void;
@@ -38,24 +49,30 @@ export type MediaLightboxSlots<Entry> = {
   renderThumbnail: (entry: Entry) => ReactNode;
   renderActions: (entry: Entry) => ReactNode;
   aside: ReactNode;
+  overlay: ReactNode;
 };
 
-export type MediaCommentLightboxProps<Entry extends { key: string }> = {
-  entries: Entry[];
-  index: number;
-  onIndexChange: (index: number) => void;
-  onClose: () => void;
+export type MediaCommentLightboxProps<Entry extends LightboxEntry> = Omit<
+  MediaLightboxProps<Entry>,
+  | "renderMedia"
+  | "renderThumbnail"
+  | "renderActions"
+  | "aside"
+  | "overlay"
+  | "onEscape"
+> & {
   targetOf: (entry: Entry) => MediaCommentTarget | undefined;
   renderMedia: (entry: Entry) => ReactNode;
   renderThumbnail: (entry: Entry) => ReactNode;
   renderActions?: (entry: Entry) => ReactNode;
+  overlay?: (entry: Entry) => ReactNode;
   composer?: MediaCommentHome;
   home?: MediaCommentHome;
   sent?: { comments: MediaCommentSent[]; at?: number };
-  lightbox: (slots: MediaLightboxSlots<Entry>) => ReactNode;
+  lightbox?: (slots: MediaLightboxSlots<Entry>) => ReactNode;
 };
 
-export function MediaCommentLightbox<Entry extends { key: string }>({
+export function MediaCommentLightbox<Entry extends LightboxEntry>({
   entries,
   index,
   onIndexChange,
@@ -64,10 +81,12 @@ export function MediaCommentLightbox<Entry extends { key: string }>({
   renderMedia,
   renderThumbnail,
   renderActions,
+  overlay,
   composer,
   home,
   sent,
   lightbox,
+  ...rest
 }: MediaCommentLightboxProps<Entry>) {
   const ambient = useContext(MediaCommentHomeContext);
   const source = composer ?? home ?? ambient;
@@ -95,52 +114,66 @@ export function MediaCommentLightbox<Entry extends { key: string }>({
     !session.sending
       ? () => session.send("insert")
       : onClose;
+  const current = entries[index];
+  const slots: MediaLightboxSlots<Entry> = {
+    entries,
+    index,
+    onIndexChange,
+    onClose: close,
+    onEscape: session.escape,
+    renderMedia: (entry) => {
+      const target = targetOf(entry);
+      return active === undefined || target === undefined ? (
+        renderMedia(entry)
+      ) : (
+        <MediaCommentLayer key={entry.key} session={active} target={target}>
+          {renderMedia(entry)}
+        </MediaCommentLayer>
+      );
+    },
+    renderThumbnail: (entry) => {
+      const target = targetOf(entry);
+      return (
+        <>
+          {renderThumbnail(entry)}
+          {active === undefined || target === undefined ? null : (
+            <MediaCommentBadge session={active} fileId={target.fileId} />
+          )}
+        </>
+      );
+    },
+    renderActions: (entry) => (
+      <>
+        {active === undefined ? null : <MediaCommentTools session={active} />}
+        {renderActions?.(entry)}
+      </>
+    ),
+    aside: active?.panelOpen ? <MediaCommentPanel session={active} /> : null,
+    overlay: current === undefined ? null : (overlay?.(current) ?? null),
+  };
+
   return (
     <MediaCommentSessionContext.Provider value={active}>
       <MediaFrameActionsContext.Provider value={frameActions}>
-        {lightbox({
-          entries,
-          index,
-          onIndexChange,
-          onClose: close,
-          onEscape: session.escape,
-          renderMedia: (entry) => {
-            const target = targetOf(entry);
-            return active === undefined || target === undefined ? (
-              renderMedia(entry)
-            ) : (
-              <MediaCommentLayer
-                key={entry.key}
-                session={active}
-                target={target}
-              >
-                {renderMedia(entry)}
-              </MediaCommentLayer>
-            );
-          },
-          renderThumbnail: (entry) => {
-            const target = targetOf(entry);
-            return (
-              <>
-                {renderThumbnail(entry)}
-                {active === undefined || target === undefined ? null : (
-                  <MediaCommentBadge session={active} fileId={target.fileId} />
-                )}
-              </>
-            );
-          },
-          renderActions: (entry) => (
-            <>
-              {active === undefined ? null : (
-                <MediaCommentTools session={active} />
-              )}
-              {renderActions?.(entry)}
-            </>
-          ),
-          aside: active?.panelOpen ? (
-            <MediaCommentPanel session={active} />
-          ) : null,
-        })}
+        {lightbox ? (
+          lightbox(slots)
+        ) : (
+          <MediaLightboxFrameContext.Provider value={frameActions}>
+            <MediaLightbox
+              {...rest}
+              entries={entries}
+              index={index}
+              onIndexChange={slots.onIndexChange}
+              onClose={slots.onClose}
+              onEscape={slots.onEscape}
+              renderMedia={slots.renderMedia}
+              renderThumbnail={slots.renderThumbnail}
+              renderActions={slots.renderActions}
+              aside={slots.aside}
+              overlay={slots.overlay}
+            />
+          </MediaLightboxFrameContext.Provider>
+        )}
       </MediaFrameActionsContext.Provider>
     </MediaCommentSessionContext.Provider>
   );

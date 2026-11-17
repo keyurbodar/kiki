@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
+import "@/components/markdown/markdown.css";
+import { CodeBlock } from "@/components/markdown/code-block";
 import { Button } from "@/primitives/button";
-import { CopyField } from "@/primitives/copy-field";
 import {
   Dialog,
   DialogContent,
@@ -9,43 +10,25 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/primitives/dialog";
-import { cx } from "../shared";
+import { CopyValue as SharedCopyValue } from "../shared/copy-value";
 
-export function CodeBlock({
-  text,
-  language,
-  blockKey,
-}: {
-  text: string;
-  language: string;
-  blockKey: string;
-}) {
-  return (
-    <pre
-      data-slot="code-block"
-      data-language={language}
-      data-block-key={blockKey}
-    >
-      <code>{text}</code>
-    </pre>
-  );
-}
+export { CodeBlock };
 
 export function CopyValue({
-  value,
-  label,
   className,
+  label,
+  value,
 }: {
-  value: string;
-  label: string;
   className?: string;
+  label: string;
+  value: string;
 }) {
   return (
-    <CopyField
-      value={value}
+    <SharedCopyValue
+      className={className}
       label={label}
       size="sm"
-      className={cx("relative flex min-w-0", className)}
+      value={value}
     />
   );
 }

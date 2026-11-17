@@ -10,8 +10,6 @@ import {
   PaletteHint,
   paletteSeparatorClass,
 } from "@/components/command-menu-search";
-import { Composer } from "@/components/composer";
-import { ProjectSelect } from "@/components/project-select";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 
@@ -113,10 +111,7 @@ export function CommandMenuCompose({
       {...props}
     >
       <div className={composeHeaderClass}>
-        <ProjectSelect
-          data-slot="project-select"
-          className="flex min-w-0 items-center"
-        >
+        <div data-slot="project-select" className="flex min-w-0 items-center">
           <select
             aria-label="Project"
             className="h-(--h-control-sm) max-w-48 cursor-pointer truncate rounded bg-transparent text-sm font-medium text-foreground outline-none"
@@ -137,7 +132,7 @@ export function CommandMenuCompose({
               </option>
             ))}
           </select>
-        </ProjectSelect>
+        </div>
         <Icon
           name="chevron-right"
           size="sm"
@@ -167,7 +162,7 @@ export function CommandMenuCompose({
       </div>
       <div className={paletteSeparatorClass} />
       <div className={composeBodyClass}>
-        <Composer>
+        <div data-slot="composer">
           <textarea
             ref={editor}
             // biome-ignore lint/a11y/noAutofocus: the compose view focuses its editor when it opens
@@ -185,7 +180,7 @@ export function CommandMenuCompose({
               }
             }}
           />
-        </Composer>
+        </div>
       </div>
       {footer?.(
         <>
