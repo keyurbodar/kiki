@@ -1,5 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { entriesEmptyText, matchesQuery, visibleEntries } from "./match";
+import { showsSideThreadsPage } from "./side-threads-page";
+
+describe("showsSideThreadsPage", () => {
+  it("shows the page for a blank or whitespace query", () => {
+    expect(showsSideThreadsPage("", 0, false)).toBe(true);
+    expect(showsSideThreadsPage("   ", 0, false)).toBe(true);
+  });
+
+  it("hides it when nothing matches", () => {
+    expect(showsSideThreadsPage("deploy", 0, false)).toBe(false);
+    expect(showsSideThreadsPage("side", 0, true)).toBe(true);
+    expect(showsSideThreadsPage("deploy", 2, false)).toBe(true);
+  });
+});
 
 describe("matchesQuery", () => {
   it("matches everything for a blank query", () => {
