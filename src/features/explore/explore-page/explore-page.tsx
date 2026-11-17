@@ -1,6 +1,6 @@
 import { useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
-import { Option } from "effect";
+import { DateTime, Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import type { ReactNode } from "react";
 import type { ExploreCard } from "@/data/api/schemas/explore";
@@ -158,8 +158,13 @@ function matchesSearch(
   );
 }
 
-const toDate = (value: unknown): Date | null =>
-  value instanceof Date ? value : null;
+const toDate = (value: unknown): Date | null => {
+  if (value instanceof Date) return value;
+  if (DateTime.isDateTime(value)) return DateTime.toDate(value);
+  if (typeof value === "string" || typeof value === "number")
+    return new Date(value);
+  return null;
+};
 
 const toListingCard = (card: ExploreCard | ThemeListingCard): ListingCard => ({
   kind: card.kind,
