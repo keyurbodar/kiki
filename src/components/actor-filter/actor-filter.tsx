@@ -67,7 +67,7 @@ export function ActorRow({
       <span className={menuIconSlotClassName}>{leading}</span>
       <span className="min-w-0 truncate">{label}</span>
       {checked ? (
-        <CheckGlyph className={"ml-auto " + menuCheckClassName} />
+        <CheckGlyph className={`ml-auto ${menuCheckClassName}`} />
       ) : null}
     </MenuItem>
   );

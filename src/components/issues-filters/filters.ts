@@ -266,7 +266,10 @@ export const toggleActor = (
 };
 
 /** Whether a state passes the status filter. */
-export const stateVisible = (filters: IssueFilters, stateId: string) =>
+export const stateVisible = (
+  filters: Pick<IssueFilters, "stateIds" | "stateNot">,
+  stateId: string,
+) =>
   filters.stateIds.length === 0 ||
   filters.stateIds.includes(stateId) !== filters.stateNot;
 

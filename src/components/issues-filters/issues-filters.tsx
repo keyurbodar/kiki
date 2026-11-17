@@ -255,7 +255,7 @@ const withDue = (filters: IssueFilters, patch: Partial<IssueFilters>) => {
   return { ...next, dueNot: next.dueNot && dueCount(next) > 0 };
 };
 
-const check = <CheckGlyph className={"ml-auto " + menuCheckClassName} />;
+const check = <CheckGlyph className={`ml-auto ${menuCheckClassName}`} />;
 
 /** Capy's CheckRow: optional icon, label, trailing check; keeps the menu open. */
 export function CheckRow({
@@ -376,7 +376,7 @@ export function IssuesFilterMenu({
       contentClassName="w-56"
     >
       <FilterOptionItems
-        placeholder={"Find " + filter.label.toLowerCase()}
+        placeholder={`Find ${filter.label.toLowerCase()}`}
         options={filter.options}
         checked={(key) => filters[filter.key].includes(key)}
         onToggle={(key) => onChange(toggleList(filters, filter, key))}
@@ -396,7 +396,7 @@ export function IssuesFilterMenu({
       contentClassName="w-72"
     >
       <ActorFilterItems
-        placeholder={"Find " + kind.label.toLowerCase()}
+        placeholder={`Find ${kind.label.toLowerCase()}`}
         filter={filters[kind.key]}
         noneLabel={kind.noneLabel}
         sources={sources.actors}
@@ -603,7 +603,7 @@ const withoutRelation = (
 });
 
 const summarize = (labels: ReadonlyArray<string>, noun: string) =>
-  labels.length <= 2 ? labels.join(", ") : labels.length + " " + noun;
+  labels.length <= 2 ? labels.join(", ") : `${labels.length} ${noun}`;
 
 /** Capy's useIssueFilterChips: one chip per active filter, in menu order. */
 export function issueFilterChips(
@@ -669,11 +669,10 @@ export function issueFilterChips(
               },
         value,
         selector: {
-          ariaLabel:
-            "Change " + filter.label + " filter value, currently " + value,
+          ariaLabel: `Change ${filter.label} filter value, currently ${value}`,
           content: (
             <FilterOptionItems
-              placeholder={"Find " + filter.label.toLowerCase()}
+              placeholder={`Find ${filter.label.toLowerCase()}`}
               options={filter.options}
               checked={(key) => values.includes(key)}
               onToggle={(key) => onChange(toggleList(filters, filter, key))}
@@ -711,10 +710,10 @@ export function issueFilterChips(
           />
         ),
         selector: {
-          ariaLabel: "Change " + kind.label + " filter value",
+          ariaLabel: `Change ${kind.label} filter value`,
           content: (
             <ActorFilterItems
-              placeholder={"Find " + kind.label.toLowerCase()}
+              placeholder={`Find ${kind.label.toLowerCase()}`}
               filter={filter}
               noneLabel={kind.noneLabel}
               sources={sources.actors}
@@ -764,7 +763,7 @@ export function issueFilterChips(
           />
         ),
         selector: {
-          ariaLabel: "Change " + kind.label + " filter value",
+          ariaLabel: `Change ${kind.label} filter value`,
           content: (
             <PeopleItems
               filter={filter}
@@ -798,7 +797,7 @@ export function issueFilterChips(
   const dueValue =
     dueLabels.length <= 2
       ? dueLabels.join(", ")
-      : dueLabels.length + " due dates";
+      : `${dueLabels.length} due dates`;
   const dueChip: ReadonlyArray<FilterChipModel> =
     dueLabels.length === 0
       ? []
@@ -817,7 +816,7 @@ export function issueFilterChips(
             },
             value: dueValue,
             selector: {
-              ariaLabel: "Change Due date filter value, currently " + dueValue,
+              ariaLabel: `Change Due date filter value, currently ${dueValue}`,
               content: <DueFilterItems filters={filters} onChange={onChange} />,
               contentClassName: "w-72",
             },
@@ -837,7 +836,7 @@ export function issueFilterChips(
       if (!excluded && !filters.relations.includes(option.value)) return [];
       return [
         {
-          key: "relation:" + option.value,
+          key: `relation:${option.value}`,
           icon: <LinkGlyph />,
           property: "Relation",
           operator: {
@@ -880,8 +879,7 @@ export function issueFilterChips(
             operator: { kind: "fixed", label: "is" },
             value: pull.chip,
             selector: {
-              ariaLabel:
-                "Change Pull request filter value, currently " + pull.chip,
+              ariaLabel: `Change Pull request filter value, currently ${pull.chip}`,
               content: pullFilterOptions.map((option) => (
                 <CheckRow
                   key={option.value}
@@ -943,7 +941,7 @@ export function IssuesMatchChip({
   return (
     <Menu>
       <MenuTrigger
-        aria-label={"Change filter match, currently " + current?.label}
+        aria-label={`Change filter match, currently ${current?.label}`}
         className="inline-flex h-6 shrink-0 cursor-pointer items-center gap-1.5 rounded px-1.5 text-xs font-medium whitespace-nowrap text-foreground outline-none transition-colors duration-100 hover:bg-secondary focus-visible:outline-ring-inset"
       >
         <span className="font-normal text-muted-foreground-2">Match</span>
