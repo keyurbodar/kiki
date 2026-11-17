@@ -43,6 +43,7 @@
   background-image: linear-gradient(var(--secondary), var(--secondary));
 }
 
+/* biome-ignore lint/style/noDescendingSpecificity: Capy's own stylesheet order, kept rule for rule */
 .diff-comment-marker-icon {
   display: flex;
   flex-shrink: 0;
@@ -80,6 +81,7 @@
   place-items: center;
 }
 
+/* biome-ignore lint/style/noDescendingSpecificity: Capy's own stylesheet order, kept rule for rule */
 .diff-comment-marker-stack-icons > * {
   grid-area: 1 / 1;
 }
@@ -142,6 +144,7 @@
   z-index: 1;
 }
 
+/* biome-ignore lint/style/noDescendingSpecificity: Capy's own stylesheet order, kept rule for rule */
 .diff-comment-marker-fan .diff-comment-marker-icon {
   transform: translate(0);
   transition:
@@ -169,13 +172,15 @@
   opacity: 0;
 }
 
+/* biome-ignore lint/style/noDescendingSpecificity: Capy's own stylesheet order, kept rule for rule */
 .diff-comment-marker-fan[data-ending-style] .diff-comment-marker-icon {
   transition-duration: var(--duration-base);
 }
 
 .diff-comment-marker-fan:is([data-instant], [data-motion="instant"]),
+/* biome-ignore lint/style/noDescendingSpecificity: Capy's own stylesheet order, kept rule for rule */
 .diff-comment-marker-fan:is([data-instant], [data-motion="instant"])
-  .diff-comment-marker-icon,
+.diff-comment-marker-icon,
 .diff-comment-marker-stack[data-motion="instant"] > * {
   transition: none;
 }
