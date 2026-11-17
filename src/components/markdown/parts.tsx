@@ -19,14 +19,6 @@ export function MarkdownTable(props: MarkdownTableProps) {
   return <div data-slot="markdown-table" {...props} />;
 }
 
-export type MarkdownGalleryProps = ComponentProps<"div">;
-
-export function MarkdownGallery(props: MarkdownGalleryProps) {
-  return <div data-slot="markdown-gallery" {...props} />;
-}
-
-export type MarkdownVideoProps = ComponentProps<"div">;
-
-export function MarkdownVideo(props: MarkdownVideoProps) {
-  return <div data-slot="markdown-video" {...props} />;
-}
+// The gallery and video units own these now; `./parts` keeps re-exporting them.
+export { MarkdownGallery, type MarkdownGalleryProps } from "./gallery";
+export { MarkdownVideo, type MarkdownVideoProps } from "./video";

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { MediaLightbox } from "@/components/media-lightbox";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { useActiveOrgId, useFileUrl } from "./screenshot-url";
@@ -113,26 +113,17 @@ function ScreenshotPreview({
   entry: ScreenshotEntry;
   onClose: () => void;
 }) {
-  const rootRef = useRef<HTMLDivElement>(null);
-  const close = useRef(onClose);
-  close.current = onClose;
-  useEffect(() => {
-    rootRef.current?.focus();
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") close.current();
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, []);
   return (
     <MediaLightbox
-      ref={rootRef}
-      role="dialog"
-      aria-label={entry.label}
-      tabIndex={-1}
-    >
-      <ScreenshotMedia jamId={jamId} file={entry.file} label={entry.label} />
-    </MediaLightbox>
+      entries={[entry]}
+      index={0}
+      onIndexChange={() => undefined}
+      onClose={onClose}
+      renderMedia={() => (
+        <ScreenshotMedia jamId={jamId} file={entry.file} label={entry.label} />
+      )}
+      renderThumbnail={() => null}
+    />
   );
 }
 
