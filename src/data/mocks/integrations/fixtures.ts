@@ -1,5 +1,10 @@
 import {
+  LinearLinkPreview,
+  SlackLinkPreview,
+} from "../../api/schemas/integrationOAuth.ts";
+import {
   isoMinutesAgo,
+  org,
   people,
   projects,
   repos,
@@ -250,4 +255,19 @@ export const sampleOAuthStart = (provider: string, state: string) => ({
   state,
   authorizationUrl: `https://accounts.example.com/${provider}/authorize?state=${state}`,
   expiresAt: isoMinutesAgo(-10),
+});
+
+export const sampleSlackLinkPreview = new SlackLinkPreview({
+  externalUserId: "U_SAMPLE_ALEX",
+  externalUserName: `${people.alex.firstName} ${people.alex.lastName}`,
+  avatarUrl: "https://avatars.example.com/alex-sample.png",
+  workspaceName: "Acme sample",
+  orgName: org.name,
+});
+
+export const sampleLinearLinkPreview = new LinearLinkPreview({
+  externalUserId: "lin_user_sample_alex",
+  externalUserName: `${people.alex.firstName} ${people.alex.lastName}`,
+  workspaceName: "Acme sample",
+  orgName: org.name,
 });

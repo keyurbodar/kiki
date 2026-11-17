@@ -1,4 +1,8 @@
 import { type ReactNode, useEffect, useState } from "react";
+import {
+  cssLengthToPx,
+  wideLayoutToken,
+} from "@/components/file-browser/wide-layout";
 import { Markdown } from "@/components/markdown";
 import { Minimap } from "@/components/minimap";
 import type { Actor, Origin } from "@/data/events";
@@ -19,27 +23,35 @@ export type ChatMinimapItem = {
   origin: Origin;
 };
 
-/** Chat column width in CSS pixels (container-4xl, 56rem). */
-const CHAT_COLUMN = 896;
 /** The rail stays visible when the gutter beside the column is this wide. */
 const PERSISTENT_GUTTER = 48;
 const HIT_STRIP_INSET = 12;
 const HIT_STRIP_MAX = 40;
 const ANSWER_MAX = 800;
 
+/** Width of the centred chat column, from the token, in CSS pixels. */
+export const chatColumnWidth = (rootFontSize: number) =>
+  cssLengthToPx("56rem", rootFontSize) ?? Number.NaN;
+
 /** Width of the empty gutter on each side of the centred chat column. */
-export const chatGutter = (width: number) =>
-  !Number.isFinite(width) || width <= 0
+export const chatGutter = (width: number, columnWidth: number) =>
+  !Number.isFinite(width) ||
+  !Number.isFinite(columnWidth) ||
+  width <= 0 ||
+  columnWidth <= 0
     ? 0
-    : Math.max(0, (width - Math.min(width, CHAT_COLUMN)) / 2);
+    : Math.max(0, (width - Math.min(width, columnWidth)) / 2);
 
-export const isMinimapPersistent = (width: number) =>
-  chatGutter(width) >= PERSISTENT_GUTTER;
+export const isMinimapPersistent = (width: number, columnWidth: number) =>
+  chatGutter(width, columnWidth) >= PERSISTENT_GUTTER;
 
-export const minimapHitStrip = (width: number) =>
+export const minimapHitStrip = (width: number, columnWidth: number) =>
   Math.max(
     0,
-    Math.min(HIT_STRIP_MAX, Math.floor(chatGutter(width)) - HIT_STRIP_INSET),
+    Math.min(
+      HIT_STRIP_MAX,
+      Math.floor(chatGutter(width, columnWidth)) - HIT_STRIP_INSET,
+    ),
   );
 
 /** The answer as the preview shows it: trimmed to 800 characters, or null. */
@@ -126,10 +138,16 @@ export function ChatMinimap({
     if (host == null) return;
     const measure = () => {
       const width = host.getBoundingClientRect().width;
+      const token = getComputedStyle(host).getPropertyValue(wideLayoutToken);
+      const rootFontSize = Number.parseFloat(
+        getComputedStyle(document.documentElement).fontSize,
+      );
+      const columnWidth =
+        cssLengthToPx(token, rootFontSize) ?? chatColumnWidth(rootFontSize);
       setFit((current) => {
         const next = {
-          persistent: isMinimapPersistent(width),
-          hitStripWidth: minimapHitStrip(width),
+          persistent: isMinimapPersistent(width, columnWidth),
+          hitStripWidth: minimapHitStrip(width, columnWidth),
         };
         return current.persistent === next.persistent &&
           current.hitStripWidth === next.hitStripWidth

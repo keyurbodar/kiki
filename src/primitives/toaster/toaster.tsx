@@ -11,11 +11,13 @@ import {
   useState,
 } from "react";
 import { type ExternalToast, Toaster as Sonner, toast as sonner } from "sonner";
+import { useAppearance } from "@/lib/appearance";
 import { motion } from "@/lib/motion";
 import { Button, type ButtonProps, buttonVariants } from "@/primitives/button";
 import { DotGridIcon } from "@/primitives/dot-grid-icon";
 import { Icon } from "@/primitives/icon";
 import { ShimmerText } from "@/primitives/shimmer-text";
+import "./toaster.css";
 
 export type ToastType =
   | "default"
@@ -480,15 +482,11 @@ export const toast = Object.assign(
 
 export type ToasterProps = ComponentProps<typeof Sonner>;
 
-export function Toaster({
-  theme = "system",
-  className,
-  style,
-  ...props
-}: ToasterProps) {
+export function Toaster({ theme, className, style, ...props }: ToasterProps) {
+  const { mode } = useAppearance();
   return (
     <Sonner
-      theme={theme}
+      theme={theme ?? mode}
       className={cx("toaster group", className)}
       style={
         { "--width": "calc(var(--spacing) * 95.5)", ...style } as CSSProperties

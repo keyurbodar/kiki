@@ -5,6 +5,13 @@ import { AsyncResult } from "effect/reactivity";
 import { type FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AppTopBar } from "@/components/app-top-bar";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import {
+  type FilterOptions,
+  FilterSearch,
+  type FilterSelection,
+  useFilterSearch,
+} from "@/components/filter-search";
 import {
   DateRangeSubmenu,
   DisplayChoiceSub,
@@ -24,16 +31,27 @@ import {
   ViewToolbarIconButton,
   viewToolbarIconButtonClassName,
 } from "@/components/view-toolbar";
-import type { OrgId } from "@/data/api/schemas/ids";
+import type { JamId, OrgId, ThreadFolderId } from "@/data/api/schemas/ids";
 import type { ThreadCard } from "@/data/api/schemas/thread";
 import { captainsAtom } from "@/data/atoms/captains";
+import { reactivityKeys } from "@/data/atoms/conventions";
+import {
+  archiveThreadsAtom,
+  deleteThreadsAtom,
+  renameThreadAtom,
+  unarchiveThreadsAtom,
+} from "@/data/atoms/jams";
 import { projectsAtom } from "@/data/atoms/projects";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
 import {
+  addToFolderAtom,
   createFolderAtom,
+  folderBoardAtom,
+  pinThreadsAtom,
   threadOrganizationKeys,
 } from "@/data/atoms/threadOrganization";
 import { allThreadsAtom } from "@/data/atoms/threads";
+import { BulkBar } from "@/primitives/bulk-bar";
 import { Button } from "@/primitives/button";
 import {
   Dialog,
@@ -65,6 +83,7 @@ import {
   type ProjectSummary,
   type ThreadFilters,
   type ThreadListItem,
+  type ThreadSection,
   type ThreadsPageState,
   threadFilterChips,
   threadViews,
@@ -178,6 +197,17 @@ export type ThreadsPageViewProps = {
   failed: boolean;
   onRetry?: () => void;
   onCreateFolder?: (name: string) => void;
+  folders?: ReadonlyArray<{
+    id: string;
+    name: string;
+    members: ReadonlyArray<ThreadListItem>;
+  }>;
+  folderSections?: ReadonlyArray<ThreadSection>;
+  onMoveThreads?: (ids: ReadonlyArray<string>, folderId: string) => void;
+  onArchive?: (ids: ReadonlyArray<string>, archived: boolean) => void;
+  onPin?: (ids: ReadonlyArray<string>) => void;
+  onDelete?: (ids: ReadonlyArray<string>) => void;
+  onRename?: (id: string, title: string) => void;
   state: ThreadsPageState;
   onStateChange: (
     update: (state: ThreadsPageState) => ThreadsPageState,
@@ -194,6 +224,12 @@ export function ThreadsPageView({
   failed,
   onRetry,
   onCreateFolder,
+  folders = [],
+  onMoveThreads,
+  onArchive,
+  onPin,
+  onDelete,
+  onRename,
   state,
   onStateChange,
   now,
@@ -202,28 +238,112 @@ export function ThreadsPageView({
   const [saving, setSaving] = useState(false);
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [checked, setChecked] = useState<ReadonlySet<string>>(new Set());
+  const [searchText, setSearchText] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [moving, setMoving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const filters = state.filters;
   const setFilters = (next: ThreadFilters) =>
     onStateChange((current) => ({ ...current, filters: next }));
   const activeKey = activeViewKey(state);
   const dirty = activeKey === undefined;
   const projectMap = new Map(projects.map((project) => [project.id, project]));
+  const filedMembers = folders.flatMap((folder) => folder.members);
+  const authorOptions = [
+    ...(viewerId === undefined
+      ? []
+      : [{ id: viewerId, label: "Me", terms: ["me", "you"] }]),
+    ...threads.map((thread) => ({
+      id: thread.userId,
+      label: thread.userId,
+      terms: [thread.userId],
+    })),
+  ];
+  const searchOptions: FilterOptions = {
+    author: authorOptions,
+    captain: captains.map((captain) => ({
+      id: captain.id,
+      label: captain.title ?? "",
+      terms: [captain.title ?? ""],
+    })),
+    repo: [],
+    status: ["working", "waiting", "idle", "failed"].map((status) => ({
+      id: status,
+      label: status,
+      terms: [status],
+    })),
+    label: folders.map((folder) => ({
+      id: folder.id,
+      label: folder.name,
+      terms: [folder.name],
+    })),
+    since: [],
+  };
+  const searchSelection: FilterSelection = {
+    author: filters.authors,
+    captain: [],
+    repo: [],
+    status: filters.statuses,
+    label: [],
+    since: [],
+  };
+  const { term, search } = useFilterSearch({
+    options: searchOptions,
+    accepts: () => true,
+    selected: searchSelection,
+    text: { value: searchText, onChange: setSearchText },
+    viewerId,
+    onCommit: (tokens) => {
+      const authors = tokens.flatMap((token) =>
+        token.key === "author" ? token.values : [],
+      );
+      const statuses = tokens.flatMap((token) =>
+        token.key === "status" ? token.values : [],
+      );
+      setFilters({
+        ...filters,
+        authors: [...new Set([...filters.authors, ...authors])],
+        statuses: [...new Set([...filters.statuses, ...statuses])],
+      });
+    },
+    onRemove: (key) => {
+      if (key === "author") setFilters({ ...filters, authors: [] });
+      if (key === "status") setFilters({ ...filters, statuses: [] });
+    },
+  });
+  const searching = term.trim().length > 0;
   const visible = filterThreads(
-    [...captains, ...threads],
+    searching
+      ? [...captains, ...threads, ...filedMembers]
+      : [...captains, ...threads],
     filters,
     viewerId,
     now,
   );
+  const shown = searching
+    ? visible.filter((thread) =>
+        (thread.title ?? "").toLowerCase().includes(term.trim().toLowerCase()),
+      )
+    : visible;
+  const folderSections = searching
+    ? []
+    : folders.map((folder) => ({
+        id: folder.id,
+        label: folder.name,
+        members: filterThreads(folder.members, filters, viewerId, now),
+        showCount: true,
+      }));
   const sections = buildSections({
-    threads: visible,
+    threads: shown,
     filters,
     grouping: state.grouping,
     ordering: state.ordering,
-    searching: false,
+    searching,
     now,
     projectName: (id) =>
       id === null ? "No project" : (projectMap.get(id)?.name ?? "No project"),
     authorName: (id) => (id === viewerId ? "You" : "Unknown"),
+    folderSections,
   });
   const chips = threadFilterChips(filters, setFilters, {
     member: (id) => (id === viewerId ? "Me" : id),
@@ -238,14 +358,51 @@ export function ThreadsPageView({
       className="relative flex min-h-0 min-w-0 flex-1 flex-col"
     >
       <AppTopBar className="sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center border-b-hairline border-border-1 bg-panel px-2">
-        <h1 className="ml-2.5 min-w-0 truncate text-sm font-medium text-foreground">
-          Threads
-        </h1>
+        {searchOpen ? (
+          <form
+            aria-label="Search threads"
+            className="relative mx-2 flex min-w-0 flex-1 items-center"
+            onSubmit={(event) => event.preventDefault()}
+            onBlur={() => {
+              if (searchText === "") setSearchOpen(false);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                setSearchText("");
+                setSearchOpen(false);
+              }
+            }}
+          >
+            <Icon
+              name="deep-search"
+              size="sm"
+              aria-hidden
+              className="pointer-events-none absolute left-1.5 text-muted-foreground-2"
+            />
+            <FilterSearch
+              // biome-ignore lint/a11y/noAutofocus: the field only exists once the search control is pressed
+              autoFocus
+              search={search}
+              aria-label="Search threads"
+              placeholder="Search threads"
+              className="h-7 min-w-0 w-full flex-1 rounded border-hairline border-border-1 bg-input pr-2 pl-7 text-sm text-foreground outline-none placeholder:text-muted-foreground-2 focus-visible:outline-ring-inset"
+            />
+          </form>
+        ) : (
+          <h1 className="ml-2.5 min-w-0 truncate text-sm font-medium text-foreground">
+            Threads
+          </h1>
+        )}
         <div className="ml-auto flex items-center gap-1.5 pl-2">
           <Tooltip>
             <TooltipTrigger
               render={
-                <Button variant="ghost" size="icon-sm" aria-label="Search" />
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Search"
+                  onClick={() => setSearchOpen((open) => !open)}
+                />
               }
             />
             <TooltipContent side="bottom">Search</TooltipContent>
@@ -258,7 +415,9 @@ export function ThreadsPageView({
                   size="icon-sm"
                   aria-label="New thread"
                   onClick={() => navigate({ to: "/new" })}
-                />
+                >
+                  <Icon name="plus-medium" size="sm" />
+                </Button>
               }
             />
             <TooltipContent side="bottom">New thread</TooltipContent>
@@ -391,9 +550,15 @@ export function ThreadsPageView({
         groupedByProject={state.grouping === "project"}
         now={now}
         loading={loading}
-        emptyText={emptyText({ failed, searching: false, filters })}
+        emptyText={emptyText({ failed, searching, filters })}
         checked={checked}
         onCheckedChange={setChecked}
+        onDropOnSection={(sectionId, threadId) => {
+          const folder = folders.find((item) => item.id === sectionId);
+          if (folder !== undefined) onMoveThreads?.([threadId], folder.id);
+        }}
+        onArchive={(id) => onArchive?.([id], true)}
+        onRename={onRename}
         icons={listIcons}
         footer={
           failed && onRetry !== undefined ? (
@@ -405,6 +570,99 @@ export function ThreadsPageView({
           ) : null
         }
       />
+      {checked.size === 0 ? null : (
+        <BulkBar className="sticky bottom-0 flex items-center gap-2 border-t-hairline border-border-1 bg-panel px-2 py-1.5">
+          <span className="text-xs text-muted-foreground-1 tabular-nums">
+            {checked.size} selected
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label="Folder"
+            onClick={() => setMoving(true)}
+          >
+            Folder
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label="Pin"
+            onClick={() => {
+              onPin?.([...checked]);
+              setChecked(new Set());
+            }}
+          >
+            Pin
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label="Archive"
+            onClick={() => {
+              onArchive?.([...checked], true);
+              setChecked(new Set());
+            }}
+          >
+            Archive
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label="Delete"
+            onClick={() => setDeleting(true)}
+          >
+            Delete
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label="Clear selection"
+            onClick={() => setChecked(new Set())}
+          >
+            Clear
+          </Button>
+        </BulkBar>
+      )}
+      <ConfirmDialog
+        open={deleting}
+        onOpenChange={setDeleting}
+        title="Delete threads"
+        description={checked.size + " selected"}
+        confirmLabel="Delete"
+        onConfirm={() => {
+          onDelete?.([...checked]);
+          setChecked(new Set());
+          setDeleting(false);
+        }}
+      />
+      <Dialog open={moving} onOpenChange={setMoving}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Move to folder</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-1 px-4 py-2">
+            {folders.length === 0 ? (
+              <div className="px-2 py-3 text-center text-sm font-normal text-muted-foreground-2">
+                No folders yet
+              </div>
+            ) : null}
+            {folders.map((folder) => (
+              <Button
+                key={folder.id}
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  onMoveThreads?.([...checked], folder.id);
+                  setChecked(new Set());
+                  setMoving(false);
+                }}
+              >
+                {folder.name}
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -629,12 +887,46 @@ function ThreadsPageLoaded({
   const retry = useAtomRefresh(listAtom);
   const captains = useAtomValue(captainsAtom(orgId));
   const projects = useAtomValue(projectsAtom(orgId));
+  const foldersResult = useAtomValue(folderBoardAtom(orgId));
   const user = useAtomValue(currentUserAtom);
   const createFolder = useAtomSet(createFolderAtom, { mode: "promise" });
+  const pinThreads = useAtomSet(pinThreadsAtom, { mode: "promise" });
+  const deleteThreads = useAtomSet(deleteThreadsAtom, { mode: "promise" });
+  const moveToFolder = useAtomSet(addToFolderAtom, { mode: "promise" });
+  const archive = useAtomSet(archiveThreadsAtom, { mode: "promise" });
+  const unarchive = useAtomSet(unarchiveThreadsAtom, { mode: "promise" });
+  const renameThread = useAtomSet(renameThreadAtom, { mode: "promise" });
   const viewerId = AsyncResult.isSuccess(user) ? user.value.id : undefined;
+  const filed = AsyncResult.isSuccess(foldersResult)
+    ? foldersResult.value.map((section) => ({
+        id: section.folder.id as unknown as string,
+        name: section.folder.name ?? "Untitled folder",
+        members: section.items.map(toListItem),
+      }))
+    : [];
+  const filedIds = new Set(
+    filed.flatMap((folder) => folder.members.map((thread) => thread.id)),
+  );
+  const unfiled =
+    AsyncResult.isSuccess(list) &&
+    state.showFiledThreads &&
+    state.filters.archived !== "only"
+      ? list.value.map(toListItem).filter((thread) => !filedIds.has(thread.id))
+      : AsyncResult.isSuccess(list)
+        ? list.value.map(toListItem)
+        : [];
+  const folderSections =
+    state.filters.archived !== "only" && state.showFiledThreads
+      ? filed.map((folder) => ({
+          id: folder.id,
+          label: folder.name,
+          members: folder.members,
+          showCount: true,
+        }))
+      : [];
   return (
     <ThreadsPageView
-      threads={AsyncResult.isSuccess(list) ? list.value.map(toListItem) : []}
+      threads={unfiled}
       captains={
         archivedView || !AsyncResult.isSuccess(captains)
           ? []
@@ -653,6 +945,64 @@ function ThreadsPageLoaded({
       loading={AsyncResult.isInitial(list) || list.waiting}
       failed={AsyncResult.isFailure(list)}
       onRetry={retry}
+      folders={filed}
+      folderSections={folderSections}
+      onPin={(ids) =>
+        pinThreads({
+          params: { orgId },
+          payload: { jamIds: ids.map((id) => id as unknown as JamId) },
+          reactivityKeys: threadOrganizationKeys(orgId),
+        }).then(
+          () => toast.success("Pinned"),
+          () => toast.error("Couldn't update threads"),
+        )
+      }
+      onDelete={(ids) =>
+        deleteThreads({
+          params: { orgId },
+          payload: { jamIds: ids.map((id) => id as unknown as JamId) },
+          reactivityKeys: [
+            reactivityKeys.threads(orgId),
+            reactivityKeys.threadOrganization(orgId),
+          ],
+        }).then(
+          () => toast.success("Threads deleted"),
+          () => toast.error("Couldn't delete threads"),
+        )
+      }
+      onMoveThreads={(ids, folderId) =>
+        moveToFolder({
+          params: { orgId, folderId: folderId as unknown as ThreadFolderId },
+          payload: { jamIds: ids.map((id) => id as unknown as JamId) },
+          reactivityKeys: threadOrganizationKeys(orgId),
+        }).then(
+          () => toast.success("Moved to folder"),
+          () => toast.error("Couldn't move threads"),
+        )
+      }
+      onArchive={(ids, archived) =>
+        (archived ? archive : unarchive)({
+          params: { orgId },
+          payload: { jamIds: ids.map((id) => id as unknown as JamId) },
+          reactivityKeys: [
+            reactivityKeys.threads(orgId),
+            reactivityKeys.threadOrganization(orgId),
+          ],
+        }).then(
+          () => toast.success(archived ? "Archived" : "Unarchived"),
+          () => toast.error("Couldn't update threads"),
+        )
+      }
+      onRename={(id, title) =>
+        renameThread({
+          params: { orgId, jamId: id as unknown as JamId },
+          payload: { title },
+          reactivityKeys: [reactivityKeys.threads(orgId)],
+        }).then(
+          () => toast.success("Thread renamed"),
+          () => toast.error("Couldn't rename thread"),
+        )
+      }
       onCreateFolder={(name) =>
         createFolder({
           params: { orgId },
