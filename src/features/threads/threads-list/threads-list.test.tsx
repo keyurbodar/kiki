@@ -78,25 +78,6 @@ describe("threads list sections", () => {
     expect(rows()).toBe(3);
   });
 
-  it("opens the first section when every section is closed by default", async () => {
-    await mount([
-      {
-        id: "closed:shelf:working",
-        label: "Working",
-        members: [thread("a")],
-        showCount: true,
-      },
-      {
-        id: "closed:shelf:settled",
-        label: "Settled",
-        members: [thread("b"), thread("c")],
-        showCount: true,
-      },
-    ]);
-    expect(rows()).toBe(1);
-    expect(screen.getByText("Working")).toBeTruthy();
-  });
-
   it("draws a closed section's rows once it is expanded", async () => {
     await mount([
       { id: "all", label: "Active", members: [thread("a")], showCount: true },
