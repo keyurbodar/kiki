@@ -1,8 +1,9 @@
 import { Atom } from "effect/reactivity";
+import type { JamId, OrgId } from "@/data/api/schemas/ids";
 import { queryTimeToLive } from "@/data/atoms/conventions";
 import { ApiClient } from "@/data/client/ApiClient";
 
-const split = (key: string) => key.split("/") as [string, string];
+const split = (key: string) => key.split("/") as [OrgId, JamId];
 
 /** One thread, by "orgId/jamId". */
 export const mobileThreadAtom = Atom.family((key: string) => {

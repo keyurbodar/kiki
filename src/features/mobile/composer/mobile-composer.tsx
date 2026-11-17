@@ -5,11 +5,6 @@ import {
   type ReactNode,
   useState,
 } from "react";
-import {
-  Composer,
-  ComposerCommandMenu,
-  ComposerMentionMenu,
-} from "@/components/composer";
 import { Button } from "@/primitives/button";
 import { drawerIconSlotClass, MobileDrawerRow } from "../drawers/mobile-drawer";
 import { MobileIcon } from "../thread/mobile-icon";
@@ -117,9 +112,12 @@ export function MobileComposer({
   };
 
   return (
-    <Composer className="relative">
+    <div data-slot="composer" className="relative">
       {menu.kind === "command" && commands.length > 0 && (
-        <ComposerCommandMenu className="absolute bottom-full left-5 z-(--z-overlay-content) mb-2 outline-none">
+        <div
+          data-slot="composer-command-menu"
+          className="absolute bottom-full left-5 z-(--z-overlay-content) mb-2 outline-none"
+        >
           <div
             role="listbox"
             aria-label="Commands"
@@ -154,10 +152,13 @@ export function MobileComposer({
               ))}
             </div>
           </div>
-        </ComposerCommandMenu>
+        </div>
       )}
       {menu.kind === "mention" && mentions.length > 0 && (
-        <ComposerMentionMenu className="absolute bottom-full left-5 z-(--z-overlay-content) mb-2 outline-none">
+        <div
+          data-slot="composer-mention-menu"
+          className="absolute bottom-full left-5 z-(--z-overlay-content) mb-2 outline-none"
+        >
           <div
             role="listbox"
             aria-label="Mentions"
@@ -191,7 +192,7 @@ export function MobileComposer({
               ))}
             </div>
           </div>
-        </ComposerMentionMenu>
+        </div>
       )}
       <div className="relative">
         <textarea
@@ -244,7 +245,7 @@ export function MobileComposer({
           )}
         </div>
       </div>
-    </Composer>
+    </div>
   );
 }
 
