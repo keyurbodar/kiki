@@ -113,7 +113,9 @@ export function buildSidebarThreadsView(
   source: SidebarSource,
   prefs: SidebarPrefs,
 ): SidebarThreadsView {
-  const compare = byNewest(prefs.sort === "createdAt" ? "createdAt" : "updatedAt");
+  const compare = byNewest(
+    prefs.sort === "createdAt" ? "createdAt" : "updatedAt",
+  );
   const live = source.threads.filter((thread) => thread.status !== "archived");
   const byId = new Map(live.map((thread) => [thread.id, thread]));
   const filed = new Set(source.folders.flatMap((folder) => folder.threadIds));
@@ -124,7 +126,11 @@ export function buildSidebarThreadsView(
     kind: SidebarSection["kind"],
     label: string,
     threads: SourceThread[],
-    options: { defaultOpen?: boolean; limited?: boolean; countAtRest?: boolean } = {},
+    options: {
+      defaultOpen?: boolean;
+      limited?: boolean;
+      countAtRest?: boolean;
+    } = {},
   ) => {
     const sorted = threads.toSorted(compare);
     const limit =
@@ -138,7 +144,9 @@ export function buildSidebarThreadsView(
       count: sorted.length,
       countAtRest: options.countAtRest ?? false,
       open: prefs.open[id] ?? options.defaultOpen ?? true,
-      threads: sorted.slice(0, limit).map((thread) => toRow(thread, source.now)),
+      threads: sorted
+        .slice(0, limit)
+        .map((thread) => toRow(thread, source.now)),
       hidden: Math.max(0, sorted.length - limit),
     });
   };
@@ -162,7 +170,9 @@ export function buildSidebarThreadsView(
 
   const loose = live.filter((thread) => !filed.has(thread.id));
   const working = loose.filter(
-    (thread) => !thread.settled && (thread.status === "working" || thread.status === "waiting"),
+    (thread) =>
+      !thread.settled &&
+      (thread.status === "working" || thread.status === "waiting"),
   );
   const settled = loose.filter((thread) => thread.settled);
   const rest = loose.filter(
@@ -170,7 +180,9 @@ export function buildSidebarThreadsView(
   );
 
   if (prefs.grouping === "projects") {
-    const projectName = new Map(source.projects.map((project) => [project.id, project.name]));
+    const projectName = new Map(
+      source.projects.map((project) => [project.id, project.name]),
+    );
     const groups = new Map<string, SourceThread[]>();
     for (const thread of rest) {
       const key = thread.projectId ?? "none";
@@ -215,11 +227,20 @@ export function buildSidebarThreadsView(
     captains: source.captains
       .filter((captain) => captain.status !== "archived")
       .toSorted(captainCompare)
-      .map(({ position: _position, createdAt: _createdAt, updatedAt, ...captain }) => ({
-        ...captain,
-        age: formatAge(updatedAt, source.now),
-      })),
-    projects: Object.fromEntries(source.projects.map((project) => [project.id, project])),
+      .map(
+        ({
+          position: _position,
+          createdAt: _createdAt,
+          updatedAt,
+          ...captain
+        }) => ({
+          ...captain,
+          age: formatAge(updatedAt, source.now),
+        }),
+      ),
+    projects: Object.fromEntries(
+      source.projects.map((project) => [project.id, project]),
+    ),
     activeId: source.activeId,
   };
 }

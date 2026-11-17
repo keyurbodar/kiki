@@ -365,7 +365,10 @@ export function SidebarThreads({
 }: SidebarThreadsProps) {
   if (view === undefined) {
     return (
-      <div className={cx("mt-3 flex min-h-0 flex-1 flex-col", className)} {...props} />
+      <div
+        className={cx("mt-3 flex min-h-0 flex-1 flex-col", className)}
+        {...props}
+      />
     );
   }
   const captains = view.mode === "captains";
@@ -390,6 +393,7 @@ export function SidebarThreads({
         aria-hidden
         className="scroll-divider-t max-md:hidden [--scroll-divider-timeline:--threads-scroll]"
       />
+      {/* biome-ignore lint/a11y/useSemanticElements: Capy's sidebar list is a div with role=list */}
       <div
         role="list"
         className="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 [scroll-timeline:--threads-scroll]"
@@ -435,7 +439,9 @@ function ThreadSections({
   const items: ReactNode[] = [];
   let afterRows = false;
   if (view.sections.every((section) => section.count === 0)) {
-    items.push(<NewThreadRow key="threads:new" slim={slim} onClick={onNewThread} />);
+    items.push(
+      <NewThreadRow key="threads:new" slim={slim} onClick={onNewThread} />,
+    );
     afterRows = true;
   }
   for (const section of view.sections) {
@@ -456,6 +462,7 @@ function ThreadSections({
     for (const thread of section.threads) {
       afterRows = true;
       items.push(
+        // biome-ignore lint/a11y/useSemanticElements: rows sit in Capy's div role=list
         <div key={`${section.id}:${thread.id}`} role="listitem">
           {renderThread?.(thread, {
             section,

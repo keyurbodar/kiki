@@ -18,12 +18,23 @@ export type SidebarThreadsPanelProps = {
   onMarkAllRead?: () => void;
 };
 
-function HeaderButton({ label, onClick }: { label: string; onClick?: () => void }) {
+function HeaderButton({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick?: () => void;
+}) {
   return (
     <Tooltip>
       <TooltipTrigger
         render={
-          <Button variant="ghost" size="icon-sm" aria-label={label} onClick={onClick}>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={label}
+            onClick={onClick}
+          >
             <Glyph name="plus-large" className="size-(--icon-base)" />
           </Button>
         }
@@ -90,7 +101,9 @@ export function SidebarThreadsPanel({
         <SidebarThreadRow
           thread={thread}
           project={
-            thread.projectId === null ? undefined : view.projects[thread.projectId]
+            thread.projectId === null
+              ? undefined
+              : view.projects[thread.projectId]
           }
           density={density}
           active={active}

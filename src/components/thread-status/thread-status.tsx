@@ -99,7 +99,10 @@ export function ThreadStatus({
 }: ThreadStatusProps) {
   return (
     <span
-      className={cx("flex min-w-6 shrink-0 items-center justify-end", className)}
+      className={cx(
+        "flex min-w-6 shrink-0 items-center justify-end",
+        className,
+      )}
       {...props}
     >
       {isActiveStatus(status) ? (

@@ -52,10 +52,17 @@ export function useSidebarThreads(
       setPrefs((current) => {
         const open = { ...current.open };
         delete open[`closed:shelf:${shelf}`];
-        return { ...current, open, collapse: { ...current.collapse, [shelf]: collapsed } };
+        return {
+          ...current,
+          open,
+          collapse: { ...current.collapse, [shelf]: collapsed },
+        };
       }),
     setSectionOpen: (sectionId, open) =>
-      setPrefs((current) => ({ ...current, open: { ...current.open, [sectionId]: open } })),
+      setPrefs((current) => ({
+        ...current,
+        open: { ...current.open, [sectionId]: open },
+      })),
     showMore: (sectionId) =>
       setPrefs((current) => ({
         ...current,

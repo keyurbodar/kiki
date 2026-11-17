@@ -29,7 +29,8 @@ const menuIconClassName =
   "flex size-(--icon-sm) shrink-0 items-center justify-center text-icon-muted in-data-[intent=danger]:text-destructive";
 const menuValueClassName =
   "ml-auto flex shrink-0 items-center gap-1.5 text-sm font-normal text-muted-foreground-1";
-const menuChevronClassName = "size-(--icon-sm) shrink-0 text-muted-foreground-3";
+const menuChevronClassName =
+  "size-(--icon-sm) shrink-0 text-muted-foreground-3";
 const menuCheckClassName = "ml-auto size-(--icon-sm) shrink-0 text-foreground";
 const menuLabelClassName =
   "mt-1 flex min-h-[calc(var(--spacing)*5.5)] items-center px-2 text-xs font-medium text-muted-foreground-2 first:mt-0";
@@ -78,7 +79,9 @@ function MenuGlyph({ name }: { name: MenuGlyphName }) {
 }
 
 function Check({ on }: { on: boolean }) {
-  return on ? <Glyph name="checkmark-1" className={menuCheckClassName} /> : null;
+  return on ? (
+    <Glyph name="checkmark-1" className={menuCheckClassName} />
+  ) : null;
 }
 
 function SubMenu({
@@ -117,9 +120,14 @@ function OptionsTrigger({ label }: { label: string }) {
       <TooltipTrigger
         render={
           <MenuTrigger
-            render={<Button variant="ghost" size="icon-sm" aria-label={label} />}
+            render={
+              <Button variant="ghost" size="icon-sm" aria-label={label} />
+            }
           >
-            <Glyph name="dot-grid-1x3-horizontal" className="size-(--icon-base)" />
+            <Glyph
+              name="dot-grid-1x3-horizontal"
+              className="size-(--icon-base)"
+            />
           </MenuTrigger>
         }
       />
@@ -138,7 +146,10 @@ function GroupingSubMenu({
   return (
     <SubMenu icon="folder-1" label="Group by" value={groupingLabels[grouping]}>
       {(Object.keys(groupingLabels) as SidebarGrouping[]).map((option) => (
-        <ResponsiveMenuItem key={option} onClick={() => onGroupingChange(option)}>
+        <ResponsiveMenuItem
+          key={option}
+          onClick={() => onGroupingChange(option)}
+        >
           <MenuGlyph name={option === "folders" ? "folder-1" : "box-2"} />
           {groupingLabels[option]}
           <Check on={grouping === option} />
@@ -158,8 +169,13 @@ function DensitySubMenu({
   return (
     <SubMenu icon="eye-open" label="Density" value={densityLabel(density)}>
       {(["compact", "detailed"] as const).map((option) => (
-        <ResponsiveMenuItem key={option} onClick={() => onDensityChange(option)}>
-          <MenuGlyph name={option === "compact" ? "list-bullets" : "text-block"} />
+        <ResponsiveMenuItem
+          key={option}
+          onClick={() => onDensityChange(option)}
+        >
+          <MenuGlyph
+            name={option === "compact" ? "list-bullets" : "text-block"}
+          />
           {densityLabel(option)}
           <Check on={density === option} />
         </ResponsiveMenuItem>
@@ -217,20 +233,40 @@ export function ThreadOptionsMenu({
         )}
         <MenuSeparator className={menuSeparatorClassName} />
         <MenuLabel className={menuLabelClassName}>View</MenuLabel>
-        <GroupingSubMenu grouping={grouping} onGroupingChange={onGroupingChange} />
-        <SubMenu icon="sort-arrow-up-down" label="Sort by" value={threadSortLabels[sort]}>
-          {(Object.keys(threadSortLabels) as SidebarThreadSort[]).map((option) => (
-            <ResponsiveMenuItem key={option} onClick={() => onSortChange(option)}>
-              <MenuGlyph
-                name={option === "lastActive" ? "arrow-rotate-clockwise" : "calendar-clock-4"}
-              />
-              {threadSortLabels[option]}
-              <Check on={sort === option} />
-            </ResponsiveMenuItem>
-          ))}
+        <GroupingSubMenu
+          grouping={grouping}
+          onGroupingChange={onGroupingChange}
+        />
+        <SubMenu
+          icon="sort-arrow-up-down"
+          label="Sort by"
+          value={threadSortLabels[sort]}
+        >
+          {(Object.keys(threadSortLabels) as SidebarThreadSort[]).map(
+            (option) => (
+              <ResponsiveMenuItem
+                key={option}
+                onClick={() => onSortChange(option)}
+              >
+                <MenuGlyph
+                  name={
+                    option === "lastActive"
+                      ? "arrow-rotate-clockwise"
+                      : "calendar-clock-4"
+                  }
+                />
+                {threadSortLabels[option]}
+                <Check on={sort === option} />
+              </ResponsiveMenuItem>
+            ),
+          )}
         </SubMenu>
         <DensitySubMenu density={density} onDensityChange={onDensityChange} />
-        <SubMenu icon="layers-three" label="Collapse" value={collapseLabel(collapse)}>
+        <SubMenu
+          icon="layers-three"
+          label="Collapse"
+          value={collapseLabel(collapse)}
+        >
           {(["working", "settled"] as const).map((shelf) => (
             <ResponsiveMenuItem
               key={shelf}
@@ -302,23 +338,35 @@ export function CaptainOptionsMenu({
             <MenuSeparator className={menuSeparatorClassName} />
           </>
         )}
-        <GroupingSubMenu grouping={grouping} onGroupingChange={onGroupingChange} />
-        <SubMenu icon="sort-arrow-up-down" label="Sort by" value={captainSortLabels[order]}>
-          {(Object.keys(captainSortLabels) as SidebarCaptainSort[]).map((option) => (
-            <ResponsiveMenuItem key={option} onClick={() => onOrderChange(option)}>
-              <MenuGlyph
-                name={
-                  option === "drag"
-                    ? "reorder"
-                    : option === "activity"
-                      ? "arrow-rotate-clockwise"
-                      : "calendar-clock-4"
-                }
-              />
-              {captainSortLabels[option]}
-              <Check on={order === option} />
-            </ResponsiveMenuItem>
-          ))}
+        <GroupingSubMenu
+          grouping={grouping}
+          onGroupingChange={onGroupingChange}
+        />
+        <SubMenu
+          icon="sort-arrow-up-down"
+          label="Sort by"
+          value={captainSortLabels[order]}
+        >
+          {(Object.keys(captainSortLabels) as SidebarCaptainSort[]).map(
+            (option) => (
+              <ResponsiveMenuItem
+                key={option}
+                onClick={() => onOrderChange(option)}
+              >
+                <MenuGlyph
+                  name={
+                    option === "drag"
+                      ? "reorder"
+                      : option === "activity"
+                        ? "arrow-rotate-clockwise"
+                        : "calendar-clock-4"
+                  }
+                />
+                {captainSortLabels[option]}
+                <Check on={order === option} />
+              </ResponsiveMenuItem>
+            ),
+          )}
         </SubMenu>
         <DensitySubMenu density={density} onDensityChange={onDensityChange} />
       </MenuContent>

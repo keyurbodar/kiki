@@ -171,7 +171,9 @@ export function SidebarThreadRow({
   ...props
 }: SidebarThreadRowProps) {
   if (thread === undefined) {
-    return <div data-slot="sidebar-thread-row" className={className} {...props} />;
+    return (
+      <div data-slot="sidebar-thread-row" className={className} {...props} />
+    );
   }
   const slim = density === "compact";
   const busy = thread.status === "working" || thread.status === "waiting";
@@ -257,7 +259,9 @@ export function SidebarThreadRow({
             "group/row flex gap-2.5 rounded px-2 outline-none select-none [-webkit-touch-callout:none]",
             slim ? "h-8 items-center" : "h-13 items-start py-1.5",
             "transition-colors duration-100 focus-visible:outline-ring-inset",
-            active ? "bg-card shadow-row-open" : "group-hover/thread:bg-secondary",
+            active
+              ? "bg-card shadow-row-open"
+              : "group-hover/thread:bg-secondary",
           )}
         >
           {slim ? (
@@ -291,4 +295,3 @@ export function SidebarThreadRow({
     </div>
   );
 }
-
