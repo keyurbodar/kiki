@@ -1,0 +1,17 @@
+{
+  "defaults": { "maxMismatch": 100 },
+  "targets": [
+    {
+      "id": "settings-profile",
+      "route": "/settings/profile",
+      "viewport": "1440x818",
+      "variants": { "default/dark": { "frame": "wxYrN6-VrD" } }
+    },
+    {
+      "id": "settings-general",
+      "route": "/settings/general",
+      "viewport": "1440x818",
+      "variants": { "default/dark": { "frame": "n3bw5hbvGQ" } }
+    }
+  ]
+}
