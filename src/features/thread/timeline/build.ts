@@ -32,7 +32,8 @@ export const markOpenTurn = (
   const tools = rows.filter((row) => isTool(row) && row.eventId === openTurnId);
   if (
     tools.some((row) => isTool(row) && row.result === undefined) ||
-    (tools.length === 0 && rows.some((row) => row.type === "activity" && row.turnOpen))
+    (tools.length === 0 &&
+      rows.some((row) => row.type === "activity" && row.turnOpen))
   )
     return rows;
   for (let index = rows.length - 1; index >= 0; index -= 1) {
@@ -42,7 +43,8 @@ export const markOpenTurn = (
       return rows;
     if (
       tools.length > 0 ||
-      (row.kind !== "reasoning" && (row.kind !== "tool" || row.result !== undefined))
+      (row.kind !== "reasoning" &&
+        (row.kind !== "tool" || row.result !== undefined))
     ) {
       const at = new Date(
         Math.max(...[row, ...tools].map((entry) => settledAt(entry).getTime())),
@@ -74,18 +76,32 @@ export const mergeLive = (
   const settled = () => markOpenTurn(settledTimeline, openTurnId);
   if (
     entries.some((row) => row.type === "marker" && row.live === true) &&
-    live.every((row) => row.id === THINKING_STANDIN_ID || row.id === COMPACTING_ID)
+    live.every(
+      (row) => row.id === THINKING_STANDIN_ID || row.id === COMPACTING_ID,
+    )
   )
     return settledTimeline;
-  if (live.some((row) => isCallRow(row) && pass.callIds.has(row.id))) return settled();
-  const lastAssistant = ordered.map((event) => event.kind === "assistant").lastIndexOf(true);
+  if (live.some((row) => isCallRow(row) && pass.callIds.has(row.id)))
+    return settled();
+  const lastAssistant = ordered
+    .map((event) => event.kind === "assistant")
+    .lastIndexOf(true);
   const assistant = ordered[lastAssistant];
-  const lastMessage = ordered.map((event) => event.kind === "message").lastIndexOf(true);
-  if (liveSettled && assistant?.kind === "assistant" && lastMessage < lastAssistant) {
+  const lastMessage = ordered
+    .map((event) => event.kind === "message")
+    .lastIndexOf(true);
+  if (
+    liveSettled &&
+    assistant?.kind === "assistant" &&
+    lastMessage < lastAssistant
+  ) {
     const stored = new Set(
       entries.flatMap((row) => (row.eventId === assistant.id ? [row.id] : [])),
     );
-    if (live.length > 0 && live.every((row) => stored.has(row.id) && !isCallRow(row)))
+    if (
+      live.length > 0 &&
+      live.every((row) => stored.has(row.id) && !isCallRow(row))
+    )
       return settled();
   }
   const reopens = live.some(
@@ -110,7 +126,10 @@ export const mergeLive = (
     last.kind === "reasoning" &&
     first?.type === "activity" &&
     first.kind === "reasoning" &&
-    !(pending !== undefined && first.createdAt.getTime() >= pending.sentAt.getTime())
+    !(
+      pending !== undefined &&
+      first.createdAt.getTime() >= pending.sentAt.getTime()
+    )
   ) {
     const from = last.turnOpen
       ? last.createdAt.getTime()
@@ -152,7 +171,9 @@ export const markNew = (
           (newUntil === undefined || row.eventId <= newUntil),
       )?.eventId ?? newSince;
   const since =
-    newSince === null || (lastOwn !== null && lastOwn > newSince) ? lastOwn : newSince;
+    newSince === null || (lastOwn !== null && lastOwn > newSince)
+      ? lastOwn
+      : newSince;
   const index = rows.findIndex(
     (row) =>
       (row.type === "user-message" || row.type === "agent-message") &&
@@ -181,7 +202,10 @@ export const markNew = (
 export const pendingAskOf = (rows: ReadonlyArray<Row>) => {
   for (let index = rows.length - 1; index >= 0; index -= 1) {
     const row = rows[index];
-    if (row === undefined || (row.type === "user-message" && row.actor.type !== "agent"))
+    if (
+      row === undefined ||
+      (row.type === "user-message" && row.actor.type !== "agent")
+    )
       return undefined;
     if (row.type === "clarify") return row;
   }
@@ -193,7 +217,8 @@ export const pendingEnvironmentOf = (rows: ReadonlyArray<Row>) => {
   for (let index = rows.length - 1; index >= 0; index -= 1) {
     const row = rows[index];
     if (row === undefined) return undefined;
-    if (row.type === "environment-request") return row.fulfilled ? undefined : row;
+    if (row.type === "environment-request")
+      return row.fulfilled ? undefined : row;
   }
   return undefined;
 };
@@ -236,7 +261,10 @@ export const queuedMessages = (
         delivery: event.payload.delivery,
         mentions: event.payload.mentions ?? [],
         files: event.payload.files,
-        clientKey: key !== undefined && firstByKey.get(key) === event.id ? key : undefined,
+        clientKey:
+          key !== undefined && firstByKey.get(key) === event.id
+            ? key
+            : undefined,
       },
     ];
   });
@@ -283,19 +311,26 @@ const gapBetween = (row: Row, previous: Row | undefined): Gap =>
  * Spacing above each row, keyed by row id. A user message (or the row after
  * an agent message) an hour or more after the previous row gets a time stamp.
  */
-export const rowGaps = (rows: ReadonlyArray<Row>): ReadonlyMap<string, RowGap> =>
+export const rowGaps = (
+  rows: ReadonlyArray<Row>,
+): ReadonlyMap<string, RowGap> =>
   new Map(
     rows.map((row, index) => {
       const previous = rows[index - 1];
-      const turnStart = row.type === "user-message" || previous?.type === "agent-message";
+      const turnStart =
+        row.type === "user-message" || previous?.type === "agent-message";
       const stamped =
         previous === undefined ||
         (turnStart &&
-          row.createdAt.getTime() - previous.createdAt.getTime() >= STAMP_GAP_MS);
+          row.createdAt.getTime() - previous.createdAt.getTime() >=
+            STAMP_GAP_MS);
       return [
         row.id,
         {
-          gap: stamped && previous !== undefined ? "stamp" : gapBetween(row, previous),
+          gap:
+            stamped && previous !== undefined
+              ? "stamp"
+              : gapBetween(row, previous),
           stamp: stamped ? row.createdAt : undefined,
         },
       ];
@@ -325,7 +360,10 @@ export interface Timeline {
   readonly turnOpen: boolean;
 }
 
-const passCache = new WeakMap<ReadonlyArray<EventRow>, Map<string, EventPass>>();
+const passCache = new WeakMap<
+  ReadonlyArray<EventRow>,
+  Map<string, EventPass>
+>();
 
 const cachedPass = (
   events: ReadonlyArray<EventRow>,
@@ -360,34 +398,39 @@ export const buildTimeline = (
   const liveRows = options.liveEntries ?? [];
   const calls = new Map(
     liveRows.flatMap((row) =>
-      isTool(row) && row.liveCalls !== undefined ? [[row.id, row.liveCalls] as const] : [],
+      isTool(row) && row.liveCalls !== undefined
+        ? [[row.id, row.liveCalls] as const]
+        : [],
     ),
   );
-  const streaming = liveRows.filter((row) => !isTool(row) || row.liveCalls === undefined);
+  const streaming = liveRows.filter(
+    (row) => !isTool(row) || row.liveCalls === undefined,
+  );
   const merged =
     streaming.length === 0
       ? markOpenTurn(pass.settledTimeline, pass.openTurnId)
-      : mergeLive(pass, streaming, options.pendingExchange, options.liveSettled ?? false);
+      : mergeLive(
+          pass,
+          streaming,
+          options.pendingExchange,
+          options.liveSettled ?? false,
+        );
   const offset = options.serverOffsetMs ?? 0;
   const interrupts = merged.filter(
     (row) =>
-      row.type === "user-message" && row.state === "pending" && row.delivery === "interrupt",
+      row.type === "user-message" &&
+      row.state === "pending" &&
+      row.delivery === "interrupt",
   );
-  const placed =
-    interrupts.length === 0
-      ? merged
-      : interrupts.reduce<ReadonlyArray<Row>>(
-          (rows, row) => {
-            const at = row.createdAt.getTime() + offset;
-            const index = rows.findIndex(
-              (entry) => entry.eventId === LIVE_EVENT_ID && entry.createdAt.getTime() >= at,
-            );
-            return index === -1
-              ? [...rows, row]
-              : [...rows.slice(0, index), row, ...rows.slice(index)];
-          },
-          merged.filter((row) => !interrupts.includes(row)),
-        );
+  const placed = merged.filter((row) => !interrupts.includes(row));
+  for (const row of interrupts) {
+    const at = row.createdAt.getTime() + offset;
+    const index = placed.findIndex(
+      (entry) =>
+        entry.eventId === LIVE_EVENT_ID && entry.createdAt.getTime() >= at,
+    );
+    placed.splice(index === -1 ? placed.length : index, 0, row);
+  }
   const withCalls =
     calls.size === 0
       ? placed
@@ -398,7 +441,12 @@ export const buildTimeline = (
             : row;
         });
   const rows = groupRows(
-    markNew(withCalls, options.newSince, options.newUntil, options.viewerUserId),
+    markNew(
+      withCalls,
+      options.newSince,
+      options.newUntil,
+      options.viewerUserId,
+    ),
     {
       expandedGroupIds: options.expandedGroupIds ?? new Map(),
       pendingExchange: options.pendingExchange,

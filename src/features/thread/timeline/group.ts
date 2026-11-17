@@ -163,10 +163,11 @@ const revisedVisuals = (rows: ReadonlyArray<Row>) =>
   );
 
 const markRevised = (rows: ReadonlyArray<Row>, revised: ReadonlySet<string>) =>
-  rows.map((row): Row =>
-    isVisual(row, "failed") && revised.has(row.id)
-      ? ({ ...row, phase: "done", revised: true } as Row)
-      : row,
+  rows.map(
+    (row): Row =>
+      isVisual(row, "failed") && revised.has(row.id)
+        ? ({ ...row, phase: "done", revised: true } as Row)
+        : row,
   );
 
 const failureKey = (toolName: string, args: unknown) =>
@@ -181,7 +182,12 @@ export const countFailures = (rows: ReadonlyArray<Row>): number =>
     .flatMap((row) => {
       if (!isTool(row) || row.result === undefined) return [];
       if (row.toolName !== "execute")
-        return [{ key: failureKey(row.toolName, row.args), failed: row.phase === "failed" }];
+        return [
+          {
+            key: failureKey(row.toolName, row.args),
+            failed: row.phase === "failed",
+          },
+        ];
       const calls = programEntries(row);
       return [
         ...calls.map((call) => ({
@@ -191,15 +197,17 @@ export const countFailures = (rows: ReadonlyArray<Row>): number =>
         {
           key: failureKey(row.toolName, row.args),
           failed:
-            row.result.isError && !calls.some((call) => call.phase === "failed"),
+            row.result.isError &&
+            !calls.some((call) => call.phase === "failed"),
         },
       ];
     })
     .reduceRight(
-      (acc, entry) =>
-        entry.failed
-          ? { ...acc, count: acc.count + (acc.retried.has(entry.key) ? 0 : 1) }
-          : { ...acc, retried: new Set([...acc.retried, entry.key]) },
+      (acc, entry) => {
+        if (!entry.failed) acc.retried.add(entry.key);
+        else if (!acc.retried.has(entry.key)) acc.count += 1;
+        return acc;
+      },
       { count: 0, retried: new Set<string>() },
     ).count;
 
@@ -243,7 +251,11 @@ const trailingRun = (rows: ReadonlyArray<Row>) => {
   let start: number | undefined;
   for (let index = rows.length - 1; index >= 0; index -= 1) {
     const row = rows[index];
-    if (row === undefined || row.type !== "activity" || pausesAfter(rows, index))
+    if (
+      row === undefined ||
+      row.type !== "activity" ||
+      pausesAfter(rows, index)
+    )
       break;
     start = index;
   }
@@ -290,7 +302,8 @@ const sameWait = (a: Waiting, b: Waiting) =>
 const familyOf = (row: Row) => {
   if (!isTool(row)) return undefined;
   if (row.toolName === "read") return "explore";
-  if (row.toolName.startsWith("pr_") && row.toolName !== "pr_create") return "pr";
+  if (row.toolName.startsWith("pr_") && row.toolName !== "pr_create")
+    return "pr";
   return undefined;
 };
 
@@ -339,7 +352,10 @@ export const chunksOf = (
     }
     const calls = programEntries(program);
     const only = calls.length === 1 ? calls[0] : undefined;
-    if (only !== undefined || (calls.length === 0 && program.result !== undefined)) {
+    if (
+      only !== undefined ||
+      (calls.length === 0 && program.result !== undefined)
+    ) {
       const entry = { ...(only ?? program), id: row.id, untimed: false } as Row;
       drafts.push({
         family: undefined,
@@ -380,11 +396,18 @@ export const chunksOf = (
 };
 
 type SummaryRow = Extract<Row, { type: "summary" }>;
-type Mutable<T> = { -readonly [K in keyof T]: T[K] extends ReadonlyArray<infer U> ? U[] : T[K] };
+type Mutable<T> = {
+  -readonly [K in keyof T]: T[K] extends ReadonlyArray<infer U> ? U[] : T[K];
+};
 type SummaryDraft = Mutable<
   Pick<
     SummaryRow,
-    "prs" | "ports" | "environmentRequests" | "setup" | "automations" | "appearances"
+    | "prs"
+    | "ports"
+    | "environmentRequests"
+    | "setup"
+    | "automations"
+    | "appearances"
   >
 > & { trigger: Row | undefined };
 
@@ -432,7 +455,11 @@ const pullOrPort = (tool: ToolRow) => {
 };
 
 const setupChange = (tool: ToolRow) => {
-  if (!SETUP_TOOLS.has(tool.toolName) || tool.result === undefined || tool.result.isError)
+  if (
+    !SETUP_TOOLS.has(tool.toolName) ||
+    tool.result === undefined ||
+    tool.result.isError
+  )
     return undefined;
   const data = tool.result.data;
   if (tool.toolName === "environment_apply_setup") {
@@ -467,7 +494,8 @@ const automationsOf = (row: Row) =>
   !isTool(row) || row.toolName !== "execute" || row.result === undefined
     ? []
     : (executeData(row.result.data)?.calls ?? []).flatMap((call, index) => {
-        if (call.tool !== "automation_create" || call.error !== undefined) return [];
+        if (call.tool !== "automation_create" || call.error !== undefined)
+          return [];
         const id = readString(call.data, "id");
         const name = readString(call.data, "name");
         return id === undefined || name === undefined
@@ -495,7 +523,8 @@ const visualsOf = (tool: ToolRow) => {
 };
 
 const isWorkLine = (row: Row) =>
-  row.type === "update" || (row.type === "activity" && (row.kind === "tool" || row.kind === "text"));
+  row.type === "update" ||
+  (row.type === "activity" && (row.kind === "tool" || row.kind === "text"));
 
 /**
  * Groups each exchange: runs of activity fold into a work group, cards and
@@ -539,7 +568,9 @@ export const groupRows = (
       if (first === undefined) return;
       const id = `group:${exchange.id}:${groupCount}`;
       groupCount += 1;
-      const open = entries.find((row) => row.type === "activity" && row.turnOpen);
+      const open = entries.find(
+        (row) => row.type === "activity" && row.turnOpen,
+      );
       const lastEnd =
         message?.startedAt === undefined
           ? undefined
@@ -565,18 +596,24 @@ export const groupRows = (
         firstActivity === undefined || before === undefined
           ? 0
           : Math.max(0, firstActivity.getTime() - before.getTime());
-      const runStart = open === undefined ? undefined : (trailingRun(entries) ?? entries.length - 1);
+      const runStart =
+        open === undefined
+          ? undefined
+          : (trailingRun(entries) ?? entries.length - 1);
       const runFirst = runStart === undefined ? undefined : entries[runStart];
       const startedAt =
         runFirst === undefined || runStart === undefined
           ? undefined
           : new Date(
-              (runFirst.type === "activity" ? startOf(runFirst) : runFirst.createdAt).getTime() -
-                activeTime(entries.slice(0, runStart)),
+              (runFirst.type === "activity"
+                ? startOf(runFirst)
+                : runFirst.createdAt
+              ).getTime() - activeTime(entries.slice(0, runStart)),
             );
       const live = runFirst !== undefined && runFirst.eventId === LIVE_EVENT_ID;
       const waiting = waitingOf(entries);
-      const previous = waitingGroup === undefined ? undefined : out[waitingGroup];
+      const previous =
+        waitingGroup === undefined ? undefined : out[waitingGroup];
       if (
         open === undefined &&
         waiting !== undefined &&
@@ -584,7 +621,10 @@ export const groupRows = (
         previous.waiting !== undefined &&
         sameWait(previous.waiting as Waiting, waiting)
       ) {
-        const merged = markRevised([...previous.entries, ...entries] as Row[], revised);
+        const merged = markRevised(
+          [...previous.entries, ...entries] as Row[],
+          revised,
+        );
         out[waitingGroup as number] = {
           ...previous,
           activeMs: previous.activeMs + (activeMs > 0 ? activeMs : gapMs),
@@ -596,7 +636,8 @@ export const groupRows = (
         pending.length = 0;
         return;
       }
-      if (open === undefined && waiting !== undefined) waitingGroup = out.length;
+      if (open === undefined && waiting !== undefined)
+        waitingGroup = out.length;
       out.push({
         type: "work-group",
         id,
@@ -676,16 +717,21 @@ export const groupRows = (
         if (row.turnCloses) parked = { eventId: row.eventId, park: false };
         lastAt = row.createdAt;
       } else if (row.type === "activity") {
-        if (parked !== null && row.eventId !== parked.eventId && row.kind !== "reasoning")
+        if (
+          parked !== null &&
+          row.eventId !== parked.eventId &&
+          row.kind !== "reasoning"
+        )
           parked = null;
         if (row.turnCloses) {
+          const previous = parked as { eventId: EventId; park: boolean } | null;
           const waits =
             row.kind === "tool" &&
             row.result?.isError === false &&
             isWaitTool(row.toolName, row.result.data);
           parked = {
             eventId: row.eventId,
-            park: waits || (parked?.eventId === row.eventId && parked.park),
+            park: waits || (previous?.eventId === row.eventId && previous.park),
           };
         }
         for (const tool of row.kind === "tool" ? toolsOf(row) : []) {
@@ -716,7 +762,9 @@ export const groupRows = (
               data: tool.result.data,
               error: tool.result.isError
                 ? tool.result.blocks
-                    .flatMap((block) => (block.type === "text" ? [block.text] : []))
+                    .flatMap((block) =>
+                      block.type === "text" ? [block.text] : [],
+                    )
                     .join("\n") || "Appearance could not be updated"
                 : undefined,
             });
@@ -729,7 +777,8 @@ export const groupRows = (
             summary.automations.push(automation);
             summary.trigger = row;
           }
-        const visuals = row.kind === "tool" ? toolsOf(row).flatMap(visualsOf) : [];
+        const visuals =
+          row.kind === "tool" ? toolsOf(row).flatMap(visualsOf) : [];
         if (visuals.length > 0) {
           if (row.kind === "tool" && row.toolName === "execute") queue(row);
           flushGroup();
@@ -761,7 +810,10 @@ export const groupRows = (
           parked = null;
           const last = pending.at(-1);
           if (last?.type === "activity" && last.sleptAfter === undefined)
-            pending[pending.length - 1] = { ...last, sleptAfter: true } as ActivityRow;
+            pending[pending.length - 1] = {
+              ...last,
+              sleptAfter: true,
+            } as ActivityRow;
         }
         const expandable =
           row.kind === "task" ||
@@ -772,7 +824,11 @@ export const groupRows = (
               asRecord(row.slackMessage).text !== undefined));
         out.push(
           expandable
-            ? { ...row, exchangeId: exchange.id, expanded: expandedIds.get(row.id) ?? false }
+            ? {
+                ...row,
+                exchangeId: exchange.id,
+                expanded: expandedIds.get(row.id) ?? false,
+              }
             : { ...row, exchangeId: exchange.id },
         );
         lastAt = row.createdAt;
@@ -781,14 +837,20 @@ export const groupRows = (
         flushGroup(row.type === "agent-message" ? row : undefined);
         out.push(
           row.type === "agent-message"
-            ? { ...row, exchangeId: exchange.id, showFooter: row.id === footerId }
+            ? {
+                ...row,
+                exchangeId: exchange.id,
+                showFooter: row.id === footerId,
+              }
             : row.type === "user-message"
               ? {
                   ...row,
                   exchangeId: exchange.id,
                   expanded:
                     expandedIds.get(
-                      row.clientKey === undefined ? row.id : `client:${row.clientKey}`,
+                      row.clientKey === undefined
+                        ? row.id
+                        : `client:${row.clientKey}`,
                     ) ?? false,
                 }
               : row.type === "marker" && row.members !== undefined
@@ -818,10 +880,13 @@ const needsPerson = (row: UpdateRow) =>
       row.reference.kind === "thread" &&
       row.needs === "person"
     : row.kind === "notice" &&
-      (row.notificationKey === "task_blocked" || row.notificationKey === "pr_feedback");
+      (row.notificationKey === "task_blocked" ||
+        row.notificationKey === "pr_feedback");
 
 const clusterable = (row: Row) =>
-  row.type === "update" ? !needsPerson(row) : row.type === "work-group" && !row.live;
+  row.type === "update"
+    ? !needsPerson(row)
+    : row.type === "work-group" && !row.live;
 
 const quietNotices = new Set([
   "background_command_finished",
@@ -850,7 +915,11 @@ export const clusterRows = (
   const flush = () => {
     const first = members[0];
     if (first === undefined) return;
-    if (members.length === 1 && first.type === "update" && first.kind !== "task") {
+    if (
+      members.length === 1 &&
+      first.type === "update" &&
+      first.kind !== "task"
+    ) {
       out.push(first);
       members = [];
       return;
@@ -878,7 +947,8 @@ export const clusterRows = (
     members = [];
   };
   for (const row of rows)
-    if (clusterable(row) && (members.length > 0 || startsCluster(row))) members.push(row);
+    if (clusterable(row) && (members.length > 0 || startsCluster(row)))
+      members.push(row);
     else {
       flush();
       out.push(row);

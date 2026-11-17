@@ -34,7 +34,9 @@ export type LlmResponse = ReadonlyArray<Part>;
 
 const reduceResponse = (parts: LlmResponse, event: LlmEvent): LlmResponse => {
   const append = (type: "text" | "reasoning", id: string, text: string) => {
-    const index = parts.findIndex((part) => part.type === type && part.id === id);
+    const index = parts.findIndex(
+      (part) => part.type === type && part.id === id,
+    );
     if (index === -1) return [...parts, { type, id, text }];
     const part = parts[index] as { text: string };
     return parts.with(index, { type, id, text: part.text + text });
@@ -51,7 +53,10 @@ const reduceResponse = (parts: LlmResponse, event: LlmEvent): LlmResponse => {
     case "tool-input-start":
       return parts.some((part) => part.id === event.id)
         ? parts
-        : [...parts, { type: "tool-input", id: event.id, name: event.name, text: "" }];
+        : [
+            ...parts,
+            { type: "tool-input", id: event.id, name: event.name, text: "" },
+          ];
     case "tool-input-delta":
       return parts.map((part) =>
         part.type === "tool-input" && part.id === event.id
@@ -82,7 +87,9 @@ export const partialInputString = (
     const value = (JSON.parse(partial) as Record<string, unknown>)[key];
     return typeof value === "string" ? value : undefined;
   } catch {
-    const match = new RegExp(`"${key}"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)`).exec(partial);
+    const match = new RegExp(`"${key}"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)`).exec(
+      partial,
+    );
     if (match?.[1] === undefined) return undefined;
     const raw = match[1].endsWith("\\") ? match[1].slice(0, -1) : match[1];
     try {
@@ -159,7 +166,13 @@ const liveBlocks = (response: LlmResponse): ReadonlyArray<LiveBlock> =>
           ? []
           : [{ type: "text", id: part.id || `part:${index}`, text: part.text }];
       case "reasoning":
-        return [{ type: "reasoning", id: part.id || `part:${index}`, text: part.text }];
+        return [
+          {
+            type: "reasoning",
+            id: part.id || `part:${index}`,
+            text: part.text,
+          },
+        ];
       case "tool-call":
         return [
           {
@@ -169,11 +182,15 @@ const liveBlocks = (response: LlmResponse): ReadonlyArray<LiveBlock> =>
             input: part.input,
           },
         ];
+      default:
+        return [];
     }
   });
 
 const blockKey = (block: LiveBlock) =>
-  block.type === "text" || block.type === "reasoning" ? block.id : block.toolCallId;
+  block.type === "text" || block.type === "reasoning"
+    ? block.id
+    : block.toolCallId;
 
 const mergeChild = (
   previous: LiveChild | undefined,
@@ -230,7 +247,8 @@ export const applyDelta = (
       const blocks = liveBlocks(response);
       const blockStamps = new Map(base.blockStamps);
       for (const block of blocks)
-        if (!blockStamps.has(blockKey(block))) blockStamps.set(blockKey(block), now);
+        if (!blockStamps.has(blockKey(block)))
+          blockStamps.set(blockKey(block), now);
       const reasoningEnds =
         delta.event.type === "reasoning-end"
           ? new Map(base.reasoningEnds).set(delta.event.id, now)
@@ -238,7 +256,10 @@ export const applyDelta = (
       const formingArgs = new Map(base.formingArgs);
       for (const block of blocks) {
         if (block.type !== "tool-forming") continue;
-        const description = partialInputString(block.partialInput, "description");
+        const description = partialInputString(
+          block.partialInput,
+          "description",
+        );
         if (description !== undefined && description.trim().length > 0)
           formingArgs.set(block.toolCallId, { description });
       }
@@ -288,7 +309,10 @@ const endsTurn = (block: LiveBlock | undefined) => {
   if (block === undefined) return false;
   if (block.type === "tool-call") {
     const call = unwrapToolCall(block.toolName, block.input);
-    if (call.toolName === "end_turn" || isFinalSlackReact(call.toolName, call.args))
+    if (
+      call.toolName === "end_turn" ||
+      isFinalSlackReact(call.toolName, call.args)
+    )
       return true;
   }
   const state = deliveryOf(block);
@@ -393,7 +417,13 @@ const streamingRows = (live: LiveTurn): ReadonlyArray<Row> => {
     };
     switch (block.type) {
       case "text":
-        rows.push({ ...base, type: "activity", kind: "text", id: block.id, text: block.text });
+        rows.push({
+          ...base,
+          type: "activity",
+          kind: "text",
+          id: block.id,
+          text: block.text,
+        });
         break;
       case "reasoning": {
         const id = block.id;
@@ -414,7 +444,10 @@ const streamingRows = (live: LiveTurn): ReadonlyArray<Row> => {
             : (live.blockStamps.get(id) ?? live.startedAt);
         const after = blocks[index + 1];
         const endedAt =
-          ended ?? (after === undefined ? undefined : live.blockStamps.get(blockKey(after)));
+          ended ??
+          (after === undefined
+            ? undefined
+            : live.blockStamps.get(blockKey(after)));
         rows.push({
           ...base,
           turnOpen: isLast,
@@ -461,7 +494,8 @@ const streamingRows = (live: LiveTurn): ReadonlyArray<Row> => {
         break;
       }
       case "tool-forming": {
-        if (CARD_TOOLS.has(block.toolName) || HIDDEN_TOOLS.has(block.toolName)) break;
+        if (CARD_TOOLS.has(block.toolName) || HIDDEN_TOOLS.has(block.toolName))
+          break;
         if (
           isDeliveryTool(block.toolName, {
             to: partialInputString(block.partialInput, "to"),
@@ -511,4 +545,3 @@ const streamingRows = (live: LiveTurn): ReadonlyArray<Row> => {
     return [...rows, standin(live.startedAt)];
   return rows;
 };
-

@@ -73,7 +73,9 @@ export const readString = (value: unknown, key: string): string | undefined => {
 
 export const readNumber = (value: unknown, key: string): number | undefined => {
   const field = asRecord(value)[key];
-  return typeof field === "number" && Number.isFinite(field) ? field : undefined;
+  return typeof field === "number" && Number.isFinite(field)
+    ? field
+    : undefined;
 };
 
 export const readArray = (
@@ -101,7 +103,8 @@ export const executeData = (
     }
   | undefined => {
   const record = asRecord(data);
-  if (!Array.isArray(record.calls) && record.wait === undefined) return undefined;
+  if (!Array.isArray(record.calls) && record.wait === undefined)
+    return undefined;
   const calls = readArray(record, "calls").flatMap((call) => {
     const tool = readString(call, "tool");
     return tool === undefined
@@ -118,7 +121,10 @@ export const executeData = (
   const description = readString(record.wait, "description");
   return {
     calls,
-    wait: record.wait === undefined ? undefined : { description: description ?? "" },
+    wait:
+      record.wait === undefined
+        ? undefined
+        : { description: description ?? "" },
   };
 };
 
@@ -130,7 +136,8 @@ export const isWaitTool = (toolName: string, data: unknown): boolean =>
 /** `message_user`, and `message_agent` addressed to the parent (no `to`). */
 export const isDeliveryTool = (toolName: string, args: unknown): boolean =>
   toolName === "message_user" ||
-  (toolName === "message_agent" && readString(args, "to") === undefined &&
+  (toolName === "message_agent" &&
+    readString(args, "to") === undefined &&
     typeof asRecord(args).to !== "string");
 
 const deliveryStates: Record<string, "final" | "needs_you"> = {
@@ -215,8 +222,10 @@ export const settledAt = (row: Row): Date =>
     ? row.result.settledAt
     : row.createdAt;
 
-export const startOf = (row: { startedAt?: Date | undefined; createdAt: Date }) =>
-  row.startedAt ?? row.createdAt;
+export const startOf = (row: {
+  startedAt?: Date | undefined;
+  createdAt: Date;
+}) => row.startedAt ?? row.createdAt;
 
 const isMachineUnavailable = (result: Settlement) =>
   result.isError &&

@@ -1,11 +1,14 @@
 import { useAtomMount, useAtomSet, useAtomValue } from "@effect/atom-react";
-import { Effect, Layer, Option, Stream } from "effect";
+import { Effect, Layer, Result, Stream } from "effect";
 import { Atom } from "effect/reactivity";
 import { useCallback, useMemo } from "react";
 import type { JamId, OrgId } from "@/data/api/schemas/ids.ts";
 import { ApiClient, makeApiClientLayer } from "@/data/client/ApiClient.ts";
 import { ApiTransport } from "@/data/client/transport.ts";
-import { RealtimeSocket, RealtimeSocketFake } from "@/data/realtime/RealtimeSocket.ts";
+import {
+  RealtimeSocket,
+  RealtimeSocketFake,
+} from "@/data/realtime/RealtimeSocket.ts";
 import { buildTimeline, type Timeline } from "./build";
 import {
   applyRealtime,
@@ -77,10 +80,9 @@ export const threadSyncAtom = Atom.family((key: string) =>
         JSON.stringify({ type: "subscribe", scopes: [`jam:${jamId}`] }),
       );
       yield* socket.messages.pipe(
-        Stream.filterMap((frame) => decodeRealtimeFrame(frame).pipe(Option.match({
-          onNone: () => Option.none(),
-          onSome: Option.some,
-        }))),
+        Stream.filterMap((frame) =>
+          Result.fromOption(decodeRealtimeFrame(frame), () => frame),
+        ),
         Stream.runForEach((message) =>
           Effect.gen(function* () {
             const feed = get(feedAtom);
@@ -88,7 +90,10 @@ export const threadSyncAtom = Atom.family((key: string) =>
             if (action.kind === "delta") get.set(feedAtom, action.feed);
             if (action.kind !== "refetch") return;
             const after = newestEventId(get(feedAtom));
-            const page = yield* fetchPage(key, after === undefined ? {} : { after });
+            const page = yield* fetchPage(
+              key,
+              after === undefined ? {} : { after },
+            );
             get.set(feedAtom, newerLoaded(get(feedAtom), page));
           }),
         ),

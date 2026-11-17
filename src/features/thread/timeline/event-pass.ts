@@ -64,7 +64,9 @@ export interface EventPass {
 export const orderEvents = (
   events: ReadonlyArray<Event>,
 ): ReadonlyArray<Event> => {
-  const sorted = [...events].sort((a, b) => (a.id < b.id ? -1 : +(a.id > b.id)));
+  const sorted = [...events].sort((a, b) =>
+    a.id < b.id ? -1 : +(a.id > b.id),
+  );
   const moved = sorted
     .flatMap((event) => {
       const boundary =
@@ -195,7 +197,11 @@ const machineKeys = new Set([
   "workspace_replaced",
   "workspace_restored",
 ]);
-const driveKeys = new Set(["volume_quota", "drive_unmounted", "drive_bulk_delete"]);
+const driveKeys = new Set([
+  "volume_quota",
+  "drive_unmounted",
+  "drive_bulk_delete",
+]);
 const crewMarkers: Record<string, { label: string; leads: boolean }> = {
   "crew.taken": { label: "joined the crew", leads: true },
   "crew.released": { label: "left the crew", leads: true },
@@ -961,7 +967,11 @@ export const eventPass = (
     });
     return rows.length - 1;
   };
-  const markReconnected = (index: number, sinceMs: number | undefined, at: Date) => {
+  const markReconnected = (
+    index: number,
+    sinceMs: number | undefined,
+    at: Date,
+  ) => {
     const row = rows[index];
     if (
       row?.type !== "error" ||
@@ -1080,7 +1090,11 @@ export const eventPass = (
   };
   const closed = new Set<string>();
   const closeOpen = () => {
-    if (open !== undefined && !closed.has(open.id) && open.blocks.some(blockCloses))
+    if (
+      open !== undefined &&
+      !closed.has(open.id) &&
+      open.blocks.some(blockCloses)
+    )
       closed.add(open.id);
   };
 
@@ -1097,7 +1111,8 @@ export const eventPass = (
       const previous = settlements.get(event.payload.toolCallId);
       settlements.set(event.payload.toolCallId, {
         blocks: event.payload.blocks,
-        data: event.kind === "tool_result" ? event.payload.data : previous?.data,
+        data:
+          event.kind === "tool_result" ? event.payload.data : previous?.data,
         isError: event.payload.isError,
         settledAt: previous?.settledAt ?? event.createdAt,
         eventId: event.id,
@@ -1111,7 +1126,10 @@ export const eventPass = (
           executeData(event.payload.data)?.calls ?? []
         ).entries())
           if (call.tool === "bash")
-            bashInputs.set(`${event.payload.toolCallId}:${index + 1}`, call.input);
+            bashInputs.set(
+              `${event.payload.toolCallId}:${index + 1}`,
+              call.input,
+            );
       }
     }
     if (event.kind === "assistant")
@@ -1125,10 +1143,13 @@ export const eventPass = (
             eventId: event.id,
           });
         if (block.type !== "tool_use") continue;
-        if (block.toolName === "bash") bashInputs.set(block.toolCallId, block.args);
+        if (block.toolName === "bash")
+          bashInputs.set(block.toolCallId, block.args);
         if (block.toolName === "wait") waitCalls.add(block.toolCallId);
-        if (MACHINE_TOOLS.has(block.toolName)) machineCalls.add(block.toolCallId);
-        if (block.toolName === "subscribe") subscribeCalls.add(block.toolCallId);
+        if (MACHINE_TOOLS.has(block.toolName))
+          machineCalls.add(block.toolCallId);
+        if (block.toolName === "subscribe")
+          subscribeCalls.add(block.toolCallId);
         agentCalls?.push(block);
         userCalls?.push(block);
       }
@@ -1140,9 +1161,11 @@ export const eventPass = (
       }
       if (event.payload.key === DELIVERY_REMINDER) reminders += 1;
       if (
-        (event.payload.key === "crew.left" || event.payload.key === "crew.joined") &&
+        (event.payload.key === "crew.left" ||
+          event.payload.key === "crew.joined") &&
         agentCalls !== undefined &&
-        (event.payload.key === "crew.left") === (event.payload.ref?.id === crewParent)
+        (event.payload.key === "crew.left") ===
+          (event.payload.ref?.id === crewParent)
       )
         agentCalls = undefined;
     }
@@ -1176,7 +1199,8 @@ export const eventPass = (
         grokQuiet < GROK_CONTINUATIONS;
       const reminded = reminders < DELIVERY_REMINDERS && undelivered();
       const continues =
-        payload.stopReason === "end_turn" && (codex || anthropic || grok || reminded);
+        payload.stopReason === "end_turn" &&
+        (codex || anthropic || grok || reminded);
       open =
         payload.stopReason === "tool_use"
           ? { id: event.id, blocks: payload.blocks }
@@ -1216,7 +1240,10 @@ export const eventPass = (
         }
       }
     }
-    if (event.kind === "control" && asRecord(event.payload.command).type === "stop") {
+    if (
+      event.kind === "control" &&
+      asRecord(event.payload.command).type === "stop"
+    ) {
       closeOpen();
       open = undefined;
     }
@@ -1230,8 +1257,12 @@ export const eventPass = (
   const cancelledInputs = new Set<string>();
   const versionRoots = new Set<string>();
   for (const event of ordered) {
-    const command = event.kind === "control" ? asRecord(event.payload.command) : {};
-    if (command.type === "cancel_input" && typeof command.targetEventId === "string")
+    const command =
+      event.kind === "control" ? asRecord(event.payload.command) : {};
+    if (
+      command.type === "cancel_input" &&
+      typeof command.targetEventId === "string"
+    )
       cancelledInputs.add(command.targetEventId);
     if (event.kind === "context") {
       const root = asRecord(event.payload.context).root;
@@ -1246,7 +1277,8 @@ export const eventPass = (
     )
       continue;
     const id = event.payload.ref.id;
-    if (event.payload.key === "desktop_request_done") desktopRequests.set(id, "done");
+    if (event.payload.key === "desktop_request_done")
+      desktopRequests.set(id, "done");
     if (
       event.payload.key === "desktop_request_expired" &&
       desktopRequests.get(id) !== "done"
@@ -1255,7 +1287,8 @@ export const eventPass = (
   }
   const lastConnectionChange = ordered.findLast(
     (event) =>
-      event.kind === "notification" && event.payload.key === "connection_changed",
+      event.kind === "notification" &&
+      event.payload.key === "connection_changed",
   )?.id;
   const supersededCredits = new Set<string>();
   let pendingCredits: string | undefined;
@@ -1291,7 +1324,8 @@ export const eventPass = (
   const terminalRequests = collectTerminalRequests(ordered);
   const feedbackRequests = new Map(
     ordered.flatMap((event) =>
-      event.kind === "notification" && event.payload.feedbackRequest !== undefined
+      event.kind === "notification" &&
+      event.payload.feedbackRequest !== undefined
         ? [
             [
               event.payload.feedbackRequest.toolCallId as string,
@@ -1506,9 +1540,12 @@ export const eventPass = (
         )
           break;
         if (payload.retryOf !== undefined) {
-          const credits = creditsIndex === undefined ? undefined : rows[creditsIndex];
+          const credits =
+            creditsIndex === undefined ? undefined : rows[creditsIndex];
           const failedModel =
-            credits?.type === "error" ? readString(credits.data, "modelId") : undefined;
+            credits?.type === "error"
+              ? readString(credits.data, "modelId")
+              : undefined;
           const switchedTo =
             credits?.type === "error" &&
             credits.eventId === payload.retryOf &&
@@ -1519,7 +1556,9 @@ export const eventPass = (
           if (switchedTo !== undefined)
             settleCredits("settled", "resumed", undefined, switchedTo);
           const author =
-            "authorName" in payload.origin ? payload.origin.authorName : undefined;
+            "authorName" in payload.origin
+              ? payload.origin.authorName
+              : undefined;
           rows.push(
             marker(
               "retry",
@@ -1544,7 +1583,8 @@ export const eventPass = (
           actor: payload.actor,
           origin: payload.origin,
           showOrigin:
-            previousOrigin === undefined || !sameOrigin(previousOrigin, payload.origin),
+            previousOrigin === undefined ||
+            !sameOrigin(previousOrigin, payload.origin),
           state: inputState(event.state, event.id),
           clientKey,
           editOf: payload.editOf,
@@ -1565,7 +1605,9 @@ export const eventPass = (
       case "control": {
         const command = asRecord(event.payload.command);
         if (command.type === "promote_captain")
-          rows.push(marker("captain", `Promoted to Captain as ${command.name}`));
+          rows.push(
+            marker("captain", `Promoted to Captain as ${command.name}`),
+          );
         if (command.type === "demote_captain")
           rows.push(marker("captain", `${command.name} demoted to a thread`));
         if (command.type === "rename_captain")
@@ -1671,14 +1713,20 @@ export const eventPass = (
           toolCallId: payload.toolCallId,
           blocks: payload.blocks,
           isError: payload.isError,
-          commandLabel: readString(bashInputs.get(payload.toolCallId), "command"),
+          commandLabel: readString(
+            bashInputs.get(payload.toolCallId),
+            "command",
+          ),
           watch,
           watchEnded,
         });
         break;
       }
       case "tool_result":
-        if (machineCalls.has(event.payload.toolCallId) && !event.payload.isError)
+        if (
+          machineCalls.has(event.payload.toolCallId) &&
+          !event.payload.isError
+        )
           settleEpisodes(event.createdAt);
         break;
       case "error": {
@@ -1687,14 +1735,17 @@ export const eventPass = (
         if (parkCodes.has(payload.code)) {
           park = { index: rows.length, code: payload.code };
           const handoff =
-            payload.code === "handoff_in_progress" ? asRecord(payload.data) : undefined;
+            payload.code === "handoff_in_progress"
+              ? asRecord(payload.data)
+              : undefined;
           const deviceName = readString(handoff, "deviceName") ?? "device";
           rows.push(
             marker(
               handoff?.direction === "cloud_to_device" ? "return" : "offline",
               payload.code === "device_offline"
                 ? payload.message
-                : handoff === undefined || handoff.direction === "device_to_cloud"
+                : handoff === undefined ||
+                    handoff.direction === "device_to_cloud"
                   ? "Moving to cloud"
                   : handoff.sourceSettingUp === true
                     ? `Moving to ${deviceName} once the cloud machine is set up`
@@ -1710,7 +1761,8 @@ export const eventPass = (
         }
         rows.push({
           type: "error",
-          credits: payload.code === "credits_consent_required" ? "open" : undefined,
+          credits:
+            payload.code === "credits_consent_required" ? "open" : undefined,
           severity: payload.retryable ? "warning" : "error",
           id: event.id,
           ...base,
@@ -1838,9 +1890,13 @@ export const eventPass = (
                 : payload.ref.kind !== "member_seat",
             );
       rows.push(
-        marker(change?.to === "Capy credits" ? "credits" : "switch", label.label, {
-          title: label.title,
-        }),
+        marker(
+          change?.to === "Capy credits" ? "credits" : "switch",
+          label.label,
+          {
+            title: label.title,
+          },
+        ),
       );
       return;
     }
@@ -1852,9 +1908,12 @@ export const eventPass = (
         /^Machine (\S+?)(?:'s)?\s/.exec(payload.summary)?.[1] ??
         "";
       const current = episodes.get(machineId);
-      const same = current !== undefined && current.sinceMs === episode?.sinceMs;
+      const same =
+        current !== undefined && current.sinceMs === episode?.sinceMs;
       const episodeKey =
-        episode?.sinceMs === undefined ? undefined : `${machineId} ${episode.sinceMs}`;
+        episode?.sinceMs === undefined
+          ? undefined
+          : `${machineId} ${episode.sinceMs}`;
       if (
         episodeKey !== undefined &&
         recovered.has(episodeKey) &&
@@ -1865,25 +1924,38 @@ export const eventPass = (
         if (episodeKey === undefined) return;
         recovered.add(episodeKey);
         const index = episodeRows.get(episodeKey);
-        if (index !== undefined) markReconnected(index, episode?.sinceMs, event.createdAt);
+        if (index !== undefined)
+          markReconnected(index, episode?.sinceMs, event.createdAt);
         if (same) episodes.delete(machineId);
       } else if (key === "machine_trouble") {
         const cause = episode?.cause ?? "reach";
         const capacity = episode?.capacity === true;
         const trouble = capacity ? capacityTrouble : machineTrouble[cause];
         if (!same) episodes.delete(machineId);
-        const index = machineWarning(machineId, event, trouble.code, trouble.message, {
-          state: "trying",
+        const index = machineWarning(
+          machineId,
+          event,
+          trouble.code,
+          trouble.message,
+          {
+            state: "trying",
+            cause,
+            capacity,
+            sinceMs: episode?.sinceMs,
+          },
+        );
+        episodes.set(machineId, {
+          index,
+          sinceMs: episode?.sinceMs,
           cause,
           capacity,
-          sinceMs: episode?.sinceMs,
         });
-        episodes.set(machineId, { index, sinceMs: episode?.sinceMs, cause, capacity });
         if (episodeKey !== undefined) episodeRows.set(episodeKey, index);
       } else if (key === "machine_unavailable") {
         const sinceMs = episode?.sinceMs;
         const cause = same ? current.cause : "reach";
-        const capacity = episode?.capacity === true || (same && current.capacity);
+        const capacity =
+          episode?.capacity === true || (same && current.capacity);
         if (!same) episodes.delete(machineId);
         const span =
           sinceMs === undefined
@@ -1900,8 +1972,12 @@ export const eventPass = (
         );
         episodes.set(machineId, { index, sinceMs, cause, capacity });
         if (episodeKey !== undefined) episodeRows.set(episodeKey, index);
-      } else if (key === "workspace_replaced" && episode?.idleDays !== undefined) {
-        const existing = current === undefined ? undefined : rows[current.index];
+      } else if (
+        key === "workspace_replaced" &&
+        episode?.idleDays !== undefined
+      ) {
+        const existing =
+          current === undefined ? undefined : rows[current.index];
         const warning = existing?.type === "error" ? existing : undefined;
         const row: Row = {
           type: "marker",
@@ -1911,7 +1987,8 @@ export const eventPass = (
           createdAt: warning?.createdAt ?? event.createdAt,
           label: `Idle workspace cleared after ${episode.idleDays === 1 ? "1 day" : `${episode.idleDays} days`}, the next run starts fresh from Setup`,
         };
-        if (current !== undefined && warning !== undefined) rows[current.index] = row;
+        if (current !== undefined && warning !== undefined)
+          rows[current.index] = row;
         else rows.push(row);
         episodes.delete(machineId);
       } else {
@@ -1984,7 +2061,12 @@ export const eventPass = (
       const members =
         joinable?.members ??
         (joinable?.reference === undefined ? undefined : [joinable.reference]);
-      if (crew.leads && reference !== undefined && joinable !== undefined && members !== undefined)
+      if (
+        crew.leads &&
+        reference !== undefined &&
+        joinable !== undefined &&
+        members !== undefined
+      )
         rows[rows.length - 1] = {
           ...joinable,
           reference: undefined,
@@ -2000,7 +2082,9 @@ export const eventPass = (
       const update = payload.environmentVariablesUpdated;
       if (update === undefined || update.names.length === 0) return;
       const requestId =
-        payload.ref?.kind === "environment_request" ? payload.ref.id : undefined;
+        payload.ref?.kind === "environment_request"
+          ? payload.ref.id
+          : undefined;
       const request = requestCalls.find(
         (call) =>
           call.position < position &&
@@ -2022,13 +2106,16 @@ export const eventPass = (
       const enabled =
         payload.issuesSwitched?.enabled ??
         !payload.summary.startsWith("Issues are now off");
-      rows.push(marker("issues", enabled ? "Enabled issues" : "Disabled issues"));
+      rows.push(
+        marker("issues", enabled ? "Enabled issues" : "Disabled issues"),
+      );
       return;
     }
     if (category === "setup") {
       if (key === "setup_recovered") {
         const machineId = payload.setupRecovered?.machineId;
-        if (machineId !== undefined) settleSetup(machineId, "recovered", event.createdAt);
+        if (machineId !== undefined)
+          settleSetup(machineId, "recovered", event.createdAt);
         return;
       }
       const failure = payload.setupFailure;
@@ -2136,7 +2223,8 @@ export const eventPass = (
       return;
     }
     if (category === "warning" || payload.severity === "warning") {
-      const notice = payload.driveFull === undefined ? driveNotice(payload) : undefined;
+      const notice =
+        payload.driveFull === undefined ? driveNotice(payload) : undefined;
       rows.push({
         type: "error",
         severity: "warning",
@@ -2149,7 +2237,8 @@ export const eventPass = (
               ? "drive_deletes_held"
               : key,
         message: driveKeys.has(key)
-          ? (payload.driveNotice ?? "Drive is full, files from this turn were not saved")
+          ? (payload.driveNotice ??
+            "Drive is full, files from this turn were not saved")
           : notice === undefined
             ? payload.summary
             : notice.lines.join(", "),
@@ -2177,7 +2266,9 @@ export const eventPass = (
           call.toolName === DESKTOP_REQUEST_TOOL &&
           call.toolCallId ===
             (payload.desktopRequest?.toolCallId ??
-              (payload.ref?.kind === "desktop_request" ? payload.ref.id : undefined)),
+              (payload.ref?.kind === "desktop_request"
+                ? payload.ref.id
+                : undefined)),
       )
     )
       return;
@@ -2201,7 +2292,8 @@ export const eventPass = (
       prFeedback: key === "pr_feedback" ? payload.prFeedback : undefined,
       summary: payload.summary,
       fileSaved: payload.fileSaved,
-      slackMessage: key === "slack_subscription_message" ? payload.slackMessage : undefined,
+      slackMessage:
+        key === "slack_subscription_message" ? payload.slackMessage : undefined,
       ciResult: key === "ci_result" ? payload.ciResult : undefined,
       desktopRequest:
         key === "desktop_request_done" || key === "desktop_request_expired"
@@ -2209,14 +2301,19 @@ export const eventPass = (
           : undefined,
       filesCopied: key === "files_copied" ? payload.filesCopied : undefined,
       prTransition:
-        key === "pr_merged" || key === "pr_closed" ? payload.prTransition : undefined,
+        key === "pr_merged" || key === "pr_closed"
+          ? payload.prTransition
+          : undefined,
       prConflict: key === "pr_conflict" ? payload.prConflict : undefined,
       reviewFailed: key === "review_failed" ? payload.reviewFailed : undefined,
       githubEvent:
         key === "github_subscription_event" ? payload.githubEvent : undefined,
       webhookRequest:
-        key === "webhook_subscription_request" ? payload.webhookRequest : undefined,
-      issueActivity: key === "issue_activity" ? payload.issueActivity : undefined,
+        key === "webhook_subscription_request"
+          ? payload.webhookRequest
+          : undefined,
+      issueActivity:
+        key === "issue_activity" ? payload.issueActivity : undefined,
       ciUnsettled:
         key === "ci_incomplete" || key === "ci_no_checks"
           ? payload.ciUnsettled
@@ -2286,7 +2383,10 @@ const collectTerminalRequests = (
           call.tool === "operation_cancel" && call.error === undefined
             ? readString(call.input, "operation_id")
             : undefined;
-        if (operationId !== undefined && readString(call.data, "state") === "cancelled")
+        if (
+          operationId !== undefined &&
+          readString(call.data, "state") === "cancelled"
+        )
           cancelled.add(operationId);
       }
     }

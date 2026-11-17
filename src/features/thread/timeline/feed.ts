@@ -62,7 +62,8 @@ const handOff = (live: LiveTurn, events: ReadonlyArray<EventRow>): LiveTurn => {
       (event) =>
         event.kind === "assistant" &&
         event.payload.blocks.some(
-          (block) => block.type === "tool_use" && calls.includes(block.toolCallId),
+          (block) =>
+            block.type === "tool_use" && calls.includes(block.toolCallId),
         ),
     );
   if (!stored) return live;
@@ -72,7 +73,10 @@ const handOff = (live: LiveTurn, events: ReadonlyArray<EventRow>): LiveTurn => {
   };
 };
 
-export const historyLoaded = (feed: ThreadFeed, page: EventPage): ThreadFeed => {
+export const historyLoaded = (
+  feed: ThreadFeed,
+  page: EventPage,
+): ThreadFeed => {
   const events = mergeEvents(feed.events, page.items);
   return {
     ...feed,

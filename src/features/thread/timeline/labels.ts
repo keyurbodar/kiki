@@ -73,7 +73,10 @@ export interface ConnectionChange {
   readonly limit?: string | undefined;
 }
 
-export const connectionLabel = (change: ConnectionChange, rejected: boolean) => {
+export const connectionLabel = (
+  change: ConnectionChange,
+  rejected: boolean,
+) => {
   const reason =
     change.state === "refused"
       ? "unavailable"
@@ -105,7 +108,9 @@ export const wireDroppedLabel = (dropped: ReadonlyArray<string>) =>
 
 export const handoffFailureLabel = (handoff: {
   readonly direction: string;
-  readonly destination?: { readonly deviceName?: string | undefined } | undefined;
+  readonly destination?:
+    | { readonly deviceName?: string | undefined }
+    | undefined;
   readonly source?: { readonly deviceName?: string | undefined } | undefined;
   readonly result: { readonly reason?: string | undefined };
 }) => {
