@@ -69,6 +69,12 @@ export type PaletteInputProps = CommandMenuInputProps & {
   trailing?: ReactNode;
 };
 
+export const isPaletteToggle = (event: KeyboardEvent) =>
+  (event.metaKey || event.ctrlKey) &&
+  !event.altKey &&
+  !event.shiftKey &&
+  event.key.toLowerCase() === "k";
+
 export function PaletteInput({
   className,
   onKeyDown,
@@ -87,6 +93,11 @@ export function PaletteInput({
           )}
           onKeyDown={(event) => {
             onKeyDown?.(event);
+            if (
+              isPaletteToggle(event.nativeEvent) ||
+              event.nativeEvent.isComposing
+            )
+              return;
             if (event.key !== "Escape") event.stopPropagation();
           }}
           {...props}

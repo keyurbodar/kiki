@@ -1,11 +1,9 @@
 import type {
-  CommandMenuSearchData,
   PaletteAutomation,
   PaletteCaptain,
   PaletteCommand,
   PalettePull,
   PaletteThread,
-  RunOptions,
 } from "@/components/command-menu-search";
 
 /**
@@ -24,6 +22,11 @@ export type PaletteSearchSource = {
 };
 
 const hour = 60 * 60 * 1000;
+
+import type {
+  CommandMenuSearchData,
+  RunOptions,
+} from "@/components/command-menu-search";
 
 export const sampleSearchSource = (now: number): PaletteSearchSource => ({
   captains: [
@@ -409,3 +412,58 @@ export const buildSearchData = (
     settingsSections: [],
   };
 };
+
+const isoToMillis = (value: unknown) => {
+  if (typeof value !== "string") return Date.now();
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? Date.now() : parsed;
+};
+
+type ThreadRow = {
+  id?: string;
+  title?: string | null;
+  status?: string;
+  updatedAt?: unknown;
+  lastActivityAt?: unknown;
+  projectId?: string | null;
+  archived?: boolean;
+  hasUnreads?: boolean;
+};
+
+type ProjectRow = { id?: string; name?: string };
+
+export const sourceFromAtoms = (
+  threads: ReadonlyArray<ThreadRow>,
+  projects: ReadonlyArray<ProjectRow>,
+  now: number,
+): PaletteSearchSource => ({
+  captains: [],
+  threads: threads.map(
+    (thread): PaletteThread => ({
+      id: thread.id ?? "",
+      title: thread.title ?? "Untitled thread",
+      status:
+        thread.status === "working" ||
+        thread.status === "waiting" ||
+        thread.status === "failed" ||
+        thread.status === "idle" ||
+        thread.status === "archived"
+          ? thread.status
+          : "idle",
+      updatedAt: isoToMillis(thread.lastActivityAt ?? thread.updatedAt) || now,
+      projectName: projects.find((project) => project.id === thread.projectId)
+        ?.name,
+      archived: thread.archived,
+      hasUnreads: thread.hasUnreads,
+    }),
+  ),
+  pulls: [],
+  automations: [],
+  projects: projects.flatMap((project) =>
+    project.id === undefined
+      ? []
+      : [{ id: project.id, name: project.name ?? "" }],
+  ),
+  repos: [],
+  machines: [],
+});

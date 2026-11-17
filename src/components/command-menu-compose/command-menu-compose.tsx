@@ -175,6 +175,7 @@ export function CommandMenuCompose({
             className={composeEditorClass}
             onChange={(event) => setText(event.target.value)}
             onKeyDown={(event) => {
+              if (event.nativeEvent.isComposing) return;
               if (event.key === "Enter" && !event.shiftKey) {
                 event.preventDefault();
                 submit();

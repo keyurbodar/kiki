@@ -1,6 +1,15 @@
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
+import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useRouter, useRouterState } from "@tanstack/react-router";
-import { type ReactNode, useCallback, useEffect, useState } from "react";
+import { Option } from "effect";
+import { AsyncResult } from "effect/reactivity";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import { CommandMenuCompose } from "@/components/command-menu-compose";
 import { CommandMenuProject } from "@/components/command-menu-project";
@@ -13,6 +22,12 @@ import {
   paletteOverlayClass,
   palettePositionerClass,
 } from "@/components/command-menu-search";
+import type { OrgId } from "@/data/api/schemas/ids";
+import { reactivityKeys } from "@/data/atoms/conventions";
+import { projectsAtom } from "@/data/atoms/projects";
+import { organizationsAtom } from "@/data/atoms/session";
+import { threadsAtom } from "@/data/atoms/threads";
+import { ApiClient } from "@/data/client/ApiClient";
 import {
   type CommandPaletteOpenDetail,
   useCommandPaletteOpen,
@@ -23,7 +38,14 @@ import {
   buildSearchData,
   type PaletteSearchSource,
   sampleSearchSource,
+  sourceFromAtoms,
 } from "./search-source";
+
+const createThreadAtom = ApiClient.mutation("jams", "createProjectless");
+const createProjectAtom = ApiClient.mutation("projects", "create");
+
+const resultValue = <A, E>(result: AsyncResult.AsyncResult<A, E>) =>
+  Option.getOrUndefined(AsyncResult.value(result));
 
 export type PaletteView =
   | { kind: "search" }
@@ -88,7 +110,27 @@ export function CommandPaletteHost({
   const [view, setView] = useState<PaletteView>({ kind: "search" });
   const [query, setQuery] = useState("");
   const [now] = useState(() => Date.now());
-  const searchSource = source ?? sampleSearchSource(now);
+  const [selectedProjectId, setSelectedProjectId] = useState<
+    string | undefined
+  >();
+  const organizations = useAtomValue(organizationsAtom);
+  const orgId = resultValue(organizations)?.[0]?.id;
+  const threadsResult = useAtomValue(threadsAtom(orgId ?? ("" as OrgId)));
+  const projectsResult = useAtomValue(projectsAtom(orgId ?? ("" as OrgId)));
+  const orgThreads = resultValue(threadsResult)?.items ?? [];
+  const orgProjects = resultValue(projectsResult) ?? [];
+  const createThread = useAtomSet(createThreadAtom, { mode: "promise" });
+  const createProject = useAtomSet(createProjectAtom, { mode: "promise" });
+  const atomSource = useMemo(
+    () => sourceFromAtoms(orgThreads, orgProjects, now),
+    [orgThreads, orgProjects, now],
+  );
+  const searchSource =
+    source ?? (orgId === undefined ? sampleSearchSource(now) : atomSource);
+  const projects = searchSource.projects;
+  const project =
+    projects.find((candidate) => candidate.id === selectedProjectId) ??
+    projects[0];
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -153,12 +195,26 @@ export function CommandPaletteHost({
                 <CommandMenuCompose
                   from={view.from}
                   defaultText={view.seed}
-                  projects={searchSource.projects}
-                  project={searchSource.projects[0]}
+                  projects={projects}
+                  project={project}
+                  onProjectChange={(next) => setSelectedProjectId(next.id)}
                   onBack={view.from === "direct" ? close : backToSearch}
-                  onSubmit={() => {
-                    close();
-                    return Promise.resolve();
+                  onSubmit={({ text, title, projectId }) => {
+                    if (orgId === undefined)
+                      return Promise.reject(new Error("No organization"));
+                    return createThread({
+                      params: { orgId },
+                      payload: {
+                        text,
+                        title,
+                        projectId,
+                        modelChoice: { modelId: "claude-sonnet-4-6" },
+                      },
+                      reactivityKeys: [reactivityKeys.threads(orgId)],
+                    }).then(() => {
+                      close();
+                      router.history.push("/threads");
+                    });
                   }}
                   footer={frameFooter}
                 />
@@ -168,9 +224,14 @@ export function CommandPaletteHost({
                   repos={searchSource.repos}
                   machines={searchSource.machines}
                   onBack={view.from === "direct" ? close : backToSearch}
-                  onCreate={() => {
-                    close();
-                    return Promise.resolve();
+                  onCreate={({ name }) => {
+                    if (orgId === undefined)
+                      return Promise.reject(new Error("No organization"));
+                    return createProject({
+                      params: { orgId },
+                      payload: { name },
+                      reactivityKeys: [reactivityKeys.projects(orgId)],
+                    }).then(() => close());
                   }}
                   footer={frameFooter}
                 />
