@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { SidebarNavEditor } from "@/components/sidebar-nav-editor";
+import { desktopBridge } from "@/lib/desktop-bridge";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { Menu, MenuContent, MenuTrigger } from "@/primitives/menu";
@@ -38,14 +39,7 @@ import {
   searchEngines,
 } from "./preferences";
 
-declare global {
-  interface Window {
-    capyDesktop?: { platform?: string };
-  }
-}
-
-const isDesktop = () =>
-  typeof window !== "undefined" && window.capyDesktop !== undefined;
+const isDesktop = () => desktopBridge() !== undefined;
 
 function SelectControl<T extends string>({
   items,
