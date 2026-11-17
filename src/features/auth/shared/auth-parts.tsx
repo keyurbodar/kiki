@@ -67,7 +67,7 @@ export function AuthDivider() {
   return (
     <div
       role="none"
-      className="h-[calc(var(--spacing)/8)] w-full shrink-0 bg-border-1"
+      className="h-hairline w-full shrink-0 bg-border-1"
     />
   );
 }

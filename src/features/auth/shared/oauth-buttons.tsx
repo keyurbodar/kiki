@@ -7,7 +7,7 @@ export type LastUsed = OAuthProvider | "passkey" | "email";
 
 export function LastUsedBadge() {
   return (
-    <span className="pointer-events-none absolute -top-1.5 right-2 flex h-(--h-badge-xs) items-center rounded-sm border-[calc(var(--spacing)/8)] border-border-2 bg-(--button) px-1 text-2xs font-medium text-muted-foreground-1 shadow-(--sh-plate)">
+    <span className="pointer-events-none absolute -top-1.5 right-2 flex h-(--h-badge-xs) items-center rounded-sm border-hairline border-border-2 bg-(--button) px-1 text-2xs font-medium text-muted-foreground-1 shadow-(--sh-plate)">
       Last used
     </span>
   );
