@@ -8,7 +8,7 @@ import {
 } from "@/components/settings-sidebar";
 import { UserMenu } from "@/components/user-menu";
 import { Button } from "@/primitives/button";
-import { Sheet, SheetContent, SheetOverlay } from "@/primitives/sheet";
+import { Sheet, SheetContent } from "@/primitives/sheet";
 import {
   settingsNav,
   settingsNavGroups,
@@ -213,11 +213,7 @@ export function SettingsLayout({
         />
       ) : (
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetOverlay className="fixed inset-0 z-(--z-drawer) bg-overlay" />
-          <SheetContent
-            aria-label="Navigation"
-            className="fixed inset-y-0 left-0 z-(--z-drawer) flex w-[88%] flex-col bg-chrome pt-(--safe-top) pb-(--safe-bottom) outline-none"
-          >
+          <SheetContent aria-label="Navigation">
             <SettingsSidebarPanel
               searchContext={searchContext}
               trigger={<SidebarToggle onClick={() => setMobileOpen(false)} />}
