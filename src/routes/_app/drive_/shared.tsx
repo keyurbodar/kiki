@@ -1,10 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { SharedPage } from "@/features/drive/drive-page";
 
 export const Route = createFileRoute("/_app/drive_/shared")({
-  component: RouteComponent,
+  component: SharedPage,
 });
-
-function RouteComponent() {
-  return <RoutePlaceholder title="Shared" path="/drive/shared" />;
-}
