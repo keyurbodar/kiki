@@ -1,5 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
+import { Exit } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -128,13 +129,15 @@ function LocalPullRow({ pull, orgId }: { pull: LocalPull; orgId: string }) {
           void remove({
             params: { orgId, jamId: pull.threadId ?? "", id: pull.id },
             reactivityKeys: [`pulls:${orgId}`],
-          })
-            .then(() =>
-              toast.success(`Removed #${pull.number}`, {
-                description: pull.title,
-              }),
-            )
-            .catch(() => toast.error("Action failed"));
+          }).then((exit) => {
+            if (!Exit.isSuccess(exit)) {
+              toast.error("Action failed", { description: pull.title });
+              return;
+            }
+            toast.success(`Removed #${pull.number}`, {
+              description: pull.title,
+            });
+          });
         }}
         className="shrink-0 rounded px-1 text-xs text-muted-foreground-2 opacity-0 outline-none group-hover/row:opacity-100 focus-visible:outline-ring-inset"
       >

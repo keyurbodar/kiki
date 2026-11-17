@@ -114,16 +114,18 @@ function LocalPullPreview({
   title,
   state,
   body,
-  onBodyChange,
+  onSave,
   onClose,
 }: {
   title: string;
   state: string;
   body: string;
-  onBodyChange: (body: string) => void;
+  onSave?: (body: string) => void;
   onClose?: () => void;
 }) {
   const [editing, setEditing] = useState(false);
+  const [draftBody, setDraftBody] = useState(body);
+  const [saved, setSaved] = useState(body);
   const [draft, setDraft] = useState(state === "draft");
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -149,18 +151,28 @@ function LocalPullPreview({
             <Textarea
               aria-label="Description"
               placeholder="Describe this pull request"
-              value={body}
-              onChange={(event) => onBodyChange(event.target.value)}
+              value={draftBody}
+              onChange={(event) => setDraftBody(event.target.value)}
               className="min-h-20"
             />
             <div className="flex gap-2">
-              <Button size="xs" onClick={() => setEditing(false)}>
+              <Button
+                size="xs"
+                onClick={() => {
+                  setSaved(draftBody);
+                  onSave?.(draftBody);
+                  setEditing(false);
+                }}
+              >
                 Save
               </Button>
               <Button
                 variant="ghost"
                 size="xs"
-                onClick={() => setEditing(false)}
+                onClick={() => {
+                  setDraftBody(saved);
+                  setEditing(false);
+                }}
               >
                 Cancel
               </Button>
@@ -169,7 +181,7 @@ function LocalPullPreview({
         ) : (
           <>
             <p className="text-sm whitespace-pre-wrap text-muted-foreground-1">
-              {body === "" ? "No description" : body}
+              {saved === "" ? "No description" : saved}
             </p>
             <Button variant="ghost" size="xs" onClick={() => setEditing(true)}>
               Edit description
@@ -204,15 +216,25 @@ export function PullPreview({
   onOpenPull,
   ...props
 }: PullPreviewProps) {
-  const orgId = usePullOrgId() ?? org;
+  const contextOrg = usePullOrgId();
+  const orgId = contextOrg === "" ? org : contextOrg;
   if (pullId !== undefined) {
     return (
       <div data-slot="pull-preview" {...props}>
-        {orgId === undefined ? null : (
+        <PreviewHeader
+          repo={repo ?? ""}
+          number={number ?? 0}
+          onClose={onClose}
+        />
+        {orgId === undefined || repo === undefined || number === undefined ? (
+          <div className="flex min-h-11 items-center px-4 text-sm text-muted-foreground-2">
+            No organization selected
+          </div>
+        ) : (
           <RemotePullPreview
             orgId={orgId}
-            repo={repo ?? ""}
-            number={number ?? 0}
+            repo={repo}
+            number={number}
             onOpenPull={onOpenPull}
           />
         )}
@@ -235,7 +257,6 @@ export function PullPreview({
         title={shortLabel(repo, number)}
         state="draft"
         body=""
-        onBodyChange={() => undefined}
         onClose={onClose}
       />
     </div>
