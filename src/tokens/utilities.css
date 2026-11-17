@@ -7,6 +7,7 @@
   --shadow-plate: var(--sh-plate);
   --shadow-overlay: var(--sh-overlay);
   --shadow-row-open: var(--sh-row-open);
+  --shadow-composer: var(--sh-composer);
 }
 
 :root,
