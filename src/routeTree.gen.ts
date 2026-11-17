@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as Char91__annotationsChar93RouteImport } from './routes/[__annotations]'
 import { Route as Char91__captainDialogChar93RouteImport } from './routes/[__captain-dialog]'
 import { Route as Char91__chipsChar93RouteImport } from './routes/[__chips]'
 import { Route as Char91__composerChar93RouteImport } from './routes/[__composer]'
@@ -178,6 +179,12 @@ import { Route as AppProjectProjectIdPullOwnerRepoPrNumberRouteImport } from './
 import { Route as AppSettingsProjectsProjectIdDevEnvironmentBuildsBuildIdRouteImport } from './routes/_app/settings/projects_/$projectId_/dev-environment_/builds/$buildId'
 import { Route as AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRouteImport } from './routes/_app/settings/projects_/$projectId_/dev-environment_/repositories/$owner/$repo'
 
+const Char91__annotationsChar93Route =
+  Char91__annotationsChar93RouteImport.update({
+    id: '/__annotations',
+    path: '/__annotations',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const Char91__captainDialogChar93Route =
   Char91__captainDialogChar93RouteImport.update({
     id: '/__captain-dialog',
@@ -1097,6 +1104,7 @@ const AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/__annotations': typeof Char91__annotationsChar93Route
   '/__captain-dialog': typeof Char91__captainDialogChar93Route
   '/__chips': typeof Char91__chipsChar93Route
   '/__composer': typeof Char91__composerChar93Route
@@ -1265,6 +1273,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
+  '/__annotations': typeof Char91__annotationsChar93Route
   '/__captain-dialog': typeof Char91__captainDialogChar93Route
   '/__chips': typeof Char91__chipsChar93Route
   '/__composer': typeof Char91__composerChar93Route
@@ -1433,6 +1442,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteRouteWithChildren
   '/_auth': typeof AuthRouteRouteWithChildren
+  '/__annotations': typeof Char91__annotationsChar93Route
   '/__captain-dialog': typeof Char91__captainDialogChar93Route
   '/__chips': typeof Char91__chipsChar93Route
   '/__composer': typeof Char91__composerChar93Route
@@ -1604,6 +1614,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/__annotations'
     | '/__captain-dialog'
     | '/__chips'
     | '/__composer'
@@ -1772,6 +1783,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/__annotations'
     | '/__captain-dialog'
     | '/__chips'
     | '/__composer'
@@ -1939,6 +1951,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/_auth'
+    | '/__annotations'
     | '/__captain-dialog'
     | '/__chips'
     | '/__composer'
@@ -2110,6 +2123,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
+  Char91__annotationsChar93Route: typeof Char91__annotationsChar93Route
   Char91__captainDialogChar93Route: typeof Char91__captainDialogChar93Route
   Char91__chipsChar93Route: typeof Char91__chipsChar93Route
   Char91__composerChar93Route: typeof Char91__composerChar93Route
@@ -2144,6 +2158,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/__annotations': {
+      id: '/__annotations'
+      path: '/__annotations'
+      fullPath: '/__annotations'
+      preLoaderRoute: typeof Char91__annotationsChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/__captain-dialog': {
       id: '/__captain-dialog'
       path: '/__captain-dialog'
@@ -3666,6 +3687,7 @@ const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   AuthRouteRoute: AuthRouteRouteWithChildren,
+  Char91__annotationsChar93Route: Char91__annotationsChar93Route,
   Char91__captainDialogChar93Route: Char91__captainDialogChar93Route,
   Char91__chipsChar93Route: Char91__chipsChar93Route,
   Char91__composerChar93Route: Char91__composerChar93Route,
