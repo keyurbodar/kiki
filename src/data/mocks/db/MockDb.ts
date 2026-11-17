@@ -44,9 +44,18 @@ const tables = [
 
 export type TableName = (typeof tables)[number];
 
+export type JamRow = {
+  id: string;
+  number: number;
+  title: string;
+  projectId: string | null;
+};
+
 export type MockTables = {
   readonly [K in TableName]: Ref.Ref<ReadonlyArray<Row<K>>>;
 } & {
+  /** Threads any group can resolve: the fixture threads plus every jam a mock creates. */
+  readonly jams: Ref.Ref<ReadonlyArray<JamRow>>;
   readonly orgState: OrgState;
   readonly hiddenThemes: Ref.Ref<ReadonlyArray<string>>;
 };
@@ -73,13 +82,22 @@ export class MockDb extends Context.Service<MockDb, MockTables>()(
           Effect.map((ref) => [name, ref] as const),
         ),
       );
+      const jams = yield* Ref.make<ReadonlyArray<JamRow>>(
+        Object.values(world.threads).map((thread) => ({
+          id: thread.id,
+          number: thread.number,
+          title: thread.title,
+          projectId: thread.projectId,
+        })),
+      );
       const orgState = yield* makeOrgState;
       const hiddenThemes = yield* Ref.make<ReadonlyArray<string>>([]);
       return MockDb.of({
         ...(Object.fromEntries(entries) as unknown as Omit<
           MockTables,
-          "orgState" | "hiddenThemes"
+          "jams" | "orgState" | "hiddenThemes"
         >),
+        jams,
         orgState,
         hiddenThemes,
       });
