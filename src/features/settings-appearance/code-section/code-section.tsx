@@ -44,7 +44,11 @@ type PreviewLine = {
 };
 
 const PREVIEW: ReadonlyArray<PreviewLine> = [
-  { number: 1, kind: "context", text: "export function add(a: number, b: number) {" },
+  {
+    number: 1,
+    kind: "context",
+    text: "export function add(a: number, b: number) {",
+  },
   { number: 2, kind: "del", text: "  return a - b;" },
   { number: 2, kind: "add", text: "  return a + b;" },
   { number: 3, kind: "context", text: "}" },
@@ -64,6 +68,7 @@ const numberClass: Record<PreviewLine["kind"], string> = {
 
 function CodePreview({ fontSize }: { fontSize: CodeFontSize }) {
   return (
+    // biome-ignore lint/a11y/useAriaPropsSupportedByRole: Capy labels the preview container
     <div
       aria-label="Code preview"
       className="overflow-hidden rounded-(--radius-card) border-[length:--spacing(0.125)] border-border-1 bg-card py-1 font-mono text-code-block"
@@ -74,7 +79,10 @@ function CodePreview({ fontSize }: { fontSize: CodeFontSize }) {
       }
     >
       {PREVIEW.map((line) => (
-        <div key={`${line.kind}-${line.number}`} className={lineClass[line.kind]}>
+        <div
+          key={`${line.kind}-${line.number}`}
+          className={lineClass[line.kind]}
+        >
           <span className={numberClass[line.kind]}>{line.number}</span>
           <span className="whitespace-pre text-foreground">{line.text}</span>
         </div>

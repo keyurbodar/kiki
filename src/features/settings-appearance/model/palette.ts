@@ -135,7 +135,9 @@ const refs = (value: ColorRef): ColorKey[] =>
   value.kind === "reference" ? [value.field] : [];
 
 const valueRefs = (value: ColorValue) =>
-  value.kind === "mix" ? [...refs(value.first), ...refs(value.second)] : refs(value);
+  value.kind === "mix"
+    ? [...refs(value.first), ...refs(value.second)]
+    : refs(value);
 
 /** Keys whose value refers back to themselves through a chain of references. */
 export const selfReferences = (palette: Palette): ColorKey[] =>

@@ -2,6 +2,7 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { SettingsSection } from "@/components/settings-page";
 import {
   removeWallpaperAtom,
   uploadWallpaperAtom,
@@ -9,7 +10,9 @@ import {
   wallpapersKey,
 } from "@/data/atoms/appearance";
 import { Button } from "@/primitives/button";
+import { Card } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
+import { SettingsRow } from "@/primitives/settings-row";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { DashboardBackdrop } from "../background-effect";
 import {
@@ -29,9 +32,6 @@ import {
 } from "../model/appearance-store";
 import { RangeField } from "../range-field";
 import { SelectField } from "../select-field";
-import { SettingsSection } from "@/components/settings-page";
-import { Card } from "@/primitives/card";
-import { SettingsRow } from "@/primitives/settings-row";
 
 const ADJUSTMENTS: ReadonlyArray<{
   key: keyof BackgroundAdjustments;
@@ -128,7 +128,9 @@ function HomeBackgroundControl() {
           variant="ghost"
           size="icon-sm"
           aria-label="Remove dashboard background"
-          onClick={() => appearanceActions.updatePreferences({ background: null })}
+          onClick={() =>
+            appearanceActions.updatePreferences({ background: null })
+          }
         >
           <TrashIcon />
         </Button>
@@ -152,6 +154,7 @@ function BackgroundControls() {
   return (
     <>
       <div className="p-4">
+        {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: Capy labels the preview container */}
         <div
           aria-label="Dashboard background preview"
           className="relative flex min-h-52 items-center justify-center overflow-hidden rounded-(--radius-card) bg-panel p-6"
@@ -206,7 +209,8 @@ function BackgroundControls() {
           variant="ghost"
           size="sm"
           disabled={ADJUSTMENTS.every(
-            ({ key }) => appearance[key] === DEFAULT_BACKGROUND_ADJUSTMENTS[key],
+            ({ key }) =>
+              appearance[key] === DEFAULT_BACKGROUND_ADJUSTMENTS[key],
           )}
           onClick={() => commit(DEFAULT_BACKGROUND_ADJUSTMENTS)}
         >
@@ -269,11 +273,15 @@ function WallpaperTile({
             }).then(
               () => {
                 onRemoved();
-                toast.success("Wallpaper removed", { description: wallpaper.name });
+                toast.success("Wallpaper removed", {
+                  description: wallpaper.name,
+                });
               },
               (error: unknown) => {
                 setRemoving(false);
-                toast.error(errorMessage(error, "Could not remove the wallpaper"));
+                toast.error(
+                  errorMessage(error, "Could not remove the wallpaper"),
+                );
               },
             );
           }}
@@ -329,7 +337,9 @@ function WallpaperSyncRows() {
                 }),
               )
               .catch((error: unknown) =>
-                toast.error(errorMessage(error, "Could not save the wallpaper")),
+                toast.error(
+                  errorMessage(error, "Could not save the wallpaper"),
+                ),
               )
               .finally(() => setSaving(false));
           }}
@@ -388,7 +398,9 @@ export function BackgroundSection() {
             className="w-32"
             value={preferences.effect}
             items={BACKGROUND_EFFECT_LABELS}
-            onChange={(effect) => appearanceActions.updatePreferences({ effect })}
+            onChange={(effect) =>
+              appearanceActions.updatePreferences({ effect })
+            }
           />
         </SettingsRow>
         <BackgroundControls />

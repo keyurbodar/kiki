@@ -1,4 +1,7 @@
 import { toast } from "sonner";
+import { SettingsSection } from "@/components/settings-page";
+import { Card } from "@/primitives/card";
+import { SettingsRow } from "@/primitives/settings-row";
 import type { ColorMode } from "@/tokens/theme";
 import {
   appearanceActions,
@@ -7,9 +10,6 @@ import {
   useAppearance,
 } from "../model/appearance-store";
 import { SelectField } from "../select-field";
-import { SettingsSection } from "@/components/settings-page";
-import { Card } from "@/primitives/card";
-import { SettingsRow } from "@/primitives/settings-row";
 import { ThemePreview, type ThemePreviewSource } from "../theme-preview";
 
 const MODES: ReadonlyArray<{ value: ColorMode; label: string }> = [
@@ -36,69 +36,70 @@ export function ModeCard() {
   const { preferences, syncMode, colorTheme } = useAppearance();
   return (
     <SettingsSection>
-        <Card rows>
-          <SettingsRow id="theme" label="Mode" wrapValue>
-            <div role="group" aria-label="Mode" className="flex min-w-0 gap-4">
-              {MODES.map((mode) => (
-                <button
-                  key={mode.value}
-                  type="button"
-                  aria-label={mode.label}
-                  title={mode.label}
-                  aria-pressed={preferences.mode === mode.value}
-                  className={modeButton}
-                  onClick={() =>
-                    appearanceActions.updatePreferences({ mode: mode.value })
-                  }
-                >
-                  {mode.value === "system" ? (
-                    <>
-                      <span className="absolute inset-0 [clip-path:inset(0_50%_0_0)]">
-                        <ThemePreview
-                          side="light"
-                          source={previewSource(colorTheme, "light")}
-                        />
-                      </span>
-                      <span className="absolute inset-0 [clip-path:inset(0_0_0_50%)]">
-                        <ThemePreview
-                          side="dark"
-                          source={previewSource(colorTheme, "dark")}
-                        />
-                      </span>
-                    </>
-                  ) : (
-                    <ThemePreview
-                      side={mode.value}
-                      source={previewSource(colorTheme, mode.value)}
-                    />
-                  )}
-                </button>
-              ))}
-            </div>
-          </SettingsRow>
-          <SettingsRow
-            id="appearance-sync"
-            label="Appearance sync"
-            description={
-              syncMode === "device"
-                ? "This device keeps its own appearance"
-                : "Changes apply across your devices"
-            }
-          >
-            <SelectField
-              label="Appearance sync"
-              value={syncMode}
-              items={SYNC_ITEMS}
-              onChange={(next) => {
-                try {
-                  appearanceActions.setSyncMode(next);
-                } catch {
-                  toast.error("Could not change appearance sync");
+      <Card rows>
+        <SettingsRow id="theme" label="Mode" wrapValue>
+          {/* biome-ignore lint/a11y/useSemanticElements: Capy renders the mode picker as a div group */}
+          <div role="group" aria-label="Mode" className="flex min-w-0 gap-4">
+            {MODES.map((mode) => (
+              <button
+                key={mode.value}
+                type="button"
+                aria-label={mode.label}
+                title={mode.label}
+                aria-pressed={preferences.mode === mode.value}
+                className={modeButton}
+                onClick={() =>
+                  appearanceActions.updatePreferences({ mode: mode.value })
                 }
-              }}
-            />
-          </SettingsRow>
-        </Card>
+              >
+                {mode.value === "system" ? (
+                  <>
+                    <span className="absolute inset-0 [clip-path:inset(0_50%_0_0)]">
+                      <ThemePreview
+                        side="light"
+                        source={previewSource(colorTheme, "light")}
+                      />
+                    </span>
+                    <span className="absolute inset-0 [clip-path:inset(0_0_0_50%)]">
+                      <ThemePreview
+                        side="dark"
+                        source={previewSource(colorTheme, "dark")}
+                      />
+                    </span>
+                  </>
+                ) : (
+                  <ThemePreview
+                    side={mode.value}
+                    source={previewSource(colorTheme, mode.value)}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
+        </SettingsRow>
+        <SettingsRow
+          id="appearance-sync"
+          label="Appearance sync"
+          description={
+            syncMode === "device"
+              ? "This device keeps its own appearance"
+              : "Changes apply across your devices"
+          }
+        >
+          <SelectField
+            label="Appearance sync"
+            value={syncMode}
+            items={SYNC_ITEMS}
+            onChange={(next) => {
+              try {
+                appearanceActions.setSyncMode(next);
+              } catch {
+                toast.error("Could not change appearance sync");
+              }
+            }}
+          />
+        </SettingsRow>
+      </Card>
     </SettingsSection>
   );
 }

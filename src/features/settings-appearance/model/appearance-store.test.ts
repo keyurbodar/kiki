@@ -42,12 +42,15 @@ describe("appearance store", () => {
     const root = document.documentElement;
     expect(root.classList.contains("dark")).toBe(true);
     expect(root.dataset.colorTheme).toBe("gruvbox");
-    expect(JSON.parse(localStorage.getItem("capy-web:color-theme-v2") ?? "")).toEqual({
+    expect(
+      JSON.parse(localStorage.getItem("capy-web:color-theme-v2") ?? ""),
+    ).toEqual({
       kind: "preset",
       id: "gruvbox",
     });
     expect(
-      JSON.parse(localStorage.getItem("capy-web:appearance") ?? "").preferences.mode,
+      JSON.parse(localStorage.getItem("capy-web:appearance") ?? "").preferences
+        .mode,
     ).toBe("dark");
     expect(colorThemeKey(getAppearance().colorTheme)).toBe("preset:gruvbox");
   });

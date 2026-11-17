@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import type { BackgroundEffect } from "@/tokens/effects";
 import {
   applyColorMode,
   COLOR_THEME_LABELS,
@@ -7,7 +8,6 @@ import {
   type PresetColorTheme,
   resolveColorMode,
 } from "@/tokens/theme";
-import type { BackgroundEffect } from "@/tokens/effects";
 import { type ThemeColors, themeCss } from "./palette";
 
 export {
@@ -148,7 +148,8 @@ export function applyAppearance(
     if (theme.kind === "preset") root.dataset.colorTheme = theme.id;
     else delete root.dataset.colorTheme;
   }
-  if (state.diffColors === "blue-orange") root.dataset.diffColors = "blue-orange";
+  if (state.diffColors === "blue-orange")
+    root.dataset.diffColors = "blue-orange";
   else delete root.dataset.diffColors;
 }
 
@@ -185,7 +186,11 @@ export const appearanceActions = {
     theme:
       | { readonly kind: "default" }
       | { readonly kind: "preset"; readonly id: PresetColorTheme }
-      | ({ readonly kind: "custom"; readonly id: string; readonly name: string } & ThemeColors),
+      | ({
+          readonly kind: "custom";
+          readonly id: string;
+          readonly name: string;
+        } & ThemeColors),
   ) =>
     commit({
       ...getAppearance(),

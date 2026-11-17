@@ -1,9 +1,9 @@
-import { ThemePreview } from "../theme-preview";
 import {
   type ThemeOption,
   themeOptionKey,
   themeOptionLabel,
 } from "../model/theme-options";
+import { ThemePreview } from "../theme-preview";
 
 export function ThemeGrid({
   options,
@@ -28,6 +28,7 @@ export function ThemeGrid({
         const key = themeOptionKey(option);
         const label = themeOptionLabel(option);
         return (
+          // biome-ignore lint/a11y/useSemanticElements: Capy renders theme swatches as radio buttons
           <button
             key={key}
             type="button"

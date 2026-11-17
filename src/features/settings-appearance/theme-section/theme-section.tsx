@@ -1,6 +1,7 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { SettingsSection } from "@/components/settings-page";
 import {
   createThemeAtom,
   removeThemeAtom,
@@ -8,6 +9,7 @@ import {
   userThemeKey,
 } from "@/data/atoms/appearance";
 import { Button, ButtonIcon } from "@/primitives/button";
+import { Card } from "@/primitives/card";
 import {
   Collapsible,
   CollapsiblePanel,
@@ -15,6 +17,7 @@ import {
 } from "@/primitives/collapsible";
 import { Input } from "@/primitives/input";
 import { Label } from "@/primitives/label";
+import { SettingsRow, SettingsRowLink } from "@/primitives/settings-row";
 import { ChevronDownIcon, PlusIcon } from "../icons";
 import {
   appearanceActions,
@@ -38,13 +41,14 @@ import {
 } from "../model/palette";
 import { readPresetPalette, toHex } from "../model/preset-palette";
 import { useThemeOptions, useUserThemes } from "../model/theme-options";
-import { SettingsSection } from "@/components/settings-page";
-import { Card } from "@/primitives/card";
-import { SettingsRow, SettingsRowLink } from "@/primitives/settings-row";
 import { ThemeGrid } from "../theme-grid";
 
 const SIDES: ReadonlyArray<PaletteSide> = ["light", "dark"];
-const MAIN_KEYS: ReadonlyArray<ColorKey> = ["accent", "background", "foreground"];
+const MAIN_KEYS: ReadonlyArray<ColorKey> = [
+  "accent",
+  "background",
+  "foreground",
+];
 const ADVANCED_KEYS: ReadonlyArray<ColorKey> = [
   "text",
   "accentText",
@@ -128,7 +132,9 @@ function ColorRow({
           size="sm"
           className="w-24"
           value={field ?? hex ?? ""}
-          placeholder={value !== undefined && hex === undefined ? "Derived" : "Automatic"}
+          placeholder={
+            value !== undefined && hex === undefined ? "Derived" : "Automatic"
+          }
           aria-invalid={invalid || malformed}
           disabled={disabled}
           spellCheck={false}
@@ -153,8 +159,12 @@ export function ThemeSection() {
   const isCopy = colorTheme.kind !== "custom";
   const label = colorThemeLabel(colorTheme);
   const [editing, setEditing] = useState<PaletteSide>(mode);
-  const [name, setName] = useState(colorTheme.kind === "custom" ? colorTheme.name : "");
-  const [fields, setFields] = useState<Record<PaletteSide, Partial<Record<ColorKey, string>>>>({
+  const [name, setName] = useState(
+    colorTheme.kind === "custom" ? colorTheme.name : "",
+  );
+  const [fields, setFields] = useState<
+    Record<PaletteSide, Partial<Record<ColorKey, string>>>
+  >({
     light: {},
     dark: {},
   });
@@ -259,7 +269,11 @@ export function ThemeSection() {
 
   const saveName = useRef<() => void>(() => {});
   saveName.current = () => {
-    if (colorTheme.kind === "custom" && nameValid && trimmed !== colorTheme.name) {
+    if (
+      colorTheme.kind === "custom" &&
+      nameValid &&
+      trimmed !== colorTheme.name
+    ) {
       save(colorTheme, trimmed);
     }
   };
@@ -304,7 +318,8 @@ export function ThemeSection() {
           ...current,
           [editing]: { ...current[editing], [key]: value },
         }));
-        if (isHexColor(value)) setColor(key, { kind: "literal", hex: value.toLowerCase() });
+        if (isHexColor(value))
+          setColor(key, { kind: "literal", hex: value.toLowerCase() });
         if (value === "" && !isRequired(key)) setColor(key, undefined);
       }}
       onReset={() => {
@@ -370,7 +385,9 @@ export function ThemeSection() {
                 params={{ themeId: colorTheme.id }}
                 label="Submit to Explore"
                 description={
-                  source?.listingVersionId ? "Added from Explore" : "Explore listing"
+                  source?.listingVersionId
+                    ? "Added from Explore"
+                    : "Explore listing"
                 }
               />
               <SettingsRow
@@ -394,6 +411,7 @@ export function ThemeSection() {
       <SettingsSection
         title="Colors"
         action={
+          // biome-ignore lint/a11y/useSemanticElements: Capy renders the palette toggle as a div group
           <div
             role="group"
             aria-label="Palette"

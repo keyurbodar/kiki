@@ -40,7 +40,8 @@ export function readPresetPalette(
     probe.appendChild(probeColor);
     const resolved = getComputedStyle(probeColor).color;
     const hex =
-      toHex(resolved) ?? toHex(computed.getPropertyValue(COLOR_VARS[key]).trim());
+      toHex(resolved) ??
+      toHex(computed.getPropertyValue(COLOR_VARS[key]).trim());
     return [key, { kind: "literal", hex: hex ?? "" }] as const;
   });
   probe.remove();

@@ -18,7 +18,11 @@ export interface UserTheme extends ThemeColors {
 export type ThemeOption =
   | { readonly kind: "default" }
   | { readonly kind: "preset"; readonly id: PresetColorTheme }
-  | ({ readonly kind: "custom"; readonly id: string; readonly name: string } & ThemeColors);
+  | ({
+      readonly kind: "custom";
+      readonly id: string;
+      readonly name: string;
+    } & ThemeColors);
 
 export const PRESET_OPTIONS: ReadonlyArray<ThemeOption> = [
   { kind: "default" },
@@ -46,7 +50,9 @@ export const userThemesFrom = (value: unknown): ReadonlyArray<UserTheme> => {
 
 export function useUserThemes(): ReadonlyArray<UserTheme> | undefined {
   const result = useAtomValue(themesAtom);
-  return AsyncResult.isSuccess(result) ? userThemesFrom(result.value) : undefined;
+  return AsyncResult.isSuccess(result)
+    ? userThemesFrom(result.value)
+    : undefined;
 }
 
 export function useThemeOptions() {
@@ -59,5 +65,9 @@ export function useThemeOptions() {
       dark: theme.dark,
     }),
   );
-  return { presets: PRESET_OPTIONS, custom, options: [...PRESET_OPTIONS, ...custom] };
+  return {
+    presets: PRESET_OPTIONS,
+    custom,
+    options: [...PRESET_OPTIONS, ...custom],
+  };
 }

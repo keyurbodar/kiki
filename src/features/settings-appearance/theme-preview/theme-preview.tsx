@@ -24,10 +24,10 @@ export function ThemePreview({
       : undefined;
   return (
     <span
-      data-color-theme={
-        source.kind === "preset" ? source.id : "editor-preview"
+      data-color-theme={source.kind === "preset" ? source.id : "editor-preview"}
+      data-color-theme-preview={
+        source.kind === "default" ? "default" : undefined
       }
-      data-color-theme-preview={source.kind === "default" ? "default" : undefined}
       data-theme-preview={side}
       className={
         side === "dark"
