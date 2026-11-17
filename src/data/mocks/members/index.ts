@@ -6,6 +6,7 @@ import {
   memberAccessOverrides,
   memberActivity,
   memberMfaExtensions,
+  memberProtection,
 } from "./fixtures.ts";
 
 type Row = Record<string, unknown>;
@@ -60,6 +61,9 @@ export const MembersMock = mockGroup("members", (handlers) =>
     const extensions = yield* Ref.make<Readonly<Record<string, string>>>(
       structuredClone(memberMfaExtensions),
     );
+    const protection = yield* Ref.make<Readonly<Record<string, Row>>>(
+      structuredClone(memberProtection) as Readonly<Record<string, Row>>,
+    );
     const access = yield* Ref.make<Readonly<Record<string, Row>>>(
       Object.fromEntries(
         Object.entries(memberAccessOverrides).map(([id, value]) => [
@@ -78,17 +82,29 @@ export const MembersMock = mockGroup("members", (handlers) =>
           const rows = yield* Ref.get(members);
           const mfa = yield* Ref.get(extensions);
           const overrides = yield* Ref.get(access);
+          const identity = yield* Ref.get(protection);
           return rows.map((member) => {
             const state = overrides[member.id] as
               | { readonly removedAt?: string | null; readonly role?: string }
               | undefined;
+            const facts = identity[member.id] as
+              | {
+                  readonly mfaEnabled?: boolean;
+                  readonly passkeyTrusted?: boolean;
+                  readonly enterpriseSso?: boolean;
+                }
+              | undefined;
+            const mfaExtension = mfa[member.id] ?? null;
             return {
               ...member,
               role: state?.role ?? member.role,
               removedAt: state?.removedAt ?? null,
               isRemoved:
                 state?.removedAt === null || state?.removedAt !== undefined,
-              mfaExtension: mfa[member.id] ?? null,
+              mfaExtension,
+              mfaEnabled: facts?.mfaEnabled === true || mfaExtension !== null,
+              passkeyTrusted: facts?.passkeyTrusted === true,
+              enterpriseSso: facts?.enterpriseSso === true,
             };
           });
         }),

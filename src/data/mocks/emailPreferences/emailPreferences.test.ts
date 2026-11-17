@@ -4,22 +4,6 @@ import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId } from "../fixtures/world.ts";
 
-interface Preferences {
-  readonly marketing: boolean;
-  readonly notices: Readonly<Record<string, boolean>>;
-  readonly programs: Readonly<Record<string, boolean>>;
-}
-
-const run = (
-  registry: Parameters<typeof AtomRegistry.getResult>[0],
-  atom: unknown,
-  input: object,
-) => {
-  const writable = atom as { set: (value: object) => void };
-  registry.set(writable as never, { ...input, reactivityKeys: [key] });
-  return AtomRegistry.getResult(registry, writable as never);
-};
-
 const key = `emailPreferences:${orgId}`;
 const getAtom = ApiClient.query("emailPreferences", "get", {
   reactivityKeys: [key],
@@ -29,45 +13,61 @@ const setNotice = ApiClient.mutation("emailPreferences", "setNotice");
 const setProgram = ApiClient.mutation("emailPreferences", "setProgram");
 
 describe("emailPreferences mock", () => {
-  it.effect("returns non-empty preferences", () =>
+  it.effect("returns Capy's EmailPreferencesState", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
-      const value = (yield* AtomRegistry.getResult(
-        registry,
-        getAtom,
-      )) as Preferences;
+      const value = yield* AtomRegistry.getResult(registry, getAtom);
       assert.isBoolean(value.marketing);
-      assert.isTrue(value.notices["pull-review"]);
-      assert.isFalse(value.programs["beta-program"]);
+      assert.isFalse(value.blocked);
+      assert.isTrue(value.noticesEditable);
+      assert.deepStrictEqual(
+        value.programs.map((row) => row.program),
+        ["product_news", "weekly", "onboarding", "win_back"],
+      );
+      assert.isFalse(
+        value.programs.find((row) => row.program === "win_back")?.subscribed,
+      );
+      assert.isTrue(
+        value.notices.find((row) => row.template === "org_invite")?.subscribed,
+      );
     }),
   );
 
-  it.effect("flips marketing, notice and program flags", () =>
+  it.effect("flips marketing, notice and program subscriptions", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
       registry.mount(getAtom);
       yield* AtomRegistry.getResult(registry, getAtom);
-      yield* run(registry, setMarketing, { payload: { enabled: false } });
-      assert.isFalse(
-        (
-          (yield* AtomRegistry.getResult(registry, getAtom, {
-            suspendOnWaiting: true,
-          })) as Preferences
-        ).marketing,
-      );
-      yield* run(registry, setNotice, {
-        params: { template: "machine-alert" },
-        payload: { enabled: true },
+
+      registry.set(setMarketing, {
+        payload: { subscribed: false },
+        reactivityKeys: [key],
       });
-      yield* run(registry, setProgram, {
-        params: { program: "beta-program" },
-        payload: { enabled: true },
+      yield* AtomRegistry.getResult(registry, setMarketing);
+      registry.set(setNotice, {
+        params: { template: "auto_reload" },
+        payload: { subscribed: true },
+        reactivityKeys: [key],
       });
-      const after = (yield* AtomRegistry.getResult(registry, getAtom, {
+      yield* AtomRegistry.getResult(registry, setNotice);
+      registry.set(setProgram, {
+        params: { program: "win_back" },
+        payload: { subscribed: true },
+        reactivityKeys: [key],
+      });
+      yield* AtomRegistry.getResult(registry, setProgram);
+
+      const after = yield* AtomRegistry.getResult(registry, getAtom, {
         suspendOnWaiting: true,
-      })) as Preferences;
-      assert.isTrue(after.notices["machine-alert"]);
-      assert.isTrue(after.programs["beta-program"]);
+      });
+      assert.isFalse(after.marketing);
+      assert.isTrue(
+        after.notices.find((row) => row.template === "auto_reload")?.subscribed,
+      );
+      assert.isTrue(
+        after.programs.find((row) => row.program === "win_back")?.subscribed,
+      );
+      assert.strictEqual(after.programs.length, 4);
     }),
   );
 });

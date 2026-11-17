@@ -3,6 +3,7 @@ import {
   type ComponentProps,
   type DragEvent,
   type PointerEvent,
+  type ReactNode,
   useLayoutEffect,
   useRef,
   useState,
@@ -67,6 +68,7 @@ export const SIDEBAR_BAR_ITEM_WIDTH = 28;
 
 export type AppSidebarProps = ComponentProps<"div"> & {
   showModeToggle?: boolean;
+  threadsSlot?: ReactNode;
   mode?: SidebarMode;
   defaultMode?: SidebarMode;
   onModeChange?: (mode: SidebarMode) => void;
@@ -118,6 +120,7 @@ function SidebarBarLink({
 
 export function AppSidebar({
   showModeToggle = true,
+  threadsSlot,
   mode,
   defaultMode,
   onModeChange,
@@ -411,7 +414,7 @@ export function AppSidebar({
           </Tooltip>
         </div>
       </header>
-      <SidebarThreads />
+      {threadsSlot ?? <SidebarThreads />}
       <SidebarAnnouncements />
       <SidebarSetupCard />
       <SidebarDealReminder />

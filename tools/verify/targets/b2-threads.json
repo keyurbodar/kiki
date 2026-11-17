@@ -1,0 +1,40 @@
+{
+  "defaults": {
+    "maxMismatch": 2
+  },
+  "matrix": {
+    "theme": ["default"],
+    "scheme": ["dark", "light"]
+  },
+  "targets": [
+    {
+      "id": "sidebar-threads",
+      "route": "/threads",
+      "state": "threads page with the threads-mode sidebar",
+      "viewport": "1440x818",
+      "variants": {
+        "default/dark": {
+          "frame": "Kw10bSGbwB"
+        }
+      }
+    },
+    {
+      "id": "sidebar-captains",
+      "route": "/threads",
+      "state": "sidebar switched to captains mode",
+      "steps": [
+        ["click", "[data-slot=sidebar-mode] button[aria-label=Captains]"],
+        ["wait", "400"]
+      ]
+    },
+    {
+      "id": "thread-options-menu",
+      "route": "/threads",
+      "state": "thread options menu open",
+      "steps": [
+        ["click", "button[aria-label='Thread options']"],
+        ["wait", "[role=menu]"]
+      ]
+    }
+  ]
+}

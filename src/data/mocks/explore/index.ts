@@ -1,5 +1,5 @@
 import { DateTime, Effect, Ref } from "effect";
-import { fields, newId } from "../db/MockDb.ts";
+import { fields, MockDb, newId } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
@@ -56,6 +56,7 @@ export const ExploreMock = mockGroup("explore", (handlers) =>
   Effect.gen(function* () {
     const reports = yield* Ref.make<ReadonlyArray<ReportReceipt>>([]);
     const skills = yield* Ref.make<ReadonlyArray<InstalledSkill>>([]);
+    const { hiddenThemes } = yield* MockDb;
 
     return handlers
       .handle("listings", ({ query }) => {
@@ -92,6 +93,23 @@ export const ExploreMock = mockGroup("explore", (handlers) =>
           return receipt;
         }),
       )
+      .handle("themeVisibility", ({ params }) =>
+        Ref.get(hiddenThemes).pipe(
+          Effect.map((hidden) => ({ hidden: hidden.includes(params.slug) })),
+        ),
+      )
+      .handle("setThemeVisibility", ({ params, payload }) => {
+        const hidden = fields(payload).hidden === true;
+        return Ref.updateAndGet(hiddenThemes, (slugs) =>
+          hidden
+            ? slugs.includes(params.slug)
+              ? slugs
+              : [...slugs, params.slug]
+            : slugs.filter((slug) => slug !== params.slug),
+        ).pipe(
+          Effect.map((slugs) => ({ hidden: slugs.includes(params.slug) })),
+        );
+      })
       .handle("addSkill", ({ payload }) =>
         Effect.gen(function* () {
           const input = fields(payload);

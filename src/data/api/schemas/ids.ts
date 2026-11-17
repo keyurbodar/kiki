@@ -60,3 +60,23 @@ export const IssueLabelId = Schema.String.pipe(
 export type IssueLabelId = typeof IssueLabelId.Type;
 
 export const Timestamp = Schema.DateTimeUtcFromString;
+
+export const AutomationId = Schema.String.pipe(
+  Schema.brand("Core.AutomationId"),
+);
+export type AutomationId = typeof AutomationId.Type;
+
+export const VolumeId = Schema.String.check(
+  Schema.isPattern(/^vol_[0-9A-Z]{26}$/u),
+).pipe(Schema.brand("Core.VolumeId"));
+export type VolumeId = typeof VolumeId.Type;
+
+export const VolumeVersionId = Schema.String.check(
+  Schema.isPattern(/^vver_[0-9A-Z]{26}$/u),
+).pipe(Schema.brand("Core.VolumeVersionId"));
+export type VolumeVersionId = typeof VolumeVersionId.Type;
+
+export const DriveShareId = Schema.String.check(
+  Schema.isPattern(/^dsh_[A-Za-z0-9_-]{24}$/u),
+).pipe(Schema.brand("Core.DriveShareId"));
+export type DriveShareId = typeof DriveShareId.Type;

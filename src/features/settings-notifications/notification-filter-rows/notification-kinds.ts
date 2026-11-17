@@ -36,10 +36,12 @@ export const notificationOriginLabels: Record<NotificationOrigin, string> = {
 
 export const isOriginOnByDefault = (origin: string) => origin === "web";
 
-export function enabledKindsSummary(labels: readonly string[]) {
+export function enabledKindsSummary(
+  labels: readonly string[],
+  complete: readonly string[] = deviceCompletionKinds,
+) {
   if (labels.length === 0) return "Off";
-  if (labels.length === deviceCompletionKinds.length)
-    return "Enabled for all completions";
+  if (labels.length === complete.length) return "Enabled for all completions";
   const shown = labels.slice(0, 2).map((label) => label.toLowerCase());
   const others = labels.length - shown.length;
   return `Enabled for ${shown.join(", ")}${others > 0 ? `, ${others} other${others === 1 ? "" : "s"}` : ""}`;
