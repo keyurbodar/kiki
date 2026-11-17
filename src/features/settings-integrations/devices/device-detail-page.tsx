@@ -156,7 +156,9 @@ function DeviceDetail({ orgId, device }: { orgId: OrgId; device: Device }) {
     : undefined;
   const isAdmin = org?.accessLevel === "admin" || org?.accessLevel === "owner";
   const rename = useAtomSet(renameDeviceAtom, { mode: "promise" });
-  const describe = useAtomSet(setDeviceDescriptionAtom, { mode: "promise" });
+  const setDescription = useAtomSet(setDeviceDescriptionAtom, {
+    mode: "promise",
+  });
   const revoke = useAtomSet(revokeDeviceAtom, { mode: "promise" });
   const [confirming, setConfirming] = useState(false);
   const [pending, setPending] = useState(false);
@@ -177,7 +179,7 @@ function DeviceDetail({ orgId, device }: { orgId: OrgId; device: Device }) {
   };
   const saveDescription = (description: string | null) => {
     setPending(true);
-    describe({ params, payload: { description }, reactivityKeys })
+    setDescription({ params, payload: { description }, reactivityKeys })
       .then(
         () =>
           toast.success(
@@ -251,7 +253,11 @@ function DeviceDetail({ orgId, device }: { orgId: OrgId; device: Device }) {
           orgId={orgId}
           device={device}
           orgName={org?.name ?? "this organization"}
-          canEdit={user !== undefined && user.id === device.userId && device.revokedAt === null}
+          canEdit={
+            user !== undefined &&
+            user.id === device.userId &&
+            device.revokedAt === null
+          }
         />
         <FoldersSection device={device} />
         <SettingsSection title="Identity">
@@ -297,7 +303,9 @@ function DeviceDetail({ orgId, device }: { orgId: OrgId; device: Device }) {
                   Revoke
                 </Button>
               ) : (
-                <ValueText>Revoked {formatDateTime(device.revokedAt)}</ValueText>
+                <ValueText>
+                  Revoked {formatDateTime(device.revokedAt)}
+                </ValueText>
               )}
             </SettingsRow>
           </Card>
@@ -510,7 +518,9 @@ function AccessSection({
                 }
               />
             ) : (
-              <ValueText>{agentAccessLabels[device.computerUseAccess]}</ValueText>
+              <ValueText>
+                {agentAccessLabels[device.computerUseAccess]}
+              </ValueText>
             )}
           </SettingsRow>
         )}

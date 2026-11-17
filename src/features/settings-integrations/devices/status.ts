@@ -201,7 +201,11 @@ export const codeNotFoundMessage = "Code not found or no longer pending";
 const failureCause = (error: unknown): unknown => {
   if (typeof error !== "object" || error === null) return error;
   const cause = (error as { cause?: unknown }).cause;
-  return "_tag" in error ? error : cause === undefined ? error : failureCause(cause);
+  return "_tag" in error
+    ? error
+    : cause === undefined
+      ? error
+      : failureCause(cause);
 };
 
 const tagOf = (error: unknown) => {

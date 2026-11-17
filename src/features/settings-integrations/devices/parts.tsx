@@ -72,10 +72,7 @@ export function ConnectHelp({
       variant="link"
       size="auto-xs"
       className={cx("focus-gutter", className)}
-      render={
-        // biome-ignore lint/a11y/useAnchorContent: Button renders the label into the anchor
-        <a href={help.href} target="_blank" rel="noopener noreferrer" />
-      }
+      render={<a href={help.href} target="_blank" rel="noopener noreferrer" />}
     >
       {help.label}
       <ArrowUpRightIcon className="size-(--icon-xs)" />

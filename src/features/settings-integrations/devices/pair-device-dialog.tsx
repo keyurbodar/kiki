@@ -61,6 +61,7 @@ type Busy = "lookup" | "approve" | "deny";
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
+    // biome-ignore lint/a11y/noLabelWithoutControl: the control arrives as children
     <label className="flex flex-col gap-1.5 text-sm font-medium text-foreground">
       <span>{label}</span>
       {children}
@@ -206,7 +207,11 @@ export function PairDeviceDialog({
     );
   const awaitingMachine = state.step === "approved" && joined === undefined;
   const orgName = organizations.find((org) => org.id === orgId)?.name;
-  const wait: { status: ConnectWaitStatus; title: string; description: string } =
+  const wait: {
+    status: ConnectWaitStatus;
+    title: string;
+    description: string;
+  } =
     state.step === "denied"
       ? {
           status: "stopped",
@@ -352,6 +357,7 @@ export function PairDeviceDialog({
                   maxLength={255}
                 />
               </Field>
+              {/* biome-ignore lint/a11y/noLabelWithoutControl: Checkbox renders the control */}
               <label className="flex cursor-pointer items-start gap-2.5">
                 <Checkbox
                   checked={state.confirmed}

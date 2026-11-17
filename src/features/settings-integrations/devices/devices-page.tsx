@@ -75,7 +75,9 @@ export function DevicesPage({ pair }: DevicesPageProps) {
       reactivityKeys: [reactivityKeys.currentUser],
     })
       .catch((cause) =>
-        toast.error(errorMessage(cause, "Could not update the device settings")),
+        toast.error(
+          errorMessage(cause, "Could not update the device settings"),
+        ),
       )
       .finally(() => setSaving(false));
   };
