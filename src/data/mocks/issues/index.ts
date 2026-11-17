@@ -94,17 +94,29 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
       .handle("states", () =>
         Ref.get(db.issueStates).pipe(Effect.map(toIssueStateList)),
       )
-      .handle("list", () =>
-        snapshot.pipe(
-          Effect.map(
-            (world) =>
-              new IssueList({
-                issues: world.issues.map((row) => toIssueSummary(world, row)),
-                cursor: null,
-                prefix: org.issuePrefix,
-              }),
-          ),
-        ),
+      .handle("list", ({ query }) =>
+        Effect.gen(function* () {
+          const world = yield* snapshot;
+          const stateIds = [query.stateId ?? []].flat();
+          const assigneeIds = [query.assigneeId ?? []].flat();
+          const search = String(query.search ?? "")
+            .trim()
+            .toLowerCase();
+          const issues = world.issues.filter(
+            (row) =>
+              (stateIds.length === 0 || stateIds.includes(row.stateId)) &&
+              (assigneeIds.length === 0 ||
+                assigneeIds.includes(row.assigneeId ?? "")) &&
+              (search === "" ||
+                row.title.toLowerCase().includes(search) ||
+                row.code.toLowerCase().includes(search)),
+          );
+          return new IssueList({
+            issues: issues.map((row) => toIssueSummary(world, row)),
+            cursor: null,
+            prefix: yield* Ref.get(prefix),
+          });
+        }),
       )
       .handle("summariesByCode", ({ query }) =>
         snapshot.pipe(
@@ -122,7 +134,7 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
           const rows = yield* Ref.get(db.issues);
           const states = yield* Ref.get(db.issueStates);
           const number = Math.max(0, ...rows.map((row) => row.number)) + 1;
-          const code = `${org.issuePrefix}-${number}`;
+          const code = `${yield* Ref.get(prefix)}-${number}`;
           const now = DateTime.formatIso(fixtureNow);
           const stateId =
             payload.stateId ??
@@ -244,6 +256,9 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
         Effect.gen(function* () {
           yield* find(params.code);
           yield* find(payload.issue);
+          yield* setRelations(payload.issue, (relations) =>
+            relations.filter((relation) => relation.code !== params.code),
+          );
           yield* setRelations(params.code, (relations) => [
             ...relations.filter((relation) => relation.code !== payload.issue),
             {
@@ -308,13 +323,20 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
         }),
       )
       .handle("byPull", ({ params }) =>
-        snapshot.pipe(
-          Effect.map((world) =>
-            world.issues
-              .filter((row) => row.pullIds.includes(params.pullId))
-              .map((row) => toIssueSummary(world, row)),
-          ),
-        ),
+        Effect.gen(function* () {
+          const world = yield* snapshot;
+          const explicit = world.issues.filter((row) =>
+            row.pullIds.includes(params.pullId),
+          );
+          const threadId = world.pulls.find(
+            (pull) => pull.id === params.pullId,
+          )?.threadId;
+          const rows =
+            explicit.length > 0 || !threadId
+              ? explicit
+              : world.issues.filter((row) => row.threadIds.includes(threadId));
+          return rows.map((row) => toIssueSummary(world, row));
+        }),
       )
       .handle("comment", ({ params, payload }) =>
         Effect.gen(function* () {
@@ -323,7 +345,11 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
           yield* patchExtra(params.code, {
             comments: [
               ...current.comments,
-              { authorId: viewer.id, body: payload.body, minutesAgo: 0 },
+              {
+                authorId: viewer.id,
+                body: payload.body,
+                createdAt: DateTime.formatIso(fixtureNow),
+              },
             ],
           });
           const detailNow = yield* detail(row.code);
@@ -340,8 +366,17 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
           if (!captain) return yield* missing("captains", params.jamId);
           const threadIds = new Set(captain.crew);
           const rows = yield* Ref.get(db.issues);
+          const crewPullIds = new Set(
+            (yield* Ref.get(db.pulls))
+              .filter((pull) => threadIds.has(pull.threadId ?? ""))
+              .map((pull) => pull.id),
+          );
           const items = rows
-            .filter((issue) => issue.threadIds.some((id) => threadIds.has(id)))
+            .filter(
+              (issue) =>
+                issue.threadIds.some((id) => threadIds.has(id)) ||
+                issue.pullIds.some((id) => crewPullIds.has(id)),
+            )
             .map((issue) => ({
               id: issue.id,
               code: issue.code,
@@ -442,13 +477,13 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
           Effect.map((rows) => rows.filter((row) => row.assigneeId).length),
         ),
       )
-      .handle("mentionCount", () =>
+      .handle("mentionCount", ({ query }) =>
         snapshot.pipe(
           Effect.map(
             (world) =>
               world.issues.filter(
                 (issue) =>
-                  issue.assigneeId === viewer.id ||
+                  issue.assigneeId === String(query.userId ?? viewer.id) ||
                   extraOf(world.extras, issue.code).subscribed,
               ).length,
           ),

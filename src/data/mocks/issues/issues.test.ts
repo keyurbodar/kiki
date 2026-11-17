@@ -2,9 +2,9 @@ import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
 import type { OrgId } from "../../api/schemas/ids.ts";
+import { reactivityKeys } from "../../atoms/conventions.ts";
 import {
   issueAtom,
-  issueReactivityKeys,
   issueStatesAtom,
   linkIssueAtom,
   relateIssueAtom,
@@ -14,7 +14,7 @@ import {
 import { orgId as worldOrgId } from "../fixtures/world.ts";
 
 const orgId = worldOrgId as OrgId;
-const keys = (code: string) => [issueReactivityKeys.issue(orgId, code)];
+const keys = (code: string) => [reactivityKeys.issue(orgId, code)];
 
 describe("issues mock", () => {
   it.effect(
