@@ -1,11 +1,12 @@
 import { cx } from "class-variance-authority";
+import captainArt from "@/assets/brand/illustrations/captain.svg?url";
 import {
   OverviewEmpty,
   OverviewSurfaceRow,
   overviewEmptyMark,
 } from "@/components/captain-overview";
+import { captainAvatarUrl } from "@/primitives/captain-avatar";
 import { Icon } from "@/primitives/icon";
-import { captainPresetUrl, defaultCaptainAvatar } from "./captain-data";
 import { useCaptain, useCaptainDrive, useCaptainOrgId } from "./use-captain";
 
 export type CaptainOverviewEmptyProps = {
@@ -34,7 +35,7 @@ export function CaptainOverviewEmpty({
   const mark =
     avatar === undefined ? (
       <img
-        src={captainPresetUrl(defaultCaptainAvatar.value)}
+        src={captainArt}
         alt="Overview is empty"
         draggable={false}
         className={cx("h-24 select-none", overviewEmptyMark)}
@@ -51,7 +52,7 @@ export function CaptainOverviewEmpty({
       />
     ) : avatar.kind === "preset" ? (
       <img
-        src={captainPresetUrl(avatar.value)}
+        src={captainAvatarUrl(avatar.value)}
         alt=""
         draggable={false}
         className={cx("h-24 select-none", overviewEmptyMark)}

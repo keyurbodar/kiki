@@ -1,4 +1,3 @@
-export * from "./captain-avatar";
 export * from "./captain-data";
 export * from "./crew-action";
 export * from "./crew-section";

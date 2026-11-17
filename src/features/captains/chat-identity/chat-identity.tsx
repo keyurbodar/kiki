@@ -3,15 +3,17 @@ import { cx } from "class-variance-authority";
 import { type ComponentProps, type ReactNode, useState } from "react";
 import { toast } from "sonner";
 import {
-  CaptainAvatar,
-  type CaptainAvatarValue,
   captainReactivityKeys,
-  defaultCaptainAvatar,
   updateCaptainAtom,
   useCaptain,
   useCaptainOrgId,
 } from "@/features/captains/overview";
 import { Button } from "@/primitives/button";
+import {
+  CaptainAvatar,
+  type CaptainAvatarValue,
+  DEFAULT_CAPTAIN_AVATAR,
+} from "@/primitives/captain-avatar";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 
@@ -79,7 +81,7 @@ export function ChatIdentity({
   const [editing, setEditing] = useState(defaultEditing);
   const name = captain?.name ?? fallbackName;
   const [draft, setDraft] = useState(name);
-  const avatar = captain?.avatar ?? defaultCaptainAvatar;
+  const avatar = captain?.avatar ?? DEFAULT_CAPTAIN_AVATAR;
 
   if (compactName !== undefined || avatarUrl !== undefined) {
     return (

@@ -36,7 +36,7 @@ describe("toCaptain", () => {
       avatar: {
         kind: "emoji",
         value: "🚢",
-        background: undefined,
+        background: "#ffffff",
         image: undefined,
       },
     });

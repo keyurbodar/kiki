@@ -3,15 +3,24 @@ import type { DriveEntry, DriveVolume } from "@/components/drive-file-pane";
 import { JamId, OrgId } from "@/data/api/schemas/ids";
 import { queryTimeToLive } from "@/data/atoms/conventions";
 import { ApiClient } from "@/data/client/ApiClient";
+import {
+  type CaptainAvatarValue,
+  captainAvatarUrl,
+  DEFAULT_CAPTAIN_AVATAR,
+} from "@/primitives/captain-avatar";
 
-/** A Captain's avatar: a preset Capy mark, an emoji, or an uploaded image. */
-export type CaptainAvatarValue = {
-  kind: "preset" | "emoji";
-  value: string;
-  background?: string;
-  image?: string;
-};
+export const captainReactivityKeys = (orgId: string, jamId: string) => [
+  `captain:${jamId}`,
+  `captain:${orgId}`,
+  `captains:${orgId}`,
+  `jam:${jamId}`,
+  `jam:${orgId}`,
+];
 
+export type { CaptainAvatarValue };
+export { captainAvatarUrl, DEFAULT_CAPTAIN_AVATAR as defaultCaptainAvatar };
+
+/** A Captain as the identity and overview read it. */
 export type Captain = {
   id: string;
   name: string;
@@ -40,22 +49,6 @@ export type CaptainDriveFile = DriveEntry & { updatedAt: Date | null };
 /** A Captain's drive: its artifacts volume and the files at its head. */
 export type CaptainDrive = { volume: DriveVolume; files: CaptainDriveFile[] };
 
-/** The preset a Captain shows until someone picks an avatar. */
-export const defaultCaptainAvatar: CaptainAvatarValue = {
-  kind: "preset",
-  value: "capy-avatar-1",
-};
-
-export const captainPresetUrl = (value: string) => `/avatars/${value}.png`;
-
-export const captainReactivityKeys = (orgId: string, jamId: string) => [
-  `captain:${jamId}`,
-  `captain:${orgId}`,
-  `captains:${orgId}`,
-  `jam:${jamId}`,
-  `jam:${orgId}`,
-];
-
 type Json = Record<string, unknown>;
 
 const record = (value: unknown): Json =>
@@ -77,11 +70,11 @@ function toAvatar(json: Json): CaptainAvatarValue | undefined {
     return {
       kind,
       value,
-      background: text(avatar.background) ?? undefined,
+      background: text(avatar.background) ?? DEFAULT_CAPTAIN_AVATAR.background,
       image,
     };
   }
-  return image === undefined ? undefined : { ...defaultCaptainAvatar, image };
+  return image === undefined ? undefined : { ...DEFAULT_CAPTAIN_AVATAR, image };
 }
 
 /** Reads the undecoded captains.get response. */
