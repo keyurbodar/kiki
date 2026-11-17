@@ -119,7 +119,10 @@ export function byPhase(phase: Phase, present: string, past: string) {
     : [`Couldn't ${verb.bare.toLowerCase()}`, ...rest].join(" ");
 }
 
-export function toolDescription(description: string | undefined, command?: string) {
+export function toolDescription(
+  description: string | undefined,
+  command?: string,
+) {
   const text = description?.trim();
   if (text === undefined || text === "") return undefined;
   const lower = text.toLowerCase();
