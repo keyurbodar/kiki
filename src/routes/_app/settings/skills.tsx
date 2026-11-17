@@ -1,10 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { SkillsPage } from "@/features/settings-agent/skills-page";
 
 export const Route = createFileRoute("/_app/settings/skills")({
-  component: RouteComponent,
+  component: SkillsPage,
 });
-
-function RouteComponent() {
-  return <RoutePlaceholder title="/settings/skills" path="/settings/skills" />;
-}
