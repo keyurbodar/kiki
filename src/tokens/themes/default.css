@@ -97,9 +97,6 @@
   --sh-composer:
     0 4px 12px oklch(0% 0 0 / 0.025), 0 2px 6px oklch(0% 0 0 / 0.03),
     0 1px 1px oklch(0% 0 0 / 0.04);
-  --sh-sheet:
-    0 9px 48px oklch(0% 0 0 / 0.08), 0 6px 24px oklch(0% 0 0 / 0.1),
-    0 1px 1px oklch(0% 0 0 / 0.04);
 }
 
 .dark {

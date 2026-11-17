@@ -69,8 +69,12 @@
       black calc(100% - var(--mask-fade-ramp, var(--mask-fade-ramp-default))),
       transparent 100%
     );
-  mask-position: center top, center bottom;
-  mask-size: 100% calc(100% - 1lh), 100% 1lh;
+  mask-position:
+    center top,
+    center bottom;
+  mask-size:
+    100% calc(100% - 1lh),
+    100% 1lh;
   mask-repeat: no-repeat;
 }
 
