@@ -1,6 +1,12 @@
 import { Effect, Ref } from "effect";
 import { fields, type JamRow, MockDb, missing, newId } from "../db/MockDb.ts";
-import { isoMinutesAgo, people, projects, threads } from "../fixtures/world.ts";
+import {
+  isoMinutesAgo,
+  people,
+  projects,
+  threads,
+  xinPull,
+} from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
   defaultLocalPull,
@@ -29,6 +35,20 @@ import {
   pullSummaries,
   pullThreads,
   viewedPullFiles,
+  xinPullActivity,
+  xinPullBody,
+  xinPullChecks,
+  xinPullComments,
+  xinPullCommits,
+  xinPullDiff,
+  xinPullFiles,
+  xinPullFileUrls,
+  xinPullFindings,
+  xinPullHeadSha,
+  xinPullLabels,
+  xinPullReview,
+  xinPullReviewers,
+  xinPullViewedFiles,
 } from "./fixtures.ts";
 
 const text = (value: unknown): string | undefined =>
@@ -72,15 +92,29 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
         updatedAt: isoMinutesAgo(18),
       },
     ]);
-    const bodies = yield* Ref.make<Readonly<Record<string, string>>>({});
+    const bodies = yield* Ref.make<Readonly<Record<string, string>>>({
+      [xinPull.id]: xinPullBody,
+    });
     const autoMerge = yield* Ref.make<Readonly<Record<string, boolean>>>({});
     const comments = yield* Ref.make([...pullComments]);
-    const findings = yield* Ref.make([...pullFindings]);
+    const xinComments: Array<Record<string, unknown>> = [...xinPullComments];
+    const findings = yield* Ref.make([...pullFindings, ...xinPullFindings]);
     const reviewers = yield* Ref.make([...pullReviewers]);
     const reviews = yield* Ref.make([...pullReviews]);
     const labels = yield* Ref.make<
       ReadonlyArray<{ id: string; name: string; color: string }>
     >([...pullLabels]);
+    const xinLabels: Array<{ id: string; name: string; color: string }> = [
+      ...xinPullLabels,
+    ];
+    const xinReviewers: Array<(typeof pullReviewers)[number]> = [
+      ...xinPullReviewers,
+    ];
+    const xinViewed: Array<{
+      path: string;
+      viewed: boolean;
+      viewedAt: string | null;
+    }> = [...xinPullViewedFiles];
     const linkedThreads = yield* Ref.make<ReadonlyArray<JamRow>>([
       ...pullThreads,
     ]);
@@ -123,8 +157,20 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
           baseRef: row.baseRef,
           additions: row.additions,
           deletions: row.deletions,
+          labels: row.id === xinPull.id ? xinLabels : [],
           threadId: row.threadId,
           thread: threadChip(row.threadId),
+          ...(row.id === xinPull.id
+            ? {
+                headSha: xinPullHeadSha,
+                createdAt: isoMinutesAgo(5 * 24 * 60),
+                filesChanged: xinPullFiles.length,
+                commitsCount: xinPullCommits.length,
+                commentsCount: xinPullComments.length,
+                mergeable: true,
+                mergeableState: "clean",
+              }
+            : {}),
           updatedAt: row.updatedAt,
           url: `https://github.com/${row.repo}/pull/${row.number}`,
           body:
@@ -255,6 +301,9 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
       .handle("activity", ({ params }) =>
         Effect.gen(function* () {
           yield* findPull(params.pullId);
+          if (params.pullId === xinPull.id) {
+            return { ...xinPullActivity, comments: xinComments };
+          }
           const matching = pullActivity.filter(
             (item) => item.pullId === params.pullId,
           );
@@ -298,7 +347,7 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
       .handle("checks", ({ params }) =>
         Effect.gen(function* () {
           yield* findPull(params.pullId);
-          return pullChecks;
+          return params.pullId === xinPull.id ? xinPullChecks : pullChecks;
         }),
       )
       .handle("close", ({ params }) => setPullState(params.pullId, "closed"))
@@ -311,13 +360,21 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
             pullId: params.pullId,
             authorId: people.alex.id,
             authorLogin: people.alex.githubLogin,
+            author: people.alex.githubLogin,
             body: text(input.body) ?? "Looks good to me.",
+            bodyMd: text(input.body) ?? "Looks good to me.",
+            kind: text(input.path) === undefined ? "issue" : "review",
             createdAt: isoMinutesAgo(0),
+            authoredAt: isoMinutesAgo(0),
             updatedAt: isoMinutesAgo(0),
             resolved: false,
             path: text(input.path) ?? null,
             line: typeof input.line === "number" ? input.line : null,
           };
+          if (params.pullId === xinPull.id) {
+            xinComments.push(comment);
+            return comment;
+          }
           yield* Ref.update(comments, (current) => [...current, comment]);
           return comment;
         }),
@@ -325,6 +382,13 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
       .handle("resolveComment", ({ params }) =>
         Effect.gen(function* () {
           const current = yield* Ref.get(comments);
+          const xinComment = xinComments.find(
+            (item) => item.id === params.commentId,
+          );
+          if (params.pullId === xinPull.id && xinComment !== undefined) {
+            xinComment.resolved = true;
+            return xinComment;
+          }
           const comment = current.find((item) => item.id === params.commentId);
           if (!comment) {
             return yield* Effect.die(
@@ -360,13 +424,13 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
       .handle("diff", ({ params }) =>
         Effect.gen(function* () {
           yield* findPull(params.pullId);
-          return pullDiff;
+          return params.pullId === xinPull.id ? xinPullDiff : pullDiff;
         }),
       )
       .handle("fileUrls", ({ params }) =>
         Effect.gen(function* () {
           yield* findPull(params.pullId);
-          return pullFileUrls;
+          return params.pullId === xinPull.id ? xinPullFileUrls : pullFileUrls;
         }),
       )
       .handle("setDraft", ({ params, payload }) =>
@@ -407,6 +471,7 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
       .handle("labels", ({ params }) =>
         Effect.gen(function* () {
           yield* findPull(params.pullId);
+          if (params.pullId === xinPull.id) return xinLabels;
           return yield* Ref.get(labels);
         }),
       )
@@ -418,6 +483,16 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
           const available = yield* Ref.get(issueLabels);
           const label = available.find((item) => item.id === labelId);
           if (!label) return yield* missing("issueLabels", labelId);
+          if (params.pullId === xinPull.id) {
+            if (!xinLabels.some((item) => item.id === labelId)) {
+              xinLabels.push({
+                id: label.id,
+                name: label.name,
+                color: label.color,
+              });
+            }
+            return xinLabels;
+          }
           const current = yield* Ref.get(labels);
           if (!current.some((item) => item.id === labelId)) {
             yield* Ref.set(labels, [...current, label]);
@@ -438,6 +513,7 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
           const rows = yield* Ref.get(findings);
           return {
             ...pullReview,
+            ...(params.pullId === xinPull.id ? xinPullReview : {}),
             pullId: params.pullId,
             findings: rows.filter((row) => row.pullId === params.pullId),
           };
@@ -447,8 +523,9 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
         Effect.gen(function* () {
           yield* findPull(params.pullId);
           const reviewerId = text(fields(payload).reviewerId);
+          const xin = params.pullId === xinPull.id;
           if (reviewerId) {
-            const current = yield* Ref.get(reviewers);
+            const current = xin ? xinReviewers : yield* Ref.get(reviewers);
             if (!current.some((item) => item.id === reviewerId)) {
               const person = Object.values(people).find(
                 (candidate) => candidate.id === reviewerId,
@@ -458,20 +535,19 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
                   new Error(`pulls.reviewers: no member ${reviewerId}`),
                 );
               }
-              yield* Ref.set(reviewers, [
-                ...current,
-                {
-                  id: person.id,
-                  login: person.githubLogin,
-                  name: `${person.firstName} ${person.lastName}`,
-                  role: "reviewer",
-                  state: "pending",
-                  approved: false,
-                },
-              ]);
+              const added = {
+                id: person.id,
+                login: person.githubLogin,
+                name: `${person.firstName} ${person.lastName}`,
+                role: "reviewer",
+                state: "pending",
+                approved: false,
+              };
+              if (xin) xinReviewers.push(added);
+              else yield* Ref.set(reviewers, [...current, added]);
             }
           }
-          return yield* Ref.get(reviewers);
+          return xin ? xinReviewers : yield* Ref.get(reviewers);
         }),
       )
       .handle("reviewSkip", ({ params }) =>
@@ -483,6 +559,7 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
       .handle("reviewers", ({ params }) =>
         Effect.gen(function* () {
           yield* findPull(params.pullId);
+          if (params.pullId === xinPull.id) return xinReviewers;
           return yield* Ref.get(reviewers);
         }),
       )
@@ -495,7 +572,8 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
               new Error("pulls.setReviewer: reviewerId is required"),
             );
           }
-          const current = yield* Ref.get(reviewers);
+          const xin = params.pullId === xinPull.id;
+          const current = xin ? xinReviewers : yield* Ref.get(reviewers);
           const existing = current.find((item) => item.id === reviewerId);
           if (!existing) {
             const person = Object.values(people).find(
@@ -514,7 +592,8 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
               state: "pending",
               approved: false,
             };
-            yield* Ref.set(reviewers, [...current, added]);
+            if (xin) xinReviewers.push(added);
+            else yield* Ref.set(reviewers, [...current, added]);
             return added;
           }
           return existing;
@@ -645,6 +724,7 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
       .handle("viewedFiles", ({ params }) =>
         Effect.gen(function* () {
           yield* findPull(params.pullId);
+          if (params.pullId === xinPull.id) return xinViewed;
           return yield* Ref.get(viewedFiles);
         }),
       )
@@ -654,6 +734,19 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
           const input = fields(payload);
           const path = text(input.path) ?? pullDiff.files[0]!.path;
           const viewed = flag(input.viewed);
+          if (params.pullId === xinPull.id) {
+            const rows = xinViewed.map((item) =>
+              item.path === path
+                ? {
+                    ...item,
+                    viewed,
+                    viewedAt: viewed ? isoMinutesAgo(0) : null,
+                  }
+                : item,
+            );
+            xinViewed.splice(0, xinViewed.length, ...rows);
+            return xinViewed;
+          }
           const current = yield* Ref.get(viewedFiles);
           const updated = current.map((item) =>
             item.path === path
