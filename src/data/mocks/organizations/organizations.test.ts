@@ -149,6 +149,10 @@ describe("organizations mock", () => {
         ApiClient.mutation("organizations", "removeAllowedDomain"),
         { params: { orgId: orgId, domainId: added.id } },
       );
+      const record = (added as Row).dnsRecord as Row;
+      assert.strictEqual(record.type, "TXT");
+      assert.include(String(record.host), "challenge");
+
       const afterRemove = yield* AtomRegistry.getResult(registry, domainsAtom, {
         suspendOnWaiting: true,
       });
@@ -163,6 +167,26 @@ describe("organizations mock", () => {
         { params, payload: { required: true } },
       )) as Row;
       assert.isTrue(mfa.mfaRequired);
+      assert.strictEqual(mfa.mfaLevel, "any");
+      assert.strictEqual(mfa.graceDays, 30);
+
+      const passkeyRegistry = AtomRegistry.make();
+      const passkeysOnly = (yield* run(
+        passkeyRegistry,
+        ApiClient.mutation("organizations", "setMfaRequired"),
+        {
+          params,
+          payload: { required: true, graceDays: 14, level: "passkey" },
+        },
+      )) as Row;
+      assert.strictEqual(passkeysOnly.mfaLevel, "passkey");
+      assert.strictEqual(passkeysOnly.graceDays, 14);
+      assert.isNotNull(passkeysOnly.mfaEnforceAt);
+      const afterPasskeys = yield* AtomRegistry.getResult(
+        passkeyRegistry,
+        listAtom,
+      );
+      assert.strictEqual((rows(afterPasskeys)[0] as Row).mfaLevel, "passkey");
       const afterMfa = yield* AtomRegistry.getResult(registry, listAtom, {
         suspendOnWaiting: true,
       });

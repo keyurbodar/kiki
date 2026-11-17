@@ -1,110 +1,107 @@
-import { assert, describe, it } from "@effect/vitest";
+import { assert, layer } from "@effect/vitest";
 import { Effect } from "effect";
-import { AtomRegistry } from "effect/reactivity";
-import { ApiClient } from "../../client/ApiClient.ts";
-import { orgId } from "../fixtures/world.ts";
+import { ExploreListing } from "../../api/schemas/explore.ts";
+import { ApiClient, makeApiClientLayer } from "../../client/ApiClient.ts";
+import { MockTransport } from "../MockServices.ts";
 
-interface Listing {
-  readonly kind: string;
-  readonly slug: string;
-  readonly displayName: string;
-  readonly description: string;
-  readonly authorId: string;
-  readonly authorName: string;
-  readonly tags: ReadonlyArray<string>;
-  readonly versions: ReadonlyArray<{ readonly version: string }>;
-}
+const orgId = "org_sample_acme";
 
-interface Skill {
-  readonly id: string;
-  readonly slug: string;
-  readonly displayName: string;
-  readonly version: string;
-}
-
-interface Receipt {
-  readonly ok: boolean;
-  readonly id: string;
-}
-
-const key = `explore:${orgId}`;
-
-const listingsAtom = ApiClient.query("explore", "listings", {
-  params: { orgId },
-  query: {},
-  reactivityKeys: [key],
-});
-const report = ApiClient.mutation("explore", "report");
-const addSkill = ApiClient.mutation("explore", "addSkill");
-
-const rows = (value: unknown) => value as ReadonlyArray<Listing>;
-
-describe("explore mock", () => {
-  it.effect("lists community listings with versions and authors", () =>
+layer(makeApiClientLayer(MockTransport))("explore mocks", (it) => {
+  it.effect("serves a listing and fails unknown slugs", () =>
     Effect.gen(function* () {
-      const registry = AtomRegistry.make();
-      const listings = rows(
-        yield* AtomRegistry.getResult(registry, listingsAtom),
-      );
-      assert.isAbove(listings.length, 0);
-      for (const listing of listings) {
-        assert.isString(listing.kind);
-        assert.isString(listing.slug);
-        assert.isString(listing.displayName);
-        assert.isString(listing.description);
-        assert.isString(listing.authorId);
-        assert.isString(listing.authorName);
-        assert.isAbove(listing.versions.length, 0);
-        assert.isAbove(listing.tags.length, 0);
-      }
+      const client = yield* ApiClient;
+      const listing = yield* client.explorePublic.listing({
+        params: { kind: "plugin", slug: "edge-platform" },
+      });
+      assert.instanceOf(listing, ExploreListing);
+      assert.strictEqual(listing.content.kind, "plugin");
+      const missing = yield* client.explorePublic
+        .listing({ params: { kind: "skill", slug: "nope" } })
+        .pipe(Effect.flip);
+      assert.strictEqual(missing._tag, "capy/ExploreNotFound");
+    }),
+  );
+
+  it.effect("filters the index by kind and search", () =>
+    Effect.gen(function* () {
+      const client = yield* ApiClient;
+      const all = yield* client.explore.listings({
+        params: { orgId },
+        query: {},
+      });
+      assert.isAbove(all.cards.length, 0);
+
+      const skills = yield* client.explore.listings({
+        params: { orgId },
+        query: { kind: "skill" },
+      });
+      assert.isAbove(skills.cards.length, 0);
+      assert.isTrue(skills.cards.every((card) => card.kind === "skill"));
+
+      const searched = yield* client.explore.listings({
+        params: { orgId },
+        query: { q: "playbook" },
+      });
+      assert.isAbove(searched.cards.length, 0);
+      assert.isBelow(searched.cards.length, all.cards.length + 1);
       assert.isTrue(
-        listings.some((listing) => listing.authorName === "Alex Morgan"),
+        searched.cards.every((card) => card.slug === "debugging-playbook"),
       );
     }),
   );
 
-  it.effect("reports a listing and installs a skill", () =>
+  it.effect("toggles theme visibility", () =>
     Effect.gen(function* () {
-      const registry = AtomRegistry.make();
-      registry.mount(listingsAtom);
-      yield* AtomRegistry.getResult(registry, listingsAtom);
-
-      registry.set(report, {
-        params: { orgId },
-        payload: { slug: "release-notes", reason: "Needs review" },
-        reactivityKeys: [key],
+      const client = yield* ApiClient;
+      const slug = "debugging-playbook";
+      const before = yield* client.explore.themeVisibility({
+        params: { slug },
       });
-      const receipt = (yield* AtomRegistry.getResult(
-        registry,
-        report,
-      )) as Receipt;
-      assert.isTrue(receipt.ok);
-      assert.isString(receipt.id);
-      const afterReport = rows(
-        yield* AtomRegistry.getResult(registry, listingsAtom, {
-          suspendOnWaiting: true,
-        }),
-      );
-      assert.isAbove(afterReport.length, 0);
-
-      registry.set(addSkill, {
-        params: { orgId },
-        payload: { slug: "docs-review", version: "2.0.0" },
-        reactivityKeys: [key],
+      assert.strictEqual(before.hidden, false);
+      const hidden = yield* client.explore.setThemeVisibility({
+        params: { slug },
+        payload: { hidden: true },
       });
-      const skill = (yield* AtomRegistry.getResult(
-        registry,
-        addSkill,
-      )) as Skill;
-      assert.equal(skill.slug, "docs-review");
-      assert.equal(skill.displayName, "Docs Review");
-      assert.equal(skill.version, "2.0.0");
-      const afterAdd = rows(
-        yield* AtomRegistry.getResult(registry, listingsAtom, {
-          suspendOnWaiting: true,
-        }),
-      );
-      assert.isTrue(afterAdd.some((listing) => listing.slug === skill.slug));
+      assert.strictEqual(hidden.hidden, true);
+      const after = yield* client.explore.themeVisibility({ params: { slug } });
+      assert.strictEqual(after.hidden, true);
+      const shown = yield* client.explore.setThemeVisibility({
+        params: { slug },
+        payload: { hidden: false },
+      });
+      assert.strictEqual(shown.hidden, false);
+    }),
+  );
+
+  it.effect("adds a skill and reports it as added", () =>
+    Effect.gen(function* () {
+      const client = yield* ApiClient;
+      const first = yield* client.explore.addSkill({
+        params: { orgId },
+        payload: {
+          slug: "debugging-playbook",
+          scope: { projectId: "prj_sample_web" },
+        },
+      });
+      assert.strictEqual(first.replaced, false);
+      const index = yield* client.explore.listings({
+        params: { orgId },
+        query: {},
+      });
+      assert.include(index.added, "skill:debugging-playbook");
+      const again = yield* client.explore.addSkill({
+        params: { orgId },
+        payload: { slug: "debugging-playbook", scope: {} },
+      });
+      assert.strictEqual(again.replaced, true);
+      yield* client.explore.report({
+        params: { orgId },
+        payload: {
+          kind: "skill",
+          slug: "debugging-playbook",
+          reason: "broken",
+        },
+      });
     }),
   );
 });
