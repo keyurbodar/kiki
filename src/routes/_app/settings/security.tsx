@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { SecurityPage } from "@/features/settings/security-page";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/settings/security")({
@@ -8,7 +8,5 @@ export const Route = createFileRoute("/_app/settings/security")({
 });
 
 function RouteComponent() {
-  return (
-    <RoutePlaceholder title="/settings/security" path="/settings/security" />
-  );
+  return <SecurityPage />;
 }

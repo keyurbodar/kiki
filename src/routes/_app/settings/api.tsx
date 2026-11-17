@@ -1,10 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { ApiSettingsPage } from "@/features/settings-integrations/api";
 
 export const Route = createFileRoute("/_app/settings/api")({
-  component: RouteComponent,
+  component: ApiSettingsPage,
 });
-
-function RouteComponent() {
-  return <RoutePlaceholder title="/settings/api" path="/settings/api" />;
-}
