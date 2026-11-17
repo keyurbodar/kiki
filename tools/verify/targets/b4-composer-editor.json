@@ -1,0 +1,28 @@
+{
+  "matrix": {
+    "scheme": [
+      "dark",
+      "light"
+    ]
+  },
+  "defaults": {
+    "maxMismatch": 2
+  },
+  "targets": [
+    {
+      "id": "composer-spec",
+      "route": "/__composer?mode={scheme}",
+      "state": "idle composer card",
+      "theme": "default",
+      "viewport": "740x160",
+      "variants": {
+        "dark": {
+          "frame": "DcmEiL-VhL"
+        }
+      },
+      "capture": {
+        "[data-slot=composer]": []
+      }
+    }
+  ]
+}
