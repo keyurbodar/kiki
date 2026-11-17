@@ -161,6 +161,7 @@ export function onboardingStatus(value: unknown): OnboardingStatus | undefined {
 export function setupSteps(status: OnboardingStatus): SetupStep[] {
   return status.steps.flatMap((state) => {
     if (!isSetupStepId(state.step)) return [];
+    if (state.skipped && !state.completed) return [];
     return [{ ...SETUP_STEPS[state.step], done: state.completed }];
   });
 }

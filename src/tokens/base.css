@@ -43,3 +43,22 @@
   background: var(--color-primary-20);
   color: var(--color-primary-ink);
 }
+
+.desktop-drag-region {
+  -webkit-app-region: drag;
+}
+
+.desktop-no-drag,
+[data-slot="sheet-content"],
+[data-slot="sheet-overlay"],
+[data-slot="dialog-content"],
+[data-slot="dialog-overlay"],
+[data-slot="drawer-content"],
+[data-slot="drawer-overlay"],
+[data-slot="menu-content"],
+[data-slot="menu-combobox-content"],
+[data-slot="menu-select-content"],
+[data-slot="context-menu-content"],
+[data-slot="popover-content"] {
+  -webkit-app-region: no-drag;
+}
