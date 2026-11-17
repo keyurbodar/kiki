@@ -112,7 +112,13 @@ const getSnapshot = () => {
 
 function subscribe(listener: () => void) {
   listeners.add(listener);
-  const media = window.matchMedia("(prefers-color-scheme: dark)");
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+export function syncAppearance(win: Window = window) {
+  const media = win.matchMedia("(prefers-color-scheme: dark)");
   const onStorage = (event: StorageEvent) => {
     if (
       event.key === APPEARANCE_STORAGE_KEY ||
@@ -122,13 +128,15 @@ function subscribe(listener: () => void) {
     }
   };
   media.addEventListener("change", refresh);
-  window.addEventListener("storage", onStorage);
+  win.addEventListener("storage", onStorage);
+  refresh();
   return () => {
-    listeners.delete(listener);
     media.removeEventListener("change", refresh);
-    window.removeEventListener("storage", onStorage);
+    win.removeEventListener("storage", onStorage);
   };
 }
+
+if (typeof window !== "undefined") syncAppearance();
 
 export function setColorMode(mode: ColorMode) {
   const stored = readJson(APPEARANCE_STORAGE_KEY);

@@ -33,7 +33,7 @@ export function ColorThemeSelect({
   className,
   disabled,
 }: ColorThemeSelectProps) {
-  const { resolvedMode } = useAppearance();
+  const { resolvedMode, colorTheme } = useAppearance();
   const { displayed, options, presets, custom, select, byKey } =
     useColorThemeOptions();
   const deleteTheme = useDeleteColorTheme();
@@ -50,7 +50,7 @@ export function ColorThemeSelect({
           colorThemeLabel(option),
         ]),
       )}
-      value={colorThemeKey(displayed)}
+      value={colorThemeKey(colorTheme)}
       onValueChange={(key) => {
         const theme = key === null ? undefined : byKey(key);
         if (theme !== undefined) select(theme);

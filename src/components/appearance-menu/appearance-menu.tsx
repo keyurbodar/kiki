@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react";
 import {
   CheckmarkIcon,
   ColorThemeSwatch,
@@ -104,21 +105,23 @@ export function AppearanceMenuItems() {
   );
 }
 
-export type AppearanceMenuProps = Record<string, never>;
+export type AppearanceMenuProps = ComponentProps<"div">;
 
-export function AppearanceMenu() {
+export function AppearanceMenu(props: AppearanceMenuProps) {
   return (
-    <ResponsiveMenu>
-      <ResponsiveMenuTrigger
-        render={
-          <Button variant="ghost" size="icon-sm" aria-label="Appearance" />
-        }
-      >
-        <ContrastIcon />
-      </ResponsiveMenuTrigger>
-      <ResponsiveMenuContent align="end" className="w-60">
-        <AppearanceMenuItems />
-      </ResponsiveMenuContent>
-    </ResponsiveMenu>
+    <div {...props}>
+      <ResponsiveMenu>
+        <ResponsiveMenuTrigger
+          render={
+            <Button variant="ghost" size="icon-sm" aria-label="Appearance" />
+          }
+        >
+          <ContrastIcon />
+        </ResponsiveMenuTrigger>
+        <ResponsiveMenuContent align="end" className="w-60">
+          <AppearanceMenuItems />
+        </ResponsiveMenuContent>
+      </ResponsiveMenu>
+    </div>
   );
 }

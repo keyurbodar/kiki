@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 const avatarSizes = {
-  xs: "size-4 text-[0.5rem]",
-  sm: "size-6 text-[0.625rem]",
+  xs: "size-4 text-avatar-xs",
+  sm: "size-6 text-avatar-sm",
 } as const;
 
 export const avatarInitials = (name: string) => {

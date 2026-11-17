@@ -11,6 +11,7 @@ import {
   sameColorTheme,
   setColorMode,
   setColorTheme,
+  syncAppearance,
 } from "./appearance";
 
 beforeEach(() => localStorage.clear());
@@ -95,5 +96,38 @@ describe("color theme choices", () => {
     expect(colorThemeLabel(custom)).toBe("Dusk");
     expect(sameColorTheme(custom, { ...custom, name: "Renamed" })).toBe(true);
     expect(sameColorTheme({ kind: "default" }, custom)).toBe(false);
+  });
+});
+
+describe("system mode sync", () => {
+  it("follows OS changes with no appearance UI mounted", () => {
+    let dark = false;
+    let onChange: (() => void) | undefined;
+    const media = {
+      get matches() {
+        return dark;
+      },
+      addEventListener: (_: string, fn: () => void) => {
+        onChange = fn;
+      },
+      removeEventListener: () => {
+        onChange = undefined;
+      },
+    };
+    const original = window.matchMedia;
+    window.matchMedia = (() => media) as unknown as typeof window.matchMedia;
+    try {
+      setColorMode("system");
+      const stop = syncAppearance();
+      expect(document.documentElement.classList.contains("dark")).toBe(false);
+      dark = true;
+      onChange?.();
+      expect(document.documentElement.classList.contains("dark")).toBe(true);
+      expect(document.documentElement.style.colorScheme).toBe("dark");
+      stop();
+      expect(onChange).toBeUndefined();
+    } finally {
+      window.matchMedia = original;
+    }
   });
 });
