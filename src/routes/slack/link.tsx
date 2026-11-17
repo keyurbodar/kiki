@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { SlackLinkPage } from "@/features/onboarding/account-link";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/slack/link")({
@@ -8,5 +8,6 @@ export const Route = createFileRoute("/slack/link")({
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="/slack/link" path="/slack/link" />;
+  const { token } = Route.useSearch();
+  return <SlackLinkPage token={token} />;
 }

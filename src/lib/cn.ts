@@ -1,4 +1,3 @@
-export type ClassValue = string | false | null | undefined;
-
-export const cn = (...values: ReadonlyArray<ClassValue>) =>
-  values.filter((value) => typeof value === "string" && value !== "").join(" ");
+export const cn = (
+  ...parts: ReadonlyArray<string | false | null | undefined>
+): string => parts.filter(Boolean).join(" ");

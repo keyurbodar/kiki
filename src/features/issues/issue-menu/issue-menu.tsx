@@ -6,8 +6,8 @@ import type {
   IssueSummary,
   UpdateIssueRequest,
 } from "@/data/api/schemas/issue";
+import { reactivityKeys } from "@/data/atoms/conventions";
 import {
-  issueReactivityKeys,
   markIssueSeenAtom,
   markIssueUnreadAtom,
   setIssueSubscriptionAtom,
@@ -41,8 +41,8 @@ const menuValue =
   "ml-auto flex shrink-0 items-center gap-1.5 text-sm font-normal text-muted-foreground-1";
 
 export const issueMenuKeys = (orgId: OrgId, code: string) => [
-  issueReactivityKeys.issue(orgId, code),
-  issueReactivityKeys.issues(orgId),
+  reactivityKeys.issue(orgId, code),
+  reactivityKeys.issues(orgId),
 ];
 
 /** Whether the read/unread item marks the issue read (true) or unread. */

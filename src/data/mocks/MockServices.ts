@@ -5,6 +5,8 @@ import { KikiApi } from "../api/Api.ts";
 import { MockDb } from "./db/MockDb.ts";
 import { MockGroups } from "./groups.ts";
 
+export { AuthServiceMock } from "../auth/mock.ts";
+
 export const mockBaseUrl = "http://kiki.mock";
 
 export const MockServices = HttpApiBuilder.layer(KikiApi).pipe(
