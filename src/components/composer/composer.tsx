@@ -86,7 +86,7 @@ export type ComposerProps = Omit<
   placeholder?: ReactNode;
   ariaLabel?: string;
   submitLabel?: string;
-  onSubmit?: (
+  onSubmit: (
     payload: ComposerPayload,
     delivery: ComposerDelivery,
   ) => boolean | undefined | void;

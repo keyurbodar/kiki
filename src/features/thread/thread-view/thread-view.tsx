@@ -4,6 +4,7 @@ import { AppTopBar } from "@/components/app-top-bar";
 import { Composer } from "@/components/composer";
 import type { TimelineRow } from "@/data/events";
 import { JamChat } from "@/features/thread/jam-chat";
+import { useComposerSend } from "@/features/thread/use-composer-send";
 import { ChatSkeleton } from "./chat-skeleton";
 
 export type ThreadViewProps = {
@@ -25,6 +26,7 @@ export function ThreadView({
   topBar,
   pane,
 }: ThreadViewProps) {
+  const submit = useComposerSend(threadId);
   return (
     <div className="@container flex h-full min-h-0 min-w-0 flex-1">
       <div
@@ -41,7 +43,7 @@ export function ThreadView({
           </div>
           <div className="min-h-0 px-4 pb-[calc(var(--spacing)+var(--safe-bottom))]">
             <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col justify-end">
-              <Composer />
+              <Composer onSubmit={submit} />
             </div>
           </div>
         </div>
