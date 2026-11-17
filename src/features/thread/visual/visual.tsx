@@ -4,6 +4,7 @@ import type { Schema } from "effect";
 
 type VisualRowData = Schema.Schema.Type<typeof VisualRowSchema>;
 
+
 export type VisualRowProps = {
   row: VisualRowData;
   className?: string;

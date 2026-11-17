@@ -1,9 +1,10 @@
 import { PhoneCardRow as PhoneCardRowSchema } from "@/data/events";
 import type { Schema } from "effect";
 
-type PhoneCardRowData = Schema.Schema.Type<typeof PhoneCardRowSchema>;
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
+
+type PhoneCardRowData = Schema.Schema.Type<typeof PhoneCardRowSchema>;
 
 export type PhoneCardProps = {
   row: PhoneCardRowData;

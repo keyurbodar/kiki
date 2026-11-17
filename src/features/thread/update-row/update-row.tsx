@@ -2,11 +2,23 @@ import { cx } from "class-variance-authority";
 import type { ReactNode } from "react";
 import { UpdateRow as UpdateRowSchema } from "@/data/events";
 import type { Schema } from "effect";
-
-type UpdateRowData = Schema.Schema.Type<typeof UpdateRowSchema>;
 import { Button } from "@/primitives/button";
 import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@/primitives/collapsible";
 import { Icon, type IconId } from "@/primitives/icon";
+
+type UpdateRowData = Schema.Schema.Type<typeof UpdateRowSchema>;
+type NoticeRow = Extract<UpdateRowData, { kind: "notice" }>;
+type OperationRow = Extract<UpdateRowData, { kind: "operation" }>;
+type TaskRow = Extract<UpdateRowData, { kind: "task" }>;
+
+const objectField = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+const stringField = (value: unknown): string | undefined =>
+  typeof value === "string" ? value : undefined;
+const numberField = (value: unknown): number | undefined =>
+  typeof value === "number" ? value : undefined;
+const boolField = (value: unknown): boolean | undefined =>
+  typeof value === "boolean" ? value : undefined;
 
 export type UpdateRowProps = {
   row: UpdateRowData;
@@ -54,6 +66,17 @@ export function updateSource(row: UpdateRowData): string {
 
 /** The status colour of an update, as a Capy intent. */
 export function updateStatus(row: UpdateRowData): string {
+  if (row.kind === "notice") {
+    const notice: NoticeRow = row;
+    const ci = objectField(notice.ciResult) ? notice.ciResult : undefined;
+    const pr = objectField(notice.prTransition) ? notice.prTransition : undefined;
+    if (pr !== undefined)
+      return stringField(pr.transition) === "merged" ? "success" : "failure";
+    if (notice.prConflict !== undefined || notice.ciUnsettled !== undefined) return "attention";
+    if (notice.reviewFailed !== undefined) return "failure";
+    if (ci !== undefined)
+      return stringField(ci.outcome) === "passed" ? "success" : "failure";
+  }
   if (row.kind === "task") {
     if (row.outcome === "completed") return "success";
     if (row.outcome === "failed") return "failure";
@@ -64,12 +87,6 @@ export function updateStatus(row: UpdateRowData): string {
     if (row.issues === undefined) return "neutral";
     return row.issues === 0 ? "success" : "attention";
   }
-  if (row.prTransition !== undefined)
-    return row.prTransition.transition === "merged" ? "success" : "failure";
-  if (row.prConflict !== undefined || row.ciUnsettled !== undefined) return "attention";
-  if (row.reviewFailed !== undefined) return "failure";
-  if (row.ciResult !== undefined)
-    return row.ciResult.outcome === "passed" ? "success" : "failure";
   if (/\b(failed|failing|broken|red)\b/i.test(row.summary)) return "failure";
   if (/\b(passed|green|succeeded|merged)\b/i.test(row.summary)) return "success";
   return "neutral";
@@ -111,21 +128,15 @@ export function updateLabel(row: UpdateRowData): string {
   return row.summary;
 }
 
-function operationLabel(row: Extract<UpdateRowData, { kind: "operation" }>): string {
-  if (row.watchEnded !== undefined) {
-    const pr =
-      row.watchEnded.prNumber === undefined
-        ? "the pull request"
-        : `PR #${row.watchEnded.prNumber}`;
-    switch (row.watchEnded.reason) {
-      case "merged":
-      case "closed":
-        return `Stopped watching ${pr}, ${row.watchEnded.reason}`;
-      case "moved":
-        return `Stopped watching ${pr}, another thread owns it`;
-      default:
-        return `Stopped watching ${pr}`;
-    }
+function operationLabel(row: OperationRow): string {
+  const ended = objectField(row.watchEnded) ? row.watchEnded : undefined;
+  if (ended !== undefined) {
+    const number = numberField(ended.prNumber);
+    const pr = number === undefined ? "the pull request" : `PR #${number}`;
+    const reason = stringField(ended.reason);
+    if (reason === "merged" || reason === "closed") return `Stopped watching ${pr}, ${reason}`;
+    if (reason === "moved") return `Stopped watching ${pr}, another thread owns it`;
+    return `Stopped watching ${pr}`;
   }
   if (row.watch !== undefined) return "Watching the background command";
   const state = row.isError ? "failed" : "finished";
@@ -154,9 +165,11 @@ function UpdateIcon({ row }: { row: UpdateRowData }) {
 
 function detailBody(row: UpdateRowData): ReactNode | undefined {
   if (row.kind === "notice") {
-    const body =
-      row.issueActivity?.body ?? row.prFeedback?.body ?? row.slackMessage?.text;
-    if (typeof body === "string" && body.trim() !== "") return body;
+    const issue = objectField(row.issueActivity) ? row.issueActivity.body : undefined;
+    const feedback = row.prFeedback?.body;
+    const slack = objectField(row.slackMessage) ? row.slackMessage.text : undefined;
+    const body = stringField(issue) ?? feedback ?? stringField(slack);
+    if (body !== undefined && body.trim() !== "") return body;
   }
   if (row.kind === "operation") {
     const text = row.blocks.find((block) => block.type === "text");
@@ -175,9 +188,13 @@ export function UpdateRow({
   className,
 }: UpdateRowProps) {
   const body = detailBody(row);
+  const prTransition =
+    row.kind === "notice" && objectField(row.prTransition) ? row.prTransition : undefined;
+  const prNumber = prTransition === undefined ? undefined : numberField(prTransition.prNumber);
+  const prRepo = prTransition === undefined ? undefined : stringField(prTransition.repoFullName);
   const prUrl =
-    row.kind === "notice" && row.prTransition !== undefined
-      ? `https://github.com/${row.prTransition.repoFullName}/pull/${row.prTransition.prNumber}`
+    prNumber !== undefined && prRepo !== undefined
+      ? `https://github.com/${prRepo}/pull/${prNumber}`
       : undefined;
   const label = updateLabel(row);
   const content = (
@@ -207,7 +224,7 @@ export function UpdateRow({
           onClick={() => onOpenPr?.(prUrl)}
           className="p-0 text-xs whitespace-nowrap"
         >
-          {`PR #${row.prTransition?.prNumber}`}
+          {`PR #${prNumber}`}
         </Button>
       )}
     </span>

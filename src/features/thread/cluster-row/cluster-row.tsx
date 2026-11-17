@@ -3,10 +3,11 @@ import type { ComponentProps } from "react";
 import { ClusterRow as ClusterRowSchema, UpdateRow as UpdateRowSchema } from "@/data/events";
 import type { Schema } from "effect";
 
-type ClusterRowData = Schema.Schema.Type<typeof ClusterRowSchema>;
-type UpdateRow = Schema.Schema.Type<typeof UpdateRowSchema>;
 import { UpdateRow as UpdateLine } from "@/features/thread/update-row";
 import { Icon } from "@/primitives/icon";
+
+type ClusterRowData = Schema.Schema.Type<typeof ClusterRowSchema>;
+type UpdateRow = Schema.Schema.Type<typeof UpdateRowSchema>;
 
 export type ClusterRowProps = Omit<ComponentProps<"div">, "children" | "onToggle"> & {
   row: ClusterRowData;

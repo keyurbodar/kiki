@@ -2,12 +2,13 @@ import { expect, it } from "vitest";
 import { UpdateRow as UpdateRowSchema } from "@/data/events";
 import type { Schema } from "effect";
 
-type UpdateRow = Schema.Schema.Type<typeof UpdateRowSchema>;
 import { clusterSummary } from "./cluster-row";
+
+type UpdateRow = Schema.Schema.Type<typeof UpdateRowSchema>;
 
 const base = {
   id: "update:1",
-  eventId: "01J0000000000000000000000" as UpdateRow["eventId"],
+  eventId: "01J0000000000000000000000",
   createdAt: new Date(0),
 };
 
@@ -15,7 +16,7 @@ const task = (): UpdateRow => ({
   ...base,
   type: "update",
   kind: "task",
-  childJamId: "jam_1" as UpdateRow["childJamId"],
+  childJamId: "jam_1",
   reference: { kind: "task", localIndex: 1 },
   outcome: "completed",
   summary: "Done",

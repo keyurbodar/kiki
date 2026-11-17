@@ -3,7 +3,6 @@ import { expect, it } from "vitest";
 import { MarkerRow as MarkerRowSchema } from "@/data/events";
 import type { Schema } from "effect";
 
-type MarkerRow = Schema.Schema.Type<typeof MarkerRowSchema>;
 import { MarkerDivider } from "@/features/thread/markers";
 import { entry as clusterEntry } from "./entries/cluster";
 import { entry as errorEntry } from "./entries/error";
@@ -12,6 +11,8 @@ import { entry as mobileSessionEntry } from "./entries/mobile-session";
 import { entry as phoneCardEntry } from "./entries/phone-card";
 import { entry as updateEntry } from "./entries/update";
 import { entry as visualEntry } from "./entries/visual";
+
+type MarkerRow = Schema.Schema.Type<typeof MarkerRowSchema>;
 
 it("registers all T03 timeline row types", () => {
   expect([

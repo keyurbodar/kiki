@@ -3,9 +3,10 @@ import type { ComponentProps, ReactNode } from "react";
 import { MarkerRow as MarkerRowSchema } from "@/data/events";
 import type { Schema } from "effect";
 
-type MarkerRowData = Schema.Schema.Type<typeof MarkerRowSchema>;
 import { Icon, type IconId } from "@/primitives/icon";
 import { ShimmerText } from "@/primitives/shimmer-text";
+
+type MarkerRowData = Schema.Schema.Type<typeof MarkerRowSchema>;
 
 export type MarkerRowProps = ComponentProps<"div">;
 
