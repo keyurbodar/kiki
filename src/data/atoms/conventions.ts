@@ -5,6 +5,8 @@ export const queryTimeToLive: Duration.Input = "5 minutes";
 export const reactivityKeys = {
   currentUser: "user:current",
   organizations: "organizations",
+  myInvitations: "invitations:me",
+  joinableOrganizations: "organizations:joinable",
   projects: (orgId: string) => `projects:${orgId}`,
   threads: (orgId: string) => `threads:${orgId}`,
 } as const;
