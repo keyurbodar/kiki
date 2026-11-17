@@ -48,7 +48,7 @@ import {
 } from "./atoms";
 import { copyText } from "./clipboard";
 import { usePullOrgId } from "./context";
-import { filterFiles, toDiffFiles } from "./file-tree-model";
+import { toDiffFiles } from "./file-tree-model";
 import {
   ArrowShareRightIcon,
   BranchIcon,
@@ -665,23 +665,22 @@ export function PullRail({ pull }: { pull: Pull }) {
     () => (diff === undefined ? [] : toDiffFiles(diff)),
     [diff],
   );
-  const visible = useMemo(() => filterFiles(files, query), [files, query]);
   const tree = useMemo(
     () => ({
-      paths: visible.map((file) => file.path),
+      paths: files.map((file) => file.path),
       stats: new Map(
-        visible.map((file) => [
+        files.map((file) => [
           file.path,
           { additions: file.additions, deletions: file.deletions },
         ]),
       ),
-      gitStatus: visible.flatMap((file) =>
+      gitStatus: files.flatMap((file) =>
         isGitStatus(file.status)
           ? [{ path: file.path, status: file.status }]
           : [],
       ),
     }),
-    [visible],
+    [files],
   );
   const requestReview = useAtomSet(requestReviewAtom, { mode: "promise" });
   const railReview: CapyReview | null | undefined =
@@ -768,6 +767,7 @@ export function PullRail({ pull }: { pull: Pull }) {
             paths={tree.paths}
             stats={tree.stats}
             gitStatus={tree.gitStatus}
+            filter={query}
             initialExpansion="open"
             className="min-h-0"
           />
