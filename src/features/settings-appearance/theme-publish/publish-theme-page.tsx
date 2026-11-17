@@ -20,7 +20,6 @@ import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
-import { Label } from "@/primitives/label";
 import { SettingsRow } from "@/primitives/settings-row";
 import { CheckIcon, ChevronRightIcon } from "../icons";
 import {
@@ -250,7 +249,7 @@ function PublishTheme({
               <SettingsSection title="Listing">
                 <Card rows>
                   <div className="flex flex-col gap-2 p-4">
-                    <Label htmlFor="theme-description">Description</Label>
+                    <label data-slot="label" htmlFor="theme-description">Description</label>
                     <Input
                       id="theme-description"
                       size="sm"

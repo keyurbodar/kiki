@@ -16,7 +16,6 @@ import {
   CollapsibleTrigger,
 } from "@/primitives/collapsible";
 import { Input } from "@/primitives/input";
-import { Label } from "@/primitives/label";
 import { SettingsRow, SettingsRowLink } from "@/primitives/settings-row";
 import { ChevronDownIcon, PlusIcon } from "../icons";
 import {
@@ -86,7 +85,7 @@ function ColorRow({
   const label = COLOR_LABELS[colorKey];
   return (
     <SettingsRow
-      label={<Label htmlFor={id}>{label}</Label>}
+      label={<label data-slot="label" htmlFor={id}>{label}</label>}
       description={
         invalid
           ? "Refers to itself"
@@ -370,7 +369,7 @@ export function ThemeSection() {
           />
           {colorTheme.kind === "custom" ? (
             <>
-              <SettingsRow label={<Label htmlFor="theme-name">Name</Label>}>
+              <SettingsRow label={<label data-slot="label" htmlFor="theme-name">Name</label>}>
                 <Input
                   id="theme-name"
                   size="sm"

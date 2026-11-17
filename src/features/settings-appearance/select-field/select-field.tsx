@@ -6,7 +6,6 @@ import {
   MenuSelectTrigger,
   MenuSelectValue,
 } from "@/primitives/menu-select";
-import { ChevronDownIcon } from "../icons";
 
 /** A settings-row select: Capy's MenuSelect with a sm trigger and end-aligned items. */
 export function SelectField<Value extends string>({
@@ -37,9 +36,6 @@ export function SelectField<Value extends string>({
     >
       <MenuSelectTrigger aria-label={label} className={className}>
         {children ?? <MenuSelectValue />}
-        <span aria-hidden="true">
-          <ChevronDownIcon className="size-(--icon-sm) shrink-0 text-muted-foreground-3" />
-        </span>
       </MenuSelectTrigger>
       <MenuSelectContent align="end">
         {(Object.keys(items) as Value[]).map((item) => (
@@ -79,9 +75,6 @@ export function MultiSelectField<Value extends string>({
           {selected.length === 0
             ? "None"
             : selected.map((key) => items[key]).join(", ")}
-        </span>
-        <span aria-hidden="true">
-          <ChevronDownIcon className="size-(--icon-sm) shrink-0 text-muted-foreground-3" />
         </span>
       </MenuSelectTrigger>
       <MenuSelectContent align="end">
