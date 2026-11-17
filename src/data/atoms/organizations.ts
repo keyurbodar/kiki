@@ -59,13 +59,3 @@ export const issuePrefixAtom = Atom.family((orgId: OrgId) =>
 );
 
 export const setIssuePrefixAtom = ApiClient.mutation("issues", "setPrefix");
-
-export const acceptInvitationAtom = ApiClient.mutation(
-  "invitations",
-  "acceptInvitation",
-);
-
-export const joinByDomainAtom = ApiClient.mutation(
-  "organizations",
-  "joinByDomain",
-);
