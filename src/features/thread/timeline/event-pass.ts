@@ -1098,3 +1098,1236 @@ export const eventPass = (
       settlements.set(event.payload.toolCallId, {
         blocks: event.payload.blocks,
         data: event.kind === "tool_result" ? event.payload.data : previous?.data,
+        isError: event.payload.isError,
+        settledAt: previous?.settledAt ?? event.createdAt,
+        eventId: event.id,
+      });
+      if (event.kind === "operation_completion")
+        waitResolutions.set(event.payload.toolCallId, event.createdAt);
+      if (event.kind === "tool_result") {
+        if (isWaitTool("execute", event.payload.data))
+          waitCalls.add(event.payload.toolCallId);
+        for (const [index, call] of (
+          executeData(event.payload.data)?.calls ?? []
+        ).entries())
+          if (call.tool === "bash")
+            bashInputs.set(`${event.payload.toolCallId}:${index + 1}`, call.input);
+      }
+    }
+    if (event.kind === "assistant")
+      for (const block of event.payload.blocks) {
+        if (block.type === "tool_search_result")
+          settlements.set(block.toolCallId, {
+            blocks: [],
+            data: { tools: block.tools },
+            isError: block.error !== undefined,
+            settledAt: event.createdAt,
+            eventId: event.id,
+          });
+        if (block.type !== "tool_use") continue;
+        if (block.toolName === "bash") bashInputs.set(block.toolCallId, block.args);
+        if (block.toolName === "wait") waitCalls.add(block.toolCallId);
+        if (MACHINE_TOOLS.has(block.toolName)) machineCalls.add(block.toolCallId);
+        if (block.toolName === "subscribe") subscribeCalls.add(block.toolCallId);
+        agentCalls?.push(block);
+        userCalls?.push(block);
+      }
+    if (event.kind === "notification") {
+      if (event.payload.key === REASONING_CONTINUATION) {
+        codexQuiet += 1;
+        anthropicQuiet += 1;
+        grokQuiet += 1;
+      }
+      if (event.payload.key === DELIVERY_REMINDER) reminders += 1;
+      if (
+        (event.payload.key === "crew.left" || event.payload.key === "crew.joined") &&
+        agentCalls !== undefined &&
+        (event.payload.key === "crew.left") === (event.payload.ref?.id === crewParent)
+      )
+        agentCalls = undefined;
+    }
+    if (event.kind === "assistant") {
+      closeOpen();
+      const payload = event.payload;
+      if (payload.usage.outputTokens > 0) {
+        codexQuiet = 0;
+        codexArmed = true;
+      }
+      if (payload.blocks.some(hasProgress)) {
+        anthropicQuiet = 0;
+        anthropicArmed = true;
+        grokQuiet = 0;
+        grokArmed = true;
+      }
+      const codex =
+        payload.route.providerId === "codex" &&
+        payload.usage.outputTokens === 0 &&
+        codexArmed &&
+        codexQuiet < CODEX_CONTINUATIONS;
+      const anthropic =
+        payload.model.modelId.startsWith("anthropic/") &&
+        !payload.blocks.some(hasProgress) &&
+        anthropicArmed &&
+        anthropicQuiet < ANTHROPIC_CONTINUATIONS;
+      const grok =
+        isGrok(payload.model.modelId) &&
+        !payload.blocks.some(hasProgress) &&
+        grokArmed &&
+        grokQuiet < GROK_CONTINUATIONS;
+      const reminded = reminders < DELIVERY_REMINDERS && undelivered();
+      const continues =
+        payload.stopReason === "end_turn" && (codex || anthropic || grok || reminded);
+      open =
+        payload.stopReason === "tool_use"
+          ? { id: event.id, blocks: payload.blocks }
+          : continues
+            ? open !== undefined && !closed.has(open.id)
+              ? open
+              : { id: event.id, blocks: payload.blocks }
+            : undefined;
+    }
+    if (event.kind === "error") {
+      closeOpen();
+      open = undefined;
+    }
+    if (event.kind === "message") {
+      closeOpen();
+      if (event.payload.delivery === "interrupt") open = undefined;
+      anthropicQuiet = 0;
+      anthropicArmed = true;
+      grokQuiet = 0;
+      grokArmed = true;
+      const origin = event.payload.origin;
+      const peer =
+        origin.type === "agent" &&
+        origin.relation.type === "peer" &&
+        origin.relation.captain !== true;
+      if (event.state !== "pending" && !peer) {
+        reminders = 0;
+        if (deliveryTool === "message_agent" || origin.type === "agent") {
+          agentCalls = [];
+          crewParent =
+            event.payload.actor.type === "agent"
+              ? event.payload.actor.jamId
+              : undefined;
+        } else {
+          userCalls = [];
+          agentCalls = undefined;
+        }
+      }
+    }
+    if (event.kind === "control" && asRecord(event.payload.command).type === "stop") {
+      closeOpen();
+      open = undefined;
+    }
+  }
+  closeOpen();
+  const openTurnId =
+    !turnClosedByRows && open !== undefined && !closed.has(open.id)
+      ? open.id
+      : undefined;
+
+  const cancelledInputs = new Set<string>();
+  const versionRoots = new Set<string>();
+  for (const event of ordered) {
+    const command = event.kind === "control" ? asRecord(event.payload.command) : {};
+    if (command.type === "cancel_input" && typeof command.targetEventId === "string")
+      cancelledInputs.add(command.targetEventId);
+    if (event.kind === "context") {
+      const root = asRecord(event.payload.context).root;
+      if (typeof root === "string") versionRoots.add(root);
+    }
+  }
+  const desktopRequests = new Map<string, "done" | "expired">();
+  for (const event of ordered) {
+    if (
+      event.kind !== "notification" ||
+      event.payload.ref?.kind !== "desktop_request"
+    )
+      continue;
+    const id = event.payload.ref.id;
+    if (event.payload.key === "desktop_request_done") desktopRequests.set(id, "done");
+    if (
+      event.payload.key === "desktop_request_expired" &&
+      desktopRequests.get(id) !== "done"
+    )
+      desktopRequests.set(id, "expired");
+  }
+  const lastConnectionChange = ordered.findLast(
+    (event) =>
+      event.kind === "notification" && event.payload.key === "connection_changed",
+  )?.id;
+  const supersededCredits = new Set<string>();
+  let pendingCredits: string | undefined;
+  for (const event of ordered) {
+    if (
+      event.kind === "assistant" ||
+      (event.kind === "notification" &&
+        (event.payload.key === "credits_waiting" ||
+          event.payload.key === "credits_answered"))
+    )
+      pendingCredits = undefined;
+    if (
+      event.kind === "error" &&
+      event.payload.code === "credits_consent_required" &&
+      !failedOver(event.payload.data)
+    ) {
+      if (pendingCredits !== undefined) supersededCredits.add(pendingCredits);
+      pendingCredits = event.id;
+    }
+  }
+  const replyIds = ordered
+    .flatMap((event) =>
+      event.kind === "message" &&
+      event.payload.actor.type !== "agent" &&
+      (event.state !== "pending" ||
+        (event.payload.delivery !== "queue" &&
+          event.payload.delivery !== "steer")) &&
+      !(event.state === "cancelled" && cancelledInputs.has(event.id))
+        ? [event.id]
+        : [],
+    )
+    .sort();
+  const terminalRequests = collectTerminalRequests(ordered);
+  const feedbackRequests = new Map(
+    ordered.flatMap((event) =>
+      event.kind === "notification" && event.payload.feedbackRequest !== undefined
+        ? [
+            [
+              event.payload.feedbackRequest.toolCallId as string,
+              event.payload.feedbackRequest.outcome,
+            ] as const,
+          ]
+        : [],
+    ),
+  );
+  const subagentCredits = ordered.flatMap((event) =>
+    event.kind === "notification" && event.payload.subagentCredits !== undefined
+      ? [
+          {
+            ...event.payload.subagentCredits,
+            at: event.createdAt.getTime(),
+            resetsAtMs: event.payload.resetsAtMs,
+          },
+        ]
+      : [],
+  );
+  const subagentStanding = (
+    childJamId: string,
+    at: number,
+    standing: "open" | "waiting" | "settled",
+    modelId: string | undefined,
+  ) => {
+    const later = subagentCredits
+      .filter((entry) => entry.childJamId === childJamId && entry.at > at)
+      .sort((a, b) => a.at - b.at);
+    const reopened = later.findIndex(
+      (entry) =>
+        entry.standing === "open" ||
+        (entry.standing === "waiting" && entry.data !== undefined),
+    );
+    const last = reopened === -1 ? later.at(-1) : undefined;
+    const current = reopened === -1 ? (last?.standing ?? standing) : "settled";
+    const continued =
+      last?.standing === "settled" && last.decision === undefined
+        ? continuingOn.exec(last.message ?? "")?.[1]
+        : undefined;
+    const switchedTo =
+      continued === undefined ||
+      (modelId !== undefined && modelName(modelId) === continued)
+        ? undefined
+        : continued;
+    const waited =
+      standing === "waiting" ||
+      later
+        .slice(0, reopened === -1 ? -1 : reopened)
+        .some((entry) => entry.standing === "waiting");
+    return {
+      standing: current,
+      untilMs: current === "waiting" ? last?.resetsAtMs : undefined,
+      outcome:
+        current === "settled"
+          ? switchedTo === undefined
+            ? creditsOutcome(
+                waited,
+                last === undefined || continued !== undefined
+                  ? "resumed"
+                  : (last.decision ?? "answered"),
+              )
+            : "switched"
+          : undefined,
+      switchedTo,
+    };
+  };
+
+  const clientKeys = new Set<string>();
+  let previousOrigin: Origin | undefined;
+
+  for (const [position, event] of ordered.entries()) {
+    const base = { eventId: event.id, createdAt: event.createdAt };
+    const marker = markerFor(event);
+    switch (event.kind) {
+      case "rule":
+      case "legacy":
+        break;
+      case "review_request":
+        rows.push(
+          marker(
+            "review",
+            `${event.payload.trigger === "automatic" ? "Reviewing push" : event.payload.trigger === "force_refresh" ? "Re-review requested at" : "Review requested at"} ${event.payload.headSha.slice(0, 7)}`,
+          ),
+        );
+        break;
+      case "handoff": {
+        const payload = event.payload;
+        if (payload.result.kind === "failed") {
+          if (park?.code === "handoff_in_progress") {
+            removeRow(park.index);
+            park = undefined;
+          }
+          rows.push({
+            type: "error",
+            severity: "warning",
+            id: event.id,
+            ...base,
+            code: "handoff",
+            message: handoffFailureLabel(payload as never),
+            retryable: false,
+          });
+          break;
+        }
+        const toDevice = payload.direction === "cloud_to_device";
+        rows.push(
+          marker(
+            toDevice ? "return" : "handoff",
+            toDevice
+              ? payload.source?.deviceName === undefined
+                ? `Returned to ${payload.destination?.deviceName ?? "device"}`
+                : `Moved to ${payload.destination?.deviceName ?? "device"}`
+              : payload.movedByAgent === true
+                ? "Capy moved the workspace to cloud"
+                : park?.code === "device_offline"
+                  ? "Device offline, handed off to cloud"
+                  : "Handed off to cloud",
+          ),
+        );
+        if (park !== undefined) removeRow(park.index);
+        park = undefined;
+        const failures = payload.result.setupFailures ?? [];
+        if (failures.length > 0)
+          rows.push({
+            type: "error",
+            severity: "warning",
+            id: `setup:${event.id}`,
+            ...base,
+            code: "handoff",
+            message: `Setup did not complete on the cloud machine: ${failures.map((failure) => `${failure.phase} failed for ${failure.repo}: ${failure.detail}`).join("; ")}`,
+            retryable: false,
+          });
+        break;
+      }
+      case "mobile_session":
+        rows.push({
+          type: "mobile-session",
+          id: event.id,
+          ...base,
+          sessionId: event.payload.sessionId,
+          platform: event.payload.platform,
+          appName: event.payload.appName,
+          deviceModel: event.payload.deviceModel,
+          status: event.payload.status,
+        });
+        break;
+      case "context": {
+        const context = asRecord(event.payload.context);
+        if ("change" in context) {
+          const access = {
+            change: String(context.change),
+            byName: readString(context, "byName") ?? "A member",
+            names: readArray(context, "names").filter(
+              (name): name is string => typeof name === "string",
+            ),
+            container: readString(context, "container") ?? "thread",
+          };
+          rows.push(
+            marker("access", accessLabel(access, "the organization"), {
+              access,
+            }),
+          );
+          break;
+        }
+        if ("idleDays" in context) {
+          rows.push(
+            marker("archive", `Archived after ${context.idleDays} days idle`),
+          );
+          break;
+        }
+        if ("takerUserId" in context) {
+          rows.push(
+            marker(
+              "takeover",
+              `${readString(context, "takerName") ?? "A member"} took over the thread from ${context.previousUserType === "service" ? "a service user" : (readString(context, "previousName") ?? "a former member")}`,
+            ),
+          );
+          break;
+        }
+        if (
+          "sourceJamId" in context &&
+          (context.kind === "fork" || context.mode !== undefined)
+        )
+          rows.push(
+            marker(
+              "fork",
+              context.kind === "fork"
+                ? context.mode === "summary"
+                  ? "Forked with a summary from"
+                  : "Forked from"
+                : "Side thread of",
+              {
+                reference: {
+                  jamId: context.sourceJamId as JamId,
+                  title: readString(context, "sourceTitle"),
+                },
+              },
+            ),
+          );
+        break;
+      }
+      case "message": {
+        const payload = event.payload;
+        if (
+          (payload.text.length === 0 && payload.files.length === 0) ||
+          (payload.actor.type === "system" &&
+            payload.actor.service === "system" &&
+            payload.origin.type === "system") ||
+          (event.state === "pending" &&
+            (payload.delivery === "queue" || payload.delivery === "steer")) ||
+          (event.state === "cancelled" && cancelledInputs.has(event.id))
+        )
+          break;
+        if (payload.retryOf !== undefined) {
+          const credits = creditsIndex === undefined ? undefined : rows[creditsIndex];
+          const failedModel =
+            credits?.type === "error" ? readString(credits.data, "modelId") : undefined;
+          const switchedTo =
+            credits?.type === "error" &&
+            credits.eventId === payload.retryOf &&
+            payload.model !== undefined &&
+            payload.model.modelId !== failedModel
+              ? modelName(payload.model.modelId)
+              : undefined;
+          if (switchedTo !== undefined)
+            settleCredits("settled", "resumed", undefined, switchedTo);
+          const author =
+            "authorName" in payload.origin ? payload.origin.authorName : undefined;
+          rows.push(
+            marker(
+              "retry",
+              `${author ?? "Someone"} ${switchedTo === undefined ? "retried" : `switched to ${switchedTo}`}`,
+            ),
+          );
+          break;
+        }
+        const clientKey =
+          payload.clientKey === undefined || clientKeys.has(payload.clientKey)
+            ? undefined
+            : payload.clientKey;
+        if (clientKey !== undefined) clientKeys.add(clientKey);
+        rows.push({
+          type: "user-message",
+          id: event.id,
+          ...base,
+          text: payload.text,
+          mentions: payload.mentions ?? [],
+          files: payload.files,
+          delivery: payload.delivery,
+          actor: payload.actor,
+          origin: payload.origin,
+          showOrigin:
+            previousOrigin === undefined || !sameOrigin(previousOrigin, payload.origin),
+          state: inputState(event.state, event.id),
+          clientKey,
+          editOf: payload.editOf,
+          defaulted:
+            payload.model === undefined || payload.modelDefault === undefined
+              ? undefined
+              : {
+                  modelId: payload.model.modelId,
+                  modelDefault: payload.modelDefault,
+                },
+          versionRoot: versionRoots.has(payload.editOf ?? event.id)
+            ? (payload.editOf ?? event.id)
+            : undefined,
+        });
+        previousOrigin = payload.origin;
+        break;
+      }
+      case "control": {
+        const command = asRecord(event.payload.command);
+        if (command.type === "promote_captain")
+          rows.push(marker("captain", `Promoted to Captain as ${command.name}`));
+        if (command.type === "demote_captain")
+          rows.push(marker("captain", `${command.name} demoted to a thread`));
+        if (command.type === "rename_captain")
+          rows.push(
+            marker("captain", `${command.from} renamed to ${command.name}`),
+          );
+        if (
+          command.type === "compact" &&
+          (event.state === "pending" || event.state === "promoted")
+        )
+          rows.push(
+            marker("compaction", "Compacting the conversation", { live: true }),
+          );
+        break;
+      }
+      case "notification":
+        notificationRows(event, position);
+        break;
+      case "task_completion":
+        rows.push({
+          type: "update",
+          kind: "task",
+          id: event.id,
+          ...base,
+          childJamId: event.payload.childJamId,
+          reference: { kind: "task", localIndex: event.payload.localIndex },
+          outcome: event.payload.outcome,
+          deliveryState: event.payload.deliveryState,
+          ask: event.payload.ask,
+          summary: event.payload.summary,
+          attachments: event.payload.attachments ?? [],
+          sources: event.payload.sources,
+          references: event.payload.references,
+        } as Row);
+        break;
+      case "thread_completion":
+        if (event.payload.quiet === true) break;
+        rows.push({
+          type: "update",
+          kind: "task",
+          id: event.id,
+          ...base,
+          childJamId: event.payload.childJamId,
+          reference: {
+            kind: "thread",
+            code: event.payload.threadCode,
+            title: event.payload.title,
+            pullRequests: event.payload.pullRequests,
+          },
+          outcome: event.payload.outcome,
+          deliveryState: event.payload.deliveryState,
+          ask: event.payload.ask,
+          needs: event.payload.needs,
+          answered: event.payload.answered,
+          summary: event.payload.summary,
+          attachments: event.payload.attachments ?? [],
+          sources: event.payload.sources,
+          references: event.payload.references,
+        } as Row);
+        break;
+      case "operation_completion": {
+        const payload = event.payload;
+        if (
+          waitCalls.has(payload.toolCallId) ||
+          rows.some(
+            (row) =>
+              (row.type === "terminal-request" &&
+                row.toolCallId === payload.toolCallId) ||
+              (isTool(row) &&
+                row.toolName === TERMINAL_REQUEST_TOOL &&
+                row.id === payload.toolCallId),
+          )
+        )
+          break;
+        if (isParkCall(payload.toolCallId)) {
+          const parked = park === undefined ? undefined : rows[park.index];
+          if (park !== undefined && parked?.type === "marker")
+            rows[park.index] = {
+              ...parked,
+              label:
+                park.code !== "device_offline" ||
+                !payload.toolCallId.startsWith("devpark_")
+                  ? parked.label
+                  : payload.isError
+                    ? "Device offline, stopped waiting"
+                    : "Device reconnected",
+              live: undefined,
+            };
+          park = undefined;
+          break;
+        }
+        const watch =
+          subscribeCalls.has(payload.toolCallId) ||
+          watchPrefixes.some((prefix) => payload.toolCallId.startsWith(prefix));
+        const watchEnded = asRecord(payload).watchEnded;
+        if (asRecord(watchEnded).reason === "superseded") break;
+        rows.push({
+          type: "update",
+          kind: "operation",
+          id: event.id,
+          ...base,
+          operationId: payload.operationId,
+          toolCallId: payload.toolCallId,
+          blocks: payload.blocks,
+          isError: payload.isError,
+          commandLabel: readString(bashInputs.get(payload.toolCallId), "command"),
+          watch,
+          watchEnded,
+        });
+        break;
+      }
+      case "tool_result":
+        if (machineCalls.has(event.payload.toolCallId) && !event.payload.isError)
+          settleEpisodes(event.createdAt);
+        break;
+      case "error": {
+        const payload = event.payload;
+        if (failedOver(payload.data) || supersededCredits.has(event.id)) break;
+        if (parkCodes.has(payload.code)) {
+          park = { index: rows.length, code: payload.code };
+          const handoff =
+            payload.code === "handoff_in_progress" ? asRecord(payload.data) : undefined;
+          const deviceName = readString(handoff, "deviceName") ?? "device";
+          rows.push(
+            marker(
+              handoff?.direction === "cloud_to_device" ? "return" : "offline",
+              payload.code === "device_offline"
+                ? payload.message
+                : handoff === undefined || handoff.direction === "device_to_cloud"
+                  ? "Moving to cloud"
+                  : handoff.sourceSettingUp === true
+                    ? `Moving to ${deviceName} once the cloud machine is set up`
+                    : `Moving to ${deviceName}`,
+              { live: true },
+            ),
+          );
+          break;
+        }
+        if (payload.code === "credits_consent_required") {
+          settleCredits("settled", "resumed");
+          creditsIndex = rows.length;
+        }
+        rows.push({
+          type: "error",
+          credits: payload.code === "credits_consent_required" ? "open" : undefined,
+          severity: payload.retryable ? "warning" : "error",
+          id: event.id,
+          ...base,
+          code: payload.code,
+          message: payload.message,
+          retryable: payload.retryable,
+          data: payload.data,
+        });
+        break;
+      }
+      case "compact":
+        rows.push(
+          marker(
+            "compaction",
+            event.payload.tokensBefore === undefined
+              ? "Compacted the conversation"
+              : `Compacted from ${formatCompact(event.payload.tokensBefore)} tokens`,
+          ),
+        );
+        break;
+      case "assistant": {
+        settleCredits("settled", "resumed");
+        const payload = event.payload;
+        if (payload.wireDropped !== undefined)
+          rows.push({
+            type: "activity",
+            kind: "wire",
+            id: `${event.id}:wire`,
+            ...base,
+            startedAt: payload.startedAt,
+            turnOpen: false,
+            turnCloses: false,
+            text: wireDroppedLabel(payload.wireDropped),
+          });
+        const first = rows.length;
+        for (const block of payload.blocks)
+          rows.push(
+            ...blockRows(block, {
+              ...base,
+              startedAt: payload.startedAt,
+              modelId: payload.model.servedModelId ?? payload.model.modelId,
+              reasoningMode: payload.model.reasoningMode,
+              mode: modeOf(payload.model),
+              exchangeEventId: payload.interruption?.exchangeEventId,
+              turnOpen: event.id === openTurnId,
+              turnCloses: closed.has(event.id),
+              settlements,
+              waitResolutions,
+              setupNotificationEventId:
+                block.type === "tool_use"
+                  ? setupNotifications.get(block.toolCallId)
+                  : undefined,
+              eventPosition: position,
+              environmentUpdates,
+              desktopRequests,
+              replyIds,
+              terminalRequests,
+              feedbackRequests,
+            }),
+          );
+        if (
+          payload.stopReason === "refusal" &&
+          !payload.blocks.some(
+            (block) => block.type === "text" && block.text.trim().length > 0,
+          )
+        )
+          rows.push({
+            type: "error",
+            severity: "warning",
+            id: `${event.id}:refusal`,
+            ...base,
+            code: "model_refusal",
+            message: "The model declined to respond",
+            retryable: false,
+            data: {
+              modelId: payload.model.servedModelId ?? payload.model.modelId,
+            },
+          });
+        const produced = rows.slice(first);
+        const lastMessage = produced
+          .map((row) => row.type === "agent-message")
+          .lastIndexOf(true);
+        const messageAt = produced[lastMessage]?.createdAt;
+        const worksAfter = produced
+          .slice(lastMessage + 1)
+          .some(
+            (row) =>
+              row.type === "activity" ||
+              row.type === "clarify" ||
+              row.type === "environment-request" ||
+              row.type === "desktop-request" ||
+              row.type === "terminal-request",
+          );
+        if (event.id === openTurnId && !worksAfter)
+          rows.push(
+            hiddenReasoning(
+              event.id,
+              messageAt ?? event.createdAt,
+              messageAt ?? payload.startedAt,
+            ),
+          );
+        break;
+      }
+      case "unsupported":
+        rows.push(marker("unsupported", UNSUPPORTED_LABEL));
+        break;
+    }
+  }
+
+  function notificationRows(event: Notification, position: number) {
+    const payload = event.payload;
+    const key = payload.key;
+    const base = { eventId: event.id, createdAt: event.createdAt };
+    const marker = markerFor(event);
+    if (key === "connection_changed") {
+      if (event.id !== lastConnectionChange) return;
+      const change = payload.connectionChange;
+      const label =
+        change === undefined
+          ? { label: payload.summary, title: payload.summary }
+          : connectionLabel(
+              change,
+              payload.ref === undefined
+                ? /\bkey$/i.test(change.from)
+                : payload.ref.kind !== "member_seat",
+            );
+      rows.push(
+        marker(change?.to === "Capy credits" ? "credits" : "switch", label.label, {
+          title: label.title,
+        }),
+      );
+      return;
+    }
+    if (key === "startup_settled") settleEpisodes(event.createdAt);
+    if (machineKeys.has(key)) {
+      const episode = payload.machineEpisode;
+      const machineId =
+        episode?.machineId ??
+        /^Machine (\S+?)(?:'s)?\s/.exec(payload.summary)?.[1] ??
+        "";
+      const current = episodes.get(machineId);
+      const same = current !== undefined && current.sinceMs === episode?.sinceMs;
+      const episodeKey =
+        episode?.sinceMs === undefined ? undefined : `${machineId} ${episode.sinceMs}`;
+      if (
+        episodeKey !== undefined &&
+        recovered.has(episodeKey) &&
+        (key === "machine_trouble" || key === "machine_unavailable")
+      )
+        return;
+      if (key === "machine_recovered") {
+        if (episodeKey === undefined) return;
+        recovered.add(episodeKey);
+        const index = episodeRows.get(episodeKey);
+        if (index !== undefined) markReconnected(index, episode?.sinceMs, event.createdAt);
+        if (same) episodes.delete(machineId);
+      } else if (key === "machine_trouble") {
+        const cause = episode?.cause ?? "reach";
+        const capacity = episode?.capacity === true;
+        const trouble = capacity ? capacityTrouble : machineTrouble[cause];
+        if (!same) episodes.delete(machineId);
+        const index = machineWarning(machineId, event, trouble.code, trouble.message, {
+          state: "trying",
+          cause,
+          capacity,
+          sinceMs: episode?.sinceMs,
+        });
+        episodes.set(machineId, { index, sinceMs: episode?.sinceMs, cause, capacity });
+        if (episodeKey !== undefined) episodeRows.set(episodeKey, index);
+      } else if (key === "machine_unavailable") {
+        const sinceMs = episode?.sinceMs;
+        const cause = same ? current.cause : "reach";
+        const capacity = episode?.capacity === true || (same && current.capacity);
+        if (!same) episodes.delete(machineId);
+        const span =
+          sinceMs === undefined
+            ? ""
+            : ` for ${formatSpan(event.createdAt.getTime() - sinceMs)}`;
+        const index = machineWarning(
+          machineId,
+          event,
+          "machine_unavailable",
+          capacity
+            ? `The sandbox fleet had no room for your machine${span}, send a message to try again`
+            : `Capy could not reach your machine${span}, send a message to try again`,
+          { state: "gave-up", cause, capacity, sinceMs },
+        );
+        episodes.set(machineId, { index, sinceMs, cause, capacity });
+        if (episodeKey !== undefined) episodeRows.set(episodeKey, index);
+      } else if (key === "workspace_replaced" && episode?.idleDays !== undefined) {
+        const existing = current === undefined ? undefined : rows[current.index];
+        const warning = existing?.type === "error" ? existing : undefined;
+        const row: Row = {
+          type: "marker",
+          kind: "machine",
+          id: `marker:${warning?.eventId ?? event.id}`,
+          eventId: warning?.eventId ?? event.id,
+          createdAt: warning?.createdAt ?? event.createdAt,
+          label: `Idle workspace cleared after ${episode.idleDays === 1 ? "1 day" : `${episode.idleDays} days`}, the next run starts fresh from Setup`,
+        };
+        if (current !== undefined && warning !== undefined) rows[current.index] = row;
+        else rows.push(row);
+        episodes.delete(machineId);
+      } else {
+        const restored = key === "workspace_restored";
+        machineWarning(
+          machineId,
+          event,
+          restored ? "workspace_restored" : "workspace_rebuilt",
+          restored
+            ? "Your machine came back from an earlier save, changes made after that are gone"
+            : "Your old machine could not be recovered, so Capy rebuilt it from setup and files not pushed to git are gone",
+          {
+            state: "settled",
+            cause: current?.cause ?? "reach",
+            sinceMs: current?.sinceMs,
+          },
+        );
+        episodes.delete(machineId);
+      }
+      return;
+    }
+    if (
+      driveKeys.has(key) &&
+      payload.driveNotice === undefined &&
+      payload.driveFull === undefined
+    )
+      return;
+    const category = categoryOf(key);
+    if (category === "internal") return;
+    if (category === "permission" && payload.permissionDecided !== undefined) {
+      const decided = payload.permissionDecided;
+      if (
+        decided.capability !== "device_message" &&
+        decided.toolCallId !== undefined &&
+        toolCallIds.has(decided.toolCallId)
+      )
+        return;
+      rows.push(
+        marker(
+          "permission",
+          decided.capability === "slack_user_read"
+            ? decided.decision === "granted"
+              ? `${decided.standing ? "Always allowed" : "Allowed"} reading Slack as ${decided.subject}`
+              : decided.decision === "denied"
+                ? `Denied reading Slack as ${decided.subject}`
+                : `Reading Slack as ${decided.subject} revoked`
+            : decided.decision === "granted"
+              ? `${decided.standing ? "Always allowed" : "Allowed"} on ${decided.subject}`
+              : decided.decision === "denied"
+                ? `Denied on ${decided.subject}`
+                : `Access to ${decided.subject} revoked`,
+        ),
+      );
+      return;
+    }
+    const crew = crewMarkers[key];
+    if (category === "crew" && crew !== undefined) {
+      const reference =
+        payload.ref?.kind === "jam"
+          ? { jamId: payload.ref.id as JamId, title: undefined }
+          : undefined;
+      const previous = rows.at(-1);
+      const joinable =
+        previous?.type === "marker" &&
+        previous.kind === "crew" &&
+        previous.referenceLeads === true &&
+        previous.label === crew.label
+          ? previous
+          : undefined;
+      const members =
+        joinable?.members ??
+        (joinable?.reference === undefined ? undefined : [joinable.reference]);
+      if (crew.leads && reference !== undefined && joinable !== undefined && members !== undefined)
+        rows[rows.length - 1] = {
+          ...joinable,
+          reference: undefined,
+          members: [...members, reference],
+        };
+      else
+        rows.push(
+          marker("crew", crew.label, { referenceLeads: crew.leads, reference }),
+        );
+      return;
+    }
+    if (category === "environment") {
+      const update = payload.environmentVariablesUpdated;
+      if (update === undefined || update.names.length === 0) return;
+      const requestId =
+        payload.ref?.kind === "environment_request" ? payload.ref.id : undefined;
+      const request = requestCalls.find(
+        (call) =>
+          call.position < position &&
+          call.toolName === ENV_REQUEST_TOOL &&
+          !consumedRequests.has(call.toolCallId) &&
+          (call.toolCallId === requestId ||
+            (update.action === "configured" &&
+              call.variables.length === update.names.length &&
+              call.variables.every((name) => update.names.includes(name)))),
+      );
+      if (request !== undefined) {
+        consumedRequests.add(request.toolCallId);
+        return;
+      }
+      rows.push(marker("environment", environmentLabel(update)));
+      return;
+    }
+    if (category === "issues") {
+      const enabled =
+        payload.issuesSwitched?.enabled ??
+        !payload.summary.startsWith("Issues are now off");
+      rows.push(marker("issues", enabled ? "Enabled issues" : "Disabled issues"));
+      return;
+    }
+    if (category === "setup") {
+      if (key === "setup_recovered") {
+        const machineId = payload.setupRecovered?.machineId;
+        if (machineId !== undefined) settleSetup(machineId, "recovered", event.createdAt);
+        return;
+      }
+      const failure = payload.setupFailure;
+      if (failure !== undefined) {
+        settleSetup(failure.machineId, "failed_again", event.createdAt);
+        setupFailures.set(failure.machineId, [
+          ...(setupFailures.get(failure.machineId) ?? []),
+          event.id,
+        ]);
+        rows.push({
+          type: "error",
+          severity: "warning",
+          id: event.id,
+          ...base,
+          code: key,
+          message: failure.detail,
+          retryable: false,
+          setup: failure,
+        });
+        return;
+      }
+      const repo = payload.setupFailed?.repo;
+      rows.push(
+        marker(
+          "setup",
+          `Setup failed${repo === undefined ? "" : ` for ${repo.slice(repo.indexOf("/") + 1)}`}, run it again from the machine menu`,
+        ),
+      );
+      return;
+    }
+    if (category === "crew_credits") {
+      const credits = payload.crewCredits;
+      if (credits === undefined) return;
+      rows.push({
+        type: "error",
+        severity: "warning",
+        id: event.id,
+        ...base,
+        code: "credits_consent_required",
+        message: `${credits.threadCode} is held on a usage limit`,
+        retryable: false,
+        data: credits.data,
+        credits: credits.standing === "open" ? "open" : "settled",
+      });
+      return;
+    }
+    if (category === "subagent_credits") {
+      const credits = payload.subagentCredits;
+      if (credits === undefined) return;
+      if (
+        credits.standing === "open" ||
+        (credits.standing === "waiting" && credits.data !== undefined)
+      ) {
+        const standing = subagentStanding(
+          credits.childJamId,
+          event.createdAt.getTime(),
+          credits.standing,
+          readString(credits.data, "modelId"),
+        );
+        rows.push({
+          type: "error",
+          severity: "warning",
+          id: event.id,
+          ...base,
+          code: "credits_consent_required",
+          message: credits.message ?? payload.summary,
+          retryable: false,
+          data: credits.data,
+          credits: standing.standing,
+          creditsUntilMs: standing.untilMs,
+          creditsOutcome: standing.outcome,
+          creditsSwitchedTo: standing.switchedTo,
+          subagent: { jamId: credits.childJamId, path: credits.path },
+        });
+        return;
+      }
+      rows.push(
+        marker(
+          "permission",
+          `Subagent ${credits.path}: ${credits.message ?? payload.summary}`,
+        ),
+      );
+      return;
+    }
+    if (category === "credits") {
+      const holding = creditsIndex !== undefined;
+      settleCredits(
+        key === "credits_waiting" ? "waiting" : "settled",
+        payload.creditsDecision ?? "answered",
+        payload.resetsAtMs,
+      );
+      if (holding) return;
+      rows.push(marker("permission", payload.summary));
+      return;
+    }
+    if (category === "review") {
+      rows.push({
+        type: "update",
+        kind: "review",
+        id: event.id,
+        ...base,
+        prNumber: payload.reviewCompletion?.prNumber,
+        issues: payload.reviewCompletion?.issues,
+      });
+      return;
+    }
+    if (category === "warning" || payload.severity === "warning") {
+      const notice = payload.driveFull === undefined ? driveNotice(payload) : undefined;
+      rows.push({
+        type: "error",
+        severity: "warning",
+        id: event.id,
+        ...base,
+        code:
+          key === "volume_quota"
+            ? "drive_not_saved"
+            : key === "drive_bulk_delete"
+              ? "drive_deletes_held"
+              : key,
+        message: driveKeys.has(key)
+          ? (payload.driveNotice ?? "Drive is full, files from this turn were not saved")
+          : notice === undefined
+            ? payload.summary
+            : notice.lines.join(", "),
+        retryable: false,
+        data: payload.driveFull,
+        notice,
+      });
+      return;
+    }
+    if (key === "phone_attached" && payload.ref?.kind === "machine") {
+      rows.push({
+        type: "phone-card",
+        id: event.id,
+        ...base,
+        machineId: payload.ref.id as never,
+        summary: payload.summary,
+      });
+      return;
+    }
+    if (
+      (key === "desktop_request_done" || key === "desktop_request_expired") &&
+      requestCalls.some(
+        (call) =>
+          call.position < position &&
+          call.toolName === DESKTOP_REQUEST_TOOL &&
+          call.toolCallId ===
+            (payload.desktopRequest?.toolCallId ??
+              (payload.ref?.kind === "desktop_request" ? payload.ref.id : undefined)),
+      )
+    )
+      return;
+    if (
+      key === "terminal_request_done" &&
+      requestCalls.some(
+        (call) =>
+          call.position < position &&
+          call.toolName === TERMINAL_REQUEST_TOOL &&
+          payload.ref?.kind === "terminal_request" &&
+          call.toolCallId === payload.ref.id,
+      )
+    )
+      return;
+    rows.push({
+      type: "update",
+      kind: "notice",
+      id: event.id,
+      ...base,
+      notificationKey: key,
+      prFeedback: key === "pr_feedback" ? payload.prFeedback : undefined,
+      summary: payload.summary,
+      fileSaved: payload.fileSaved,
+      slackMessage: key === "slack_subscription_message" ? payload.slackMessage : undefined,
+      ciResult: key === "ci_result" ? payload.ciResult : undefined,
+      desktopRequest:
+        key === "desktop_request_done" || key === "desktop_request_expired"
+          ? payload.desktopRequest
+          : undefined,
+      filesCopied: key === "files_copied" ? payload.filesCopied : undefined,
+      prTransition:
+        key === "pr_merged" || key === "pr_closed" ? payload.prTransition : undefined,
+      prConflict: key === "pr_conflict" ? payload.prConflict : undefined,
+      reviewFailed: key === "review_failed" ? payload.reviewFailed : undefined,
+      githubEvent:
+        key === "github_subscription_event" ? payload.githubEvent : undefined,
+      webhookRequest:
+        key === "webhook_subscription_request" ? payload.webhookRequest : undefined,
+      issueActivity: key === "issue_activity" ? payload.issueActivity : undefined,
+      ciUnsettled:
+        key === "ci_incomplete" || key === "ci_no_checks"
+          ? payload.ciUnsettled
+          : undefined,
+    });
+  }
+
+  return {
+    ordered,
+    entries: rows,
+    settledTimeline: mergeReasoning(rows),
+    openTurnId,
+    callIds: new Set(rows.flatMap((row) => (isCallRow(row) ? [row.id] : []))),
+  };
+};
+
+type MarkerRow = Extract<Row, { type: "marker" }>;
+
+const markerFor =
+  (event: Event) =>
+  (
+    kind: MarkerRow["kind"],
+    label: string,
+    extra: Partial<MarkerRow> = {},
+  ): Row => ({
+    type: "marker",
+    kind,
+    id: `marker:${event.id}`,
+    eventId: event.id,
+    createdAt: event.createdAt,
+    label,
+    ...extra,
+  });
+
+const failedOver = (data: unknown) => asRecord(data).failedOver === true;
+
+const inputState = (
+  state: EventRow["state"],
+  id: string,
+): Extract<Row, { type: "user-message" }>["state"] => {
+  if (
+    state === "committed" ||
+    state === "abandoned" ||
+    state === "discarded" ||
+    state === "superseded"
+  )
+    throw new TypeError(`Input row in an output state: ${state}: ${id}`);
+  return state as Extract<Row, { type: "user-message" }>["state"];
+};
+
+const collectTerminalRequests = (
+  events: ReadonlyArray<EventRow>,
+): TerminalRequests => {
+  const settled = new Map<string, boolean>();
+  const completions = new Map<
+    string,
+    { isError: boolean; exitCode: number | undefined }
+  >();
+  const done = new Set<string>();
+  const cancelled = new Set<string>();
+  for (const event of events) {
+    if (event.kind === "tool_result") {
+      if (!settled.has(event.payload.toolCallId))
+        settled.set(event.payload.toolCallId, event.payload.isError);
+      for (const call of executeData(event.payload.data)?.calls ?? []) {
+        const operationId =
+          call.tool === "operation_cancel" && call.error === undefined
+            ? readString(call.input, "operation_id")
+            : undefined;
+        if (operationId !== undefined && readString(call.data, "state") === "cancelled")
+          cancelled.add(operationId);
+      }
+    }
+    if (event.kind === "operation_completion")
+      completions.set(event.payload.toolCallId, {
+        isError: event.payload.isError,
+        exitCode: readNumber(event.payload, "exitCode"),
+      });
+    if (
+      event.kind === "notification" &&
+      event.payload.key === "terminal_request_done" &&
+      event.payload.ref?.kind === "terminal_request"
+    )
+      done.add(event.payload.ref.id);
+  }
+  return { settled, completions, done, cancelled };
+};
+
+/** Rows that stand for a model call (a message, a card, a tool line). */
+export const isCallRow = (row: Row) =>
+  row.type === "agent-message" ||
+  row.type === "clarify" ||
+  row.type === "environment-request" ||
+  row.type === "mcp-setup" ||
+  isTool(row);
+
+/** The hidden "still working" line the open turn shows after its last settled line. */
+export const hiddenReasoning = (
+  eventId: EventId,
+  createdAt: Date,
+  startedAt: Date | undefined,
+): ReasoningRow => ({
+  type: "activity",
+  kind: "reasoning",
+  id: `${eventId}${HIDDEN_SUFFIX}`,
+  eventId,
+  createdAt,
+  startedAt,
+  turnOpen: true,
+  turnCloses: false,
+  text: "",
+  presentation: "summary",
+  elapsedMs: 0,
+});
