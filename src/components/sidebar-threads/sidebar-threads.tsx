@@ -7,7 +7,9 @@ import {
   ThreadStatusIcon,
   threadStatusState,
 } from "@/components/thread-status";
+import { ScrollArea } from "@/primitives/scroll-area";
 import { Glyph } from "./glyphs";
+import { type SidebarRowActions, SidebarRowPopups } from "./sidebar-row-popups";
 import type {
   SidebarCaptain,
   SidebarDensity,
@@ -349,6 +351,7 @@ export type SidebarThreadsProps = ComponentProps<"div"> & {
   onShowMore?: (sectionId: string) => void;
   onNewThread?: () => void;
   onNewCaptain?: () => void;
+  rowActions?: SidebarRowActions;
 };
 
 export function SidebarThreads({
@@ -360,6 +363,7 @@ export function SidebarThreads({
   onShowMore,
   onNewThread,
   onNewCaptain,
+  rowActions,
   className,
   ...props
 }: SidebarThreadsProps) {
@@ -373,6 +377,14 @@ export function SidebarThreads({
   }
   const captains = view.mode === "captains";
   const slim = view.density === "compact";
+  const rowMenuThreads = new Map(
+    view.sections.flatMap((section) =>
+      section.threads.map((thread) => [
+        thread.id,
+        { id: thread.id, hasUnreads: thread.hasUnreads },
+      ]),
+    ),
+  );
   return (
     <div
       data-sidebar-mode={view.mode}
@@ -393,34 +405,39 @@ export function SidebarThreads({
         aria-hidden
         className="scroll-divider-t max-md:hidden [--scroll-divider-timeline:--threads-scroll]"
       />
-      {/* biome-ignore lint/a11y/useSemanticElements: Capy's sidebar list is a div with role=list */}
-      <div
-        role="list"
-        className="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 [scroll-timeline:--threads-scroll]"
-      >
-        {captains ? (
-          view.captains.length === 0 ? (
-            <NewCaptainRow compact={slim} onClick={onNewCaptain} />
-          ) : (
-            view.captains.map((captain) => (
-              <CaptainRow
-                key={captain.id}
-                captain={captain}
-                compact={slim}
-                active={view.activeId === captain.id}
+      <ScrollArea className="min-h-0 flex-1 [scroll-timeline:--threads-scroll]">
+        <SidebarRowPopups
+          threads={rowMenuThreads}
+          actions={rowActions}
+          className="flex min-h-full flex-col px-2"
+        >
+          {/* biome-ignore lint/a11y/useSemanticElements: Capy's sidebar list is a div with role=list */}
+          <div role="list" className="flex flex-col">
+            {captains ? (
+              view.captains.length === 0 ? (
+                <NewCaptainRow compact={slim} onClick={onNewCaptain} />
+              ) : (
+                view.captains.map((captain) => (
+                  <CaptainRow
+                    key={captain.id}
+                    captain={captain}
+                    compact={slim}
+                    active={view.activeId === captain.id}
+                  />
+                ))
+              )
+            ) : (
+              <ThreadSections
+                view={view}
+                renderThread={renderThread}
+                onSectionOpenChange={onSectionOpenChange}
+                onShowMore={onShowMore}
+                onNewThread={onNewThread}
               />
-            ))
-          )
-        ) : (
-          <ThreadSections
-            view={view}
-            renderThread={renderThread}
-            onSectionOpenChange={onSectionOpenChange}
-            onShowMore={onShowMore}
-            onNewThread={onNewThread}
-          />
-        )}
-      </div>
+            )}
+          </div>
+        </SidebarRowPopups>
+      </ScrollArea>
     </div>
   );
 }
