@@ -22,6 +22,7 @@
   --delay-stagger: 40ms;
   --delay-stagger-2: 50ms;
   --delay-stagger-3: 60ms;
+  --delay-intro-step: 70ms;
   --delay-reveal: 0.11s;
   --delay-hover-intent: 0.12s;
   --delay-fast: 0.15s;

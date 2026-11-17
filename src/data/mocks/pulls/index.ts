@@ -1,6 +1,6 @@
 import { Effect, Ref } from "effect";
-import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
-import { isoMinutesAgo, people, threads } from "../fixtures/world.ts";
+import { fields, type JamRow, MockDb, missing, newId } from "../db/MockDb.ts";
+import { isoMinutesAgo, people, projects, threads } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
   defaultLocalPull,
@@ -39,9 +39,27 @@ const flag = (value: unknown): boolean => value === true || value === "true";
 const queryText = (query: unknown, key: string): string | undefined =>
   text(fields(query)[key]);
 
+/** The thread chip a pull row prints, as the API carries it on each pull. */
+const threadChip = (threadId: string | null) => {
+  if (threadId === null) return null;
+  const thread = Object.values(threads).find(
+    (candidate) => candidate.id === threadId,
+  );
+  if (thread === undefined) return null;
+  const project = Object.values(projects).find(
+    (candidate) => candidate.id === thread.projectId,
+  );
+  return {
+    id: thread.id,
+    number: thread.number,
+    title: thread.title,
+    projectCode: project?.code ?? null,
+  };
+};
+
 export const PullsMock = mockGroup("pulls", (handlers) =>
   Effect.gen(function* () {
-    const { issueLabels, pulls } = yield* MockDb;
+    const { issueLabels, jams, pulls } = yield* MockDb;
     const localPulls = yield* Ref.make([
       { ...defaultLocalPull, threadId: threads.checkoutTest.id },
       {
@@ -63,7 +81,9 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
     const labels = yield* Ref.make<
       ReadonlyArray<{ id: string; name: string; color: string }>
     >([...pullLabels]);
-    const linkedThreads = yield* Ref.make([...pullThreads]);
+    const linkedThreads = yield* Ref.make<ReadonlyArray<JamRow>>([
+      ...pullThreads,
+    ]);
     const viewedFiles = yield* Ref.make([...viewedPullFiles]);
 
     const findPull = (pullId: string) =>
@@ -104,6 +124,7 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
           additions: row.additions,
           deletions: row.deletions,
           threadId: row.threadId,
+          thread: threadChip(row.threadId),
           updatedAt: row.updatedAt,
           url: `https://github.com/${row.repo}/pull/${row.number}`,
           body:
@@ -182,7 +203,7 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
             repo: text(input.repo) ?? "acme/web",
             number: Math.max(...rows.map((candidate) => candidate.number)) + 1,
             title: text(input.title) ?? "New pull request",
-            state: "draft" as const,
+            state: flag(input.draft) ? ("draft" as const) : ("ready" as const),
             authorId: people.alex.id,
             headRef: text(input.headRef) ?? "feat/new-change",
             baseRef: text(input.baseRef) ?? "main",
@@ -414,7 +435,12 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
       .handle("review", ({ params }) =>
         Effect.gen(function* () {
           yield* findPull(params.pullId);
-          return { ...pullReview, pullId: params.pullId };
+          const rows = yield* Ref.get(findings);
+          return {
+            ...pullReview,
+            pullId: params.pullId,
+            findings: rows.filter((row) => row.pullId === params.pullId),
+          };
         }),
       )
       .handle("requestReview", ({ params, payload }) =>
@@ -576,7 +602,7 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
           const jamId = text(fields(payload).jamId) ?? threads.paginate.id;
           const current = yield* Ref.get(linkedThreads);
           if (current.some((item) => item.id === jamId)) return current;
-          const thread = Object.values(threads).find(
+          const thread = (yield* Ref.get(jams)).find(
             (candidate) => candidate.id === jamId,
           );
           if (!thread) {

@@ -1,5 +1,6 @@
 import { Context, Effect, Layer, Ref } from "effect";
 import { world } from "../fixtures/world.ts";
+import { makeOrgState, type OrgState } from "../organizations/state.ts";
 
 type Widen<T> = T extends string
   ? string
@@ -30,16 +31,33 @@ const tables = [
   "devices",
   "automations",
   "threadFolders",
+  "threadFolderItems",
   "threadTags",
+  "threadTagAssignments",
+  "threadPins",
   "mcpServers",
   "apiKeys",
   "driveFiles",
+  "myInvitations",
+  "joinableOrganizations",
 ] as const;
 
 export type TableName = (typeof tables)[number];
 
+export type JamRow = {
+  id: string;
+  number: number;
+  title: string;
+  projectId: string | null;
+};
+
 export type MockTables = {
   readonly [K in TableName]: Ref.Ref<ReadonlyArray<Row<K>>>;
+} & {
+  /** Threads any group can resolve: the fixture threads plus every jam a mock creates. */
+  readonly jams: Ref.Ref<ReadonlyArray<JamRow>>;
+  readonly orgState: OrgState;
+  readonly hiddenThemes: Ref.Ref<ReadonlyArray<string>>;
 };
 
 let sequence = 0;
@@ -64,7 +82,25 @@ export class MockDb extends Context.Service<MockDb, MockTables>()(
           Effect.map((ref) => [name, ref] as const),
         ),
       );
-      return MockDb.of(Object.fromEntries(entries) as unknown as MockTables);
+      const jams = yield* Ref.make<ReadonlyArray<JamRow>>(
+        Object.values(world.threads).map((thread) => ({
+          id: thread.id,
+          number: thread.number,
+          title: thread.title,
+          projectId: thread.projectId,
+        })),
+      );
+      const orgState = yield* makeOrgState;
+      const hiddenThemes = yield* Ref.make<ReadonlyArray<string>>([]);
+      return MockDb.of({
+        ...(Object.fromEntries(entries) as unknown as Omit<
+          MockTables,
+          "jams" | "orgState" | "hiddenThemes"
+        >),
+        jams,
+        orgState,
+        hiddenThemes,
+      });
     }),
   );
 }

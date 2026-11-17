@@ -1,0 +1,48 @@
+{
+  "matrix": {
+    "theme": ["default"],
+    "scheme": ["dark", "light"]
+  },
+  "defaults": {
+    "maxMismatch": 2
+  },
+  "targets": [
+    {
+      "id": "thread-base",
+      "route": "/thread/jam_sample_0001",
+      "viewport": "1600x1000",
+      "capture": {
+        "[data-slot=chat-stamp]": [
+          "font-size",
+          "min-height",
+          "color",
+          "margin-bottom"
+        ],
+        "[data-chat-row-id]": ["padding-top", "max-width"],
+        "[data-slot=composer]": ["min-height", "padding-top"]
+      },
+      "expect": {
+        "[data-slot=chat-stamp]": {
+          "font-size": "12px",
+          "min-height": "28px",
+          "margin-bottom": "12px"
+        }
+      },
+      "variants": {
+        "default/dark": {
+          "frame": "3PIeUOoVrM"
+        }
+      }
+    },
+    {
+      "id": "thread-pane-diffs",
+      "route": "/thread/jam_sample_0001?pane=diffs",
+      "viewport": "1600x1000",
+      "variants": {
+        "default/dark": {
+          "frame": "UITzoMhMKk"
+        }
+      }
+    }
+  ]
+}

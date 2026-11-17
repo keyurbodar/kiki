@@ -322,6 +322,7 @@ const issue = (
   options: {
     readonly projectId?: string;
     readonly assigneeId?: string | null;
+    readonly assigneeIds?: ReadonlyArray<string>;
     readonly labelIds?: ReadonlyArray<string>;
     readonly threadIds?: ReadonlyArray<string>;
     readonly pullIds?: ReadonlyArray<string>;
@@ -337,6 +338,8 @@ const issue = (
   stateId,
   projectId: options.projectId ?? projects.web.id,
   assigneeId: options.assigneeId ?? null,
+  assigneeIds:
+    options.assigneeIds ?? (options.assigneeId ? [options.assigneeId] : []),
   creatorId: people.alex.id,
   labelIds: options.labelIds ?? [],
   threadIds: options.threadIds ?? [],
@@ -365,6 +368,7 @@ export const issues = [
   }),
   issue(3, "Dark mode for settings", "ist_sample_in_review", {
     assigneeId: people.sam.id,
+    assigneeIds: [people.sam.id, people.priya.id],
     labelIds: ["lbl_sample_feature"],
     threadIds: [threads.darkMode.id],
     pullIds: ["pr_sample_128"],
@@ -586,14 +590,77 @@ export const automations = [
 ] as const;
 
 export const threadFolders = [
-  { id: "fld_sample_release", name: "Release", position: 0 },
-  { id: "fld_sample_research", name: "Research", position: 1 },
+  {
+    id: "fld_sample_release",
+    name: "Release",
+    position: 0,
+    visibility: "shared",
+    section: "threads",
+    ownerUserId: people.alex.id,
+    hidden: false,
+    memberIds: [people.sam.id, people.priya.id] as ReadonlyArray<string>,
+    createdAt: isoMinutesAgo(14 * day),
+    updatedAt: isoMinutesAgo(2 * day),
+  },
+  {
+    id: "fld_sample_research",
+    name: "Research",
+    position: 1,
+    visibility: "private",
+    section: "threads",
+    ownerUserId: people.alex.id,
+    hidden: false,
+    memberIds: [] as ReadonlyArray<string>,
+    createdAt: isoMinutesAgo(6 * day),
+    updatedAt: isoMinutesAgo(6 * day),
+  },
+] as const;
+
+export const threadFolderItems = [
+  {
+    folderId: "fld_sample_release",
+    jamId: threads.checkoutTest.id,
+    position: 0,
+  },
+  { folderId: "fld_sample_release", jamId: threads.darkMode.id, position: 1 },
+  { folderId: "fld_sample_release", jamId: threads.bundler.id, position: 2 },
+  { folderId: "fld_sample_research", jamId: threads.incidents.id, position: 0 },
 ] as const;
 
 export const threadTags = [
-  { id: "tag_sample_frontend", name: "frontend", color: "primary" },
-  { id: "tag_sample_backend", name: "backend", color: "info" },
-  { id: "tag_sample_urgent", name: "urgent", color: "danger" },
+  {
+    id: "tag_sample_frontend",
+    name: "frontend",
+    color: "primary",
+    deleted: false,
+    createdAt: isoMinutesAgo(30 * day),
+  },
+  {
+    id: "tag_sample_backend",
+    name: "backend",
+    color: "blue",
+    deleted: false,
+    createdAt: isoMinutesAgo(30 * day),
+  },
+  {
+    id: "tag_sample_urgent",
+    name: "urgent",
+    color: "destructive",
+    deleted: false,
+    createdAt: isoMinutesAgo(20 * day),
+  },
+] as const;
+
+export const threadTagAssignments = [
+  { jamId: threads.checkoutTest.id, tagId: "tag_sample_frontend" },
+  { jamId: threads.checkoutTest.id, tagId: "tag_sample_urgent" },
+  { jamId: threads.darkMode.id, tagId: "tag_sample_frontend" },
+  { jamId: threads.paginate.id, tagId: "tag_sample_backend" },
+] as const;
+
+export const threadPins = [
+  { jamId: threads.paginate.id },
+  { jamId: threads.checkoutTest.id },
 ] as const;
 
 export const mcpServers = [
@@ -703,6 +770,38 @@ export const driveFiles = [
 ] as const;
 
 /** Stable ids per collection so groups can cross-reference without importing each other. */
+/** Invitations the viewer received from other organizations. */
+export const myInvitations = [
+  {
+    id: "inv_sample_globex",
+    orgId: "org_sample_globex",
+    orgName: "Globex",
+    orgAvatarUrl: null as string | null,
+    inviterName: "Robin Park",
+    projectCount: 3,
+    invitedAt: isoMinutesAgo(day),
+  },
+  {
+    id: "inv_sample_initech",
+    orgId: "org_sample_initech",
+    orgName: "Initech",
+    orgAvatarUrl: null as string | null,
+    inviterName: "Dana Kim",
+    projectCount: 0,
+    invitedAt: isoMinutesAgo(3 * day),
+  },
+];
+
+/** Organizations the viewer can join through their verified email domain. */
+export const joinableOrganizations = [
+  {
+    orgId: "org_sample_umbrella",
+    orgName: "Umbrella Studio",
+    orgAvatarUrl: null as string | null,
+    projectCount: 1,
+  },
+];
+
 export const world = {
   org,
   people,
@@ -722,10 +821,15 @@ export const world = {
   devices,
   automations,
   threadFolders,
+  threadFolderItems,
   threadTags,
+  threadTagAssignments,
+  threadPins,
   mcpServers,
   apiKeys,
   presetThemeIds,
   models,
   driveFiles,
+  myInvitations,
+  joinableOrganizations,
 } as const;

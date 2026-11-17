@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { ProviderListPage } from "@/features/settings-integrations/cloud-credentials";
 
 export const Route = createFileRoute("/_app/settings/cloud-credentials_/vault")(
   {
@@ -8,10 +8,5 @@ export const Route = createFileRoute("/_app/settings/cloud-credentials_/vault")(
 );
 
 function RouteComponent() {
-  return (
-    <RoutePlaceholder
-      title="/settings/cloud-credentials/vault"
-      path="/settings/cloud-credentials/vault"
-    />
-  );
+  return <ProviderListPage provider="vault" />;
 }

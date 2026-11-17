@@ -1,10 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { InvitesPage } from "@/features/onboarding/invites";
 
 export const Route = createFileRoute("/_app/invites")({
-  component: RouteComponent,
+  component: InvitesPage,
 });
-
-function RouteComponent() {
-  return <RoutePlaceholder title="Invites" path="/invites" />;
-}

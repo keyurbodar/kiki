@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { ShareFile } from "@/components/share-file";
 
 export const Route = createFileRoute("/_app/drive_/share/$shareId")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="Shared file" path="/drive/share/$shareId" />;
+  const { shareId } = Route.useParams();
+  return <ShareFile key={shareId} shareId={shareId} inApp />;
 }

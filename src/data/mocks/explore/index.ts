@@ -1,28 +1,19 @@
-import { DateTime, Effect, Ref } from "effect";
-import { fields, newId } from "../db/MockDb.ts";
-import { minutesAgo } from "../fixtures/time.ts";
-import { mockGroup } from "../mockGroup.ts";
+import { Effect, Ref } from "effect";
 import {
-  communityListings,
-  type ExploreListing,
-  listingKinds,
-} from "./fixtures.ts";
+  AddSkillResult,
+  type ExploreCard,
+  ExploreIndex,
+  ExploreNotFound,
+  listingKey,
+} from "../../api/schemas/explore.ts";
+import { MockDb } from "../db/MockDb.ts";
+import {
+  findSampleListing,
+  sampleListings,
+} from "../explorePublic/fixtures.ts";
+import { mockGroup } from "../mockGroup.ts";
 
-interface ReportReceipt {
-  readonly ok: true;
-  readonly id: string;
-  readonly createdAt: string;
-}
-
-interface InstalledSkill {
-  readonly id: string;
-  readonly kind: "skill";
-  readonly slug: string;
-  readonly displayName: string;
-  readonly description: string;
-  readonly version: string;
-  readonly installedAt: string;
-}
+const listingKinds: ReadonlyArray<string> = ["plugin", "skill", "theme"];
 
 const one = (value: unknown): string | undefined => {
   if (typeof value === "string") return value;
@@ -35,96 +26,87 @@ const stringField = (input: Record<string, unknown>, key: string) => {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 };
 
-const listingMatches = (
-  listing: ExploreListing,
-  query: Record<string, unknown>,
-) => {
+const cardMatches = (card: ExploreCard, query: Record<string, unknown>) => {
   const kind = stringField(query, "kind");
   const search = stringField(query, "search") ?? stringField(query, "q");
-  if (kind !== undefined && listing.kind !== kind) return false;
+  if (kind !== undefined && card.kind !== kind) return false;
   if (search === undefined) return true;
   const needle = search.toLowerCase();
   return [
-    listing.displayName,
-    listing.description,
-    listing.slug,
-    ...listing.tags,
+    card.displayName,
+    card.description,
+    card.slug,
+    card.category ?? "",
   ].some((value) => value.toLowerCase().includes(needle));
 };
 
 export const ExploreMock = mockGroup("explore", (handlers) =>
   Effect.gen(function* () {
-    const reports = yield* Ref.make<ReadonlyArray<ReportReceipt>>([]);
-    const skills = yield* Ref.make<ReadonlyArray<InstalledSkill>>([]);
-
+    const { hiddenThemes } = yield* MockDb;
+    const added = yield* Ref.make<ReadonlyArray<string>>([]);
+    const reports = yield* Ref.make(0);
     return handlers
       .handle("listings", ({ query }) => {
-        const input = fields(query);
-        const kind = stringField(input, "kind");
+        const kind = stringField(query, "kind");
         if (kind !== undefined && !listingKinds.includes(kind)) {
           return Effect.die(
             new Error(`Explore.listings: unknown kind ${kind}`),
           );
         }
-        const rows = communityListings.filter((listing) =>
-          listingMatches(listing, input),
+        return Ref.get(added).pipe(
+          Effect.map(
+            (keys) =>
+              new ExploreIndex({
+                cards: sampleListings
+                  .map((listing) => listing.card)
+                  .filter((card) => cardMatches(card, query)),
+                added: keys,
+                updates: [],
+              }),
+          ),
         );
-        return Effect.succeed(rows);
       })
       .handle("report", ({ payload }) =>
-        Effect.gen(function* () {
-          const input = fields(payload);
-          const slug = stringField(input, "slug");
-          if (
-            slug === undefined ||
-            !communityListings.some((row) => row.slug === slug)
-          ) {
-            return yield* Effect.die(
-              new Error(`Explore.listings: no listing ${slug ?? "unknown"}`),
-            );
-          }
-          const receipt: ReportReceipt = {
-            id: newId("rpt"),
-            ok: true,
-            createdAt: DateTime.formatIso(minutesAgo(0)),
-          };
-          yield* Ref.update(reports, (rows) => [...rows, receipt]);
-          return receipt;
-        }),
+        findSampleListing(payload.kind, payload.slug) === undefined
+          ? Effect.fail(
+              new ExploreNotFound({ kind: payload.kind, slug: payload.slug }),
+            )
+          : Ref.update(reports, (count) => count + 1),
       )
-      .handle("addSkill", ({ payload }) =>
-        Effect.gen(function* () {
-          const input = fields(payload);
-          const slug = stringField(input, "slug");
-          const listing = communityListings.find((row) => row.slug === slug);
-          if (!listing) {
-            return yield* Effect.die(
-              new Error(`Explore.listings: no listing ${slug ?? "unknown"}`),
-            );
-          }
-          if (listing.kind !== "skill") {
-            return yield* Effect.die(
-              new Error(`Explore.listings: ${listing.slug} is not a skill`),
-            );
-          }
-          const skill: InstalledSkill = {
-            id: newId("skill"),
-            kind: "skill",
-            slug: listing.slug,
-            displayName: listing.displayName,
-            description: listing.description,
-            version:
-              stringField(input, "version") ??
-              listing.versions[0]?.version ??
-              "1.0.0",
-            installedAt: DateTime.formatIso(minutesAgo(0)),
-          };
-          yield* Ref.update(skills, (rows) => [
-            ...rows.filter((row) => row.slug !== skill.slug),
-            skill,
-          ]);
-          return skill;
-        }),
-      );
+      .handle("themeVisibility", ({ params }) =>
+        Ref.get(hiddenThemes).pipe(
+          Effect.map((hidden) => ({ hidden: hidden.includes(params.slug) })),
+        ),
+      )
+      .handle("setThemeVisibility", ({ params, payload }) =>
+        Ref.updateAndGet(hiddenThemes, (slugs) =>
+          payload.hidden
+            ? slugs.includes(params.slug)
+              ? slugs
+              : [...slugs, params.slug]
+            : slugs.filter((slug) => slug !== params.slug),
+        ).pipe(
+          Effect.map((slugs) => ({ hidden: slugs.includes(params.slug) })),
+        ),
+      )
+      .handle("addSkill", ({ payload }) => {
+        const listing = findSampleListing("skill", payload.slug);
+        if (listing === undefined)
+          return Effect.fail(
+            new ExploreNotFound({ kind: "skill", slug: payload.slug }),
+          );
+        const key = listingKey(listing.card);
+        return Ref.modify(added, (keys) => [
+          new AddSkillResult({
+            name:
+              listing.content.kind === "skill"
+                ? listing.content.skill.name
+                : listing.card.slug,
+            versionId: listing.card.versionId,
+            replaced: keys.includes(key),
+          }),
+          keys.includes(key) ? keys : [...keys, key],
+        ]);
+      });
   }),
 );

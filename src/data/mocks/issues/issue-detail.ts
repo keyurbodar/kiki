@@ -1,18 +1,23 @@
 import { DateTime } from "effect";
-import { JamId, ProjectId } from "../../api/schemas/ids.ts";
+import {
+  IssueCommentId,
+  IssueEventId,
+  IssueId,
+  IssueLabelId,
+  IssueStateId,
+  JamId,
+  ProjectId,
+  PullRequestId,
+} from "../../api/schemas/ids.ts";
 import {
   IssueAccess,
   IssueActor,
   type IssueColor,
   IssueComment,
-  IssueCommentId,
   IssueDetail,
   type IssueDueDate,
   IssueEvent,
-  IssueEventId,
-  IssueId,
   IssueLabel,
-  IssueLabelId,
   IssueLabelList,
   IssuePullLink,
   IssuePullRef,
@@ -22,16 +27,14 @@ import {
   IssueRelationRef,
   IssueState,
   type IssueStateIcon,
-  IssueStateId,
   IssueStateList,
   type IssueStatus,
   IssueSummary,
   IssueThreadLink,
   IssueViewer,
-  PullId,
 } from "../../api/schemas/issue.ts";
 import type { Row } from "../db/MockDb.ts";
-import { people, threads, viewer } from "../fixtures/world.ts";
+import { isoMinutesAgo, people, threads, viewer } from "../fixtures/world.ts";
 
 /**
  * Issue page fixtures (D1b). The shared world (fixtures/world.ts) stores issues
@@ -93,7 +96,9 @@ const fallbackStyle = {
 } as const;
 
 const styleOf = (state: WorldState) =>
-  stateOverrides[state.id] ?? stateStyle[state.category] ?? fallbackStyle;
+  (state.category === "started" ? stateOverrides[state.id] : undefined) ??
+  stateStyle[state.category] ??
+  fallbackStyle;
 
 export const statusOfState = (state: WorldState) => styleOf(state).status;
 
@@ -147,6 +152,7 @@ const pullState = (state: string): IssuePullState =>
 /** What the world does not store about an issue, keyed by issue code. */
 export interface IssueExtra {
   readonly description: string;
+  readonly mentions: number;
   readonly dueAt?: IssueDueDate;
   readonly subscribed: boolean;
   readonly unread: boolean;
@@ -157,12 +163,13 @@ export interface IssueExtra {
   readonly comments: ReadonlyArray<{
     readonly authorId: string;
     readonly body: string;
-    readonly minutesAgo: number;
+    readonly createdAt: string;
   }>;
 }
 
 export const issueExtras: Record<string, IssueExtra> = {
   "ACME-1": {
+    mentions: 1,
     description:
       "Ship web release 2.4 once the checkout fix and dark mode land.\n\n- [ ] Checkout test is green on CI\n- [ ] Dark mode reviewed\n- [ ] Changelog written",
     dueAt: "2026-03-06",
@@ -173,11 +180,12 @@ export const issueExtras: Record<string, IssueExtra> = {
       {
         authorId: people.sam.id,
         body: "Release notes draft is in the docs folder.",
-        minutesAgo: 120,
+        createdAt: isoMinutesAgo(120),
       },
     ],
   },
   "ACME-2": {
+    mentions: 2,
     description:
       "The checkout end-to-end test times out on CI about one run in five. It passes locally.\n\nLikely cause: the payment sandbox answers slowly under parallel runs. Retry the gateway call and raise the test timeout.",
     dueAt: "2026-03-03",
@@ -191,11 +199,12 @@ export const issueExtras: Record<string, IssueExtra> = {
       {
         authorId: people.alex.id,
         body: "Seen again on main this morning. Logs attached to the thread.",
-        minutesAgo: 45,
+        createdAt: isoMinutesAgo(45),
       },
     ],
   },
   "ACME-3": {
+    mentions: 0,
     description:
       "Add a dark theme to every settings page, following the system preference by default.",
     subscribed: false,
@@ -204,6 +213,7 @@ export const issueExtras: Record<string, IssueExtra> = {
     comments: [],
   },
   "ACME-4": {
+    mentions: 0,
     description:
       "Orders currently returns every row. Pick a default page size and document it.",
     subscribed: true,
@@ -215,6 +225,7 @@ export const issueExtras: Record<string, IssueExtra> = {
 
 const emptyExtra: IssueExtra = {
   description: "",
+  mentions: 0,
   subscribed: false,
   unread: false,
   relations: [],
@@ -286,7 +297,9 @@ export const toIssueSummary = (world: IssueWorld, row: WorldIssue) => {
     return s !== undefined && toIssueState(s).type === "closed";
   };
   const status = state ? styleOf(state).status : "todo";
+  const assigneeIds = row.assigneeIds.filter((id) => id.length > 0);
   const assignee = row.assigneeId ? personActor(row.assigneeId) : null;
+  const assignees = assigneeIds.map((id) => personActor(id));
   const blockedBy = relations
     .filter((relation) => relation.relation === "blocked_by")
     .flatMap((relation) => relationRef(world, relation.code));
@@ -304,7 +317,7 @@ export const toIssueSummary = (world: IssueWorld, row: WorldIssue) => {
     visibility: "org",
     accessJamId: null,
     assignee,
-    assignees: assignee ? [assignee] : [],
+    assignees,
     labels: world.labels
       .filter((label) => row.labelIds.includes(label.id))
       .map(toIssueLabel),
@@ -332,7 +345,7 @@ export const toIssueSummary = (world: IssueWorld, row: WorldIssue) => {
       subscribed: extra.subscribed,
       unread: extra.unread,
       unreadSince: null,
-      mentions: 0,
+      mentions: extraOf(world.extras, row.code).mentions,
     }),
     createdAt: timestamp(row.createdAt),
     updatedAt: timestamp(row.updatedAt),
@@ -378,7 +391,7 @@ export const toIssueDetail = (world: IssueWorld, row: WorldIssue) => {
       .map(
         (pull) =>
           new IssuePullLink({
-            pullId: PullId.make(pull.id),
+            pullId: PullRequestId.make(pull.id),
             repoFullName: pull.repo,
             prNumber: pull.number,
             title: pull.title,
@@ -413,9 +426,7 @@ export const toIssueDetail = (world: IssueWorld, row: WorldIssue) => {
           replyToCommentId: null,
           author: personActor(comment.authorId),
           body: comment.body,
-          createdAt: DateTime.subtract(timestamp(row.updatedAt), {
-            minutes: comment.minutesAgo - 1,
-          }),
+          createdAt: timestamp(comment.createdAt),
           editedAt: null,
         }),
     ),

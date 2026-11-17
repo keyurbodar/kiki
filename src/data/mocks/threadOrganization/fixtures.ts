@@ -1,91 +1,73 @@
-import { isoMinutesAgo, people, threads, world } from "../fixtures/world.ts";
+import { DateTime } from "effect";
+import {
+  JamId,
+  ProjectId,
+  ThreadFolderId,
+  ThreadTagId,
+  UserId,
+} from "../../api/schemas/ids.ts";
+import {
+  ThreadFolder,
+  ThreadFolderItem,
+  ThreadFolderMember,
+  ThreadTag,
+  type ThreadTagColor,
+} from "../../api/schemas/threadOrganization.ts";
+import type { Row } from "../db/MockDb.ts";
+import { viewer, world } from "../fixtures/world.ts";
 
-export interface FolderDetail {
-  id: string;
-  name: string;
-  position: number;
-  access: string;
-  hidden: boolean;
-  ownerId: string;
-  sharedWith: string[];
-  itemIds: string[];
-  createdAt: string;
-}
+const at = (iso: string) => DateTime.makeUnsafe(iso);
 
-export interface TagDetail {
-  id: string;
-  name: string;
-  color: string;
-  deletedAt: string | null;
-  usageCount: number;
-}
+export const toFolder = (row: Row<"threadFolders">) =>
+  new ThreadFolder({
+    id: ThreadFolderId.make(row.id),
+    systemKind: null,
+    visibility: row.visibility === "shared" ? "shared" : "private",
+    section: row.section === "captains" ? "captains" : "threads",
+    ownerUserId: UserId.make(row.ownerUserId),
+    name: row.name,
+    position: row.position,
+    hidden: row.hidden,
+    viewerRole:
+      row.ownerUserId === viewer.id
+        ? "owner"
+        : row.memberIds.includes(viewer.id)
+          ? "member"
+          : "none",
+    members: row.memberIds.map(
+      (userId) =>
+        new ThreadFolderMember({
+          userId: UserId.make(userId),
+          createdAt: at(row.updatedAt),
+        }),
+    ),
+    createdAt: at(row.createdAt),
+    updatedAt: at(row.updatedAt),
+  });
 
-export interface TagAssignment {
-  jamId: string;
-  tagId: string;
-}
+export const toFolderItem = (
+  row: Row<"threadFolderItems">,
+  folder: Row<"threadFolders">,
+) => {
+  const projectId = Object.values(world.threads).find(
+    (thread) => thread.id === row.jamId,
+  )?.projectId;
+  return new ThreadFolderItem({
+    folderId: ThreadFolderId.make(row.folderId),
+    jamId: JamId.make(row.jamId),
+    projectId: projectId ? ProjectId.make(projectId) : null,
+    position: row.position,
+    createdAt: at(folder.createdAt),
+    updatedAt: at(folder.updatedAt),
+  });
+};
 
-export const folderDetails: FolderDetail[] = [
-  {
-    id: world.threadFolders[0].id,
-    name: world.threadFolders[0].name,
-    position: world.threadFolders[0].position,
-    access: "org",
-    hidden: false,
-    ownerId: people.alex.id,
-    sharedWith: [people.sam.id, people.priya.id],
-    itemIds: [threads.checkoutTest.id, threads.darkMode.id, threads.bundler.id],
-    createdAt: isoMinutesAgo(14 * 24 * 60),
-  },
-  {
-    id: world.threadFolders[1].id,
-    name: world.threadFolders[1].name,
-    position: world.threadFolders[1].position,
-    access: "members",
-    hidden: false,
-    ownerId: people.priya.id,
-    sharedWith: [people.alex.id],
-    itemIds: [threads.gettingStarted.id, threads.incidents.id],
-    createdAt: isoMinutesAgo(6 * 24 * 60),
-  },
-];
-
-export const tagDetails: TagDetail[] = world.threadTags.map((tag, index) => ({
-  id: tag.id,
-  name: tag.name,
-  color: tag.color,
-  deletedAt: null,
-  usageCount: index + 1,
-}));
-
-export const threadTagAssignments: TagAssignment[] = [
-  { jamId: threads.checkoutTest.id, tagId: world.threadTags[0].id },
-  { jamId: threads.checkoutTest.id, tagId: world.threadTags[2].id },
-  { jamId: threads.darkMode.id, tagId: world.threadTags[0].id },
-  { jamId: threads.paginate.id, tagId: world.threadTags[1].id },
-];
-
-export const pinnedThreads: string[] = [
-  threads.checkoutTest.id,
-  threads.gettingStarted.id,
-];
-
-export const boardColumns: ReadonlyArray<{
-  id: string;
-  name: string;
-  folderIds: ReadonlyArray<string>;
-  position: number;
-}> = [
-  {
-    id: "board_sample_active",
-    name: "Active",
-    folderIds: [world.threadFolders[0].id],
-    position: 0,
-  },
-  {
-    id: "board_sample_research",
-    name: "Research",
-    folderIds: [world.threadFolders[1].id],
-    position: 1,
-  },
-];
+export const toTag = (row: Row<"threadTags">) =>
+  new ThreadTag({
+    id: ThreadTagId.make(row.id),
+    name: row.name,
+    color: row.color as ThreadTagColor,
+    deleted: row.deleted,
+    createdAt: at(row.createdAt),
+    updatedAt: at(row.createdAt),
+  });

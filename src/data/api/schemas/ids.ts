@@ -36,4 +36,47 @@ export const PullRequestId = Schema.String.pipe(
 );
 export type PullRequestId = typeof PullRequestId.Type;
 
+export const IssueId = Schema.String.pipe(Schema.brand("Core.IssueId"));
+export type IssueId = typeof IssueId.Type;
+
+export const IssueCommentId = Schema.String.pipe(
+  Schema.brand("Core.IssueCommentId"),
+);
+export type IssueCommentId = typeof IssueCommentId.Type;
+
+export const IssueEventId = Schema.String.pipe(
+  Schema.brand("Core.IssueEventId"),
+);
+export type IssueEventId = typeof IssueEventId.Type;
+
+export const IssueStateId = Schema.String.pipe(
+  Schema.brand("Core.IssueStateId"),
+);
+export type IssueStateId = typeof IssueStateId.Type;
+
+export const IssueLabelId = Schema.String.pipe(
+  Schema.brand("Core.IssueLabelId"),
+);
+export type IssueLabelId = typeof IssueLabelId.Type;
+
 export const Timestamp = Schema.DateTimeUtcFromString;
+
+export const AutomationId = Schema.String.pipe(
+  Schema.brand("Core.AutomationId"),
+);
+export type AutomationId = typeof AutomationId.Type;
+
+export const VolumeId = Schema.String.check(
+  Schema.isPattern(/^vol_[0-9A-Z]{26}$/u),
+).pipe(Schema.brand("Core.VolumeId"));
+export type VolumeId = typeof VolumeId.Type;
+
+export const VolumeVersionId = Schema.String.check(
+  Schema.isPattern(/^vver_[0-9A-Z]{26}$/u),
+).pipe(Schema.brand("Core.VolumeVersionId"));
+export type VolumeVersionId = typeof VolumeVersionId.Type;
+
+export const DriveShareId = Schema.String.check(
+  Schema.isPattern(/^dsh_[A-Za-z0-9_-]{24}$/u),
+).pipe(Schema.brand("Core.DriveShareId"));
+export type DriveShareId = typeof DriveShareId.Type;

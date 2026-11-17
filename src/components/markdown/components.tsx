@@ -4,13 +4,16 @@ import {
   createContext,
   type ReactNode,
   useContext,
-  useId,
   useMemo,
 } from "react";
-import { MarkdownChip } from "@/components/markdown-chips";
-import { CodeBlock } from "./code-block";
-import { MarkdownGallery, MarkdownVideo } from "./markdown";
+import {
+  chipTransform,
+  MarkdownChipRenderer,
+} from "@/components/markdown-chips";
+import { MarkdownGallery } from "./gallery";
+import { MarkdownMermaid } from "./mermaid";
 import type { MarkdownTreeTransform } from "./pipeline";
+import { MarkdownVideo } from "./video";
 
 export type MarkdownMermaidProps = { text: string; complete: boolean };
 
@@ -29,6 +32,8 @@ export type MarkdownChipRenderProps = {
   /** Set for link chips (anchors a tree transform marked with data-chip). */
   href?: string;
   anchorProps?: ComponentProps<"a">;
+  /** Markdown's interactive prop: false renders the chip as plain text. */
+  interactive?: boolean;
   children?: ReactNode;
 };
 
@@ -53,69 +58,26 @@ export type MarkdownComponents = {
   transforms: readonly MarkdownTreeTransform[];
 };
 
-function DefaultMermaid({ text, complete }: MarkdownMermaidProps) {
-  const key = useId();
-  return (
-    <CodeBlock
-      text={text}
-      language="mermaid"
-      complete={complete}
-      blockKey={key}
-    />
-  );
-}
-
 function DefaultGallery({ children }: { children?: ReactNode }) {
   return <MarkdownGallery>{children}</MarkdownGallery>;
 }
 
-function DefaultVideo(props: ComponentProps<"video">) {
-  return (
-    <MarkdownVideo>
-      <video {...props} />
-    </MarkdownVideo>
-  );
+function DefaultVideo({ src, title }: ComponentProps<"video">) {
+  return <MarkdownVideo src={src} title={title} />;
 }
 
 function DefaultImage(props: ComponentProps<"img">) {
   return <img loading="lazy" {...props} alt={props.alt ?? ""} />;
 }
 
-function DefaultChip({
-  kind,
-  value,
-  label,
-  href,
-  anchorProps,
-  children,
-}: MarkdownChipRenderProps) {
-  if (href !== undefined)
-    return (
-      <a
-        {...anchorProps}
-        href={href}
-        data-chip={kind}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {children}
-      </a>
-    );
-  return (
-    <MarkdownChip data-chip={kind} data-chip-value={value}>
-      {label ?? children}
-    </MarkdownChip>
-  );
-}
-
 export const defaultMarkdownComponents: MarkdownComponents = {
-  mermaid: DefaultMermaid,
+  mermaid: MarkdownMermaid,
   fences: {},
   gallery: DefaultGallery,
   video: DefaultVideo,
   image: DefaultImage,
-  chip: DefaultChip,
-  transforms: [],
+  chip: MarkdownChipRenderer,
+  transforms: [chipTransform],
 };
 
 const MarkdownComponentsContext = createContext<MarkdownComponents>(
