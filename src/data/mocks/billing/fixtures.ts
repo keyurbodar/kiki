@@ -147,6 +147,18 @@ export const invoiceSeed = [
     description: "Single sign-on add-on",
     hostedInvoiceUrl: "https://billing.example.com/invoices/ACME-1040",
   },
+  {
+    id: "in_sample_1043",
+    number: "ACME-1043",
+    planIds: ["credit_pack"],
+    status: "void",
+    amount: 2000,
+    currency: "usd",
+    issuedAt: DateTime.formatIso(minutesAgo(day)),
+    paidAt: null,
+    description: "Credit pack",
+    hostedInvoiceUrl: "https://billing.example.com/invoices/ACME-1043",
+  },
 ];
 
 export const usageSeed = {
@@ -249,6 +261,7 @@ export const threadUsageSeed = [
     projectId: threads.checkoutTest.projectId,
     credits: 2140,
     costCents: 214,
+    dominantRoute: "byok",
   },
   {
     threadId: threads.darkMode.id,
@@ -256,6 +269,7 @@ export const threadUsageSeed = [
     projectId: threads.darkMode.projectId,
     credits: 1860,
     costCents: 186,
+    dominantRoute: "byok",
   },
   {
     threadId: threads.paginate.id,
@@ -263,6 +277,7 @@ export const threadUsageSeed = [
     projectId: threads.paginate.projectId,
     credits: 1420,
     costCents: 142,
+    dominantRoute: "subscription",
   },
   {
     threadId: threads.rateLimit.id,
@@ -270,6 +285,7 @@ export const threadUsageSeed = [
     projectId: threads.rateLimit.projectId,
     credits: 980,
     costCents: 98,
+    dominantRoute: "byok",
   },
   {
     threadId: threads.bundler.id,
@@ -277,5 +293,6 @@ export const threadUsageSeed = [
     projectId: threads.bundler.projectId,
     credits: 760,
     costCents: 76,
+    dominantRoute: "paid",
   },
 ];

@@ -137,6 +137,10 @@ export const routeLabel = (route: string) =>
   ROUTE_SHORT_LABELS[route] ??
   `${route.charAt(0).toUpperCase()}${route.slice(1)}`;
 
+export const routeBadgeLabel = (route: string) =>
+  ROUTE_SHORT_LABELS[route] ??
+  `${route.charAt(0).toUpperCase()}${route.slice(1)}`;
+
 export const dimensionWire = (dimension: UsageQuery["dim"]) =>
   dimension === "routes" || dimension === undefined
     ? "route"

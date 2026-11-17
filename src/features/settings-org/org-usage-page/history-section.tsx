@@ -2,6 +2,7 @@ import { useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useMemo, useState } from "react";
+import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import type { UsageScope } from "./data";
 import { decodeUsageThreadPage, usageThreadsAtom } from "./data";
@@ -15,7 +16,7 @@ import {
   GridTable,
   LoadingRows,
 } from "./grid-table";
-import { col, formatCredits, loadResult } from "./model";
+import { col, formatCredits, loadResult, routeBadgeLabel } from "./model";
 import type { Principal } from "./types";
 
 const day = (value: string) => (value === "" ? "—" : value.slice(0, 10));
@@ -91,8 +92,19 @@ export function HistorySection({
             </GridCell>
             {order === "created" && <GridCell>{day(item.createdAt)}</GridCell>}
             <GridCell>{day(item.lastActivityAt)}</GridCell>
-            <GridCell align="end" className="font-medium text-foreground">
-              {formatCredits(item.totalCredits)}
+            <GridCell align="end" className="gap-2 tabular-nums">
+              {item.dominantRoute !== "paid" && (
+                <Badge size="xs">{routeBadgeLabel(item.dominantRoute)}</Badge>
+              )}
+              <span
+                className={
+                  item.dominantRoute === "paid"
+                    ? "font-medium text-foreground"
+                    : "text-muted-foreground-2"
+                }
+              >
+                {formatCredits(item.totalCredits)}
+              </span>
             </GridCell>
           </GridRow>
         ))}
