@@ -14,6 +14,11 @@ import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { Instabox, InstaboxError, instaboxKey } from "./instabox";
+import {
+  classifyReference,
+  isUnverifiable,
+  NO_REFERENCE_PNG,
+} from "./reference";
 import type { Job, JobResult, Shard } from "./runner";
 import { runShard } from "./runner";
 import {
@@ -135,7 +140,10 @@ const doopDir = HAS_DRIVE
   ? join(DRIVE, "renders/verify/_doop")
   : join(CACHE, "doop");
 
-async function fetchFrames(targets: Target[]): Promise<Map<string, string>> {
+async function fetchFrames(
+  targets: Target[],
+  missing: Set<string>,
+): Promise<Map<string, string>> {
   const wanted = targets.filter((t) => t.frame);
   const paths = new Map<string, string>();
   if (!wanted.length) return paths;
@@ -160,8 +168,18 @@ async function fetchFrames(targets: Target[]): Promise<Map<string, string>> {
       if (existsSync(file)) return;
       const [id, scale] = key.split("@");
       const res = await fetch(`https://doop.design/i/${id}.png?scale=${scale}`);
-      if (!res.ok) throw new Error(`doop frame ${id}: ${res.status}`);
-      writeFileSync(file, new Uint8Array(await res.arrayBuffer()));
+      const ref = classifyReference(
+        res.status,
+        new Uint8Array(await res.arrayBuffer()),
+      );
+      if (ref.status === "error")
+        throw new Error(`doop frame ${id}: ${ref.message}`);
+      if (ref.status === "unverified") {
+        missing.add(id);
+        log(`doop frame ${id}: ${ref.reason}, pixel diff skipped`);
+        return;
+      }
+      writeFileSync(file, ref.bytes);
     }),
   );
   return paths;
@@ -273,9 +291,9 @@ async function runOnVm(
     stat.prepMs = Date.now() - t1;
     const t2 = Date.now();
     const jobs = targets.map((t) => {
-      const local = t.frame
-        ? frames.get(`${t.frame}@${t.viewport?.scale ?? 1}`)
-        : undefined;
+      const local = isUnverifiable(t, frames)
+        ? undefined
+        : frames.get(`${t.frame}@${t.viewport?.scale ?? 1}`);
       return toJob(
         t,
         local ? `/data/kv/doop/${local.split("/").pop()}` : undefined,
@@ -285,9 +303,9 @@ async function runOnVm(
       ["/data/kv/runner.ts", readFileSync(join(HERE, "runner.ts"))],
     ]);
     for (const t of targets) {
-      const local = t.frame
-        ? frames.get(`${t.frame}@${t.viewport?.scale ?? 1}`)
-        : undefined;
+      const local = isUnverifiable(t, frames)
+        ? undefined
+        : frames.get(`${t.frame}@${t.viewport?.scale ?? 1}`);
       if (local)
         uploads.set(
           `/data/kv/doop/${local.split("/").pop()}`,
@@ -421,15 +439,21 @@ async function runLocal(
     jobs: targets.map((t) =>
       toJob(
         t,
-        t.frame
-          ? frames.get(`${t.frame}@${t.viewport?.scale ?? 1}`)
-          : undefined,
+        isUnverifiable(t, frames)
+          ? undefined
+          : frames.get(`${t.frame}@${t.viewport?.scale ?? 1}`),
       ),
     ),
   });
 }
 
-type Row = Target & JobResult & { pass: boolean; host: string };
+type Row = Target &
+  JobResult & {
+    pass: boolean;
+    host: string;
+    status?: "pass" | "fail" | "error" | "unverified";
+    reason?: string;
+  };
 
 function writeReports(
   outDir: string,
@@ -443,11 +467,12 @@ function writeReports(
   );
   const pct = (n?: number) =>
     n === undefined || Number.isNaN(n) ? "–" : `${n.toFixed(2)}%`;
-  const passed = rows.filter((r) => r.pass).length;
+  const passed = rows.filter((r) => r.status === "pass").length;
+  const unverified = rows.filter((r) => r.status === "unverified").length;
   const lines = [
     `# kiki-verify ${meta.ref} (${String(meta.sha).slice(0, 12)})`,
     "",
-    `**${passed}/${rows.length} passed** in ${secs(Number(meta.durationMs))} on ${meta.hosts}. Pixel compare against Doop canvas ${CANVAS}; pass means mismatch ≤ the target's threshold and every expected style matches.`,
+    `**${passed}/${rows.length} passed**${unverified ? `, ${unverified} unverified (${NO_REFERENCE_PNG})` : ""} in ${secs(Number(meta.durationMs))} on ${meta.hosts}. Pixel compare against Doop canvas ${CANVAS}; pass means mismatch ≤ the target's threshold and every expected style matches. Unverified means Doop had no reference PNG for the frame, so only the style checks ran.`,
     "",
     "| target | route | theme | viewport | mismatch | styles | result | host |",
     "| --- | --- | --- | --- | --- | --- | --- | --- |",
@@ -458,13 +483,27 @@ function writeReports(
       const vp = r.viewport
         ? `${r.viewport.width}×${r.viewport.height}${r.viewport.scale ? `@${r.viewport.scale}` : ""}`
         : "";
-      const res = r.error ? "error" : r.pass ? "pass" : "fail";
-      return `| [${r.id}](targets/${r.id}/shot.png) | \`${r.route}\` | ${r.theme}/${r.scheme} | ${vp} | ${r.frame ? `${pct(r.mismatchPct)} (≤${r.maxMismatch}%)` : "no frame"} | ${styles} | ${res} | ${r.host} |`;
+      const res =
+        r.status === "unverified"
+          ? `unverified (${r.reason})`
+          : (r.status ?? "");
+      const mismatch =
+        r.status === "unverified"
+          ? NO_REFERENCE_PNG
+          : r.frame
+            ? `${pct(r.mismatchPct)} (≤${r.maxMismatch}%)`
+            : "no frame";
+      return `| [${r.id}](targets/${r.id}/shot.png) | \`${r.route}\` | ${r.theme}/${r.scheme} | ${vp} | ${mismatch} | ${styles} | ${res} | ${r.host} |`;
     }),
     "",
   ];
-  for (const r of rows.filter((x) => !x.pass)) {
+  for (const r of rows.filter((x) => x.status !== "pass")) {
     lines.push(`## ${r.id}`, "");
+    if (r.status === "unverified")
+      lines.push(
+        `Unverified: ${r.reason} for Doop frame \`${r.frame}\`; the pixel diff was skipped and this target counts as neither pass nor fail. Style checks ${r.checks.filter((c) => c.pass).length}/${r.checks.length} passed${r.files.a11y ? `, a11y snapshot at [targets/${r.files.a11y}](targets/${r.files.a11y})` : ""}.`,
+        "",
+      );
     if (r.error)
       lines.push(
         `Error: \`${r.error.replace(/\s+/g, " ").slice(0, 400)}\``,
@@ -511,7 +550,8 @@ async function verify() {
   const targets = (opt.targets as string[]).flatMap((f) =>
     expandTargets(JSON.parse(readFileSync(f, "utf8")) as TargetsFile, base),
   );
-  const frames = await fetchFrames(targets);
+  const missingFrames = new Set<string>();
+  const frames = await fetchFrames(targets, missingFrames);
   const mode = targets.some((t) => t.route.startsWith("/__"))
     ? "development"
     : "production";
@@ -608,15 +648,29 @@ async function verify() {
       durationMs: 0,
       host: "?",
     };
+    const unverified = isUnverifiable(t, frames);
     const pixelsOk =
+      unverified ||
       !t.frame ||
       (r.mismatchPct !== undefined &&
         !r.dimensionMismatch &&
         r.mismatchPct <= t.maxMismatch);
+    const checksOk = r.checks.every((c) => c.pass);
+    const status: Row["status"] = r.error
+      ? "error"
+      : unverified
+        ? checksOk
+          ? "unverified"
+          : "fail"
+        : pixelsOk && checksOk
+          ? "pass"
+          : "fail";
     return {
       ...t,
       ...r,
-      pass: !r.error && pixelsOk && r.checks.every((c) => c.pass),
+      pass: status === "pass",
+      status,
+      reason: unverified ? NO_REFERENCE_PNG : undefined,
     };
   });
   const hosts = [
@@ -640,17 +694,20 @@ async function verify() {
     vms,
     summary: {
       total: rows.length,
-      passed: rows.filter((r) => r.pass).length,
-      failed: rows.filter((r) => !r.pass && !r.error).length,
-      errored: rows.filter((r) => r.error).length,
+      passed: rows.filter((r) => r.status === "pass").length,
+      failed: rows.filter((r) => r.status === "fail").length,
+      errored: rows.filter((r) => r.status === "error").length,
+      unverified: rows.filter((r) => r.status === "unverified").length,
     },
   };
   writeReports(outDir, meta, rows, frames);
+  const { passed, failed, errored, unverified } = meta.summary;
   log(
-    `${meta.summary.passed}/${rows.length} passed in ${secs(meta.durationMs)} (${hosts}); report: ${join(outDir, "report.md")}`,
+    `${passed}/${rows.length} passed, ${unverified} unverified${unverified ? ` (${NO_REFERENCE_PNG})` : ""}, ${failed} failed, ${errored} errored in ${secs(meta.durationMs)} (${hosts}); report: ${join(outDir, "report.md")}`,
   );
+  const clean = failed === 0 && errored === 0;
   if (opt.status) {
-    const state = meta.summary.passed === rows.length ? "success" : "failure";
+    const state = clean ? "success" : "failure";
     sh("gh", [
       "api",
       "-X",
@@ -661,11 +718,11 @@ async function verify() {
       "-f",
       "context=verify",
       "-f",
-      `description=${meta.summary.passed}/${rows.length} targets passed (kiki-verify)`,
+      `description=${passed}/${rows.length} passed${unverified ? `, ${unverified} unverified (no reference PNG)` : ""} (kiki-verify)`,
     ]);
     log(`posted commit status verify=${state}`);
   }
-  process.exitCode = meta.summary.passed === rows.length ? 0 : 1;
+  process.exitCode = clean ? 0 : 1;
 }
 
 async function buildSnapshot() {
