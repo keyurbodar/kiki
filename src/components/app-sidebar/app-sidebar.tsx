@@ -217,7 +217,7 @@ export function AppSidebar({
 
   const footer = (
     <footer className="flex shrink-0 items-center gap-1 border-t-hairline border-border-1 p-2">
-      <UserMenu />
+      <UserMenu compact />
       <nav
         ref={barRef}
         aria-label="Main"
