@@ -30,7 +30,7 @@ import {
   ViewToolbarIconButton,
   viewToolbarIconButtonClassName,
 } from "@/components/view-toolbar";
-import type { OrgId } from "@/data/api/schemas/ids";
+import type { JamId, OrgId, ThreadFolderId } from "@/data/api/schemas/ids";
 import type { ThreadCard } from "@/data/api/schemas/thread";
 import { captainsAtom } from "@/data/atoms/captains";
 import { reactivityKeys } from "@/data/atoms/conventions";
@@ -805,8 +805,8 @@ function ThreadsPageLoaded({
   const viewerId = AsyncResult.isSuccess(user) ? user.value.id : undefined;
   const filed = AsyncResult.isSuccess(foldersResult)
     ? foldersResult.value.map((section) => ({
-        id: section.folder.id,
-        name: section.folder.name,
+        id: section.folder.id as unknown as string,
+        name: section.folder.name ?? "Untitled folder",
         members: section.items.map(toListItem),
       }))
     : [];
@@ -848,12 +848,13 @@ function ThreadsPageLoaded({
       viewerId={viewerId}
       loading={AsyncResult.isInitial(list) || list.waiting}
       failed={AsyncResult.isFailure(list)}
+      onRetry={retry}
       folders={filed}
       folderSections={folderSections}
       onMoveThreads={(ids, folderId) =>
         moveToFolder({
-          params: { orgId, folderId },
-          payload: { jamIds: [...ids] },
+          params: { orgId, folderId: folderId as unknown as ThreadFolderId },
+          payload: { jamIds: ids.map((id) => id as unknown as JamId) },
           reactivityKeys: threadOrganizationKeys(orgId),
         }).then(
           () => toast.success("Moved to folder"),
@@ -863,7 +864,7 @@ function ThreadsPageLoaded({
       onArchive={(ids, archived) =>
         (archived ? archive : unarchive)({
           params: { orgId },
-          payload: { jamIds: [...ids] },
+          payload: { jamIds: ids.map((id) => id as unknown as JamId) },
           reactivityKeys: [
             reactivityKeys.threads(orgId),
             reactivityKeys.threadOrganization(orgId),
@@ -875,7 +876,7 @@ function ThreadsPageLoaded({
       }
       onRename={(id, title) =>
         renameThread({
-          params: { orgId, jamId: id },
+          params: { orgId, jamId: id as unknown as JamId },
           payload: { title },
           reactivityKeys: [reactivityKeys.threads(orgId)],
         }).then(

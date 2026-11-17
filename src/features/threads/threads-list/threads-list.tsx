@@ -110,13 +110,13 @@ export function ThreadRow({
   onRename,
   icons,
 }: ThreadRowProps) {
+  const title = thread.title ?? "Untitled thread";
   const [renaming, setRenaming] = useState(false);
   const [draft, setDraft] = useState(title);
-  const dragStart = (event: DragEvent<HTMLDivElement>) => {
+  const dragStart = (event: DragEvent<HTMLAnchorElement>) => {
     event.dataTransfer.setData("text/x-kiki-thread", thread.id);
     event.dataTransfer.effectAllowed = "move";
   };
-  const title = thread.title ?? "Untitled thread";
   const project =
     thread.projectId === null ? undefined : projects.get(thread.projectId);
   const model =
@@ -268,7 +268,7 @@ export function ThreadRow({
         >
           <input
             aria-label="Thread title"
-            autoFocus
+            ref={(node) => node?.focus()}
             value={draft}
             onChange={(event) => setDraft(event.currentTarget.value)}
             onKeyDown={(event) => {
@@ -352,6 +352,8 @@ export function ThreadsList({
             <section
               key={section.id}
               data-section={section.id}
+              role="group"
+              aria-label={section.label}
               className={cx("relative flow-root", index > 0 && "mt-1")}
               onDragOver={(event) => {
                 if (onDropOnSection !== undefined) event.preventDefault();
