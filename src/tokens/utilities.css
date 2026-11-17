@@ -61,7 +61,7 @@
     black calc(100% - var(--mask-fade-ramp, var(--mask-fade-ramp-default))),
     transparent 100%
   );
-  @media (width >= 768px) {
+  @variant md {
     @supports (animation-timeline: scroll()) {
       mask-image: linear-gradient(
         to right,
