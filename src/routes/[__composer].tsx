@@ -106,7 +106,7 @@ function ComposerHarness() {
   const { mode } = Route.useSearch();
   useLayoutEffect(() => applyColorMode(mode), [mode]);
   return (
-    <div className="flex min-h-dvh items-start justify-center bg-background p-(--spacing-page-padding) font-sans text-foreground">
+    <div className="flex min-h-dvh w-full items-start justify-center bg-background p-(--spacing-page-padding) font-sans text-foreground">
       <div className="w-full max-w-(--container-3xl)" data-harness="composer">
         <Composer
           sources={sources}
