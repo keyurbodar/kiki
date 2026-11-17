@@ -28,7 +28,7 @@ export type ModelEntry = {
   pro: boolean;
   ultrafast?: boolean;
   daybreak?: "red" | "blue";
-  limits: { context: number; output?: number };
+  limits?: { context: number; output?: number };
   pricing?: { input: number; output: number; cacheRead?: number };
   route?: ModelRoute;
   ads?: boolean;
@@ -385,13 +385,28 @@ const rows = (data: unknown): ReadonlyArray<unknown> => {
   return Array.isArray(models) ? models : [];
 };
 
-/** `/models` answers either the bare catalog or an envelope with its credentials. */
+const isEntry = (item: unknown): item is ModelEntry =>
+  typeof item === "object" &&
+  item !== null &&
+  typeof (item as ModelEntry).id === "string" &&
+  (typeof (item as ModelEntry).name === "string" ||
+    typeof (item as { label?: unknown }).label === "string");
+
+/**
+ * `/models` answers either the bare catalog or an envelope with its
+ * credentials, and a catalog row may be as thin as an id, a label and a
+ * provider, so the rest fills in with what Capy's picker can live without.
+ */
 export const parseEntries = (data: unknown): ReadonlyArray<ModelEntry> =>
-  rows(data).filter(
-    (item): item is ModelEntry =>
-      typeof item === "object" &&
-      item !== null &&
-      typeof (item as ModelEntry).id === "string" &&
-      typeof (item as ModelEntry).name === "string" &&
-      Array.isArray((item as ModelEntry).efforts),
-  );
+  rows(data)
+    .filter(isEntry)
+    .map((item) => {
+      const entry = item as ModelEntry & { label?: string };
+      return {
+        ...entry,
+        name: entry.name ?? entry.label ?? modelSlug(entry.id),
+        efforts: Array.isArray(entry.efforts) ? entry.efforts : [],
+        fast: entry.fast === true,
+        pro: entry.pro === true,
+      };
+    });
