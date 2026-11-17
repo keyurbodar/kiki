@@ -172,6 +172,7 @@ export const groupIds = [
   "plugins",
   "projects",
   "promotions",
+  "pullGuides",
   "pulls",
   "push",
   "referrals",
