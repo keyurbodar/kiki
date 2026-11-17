@@ -9,12 +9,18 @@ export function InputSpecimen() {
       ))}
       <Input defaultValue="Filled value" />
       <Input variant="ghost" defaultValue="Ghost title" />
+      <Input variant="ghost" placeholder="Ghost placeholder" />
       <Input variant="blank" placeholder="Blank" />
       <Input font="mono" defaultValue="sk-live-1234" />
       <Input font="numeric" defaultValue="1234.50" />
       <Input aria-invalid defaultValue="Invalid" />
       <Input disabled placeholder="Disabled" />
       <Input icon={<Icon name="search-menu" />} placeholder="Search" />
+      <Input
+        size="xs"
+        icon={<Icon name="search-menu" />}
+        placeholder="Search xs"
+      />
       <Input
         size="sm"
         icon={<Icon name="search-menu" />}
