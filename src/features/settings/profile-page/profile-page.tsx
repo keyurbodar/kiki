@@ -151,28 +151,12 @@ export function ProfilePage({
               label="User ID"
               description="For support and API requests"
             >
-              <CopyField className="relative flex min-w-0 w-56">
-                <Input
-                  size="sm"
-                  readOnly
-                  aria-label="user ID"
-                  spellCheck={false}
-                  autoComplete="off"
-                  value={account.id}
-                />
-                <span className="absolute inset-y-0 flex items-center right-0.5">
-                  <Button
-                    variant="ghost"
-                    size="icon-xs"
-                    aria-label="Copy user ID"
-                    onClick={() =>
-                      void navigator.clipboard
-                        ?.writeText(account.id)
-                        .then(() => toast.success("Copied"))
-                    }
-                  />
-                </span>
-              </CopyField>
+              <CopyField
+                size="sm"
+                value={account.id}
+                label="user ID"
+                className="relative flex min-w-0 w-56"
+              />
             </SettingsRow>
           </Card>
         </SettingsSection>

@@ -2,13 +2,11 @@
 /** biome-ignore-all lint/a11y/noNoninteractiveTabindex: the grid rows and cells are static */
 /** biome-ignore-all lint/a11y/useFocusableInteractive: rows and cells are not interactive */
 import { type CSSProperties, useState } from "react";
-import { toast } from "sonner";
 import { ReferralInviteDialog } from "@/components/referral-invite-dialog";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { CopyField } from "@/primitives/copy-field";
-import { Input } from "@/primitives/input";
 import { SettingsRow } from "@/primitives/settings-row";
 import {
   kickbackProgress,
@@ -60,26 +58,12 @@ export function ReferralsPage({
               }
             >
               {summary.eligible ? (
-                <CopyField className="relative flex min-w-0 w-72">
-                  <Input
-                    size="sm"
-                    readOnly
-                    aria-label="referral link"
-                    value={link}
-                  />
-                  <span className="absolute inset-y-0 flex items-center right-0.5">
-                    <Button
-                      variant="ghost"
-                      size="icon-xs"
-                      aria-label="Copy referral link"
-                      onClick={() =>
-                        void navigator.clipboard
-                          ?.writeText(link)
-                          .then(() => toast.success("Copied"))
-                      }
-                    />
-                  </span>
-                </CopyField>
+                <CopyField
+                  size="sm"
+                  value={link}
+                  label="referral link"
+                  className="relative flex min-w-0 w-72"
+                />
               ) : null}
             </SettingsRow>
             <SettingsRow
