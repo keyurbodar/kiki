@@ -12,25 +12,45 @@ describe("projectCountLabel", () => {
 describe("shouldOpenInvitations", () => {
   it("opens once organizations load", () => {
     expect(
-      shouldOpenInvitations({ organizations: [{}], failed: false, waiting: false }),
+      shouldOpenInvitations({
+        organizations: [{}],
+        failed: false,
+        waiting: false,
+      }),
     ).toBe(true);
   });
 
   it("stays closed with no organizations or while refreshing", () => {
     expect(
-      shouldOpenInvitations({ organizations: [], failed: false, waiting: false }),
+      shouldOpenInvitations({
+        organizations: [],
+        failed: false,
+        waiting: false,
+      }),
     ).toBe(false);
     expect(
-      shouldOpenInvitations({ organizations: [{}], failed: false, waiting: true }),
+      shouldOpenInvitations({
+        organizations: [{}],
+        failed: false,
+        waiting: true,
+      }),
     ).toBe(false);
     expect(
-      shouldOpenInvitations({ organizations: undefined, failed: false, waiting: true }),
+      shouldOpenInvitations({
+        organizations: undefined,
+        failed: false,
+        waiting: true,
+      }),
     ).toBe(false);
   });
 
   it("opens when the organization list failed to load", () => {
     expect(
-      shouldOpenInvitations({ organizations: undefined, failed: true, waiting: false }),
+      shouldOpenInvitations({
+        organizations: undefined,
+        failed: true,
+        waiting: false,
+      }),
     ).toBe(true);
   });
 });

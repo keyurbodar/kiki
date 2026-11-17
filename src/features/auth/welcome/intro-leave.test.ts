@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { leavingHref, parseCssDuration } from "./intro-leave";
 
-const click = (target: EventTarget | null, keys: Partial<Record<"metaKey" | "ctrlKey" | "shiftKey", boolean>> = {}) => ({
+const click = (
+  target: EventTarget | null,
+  keys: Partial<Record<"metaKey" | "ctrlKey" | "shiftKey", boolean>> = {},
+) => ({
   target,
   metaKey: false,
   ctrlKey: false,

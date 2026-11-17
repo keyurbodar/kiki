@@ -71,6 +71,6 @@ export const OrganizationsMock = mockGroup("organizations", (handlers) =>
             : "Workspace";
         return Effect.succeed({ id: "org_sample_new", name });
       })
-      .handle("setSharing", ({ payload }) => Effect.succeed(payload)),;
+      .handle("setSharing", ({ payload }) => Effect.succeed(payload));
   }),
 );

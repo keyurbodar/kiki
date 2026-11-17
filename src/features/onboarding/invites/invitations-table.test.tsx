@@ -6,7 +6,10 @@ import {
   JoinableOrganization,
   MyInvitation,
 } from "@/data/api/schemas/invitation";
-import { InvitationsTable, type InvitationsTableProps } from "./invitations-table";
+import {
+  InvitationsTable,
+  type InvitationsTableProps,
+} from "./invitations-table";
 
 afterEach(cleanup);
 
@@ -45,8 +48,12 @@ describe("InvitationsTable", () => {
     const onAccept = vi.fn();
     const onJoin = vi.fn();
     renderTable({ onAccept, onJoin });
-    expect(screen.getByText("Robin Park invited you · 2 projects")).toBeTruthy();
-    expect(screen.getByText("Available through your email domain")).toBeTruthy();
+    expect(
+      screen.getByText("Robin Park invited you · 2 projects"),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("Available through your email domain"),
+    ).toBeTruthy();
     expect(screen.getByText("no projects yet")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Accept" }));
     fireEvent.click(screen.getByRole("button", { name: "Join" }));
@@ -57,7 +64,9 @@ describe("InvitationsTable", () => {
   it("shows the empty state and hides an empty domain section", () => {
     renderTable({ invitations: [], organizations: [] });
     expect(screen.getByText("No pending invitations")).toBeTruthy();
-    expect(screen.queryByText("Available through your email domain")).toBeNull();
+    expect(
+      screen.queryByText("Available through your email domain"),
+    ).toBeNull();
   });
 
   it("offers a retry when loading fails", () => {
@@ -70,7 +79,9 @@ describe("InvitationsTable", () => {
       onRetry,
     });
     expect(screen.getByText("Could not load your invitations")).toBeTruthy();
-    expect(screen.getByText("Could not load organizations to join")).toBeTruthy();
+    expect(
+      screen.getByText("Could not load organizations to join"),
+    ).toBeTruthy();
     for (const button of screen.getAllByRole("button", { name: "Try again" })) {
       fireEvent.click(button);
     }
