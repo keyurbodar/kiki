@@ -6,9 +6,12 @@ import {
   JamId,
   ProjectId,
   PullRequestId,
+  ThreadFolderId,
   ThreadTagId,
   Timestamp,
+  UserId,
 } from "./ids.ts";
+import { ModelSelection } from "./organization.ts";
 
 export const ThreadStatus = Schema.Literals([
   "working",
@@ -118,4 +121,138 @@ export class ThreadCardPage extends Schema.Class<ThreadCardPage>(
 )({
   items: Schema.Array(ThreadCard),
   cursor: Schema.NullOr(Schema.String),
+}) {}
+
+export const ThreadPullState = Schema.Literals([
+  "ready",
+  "pending",
+  "failed",
+  "draft",
+  "merged",
+  "closed",
+  "none",
+]).annotate({ identifier: "ThreadPullState" });
+
+export const ThreadRunStatus = Schema.Literals([
+  "working",
+  "waiting",
+  "idle",
+  "done",
+  "failed",
+]);
+
+export const ThreadJoinPolicy = Schema.Literals(["anyone", "invite"]);
+
+export const ThreadViewerRole = Schema.Literals(["owner", "member", "none"]);
+
+export const ThreadTodo = Schema.Struct({
+  content: Schema.String,
+  status: Schema.Literals([
+    "pending",
+    "in_progress",
+    "completed",
+    "cancelled",
+    "deferred",
+  ]),
+});
+
+export class JamSlackLink extends Schema.Class<JamSlackLink>("JamSlackLink")({
+  active: Schema.Boolean,
+  channelId: Schema.String,
+  threadTs: Schema.String,
+  url: Schema.String,
+}) {}
+
+export class ThreadMember extends Schema.Class<ThreadMember>("ThreadMember")({
+  userId: ActorId,
+  invitedBy: Schema.NullOr(UserId),
+  joinedAt: Timestamp,
+  subscribed: Schema.Boolean.pipe(withDefault(true)),
+}) {}
+
+export class ThreadMembership extends Schema.Class<ThreadMembership>(
+  "ThreadMembership",
+)({
+  joinPolicy: ThreadJoinPolicy,
+  members: Schema.Array(ThreadMember),
+  viewerRole: ThreadViewerRole,
+  viewerSubscribed: Schema.Boolean.pipe(withDefault(false)),
+}) {}
+
+export const ViewerRequest = Schema.Struct({
+  key: Schema.String,
+  dismissed: Schema.Boolean,
+}).annotate({ identifier: "ViewerRequest" });
+
+export class JamDetail extends Schema.Class<JamDetail>("JamDetail")({
+  ...ThreadCard.fields,
+  parentJamId: Schema.NullOr(JamId),
+  inheritedThroughEventId: Schema.NullOr(EventId),
+  runStatus: ThreadRunStatus,
+  wakePendingAt: Schema.NullOr(Timestamp).pipe(withDefault(null)),
+  todos: Schema.Array(ThreadTodo),
+  model: Schema.NullOr(ModelSelection),
+  servedModel: Schema.NullOr(ModelSelection),
+  servedModelEventId: Schema.NullOr(EventId),
+  lastReadEventId: Schema.NullOr(EventId),
+  slack: Schema.NullOr(JamSlackLink),
+  membership: ThreadMembership,
+  creditsContinue: Schema.optional(Schema.Boolean),
+  requests: Schema.Array(ViewerRequest).pipe(withDefault([])),
+}) {}
+
+export class FolderCount extends Schema.Class<FolderCount>("FolderCount")({
+  folderId: ThreadFolderId,
+  count: Schema.Int,
+}) {}
+
+export class ThreadCounts extends Schema.Class<ThreadCounts>("ThreadCounts")({
+  pinned: Schema.Int,
+  folders: Schema.Array(FolderCount),
+}) {}
+
+export const JamBatchRequest = Schema.Struct({
+  jamIds: Schema.Array(JamId),
+}).annotate({ identifier: "JamBatchRequest" });
+
+export const JamOutcome = Schema.Literals(["ok", "not_found"]).annotate({
+  identifier: "JamOutcome",
+});
+
+export class JamBatchResult extends Schema.Class<JamBatchResult>(
+  "JamBatchResult",
+)({
+  outcomes: Schema.Array(Schema.Struct({ jamId: JamId, outcome: JamOutcome })),
+}) {}
+
+export const PausedAutomation = Schema.Struct({
+  id: Schema.String,
+  name: Schema.String,
+}).annotate({ identifier: "PausedAutomation" });
+
+export class JamArchiveResult extends Schema.Class<JamArchiveResult>(
+  "JamArchiveResult",
+)({
+  outcomes: Schema.Array(
+    Schema.Struct({
+      jamId: JamId,
+      outcome: JamOutcome,
+      automation: Schema.optional(PausedAutomation),
+    }),
+  ),
+}) {}
+
+export const RenameJamRequest = Schema.Struct({
+  title: Schema.NullOr(Schema.String),
+}).annotate({ identifier: "RenameJamRequest" });
+
+export class ThreadCollectionCard extends Schema.Class<ThreadCollectionCard>(
+  "ThreadCollectionCard",
+)({
+  ...ThreadCard.fields,
+  pulls: Schema.Array(PullRequestChip).check(Schema.isMaxLength(5)),
+  pullCount: Schema.Int,
+  pullStates: Schema.Array(
+    Schema.Struct({ state: PullState, count: Schema.Int }),
+  ),
 }) {}
