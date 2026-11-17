@@ -2,9 +2,11 @@ import { ScrollArea as BaseScrollArea } from "@base-ui/react/scroll-area";
 import { cx } from "class-variance-authority";
 import {
   type ComponentProps,
+  createContext,
   type ReactNode,
   type Ref,
   useCallback,
+  useContext,
   useEffect,
   useRef,
   useSyncExternalStore,
@@ -36,6 +38,13 @@ const setRef = <T,>(ref: Ref<T> | undefined, node: T | null) => {
   else if (ref !== null && ref !== undefined)
     (ref as { current: T | null }).current = node;
 };
+
+/**
+ * Set by ScrollArea on its native branch. Base UI's scroll area parts need a
+ * Root above them, so a viewport a screen nests inside ScrollArea has to fall
+ * back to a plain element once the custom scrollbar is gone.
+ */
+const NativeViewport = createContext(false);
 
 const viewportBase =
   "size-full overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
@@ -144,22 +153,24 @@ export function ScrollArea({
 
   if (narrow)
     return (
-      <div
-        ref={root}
-        data-slot="scroll-area"
-        data-scroll-restoration-ignore={retainScroll ? "" : undefined}
-        className={cx("relative min-h-0", className)}
-      >
+      <NativeViewport.Provider value>
         <div
-          ref={bindViewport}
-          data-slot="scroll-area-viewport"
-          data-scroll-restoration-id={scrollRestorationId}
-          className={cx(viewportBase, "overflow-auto", viewportClassName)}
+          ref={root}
+          data-slot="scroll-area"
+          data-scroll-restoration-ignore={retainScroll ? "" : undefined}
+          className={cx("relative min-h-0", className)}
         >
-          {children}
+          <div
+            ref={bindViewport}
+            data-slot="scroll-area-viewport"
+            data-scroll-restoration-id={scrollRestorationId}
+            className={cx(viewportBase, "overflow-auto", viewportClassName)}
+          >
+            {children}
+          </div>
+          {caps}
         </div>
-        {caps}
-      </div>
+      </NativeViewport.Provider>
     );
 
   return (
@@ -193,6 +204,15 @@ export function ScrollAreaViewport({
   className,
   ...props
 }: ScrollAreaViewportProps) {
+  const native = useContext(NativeViewport);
+  if (native)
+    return (
+      <div
+        data-slot="scroll-area-viewport"
+        className={cx(viewportBase, className)}
+        {...(props as ComponentProps<"div">)}
+      />
+    );
   return (
     <BaseScrollArea.Viewport
       data-slot="scroll-area-viewport"

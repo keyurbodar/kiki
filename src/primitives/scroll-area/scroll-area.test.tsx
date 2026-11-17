@@ -1,6 +1,6 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ScrollArea } from ".";
+import { ScrollArea, ScrollAreaViewport } from ".";
 
 afterEach(() => {
   cleanup();
@@ -105,6 +105,23 @@ describe("ScrollArea", () => {
       expect(root.hasAttribute("data-scroll-end")).toBe(true);
     });
     expect(root.hasAttribute("data-scroll-start")).toBe(false);
+  });
+
+  it("falls back to a plain nested viewport below md", () => {
+    stubNarrow(true);
+    const { container } = render(
+      <ScrollArea>
+        <ScrollAreaViewport className="size-full">
+          <p>Row</p>
+        </ScrollAreaViewport>
+      </ScrollArea>,
+    );
+    const viewports = container.querySelectorAll(
+      "[data-slot=scroll-area-viewport]",
+    );
+    expect(viewports).toHaveLength(2);
+    for (const viewport of viewports)
+      expect(viewport.hasAttribute("data-id")).toBe(false);
   });
 
   it("leaves the desktop viewport to Base UI", () => {
