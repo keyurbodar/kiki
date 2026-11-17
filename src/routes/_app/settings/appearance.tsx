@@ -1,10 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { AppearancePage } from "@/features/settings-appearance/appearance-page";
 
 export const Route = createFileRoute("/_app/settings/appearance")({
-  component: RouteComponent,
+  component: AppearancePage,
 });
-
-function RouteComponent() {
-  return <RoutePlaceholder title="General" path="/settings/appearance" />;
-}

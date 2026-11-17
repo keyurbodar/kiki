@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as Char91__captainDialogChar93RouteImport } from './routes/[__captain-dialog]'
+import { Route as Char91__composerChar93RouteImport } from './routes/[__composer]'
 import { Route as Char91__composerFooterChar93RouteImport } from './routes/[__composer-footer]'
 import { Route as Char91__tokensChar93RouteImport } from './routes/[__tokens]'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
@@ -178,6 +179,11 @@ const Char91__captainDialogChar93Route =
     path: '/__captain-dialog',
     getParentRoute: () => rootRouteImport,
   } as any)
+const Char91__composerChar93Route = Char91__composerChar93RouteImport.update({
+  id: '/__composer',
+  path: '/__composer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char91__composerFooterChar93Route =
   Char91__composerFooterChar93RouteImport.update({
     id: '/__composer-footer',
@@ -1058,6 +1064,7 @@ const AppSettingsProjectsProjectIdDevEnvironmentRepositoriesOwnerRepoRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/__captain-dialog': typeof Char91__captainDialogChar93Route
+  '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
@@ -1220,6 +1227,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/__captain-dialog': typeof Char91__captainDialogChar93Route
+  '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
@@ -1382,6 +1390,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteRouteWithChildren
   '/_auth': typeof AuthRouteRouteWithChildren
   '/__captain-dialog': typeof Char91__captainDialogChar93Route
+  '/__composer': typeof Char91__composerChar93Route
   '/__composer-footer': typeof Char91__composerFooterChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/design': typeof DesignRoute
@@ -1547,6 +1556,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/__captain-dialog'
+    | '/__composer'
     | '/__composer-footer'
     | '/__tokens'
     | '/design'
@@ -1709,6 +1719,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/__captain-dialog'
+    | '/__composer'
     | '/__composer-footer'
     | '/__tokens'
     | '/design'
@@ -1870,6 +1881,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_auth'
     | '/__captain-dialog'
+    | '/__composer'
     | '/__composer-footer'
     | '/__tokens'
     | '/design'
@@ -2035,6 +2047,7 @@ export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   Char91__captainDialogChar93Route: typeof Char91__captainDialogChar93Route
+  Char91__composerChar93Route: typeof Char91__composerChar93Route
   Char91__composerFooterChar93Route: typeof Char91__composerFooterChar93Route
   Char91__tokensChar93Route: typeof Char91__tokensChar93Route
   DesignRoute: typeof DesignRoute
@@ -2067,6 +2080,13 @@ declare module '@tanstack/react-router' {
       path: '/__captain-dialog'
       fullPath: '/__captain-dialog'
       preLoaderRoute: typeof Char91__captainDialogChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__composer': {
+      id: '/__composer'
+      path: '/__composer'
+      fullPath: '/__composer'
+      preLoaderRoute: typeof Char91__composerChar93RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/__composer-footer': {
@@ -3543,6 +3563,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   AuthRouteRoute: AuthRouteRouteWithChildren,
   Char91__captainDialogChar93Route: Char91__captainDialogChar93Route,
+  Char91__composerChar93Route: Char91__composerChar93Route,
   Char91__composerFooterChar93Route: Char91__composerFooterChar93Route,
   Char91__tokensChar93Route: Char91__tokensChar93Route,
   DesignRoute: DesignRoute,
