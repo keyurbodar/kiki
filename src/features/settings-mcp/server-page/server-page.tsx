@@ -110,7 +110,12 @@ function ServerPageForOrg({
       </SettingsPage>
     );
   return (
-    <ServerDetail key={server.updatedAt} mount={mount} orgId={orgId} server={server} />
+    <ServerDetail
+      key={server.updatedAt}
+      mount={mount}
+      orgId={orgId}
+      server={server}
+    />
   );
 }
 
@@ -137,7 +142,9 @@ function ServerDetail({
 
   const [name, setName] = useState(server.displayName);
   const [serverKey, setServerKey] = useState(server.serverKey);
-  const [draft, setDraft] = useState<ServerDraft>(() => draftFromServer(server));
+  const [draft, setDraft] = useState<ServerDraft>(() =>
+    draftFromServer(server),
+  );
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -152,7 +159,11 @@ function ServerDetail({
   const validation = validateDraft({ ...draft, serverKey });
   const organization = server.owner.kind === "organization";
 
-  const patch = (payload: Record<string, unknown>, success?: string, failure?: string) =>
+  const patch = (
+    payload: Record<string, unknown>,
+    success?: string,
+    failure?: string,
+  ) =>
     update({
       params,
       payload: { ...payload, expectedUpdatedAt: server.updatedAt },
@@ -187,7 +198,9 @@ function ServerDetail({
 
   const toolList = tools?.tools ?? [];
   const disabledTools = new Set(server.disabledTools ?? []);
-  const toolsOn = toolList.filter((tool) => !disabledTools.has(tool.name)).length;
+  const toolsOn = toolList.filter(
+    (tool) => !disabledTools.has(tool.name),
+  ).length;
   const visibleTools = toolList.filter((tool) =>
     tool.name.toLowerCase().includes(toolFilter.trim().toLowerCase()),
   );
@@ -199,7 +212,9 @@ function ServerDetail({
       : undefined;
   const statusDescription = [
     server.toolCount === null ? undefined : `${server.toolCount} tools`,
-    checkedAt === undefined ? "not checked yet" : `checked ${timeAgo(checkedAt)}`,
+    checkedAt === undefined
+      ? "not checked yet"
+      : `checked ${timeAgo(checkedAt)}`,
   ]
     .filter((part) => part !== undefined)
     .join(", ");
@@ -257,7 +272,12 @@ function ServerDetail({
             className="max-sm:flex-col max-sm:items-start"
           >
             <StatusBadge status={status.label} />
-            <Button variant="ghost" size="sm" disabled={testing} onClick={runTest}>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={testing}
+              onClick={runTest}
+            >
               <Icon name="heart-beat" />
               {testing ? "Testing" : "Test"}
             </Button>
@@ -278,7 +298,10 @@ function ServerDetail({
                 >
                   Refresh
                 </MenuItem>
-                <MenuItem intent="danger" onClick={() => setConfirmDelete(true)}>
+                <MenuItem
+                  intent="danger"
+                  onClick={() => setConfirmDelete(true)}
+                >
                   Delete server
                 </MenuItem>
               </MenuContent>
@@ -323,7 +346,9 @@ function ServerDetail({
                 value={server.projectId ?? orgWide}
                 projects={projects}
                 onChange={(projectId) =>
-                  void patch({ projectId: projectId === orgWide ? null : projectId })
+                  void patch({
+                    projectId: projectId === orgWide ? null : projectId,
+                  })
                 }
               />
             </SettingsRow>
@@ -374,8 +399,16 @@ function ServerDetail({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label={variableNames.length === 0 ? "Add variables" : "Replace variables"}
-                title={variableNames.length === 0 ? "Add variables" : "Replace variables"}
+                aria-label={
+                  variableNames.length === 0
+                    ? "Add variables"
+                    : "Replace variables"
+                }
+                title={
+                  variableNames.length === 0
+                    ? "Add variables"
+                    : "Replace variables"
+                }
                 onClick={() => setVariables([emptyKeyValue()])}
               >
                 <Icon name="square-plus" />
@@ -383,7 +416,11 @@ function ServerDetail({
             </div>
           </CardListHeader>
           {variableNames.map((variable) => (
-            <SettingsRow key={variable} label={variable} description="Hidden value" />
+            <SettingsRow
+              key={variable}
+              label={variable}
+              description="Hidden value"
+            />
           ))}
           {variables !== undefined && (
             <div className="flex flex-col gap-3 p-4">
@@ -411,7 +448,8 @@ function ServerDetail({
                     ).then(() => setVariables(undefined));
                   }}
                 >
-                  {Object.keys(parseKeyValues(variables, false) ?? {}).length === 1
+                  {Object.keys(parseKeyValues(variables, false) ?? {})
+                    .length === 1
                     ? "Save variable"
                     : `Save ${Object.keys(parseKeyValues(variables, false) ?? {}).length} variables`}
                 </Button>

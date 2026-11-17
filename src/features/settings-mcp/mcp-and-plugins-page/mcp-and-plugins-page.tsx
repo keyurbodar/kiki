@@ -1,10 +1,15 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import {
+  SettingsSection as Section,
+  SettingsPage,
+} from "@/components/settings-page";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import { Card, CardListHeader } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
+import { SettingsRow, SettingsRowLink } from "@/primitives/settings-row";
 import {
   listCountLabel,
   type McpSection,
@@ -27,8 +32,6 @@ import {
 } from "../model/use-mcp-data.ts";
 import { SearchGlyph } from "../ui/glyphs.tsx";
 import { PluginIcon, ServerIcon, StatusBadge } from "../ui/plugin-shared.tsx";
-import { SettingsRow, SettingsRowLink } from "@/primitives/settings-row";
-import { SettingsPage, SettingsSection as Section } from "@/components/settings-page";
 import { AddMenu } from "./add-menu.tsx";
 import { GitHubPluginSheet } from "./github-plugin-sheet.tsx";
 import { filterRows, type ListRow, listSections } from "./model.ts";
@@ -91,7 +94,8 @@ export function McpAndPluginsPage({ github }: McpAndPluginsPageProps) {
               Start a thread
             </Button>
           </SettingsRow>
-          <SettingsRowLink chevron="wide"
+          <SettingsRowLink
+            chevron="wide"
             to="/settings/mcp/marketplace"
             id="mcp-marketplace"
             icon={<Icon name="store-1" />}
@@ -282,7 +286,8 @@ function ListRowLink({
       />
     );
   return row.kind === "plugin" ? (
-    <SettingsRowLink chevron="wide"
+    <SettingsRowLink
+      chevron="wide"
       to="/settings/mcp/plugins/$installationId"
       params={{ installationId: row.plugin.id }}
       icon={<PluginIcon name={row.plugin.displayName} />}
@@ -292,7 +297,8 @@ function ListRowLink({
       {trailing}
     </SettingsRowLink>
   ) : (
-    <SettingsRowLink chevron="wide"
+    <SettingsRowLink
+      chevron="wide"
       to="/settings/mcp/$serverId"
       params={{ serverId: row.server.id }}
       icon={<ServerIcon iconUrl={row.server.iconUrl} />}

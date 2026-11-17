@@ -2,6 +2,7 @@ import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import {
@@ -32,7 +33,6 @@ import {
   SelectField,
   VariablesSection,
 } from "../server-form/fields.tsx";
-import { SettingsPage, SettingsSection } from "@/components/settings-page";
 
 export interface NewServerPageProps {
   readonly mount: McpMount;
@@ -41,7 +41,10 @@ export interface NewServerPageProps {
 
 const labelClass = "flex flex-col gap-1.5 text-sm font-medium text-foreground";
 
-export function NewServerPage({ mount, importing = false }: NewServerPageProps) {
+export function NewServerPage({
+  mount,
+  importing = false,
+}: NewServerPageProps) {
   const navigate = useNavigate();
   const orgId = useActiveOrgId();
   const projects = useProjects(orgId) ?? [];
@@ -119,7 +122,10 @@ export function NewServerPage({ mount, importing = false }: NewServerPageProps) 
                   change(
                     keyTouched
                       ? { displayName }
-                      : { displayName, serverKey: deriveServerKey(displayName) },
+                      : {
+                          displayName,
+                          serverKey: deriveServerKey(displayName),
+                        },
                   );
                 }}
               />

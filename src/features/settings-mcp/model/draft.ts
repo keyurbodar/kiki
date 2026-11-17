@@ -155,10 +155,14 @@ export const validateDraft = (draft: ServerDraft): DraftValidation => {
   const parsedHeaders =
     draft.auth === "headers" ? parseKeyValues(draft.headers, false) : {};
   const requestHeaders =
-    draft.placement === "url" ? parseKeyValues(draft.requestHeaders, false) : {};
+    draft.placement === "url"
+      ? parseKeyValues(draft.requestHeaders, false)
+      : {};
   const parsedRequestHeaders =
     requestHeaders !== undefined &&
-    Object.keys(requestHeaders).some((key) => key.toLowerCase() === "authorization")
+    Object.keys(requestHeaders).some(
+      (key) => key.toLowerCase() === "authorization",
+    )
       ? undefined
       : requestHeaders;
   const parsedEnv =
@@ -184,7 +188,9 @@ export const createRequest = (
 ) => {
   const command = draft.placement === "command";
   const launchUrl =
-    command && draft.launchUrl.trim() !== "" ? draft.launchUrl.trim() : undefined;
+    command && draft.launchUrl.trim() !== ""
+      ? draft.launchUrl.trim()
+      : undefined;
   const oauth = !command && draft.auth === "oauth";
   const own = oauth && draft.clientIdentity === "own";
   return {
@@ -200,7 +206,8 @@ export const createRequest = (
     env: command && hasRows(draft.env) ? validation.parsedEnv : undefined,
     auth: command ? "none" : draft.auth,
     clientId: own && draft.clientId !== "" ? draft.clientId : undefined,
-    clientSecret: own && draft.clientSecret !== "" ? draft.clientSecret : undefined,
+    clientSecret:
+      own && draft.clientSecret !== "" ? draft.clientSecret : undefined,
     clientIdentity: oauth ? draft.clientIdentity : undefined,
     connectOnDemand: oauth ? draft.connectOnDemand : undefined,
     headers:
@@ -223,10 +230,13 @@ export const updateRequest = (
 ) => {
   const command = draft.placement === "command";
   const launchUrl =
-    command && draft.launchUrl.trim() !== "" ? draft.launchUrl.trim() : undefined;
+    command && draft.launchUrl.trim() !== ""
+      ? draft.launchUrl.trim()
+      : undefined;
   const placementChanged =
     draft.savedPlacement === undefined ||
-    (draft.savedPlacement === "backend") !== (placementFor(draft) === "backend");
+    (draft.savedPlacement === "backend") !==
+      (placementFor(draft) === "backend");
   const oauth = !command && draft.auth === "oauth";
   const sameIdentity = draft.clientIdentity === draft.savedClientIdentity;
   return {
@@ -237,7 +247,11 @@ export const updateRequest = (
     url: command ? (launchUrl ?? null) : draft.url,
     command: command ? draft.command.trim() : undefined,
     args: command ? trimmedArgs(draft) : undefined,
-    cwd: command ? (draft.cwd.trim() === "" ? null : draft.cwd.trim()) : undefined,
+    cwd: command
+      ? draft.cwd.trim() === ""
+        ? null
+        : draft.cwd.trim()
+      : undefined,
     auth: command ? "none" : draft.auth,
     clientId: !oauth
       ? undefined

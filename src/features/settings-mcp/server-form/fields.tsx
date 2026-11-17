@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { SettingsSection } from "@/components/settings-page";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
@@ -22,7 +23,6 @@ import {
 import type { McpAuth } from "../model/types.ts";
 import { cx } from "../ui/cx.ts";
 import { PlusGlyph } from "../ui/glyphs.tsx";
-import { SettingsSection } from "@/components/settings-page";
 
 export const fieldCard = "flex flex-col gap-4 p-4";
 export const fieldDivider = "border-t-[0.5px] border-border-1 pt-4";
@@ -67,14 +67,20 @@ export function SelectField<Value extends string>({
 }: {
   readonly label: string;
   readonly value: Value;
-  readonly options: ReadonlyArray<{ readonly value: Value; readonly label: string }>;
+  readonly options: ReadonlyArray<{
+    readonly value: Value;
+    readonly label: string;
+  }>;
   readonly onChange: (value: Value) => void;
 }) {
   return (
     <MenuSelect
       value={value}
       onValueChange={(next) => onChange(next as Value)}
-      items={options.map((option) => ({ value: option.value, label: option.label }))}
+      items={options.map((option) => ({
+        value: option.value,
+        label: option.label,
+      }))}
     >
       <MenuSelectTrigger aria-label={label}>
         <MenuSelectValue />
@@ -99,7 +105,10 @@ export function ProjectMenu({
   onChange,
 }: {
   readonly value: string;
-  readonly projects: ReadonlyArray<{ readonly id: string; readonly name: string }>;
+  readonly projects: ReadonlyArray<{
+    readonly id: string;
+    readonly name: string;
+  }>;
   readonly onChange: (projectId: string) => void;
 }) {
   const label =
@@ -290,7 +299,10 @@ export function RuntimeSection({
             </label>
             <div className={labelClass}>
               Arguments
-              <ArgRows rows={draft.args} onChange={(args) => onChange({ args })} />
+              <ArgRows
+                rows={draft.args}
+                onChange={(args) => onChange({ args })}
+              />
             </div>
             <label className={labelClass}>
               Working directory
@@ -305,7 +317,9 @@ export function RuntimeSection({
               <Input
                 placeholder="http://127.0.0.1:8080/mcp"
                 value={draft.launchUrl}
-                onChange={(event) => onChange({ launchUrl: event.target.value })}
+                onChange={(event) =>
+                  onChange({ launchUrl: event.target.value })
+                }
               />
               <span className="text-xs font-normal text-muted-foreground-2">
                 Optional: a loopback url the launched process serves MCP on,
@@ -319,7 +333,9 @@ export function RuntimeSection({
             <Input
               type="url"
               placeholder="https://mcp.example.com/mcp"
-              aria-invalid={draft.url !== "" && !draft.url.startsWith("https://")}
+              aria-invalid={
+                draft.url !== "" && !draft.url.startsWith("https://")
+              }
               value={draft.url}
               onChange={(event) => onChange({ url: event.target.value })}
             />
@@ -388,7 +404,9 @@ export function RadioCard({
             : "border-[light-dark(var(--border-3),var(--muted-foreground-3))] bg-input",
         )}
       >
-        {checked && <span className="size-1.5 rounded-full bg-primary-foreground" />}
+        {checked && (
+          <span className="size-1.5 rounded-full bg-primary-foreground" />
+        )}
       </span>
     </button>
   );
@@ -404,7 +422,11 @@ export function AuthenticationSection({
   if (draft.placement === "command") return null;
   return (
     <SettingsSection title="Authentication">
-      <div role="radiogroup" aria-label="Authentication" className="flex flex-col gap-2">
+      <div
+        role="radiogroup"
+        aria-label="Authentication"
+        className="flex flex-col gap-2"
+      >
         {authOptions.map((option) => (
           <RadioCard
             key={option.value}
@@ -432,7 +454,11 @@ export function AuthenticationSection({
         </Card>
       )}
       {draft.auth === "oauth" && (
-        <div role="radiogroup" aria-label="OAuth client" className="flex flex-col gap-2">
+        <div
+          role="radiogroup"
+          aria-label="OAuth client"
+          className="flex flex-col gap-2"
+        >
           {(
             [
               {
@@ -467,7 +493,9 @@ export function AuthenticationSection({
                 Client ID
                 <Input
                   value={draft.clientId}
-                  onChange={(event) => onChange({ clientId: event.target.value })}
+                  onChange={(event) =>
+                    onChange({ clientId: event.target.value })
+                  }
                 />
               </label>
               <label className={labelClass}>
