@@ -5,6 +5,7 @@ import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { isoMinutesAgo, world } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
+import { folderDetails } from "../threadOrganization/fixtures.ts";
 import {
   accessTemplate,
   projectOf,
@@ -23,6 +24,10 @@ import {
 } from "./fixtures.ts";
 
 const defaultPageSize = 50;
+
+const filedThreadIds = new Set(
+  folderDetails.flatMap((folder) => folder.itemIds),
+);
 
 const cursorOf = (thread: ThreadCard) =>
   `${DateTime.toEpochMillis(thread.sortActivityAt)}:${thread.id}`;
@@ -312,6 +317,10 @@ export const JamsMock = mockGroup("jams", (handlers) =>
                 query.projectIds === undefined ||
                 (thread.projectId !== null &&
                   query.projectIds.includes(thread.projectId)),
+            )
+            .filter(
+              (thread) =>
+                query.filed !== "exclude" || !filedThreadIds.has(thread.id),
             )
             .filter(
               (thread) =>

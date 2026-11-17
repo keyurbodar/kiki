@@ -32,6 +32,7 @@ export type ThreadListItem = {
   readonly lastActivityAt: Date | null;
   readonly settledAt: Date | null;
   readonly automationName: string | null;
+  readonly automationId: string | null;
   readonly captain: {
     readonly name: string;
     readonly avatarUrl: string | null;
@@ -291,8 +292,12 @@ export const filterThreads = (
         return false;
     } else if (
       !keep(
-        filters.origins.includes(thread.origin) ||
-          (isAutomation && filters.origins.includes("automation")),
+        isAutomation
+          ? filters.automations.length === 0
+            ? filters.origins.includes("automation")
+            : thread.automationId !== null &&
+              filters.automations.includes(thread.automationId)
+          : filters.origins.includes(thread.origin),
         filters,
         "origins",
       )

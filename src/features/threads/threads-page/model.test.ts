@@ -39,6 +39,7 @@ const thread = (overrides: Partial<ThreadListItem> = {}): ThreadListItem => ({
   lastActivityAt: minutesAgo(30),
   settledAt: null,
   automationName: null,
+  automationId: null,
   captain: null,
   ...overrides,
 });
@@ -182,5 +183,38 @@ describe("threads page model", () => {
         filters: defaultThreadFilters,
       }),
     ).toBe("Threads unavailable");
+  });
+
+  it("filters automation runs by their automation id", () => {
+    const nightly = thread({
+      id: "nightly",
+      origin: "automation",
+      automationName: "Nightly check",
+      automationId: "auto_nightly",
+    });
+    const weekly = thread({
+      id: "weekly",
+      origin: "automation",
+      automationName: "Weekly report",
+      automationId: "auto_weekly",
+    });
+    const web = thread({ id: "web" });
+    const all = [nightly, weekly, web];
+    const ids = (filters: Partial<typeof defaultThreadFilters>) =>
+      filterThreads(
+        all,
+        { ...defaultThreadFilters, participants: [], ...filters },
+        "user_me",
+        now,
+      ).map((item) => item.id);
+    expect(ids({ automations: ["auto_nightly"] })).toEqual(["nightly"]);
+    expect(
+      ids({ origins: ["automation"], automations: ["auto_nightly"] }),
+    ).toEqual(["nightly"]);
+    expect(ids({ origins: ["automation"] })).toEqual(["nightly", "weekly"]);
+    expect(ids({ origins: ["web"], automations: ["auto_weekly"] })).toEqual([
+      "weekly",
+      "web",
+    ]);
   });
 });

@@ -1,8 +1,9 @@
-import { useAtomValue } from "@effect/atom-react";
+import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { DateTime } from "effect";
 import { AsyncResult } from "effect/reactivity";
-import { useEffect, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { AppTopBar } from "@/components/app-top-bar";
 import {
   DateRangeSubmenu,
@@ -11,6 +12,7 @@ import {
   DisplayToggle,
   dateRangeLabel,
   FilterChipBar,
+  type IconPickerSlot,
   MenuSubmenu,
   menuCheckClassName,
   menuIconSlotClassName,
@@ -25,11 +27,21 @@ import {
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { ThreadCard } from "@/data/api/schemas/thread";
 import { captainsAtom } from "@/data/atoms/captains";
+import { createFolderAtom } from "@/data/atoms/folders";
 import { projectsAtom } from "@/data/atoms/projects";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
-import { archivedThreadsAtom, threadsAtom } from "@/data/atoms/threads";
+import { allThreadsAtom } from "@/data/atoms/threads";
 import { Button } from "@/primitives/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/primitives/dialog";
 import { Icon } from "@/primitives/icon";
+import { ICON_IDS, type IconId } from "@/primitives/icon/icon-ids";
+import { Input } from "@/primitives/input";
 import {
   Menu,
   MenuContent,
@@ -65,7 +77,9 @@ const listIcons = {
 const toDate = (value: DateTime.Utc) => DateTime.toDate(value);
 
 export const toListItem = (card: ThreadCard): ThreadListItem => {
-  const automation = card.automation as { name?: unknown } | undefined;
+  const automation = card.automation as
+    | { id?: unknown; name?: unknown }
+    | undefined;
   return {
     id: card.id,
     title: card.title,
@@ -94,6 +108,7 @@ export const toListItem = (card: ThreadCard): ThreadListItem => {
     settledAt: card.settledAt == null ? null : toDate(card.settledAt),
     automationName:
       typeof automation?.name === "string" ? automation.name : null,
+    automationId: typeof automation?.id === "string" ? automation.id : null,
     captain: null,
   };
 };
@@ -105,10 +120,14 @@ type CaptainRow = {
   ownerId: string;
   createdAt: string;
   imageUrl: string | null;
+  memberIds?: ReadonlyArray<string>;
 };
 
 /** Captains come back undecoded; read the fields the list draws. */
-export const captainItems = (value: unknown): ThreadListItem[] => {
+export const captainItems = (
+  value: unknown,
+  viewerId: string | undefined,
+): ThreadListItem[] => {
   if (!Array.isArray(value)) return [];
   return (value as CaptainRow[]).map((captain) => ({
     id: captain.id,
@@ -118,7 +137,10 @@ export const captainItems = (value: unknown): ThreadListItem[] => {
     archivedIdleDays: null,
     threadNumber: null,
     userId: captain.ownerId,
-    participated: true,
+    participated:
+      viewerId !== undefined &&
+      (captain.ownerId === viewerId ||
+        (captain.memberIds ?? []).includes(viewerId)),
     origin: "web",
     projectId: captain.projectId,
     pinned: false,
@@ -132,6 +154,7 @@ export const captainItems = (value: unknown): ThreadListItem[] => {
     lastActivityAt: new Date(captain.createdAt),
     settledAt: null,
     automationName: null,
+    automationId: null,
     captain: { name: captain.name, avatarUrl: captain.imageUrl },
   }));
 };
@@ -151,6 +174,7 @@ export type ThreadsPageViewProps = {
   loading: boolean;
   failed: boolean;
   onRetry?: () => void;
+  onCreateFolder?: (name: string) => void;
   state: ThreadsPageState;
   onStateChange: (
     update: (state: ThreadsPageState) => ThreadsPageState,
@@ -166,12 +190,14 @@ export function ThreadsPageView({
   loading,
   failed,
   onRetry,
+  onCreateFolder,
   state,
   onStateChange,
   now,
 }: ThreadsPageViewProps) {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
+  const [creatingFolder, setCreatingFolder] = useState(false);
   const [checked, setChecked] = useState<ReadonlySet<string>>(new Set());
   const filters = state.filters;
   const setFilters = (next: ThreadFilters) =>
@@ -270,6 +296,8 @@ export function ThreadsPageView({
                     ),
                   }))
                 }
+                renderIcon={renderViewIcon}
+                renderIconPicker={(picker) => <ViewIconPicker {...picker} />}
                 icons={toolbarIcons}
               />
             ))}
@@ -277,7 +305,10 @@ export function ThreadsPageView({
         }
         actions={
           <>
-            <ViewToolbarIconButton label="New folder">
+            <ViewToolbarIconButton
+              label="New folder"
+              onClick={() => setCreatingFolder(true)}
+            >
               <Icon name="folder-1" size="sm" />
             </ViewToolbarIconButton>
             <ThreadsFilterMenu
@@ -344,6 +375,11 @@ export function ThreadsPageView({
             ],
           }))
         }
+      />
+      <NewFolderDialog
+        open={creatingFolder}
+        onOpenChange={setCreatingFolder}
+        onCreate={(name) => onCreateFolder?.(name)}
       />
       <ThreadsList
         sections={sections}
@@ -512,13 +548,33 @@ function ThreadsFilterMenu({
 /** /threads: Capy's threads page over the jams and captains mocks. */
 export function ThreadsPage() {
   const organizations = useAtomValue(organizationsAtom);
-  const orgId = AsyncResult.isSuccess(organizations)
-    ? organizations.value[0]?.id
-    : undefined;
-  return <ThreadsPageData orgId={orgId} />;
+  const retryOrganizations = useAtomRefresh(organizationsAtom);
+  return (
+    <ThreadsPageData
+      orgId={
+        AsyncResult.isSuccess(organizations)
+          ? organizations.value[0]?.id
+          : undefined
+      }
+      orgFailed={
+        AsyncResult.isFailure(organizations) ||
+        (AsyncResult.isSuccess(organizations) &&
+          organizations.value.length === 0)
+      }
+      onRetry={retryOrganizations}
+    />
+  );
 }
 
-function ThreadsPageData({ orgId }: { orgId: OrgId | undefined }) {
+function ThreadsPageData({
+  orgId,
+  orgFailed,
+  onRetry,
+}: {
+  orgId: OrgId | undefined;
+  orgFailed: boolean;
+  onRetry: () => void;
+}) {
   const [state, setState] = useStoredPageState();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -532,8 +588,9 @@ function ThreadsPageData({ orgId }: { orgId: OrgId | undefined }) {
         captains={[]}
         projects={[]}
         viewerId={undefined}
-        loading
-        failed={false}
+        loading={!orgFailed}
+        failed={orgFailed}
+        onRetry={onRetry}
         state={state}
         onStateChange={setState}
         now={now}
@@ -561,21 +618,24 @@ function ThreadsPageLoaded({
   now: number;
 }) {
   const archivedView = state.filters.archived === "only";
-  const list = useAtomValue(
-    archivedView ? archivedThreadsAtom(orgId) : threadsAtom(orgId),
-  );
+  const listAtom = allThreadsAtom(orgId, {
+    archived: archivedView,
+    excludeFiled: !state.showFiledThreads,
+  });
+  const list = useAtomValue(listAtom);
+  const retry = useAtomRefresh(listAtom);
   const captains = useAtomValue(captainsAtom(orgId));
   const projects = useAtomValue(projectsAtom(orgId));
   const user = useAtomValue(currentUserAtom);
+  const createFolder = useAtomSet(createFolderAtom, { mode: "promise" });
+  const viewerId = AsyncResult.isSuccess(user) ? user.value.id : undefined;
   return (
     <ThreadsPageView
-      threads={
-        AsyncResult.isSuccess(list) ? list.value.items.map(toListItem) : []
-      }
+      threads={AsyncResult.isSuccess(list) ? list.value.map(toListItem) : []}
       captains={
         archivedView || !AsyncResult.isSuccess(captains)
           ? []
-          : captainItems(captains.value)
+          : captainItems(captains.value, viewerId)
       }
       projects={
         AsyncResult.isSuccess(projects)
@@ -586,12 +646,107 @@ function ThreadsPageLoaded({
             }))
           : []
       }
-      viewerId={AsyncResult.isSuccess(user) ? user.value.id : undefined}
+      viewerId={viewerId}
       loading={AsyncResult.isInitial(list) || list.waiting}
       failed={AsyncResult.isFailure(list)}
+      onRetry={retry}
+      onCreateFolder={(name) =>
+        createFolder({ params: { orgId }, payload: { name } }).then(
+          () => toast.success("Folder created"),
+          () => toast.error("Couldn't create folder"),
+        )
+      }
       state={state}
       onStateChange={setState}
       now={now}
     />
+  );
+}
+
+const renderViewIcon = (icon: string) =>
+  (ICON_IDS as ReadonlyArray<string>).includes(icon) ? (
+    <Icon name={icon as IconId} size="sm" />
+  ) : null;
+
+function ViewIconPicker({
+  value,
+  open,
+  onOpenChange,
+  onSelect,
+}: IconPickerSlot) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Change icon</DialogTitle>
+        </DialogHeader>
+        <div className="grid max-h-80 grid-cols-8 gap-1 overflow-y-auto px-4 py-2">
+          {ICON_IDS.map((id) => (
+            <button
+              key={id}
+              type="button"
+              aria-label={id}
+              aria-pressed={id === value}
+              className={viewToolbarIconButtonClassName}
+              onClick={() => {
+                onSelect(id);
+                onOpenChange(false);
+              }}
+            >
+              <Icon name={id} size="sm" />
+            </button>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function NewFolderDialog({
+  open,
+  onOpenChange,
+  onCreate,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreate: (name: string) => void;
+}) {
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const name = new FormData(event.currentTarget).get("name");
+    if (typeof name !== "string" || name.trim().length === 0) return;
+    onCreate(name.trim());
+    onOpenChange(false);
+  };
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <form onSubmit={submit}>
+          <DialogHeader>
+            <DialogTitle>New folder</DialogTitle>
+          </DialogHeader>
+          <div className="px-4 py-2">
+            <Input
+              name="name"
+              placeholder="Folder name"
+              aria-label="Folder name"
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              type="button"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button intent="accent" type="submit">
+              Create folder
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
