@@ -1,0 +1,50 @@
+{
+  "matrix": { "theme": ["default"], "scheme": ["dark"] },
+  "defaults": { "maxMismatch": 2, "threshold": 0.05 },
+  "targets": [
+    {
+      "id": "dr01-drive-root",
+      "route": "/drive",
+      "state": "every scope, with the storage meter",
+      "viewport": "1440x818",
+      "frame": "qr6Dmg1fzM",
+      "capture": { "[role=table]": [], "[role=row]": [] },
+      "expect": {
+        "h1": { "font-size": "var(--text-sm)", "font-weight": "500" },
+        "[role=table]": { "display": "grid" }
+      }
+    },
+    {
+      "id": "dr01-drive-organization",
+      "route": "/drive/organization",
+      "state": "the organization's drive",
+      "viewport": "1440x818",
+      "frame": "PE6jcC2dmI",
+      "capture": { "[role=table]": [], "[role=row]": [] }
+    },
+    {
+      "id": "dr01-drive-shared",
+      "route": "/drive/shared",
+      "state": "every share link in the organization",
+      "viewport": "1440x818",
+      "frame": "crOU9EeDhL",
+      "capture": { "[role=table]": [], "[role=row]": [] }
+    },
+    {
+      "id": "dr01-drive-captain",
+      "route": "/drive/captain/jam_sample_cap1",
+      "state": "a Captain's drive",
+      "viewport": "1440x818",
+      "frame": "S6TFgltrAm",
+      "capture": { "[role=table]": [], "[role=row]": [] }
+    },
+    {
+      "id": "dr01-drive-mobile",
+      "route": "/drive",
+      "state": "the drive root on a phone",
+      "viewport": "390x844",
+      "frame": "VKuMdl3qKN",
+      "capture": { "[role=table]": [], "[role=row]": [] }
+    }
+  ]
+}
