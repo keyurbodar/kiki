@@ -540,10 +540,10 @@ export function ThreadsPageView({
           <Button
             variant="ghost"
             size="sm"
-            aria-label="Move to folder"
+            aria-label="Folder"
             onClick={() => setMoving(true)}
           >
-            Move to folder
+            Folder
           </Button>
           <Button
             variant="ghost"
@@ -572,6 +572,11 @@ export function ThreadsPageView({
             <DialogTitle>Move to folder</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-1 px-4 py-2">
+            {folders.length === 0 ? (
+              <div className="px-2 py-3 text-center text-sm font-normal text-muted-foreground-2">
+                No folders yet
+              </div>
+            ) : null}
             {folders.map((folder) => (
               <Button
                 key={folder.id}
