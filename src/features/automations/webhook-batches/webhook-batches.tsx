@@ -163,7 +163,7 @@ function AutomationBatches({
             data-loading={waiting ? "" : undefined}
             onClick={refresh}
           >
-            <Icon name="rotate" size="sm" />
+            <Icon name="arrow-rotate-clockwise" size="sm" />
           </Button>
         </div>
       </div>

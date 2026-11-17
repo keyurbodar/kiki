@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { DotGrid1x3HorizontalIcon } from "@/components/app-sidebar/icons";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import {
@@ -130,7 +129,7 @@ function WebhookBatchRow({
                     />
                   }
                 >
-                  <DotGrid1x3HorizontalIcon />
+                  <Icon name="dot-grid-1x3-horizontal" size="sm" />
                 </MenuTrigger>
                 <MenuContent align="end">
                   <MenuItem intent="danger" onClick={() => onCancel(batch)}>
