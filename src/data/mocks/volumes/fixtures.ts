@@ -125,7 +125,7 @@ export const skills = [
 export const scopes = [
   {
     id: "scope_sample_project",
-    name: "project-kiki-design",
+    name: "project-web",
     path: "specs",
     writable: true,
     fileCount: 1,
