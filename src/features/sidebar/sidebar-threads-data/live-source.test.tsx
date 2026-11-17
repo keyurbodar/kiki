@@ -131,7 +131,13 @@ describe("useLiveSidebarSource", () => {
     assert.isAbove(ids.length, 0);
     assert.equal(live.result.current?.folders[0]?.systemKind, "pinned");
 
-    const sidebar = renderHook(() => useSidebarThreads(), { wrapper });
+    const sidebar = renderHook(
+      () => {
+        const source = useLiveSidebarSource(now);
+        return useSidebarThreads(source === null ? {} : { source });
+      },
+      { wrapper },
+    );
     await waitFor(() =>
       assert.isFalse(
         sidebar.result.current.view.sections.some((section) =>

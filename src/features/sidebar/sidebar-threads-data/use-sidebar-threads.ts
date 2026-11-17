@@ -14,7 +14,6 @@ import {
   type SidebarPrefs,
   type SidebarSource,
 } from "./build-view";
-import { useLiveSidebarSource } from "./live-source";
 import { sampleSidebarSource } from "./sample";
 
 export type SidebarThreadsController = {
@@ -36,7 +35,6 @@ export function useSidebarThreads(
   } = {},
 ): SidebarThreadsController {
   const [fallbackSource] = useState(() => sampleSidebarSource(new Date()));
-  const liveSource = useLiveSidebarSource(fallbackSource.now);
   const [prefs, setPrefs] = useState<SidebarPrefs>(() => ({
     ...defaultSidebarPrefs,
     ...options.initialPrefs,
@@ -44,10 +42,7 @@ export function useSidebarThreads(
   const update = (patch: Partial<SidebarPrefs>) =>
     setPrefs((current) => ({ ...current, ...patch }));
   return {
-    view: buildSidebarThreadsView(
-      options.source ?? liveSource ?? fallbackSource,
-      prefs,
-    ),
+    view: buildSidebarThreadsView(options.source ?? fallbackSource, prefs),
     setMode: (mode) => update({ mode }),
     setDensity: (density) => update({ density }),
     setGrouping: (grouping) => update({ grouping }),
