@@ -148,7 +148,10 @@ export function apiAttachmentSource(
         waiting: AsyncResult.isWaiting(result),
         gone: goneOf(failure),
         mediaFailed: () => setMediaFailedFor(url),
-        refresh,
+        refresh: () => {
+          setMediaFailedFor(undefined);
+          refresh();
+        },
       };
     },
   };

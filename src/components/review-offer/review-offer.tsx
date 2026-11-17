@@ -235,6 +235,7 @@ export function ReviewOffer({
                 <MenuSelectTrigger
                   className="w-29 shrink-0"
                   disabled={busy}
+                  data-review-offer-native=""
                   aria-label={`${candidate.repoFullName} automatic reviews`}
                 >
                   <MenuSelectValue />

@@ -86,6 +86,7 @@ import {
   type ThreadSection,
   type ThreadsPageState,
   threadFilterChips,
+  threadListQuery,
   threadViews,
 } from "./model";
 import { useStoredPageState } from "./stored-state";
@@ -879,10 +880,13 @@ function ThreadsPageLoaded({
   now: number;
 }) {
   const archivedView = state.filters.archived === "only";
-  const listAtom = allThreadsAtom(orgId, {
-    archived: archivedView,
-    excludeFiled: !state.showFiledThreads,
-  });
+  const listAtom = allThreadsAtom(
+    orgId,
+    threadListQuery({
+      archivedView,
+      showFiledThreads: state.showFiledThreads,
+    }),
+  );
   const list = useAtomValue(listAtom);
   const retry = useAtomRefresh(listAtom);
   const captains = useAtomValue(captainsAtom(orgId));

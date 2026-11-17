@@ -29,8 +29,9 @@ import { usageColumns } from "./usage.ts";
 const cx = (...parts: Array<string | false | null | undefined>) =>
   parts.filter(Boolean).join(" ");
 
-export const wideColumns = "hidden items-center @min-[46rem]/connections:flex";
-export const narrowOnly = "@max-[46rem]/connections:hidden";
+export const wideColumns =
+  "hidden items-center @min-connections-wide/connections:flex";
+export const narrowOnly = "@max-connections-wide/connections:hidden";
 export const usageColumnClass = "w-20 text-right";
 
 export type ConnectionListProps = {
@@ -242,7 +243,7 @@ export function HealthBadge({ health }: { health: Health | undefined }) {
 export function ConnectionsHeader({ fable }: { fable: boolean }) {
   return (
     <div className="@container/connections">
-      <div className="hidden items-center justify-between gap-6 border-b-(length:--border-hairline) border-border-1 px-4 py-2 text-2xs font-normal text-muted-foreground-3 @min-[46rem]/connections:flex">
+      <div className="hidden items-center justify-between gap-6 border-b-(length:--border-hairline) border-border-1 px-4 py-2 text-2xs font-normal text-muted-foreground-3 @min-connections-wide/connections:flex">
         <span className="pl-11">Account</span>
         <span className="flex items-center gap-2">
           <span className="flex">

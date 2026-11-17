@@ -3,6 +3,7 @@ import {
   buildCostRows,
   CREDITS_PER_DOLLAR,
   costHues,
+  formatCost,
   formatCredits,
   isVisibleCredits,
   parseThreadUsage,
@@ -34,6 +35,22 @@ describe("credit formatting", () => {
     expect(formatCredits(120)).toBe("$0.12");
     expect(isVisibleCredits(4)).toBe(false);
     expect(isVisibleCredits(5)).toBe(true);
+  });
+});
+
+describe("cost formatting", () => {
+  it("keeps cents on sub-dollar amounts and groups thousands", () => {
+    expect(formatCost(120)).toBe("$0.12");
+    expect(formatCost(5)).toBe("$0.01");
+    expect(formatCost(0)).toBe("$0.00");
+    expect(formatCost(1234560)).toBe("$1,234.56");
+    expect(formatCost(1234567890)).toBe("$1,234,567.89");
+  });
+
+  it("renders an unknown amount as an em dash", () => {
+    expect(formatCost(null)).toBe("—");
+    expect(formatCost(undefined)).toBe("—");
+    expect(formatCost(Number.NaN)).toBe("—");
   });
 });
 

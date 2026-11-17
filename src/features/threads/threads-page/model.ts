@@ -372,6 +372,15 @@ export const threadComparator = (ordering: ThreadOrdering) => {
   return byActivity;
 };
 
+/** The list query's shape: filed threads only leave the list outside Archived. */
+export const threadListQuery = (options: {
+  readonly archivedView: boolean;
+  readonly showFiledThreads: boolean;
+}) => ({
+  archived: options.archivedView,
+  excludeFiled: !options.archivedView && !options.showFiledThreads,
+});
+
 export type ThreadShelf = "asks" | "working" | "settled" | "returned";
 
 const busy = (thread: ThreadListItem) =>

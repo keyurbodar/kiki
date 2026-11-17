@@ -3,20 +3,42 @@ import { AsyncResult } from "effect/reactivity";
 import type { ComponentProps } from "react";
 import { menuIconSlot } from "@/components/app-sidebar/classes";
 import { GiftBoxIcon } from "@/components/release";
+import { queryTimeToLive } from "@/data/atoms/conventions";
 import { currentUserAtom } from "@/data/atoms/session";
+import { ApiClient } from "@/data/client/ApiClient";
 import { ResponsiveMenuItem } from "@/primitives/responsive-menu";
 
 export type SidebarReferralMenuProps = ComponentProps<"div">;
 
-export function canRefer(user: unknown) {
-  if (typeof user !== "object" || user === null) return false;
-  const row = user as Record<string, unknown>;
-  return row.onboardedAt !== null && row.canRefer === true;
+export const referralsDashboardAtom = ApiClient.query(
+  "referrals",
+  "dashboard",
+  {
+    reactivityKeys: ["referrals"],
+    timeToLive: queryTimeToLive,
+  },
+);
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+export function onboardingFinished(user: unknown) {
+  return isRecord(user) && user.onboardedAt !== null;
+}
+
+export function canRefer(dashboard: unknown) {
+  return isRecord(dashboard) && dashboard.canRefer === true;
 }
 
 export function SidebarReferralMenu(_props: SidebarReferralMenuProps) {
   const user = useAtomValue(currentUserAtom);
-  if (!AsyncResult.isSuccess(user) || !canRefer(user.value)) return null;
+  const dashboard = useAtomValue(referralsDashboardAtom);
+  if (!onboardingFinished(AsyncResult.isSuccess(user) ? user.value : null)) {
+    return null;
+  }
+  if (!canRefer(AsyncResult.isSuccess(dashboard) ? dashboard.value : null)) {
+    return null;
+  }
   return (
     <ResponsiveMenuItem
       data-track-owner="shared/sidebar-referral-menu.tsx#ReferralMenuItem:ResponsiveMenuItem[Refer a friend]"

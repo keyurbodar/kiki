@@ -1,0 +1,99 @@
+{
+  "matrix": {
+    "theme": ["default"],
+    "scheme": ["dark", "light"]
+  },
+  "defaults": {
+    "maxMismatch": 2,
+    "viewport": "1600x1000@2"
+  },
+  "targets": [
+    {
+      "id": "b6-markdown-parts",
+      "route": "/__markdown?mode={scheme}",
+      "state": "markdown code header, table, gallery and video frames",
+      "capture": {
+        "[data-slot=markdown-code-header]": [
+          "display",
+          "height",
+          "align-items",
+          "justify-content",
+          "padding",
+          "border-bottom-width"
+        ],
+        "[data-slot=markdown-code-language]": [
+          "color",
+          "font-size",
+          "font-family"
+        ],
+        "[data-slot=markdown-table]": [
+          "border-top-width",
+          "border-top-color",
+          "border-radius",
+          "overflow-x"
+        ],
+        "[data-harness=gallery-single] [data-slot=markdown-gallery]": [
+          "background-color",
+          "border-top-width",
+          "border-radius",
+          "width",
+          "height"
+        ],
+        "[data-harness=gallery-single] [data-slot=markdown-gallery] img": [
+          "max-height",
+          "border-radius"
+        ],
+        "[data-harness=gallery] [data-slot=markdown-gallery] img": [
+          "max-height"
+        ],
+        "[data-slot=markdown-video]": [
+          "background-color",
+          "border-top-width",
+          "border-radius",
+          "width"
+        ],
+        "[data-slot=markdown-video] video": [
+          "height",
+          "max-height",
+          "object-fit"
+        ]
+      },
+      "expect": {
+        "[data-slot=markdown-code-header]": {
+          "display": "flex",
+          "height": "var(--markdown-code-header-h)",
+          "align-items": "center",
+          "justify-content": "space-between",
+          "padding": "0 var(--markdown-code-header-pr) 0 var(--markdown-code-header-pl)"
+        },
+        "[data-slot=markdown-code-language]": {
+          "color": "var(--muted-foreground-2)",
+          "font-size": "var(--text-xs)"
+        },
+        "[data-slot=markdown-table]": {
+          "border-radius": "var(--radius-card)",
+          "overflow-x": "auto"
+        },
+        "[data-harness=gallery-single] [data-slot=markdown-gallery]": {
+          "background-color": "var(--secondary)",
+          "border-radius": "var(--radius-card)"
+        },
+        "[data-harness=gallery-single] [data-slot=markdown-gallery] img": {
+          "max-height": "var(--media-box-h)",
+          "border-radius": "0px"
+        },
+        "[data-harness=gallery] [data-slot=markdown-gallery] img": {
+          "max-height": "var(--media-box-h)"
+        },
+        "[data-slot=markdown-video]": {
+          "border-radius": "var(--radius-card)",
+          "width": "var(--media-box-w)"
+        },
+        "[data-slot=markdown-video] video": {
+          "max-height": "var(--media-box-h)",
+          "object-fit": "contain"
+        }
+      }
+    }
+  ]
+}

@@ -5,14 +5,7 @@ import { Card } from "@/primitives/card";
 import { Input } from "@/primitives/input";
 import { Label } from "@/primitives/label";
 import { GlobeIcon, LockIcon, UserGroupIcon, UserIcon } from "./icons";
-import {
-  OptionRow,
-  PrimaryLabel,
-  StepBody,
-  StepFooter,
-  StepHeader,
-  StepKey,
-} from "./shell";
+import { OptionRow, StepBody, StepFooter, StepHeader, StepKey } from "./shell";
 
 export type Invitation = {
   readonly id: string;
@@ -171,20 +164,17 @@ export function WorkspaceStep({
               <Button
                 data-track-owner={`${owner}:Button[Join]`}
                 size="base"
-                disabled={
-                  (invitation === undefined && joinable === undefined) || busy
-                }
-                aria-busy={busy}
+                disabled={invitation === undefined && joinable === undefined}
+                loading={busy}
+                loadingLabel="Joining"
                 onClick={() => {
                   if (invitation !== undefined)
                     onAcceptInvitation?.(invitation);
                   else if (joinable !== undefined) onJoinByDomain?.(joinable);
                 }}
               >
-                <PrimaryLabel busy={busy} busyLabel="Joining">
-                  Join
-                  <StepKey />
-                </PrimaryLabel>
+                Join
+                <StepKey />
               </Button>
             ) : (
               <Button
@@ -260,21 +250,17 @@ export function WorkspaceStep({
             <Button
               data-track-owner={`${owner}:Button[Continue]`}
               size="base"
-              disabled={blocked || busy}
-              aria-busy={busy}
+              disabled={blocked}
+              loading={busy}
+              loadingLabel={busy && audience === "team" ? "Creating" : "Saving"}
               onClick={() => {
                 if (audience === "personal") onChoose(personalName, "personal");
                 else if (audience === "team" && trimmedName !== "")
                   setView("team-name");
               }}
             >
-              <PrimaryLabel
-                busy={busy && audience === "personal"}
-                busyLabel="Creating"
-              >
-                Continue
-                <StepKey />
-              </PrimaryLabel>
+              Continue
+              <StepKey />
             </Button>
           }
         />
@@ -374,13 +360,12 @@ export function WorkspaceStep({
             type="submit"
             form="onboarding-team-name"
             size="base"
-            disabled={trimmedName === "" || busy}
-            aria-busy={busy}
+            disabled={trimmedName === ""}
+            loading={busy}
+            loadingLabel="Creating"
           >
-            <PrimaryLabel busy={busy} busyLabel="Creating">
-              Continue
-              <StepKey />
-            </PrimaryLabel>
+            Continue
+            <StepKey />
           </Button>
         }
       />

@@ -5,6 +5,7 @@
  */
 
 @theme static {
+  --container-connections-wide: 46rem;
   --radius-inner: 0.125rem;
   --radius-button: 0.375rem;
   --radius-kbd: 0.1875rem;
@@ -67,4 +68,9 @@
 :root,
 [data-theme-preview] {
   --contain-intrinsic-emoji-group: 220px;
+}
+
+/* Crew asks (T07): footer width at which the trigger fits its full label. */
+@theme static {
+  --container-crew-asks-footer: 34rem;
 }

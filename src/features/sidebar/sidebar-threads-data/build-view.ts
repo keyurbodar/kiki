@@ -9,6 +9,7 @@ import type {
   SidebarProject,
   SidebarSection,
   SidebarThread,
+  SidebarThreadPreview,
   SidebarThreadSort,
   SidebarThreadsView,
 } from "@/components/sidebar-threads";
@@ -46,7 +47,7 @@ export type SourceThread = {
   settled: boolean;
   createdAt: Date;
   updatedAt: Date;
-};
+} & SidebarThreadPreview;
 
 export type SourceFolder = {
   id: string;
@@ -97,17 +98,15 @@ const byNewest =
   (a: { id: string; createdAt: Date; updatedAt: Date }, b: typeof a) =>
     b[key].getTime() - a[key].getTime() || b.id.localeCompare(a.id);
 
-const toRow = (thread: SourceThread, now: Date): SidebarThread => ({
-  id: thread.id,
-  title: thread.title,
-  status: thread.status,
-  needsYou: thread.needsYou,
-  ask: thread.ask,
-  hasUnreads: thread.hasUnreads,
-  age: formatAge(thread.updatedAt, now),
-  projectId: thread.projectId,
-  machine: thread.machine,
-});
+const toRow = (thread: SourceThread, now: Date): SidebarThread => {
+  const {
+    settled: _settled,
+    createdAt: _createdAt,
+    updatedAt,
+    ...row
+  } = thread;
+  return { ...row, age: formatAge(updatedAt, now) };
+};
 
 export function buildSidebarThreadsView(
   source: SidebarSource,

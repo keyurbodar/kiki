@@ -129,7 +129,7 @@ export const issueViewLabels: Record<IssueView, string> = {
 export const issueViewEmptyText: Record<IssueView, string> = {
   for_you: "Nothing for you yet",
   assigned: "Nothing assigned to you",
-  created: "No issues yet",
+  created: "You haven't created an issue yet",
   mentioned: "No issues mention you",
   all: "No issues yet",
 };

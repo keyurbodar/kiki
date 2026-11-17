@@ -18,6 +18,12 @@ export const AnnouncementsMock = mockGroup("announcements", (handlers) =>
               seenAt:
                 seen.find((row) => row.key === announcement.key)?.seenAt ??
                 null,
+              state: {
+                seenAt:
+                  seen.find((row) => row.key === announcement.key)?.seenAt ??
+                  null,
+                dismissedAt: null,
+              },
             })),
             ...seen.filter(
               (row) =>
@@ -40,6 +46,7 @@ export const AnnouncementsMock = mockGroup("announcements", (handlers) =>
               typeof input.ctaLabel === "string" ? input.ctaLabel : null,
             ctaUrl: typeof input.ctaUrl === "string" ? input.ctaUrl : null,
             seenAt: isoMinutesAgo(0),
+            state: { seenAt: isoMinutesAgo(0), dismissedAt: null },
             orgId: announcementOrgId,
           };
           yield* Ref.update(records, (all) => [
