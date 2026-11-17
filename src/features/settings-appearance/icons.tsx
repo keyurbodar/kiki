@@ -55,6 +55,12 @@ export const ChevronRightIcon = (props: GlyphProps) => (
   </Glyph>
 );
 
+export const CheckIcon = (props: GlyphProps) => (
+  <Glyph {...props}>
+    <path d="M5 12.5L9.5 17L19 7" {...stroke} />
+  </Glyph>
+);
+
 export const TrashIcon = (props: GlyphProps) => (
   <Glyph {...props}>
     <path

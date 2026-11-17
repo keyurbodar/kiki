@@ -67,6 +67,28 @@ export const samplePublications = [
     authorId: people.alex.id,
     status: "published",
     publishedAt: isoMinutesAgo(3 * 24 * 60),
+    slug: "aurora",
+    listed: true,
+    withdrawn: false,
+    removed: false,
+    removedReason: null,
+    adds: 3,
+    versions: [
+      {
+        id: "ver_sample_aurora_2",
+        version: 2,
+        createdAt: isoMinutesAgo(3 * 24 * 60),
+        reviewed: true,
+        removed: false,
+      },
+      {
+        id: "ver_sample_aurora_1",
+        version: 1,
+        createdAt: isoMinutesAgo(18 * 24 * 60),
+        reviewed: true,
+        removed: false,
+      },
+    ],
   },
   {
     id: "pub_sample_everforest",
