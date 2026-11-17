@@ -1,10 +1,11 @@
+import { $isCodeNode } from "@lexical/code";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
   LexicalTypeaheadMenuPlugin,
   MenuOption,
   useBasicTypeaheadTriggerMatch,
 } from "@lexical/react/LexicalTypeaheadMenuPlugin";
-import type { LexicalEditor } from "lexical";
+import { $getSelection, $isRangeSelection, type LexicalEditor } from "lexical";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { Icon, type IconId } from "@/primitives/icon";
@@ -15,6 +16,7 @@ import {
   INSERT_OPTIONS,
   type InsertOption,
 } from "./blocks";
+import { $isMarkdownSourceNode } from "./nodes";
 import {
   cn,
   menuIconSlotClass,
@@ -40,6 +42,21 @@ class SlashOption extends MenuOption {
 
 const SLASH_OPTIONS = INSERT_OPTIONS.map((option) => new SlashOption(option));
 
+export const $canOpenSlashMenu = () => {
+  const cell = $getSelectedTableCell();
+  const selection = $getSelection();
+  const block =
+    selection !== null && $isRangeSelection(selection)
+      ? selection.anchor.getNode().getTopLevelElement()
+      : null;
+  return (
+    cell === null &&
+    block !== null &&
+    !$isCodeNode(block) &&
+    !$isMarkdownSourceNode(block)
+  );
+};
+
 export function SlashMenuPlugin() {
   const [editor] = useLexicalComposerContext();
   const [query, setQuery] = useState<string | null>(null);
@@ -52,7 +69,7 @@ export function SlashMenuPlugin() {
   return (
     <LexicalTypeaheadMenuPlugin<SlashOption>
       triggerFn={(text: string, current: LexicalEditor) =>
-        current.getEditorState().read($getSelectedTableCell) === null
+        current.getEditorState().read($canOpenSlashMenu)
           ? match(text, current)
           : null
       }

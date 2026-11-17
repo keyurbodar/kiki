@@ -305,12 +305,13 @@ export function TableBehaviorPlugin() {
             copyToClipboard(
               editor,
               event instanceof ClipboardEvent ? event : null,
-            ).then(() =>
+            ).then((copied) => {
+              if (!copied) return;
               editor.update(() => {
                 const lines = $getLineSelection();
                 if (lines !== null) $deleteLines(lines);
-              }),
-            );
+              });
+            });
             return true;
           },
           COMMAND_PRIORITY_CRITICAL,

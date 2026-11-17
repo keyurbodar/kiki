@@ -78,6 +78,29 @@ describe("markdown round trip", () => {
     expect(kinds).toEqual(["frontmatter", "math", "footnote", "definition"]);
   });
 
+  it("keeps a mixed bullet and task list as source", () => {
+    const text = "- note\n- [x] done\n";
+    const editor = load(text);
+    const types = editor.read(() =>
+      $getRoot()
+        .getChildren()
+        .map((node) => node.getType()),
+    );
+    expect(types).toEqual(["markdown-source"]);
+    expect(exportText(editor)).toBe(text);
+  });
+
+  it("keeps task lists as rich text", () => {
+    const editor = load("- [ ] open\n- [x] done\n");
+    expect(
+      editor.read(() =>
+        $getRoot()
+          .getChildren()
+          .map((node) => node.getType()),
+      ),
+    ).toEqual(["list"]);
+  });
+
   it("keeps mermaid fences as source blocks and other fences as code", () => {
     const editor = load("```mermaid\ngraph TD\n```\n\n```py\nprint(1)\n```\n");
     const types = editor.read(() =>

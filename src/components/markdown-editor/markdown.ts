@@ -466,9 +466,13 @@ export const $importMarkdown = (root: RootNode, text: string) => {
     );
   };
 
-  const isSimpleList = (list: List): boolean =>
-    list.children.every(isSimpleItem) &&
-    (!list.ordered || list.children.every((item) => item.checked == null));
+  const isSimpleList = (list: List): boolean => {
+    if (!list.children.every(isSimpleItem)) return false;
+    if (list.ordered && list.children.some((item) => item.checked != null))
+      return false;
+    const checked = list.children.map((item) => item.checked != null);
+    return checked.every((item) => item === checked[0]);
+  };
 
   const isSimpleTable = (table: Table) => {
     const [head, ...rows] = table.children;
