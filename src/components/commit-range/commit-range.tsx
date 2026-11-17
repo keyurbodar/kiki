@@ -282,8 +282,7 @@ export function CommitRangePicker({
                       </span>
                     </RangeRow>
                   ))}
-                </div>
-              </fieldset>
+                </fieldset>
             </ScrollAreaViewport>
           </ScrollArea>
         </PopoverContent>
