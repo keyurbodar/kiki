@@ -555,3 +555,25 @@ export function OverviewSkeleton() {
     </div>
   );
 }
+
+export type LocalPullRowProps = {
+  pull: import("@/features/thread/local-pull-rows").LocalPull;
+  onRemove: () => void;
+};
+
+export function LocalPullRow({ pull, onRemove }: LocalPullRowProps) {
+  return (
+    <LocalPullRowView
+      pull={pull}
+      state={localPullRowState({
+        reachable: true,
+        answer: undefined,
+        refreshing: false,
+        onRefresh: () => undefined,
+        githubLinked: true,
+      })}
+      recorder={null}
+      onRemove={onRemove}
+    />
+  );
+}

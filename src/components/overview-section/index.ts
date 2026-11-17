@@ -12,6 +12,7 @@ export {
   SectionHeader,
   type SectionHeaderProps,
   SurfaceRow,
+  SurfaceRow,
   type SurfaceRowProps,
   SurfaceStack,
   type SurfaceStackProps,
