@@ -25,7 +25,6 @@ import {
   type UseSidebarNavOptions,
   useSidebarNav,
 } from "@/components/sidebar-nav-editor";
-import { SidebarReferralMenu } from "@/components/sidebar-referral-menu";
 import { SidebarSetupCard } from "@/components/sidebar-setup-card";
 import { SidebarThreads } from "@/components/sidebar-threads";
 import { UserMenu } from "@/components/user-menu";
@@ -418,7 +417,6 @@ export function AppSidebar({
       <SidebarAnnouncements />
       <SidebarSetupCard />
       <SidebarDealReminder />
-      <SidebarReferralMenu />
       <ContextMenu>
         <ContextMenuTrigger
           data-track-owner="shared/app-sidebar.tsx#AppSidebar:ContextMenuTrigger.1"
