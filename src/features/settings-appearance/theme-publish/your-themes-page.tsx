@@ -39,11 +39,7 @@ function ThemeTile({
   const status = publicationStatus(publication);
   const palette = dark ? theme.dark : theme.light;
   return (
-    <Link
-      to="/settings/appearance/themes/$themeId"
-      params={{ themeId: theme.id }}
-      className="group flex min-w-0 flex-col gap-2.5 rounded-(--radius-panel) outline-none focus-visible:outline-ring-inset"
-    >
+    <div className="group relative flex min-w-0 flex-col gap-2.5 rounded-(--radius-panel)">
       <SpecimenFrame className={specimenFrameClass(false)}>
         <ThemeSpecimen palette={palette} dark={dark} wallpaper={false} lift />
       </SpecimenFrame>
@@ -56,7 +52,13 @@ function ThemeTile({
         </Badge>
       </div>
       <span className="text-sm text-muted-foreground-2">{status.note}</span>
-    </Link>
+      <Link
+        to="/settings/appearance/themes/$themeId"
+        params={{ themeId: theme.id }}
+        aria-label={theme.name}
+        className="absolute inset-0 rounded-(--radius-panel) outline-none focus-visible:outline-ring-inset"
+      />
+    </div>
   );
 }
 

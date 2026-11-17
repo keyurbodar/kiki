@@ -1,6 +1,17 @@
-import type { ReactNode } from "react";
+import {
+  type CSSProperties,
+  type ReactNode,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import type { Palette } from "../model/palette";
-import { ThemePreview } from "../theme-preview";
+import { paletteStyle } from "../model/palette";
+import {
+  SPECIMEN_HEIGHT,
+  SPECIMEN_WIDTH,
+  SpecimenApp,
+} from "../theme-preview/specimen-app";
 
 const cx = (...parts: Array<string | false | undefined>) =>
   parts.filter(Boolean).join(" ");
@@ -42,6 +53,10 @@ export function SpecimenFrame({
   );
 }
 
+/**
+ * The app laid out at its real size and scaled into the window, so the theme is
+ * seen styling the live messages, the panel card and the sidebar rows.
+ */
 function SpecimenWindow({
   palette,
   dark,
@@ -51,19 +66,42 @@ function SpecimenWindow({
   dark: boolean;
   className?: string;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0);
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (element === null) return;
+    const measure = () => setScale(element.clientWidth / SPECIMEN_WIDTH);
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
   return (
     <div
+      ref={ref}
       aria-hidden="true"
+      data-color-theme="editor-preview"
+      data-theme-preview={dark ? "dark" : "light"}
+      style={paletteStyle(palette) as CSSProperties}
       className={cx(
         "relative aspect-video w-full overflow-hidden rounded-(--radius-card) border-[length:--spacing(0.125)] border-border-1",
+        dark && "dark",
         className,
       )}
     >
-      <span className="absolute inset-0 flex">
-        <ThemePreview
-          source={{ kind: "palette", palette }}
-          side={dark ? "dark" : "light"}
-        />
+      <span
+        aria-hidden
+        inert
+        style={{
+          width: SPECIMEN_WIDTH,
+          height: SPECIMEN_HEIGHT,
+          transform: `scale(${scale})`,
+        }}
+        className="pointer-events-none absolute top-0 left-0 flex origin-top-left select-none"
+      >
+        <SpecimenApp />
       </span>
     </div>
   );
