@@ -1,7 +1,7 @@
 import {
   LinearLinkPreview,
   SlackLinkPreview,
-} from "../../api/schemas/integration.ts";
+} from "../../api/schemas/integrationOAuth.ts";
 import {
   isoMinutesAgo,
   org,
