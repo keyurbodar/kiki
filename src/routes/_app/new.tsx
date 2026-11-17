@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { HomePage } from "@/features/home/home-page";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/new")({
@@ -8,5 +8,6 @@ export const Route = createFileRoute("/_app/new")({
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="Capy" path="/new" />;
+  const { prompt } = Route.useSearch();
+  return <HomePage prompt={prompt} />;
 }
