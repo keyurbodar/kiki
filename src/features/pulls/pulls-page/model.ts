@@ -67,7 +67,11 @@ export const viewTabs: ReadonlyArray<{
   readonly label: string;
   readonly filters: PullFilters;
 }> = [
-  { key: "open", label: "Open", filters: { ...emptyFilters, states: openStates } },
+  {
+    key: "open",
+    label: "Open",
+    filters: { ...emptyFilters, states: openStates },
+  },
   {
     key: "ready",
     label: "Ready to merge",
@@ -159,8 +163,7 @@ export const hasFilters = (filters: PullFilters) =>
 /** The built-in tab key or saved view id whose filters match, if any. */
 export const activeViewKey = (prefs: PullsPagePrefs) =>
   viewTabs.find((tab) => sameFilters(tab.filters, prefs.filters))?.key ??
-  prefs.savedViews.find((view) => sameFilters(view.filters, prefs.filters))
-    ?.id;
+  prefs.savedViews.find((view) => sameFilters(view.filters, prefs.filters))?.id;
 
 export const toggle = <A>(list: ReadonlyArray<A>, value: A) =>
   list.includes(value)
@@ -278,7 +281,14 @@ export const buildSections = (
   if (searching) {
     return visible.length === 0
       ? []
-      : [{ id: "results", label: "Results", members: visible, showCount: true }];
+      : [
+          {
+            id: "results",
+            label: "Results",
+            members: visible,
+            showCount: true,
+          },
+        ];
   }
   if (prefs.grouping === "repo" || prefs.grouping === "author") {
     const keyOf = (pull: PullCard) =>
@@ -328,13 +338,15 @@ export const buildSections = (
       members: rest.filter((pull) => pull.state === key),
       showCount: !history,
     }))
-    .filter(
-      (section) => section.members.length > 0 || prefs.showEmptySections,
-    );
+    .filter((section) => section.members.length > 0 || prefs.showEmptySections);
   return [...pinnedSection, ...stateGroups];
 };
 
-export const emptyText = (searching: boolean, total: number, filtered: boolean) =>
+export const emptyText = (
+  searching: boolean,
+  total: number,
+  filtered: boolean,
+) =>
   searching
     ? "No matching pull requests"
     : total === 0 && !filtered

@@ -94,7 +94,7 @@ function OptionsSubmenu({
   onChange: (next: ReadonlyArray<string>) => void;
 }) {
   const count = selected.length > 0 ? selected.length : undefined;
-  const missing = selected
+  const missing: ReadonlyArray<FilterOption> = selected
     .filter((id) => !options.some((option) => option.id === id))
     .map((id) => ({ id, label: id }));
   return (
@@ -102,7 +102,11 @@ function OptionsSubmenu({
       icon={icon}
       label={label}
       value={
-        hint === undefined ? count : <FilterKeyHint filterKey={hint} value={count} />
+        hint === undefined ? (
+          count
+        ) : (
+          <FilterKeyHint filterKey={hint} value={count} />
+        )
       }
       contentClassName="w-56"
     >
@@ -162,7 +166,9 @@ export function PullsFilterMenu({
           value={
             <FilterKeyHint
               filterKey="status"
-              value={filters.states.length > 0 ? filters.states.length : undefined}
+              value={
+                filters.states.length > 0 ? filters.states.length : undefined
+              }
             />
           }
           contentClassName="w-44"
@@ -337,7 +343,9 @@ const binary = (
   kind: "binary" as const,
   agreement: "is" as const,
   cardinality: count > 1 ? ("many" as const) : ("one" as const),
-  sign: isNegative(filters, axis) ? ("negative" as const) : ("positive" as const),
+  sign: isNegative(filters, axis)
+    ? ("negative" as const)
+    : ("positive" as const),
   onChange: (sign: "positive" | "negative") =>
     onChange(setNegative(filters, axis, sign === "negative")),
 });
@@ -354,7 +362,8 @@ export const pullFilterChips = (
   const chips: Array<FilterChipModel> = [];
   if (filters.states.length > 0) {
     const labels = filters.states.map(
-      (state) => stateOptions.find((option) => option.value === state)?.label ?? state,
+      (state) =>
+        stateOptions.find((option) => option.value === state)?.label ?? state,
     );
     chips.push({
       key: "states",
@@ -403,10 +412,17 @@ export const pullFilterChips = (
         selected.map((id) => nameOf(list, id)),
         noun,
       ),
-      onRemove: () => onChange(setNegative({ ...filters, [key]: [] }, key, false)),
+      onRemove: () =>
+        onChange(setNegative({ ...filters, [key]: [] }, key, false)),
     });
   };
-  listChip("projects", "Project", "projects", <ProjectGlyph />, options.projects);
+  listChip(
+    "projects",
+    "Project",
+    "projects",
+    <ProjectGlyph />,
+    options.projects,
+  );
   listChip(
     "repos",
     "Repository",
@@ -465,7 +481,8 @@ export const pullFilterChips = (
       property,
       operator: binary(filters, key, 1, onChange),
       value: dateRangeLabel(range),
-      onRemove: () => onChange(setNegative({ ...filters, [key]: null }, key, false)),
+      onRemove: () =>
+        onChange(setNegative({ ...filters, [key]: null }, key, false)),
     });
   };
   dateChip("created", "Created", <CalendarGlyph />);

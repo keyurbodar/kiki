@@ -12,18 +12,17 @@ import {
   ViewTab,
   ViewToolbar,
 } from "@/components/view-toolbar";
-import { organizationsAtom } from "@/data/atoms/session";
 import { projectsAtom } from "@/data/atoms/projects";
-import { NewPullDialog, type NewPullInput } from "@/features/pulls/new-pull-dialog";
+import { organizationsAtom } from "@/data/atoms/session";
+import {
+  NewPullDialog,
+  type NewPullInput,
+} from "@/features/pulls/new-pull-dialog";
 import { PlusGlyph } from "@/features/pulls/pulls-list/pull-row/pull-icons";
 import { PullsList } from "@/features/pulls/pulls-list/pulls-list";
 import { Button } from "@/primitives/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
-import {
-  createPullAtom,
-  pullsAtom,
-  pullsReactivityKey,
-} from "./data/atoms";
+import { createPullAtom, pullsAtom, pullsReactivityKey } from "./data/atoms";
 import { decodePullPage } from "./data/pull";
 import {
   activeViewKey,

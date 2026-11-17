@@ -38,7 +38,12 @@ export function PullsList({
             ) : null}
           </h2>
           {section.members.map((pull) => (
-            <PullRow key={pull.id} pull={pull} now={now} multirepo={multirepo} />
+            <PullRow
+              key={pull.id}
+              pull={pull}
+              now={now}
+              multirepo={multirepo}
+            />
           ))}
         </section>
       ))}
