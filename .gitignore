@@ -19,3 +19,6 @@ playwright/.cache/
 # OS / editor
 .DS_Store
 *.log
+
+# Bun local cache (kiki-ci warm VMs keep one inside the checkout)
+.bun/
