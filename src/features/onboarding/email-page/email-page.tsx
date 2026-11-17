@@ -154,8 +154,7 @@ export function EmailLandingStep({
           data-track-owner="features/settings/email-landing.tsx#EmailLandingStep:Button[Undo]"
           size="base"
           className="w-full"
-          disabled={saving}
-          aria-busy={saving}
+          loading={saving}
           onClick={() => update(true)}
         >
           Undo
@@ -176,8 +175,8 @@ export function EmailLandingStep({
         intent="accent"
         size="base"
         className="w-full"
-        disabled={loaded === undefined || saving}
-        aria-busy={saving}
+        disabled={loaded === undefined}
+        loading={saving}
         onClick={() => update(false)}
       >
         {meta.stop}

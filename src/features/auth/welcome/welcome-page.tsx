@@ -74,7 +74,7 @@ export function WelcomePage({ redirectUrl }: WelcomePageProps) {
       </div>
       <div className="relative flex w-full max-w-96 flex-col items-center px-6 transition-opacity duration-fast ease-out group-data-[leaving]/intro:opacity-0">
         <div className={`${stepClass} ${stepDelay[0]}`}>
-          <div className="size-16 rounded-[22.5%] shadow-(--sh-sheet)">
+          <div className="size-16 rounded-[22.5%] shadow-sheet">
             <img
               src={appIcon}
               alt="Capy"
@@ -84,7 +84,7 @@ export function WelcomePage({ redirectUrl }: WelcomePageProps) {
           </div>
         </div>
         <h1
-          className={`mt-7 max-w-72 text-center text-xl font-medium text-balance text-foreground ${stepClass} ${stepDelay[1]}`}
+          className={`mt-7 max-w-72 text-center text-2xl font-medium text-balance text-foreground ${stepClass} ${stepDelay[1]}`}
         >
           The best AI software engineer
         </h1>

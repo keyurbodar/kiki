@@ -74,8 +74,7 @@ export function TwoStepWall({
             intent="accent"
             size="base"
             className="w-full"
-            disabled={busy}
-            aria-busy={busy || undefined}
+            loading={busy}
             onClick={() => {
               setBusy(true);
               setError(null);
