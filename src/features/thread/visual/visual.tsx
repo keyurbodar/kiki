@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { VisualRow as VisualRowSchema } from "@/data/events";
 import type { Schema } from "effect";
+import { useEffect, useRef, useState } from "react";
+import type { VisualRow as VisualRowSchema } from "@/data/events";
 
 type VisualRowData = Schema.Schema.Type<typeof VisualRowSchema>;
-
 
 export type VisualRowProps = {
   row: VisualRowData;
@@ -35,12 +34,15 @@ export function VisualRow({ row, className, onOpenExternal }: VisualRowProps) {
       if (data.type === "ready") setFailed(false);
       if (data.type === "error") setFailed(true);
       if (data.type === "height" && typeof data.value === "number") {
-        setHeight(Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, Math.ceil(data.value))));
+        setHeight(
+          Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, Math.ceil(data.value))),
+        );
       }
       if (data.type === "link" && typeof data.value === "string") {
         const url = URL.parse(data.value);
         if (url?.protocol === "https:") {
-          if (onOpenExternal === undefined) window.open(url.href, "_blank", "noopener,noreferrer");
+          if (onOpenExternal === undefined)
+            window.open(url.href, "_blank", "noopener,noreferrer");
           else onOpenExternal(url.href);
         }
       }
@@ -58,7 +60,9 @@ export function VisualRow({ row, className, onOpenExternal }: VisualRowProps) {
         <span className="min-w-0 truncate">{row.title}</span>
       </div>
       {failed ? (
-        <p className="py-1 text-sm text-muted-foreground-3">This visual could not be shown</p>
+        <p className="py-1 text-sm text-muted-foreground-3">
+          This visual could not be shown
+        </p>
       ) : (
         <iframe
           ref={frame}

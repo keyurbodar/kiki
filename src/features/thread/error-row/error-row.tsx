@@ -1,5 +1,5 @@
-import { ErrorRow as ErrorRowSchema } from "@/data/events";
 import type { Schema } from "effect";
+import type { ErrorRow as ErrorRowSchema } from "@/data/events";
 
 import { Alert, AlertDescription, AlertTitle } from "@/primitives/alert";
 import { Button } from "@/primitives/button";
@@ -19,14 +19,23 @@ export function ErrorRow({ row, onRetry, className }: ErrorRowProps) {
     <div className={`py-2 ${className ?? ""}`}>
       <Alert color={warning ? "warning" : "danger"}>
         {warning ? (
-          <span aria-hidden className="text-warning-fg">!</span>
+          <span aria-hidden className="text-warning-fg">
+            !
+          </span>
         ) : (
-          <span aria-hidden className="text-destructive">!</span>
+          <span aria-hidden className="text-destructive">
+            !
+          </span>
         )}
         <AlertTitle title={row.code}>{row.code}</AlertTitle>
         <AlertDescription>{row.message}</AlertDescription>
         {onRetry === undefined || !row.retryable ? null : (
-          <Button variant="ghost" size="sm" onClick={onRetry} className="mt-1.5">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onRetry}
+            className="mt-1.5"
+          >
             Retry
           </Button>
         )}

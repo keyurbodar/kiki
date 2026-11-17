@@ -1,9 +1,13 @@
 import { cx } from "class-variance-authority";
-import type { ReactNode } from "react";
-import { UpdateRow as UpdateRowSchema } from "@/data/events";
 import type { Schema } from "effect";
+import type { ReactNode } from "react";
+import type { UpdateRow as UpdateRowSchema } from "@/data/events";
 import { Button } from "@/primitives/button";
-import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@/primitives/collapsible";
+import {
+  Collapsible,
+  CollapsiblePanel,
+  CollapsibleTrigger,
+} from "@/primitives/collapsible";
 import { Icon, type IconId } from "@/primitives/icon";
 
 type UpdateRowData = Schema.Schema.Type<typeof UpdateRowSchema>;
@@ -56,7 +60,11 @@ export function updateSource(row: UpdateRowData): string {
   if (key === "thread_merge_settle") return "github";
   if (key.startsWith("slack")) return "slack";
   if (key.startsWith("linear")) return "linear";
-  if (key.startsWith("ci_") || key.startsWith("pr_") || key.startsWith("github_"))
+  if (
+    key.startsWith("ci_") ||
+    key.startsWith("pr_") ||
+    key.startsWith("github_")
+  )
     return "github";
   return "capy";
 }
@@ -66,10 +74,13 @@ export function updateStatus(row: UpdateRowData): string {
   if (row.kind === "notice") {
     const notice: NoticeRow = row;
     const ci = objectField(notice.ciResult) ? notice.ciResult : undefined;
-    const pr = objectField(notice.prTransition) ? notice.prTransition : undefined;
+    const pr = objectField(notice.prTransition)
+      ? notice.prTransition
+      : undefined;
     if (pr !== undefined)
       return stringField(pr.transition) === "merged" ? "success" : "failure";
-    if (notice.prConflict !== undefined || notice.ciUnsettled !== undefined) return "attention";
+    if (notice.prConflict !== undefined || notice.ciUnsettled !== undefined)
+      return "attention";
     if (notice.reviewFailed !== undefined) return "failure";
     if (ci !== undefined)
       return stringField(ci.outcome) === "passed" ? "success" : "failure";
@@ -85,7 +96,8 @@ export function updateStatus(row: UpdateRowData): string {
     return row.issues === 0 ? "success" : "attention";
   }
   if (/\b(failed|failing|broken|red)\b/i.test(row.summary)) return "failure";
-  if (/\b(passed|green|succeeded|merged)\b/i.test(row.summary)) return "success";
+  if (/\b(passed|green|succeeded|merged)\b/i.test(row.summary))
+    return "success";
   return "neutral";
 }
 
@@ -103,7 +115,9 @@ export function updateLabel(row: UpdateRowData): string {
         ? `Subagent ${row.reference.localIndex}`
         : row.reference.code;
     const outcome =
-      row.outcome === "completed" && row.reference.kind === "thread" && row.needs === "person"
+      row.outcome === "completed" &&
+      row.reference.kind === "thread" &&
+      row.needs === "person"
         ? "needs you"
         : row.outcome === "completed"
           ? "finished"
@@ -131,8 +145,10 @@ function operationLabel(row: OperationRow): string {
     const number = numberField(ended.prNumber);
     const pr = number === undefined ? "the pull request" : `PR #${number}`;
     const reason = stringField(ended.reason);
-    if (reason === "merged" || reason === "closed") return `Stopped watching ${pr}, ${reason}`;
-    if (reason === "moved") return `Stopped watching ${pr}, another thread owns it`;
+    if (reason === "merged" || reason === "closed")
+      return `Stopped watching ${pr}, ${reason}`;
+    if (reason === "moved")
+      return `Stopped watching ${pr}, another thread owns it`;
     return `Stopped watching ${pr}`;
   }
   if (row.watch !== undefined) return "Watching the background command";
@@ -162,9 +178,13 @@ function UpdateIcon({ row }: { row: UpdateRowData }) {
 
 function detailBody(row: UpdateRowData): ReactNode | undefined {
   if (row.kind === "notice") {
-    const issue = objectField(row.issueActivity) ? row.issueActivity.body : undefined;
+    const issue = objectField(row.issueActivity)
+      ? row.issueActivity.body
+      : undefined;
     const feedback = row.prFeedback?.body;
-    const slack = objectField(row.slackMessage) ? row.slackMessage.text : undefined;
+    const slack = objectField(row.slackMessage)
+      ? row.slackMessage.text
+      : undefined;
     const body = stringField(issue) ?? feedback ?? stringField(slack);
     if (body !== undefined && body.trim() !== "") return body;
   }
@@ -186,9 +206,15 @@ export function UpdateRow({
 }: UpdateRowProps) {
   const body = detailBody(row);
   const prTransition =
-    row.kind === "notice" && objectField(row.prTransition) ? row.prTransition : undefined;
-  const prNumber = prTransition === undefined ? undefined : numberField(prTransition.prNumber);
-  const prRepo = prTransition === undefined ? undefined : stringField(prTransition.repoFullName);
+    row.kind === "notice" && objectField(row.prTransition)
+      ? row.prTransition
+      : undefined;
+  const prNumber =
+    prTransition === undefined ? undefined : numberField(prTransition.prNumber);
+  const prRepo =
+    prTransition === undefined
+      ? undefined
+      : stringField(prTransition.repoFullName);
   const prUrl =
     prNumber !== undefined && prRepo !== undefined
       ? `https://github.com/${prRepo}/pull/${prNumber}`
@@ -208,7 +234,12 @@ export function UpdateRow({
             {row.reference.code}
           </Button>
         ) : (
-          label.slice(0, row.kind === "task" && row.reference.kind === "thread" ? row.reference.code.length : undefined)
+          label.slice(
+            0,
+            row.kind === "task" && row.reference.kind === "thread"
+              ? row.reference.code.length
+              : undefined,
+          )
         )}
         {row.kind === "task" && row.reference.kind === "thread"
           ? label.slice(row.reference.code.length)
@@ -227,14 +258,18 @@ export function UpdateRow({
     </span>
   );
   const root = (
-    <div className={cx("flex min-h-7 w-full items-center gap-1.5 py-1", className)}>
+    <div
+      className={cx("flex min-h-7 w-full items-center gap-1.5 py-1", className)}
+    >
       {content}
     </div>
   );
   if (body === undefined || onToggleExpanded === undefined) return root;
   return (
     <Collapsible open={expanded} onOpenChange={onToggleExpanded}>
-      <CollapsibleTrigger className="w-full text-left">{content}</CollapsibleTrigger>
+      <CollapsibleTrigger className="w-full text-left">
+        {content}
+      </CollapsibleTrigger>
       <CollapsiblePanel className="min-w-0 overflow-clip">
         <div className="flex flex-col gap-2 py-1 text-xs whitespace-pre-wrap text-muted-foreground">
           {body}

@@ -1,7 +1,10 @@
 import { cx } from "class-variance-authority";
-import type { ComponentProps } from "react";
-import { ClusterRow as ClusterRowSchema, UpdateRow as UpdateRowSchema } from "@/data/events";
 import type { Schema } from "effect";
+import type { ComponentProps } from "react";
+import type {
+  ClusterRow as ClusterRowSchema,
+  UpdateRow as UpdateRowSchema,
+} from "@/data/events";
 
 import { UpdateRow as UpdateLine } from "@/features/thread/update-row";
 import { Icon } from "@/primitives/icon";
@@ -9,7 +12,10 @@ import { Icon } from "@/primitives/icon";
 type ClusterRowData = Schema.Schema.Type<typeof ClusterRowSchema>;
 type UpdateRow = Schema.Schema.Type<typeof UpdateRowSchema>;
 
-export type ClusterRowProps = Omit<ComponentProps<"div">, "children" | "onToggle"> & {
+export type ClusterRowProps = Omit<
+  ComponentProps<"div">,
+  "children" | "onToggle"
+> & {
   row: ClusterRowData;
   onToggle?: () => void;
   onOpenThread?: (jamId: string) => void;
@@ -62,7 +68,9 @@ export function ClusterRow({
   );
   return (
     <div className={cx("flex w-full flex-col gap-1", className)} {...props}>
-      <div className="flex min-h-7 w-full items-center justify-center">{trigger}</div>
+      <div className="flex min-h-7 w-full items-center justify-center">
+        {trigger}
+      </div>
       {expanded ? (
         <div className="flex flex-col gap-1 py-1">
           {row.members.map((member) => (

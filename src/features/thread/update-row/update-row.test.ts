@@ -1,12 +1,13 @@
+import { Schema } from "effect";
 import { expect, it } from "vitest";
 import { UpdateRow as UpdateRowSchema } from "@/data/events";
-import { Schema } from "effect";
 
 import { updateLabel, updateSource, updateStatus } from "./update-row";
 
 type UpdateRow = Schema.Schema.Type<typeof UpdateRowSchema>;
 
-const rowFrom = (value: unknown) => Schema.decodeUnknownSync(UpdateRowSchema)(value);
+const rowFrom = (value: unknown) =>
+  Schema.decodeUnknownSync(UpdateRowSchema)(value);
 
 const base = {
   id: "update:1",
@@ -15,7 +16,13 @@ const base = {
 };
 
 it("labels review updates from their issue count", () => {
-  const row: UpdateRow = rowFrom({ ...base, type: "update", kind: "review", prNumber: 12, issues: 2 });
+  const row: UpdateRow = rowFrom({
+    ...base,
+    type: "update",
+    kind: "review",
+    prNumber: 12,
+    issues: 2,
+  });
   expect(updateLabel(row)).toBe("Review left 2 issues on PR #12");
   expect(updateStatus(row)).toBe("attention");
   expect(updateSource(row)).toBe("review");

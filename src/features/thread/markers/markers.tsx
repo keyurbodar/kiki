@@ -1,7 +1,7 @@
 import { cx } from "class-variance-authority";
-import type { ComponentProps, ReactNode } from "react";
-import { MarkerRow as MarkerRowSchema } from "@/data/events";
 import type { Schema } from "effect";
+import type { ComponentProps, ReactNode } from "react";
+import type { MarkerRow as MarkerRowSchema } from "@/data/events";
 
 import { Icon, type IconId } from "@/primitives/icon";
 import { ShimmerText } from "@/primitives/shimmer-text";
@@ -38,7 +38,10 @@ const plainKinds = new Set<MarkerRowData["kind"]>([
   "permission",
 ]);
 
-export type MarkerIconProps = { kind: MarkerRowData["kind"]; className?: string };
+export type MarkerIconProps = {
+  kind: MarkerRowData["kind"];
+  className?: string;
+};
 
 export function MarkerIcon({ kind, className }: MarkerIconProps) {
   const name = markerIcons[kind];
@@ -73,9 +76,13 @@ export function MarkerDivider({
       </div>
     );
   }
-  const rule = "w-[clamp(0,calc((100%-var(--spacing)*6)*9999),100%)] border-t-[length:--spacing(0.125)] border-border-2 motion-safe:transition-[scale] motion-safe:duration-base motion-safe:ease-out-quint";
+  const rule =
+    "w-[clamp(0,calc((100%-var(--spacing)*6)*9999),100%)] border-t-[length:--spacing(0.125)] border-border-2 motion-safe:transition-[scale] motion-safe:duration-base motion-safe:ease-out-quint";
   return (
-    <div className={cx("flex min-h-7 w-full items-center gap-3", className)} {...props}>
+    <div
+      className={cx("flex min-h-7 w-full items-center gap-3", className)}
+      {...props}
+    >
       <span aria-hidden className="flex min-w-0 flex-1 justify-end">
         <span className={rule} />
       </span>
@@ -138,7 +145,9 @@ export function WaitingMarker({
       <span
         className={cx(
           "max-w-[86%] min-w-0 py-1.5 text-center text-xs md:max-w-[80%]",
-          needsYou ? "font-medium text-foreground" : "font-normal text-muted-foreground-2",
+          needsYou
+            ? "font-medium text-foreground"
+            : "font-normal text-muted-foreground-2",
           enter && "animate-crossfade-in",
         )}
       >

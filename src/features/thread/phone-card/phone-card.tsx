@@ -1,5 +1,5 @@
-import { PhoneCardRow as PhoneCardRowSchema } from "@/data/events";
 import type { Schema } from "effect";
+import type { PhoneCardRow as PhoneCardRowSchema } from "@/data/events";
 
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
@@ -22,13 +22,19 @@ export function PhoneCard({ row, onOpen, className }: PhoneCardProps) {
         <Icon name="phone-dynamic-island" className="size-(--icon-sm)" />
       </span>
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-xs font-medium text-foreground">{row.summary}</span>
+        <span className="truncate text-xs font-medium text-foreground">
+          {row.summary}
+        </span>
         <span className="truncate text-xs text-muted-foreground-2">
           Phone added to this thread · {row.machineId}
         </span>
       </span>
       {onOpen === undefined ? null : (
-        <Button variant="outline" size="xs" onClick={() => onOpen(row.machineId)}>
+        <Button
+          variant="outline"
+          size="xs"
+          onClick={() => onOpen(row.machineId)}
+        >
           Open
         </Button>
       )}
