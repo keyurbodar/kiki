@@ -1,35 +1,18 @@
 import { Schema } from "effect";
-import { JamId, ProjectId, Timestamp, UserId } from "./ids.ts";
+import { FileId } from "./files.ts";
+import {
+  IssueCommentId,
+  IssueEventId,
+  IssueId,
+  IssueLabelId,
+  IssueStateId,
+  JamId,
+  ProjectId,
+  PullRequestId,
+  Timestamp,
+  UserId,
+} from "./ids.ts";
 import { ThreadStatus } from "./thread.ts";
-
-export const IssueId = Schema.String.pipe(Schema.brand("Core.IssueId"));
-export type IssueId = typeof IssueId.Type;
-
-export const IssueCommentId = Schema.String.pipe(
-  Schema.brand("Core.IssueCommentId"),
-);
-export type IssueCommentId = typeof IssueCommentId.Type;
-
-export const IssueEventId = Schema.String.pipe(
-  Schema.brand("Core.IssueEventId"),
-);
-export type IssueEventId = typeof IssueEventId.Type;
-
-export const IssueStateId = Schema.String.pipe(
-  Schema.brand("Core.IssueStateId"),
-);
-export type IssueStateId = typeof IssueStateId.Type;
-
-export const IssueLabelId = Schema.String.pipe(
-  Schema.brand("Core.IssueLabelId"),
-);
-export type IssueLabelId = typeof IssueLabelId.Type;
-
-export const PullId = Schema.String.pipe(Schema.brand("Core.PullId"));
-export type PullId = typeof PullId.Type;
-
-export const FileId = Schema.String.pipe(Schema.brand("Core.FileId"));
-export type FileId = typeof FileId.Type;
 
 export const issueStatuses = [
   "backlog",
@@ -246,7 +229,7 @@ export class IssueSummary extends Schema.Class<IssueSummary>("IssueSummary")({
 
 export class IssuePullLink extends Schema.Class<IssuePullLink>("IssuePullLink")(
   {
-    pullId: PullId,
+    pullId: PullRequestId,
     repoFullName: Schema.String,
     prNumber: Schema.Int,
     title: Schema.String,
@@ -421,7 +404,7 @@ export const LinkIssueRequest = Schema.Struct({
 });
 
 export const IssueLinkTarget = Schema.Union([
-  Schema.Struct({ kind: Schema.Literal("pull"), pullId: PullId }),
+  Schema.Struct({ kind: Schema.Literal("pull"), pullId: PullRequestId }),
   Schema.Struct({ kind: Schema.Literal("thread"), jamId: JamId }),
 ]);
 export type IssueLinkTarget = typeof IssueLinkTarget.Type;
