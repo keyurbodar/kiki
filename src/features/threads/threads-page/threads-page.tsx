@@ -316,7 +316,15 @@ export function ThreadsPageView({
         (thread.title ?? "").toLowerCase().includes(term.trim().toLowerCase()),
       )
     : visible;
-  const built = buildSections({
+  const folderSections = searching
+    ? []
+    : folders.map((folder) => ({
+        id: folder.id,
+        label: folder.name,
+        members: filterThreads(folder.members, filters, viewerId, now),
+        showCount: true,
+      }));
+  const sections = buildSections({
     threads: shown,
     filters,
     grouping: state.grouping,
@@ -326,18 +334,8 @@ export function ThreadsPageView({
     projectName: (id) =>
       id === null ? "No project" : (projectMap.get(id)?.name ?? "No project"),
     authorName: (id) => (id === viewerId ? "You" : "Unknown"),
+    folderSections,
   });
-  const sections = [
-    ...(searching
-      ? []
-      : folders.map((folder) => ({
-          id: folder.id,
-          label: folder.name,
-          members: filterThreads(folder.members, filters, viewerId, now),
-          showCount: true,
-        }))),
-    ...built,
-  ];
   const chips = threadFilterChips(filters, setFilters, {
     member: (id) => (id === viewerId ? "Me" : id),
     project: (id) => projectMap.get(id)?.name ?? id,
