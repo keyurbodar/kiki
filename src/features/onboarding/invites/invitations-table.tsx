@@ -169,11 +169,12 @@ export function InvitationsTable({
                 <Button
                   data-track-owner="shared/invitations-dialog.tsx#InvitationsTable:Button[Accept]"
                   intent="neutral"
-                  aria-busy={accepting === key || undefined}
+                  loading={accepting === key}
                   disabled={accepting !== null}
                   onClick={() => onAccept(invitation)}
+                  loadingLabel="Joining"
                 >
-                  {accepting === key ? "Joining" : "Accept"}
+                  Accept
                 </Button>
               </Cell>
             </Row>
@@ -213,11 +214,12 @@ export function InvitationsTable({
                     <Button
                       data-track-owner="shared/invitations-dialog.tsx#InvitationsTable:Button[Join]"
                       intent="neutral"
-                      aria-busy={accepting === key || undefined}
+                      loading={accepting === key}
                       disabled={accepting !== null}
                       onClick={() => onJoin(organization)}
+                      loadingLabel="Joining"
                     >
-                      {accepting === key ? "Joining" : "Join"}
+                      Join
                     </Button>
                   </Cell>
                 </Row>
