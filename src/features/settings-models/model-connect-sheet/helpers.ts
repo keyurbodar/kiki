@@ -5,6 +5,7 @@ import {
 } from "../model-routing/routing.ts";
 import type {
   CatalogEntry,
+  CompactAtEntry,
   CredentialHeader,
   DaybreakAccess,
   LabTicks,
@@ -527,6 +528,19 @@ export const cleanHeaders = (
             : { name: header.name.trim(), value: header.value },
         ],
   );
+
+export const pendingCompactAts = (
+  drafts: ReadonlyMap<string, number | undefined>,
+  customs: ReadonlyArray<ModelSetting>,
+  saved: ReadonlyArray<CompactAtEntry>,
+) => {
+  const kept = new Set(customs.map((m) => m.model));
+  return [...drafts].filter(
+    ([model, compactAt]) =>
+      kept.has(model) &&
+      saved.find((entry) => entry.model === model)?.compactAt !== compactAt,
+  );
+};
 
 export const headersEqual = (
   sent: ReadonlyArray<CredentialHeader>,

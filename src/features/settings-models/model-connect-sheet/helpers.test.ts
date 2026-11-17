@@ -15,6 +15,7 @@ import {
   nextHeaderId,
   nextTargetPhrase,
   parseTokens,
+  pendingCompactAts,
   previewValue,
   readMediaCheck,
   relativeTime,
@@ -375,6 +376,33 @@ describe("headers", () => {
     ]);
     expect(nearestEdge(5, { start: 3, end: 18 })).toBe(3);
     expect(nearestEdge(15, { start: 3, end: 18 })).toBe(18);
+  });
+});
+
+describe("pendingCompactAts", () => {
+  const customs = [
+    { model: "acme-coder", name: "Acme Coder" },
+    { model: "acme-fast", name: "Acme Fast" },
+  ];
+  const saved = [{ model: "acme-coder", compactAt: 6e4 }];
+  it("reports thresholds that differ from the saved ones", () => {
+    expect(
+      pendingCompactAts(new Map([["acme-coder", 7e4]]), customs, saved),
+    ).toEqual([["acme-coder", 7e4]]);
+    expect(
+      pendingCompactAts(new Map([["acme-coder", 6e4]]), customs, saved),
+    ).toEqual([]);
+    expect(
+      pendingCompactAts(new Map([["acme-fast", 9e4]]), customs, saved),
+    ).toEqual([["acme-fast", 9e4]]);
+  });
+  it("reports a cleared threshold and skips models no longer served", () => {
+    expect(
+      pendingCompactAts(new Map([["acme-coder", undefined]]), customs, saved),
+    ).toEqual([["acme-coder", undefined]]);
+    expect(pendingCompactAts(new Map([["gone", 7e4]]), customs, saved)).toEqual(
+      [],
+    );
   });
 });
 

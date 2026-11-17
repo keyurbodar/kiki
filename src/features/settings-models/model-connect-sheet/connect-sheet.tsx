@@ -92,6 +92,7 @@ import {
   headersEqual,
   listedModels,
   matchedFirst,
+  pendingCompactAts,
   readDaybreak,
   readMediaCheck,
   servedCount,
@@ -336,6 +337,7 @@ export function ConnectSheet({
       )
     : undefined;
   const savedUrl = credential?.baseURL ?? defaultUrl ?? "";
+  const pendingCompact = pendingCompactAts(compactAts, customs, orgCompactAt);
   const changes = {
     name:
       credential !== undefined && name.trim() !== credential.name
@@ -372,7 +374,10 @@ export function ConnectSheet({
   const canSubmit =
     credential === undefined
       ? ready && name.trim() !== "" && discovery !== undefined && settled
-      : (changed || modelsChanged) && ready && name.trim() !== "" && settled;
+      : (changed || modelsChanged || pendingCompact.length > 0) &&
+        ready &&
+        name.trim() !== "" &&
+        settled;
   const wireAt = wireCheckedAt(credential?.wire);
 
   const compactAtOf = (model: string) =>
@@ -382,7 +387,6 @@ export function ConnectSheet({
 
   const saveCompactAts = (message: string) => {
     if (orgId === undefined || !isAdmin) return Promise.resolve(true);
-    const kept = new Set(customs.map((m) => m.model));
     const settle = <A, E>(exit: Exit.Exit<A, E>) => {
       if (Exit.isSuccess(exit)) return true;
       toast.error(message, {
@@ -391,26 +395,19 @@ export function ConnectSheet({
       return false;
     };
     return Promise.all(
-      [...compactAts].flatMap(([model, compactAt]) => {
-        if (
-          !kept.has(model) ||
-          orgCompactAt.find((e) => e.model === model)?.compactAt === compactAt
-        )
-          return [];
-        return [
-          compactAt === undefined
-            ? removeCompactAt({
-                params: { orgId },
-                query: { model },
-                reactivityKeys: modelsKeys.compactAt(orgId),
-              }).then(settle)
-            : upsertCompactAt({
-                params: { orgId },
-                payload: { model, compactAt },
-                reactivityKeys: modelsKeys.compactAt(orgId),
-              }).then(settle),
-        ];
-      }),
+      pendingCompact.map(([model, compactAt]) =>
+        compactAt === undefined
+          ? removeCompactAt({
+              params: { orgId },
+              query: { model },
+              reactivityKeys: modelsKeys.compactAt(orgId),
+            }).then(settle)
+          : upsertCompactAt({
+              params: { orgId },
+              payload: { model, compactAt },
+              reactivityKeys: modelsKeys.compactAt(orgId),
+            }).then(settle),
+      ),
     ).then((results) => results.every(Boolean));
   };
 
