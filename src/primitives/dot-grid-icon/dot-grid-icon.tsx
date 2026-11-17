@@ -146,6 +146,7 @@ function animateDots(svg: SVGSVGElement, state: DotGridIconState) {
         ];
       });
     }
+    for (const a of animations) a.finished.catch(() => {});
     sync();
   });
 
