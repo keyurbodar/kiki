@@ -32,7 +32,7 @@ export const showsSideThreadsPage = (
   count: number,
   canCreate: boolean,
 ) =>
-  query === "" ||
+  query.trim() === "" ||
   (canCreate && matchesQuery(query, "new side thread", "side thread")) ||
   count > 0;
 
