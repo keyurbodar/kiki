@@ -131,7 +131,11 @@ export function CaptainIssuesView({
               setSearch({ text: "", open: !search.open });
             }}
           >
-            {search.open ? <CrossMediumGlyph /> : <SearchGlyph />}
+            {search.open ? (
+              <CrossMediumGlyph className="size-(--icon-sm)" />
+            ) : (
+              <SearchGlyph className="size-(--icon-sm)" />
+            )}
           </Button>
         }
       />
