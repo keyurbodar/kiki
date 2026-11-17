@@ -7,16 +7,13 @@ import {
   type PresetColorTheme,
   resolveColorMode,
 } from "@/tokens/theme";
+import type { BackgroundEffect } from "@/tokens/effects";
 import { type ThemeColors, themeCss } from "./palette";
 
-export type BackgroundEffect = "none" | "dither" | "grain" | "vignette";
-
-export const BACKGROUND_EFFECT_LABELS: Record<BackgroundEffect, string> = {
-  none: "None",
-  dither: "Dither",
-  grain: "Grain",
-  vignette: "Vignette",
-};
+export {
+  BACKGROUND_EFFECT_LABELS,
+  type BackgroundEffect,
+} from "@/tokens/effects";
 
 export interface BackgroundAdjustments {
   readonly brightness: number;
