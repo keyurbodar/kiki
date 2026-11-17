@@ -1168,7 +1168,9 @@ export function ModelPicker({
             <span className="min-w-0 truncate">{focus.group.name}</span>
           </div>
           <div className="relative flex flex-col gap-1 pt-0.5 pb-1.5">
-            {stat("Context", formatContext(entry.limits.context))}
+            {entry.limits === undefined
+              ? null
+              : stat("Context", formatContext(entry.limits.context))}
             {entry.pricing === undefined ? null : (
               <>
                 {stat("Input per 1M", formatPrice(entry.pricing.input))}
