@@ -1,3 +1,4 @@
+import "katex/dist/katex.min.css";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import type { ReactNode } from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
