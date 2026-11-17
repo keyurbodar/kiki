@@ -66,8 +66,16 @@ export function VoiceControl({
   voice?: ComposerVoice;
 }) {
   const look = empty
-    ? ({ intent: "accent", size: "icon-sm" } as const)
-    : ({ variant: "ghost", size: "icon-sm" } as const);
+    ? ({
+        intent: "accent",
+        size: "icon-sm",
+        className: "w-(--h-control-sm)!",
+      } as const)
+    : ({
+        variant: "ghost",
+        size: "icon-sm",
+        className: "w-(--h-control-sm)!",
+      } as const);
   const state = voice?.state ?? IDLE;
   if (state.phase === "starting")
     return (
