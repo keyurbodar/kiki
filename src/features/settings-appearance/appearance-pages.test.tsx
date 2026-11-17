@@ -39,6 +39,21 @@ describe("appearance pages", () => {
     expect(await screen.findByText("Not published")).toBeTruthy();
   });
 
+  it("composes the theme specimen from the real thread parts", async () => {
+    await renderAt("/settings/appearance/themes");
+    await screen.findByRole("heading", { name: "Your themes" });
+    const specimen = document.querySelector("[data-theme-preview]");
+    expect(specimen).toBeTruthy();
+    for (const slot of [
+      "card",
+      "sidebar-thread-row",
+      "user-message",
+      "agent-message",
+      "markdown-code-header",
+    ])
+      expect(specimen?.querySelector(`[data-slot="${slot}"]`)).toBeTruthy();
+  });
+
   it("renders the publish page for a theme", async () => {
     await renderAt("/settings/appearance/themes/theme_sample_paper");
     expect(await screen.findByRole("heading", { name: "Paper" })).toBeTruthy();
