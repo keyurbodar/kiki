@@ -8,6 +8,7 @@ import {
   RouterProvider,
 } from "@tanstack/react-router";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -270,13 +271,50 @@ describe("thread route header", () => {
   });
 
   it("drops the pane params Capy does not keep", async () => {
-    for (const param of ["threads", "all-threads", "pull-requests", "bogus"]) {
+    for (const param of [
+      "threads",
+      "all-threads",
+      "pull-requests",
+      "bogus",
+      "whatever:junk",
+    ]) {
       const router = await renderRoute(`/thread/jam_sample_0001?pane=${param}`);
       await waitForStrip();
       expect(paneTab("chat")?.querySelector("[data-selected]")).not.toBeNull();
       expect(router.state.location.search).toEqual({});
       cleanup();
     }
+  });
+
+  it("rewrites a retired pane id off the URL", async () => {
+    const router = await renderRoute("/thread/jam_sample_0001?pane=threads");
+    await waitForStrip();
+    expect(paneTab("chat")?.querySelector("[data-selected]")).not.toBeNull();
+    expect(router.state.location.search).toEqual({});
+  });
+
+  it("reseeds the pane from the URL when the thread is entered again", async () => {
+    const router = await renderRoute("/thread/jam_sample_0001");
+    fireEvent.click(await screen.findByText("Files"));
+    await waitFor(() => {
+      expect(paneTab("files")?.querySelector("[data-selected]")).not.toBeNull();
+    });
+    await act(async () => {
+      await router.navigate({
+        to: "/thread/$threadId",
+        params: { threadId: "jam_sample_0002" },
+      });
+    });
+    await act(async () => {
+      await router.navigate({
+        to: "/thread/$threadId",
+        params: { threadId: "jam_sample_0001" },
+      });
+    });
+    await waitFor(() => {
+      expect(paneTab("chat")?.querySelector("[data-selected]")).not.toBeNull();
+    });
+    expect(paneTab("files")?.querySelector("[data-selected]")).toBeNull();
   });
 
   it("retires exactly the pane ids Capy has no pane for", () => {

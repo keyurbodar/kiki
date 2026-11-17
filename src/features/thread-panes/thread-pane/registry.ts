@@ -70,11 +70,22 @@ export const writtenPaneParams: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * The tab keys the app builds itself are parameterised — the colon separates the
+ * kind from the tab's own id — so they are kept even though no registry pane
+ * answers to them.
+ */
+export const parameterisedPaneParams: ReadonlyArray<string> = [
+  "browser:",
+  "service-preview:",
+];
+
+/**
  * The panes we cannot open yet keep whatever the URL carried: `setup` is a Capy
- * pane the registry has not landed, and the tab keys the app builds itself are
- * parameterised — `browser:<id>`, `service-preview:<machine>:<port>` — so a
- * colon means a value that is not a plain unknown one.
+ * pane the registry has not landed, and a parameterised tab key names a tab the
+ * route cannot resolve on its own.
  */
 export const keepsPaneParam = (value: string | undefined): boolean =>
   value !== undefined &&
-  (writtenPaneParams.has(value) || value === "setup" || value.includes(":"));
+  (writtenPaneParams.has(value) ||
+    value === "setup" ||
+    parameterisedPaneParams.some((prefix) => value.startsWith(prefix)));

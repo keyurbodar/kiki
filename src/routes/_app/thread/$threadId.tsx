@@ -118,9 +118,21 @@ export function ThreadRoute({
  * The thread on a wide screen. The URL seeds the open pane once, and picking a
  * pane keeps the URL in step with Capy's vocabulary: `overview`, `diffs` and
  * `captain_issues` are written, `files` opens without a param, and a value we
- * cannot open is rewritten off the URL.
+ * cannot open is rewritten off the URL. Entering a thread seeds from its URL, so
+ * a pane opened from a tab does not follow you back into the thread: with a
+ * clean URL Capy lands on the chat there too.
  */
 export function ThreadScreen({
+  threadId,
+  pane,
+}: {
+  threadId: string;
+  pane: string | undefined;
+}) {
+  return <PaneSelection key={threadId} threadId={threadId} pane={pane} />;
+}
+
+function PaneSelection({
   threadId,
   pane,
 }: {

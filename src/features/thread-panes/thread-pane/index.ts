@@ -7,6 +7,7 @@ export {
   type PaneEntry,
   type PaneProps,
   panes,
+  parameterisedPaneParams,
   retiredPaneIds,
   writtenPaneParams,
 } from "./registry";
