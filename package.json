@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsgo --noEmit",
-    "lint": "biome check . && bun scripts/check-raw-values.ts && bun scripts/check-utility-coverage.ts",
+    "lint": "biome check . && bun scripts/check-raw-values.ts && bun scripts/check-utility-coverage.ts && bun scripts/check-custom-properties.ts",
     "format": "biome format --write .",
     "test": "vitest run",
     "check:raw-values": "bun scripts/check-raw-values.ts",

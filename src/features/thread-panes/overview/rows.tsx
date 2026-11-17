@@ -67,7 +67,7 @@ const MAX_DEPTH = 3;
 
 const depthStyle = (depth: number) =>
   depth > 0
-    ? { paddingLeft: `calc(var(--spacing-2) + ${depth} * var(--spacing-3))` }
+    ? { paddingLeft: `calc(var(--spacing) * ${2 + depth * 3})` }
     : undefined;
 
 function DepthMark({ depth }: { depth: number }) {

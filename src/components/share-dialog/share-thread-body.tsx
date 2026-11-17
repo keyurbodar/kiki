@@ -332,7 +332,7 @@ export function ShareThreadBody({
     requests.length === 0 ? null : (
       <div className="flex flex-col gap-1.5">
         <span className="text-2xs text-muted-foreground-2">Requested</span>
-        <ul className="flex flex-col divide-y-(length:--border-hairline) divide-border-1">
+        <ul className="flex flex-col divide-y-(length:--border-width-hairline) divide-border-1">
           {requests.map((request) => (
             <li
               key={request.userId}

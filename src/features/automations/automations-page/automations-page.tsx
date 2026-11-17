@@ -251,7 +251,7 @@ export function AutomationsPage() {
     <div className="relative flex h-full min-h-0 flex-col">
       <AppTopBar
         data-slot="app-top-bar"
-        className="sticky top-0 flex min-h-11 shrink-0 items-center border-b-(length:--border-hairline) border-border-1 bg-panel px-2"
+        className="sticky top-0 flex min-h-11 shrink-0 items-center border-b-(length:--border-width-hairline) border-border-1 bg-panel px-2"
       >
         {searching ? (
           <div className="ml-2.5 flex min-w-0 flex-1 items-center gap-1.5">

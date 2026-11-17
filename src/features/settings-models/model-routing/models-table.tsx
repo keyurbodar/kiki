@@ -322,7 +322,7 @@ export function ModelsTable({
           style={{ gridTemplateColumns: wideColumns }}
         >
           <thead className="contents">
-            <tr className="col-span-full grid grid-cols-subgrid border-b-(length:--border-hairline) border-border-1">
+            <tr className="col-span-full grid grid-cols-subgrid border-b-(length:--border-width-hairline) border-border-1">
               <th className={headClass}>
                 <span className="flex items-center gap-2">
                   {admin ? (
@@ -371,7 +371,7 @@ export function ModelsTable({
                   key={row.entry.id}
                   title={off ? "Turned off for the organization" : undefined}
                   className={cx(
-                    "col-span-full grid grid-cols-subgrid border-b-(length:--border-hairline) border-border-1 last:border-b-0",
+                    "col-span-full grid grid-cols-subgrid border-b-(length:--border-width-hairline) border-border-1 last:border-b-0",
                     off && "text-muted-foreground-3",
                   )}
                 >

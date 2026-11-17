@@ -349,7 +349,7 @@ export function LocalPullRowView({
       )}
       <span
         className={cx(
-          "mask-fade-l [--mask-fade-ramp:var(--spacing-8)] absolute inset-y-0 right-0 flex items-start rounded-r pt-1 pr-1 pl-9",
+          "mask-fade-l [--mask-fade-ramp:calc(var(--spacing)*8)] absolute inset-y-0 right-0 flex items-start rounded-r pt-1 pr-1 pl-9",
           "origin-right pointer-events-none opacity-0 transition-[opacity,scale] duration-100 motion-safe:scale-98",
           "group-hover/row:opacity-100 motion-safe:group-hover/row:scale-100",
           "has-[[data-popup-open]]:opacity-100 motion-safe:has-[[data-popup-open]]:scale-100",

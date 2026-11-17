@@ -69,7 +69,7 @@ export function ConnectionList({
       <SortableContext items={[...ids]} strategy={verticalListSortingStrategy}>
         <div
           data-slot="sortable-list"
-          className="@container/connections divide-y-(length:--border-hairline) divide-border-1"
+          className="@container/connections divide-y-(length:--border-width-hairline) divide-border-1"
         >
           {children}
         </div>
@@ -243,7 +243,7 @@ export function HealthBadge({ health }: { health: Health | undefined }) {
 export function ConnectionsHeader({ fable }: { fable: boolean }) {
   return (
     <div className="@container/connections">
-      <div className="hidden items-center justify-between gap-6 border-b-(length:--border-hairline) border-border-1 px-4 py-2 text-2xs font-normal text-muted-foreground-3 @min-connections-wide/connections:flex">
+      <div className="hidden items-center justify-between gap-6 border-b-(length:--border-width-hairline) border-border-1 px-4 py-2 text-2xs font-normal text-muted-foreground-3 @min-connections-wide/connections:flex">
         <span className="pl-11">Account</span>
         <span className="flex items-center gap-2">
           <span className="flex">

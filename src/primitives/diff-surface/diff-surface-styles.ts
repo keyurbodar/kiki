@@ -63,7 +63,7 @@ export const DIFF_SURFACE_CSS = `
   color: var(--color-primary);
 }
 [data-diffs-header][data-sticky] {
-  top: calc(var(--diff-sticky-top, 0rem) + var(--diff-card-hairline-strip, 0rem));
+  top: var(--diff-sticky-top, 0rem);
 }
 [data-diffs-header][data-sticky]::before {
   content: "";

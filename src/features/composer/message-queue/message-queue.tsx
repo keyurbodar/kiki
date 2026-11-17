@@ -358,13 +358,13 @@ export function MessageQueue({
             <Icon name="arrow-share-left" className="size-(--icon-sm)" />
           </span>
           <span className="flex min-w-0 flex-1 gap-1.5 text-sm">
-            <span className="mask-fade-r max-w-3/5 shrink-0 overflow-hidden whitespace-nowrap text-muted-foreground [--mask-fade-ramp:var(--spacing-4)]">
+            <span className="mask-fade-r max-w-3/5 shrink-0 overflow-hidden whitespace-nowrap text-muted-foreground [--mask-fade-ramp:calc(var(--spacing)*4)]">
               Replying to{" "}
               <span className="font-medium text-foreground">
                 {replying.name}
               </span>
             </span>
-            <span className="mask-fade-r min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm text-muted-foreground [--mask-fade-ramp:var(--spacing-8)]">
+            <span className="mask-fade-r min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm text-muted-foreground [--mask-fade-ramp:calc(var(--spacing)*8)]">
               {replying.text}
             </span>
           </span>
