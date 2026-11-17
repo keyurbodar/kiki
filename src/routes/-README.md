@@ -9,3 +9,4 @@ TanStack file routes, one file per route, mirroring Capy's router ids one to one
 - Redirect-only routes (legacy `/project/*`, `/volumes`, `/settings/integrations/mcp` and so on) carry only `beforeLoad`.
 - `src/routeTree.gen.ts` is generated; never edit it.
 - Files prefixed with `-` (this README, `-routes.test.ts`) are ignored by the router.
+- `[__tokens].tsx` is the dev-only token specimen at `/__tokens` (404 in production). It isn't one of Capy's routes, so the route-count test leaves it out.

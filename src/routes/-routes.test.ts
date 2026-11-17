@@ -2,10 +2,17 @@ import { createMemoryHistory, createRouter } from "@tanstack/react-router";
 import { describe, expect, it } from "vitest";
 import { routeTree } from "@/routeTree.gen";
 
-type Node = { children?: Record<string, Node> | Node[] };
+type Node = {
+  options?: { id?: string };
+  children?: Record<string, Node> | Node[];
+};
+
+const DEV_ONLY_ROUTES = new Set(["/__tokens"]);
 
 function countRoutes(node: Node): number {
-  const children = Object.values(node.children ?? {});
+  const children = Object.values(node.children ?? {}).filter(
+    (child) => !DEV_ONLY_ROUTES.has(child.options?.id ?? ""),
+  );
   return children.reduce((sum, child) => sum + 1 + countRoutes(child), 0);
 }
 
