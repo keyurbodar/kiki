@@ -153,7 +153,6 @@ function MobileThreadBody({
 }: MobileThreadBodyProps) {
   const [openTabs, setOpenTabs] = useState<ReadonlyArray<string>>(["overview"]);
   const [activeTab, setActiveTab] = useState(CHAT_TAB);
-  const [draft, setDraft] = useState("");
   const [modelId, setModelId] = useState<string>();
   const sections = modelSections(models);
   const model = sections
@@ -202,8 +201,6 @@ function MobileThreadBody({
       composer={
         <>
           <MobileComposer
-            value={draft}
-            onValueChange={setDraft}
             onSend={() => {}}
             addMenu={
               <MobileAddDrawer
