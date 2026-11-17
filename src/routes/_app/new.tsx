@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { HomePage } from "@/features/home/home-page";
-import { MobileNewThread, useIsNarrow } from "@/features/mobile";
+import { MobileNewThread, useIsPhoneSurface } from "@/features/mobile";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/new")({
@@ -9,8 +9,8 @@ export const Route = createFileRoute("/_app/new")({
 });
 
 function RouteComponent() {
-  const isNarrow = useIsNarrow();
+  const isPhoneSurface = useIsPhoneSurface();
   const { prompt } = Route.useSearch();
-  if (isNarrow) return <MobileNewThread />;
+  if (isPhoneSurface) return <MobileNewThread />;
   return <HomePage prompt={prompt} />;
 }

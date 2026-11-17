@@ -15,6 +15,7 @@ import {
   narrowQuery,
   touchQuery,
   useIsNarrow,
+  useIsPhoneSurface,
   useIsTouch,
 } from "@/features/mobile";
 import { SidebarProvider } from "@/features/shell/sidebar-container";
@@ -68,7 +69,8 @@ afterEach(() => {
 function Probe() {
   return (
     <span>
-      {useIsNarrow() ? "narrow" : "wide"} {useIsTouch() ? "touch" : "pointer"}
+      {useIsNarrow() ? "narrow" : "wide"} {useIsTouch() ? "touch" : "pointer"}{" "}
+      {useIsPhoneSurface() ? "phone" : "app"}
     </span>
   );
 }
@@ -80,12 +82,20 @@ describe("mobile detection", () => {
     expect(touchQuery).toBe("(hover: none) and (pointer: coarse)");
   });
 
+  it("keeps the width hook width-only but the phone surface mouse-aware", () => {
+    setMatches("narrow", true);
+    render(<Probe />);
+    expect(screen.getByText("narrow pointer app")).toBeTruthy();
+    setMatches(touchQuery, true);
+    expect(screen.getByText("narrow touch phone")).toBeTruthy();
+  });
+
   it("follows media query changes", () => {
     render(<Probe />);
-    expect(screen.getByText("wide pointer")).toBeTruthy();
-    setMatches("narrow", true);
+    expect(screen.getByText("wide pointer app")).toBeTruthy();
     setMatches(touchQuery, true);
-    expect(screen.getByText("narrow touch")).toBeTruthy();
+    setMatches("narrow", true);
+    expect(screen.getByText("narrow touch phone")).toBeTruthy();
   });
 });
 

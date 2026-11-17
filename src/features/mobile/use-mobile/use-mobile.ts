@@ -33,6 +33,12 @@ export function useIsNarrow() {
   );
 }
 
+export function useIsPhoneSurface() {
+  const isNarrow = useIsNarrow();
+  const isTouch = useIsTouch();
+  return isNarrow && isTouch;
+}
+
 export function useIsTouch() {
   return useSyncExternalStore(
     touch.subscribe,

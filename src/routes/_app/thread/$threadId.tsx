@@ -11,7 +11,10 @@ import {
   selectedOrgIdAtom,
 } from "@/data/atoms/session";
 import { threadsAtom } from "@/data/atoms/threads";
-import { MobileThreadScreen, useIsNarrow } from "@/features/mobile/thread";
+import {
+  MobileThreadScreen,
+  useIsPhoneSurface,
+} from "@/features/mobile/thread";
 import { ThreadCostBadge } from "@/features/thread/cost-badge";
 import {
   activeTabId,
@@ -142,7 +145,7 @@ export function ThreadScreen({
 function RouteComponent() {
   const { threadId } = Route.useParams();
   const { pane } = Route.useSearch();
-  const isNarrow = useIsNarrow();
-  if (isNarrow) return <MobileThreadScreen threadId={threadId} />;
+  const isPhoneSurface = useIsPhoneSurface();
+  if (isPhoneSurface) return <MobileThreadScreen threadId={threadId} />;
   return <ThreadScreen threadId={threadId} pane={pane} />;
 }
