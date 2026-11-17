@@ -11,18 +11,39 @@ import {
 
 export const PAN_ZOOM_MIN = 0.25;
 export const PAN_ZOOM_STEP = 1.25;
-const DEFAULT_MAX = 4;
+export const PAN_ZOOM_MAX = 4;
 const DRAG_SLOP = 3;
 const WHEEL_SPEED = 0.002;
 const PINCH_WHEEL_SPEED = 0.01;
 const WHEEL_CLAMP = 0.2;
 const LINE_HEIGHT = 16;
+const TOUCH_SLOP = 10;
+const DOUBLE_TAP_MS = 300;
+const DOUBLE_TAP_SLOP = 24;
+const SWIPE_DISTANCE = 60;
+const SWIPE_MIN_DISTANCE = 24;
+const SWIPE_VELOCITY = 0.5;
 
 export type Point = { x: number; y: number };
 
-export function clampZoom(zoom: number, max = DEFAULT_MAX, min = PAN_ZOOM_MIN) {
+export function clampZoom(
+  zoom: number,
+  max = PAN_ZOOM_MAX,
+  min = PAN_ZOOM_MIN,
+) {
   return Math.min(max, Math.max(min, zoom));
 }
+
+/**
+ * Touch gestures for a stage that also pans and pinches (the lightbox):
+ * pinch-zoom, one-finger pan, double-tap and swipe between items.
+ */
+export type PanZoomGestures = {
+  /** Resets the gesture state when it changes (the shown item). */
+  key: string;
+  onTap: (x: number, y: number, double: boolean) => void;
+  onSwipe: (direction: 1 | -1) => void;
+};
 
 export type PanZoomView = {
   stage: HTMLElement | null;
@@ -44,10 +65,32 @@ export type PanZoomView = {
   onKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
 };
 
-/** Port of Capy's shared/pan-zoom hook: wheel and keyboard zoom around the cursor, drag to pan. */
-export function usePanZoom(max = DEFAULT_MAX, min = PAN_ZOOM_MIN): PanZoomView {
+type TouchPoint = Point & { startX: number; startY: number; time: number };
+
+type Gesture = {
+  zoom: number;
+  startZoom: number;
+  distance: number;
+  pan: Point;
+  pinched: boolean;
+  moved: boolean;
+  swipe: boolean;
+};
+
+const NO_PAN: Point = { x: 0, y: 0 };
+
+/**
+ * Port of Capy's shared/pan-zoom hook: wheel and keyboard zoom around the
+ * cursor, drag to pan and, with `gestures`, touch pinch, pan, double-tap and
+ * swipe (the lightbox passes them; a still stage does not).
+ */
+export function usePanZoom(
+  max = PAN_ZOOM_MAX,
+  min = PAN_ZOOM_MIN,
+  gestures?: PanZoomGestures,
+): PanZoomView {
   const [stage, setStage] = useState<HTMLElement | null>(null);
-  const [view, setView] = useState({ zoom: 1, pan: { x: 0, y: 0 } as Point });
+  const [view, setView] = useState({ zoom: 1, pan: NO_PAN as Point });
   const [nativeZoom, setNativeZoom] = useState<number>();
   const maxZoom = Math.max(max, (nativeZoom ?? 1) * 2);
   const { zoom, pan } = view;
@@ -73,7 +116,33 @@ export function usePanZoom(max = DEFAULT_MAX, min = PAN_ZOOM_MIN): PanZoomView {
   const pointerDown = useRef(false);
   const draggedRef = useRef(false);
   const origin = useRef({ pointerX: 0, pointerY: 0, panX: 0, panY: 0 });
+  const touches = useRef(new Map<number, TouchPoint>());
+  const gesture = useRef<Gesture>({
+    zoom: 1,
+    startZoom: 1,
+    distance: 0,
+    pan: NO_PAN,
+    pinched: false,
+    moved: false,
+    swipe: false,
+  });
+  const lastTap = useRef<{ x: number; y: number; time: number } | null>(null);
 
+  const measurePinch = useCallback(() => {
+    const [a, b] = [...touches.current.values()];
+    gesture.current.startZoom = gesture.current.zoom;
+    gesture.current.distance = a && b ? Math.hypot(b.x - a.x, b.y - a.y) : 0;
+  }, []);
+
+  const gestureKey = gestures?.key;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: resets the gesture state when the shown item changes
+  useLayoutEffect(() => {
+    touches.current.clear();
+    lastTap.current = null;
+    setPanning(false);
+  }, [gestureKey]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: re-measure when the shown item changes
   useEffect(() => {
     if (!stage) return;
     const measure = () => {
@@ -96,7 +165,7 @@ export function usePanZoom(max = DEFAULT_MAX, min = PAN_ZOOM_MIN): PanZoomView {
       observer.disconnect();
       stage.removeEventListener("load", watch, true);
     };
-  }, [stage]);
+  }, [stage, gestureKey]);
 
   useEffect(() => {
     if (!stage) return;
@@ -124,7 +193,7 @@ export function usePanZoom(max = DEFAULT_MAX, min = PAN_ZOOM_MIN): PanZoomView {
           zoom: next,
           pan:
             next === min
-              ? { x: 0, y: 0 }
+              ? NO_PAN
               : { x: x - (x - v.pan.x) * ratio, y: y - (y - v.pan.y) * ratio },
         };
       });
@@ -141,7 +210,7 @@ export function usePanZoom(max = DEFAULT_MAX, min = PAN_ZOOM_MIN): PanZoomView {
         zoom: next,
         pan:
           next === 1 || !rect
-            ? { x: 0, y: 0 }
+            ? NO_PAN
             : {
                 x: -(clientX - rect.left - rect.width / 2) * (next / zoom - 1),
                 y: -(clientY - rect.top - rect.height / 2) * (next / zoom - 1),
@@ -174,7 +243,7 @@ export function usePanZoom(max = DEFAULT_MAX, min = PAN_ZOOM_MIN): PanZoomView {
             zoom: next,
             pan:
               next === min
-                ? { x: 0, y: 0 }
+                ? NO_PAN
                 : { x: v.pan.x * ratio, y: v.pan.y * ratio },
           };
         });
@@ -187,7 +256,7 @@ export function usePanZoom(max = DEFAULT_MAX, min = PAN_ZOOM_MIN): PanZoomView {
             event.key === "0"
               ? 1
               : clampZoom(Number(event.key) * (nativeZoom ?? 1), maxZoom, min),
-          pan: { x: 0, y: 0 },
+          pan: NO_PAN,
         });
       }
     },
@@ -197,6 +266,33 @@ export function usePanZoom(max = DEFAULT_MAX, min = PAN_ZOOM_MIN): PanZoomView {
   const onPointerDown = useCallback(
     (event: PointerEvent<HTMLElement>) => {
       if (event.button !== 0) return;
+      if (gestures && event.pointerType === "touch") {
+        if (touches.current.size === 0)
+          gesture.current = {
+            zoom,
+            startZoom: zoom,
+            distance: 0,
+            pan,
+            pinched: false,
+            moved: false,
+            swipe: zoom <= 1 && pan.x === 0 && pan.y === 0,
+          };
+        touches.current.set(event.pointerId, {
+          x: event.clientX,
+          y: event.clientY,
+          startX: event.clientX,
+          startY: event.clientY,
+          time: event.timeStamp,
+        });
+        if (touches.current.size > 1) {
+          gesture.current.pinched = true;
+          lastTap.current = null;
+        }
+        measurePinch();
+        setPanning(true);
+        event.currentTarget.setPointerCapture(event.pointerId);
+        return;
+      }
       origin.current = {
         pointerX: event.clientX,
         pointerY: event.clientY,
@@ -208,11 +304,68 @@ export function usePanZoom(max = DEFAULT_MAX, min = PAN_ZOOM_MIN): PanZoomView {
       setPanning(true);
       event.currentTarget.setPointerCapture(event.pointerId);
     },
-    [pan],
+    [gestures, measurePinch, pan, zoom],
   );
 
   const onPointerMove = useCallback(
     (event: PointerEvent<HTMLElement>) => {
+      if (gestures && event.pointerType === "touch") {
+        const touch = touches.current.get(event.pointerId);
+        if (!touch) return;
+        const before = [...touches.current.values()]
+          .slice(0, 2)
+          .map(({ x, y }) => ({ x, y }));
+        const dx = event.clientX - touch.x;
+        const dy = event.clientY - touch.y;
+        touch.x = event.clientX;
+        touch.y = event.clientY;
+        const state = gesture.current;
+        const previousPan = state.pan;
+        if (
+          Math.hypot(touch.x - touch.startX, touch.y - touch.startY) >
+          TOUCH_SLOP
+        ) {
+          state.moved = true;
+          lastTap.current = null;
+        }
+        const [a, b] = [...touches.current.values()];
+        const [p0, p1] = before;
+        if (a && b && p0 && p1) {
+          if (state.distance === 0) {
+            measurePinch();
+            return;
+          }
+          const next = clampZoom(
+            (state.startZoom * Math.hypot(b.x - a.x, b.y - a.y)) /
+              state.distance,
+            maxZoom,
+            min,
+          );
+          const ratio = next / state.zoom;
+          const rect = event.currentTarget.getBoundingClientRect();
+          const midX = (p0.x + p1.x) / 2;
+          const midY = (p0.y + p1.y) / 2;
+          state.pan = {
+            x:
+              ratio * state.pan.x +
+              (1 - ratio) * (midX - rect.left - rect.width / 2) +
+              (a.x + b.x) / 2 -
+              midX,
+            y:
+              ratio * state.pan.y +
+              (1 - ratio) * (midY - rect.top - rect.height / 2) +
+              (a.y + b.y) / 2 -
+              midY,
+          };
+          state.zoom = next;
+          setZoom(next);
+        } else if (state.zoom > 1 || state.pan.x !== 0 || state.pan.y !== 0) {
+          state.pan = { x: state.pan.x + dx, y: state.pan.y + dy };
+        }
+        if (state.pan.x !== previousPan.x || state.pan.y !== previousPan.y)
+          setPan(state.pan);
+        return;
+      }
       if (!pointerDown.current) return;
       const o = origin.current;
       const dx = event.clientX - o.pointerX;
@@ -221,15 +374,67 @@ export function usePanZoom(max = DEFAULT_MAX, min = PAN_ZOOM_MIN): PanZoomView {
         draggedRef.current = true;
       setPan({ x: o.panX + dx, y: o.panY + dy });
     },
-    [setPan],
+    [gestures, maxZoom, measurePinch, min, setPan, setZoom],
   );
 
-  const onPointerUp = useCallback((event: PointerEvent<HTMLElement>) => {
-    pointerDown.current = false;
-    setPanning(false);
-    if (event.currentTarget.hasPointerCapture(event.pointerId))
-      event.currentTarget.releasePointerCapture(event.pointerId);
-  }, []);
+  const onPointerUp = useCallback(
+    (event: PointerEvent<HTMLElement>) => {
+      const target = event.currentTarget;
+      const release = () => {
+        if (target.hasPointerCapture(event.pointerId))
+          target.releasePointerCapture(event.pointerId);
+      };
+      if (!(gestures && event.pointerType === "touch")) {
+        pointerDown.current = false;
+        setPanning(false);
+        release();
+        return;
+      }
+      const touch = touches.current.get(event.pointerId);
+      if (!touch) return;
+      touches.current.delete(event.pointerId);
+      release();
+      if (event.type !== "pointerup") {
+        touches.current.clear();
+        lastTap.current = null;
+        setPanning(false);
+        return;
+      }
+      if (touches.current.size > 0) {
+        measurePinch();
+        return;
+      }
+      setPanning(false);
+      const state = gesture.current;
+      if (state.pinched) return;
+      const dx = event.clientX - touch.startX;
+      const dy = event.clientY - touch.startY;
+      const distance = Math.abs(dx);
+      if (
+        state.swipe &&
+        distance >= 2 * Math.abs(dy) &&
+        (distance >= SWIPE_DISTANCE ||
+          (distance >= SWIPE_MIN_DISTANCE &&
+            distance / Math.max(1, event.timeStamp - touch.time) >=
+              SWIPE_VELOCITY))
+      ) {
+        lastTap.current = null;
+        gestures.onSwipe(dx < 0 ? 1 : -1);
+      } else if (!state.moved && Math.hypot(dx, dy) <= TOUCH_SLOP) {
+        const previous = lastTap.current;
+        const double =
+          previous !== null &&
+          event.timeStamp - previous.time <= DOUBLE_TAP_MS &&
+          Math.hypot(event.clientX - previous.x, event.clientY - previous.y) <=
+            DOUBLE_TAP_SLOP;
+        lastTap.current = double
+          ? null
+          : { x: event.clientX, y: event.clientY, time: event.timeStamp };
+        gestures.onTap(event.clientX, event.clientY, double);
+      }
+    },
+    [gestures, measurePinch],
+  );
 
   const dragged = useCallback(() => draggedRef.current, []);
   const setDragged = useCallback((value: boolean) => {
