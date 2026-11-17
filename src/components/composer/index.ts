@@ -1,6 +1,10 @@
 export * from "./command-menu";
 export * from "./composer";
-export type { ComposerEditorHandle, ComposerEditorProps } from "./editor";
+export type {
+  ComposerEditorHandle,
+  ComposerEditorProps,
+  ComposerFieldHeight,
+} from "./editor";
 export * from "./mention-menu";
 export {
   $createMentionNode,
