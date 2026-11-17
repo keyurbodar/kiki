@@ -78,6 +78,16 @@
   --contain-intrinsic-emoji-group: 220px;
 }
 
+/*
+ * Right panel: Capy's default pane width (520px), which the thread's chat
+ * column and the pane's own clamp both read. A resizable
+ * `[data-slot=right-panel-group]` overrides it inline with the user's width.
+ */
+:root,
+[data-theme-preview] {
+  --right-panel-width: 32.5rem;
+}
+
 /* Crew asks (T07): footer width at which the trigger fits its full label. */
 @theme static {
   --container-crew-asks-footer: 34rem;

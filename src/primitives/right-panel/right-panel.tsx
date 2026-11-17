@@ -22,7 +22,7 @@ export const RIGHT_PANEL_MAIN_MIN_REM = 20;
 export const RIGHT_PANEL_WIDTH_KEY = "capy:web:right-panel-width";
 
 const PANEL_WIDTH =
-  "w-[clamp(20rem,var(--right-panel-width,32.5rem),calc(100cqw-20rem))]";
+  "w-[clamp(20rem,var(--right-panel-width),calc(100cqw-20rem))]";
 
 export const clampRightPanelWidth = (width: number) =>
   Math.max(width, RIGHT_PANEL_MIN_WIDTH);

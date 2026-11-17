@@ -1,6 +1,7 @@
 import { RegistryProvider } from "@effect/atom-react";
 import { cleanup, render } from "@testing-library/react";
 import { Schema } from "effect";
+import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeThreadFixtures, TimelineRow } from "@/data/events";
 import type { ThreadTimeline } from "@/features/thread/timeline";
@@ -160,5 +161,40 @@ describe("thread composer footer", () => {
     expect(meter?.closest('[data-slot="composer-footer"]')).not.toBeNull();
     expect(meter?.getAttribute("data-org")).toBe("org_sample");
     expect(meter?.getAttribute("data-jam")).toBe("jam_sample");
+  });
+});
+
+describe("thread chat column", () => {
+  const handlers = {
+    orgId: "org_sample",
+    parentJamId: null,
+    onClarifySubmit: () => undefined,
+  };
+
+  const chatColumn = (container: HTMLElement) =>
+    container.firstElementChild?.firstElementChild as HTMLElement;
+
+  const renderView = (pane: ReactNode) =>
+    render(
+      <RegistryProvider>
+        <ThreadView
+          threadId="jam_sample"
+          rows={messages}
+          handlers={handlers}
+          pane={pane}
+        />
+      </RegistryProvider>,
+    );
+
+  it("takes the pane's width from the token, with no fallback", () => {
+    const { container } = renderView(<div data-slot="pane-stub" />);
+    const { className } = chatColumn(container);
+    expect(className).toContain("var(--right-panel-width)");
+    expect(className).not.toContain("var(--right-panel-width,");
+  });
+
+  it("fills the container when no pane is open", () => {
+    const { container } = renderView(undefined);
+    expect(chatColumn(container).className).toContain("w-full");
   });
 });
