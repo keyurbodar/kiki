@@ -238,3 +238,36 @@ describe("captains mock", () => {
     }),
   );
 });
+
+describe("captains payload spellings", () => {
+  it.effect(
+    "accepts snake_case thread_id and folder_id from Capy's client",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        const promoteThread = ApiClient.mutation("captains", "promoteThread");
+        registry.set(promoteThread, {
+          params: { orgId },
+          payload: { thread_id: "jam_sample_0004" },
+          reactivityKeys: [],
+        } as never);
+        const fromThread = (yield* AtomRegistry.getResult(
+          registry,
+          promoteThread,
+        )) as { crew: ReadonlyArray<string> };
+        assert.deepStrictEqual(fromThread.crew, ["jam_sample_0004"]);
+
+        const promoteFolder = ApiClient.mutation("captains", "promoteFolder");
+        registry.set(promoteFolder, {
+          params: { orgId },
+          payload: { folder_id: "fld_sample_research" },
+          reactivityKeys: [],
+        } as never);
+        const fromFolder = (yield* AtomRegistry.getResult(
+          registry,
+          promoteFolder,
+        )) as { name: string };
+        assert.strictEqual(fromFolder.name, "Research");
+      }),
+  );
+});

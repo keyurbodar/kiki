@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { NewAutomationPage } from "@/features/automations/new-automation-page";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/automation/new")({
@@ -8,5 +8,6 @@ export const Route = createFileRoute("/_app/automation/new")({
 });
 
 function RouteComponent() {
-  return <RoutePlaceholder title="New automation" path="/automation/new" />;
+  const { template, thread } = Route.useSearch();
+  return <NewAutomationPage templateId={template} threadId={thread} />;
 }

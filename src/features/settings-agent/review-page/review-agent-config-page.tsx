@@ -1,5 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
-import { useState } from "react";
+import { type ComponentProps, useState } from "react";
 import { toast } from "sonner";
 import {
   SettingsLoadingCard,
@@ -112,14 +112,14 @@ function TierButton({
   ariaLabel,
   disabled,
   title,
-}: {
+  ...props
+}: Omit<ComponentProps<typeof Button>, "aria-label"> & {
   label: string;
   ariaLabel: string;
-  disabled?: boolean;
-  title?: string;
 }) {
   return (
     <Button
+      {...props}
       variant="ghost"
       size="sm"
       disabled={disabled}

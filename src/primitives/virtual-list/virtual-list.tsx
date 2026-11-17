@@ -14,11 +14,13 @@ export type VirtualListProps<ItemT = unknown> = LegendListProps<ItemT> & {
 
 export function VirtualList<ItemT>({
   className,
+  recycleItems = false,
   ...props
 }: VirtualListProps<ItemT>) {
   return (
     <LegendList
       data-slot="virtual-list"
+      recycleItems={recycleItems}
       className={cx(
         "h-full min-h-0 overflow-x-hidden overflow-y-auto overscroll-contain [overflow-anchor:none]",
         className,

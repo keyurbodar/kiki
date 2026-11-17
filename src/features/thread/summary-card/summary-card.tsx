@@ -3,6 +3,7 @@ import { DiffStat, PullRequestStateIcon } from "@/components/diff-cards/cards";
 import { Card } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
 import {
+  livePullRequest,
   pullRequestLabel,
   type SummaryLivePullRequest,
   type SummaryPort,
@@ -93,7 +94,7 @@ export function PortRow({
       </span>
     </>
   );
-  if (onOpen === undefined || onOpenNewTab === undefined)
+  if (onOpen === undefined && onOpenNewTab === undefined)
     return (
       <div data-slot="preview-card" className={ROW}>
         <span className="flex min-w-0 flex-1 items-center gap-2 self-stretch">
@@ -111,13 +112,55 @@ export function PortRow({
         type="button"
         className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 self-stretch rounded-(--radius) text-left focus-visible:outline-ring-inset"
         onClick={(event: MouseEvent) =>
-          event.metaKey || event.ctrlKey ? onOpenNewTab() : onOpen()
+          event.metaKey || event.ctrlKey
+            ? (onOpenNewTab ?? onOpen)?.()
+            : (onOpen ?? onOpenNewTab)?.()
         }
       >
         {content}
       </button>
       {lifetime}
     </div>
+  );
+}
+
+type CellRowProps = {
+  icon: ComponentProps<typeof Icon>["name"];
+  label: string;
+  text: string;
+  value?: string;
+  onOpen?: () => void;
+};
+
+function CellRow({ icon, label, text, value, onOpen }: CellRowProps) {
+  const content = (
+    <>
+      <span className={ROW_MARK}>
+        <Icon
+          name={icon}
+          className="size-(--icon-xs) shrink-0 text-muted-foreground-2"
+        />
+      </span>
+      <span className="shrink-0 text-muted-foreground-2">{label}</span>
+      <span className="mask-fade-r min-w-0 flex-1 overflow-hidden font-medium whitespace-nowrap text-foreground">
+        {text}
+      </span>
+      {value !== undefined && (
+        <span className="shrink-0 text-xs text-muted-foreground-2 tabular-nums">
+          {value}
+        </span>
+      )}
+    </>
+  );
+  if (onOpen === undefined) return <div className={ROW}>{content}</div>;
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className={`${ROW} ${ROW_INTERACTIVE}`}
+    >
+      {content}
+    </button>
   );
 }
 
@@ -246,12 +289,39 @@ export function SummaryCard({
   className,
   ...props
 }: SummaryCardProps) {
+  const actionRows: ReactNode[] = [];
+  if (turn.automations.length > 0) {
+    const bound = turn.automations.filter((a) => a.bound).length;
+    actionRows.push(
+      <CellRow
+        key="automations"
+        icon="calendar-clock"
+        label={turn.automations.length === 1 ? "Automation" : "Automations"}
+        text={
+          bound === turn.automations.length ? "Runs in this thread" : "Set up"
+        }
+      />,
+    );
+  }
+  if (turn.environmentRequests.length > 0) {
+    const variables = [
+      ...new Set(turn.environmentRequests.flatMap((r) => r.variables)),
+    ];
+    actionRows.push(
+      <CellRow
+        key="environment"
+        icon="key-2"
+        label="Environment"
+        text={variables.length === 0 ? "Requested" : variables.join(", ")}
+      />,
+    );
+  }
   const rows = [
     ...turn.prs.map((reference) => (
       <PullRequestRow
         key={reference.url}
         reference={reference}
-        live={pullRequests.find((pr) => pr.number === reference.number)}
+        live={livePullRequest(reference, pullRequests)}
         onOpenPane={onOpenPane}
       />
     )),
@@ -277,22 +347,46 @@ export function SummaryCard({
         }
       />
     )),
-    ...turn.setup.flatMap((reference) =>
-      reference.kind === "build"
-        ? [
-            <BuildRow
-              key={reference.toolCallId}
-              reference={reference}
-              build={setupBuilds.find((b) => b.id === reference.buildId)}
-              onOpen={
-                onOpenSetup === undefined
-                  ? undefined
-                  : () => onOpenSetup(reference)
-              }
-            />,
-          ]
-        : [],
-    ),
+    ...actionRows,
+    ...turn.setup.flatMap((reference) => {
+      const onOpen =
+        onOpenSetup === undefined ? undefined : () => onOpenSetup(reference);
+      if (reference.kind === "build")
+        return [
+          <BuildRow
+            key={reference.toolCallId}
+            reference={reference}
+            build={setupBuilds.find((b) => b.id === reference.buildId)}
+            onOpen={onOpen}
+          />,
+        ];
+      if (reference.kind === "version") {
+        const version = setupVersions.find((v) => v.id === reference.versionId);
+        return [
+          <CellRow
+            key={reference.toolCallId}
+            icon="layers-three"
+            label="Setup"
+            text="Saved"
+            value={
+              version === undefined
+                ? undefined
+                : `Version ${version.versionNumber}`
+            }
+            onOpen={onOpen}
+          />,
+        ];
+      }
+      return [
+        <CellRow
+          key={reference.toolCallId}
+          icon="box-2"
+          label="Snapshots"
+          text={reference.enabled ? "Enabled" : "Disabled"}
+          onOpen={onOpen}
+        />,
+      ];
+    }),
   ];
   if (rows.length === 0) return null;
   return (

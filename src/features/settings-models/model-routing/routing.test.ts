@@ -200,6 +200,71 @@ describe("applyTick", () => {
     ).toEqual([{ ...custom, excluded: true }]);
   });
 
+  it("applies a whole-lab toggle to its mapped models", () => {
+    const mapped = {
+      model: "openai/sample-turbo",
+      providerModelId: "hosted-turbo",
+    };
+    expect(
+      applyTick([mapped], false, sampleTicks, { lab: "openai", ticked: false }),
+    ).toEqual([
+      {
+        model: "openai/sample-turbo",
+        providerModelId: "hosted-turbo",
+        excluded: true,
+      },
+    ]);
+    expect(
+      applyTick(
+        [
+          {
+            model: "openai/sample-turbo",
+            providerModelId: "hosted-turbo",
+            excluded: true,
+          },
+          { model: "openai/*", excluded: true },
+        ],
+        false,
+        sampleTicks,
+        { lab: "openai", ticked: true },
+      ),
+    ).toEqual([
+      { model: "openai/sample-turbo", providerModelId: "hosted-turbo" },
+      { model: "openai/*", excluded: false },
+    ]);
+  });
+
+  it("clears redundant overrides when the lab state matches", () => {
+    expect(
+      applyTick(
+        [
+          { model: "anthropic/sample-small", excluded: true },
+          { model: "anthropic/sample-large", context: 32e3 },
+        ],
+        true,
+        sampleTicks,
+        { lab: "anthropic", ticked: true },
+      ),
+    ).toEqual([{ model: "anthropic/sample-large", context: 32e3 }]);
+    expect(
+      applyTick(
+        [{ model: "anthropic/sample-large", context: 32e3 }],
+        false,
+        sampleTicks,
+        { lab: "anthropic", ticked: false },
+      ),
+    ).toEqual([
+      { model: "anthropic/sample-large", context: 32e3, excluded: true },
+    ]);
+  });
+
+  it("leaves named models of other labs alone", () => {
+    const custom = { model: "acme-coder", name: "Acme Coder" };
+    expect(
+      applyTick([custom], false, sampleTicks, { lab: "openai", ticked: false }),
+    ).toEqual([custom]);
+  });
+
   it("never uses Capy credits", () => {
     expect(neverUseCapyCredits(sampleTicks)).toEqual([
       { model: "anthropic/*", excluded: true },
@@ -254,7 +319,20 @@ describe("routing lists", () => {
         },
       ],
     });
-    expect(routing.seats[0]?.expiresAt).toBeInstanceOf(Date);
-    expect(routing.seats[0]?.plan).toBeUndefined();
+    expect(routing?.seats[0]?.expiresAt).toBeInstanceOf(Date);
+    expect(routing?.seats[0]?.plan).toBeUndefined();
+  });
+
+  it("defaults the lists a payload leaves out", () => {
+    const routing = decodeRouting({ small: "a", medium: "b", large: "c" });
+    expect(routing).toEqual({
+      admin: false,
+      seats: [],
+      credentials: [],
+      routes: [],
+      settings: [],
+    });
+    expect(decodeRouting(null)).toBeUndefined();
+    expect(decodeRouting([])).toBeUndefined();
   });
 });

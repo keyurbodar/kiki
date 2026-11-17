@@ -246,6 +246,16 @@ describe("model picker catalog", () => {
     expect(parsed.map((item) => item.id)).toEqual(["a/b"]);
   });
 
+  it("accepts a thin catalog row and fills in what it can", () => {
+    const parsed = parseEntries([
+      { id: "acme/fast-model", label: "Fast Model", provider: "acme" },
+    ]);
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0]?.name).toBe("Fast Model");
+    expect(parsed[0]?.efforts).toEqual([]);
+    expect(parsed[0]?.fast).toBe(false);
+  });
+
   it("reads the catalog out of the /models envelope", () => {
     expect(
       parseEntries({

@@ -13,6 +13,7 @@
   --duration-tooltip-in: 0.14s;
   --duration-crossfade-in: 0.16s;
   --duration-sheet-exit-fade: 0.192s;
+  --duration-waiting-in: 0.2s;
   --duration-halo: 0.22s;
   --duration-sheet-exit: 0.24s;
   --duration-spotlight: 0.32s;
@@ -22,6 +23,7 @@
   --delay-stagger: 40ms;
   --delay-stagger-2: 50ms;
   --delay-stagger-3: 60ms;
+  --delay-waiting-in: 60ms;
   --delay-intro-step: 70ms;
   --delay-reveal: 0.11s;
   --delay-hover-intent: 0.12s;

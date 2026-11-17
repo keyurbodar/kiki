@@ -12,6 +12,17 @@ import {
 const text = (value: unknown) =>
   typeof value === "string" && value.length > 0 ? value : undefined;
 
+const repoScope = (value: unknown): string | null =>
+  typeof value === "string" && value.length > 0 ? value : null;
+
+const repoIds = (value: unknown): ReadonlyArray<number> =>
+  Array.isArray(value)
+    ? value.flatMap((item) => {
+        const id = typeof item === "number" ? item : Number(item);
+        return Number.isInteger(id) ? [id] : [];
+      })
+    : [];
+
 const arrayOfText = (value: unknown): ReadonlyArray<string> =>
   Array.isArray(value)
     ? value.filter(
@@ -93,12 +104,7 @@ export const ReviewFiltersMock = mockGroup("reviewFilters", (handlers) =>
       .handle("createRule", ({ payload }) =>
         Effect.gen(function* () {
           const input = fields(payload);
-          const repo = text(input.repo);
-          if (repo === undefined) {
-            return yield* Effect.die(
-              new Error("reviewFilters.createRule: repo is required"),
-            );
-          }
+          const repo = repoScope(input.repo);
           const timestamp = DateTime.formatIso(minutesAgo(0));
           const row: ReviewFilterRule = {
             id: newId("rfilt"),
@@ -110,9 +116,7 @@ export const ReviewFiltersMock = mockGroup("reviewFilters", (handlers) =>
                 ? null
                 : {
                     not: fields(input.repositoryCondition).not === true,
-                    repoIds: arrayOfText(
-                      fields(input.repositoryCondition).repoIds,
-                    ).map(Number),
+                    repoIds: repoIds(fields(input.repositoryCondition).repoIds),
                   },
             skipped: false,
             source: "manual",
@@ -129,19 +133,19 @@ export const ReviewFiltersMock = mockGroup("reviewFilters", (handlers) =>
         Effect.gen(function* () {
           const current = yield* findRule(params.id);
           const input = fields(payload);
-          const repositoryCondition = text(input.repositoryCondition)
-            ? current.repositoryCondition
-            : fields(input.repositoryCondition).repoIds === undefined
-              ? null
-              : {
-                  not: fields(input.repositoryCondition).not === true,
-                  repoIds: arrayOfText(
-                    fields(input.repositoryCondition).repoIds,
-                  ).map(Number),
-                };
+          const repositoryCondition =
+            input.repositoryCondition === undefined
+              ? current.repositoryCondition
+              : fields(input.repositoryCondition).repoIds === undefined
+                ? null
+                : {
+                    not: fields(input.repositoryCondition).not === true,
+                    repoIds: repoIds(fields(input.repositoryCondition).repoIds),
+                  };
           const updated: ReviewFilterRule = {
             ...current,
-            repo: text(input.repo) ?? current.repo,
+            repo:
+              input.repo === undefined ? current.repo : repoScope(input.repo),
             conditions:
               input.conditions === undefined
                 ? current.conditions
@@ -173,12 +177,7 @@ export const ReviewFiltersMock = mockGroup("reviewFilters", (handlers) =>
       .handle("createIgnorePaths", ({ payload }) =>
         Effect.gen(function* () {
           const input = fields(payload);
-          const repo = text(input.repo);
-          if (repo === undefined) {
-            return yield* Effect.die(
-              new Error("reviewFilters.createIgnorePaths: repo is required"),
-            );
-          }
+          const repo = repoScope(input.repo);
           const timestamp = DateTime.formatIso(minutesAgo(0));
           const row: ReviewIgnorePaths = {
             id: newId("rpath"),
@@ -202,7 +201,8 @@ export const ReviewFiltersMock = mockGroup("reviewFilters", (handlers) =>
           const input = fields(payload);
           const updated: ReviewIgnorePaths = {
             ...current,
-            repo: text(input.repo) ?? current.repo,
+            repo:
+              input.repo === undefined ? current.repo : repoScope(input.repo),
             patterns:
               input.patterns === undefined
                 ? current.patterns

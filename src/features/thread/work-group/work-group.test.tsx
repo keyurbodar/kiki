@@ -48,6 +48,15 @@ it("expands to show its entries", () => {
   expect(container.textContent).toContain("Looking at the settings page.");
 });
 
+it("lays its label out as one truncating line with the clock beside it", () => {
+  const { container } = render(<WorkGroup row={row(false)} />);
+  expect(container.querySelector("[data-slot=live-status]")).toBeNull();
+  const head = container.querySelector("button > span");
+  expect(head?.className).toContain("items-baseline");
+  expect(head?.firstElementChild?.className).toContain("truncate");
+  expect(head?.lastElementChild?.className).toContain("whitespace-pre");
+});
+
 it("shows the live tail and a working shimmer while live", () => {
   const { container } = render(<WorkGroup row={row(true)} />);
   expect(screen.getByRole("button").textContent).toContain("Working");

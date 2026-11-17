@@ -2,7 +2,6 @@ import { Field } from "@base-ui/react/field";
 import { useAtomSet } from "@effect/atom-react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { type FormEvent, useRef, useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/primitives/button";
 import { Input } from "@/primitives/input";
 import { Label } from "@/primitives/label";
@@ -110,8 +109,7 @@ export function SignUpPage({
             intent="accent"
             size="base"
             className="w-full"
-            disabled={submitting}
-            aria-busy={submitting || undefined}
+            loading={submitting}
           >
             Continue
           </Button>
@@ -121,12 +119,7 @@ export function SignUpPage({
           <Button
             variant="link"
             size="auto-sm"
-            onClick={() =>
-              run({ kind: "resend" }).then((result) => {
-                if (result?.kind === "step")
-                  toast.success("Verification code sent");
-              })
-            }
+            onClick={() => run({ kind: "resend" })}
           >
             Resend code
           </Button>
@@ -195,8 +188,7 @@ export function SignUpPage({
           intent="accent"
           size="base"
           className="w-full"
-          disabled={submitting}
-          aria-busy={submitting || undefined}
+          loading={submitting}
         >
           Continue
         </Button>

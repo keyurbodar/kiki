@@ -5,6 +5,7 @@ import {
 } from "../model-routing/routing.ts";
 import type {
   CatalogEntry,
+  CompactAtEntry,
   CredentialHeader,
   DaybreakAccess,
   LabTicks,
@@ -78,6 +79,54 @@ export const parseTokens = (text: string) => {
 
 export const stripWhitespace = (text: string) =>
   text.replace(/[\p{White_Space}\u180e\u200b-\u200f\u2060\ufeff]/gu, "");
+
+const field = (raw: unknown, key: string) =>
+  raw !== null && typeof raw === "object"
+    ? (raw as Record<string, unknown>)[key]
+    : undefined;
+
+const readModel = (raw: unknown): DiscoveredModel | undefined => {
+  const id = field(raw, "providerModelId") ?? field(raw, "id");
+  if (typeof id !== "string") return undefined;
+  const match = field(raw, "match");
+  const model = field(match, "model");
+  const entryId = field(match, "entryId");
+  const name = field(raw, "name") ?? field(raw, "label");
+  const context = field(raw, "context");
+  return {
+    providerModelId: id,
+    name: typeof name === "string" ? name : undefined,
+    context: typeof context === "number" ? context : undefined,
+    match:
+      typeof model === "string" && typeof entryId === "string"
+        ? { model, entryId }
+        : undefined,
+  };
+};
+
+export const readDiscovery = (raw: unknown): DiscoverResponse => {
+  if (Array.isArray(raw))
+    return {
+      outcome: "listed",
+      models: raw.flatMap((row) => readModel(row) ?? []),
+    };
+  const outcome = field(raw, "outcome");
+  const models = field(raw, "models");
+  const message = field(raw, "message");
+  return {
+    outcome:
+      outcome === "unlisted" ||
+      outcome === "rejected" ||
+      outcome === "unreachable"
+        ? outcome
+        : "listed",
+    message: typeof message === "string" ? message : undefined,
+    models: Array.isArray(models)
+      ? models.flatMap((row) => readModel(row) ?? [])
+      : [],
+    wire: field(raw, "wire") as WireState | undefined,
+  };
+};
 
 const noticeLabels: Record<NoticeFeature, string> = {
   strict: "strict tool schemas",
@@ -238,7 +287,7 @@ export const buildTicks = (
                   model: m.model,
                   entryId: `${lab}/${m.model}`,
                   name: m.name ?? m.model,
-                  ticked: true,
+                  ticked: m.excluded !== true,
                   providerModelId: m.providerModelId,
                   context: m.context,
                   custom: true,
@@ -467,6 +516,7 @@ export type HeaderDraft = {
   readonly id: number;
   readonly name: string;
   readonly value: string;
+  readonly secret?: boolean;
 };
 
 export const draftHeaders = (
@@ -476,6 +526,7 @@ export const draftHeaders = (
     id,
     name: header.name,
     value: header.value ?? "",
+    secret: header.secret,
   }));
 
 export const headerProblem = (
@@ -513,12 +564,75 @@ export const headerProblem = (
 export const hasHeaderProblems = (headers: ReadonlyArray<HeaderDraft>) =>
   headers.some((header) => headerProblem(header, headers) !== undefined);
 
-export const cleanHeaders = (headers: ReadonlyArray<HeaderDraft>) =>
+export const cleanHeaders = (
+  headers: ReadonlyArray<HeaderDraft>,
+): Array<CredentialHeader> =>
   headers.flatMap((header) =>
     header.name.trim() === ""
       ? []
-      : [{ name: header.name.trim(), value: header.value }],
+      : [
+          header.secret === true && header.value === ""
+            ? { name: header.name.trim(), secret: true }
+            : { name: header.name.trim(), value: header.value },
+        ],
   );
+
+export const mergeDiscovered = (
+  current: ReadonlyArray<ModelSetting>,
+  defaults: ReadonlyArray<ModelSetting>,
+  found: ReadonlyArray<ModelSetting>,
+): Array<ModelSetting> => {
+  const known = new Set<string>();
+  const kept = current.map((m): ModelSetting => {
+    known.add(m.model);
+    const discovered = found.find((f) => f.model === m.model);
+    if (m.name !== undefined || discovered === undefined) return m;
+    return {
+      ...m,
+      providerModelId: discovered.providerModelId,
+      context: discovered.context ?? m.context,
+    };
+  });
+  const added = [...defaults, ...found].filter((m) => {
+    if (known.has(m.model)) return false;
+    known.add(m.model);
+    return true;
+  });
+  return [...kept, ...added];
+};
+
+export const pendingCompactAts = (
+  drafts: ReadonlyMap<string, number | undefined>,
+  customs: ReadonlyArray<ModelSetting>,
+  saved: ReadonlyArray<CompactAtEntry>,
+) => {
+  const kept = new Set(customs.map((m) => m.model));
+  return [...drafts].filter(
+    ([model, compactAt]) =>
+      kept.has(model) &&
+      saved.find((entry) => entry.model === model)?.compactAt !== compactAt,
+  );
+};
+
+export const headersEqual = (
+  sent: ReadonlyArray<CredentialHeader>,
+  saved: ReadonlyArray<CredentialHeader> | undefined,
+): boolean => {
+  const stored = saved ?? [];
+  return (
+    sent.length === stored.length &&
+    sent.every((header, index) => {
+      const other = stored[index];
+      return (
+        other !== undefined &&
+        header.name === other.name &&
+        (header.secret === true
+          ? other.secret === true
+          : header.value === other.value)
+      );
+    })
+  );
+};
 
 export const nextHeaderId = (headers: ReadonlyArray<HeaderDraft>) =>
   Math.max(-1, ...headers.map((header) => header.id)) + 1;

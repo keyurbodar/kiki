@@ -27,7 +27,6 @@ import {
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
-import { CopyField } from "@/primitives/copy-field";
 import {
   Dialog,
   DialogContent,
@@ -50,6 +49,7 @@ import {
   SettingsSection,
   useActiveOrgId,
 } from "../shared";
+import { CopyValue } from "../shared/copy-value";
 import { EditableDescription, EditableTitle } from "./editable-page-fields";
 import { HardwareIcon, StatusDot } from "./parts";
 import {
@@ -262,7 +262,7 @@ function DeviceDetail({ orgId, device }: { orgId: OrgId; device: Device }) {
         <SettingsSection title="Identity">
           <Card rows>
             <SettingsRow label="Token hint">
-              <CopyField
+              <CopyValue
                 value={device.tokenHint}
                 label="token hint"
                 size="sm"

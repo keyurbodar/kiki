@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { spacing, tableColumns } from "./review-table";
+import { reviewTableVariants, spacing, tableColumns } from "./review-table";
 
 describe("tableColumns", () => {
   it("gives fluid tracks a lead or fluid minimum", () => {
@@ -14,6 +14,14 @@ describe("tableColumns", () => {
     ).toBe(
       "minmax(var(--table-auto-min,calc(var(--spacing)*24)),auto) minmax(var(--table-fluid-min),auto)",
     );
+  });
+
+  it("uses spacing tokens for mobile table dimensions", () => {
+    const className = reviewTableVariants();
+    expect(className).not.toMatch(/\d+(?:\.\d+)?rem/);
+    expect(className).toContain("calc(var(--spacing)*32)");
+    expect(className).toContain("calc(var(--spacing)*40)");
+    expect(className).toContain("calc(var(--spacing)*2)");
   });
 
   it("leaves other tracks alone", () => {

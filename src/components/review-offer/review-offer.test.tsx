@@ -1,5 +1,6 @@
 import {
   cleanup,
+  createEvent,
   fireEvent,
   render,
   screen,
@@ -70,5 +71,17 @@ describe("ReviewOffer", () => {
     render(<ReviewOffer candidates={candidates} onFinish={onFinish} />);
     fireEvent.click(screen.getByRole("button", { name: "Skip" }));
     expect(onFinish).toHaveBeenCalledWith(undefined);
+  });
+
+  it("leaves Enter on a closed review selector to the selector", () => {
+    const onFinish = vi.fn();
+    render(<ReviewOffer candidates={candidates} onFinish={onFinish} />);
+    const trigger = screen.getByRole("combobox", {
+      name: "acme/web automatic reviews",
+    });
+    const enter = createEvent.keyDown(trigger, { key: "Enter" });
+    fireEvent(trigger, enter);
+    expect(enter.defaultPrevented).toBe(false);
+    expect(onFinish).not.toHaveBeenCalled();
   });
 });

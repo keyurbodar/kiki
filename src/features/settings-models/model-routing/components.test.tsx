@@ -1,7 +1,11 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TooltipProvider } from "@/primitives/tooltip";
-import { ConnectionsHeader } from "./connection-shell.tsx";
+import {
+  ConnectionsHeader,
+  narrowOnly,
+  wideColumns,
+} from "./connection-shell.tsx";
 import { CapyCreditsRow, CredentialRow } from "./credential-row.tsx";
 import {
   fixtureNow,
@@ -221,6 +225,14 @@ describe("connection rows", () => {
     wrap(<ConnectionsHeader fable />);
     expect(screen.getByText("5h used")).toBeTruthy();
     expect(screen.getByText("Fable used")).toBeTruthy();
+  });
+
+  it("hides the columns at the connection container token", () => {
+    wrap(<ConnectionsHeader fable />);
+    const head = screen.getByText("Account").parentElement;
+    expect(head?.className).toContain("@min-connections-wide/connections:flex");
+    expect(wideColumns).toContain("@min-connections-wide/connections:flex");
+    expect(narrowOnly).toBe("@max-connections-wide/connections:hidden");
   });
 });
 

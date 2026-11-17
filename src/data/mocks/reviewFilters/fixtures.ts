@@ -13,7 +13,7 @@ export interface RepositoryCondition {
 
 export interface ReviewFilterRule {
   readonly id: string;
-  readonly repo: string;
+  readonly repo: string | null;
   readonly githubRepoId: number | null;
   readonly conditions: ReadonlyArray<FilterCondition>;
   readonly repositoryCondition: RepositoryCondition | null;
@@ -27,7 +27,7 @@ export interface ReviewFilterRule {
 
 export interface ReviewIgnorePaths {
   readonly id: string;
-  readonly repo: string;
+  readonly repo: string | null;
   readonly githubRepoId: number | null;
   readonly patterns: ReadonlyArray<string>;
   readonly skipped: boolean;

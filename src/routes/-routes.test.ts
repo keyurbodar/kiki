@@ -8,15 +8,16 @@ type Node = {
 };
 
 const DEV_ONLY_ROUTES = new Set([
-  "/__captain-dialog",
-  "/__chips",
-  "/__composer",
-  "/__composer-footer",
-  "/__media-lightbox",
-  "/__model-picker",
-  "/__p08",
-  "/__thread-device",
   "/__tokens",
+  "/__composer-footer",
+  "/__captain-dialog",
+  "/__composer",
+  "/__thread-device",
+  "/__media-lightbox",
+  "/__chips",
+  "/__model-picker",
+  "/__new-thread-selects",
+  "/__markdown",
 ]);
 
 function countRoutes(node: Node): number {

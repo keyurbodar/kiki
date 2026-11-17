@@ -89,9 +89,8 @@ function PasskeyPrompt() {
           intent="accent"
           size="base"
           className="w-full"
-          disabled={working}
-          aria-busy={working}
-          aria-label={working ? "Waiting for your passkey" : undefined}
+          loading={working}
+          loadingLabel="Waiting for your passkey"
           onClick={start}
         >
           {error !== null

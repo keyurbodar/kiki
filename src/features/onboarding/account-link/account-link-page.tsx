@@ -134,11 +134,11 @@ export function AccountLinkPage({
               <Button
                 data-track-owner="features/integrations/account-link-page.tsx#AccountLinkPage:Button[Link account]"
                 intent="accent"
-                disabled={state.linking}
-                aria-busy={state.linking}
+                loading={state.linking}
+                loadingLabel="Linking"
                 onClick={() => link(state)}
               >
-                {state.linking ? "Linking" : "Link account"}
+                Link account
               </Button>
             </div>
           </>

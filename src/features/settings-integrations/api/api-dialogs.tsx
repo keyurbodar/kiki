@@ -370,7 +370,7 @@ export function CreateApiKeyDialog({
               </DialogDescription>
             </DialogHeader>
             <DialogBody>
-              <CopyValue value={plaintext} label="API key" />
+              <CopyValue className="w-full" value={plaintext} label="API key" />
             </DialogBody>
             <ConnectFooter
               help={apiKeyHelp}
