@@ -1,8 +1,8 @@
-import { Schema } from "effect";
+import { Effect, Result, Schema } from "effect";
 import {
-  type EventId,
+  EventId,
   EventPage,
-  type EventRow,
+  EventRow,
   RealtimeServerFrame,
   type RealtimeServerMessage,
 } from "@/data/events";
@@ -27,8 +27,48 @@ export const emptyFeed: ThreadFeed = {
   serverNow: undefined,
 };
 
-export const decodeEventPage = Schema.decodeUnknownEffect(EventPage);
+/** The page envelope, before its rows are checked one at a time. */
+const PageEnvelope = Schema.Struct({
+  items: Schema.Array(Schema.Unknown),
+  cursor: Schema.NullOr(EventId),
+  serverNow: Schema.optional(Schema.DateFromString),
+});
+
+const decodeEnvelope = Schema.decodeUnknownEffect(PageEnvelope);
+const decodeRow = Schema.decodeUnknownResult(EventRow);
 const decodeFrame = Schema.decodeUnknownOption(RealtimeServerFrame);
+
+const rowIdOf = (item: unknown) =>
+  typeof item === "object" && item !== null && "id" in item
+    ? String(item.id)
+    : "(no id)";
+
+/**
+ * Decodes a history page row by row: a row the client cannot read is dropped
+ * and logged, so one bad event never sinks the page and leaves the transcript
+ * on its skeleton. Only a broken envelope (no `items` array) still fails.
+ */
+export const decodeEventPage = (body: unknown) =>
+  Effect.gen(function* () {
+    const envelope = yield* decodeEnvelope(body);
+    const items: EventRow[] = [];
+    for (const item of envelope.items) {
+      const result = decodeRow(item);
+      if (Result.isSuccess(result)) {
+        items.push(result.success);
+        continue;
+      }
+      yield* Effect.logWarning("events page: dropped an unreadable row", {
+        row: rowIdOf(item),
+        detail: result.failure.message,
+      });
+    }
+    return new EventPage({
+      items,
+      cursor: envelope.cursor,
+      serverNow: envelope.serverNow,
+    });
+  });
 
 /** Merges events by id (a newer copy of a row replaces the older one) in id order. */
 export const mergeEvents = (
