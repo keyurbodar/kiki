@@ -1,5 +1,6 @@
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
+import type { OrgId } from "@/data/api/schemas/ids";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
 
 /** The value of a settled query, or undefined while it loads or after it fails. */
@@ -12,7 +13,7 @@ export function useDriveSession() {
   const user = useAtomValue(currentUserAtom);
   const org = resultValue(organizations)?.[0];
   return {
-    orgId: org?.id as string | undefined,
+    orgId: org?.id as OrgId | undefined,
     orgName: org?.name,
     userId: resultValue(user)?.id as string | undefined,
     failed: AsyncResult.isFailure(organizations),

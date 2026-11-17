@@ -1,5 +1,8 @@
 import { useAtomValue } from "@effect/atom-react";
 import { Atom } from "effect/reactivity";
+import type { OrgId } from "@/data/api/schemas/ids";
+import { captainsAtom } from "@/data/atoms/captains";
+import { queryTimeToLive } from "@/data/atoms/conventions";
 import { projectsAtom } from "@/data/atoms/projects";
 import { ApiClient } from "@/data/client/ApiClient";
 import type { DriveScopeNames } from "../lib/scopes";
@@ -26,31 +29,24 @@ const namedRows = (value: unknown): ReadonlyArray<Named> => {
   });
 };
 
-const captainsFamily = Atom.family((orgId: string) =>
-  ApiClient.query("captains", "list", {
-    params: { orgId },
-    query: {},
-    reactivityKeys: [`captains:${orgId}`],
-  }),
-);
-
-const automationsFamily = Atom.family((orgId: string) =>
+const automationsAtom = Atom.family((orgId: OrgId) =>
   ApiClient.query("automations", "list", {
     params: { orgId },
     query: {},
-    reactivityKeys: [`automation:${orgId}`],
+    reactivityKeys: [`automations:${orgId}`],
+    timeToLive: queryTimeToLive,
   }),
 );
 
 /** Names the drive root labels scopes with; a list that fails reads as empty. */
 export function useDriveNames(
-  orgId: string,
+  orgId: OrgId,
   organizationName: string | undefined,
   userId: string | undefined,
 ): DriveScopeNames {
-  const projects = resultValue(useAtomValue(projectsAtom(orgId as never)));
-  const captains = resultValue(useAtomValue(captainsFamily(orgId)));
-  const automations = resultValue(useAtomValue(automationsFamily(orgId)));
+  const projects = resultValue(useAtomValue(projectsAtom(orgId)));
+  const captains = resultValue(useAtomValue(captainsAtom(orgId)));
+  const automations = resultValue(useAtomValue(automationsAtom(orgId)));
   return {
     organizationName,
     userId,

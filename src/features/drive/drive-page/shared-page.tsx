@@ -5,6 +5,7 @@ import { DateTime } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
 import type { DriveShareListing } from "@/data/api/schemas/drive";
+import type { OrgId } from "@/data/api/schemas/ids";
 import {
   driveOrgSharesAtom,
   driveReactivityKey,
@@ -177,7 +178,7 @@ function SharedList({
   userId,
   search,
 }: {
-  orgId: string;
+  orgId: OrgId;
   orgName: string | undefined;
   userId: string | undefined;
   search: string;

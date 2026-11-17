@@ -3,6 +3,7 @@ import { useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
 import { DateTime } from "effect";
 import { useState } from "react";
+import type { OrgId } from "@/data/api/schemas/ids";
 import { driveScopeDirectoryAtom } from "@/data/atoms/drive";
 import { Button } from "@/primitives/button";
 import { BuildingIcon, InboxIcon, ShareIcon, UserIcon } from "../icons";
@@ -134,7 +135,7 @@ function DriveDirectory({
   onPage,
   narrow,
 }: {
-  orgId: string;
+  orgId: OrgId;
   orgName: string | undefined;
   userId: string | undefined;
   ordering: DriveOrdering;
