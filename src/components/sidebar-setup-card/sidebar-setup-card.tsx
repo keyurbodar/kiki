@@ -2,6 +2,7 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { type ComponentProps, useState } from "react";
 import { CircleDashedIcon, CrossMediumIcon } from "@/components/release";
+import type { OrgId } from "@/data/api/schemas/ids";
 import { organizationsAtom } from "@/data/atoms/session";
 import { Button } from "@/primitives/button";
 import { Dialog, DialogContent } from "@/primitives/dialog";
@@ -28,10 +29,10 @@ export function SidebarSetupCard({
   const orgId = AsyncResult.isSuccess(organizations)
     ? organizations.value[0]?.id
     : undefined;
-  const status = useAtomValue(onboardingStatusAtom(orgId ?? ""));
+  const status = useAtomValue(onboardingStatusAtom(orgId ?? ("" as OrgId)));
   const [active, setActive] = useState<string | null>(null);
-  const skip = useAtomSet(skipOnboardingStepAtom);
-  const dismiss = useAtomSet(dismissOnboardingAtom);
+  const skip = useAtomSet(skipOnboardingStepAtom, { mode: "promise" });
+  const dismiss = useAtomSet(dismissOnboardingAtom, { mode: "promise" });
   const parsed = AsyncResult.isSuccess(status)
     ? onboardingStatus(status.value)
     : undefined;

@@ -38,7 +38,7 @@ export function SidebarAnnouncements({
   const announcements = useAtomValue(announcementsAtom(userId ?? ""));
   const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set());
   const [open, setOpen] = useState<string | null>(null);
-  const record = useAtomSet(recordAnnouncementAtom);
+  const record = useAtomSet(recordAnnouncementAtom, { mode: "promise" });
   const platforms =
     typeof window !== "undefined" && "capyDesktop" in window
       ? ["web", "desktop"]

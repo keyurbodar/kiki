@@ -16,9 +16,11 @@ const assets = import.meta.glob<string>("./assets/*", {
   import: "default",
 });
 
+const asset = (file: string) => assets[`./assets/${file}`] ?? "";
+
 const image = (name: string) => ({
-  light: assets[`./assets/${name}-light.webp`],
-  dark: assets[`./assets/${name}-dark.webp`],
+  light: asset(`${name}-light.webp`),
+  dark: asset(`${name}-dark.webp`),
 });
 
 export const SETUP_STEP_IDS = [
