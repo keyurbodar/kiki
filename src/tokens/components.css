@@ -36,6 +36,14 @@
   --sidebar-pin-label-gap: 4px;
   --sidebar-section-gap: 12px;
   --sidebar-section-header: 28px;
+  --annotation-stroke: 1.5px;
+  --media-comment-marker-w: 3px;
+  --media-comment-marker-pending: 18px;
+  --crop-editor-h: 440px;
+  --crop-editor-scrim: 0 0 0 4000px rgba(0, 0, 0, 0.55);
+  --crop-editor-grid:
+    linear-gradient(to right, rgba(255, 255, 255, 0.35) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.35) 1px, transparent 1px);
 }
 
 :root {
