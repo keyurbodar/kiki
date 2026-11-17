@@ -7,7 +7,9 @@ import { orgId, threads } from "../fixtures/world.ts";
 import { MockTransport } from "../MockServices.ts";
 import { threadStateJamIds, threadStateSeeds } from "./thread-states.ts";
 
-const decodeEvent = Schema.decodeUnknownSync(EventRow);
+const decodeEvent = (event: EventRowEncoded) =>
+  Schema.decodeUnknownSync(EventRow)(event);
+const decodeRow = (row: unknown) => Schema.decodeUnknownSync(TimelineRow)(row);
 
 type Payload = Record<string, unknown>;
 const payloadOf = (event: EventRowEncoded) =>
@@ -39,15 +41,13 @@ describe("thread state mock seeds", () => {
     buildTimeline(eventsFor(jamId).map(decodeEvent));
 
   const rowsOf = (jamId: string): unknown[] => {
-    const rows = timelineFor(jamId).rows.flatMap((row) => {
+    const rows = timelineFor(jamId).rows.flatMap((row): readonly unknown[] => {
       if (row.type === "work-group") return row.entries;
       if (row.type === "cluster") return row.members;
       return [row];
     });
     return rows.map((row) => JSON.parse(JSON.stringify(row)));
   };
-
-  const decodeRow = Schema.decodeUnknownSync(TimelineRow);
 
   it("seeds one thread per unshootable state", () => {
     assert.equal(new Set(threadStateJamIds).size, 7);
@@ -98,8 +98,7 @@ describe("thread state mock seeds", () => {
     assert.property(payloadOf(result).data as object, "setup");
     assert.isTrue(
       rowsOf(threads.darkMode.id).some(
-        (candidate) =>
-          Schema.decodeUnknownSync(TimelineRow)(candidate).type === "mcp-setup",
+        (candidate) => decodeRow(candidate).type === "mcp-setup",
       ),
     );
   });
