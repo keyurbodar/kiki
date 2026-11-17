@@ -6,11 +6,7 @@ import {
 } from "@tanstack/react-router";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  defaultThreadFilters,
-  defaultThreadsPageState,
-  type ThreadListItem,
-} from "./model";
+import { defaultThreadsPageState, type ThreadListItem } from "./model";
 import { ThreadsPageView } from "./threads-page";
 
 afterEach(cleanup);
