@@ -140,10 +140,7 @@ const doopDir = HAS_DRIVE
   ? join(DRIVE, "renders/verify/_doop")
   : join(CACHE, "doop");
 
-async function fetchFrames(
-  targets: Target[],
-  missing: Set<string>,
-): Promise<Map<string, string>> {
+async function fetchFrames(targets: Target[]): Promise<Map<string, string>> {
   const wanted = targets.filter((t) => t.frame);
   const paths = new Map<string, string>();
   if (!wanted.length) return paths;
@@ -175,7 +172,6 @@ async function fetchFrames(
       if (ref.status === "error")
         throw new Error(`doop frame ${id}: ${ref.message}`);
       if (ref.status === "unverified") {
-        missing.add(id);
         log(`doop frame ${id}: ${ref.reason}, pixel diff skipped`);
         return;
       }
@@ -550,8 +546,7 @@ async function verify() {
   const targets = (opt.targets as string[]).flatMap((f) =>
     expandTargets(JSON.parse(readFileSync(f, "utf8")) as TargetsFile, base),
   );
-  const missingFrames = new Set<string>();
-  const frames = await fetchFrames(targets, missingFrames);
+  const frames = await fetchFrames(targets);
   const mode = targets.some((t) => t.route.startsWith("/__"))
     ? "development"
     : "production";
