@@ -79,7 +79,15 @@ const noScope: FixtureScope = {
 const fullName = (person: { firstName: string; lastName: string }) =>
   `${person.firstName} ${person.lastName}`;
 
-const [releaseCaptain, docsCaptain] = captains;
+const [releaseCaptainSeed, docsCaptainSeed] = captains;
+const releaseCaptain = releaseCaptainSeed ?? {
+  id: "jam_sample_cap1",
+  name: "Release captain",
+};
+const docsCaptain = docsCaptainSeed ?? {
+  id: "jam_sample_cap2",
+  name: "Docs captain",
+};
 const [nightlyDeps] = automations;
 
 const orgAgents = `# Acme agent instructions

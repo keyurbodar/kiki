@@ -34,11 +34,10 @@ const copyLink = async (threadId: string) => {
   }
 };
 
-export type SidebarRowPopupsProps = {
+export type SidebarRowPopupsProps = Omit<ComponentProps<"div">, "children"> & {
   threads: ReadonlyMap<string, SidebarRowMenuThread>;
   actions?: SidebarRowActions;
-  className?: string;
-  onClickCapture?: ComponentProps<"div">["onClickCapture"];
+  mode?: string;
   children: ReactNode;
 };
 
@@ -51,9 +50,11 @@ export type SidebarRowPopupsProps = {
 export function SidebarRowPopups({
   threads,
   actions,
+  mode,
   className,
   onClickCapture,
   children,
+  ...props
 }: SidebarRowPopupsProps) {
   const [thread, setThread] = useState<SidebarRowMenuThread | null>(null);
   const resolveFrom = (
@@ -77,12 +78,14 @@ export function SidebarRowPopups({
     <ContextMenu onOpenChange={(open) => !open && setThread(null)}>
       <ContextMenuTrigger
         data-track-owner="shared/sidebar-threads.tsx#SidebarRowPopups:ContextMenuTrigger.1"
+        data-sidebar-mode={mode}
         className={className}
         onContextMenu={(event) =>
           resolveFrom(event.target, () => event.preventDefault())
         }
         onTouchStart={(event) => resolveFrom(event.target, () => {})}
         onClickCapture={onClickCapture}
+        {...props}
       >
         {children}
       </ContextMenuTrigger>

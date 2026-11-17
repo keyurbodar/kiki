@@ -4,7 +4,7 @@ import { Icon } from "@/primitives/icon";
 import { type Intent, intentVariants } from "@/primitives/intent";
 
 export const badgeVariants = cva(
-  "inline-flex items-center justify-center w-fit min-w-8 rounded-full text-xs font-normal [text-box-trim:trim-both] [&_svg]:shrink-0",
+  "inline-flex items-center justify-center w-fit rounded-full text-xs font-normal [text-box-trim:trim-both] [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -17,9 +17,9 @@ export const badgeVariants = cva(
       },
       color: intentVariants,
       size: {
-        base: "h-(--h-badge-base) px-2 gap-1 [&_svg:not([class*='size-'])]:size-(--icon-sm) [&_svg:first-of-type]:-ml-0.5",
-        sm: "h-(--h-badge-sm) px-1.5 gap-1 [&_svg:not([class*='size-'])]:size-(--icon-xs) [&_svg:first-of-type]:-ml-0.5",
-        xs: "h-(--h-badge-xs) px-1.5 gap-1 [&_svg:not([class*='size-'])]:size-(--icon-xs) [&_svg:first-of-type]:-ml-0.5",
+        base: "min-w-8 h-(--h-badge-base) px-2 gap-1 [&_svg:not([class*='size-'])]:size-(--icon-sm) [&_svg:first-of-type]:-ml-0.5",
+        sm: "min-w-8 h-(--h-badge-sm) px-1.5 gap-1 [&_svg:not([class*='size-'])]:size-(--icon-xs) [&_svg:first-of-type]:-ml-0.5",
+        xs: "min-w-8 h-(--h-badge-xs) px-1.5 gap-1 [&_svg:not([class*='size-'])]:size-(--icon-xs) [&_svg:first-of-type]:-ml-0.5",
         count:
           "h-(--h-badge-count) min-w-0 px-0 text-count-chip font-bold proportional-nums [text-box-trim:none]",
         auto: "h-auto px-0.5 gap-1 [&_svg:not([class*='size-'])]:size-(--icon-xs)",

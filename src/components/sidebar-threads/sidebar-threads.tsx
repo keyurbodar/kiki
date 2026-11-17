@@ -236,10 +236,12 @@ export function CaptainRow({ captain, compact, active }: CaptainRowProps) {
   const busy = captain.status === "working" || captain.status === "waiting";
   const needsYou = captain.needsYou && captain.status !== "working";
   const ask = needsYou ? captain.ask : null;
-  const mark =
+  const crewBadge =
     captain.crewMentionCount > 0 ? (
       <CrewCountBadge count={captain.crewMentionCount} />
-    ) : needsYou && ask === null && captain.preview === null ? (
+    ) : null;
+  const mark =
+    needsYou && ask === null && captain.preview === null ? (
       <NeedsYouDot />
     ) : busy ? (
       <span
@@ -300,13 +302,14 @@ export function CaptainRow({ captain, compact, active }: CaptainRowProps) {
               {captain.name}
             </span>
             <span className="flex shrink-0 items-center gap-2">
+              {crewBadge}
               {mark}
               {age}
             </span>
           </>
         ) : (
           <span className="flex min-w-0 flex-1 flex-col gap-1">
-            <span className="flex h-5 min-w-0 items-center gap-2">
+            <span className="flex h-5 min-w-0 items-baseline gap-2">
               <span
                 className={cx(
                   "mask-fade-r min-w-0 flex-1 overflow-hidden whitespace-nowrap leading-5",
@@ -318,13 +321,22 @@ export function CaptainRow({ captain, compact, active }: CaptainRowProps) {
               {mark}
               {age}
             </span>
-            <span
-              className={cx(
-                "mask-fade-r h-4 min-w-0 overflow-hidden text-xs leading-4 whitespace-nowrap",
-                ask === null ? "text-muted-foreground-2" : "text-primary-ink",
+            <span className="flex h-4 min-w-0 items-center gap-2">
+              <span className="flex min-w-0 flex-1">
+                <span
+                  className={cx(
+                    "mask-fade-r min-w-0 flex-1 overflow-hidden whitespace-nowrap text-xs leading-4",
+                    ask === null
+                      ? "font-normal text-muted-foreground"
+                      : "text-primary-ink",
+                  )}
+                >
+                  {ask ?? captain.preview}
+                </span>
+              </span>
+              {crewBadge === null ? null : (
+                <span className="flex shrink-0 items-center">{crewBadge}</span>
               )}
-            >
-              {ask ?? captain.preview}
             </span>
           </span>
         )}
@@ -386,8 +398,10 @@ export function SidebarThreads({
     ),
   );
   return (
-    <div
-      data-sidebar-mode={view.mode}
+    <SidebarRowPopups
+      threads={rowMenuThreads}
+      actions={rowActions}
+      mode={view.mode}
       className={cx(
         "mt-3 flex min-h-0 flex-1 flex-col [timeline-scope:--threads-scroll]",
         className,
@@ -409,11 +423,7 @@ export function SidebarThreads({
           </span>
           <div className="ml-auto flex items-center">{actions}</div>
         </div>
-        <SidebarRowPopups
-          threads={rowMenuThreads}
-          actions={rowActions}
-          className="flex min-h-full flex-col px-2"
-        >
+        <div className="flex min-h-full flex-col px-2">
           {/* biome-ignore lint/a11y/useSemanticElements: Capy's sidebar list is a div with role=list */}
           <div role="list" className="flex flex-col">
             {captains ? (
@@ -439,9 +449,9 @@ export function SidebarThreads({
               />
             )}
           </div>
-        </SidebarRowPopups>
+        </div>
       </ScrollArea>
-    </div>
+    </SidebarRowPopups>
   );
 }
 

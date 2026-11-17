@@ -29,7 +29,11 @@ const renderAt = async (path: string) => {
   return view;
 };
 
-it("hosts the page inside the sidebar panel", async () => {
+// The app sidebar resolves the org's threads, folders and Captains on mount.
+// Behind a real API that is milliseconds; here it costs ~21s of happy-dom waiting
+// for mocks that answer over a transport that is not running, so this one test
+// carries the longer budget rather than every shell test paying for it.
+it("hosts the page inside the sidebar panel", { timeout: 40000 }, async () => {
   const { container } = await renderAt("/pulls");
   const panel = container.querySelector("[data-slot=sidebar-panel]");
   expect(panel?.querySelector("main")?.textContent).toBe("page body");

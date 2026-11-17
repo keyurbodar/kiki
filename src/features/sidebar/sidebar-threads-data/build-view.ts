@@ -72,7 +72,8 @@ export type SidebarSource = {
 };
 
 export type SidebarPrefs = {
-  mode: SidebarMode;
+  /** `null` until someone picks a mode: Capy derives the default from whether the org has Captains. */
+  mode: SidebarMode | null;
   density: SidebarDensity;
   grouping: SidebarGrouping;
   sort: SidebarThreadSort;
@@ -83,7 +84,7 @@ export type SidebarPrefs = {
 };
 
 export const defaultSidebarPrefs: SidebarPrefs = {
-  mode: "threads",
+  mode: null,
   density: "detailed",
   grouping: "folders",
   sort: "lastActive",
@@ -216,7 +217,11 @@ export function buildSidebarThreadsView(
       : byNewest(prefs.captainSort === "createdAt" ? "createdAt" : "updatedAt");
 
   return {
-    mode: prefs.mode,
+    mode:
+      prefs.mode ??
+      (source.captains.some((captain) => captain.status !== "archived")
+        ? "captains"
+        : "threads"),
     density: prefs.density,
     grouping: prefs.grouping,
     sort: prefs.sort,
