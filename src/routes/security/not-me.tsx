@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RoutePlaceholder } from "@/components/route-placeholder";
+import { AuthLayout } from "@/features/auth/auth-layout";
+import { NotMePage } from "@/features/auth/not-me";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/security/not-me")({
@@ -8,7 +9,10 @@ export const Route = createFileRoute("/security/not-me")({
 });
 
 function RouteComponent() {
+  const { token } = Route.useSearch();
   return (
-    <RoutePlaceholder title="Report a sign-in change" path="/security/not-me" />
+    <AuthLayout>
+      <NotMePage token={token} />
+    </AuthLayout>
   );
 }

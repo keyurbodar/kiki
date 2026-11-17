@@ -43,7 +43,7 @@ export function MobileHome({
         </div>
       )}
       <div className="relative flex flex-1 items-center justify-center px-6">
-        <div className="flex w-full max-w-[44.5rem] flex-col pb-[10dvh]">
+        <div className="flex w-full max-w-178 flex-col pb-[10dvh]">
           <div className="flex min-h-8 min-w-0 items-center gap-3 pr-4 pb-1.5 pl-4">
             <MobileProjectSheet
               projects={projects}
