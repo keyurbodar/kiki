@@ -48,6 +48,10 @@
   -webkit-app-region: drag;
 }
 
+.desktop-drag-region > * {
+  -webkit-app-region: no-drag;
+}
+
 .desktop-no-drag,
 [data-slot="sheet-content"],
 [data-slot="sheet-overlay"],
