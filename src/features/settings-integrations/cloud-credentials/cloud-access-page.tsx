@@ -57,7 +57,12 @@ import {
   RotateClockwiseIcon,
   TrashIcon,
 } from "./icons";
-import { CodeBlock, ConfirmDialog, CopyValue, menuItemIconClass } from "./parts";
+import {
+  CodeBlock,
+  ConfirmDialog,
+  CopyValue,
+  menuItemIconClass,
+} from "./parts";
 import {
   onlyAdminsCanChangeOidc,
   onlyAdminsCanRemove,
@@ -193,11 +198,7 @@ export function SetupLoader({
   return (
     <WithOrg>
       {(orgId) => (
-        <SetupLoaderBody
-          orgId={orgId}
-          provider={provider}
-          targetId={targetId}
-        >
+        <SetupLoaderBody orgId={orgId} provider={provider} targetId={targetId}>
           {children}
         </SetupLoaderBody>
       )}
@@ -225,12 +226,19 @@ function SetupLoaderBody({
   const target = access?.targets.find(
     (row) => row.id === targetId && row.provider === provider,
   );
-  if (access !== undefined && (targetId === undefined || target !== undefined)) {
+  if (
+    access !== undefined &&
+    (targetId === undefined || target !== undefined)
+  ) {
     return children(orgId, access, target);
   }
   if (targetId === undefined) {
     return (
-      <SettingsPage title="Add project" icon={meta.icon} iconTile={meta.iconTile}>
+      <SettingsPage
+        title="Add project"
+        icon={meta.icon}
+        iconTile={meta.iconTile}
+      >
         {failed ? (
           <Card>
             <SettingsLoadFailedRow label={loadFailedLabel} onRetry={refresh} />
@@ -243,7 +251,7 @@ function SetupLoaderBody({
       </SettingsPage>
     );
   }
-  if (access === undefined && !failed || (result.waiting && !failed)) {
+  if ((access === undefined && !failed) || (result.waiting && !failed)) {
     return (
       <SettingsPage title={meta.name} icon={meta.icon} iconTile={meta.iconTile}>
         <Card>
@@ -316,7 +324,11 @@ function IssuerCard({
           {row.value === undefined ? (
             <SkeletonPanel className="h-4 w-64" />
           ) : (
-            <CopyValue className="w-80" value={row.value} label={row.copyLabel} />
+            <CopyValue
+              className="w-80"
+              value={row.value}
+              label={row.copyLabel}
+            />
           )}
         </SettingsRow>
       ))}
@@ -447,7 +459,11 @@ function ProjectsCard({
               className="mr-3"
               render={
                 // biome-ignore lint/a11y/useAnchorContent: Button renders its children into the anchor
-                <a href={meta.guideUrl} target="_blank" rel="noopener noreferrer" />
+                <a
+                  href={meta.guideUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                />
               }
             >
               Setup guide
@@ -474,7 +490,9 @@ function ProjectsCard({
                     </span>
                   }
                 />
-                <TooltipContent side="top">{onlyAdminsCanChangeOidc}</TooltipContent>
+                <TooltipContent side="top">
+                  {onlyAdminsCanChangeOidc}
+                </TooltipContent>
               </Tooltip>
             )
           }
@@ -564,7 +582,9 @@ function ProjectsCard({
             >
               {target.lastCheck === null ? null : (
                 <span className="hidden text-xs text-muted-foreground-2 tabular-nums sm:inline">
-                  {formatRecent(new Date(target.lastCheck.at.epochMilliseconds))}
+                  {formatRecent(
+                    new Date(target.lastCheck.at.epochMilliseconds),
+                  )}
                 </span>
               )}
               <CheckBadge provider={provider} check={target.lastCheck} />

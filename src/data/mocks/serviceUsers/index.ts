@@ -1,148 +1,122 @@
-import { Effect, Ref } from "effect";
-import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
-import { isoMinutesAgo, people, projects } from "../fixtures/world.ts";
+import { DateTime, Effect, Ref } from "effect";
+import {
+  ServiceUser,
+  ServiceUserDetail,
+  ServiceUserNotFound,
+} from "../../api/schemas/api-keys.ts";
+import { type ServiceUserId, UserId } from "../../api/schemas/ids.ts";
+import { MockDb, newId } from "../db/MockDb.ts";
+import { fixtureNow } from "../fixtures/time.ts";
+import { viewer } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
-import { sampleServiceUserDefaults } from "./fixtures.ts";
+import { sampleServiceUsers } from "./fixtures.ts";
+
+const summary = ({
+  projectIds: _p,
+  subscriptionServices: _s,
+  ...row
+}: ServiceUserDetail) => new ServiceUser(row);
 
 export const ServiceUsersMock = mockGroup("serviceUsers", (handlers) =>
   Effect.gen(function* () {
-    const { serviceUsers } = yield* MockDb;
-    const details = yield* Ref.make<
-      Readonly<Record<string, Record<string, unknown>>>
-    >({});
+    const db = yield* MockDb;
+    const users =
+      yield* Ref.make<ReadonlyArray<ServiceUserDetail>>(sampleServiceUsers);
 
-    const find = (serviceUserId: string) =>
-      Effect.flatMap(Ref.get(serviceUsers), (rows) => {
-        const row = rows.find((candidate) => candidate.id === serviceUserId);
-        return row
-          ? Effect.succeed(row)
-          : missing("serviceUsers", serviceUserId);
-      });
-
-    const readDetails = (serviceUserId: string) =>
-      Effect.map(Ref.get(details), (rows) => rows[serviceUserId] ?? {});
-
-    const putDetails = (serviceUserId: string, next: Record<string, unknown>) =>
-      Ref.update(details, (rows) => ({ ...rows, [serviceUserId]: next })).pipe(
-        Effect.as(next),
+    const find = (serviceUserId: ServiceUserId) =>
+      Ref.get(users).pipe(
+        Effect.map((rows) => rows.find((row) => row.id === serviceUserId)),
+        Effect.flatMap((row) =>
+          row === undefined
+            ? Effect.fail(new ServiceUserNotFound({ serviceUserId }))
+            : Effect.succeed(row),
+        ),
       );
 
-    const replace = (serviceUserId: string, next: Record<string, unknown>) =>
+    const update = (
+      serviceUserId: ServiceUserId,
+      change: Partial<ConstructorParameters<typeof ServiceUserDetail>[0]>,
+    ) =>
       Effect.gen(function* () {
-        yield* find(serviceUserId);
-        const rows = yield* Ref.get(serviceUsers);
-        yield* Ref.set(
-          serviceUsers,
+        const current = yield* find(serviceUserId);
+        const next = new ServiceUserDetail({
+          ...current,
+          ...change,
+          updatedAt: DateTime.nowUnsafe(),
+        });
+        yield* Ref.update(users, (rows) =>
+          rows.map((row) => (row.id === serviceUserId ? next : row)),
+        );
+        yield* Ref.update(db.serviceUsers, (rows) =>
           rows.map((row) =>
-            row.id === serviceUserId ? next : row,
-          ) as typeof rows,
+            row.id === serviceUserId
+              ? { ...row, name: next.name, description: next.description ?? "" }
+              : row,
+          ),
         );
         return next;
       });
 
     return handlers
-      .handle("list", () => Ref.get(serviceUsers))
+      .handle("list", () =>
+        Ref.get(users).pipe(Effect.map((rows) => rows.map(summary))),
+      )
+      .handle("get", ({ params }) => find(params.serviceUserId))
       .handle("create", ({ payload }) =>
         Effect.gen(function* () {
-          const input = fields(payload);
-          const row = {
-            id: newId("svc"),
-            name:
-              typeof input.name === "string" && input.name.length > 0
-                ? input.name
-                : sampleServiceUserDefaults.name,
-            description:
-              typeof input.description === "string"
-                ? input.description
-                : sampleServiceUserDefaults.description,
-            createdBy:
-              typeof input.createdBy === "string"
-                ? input.createdBy
-                : people.sam.id,
-            createdAt: isoMinutesAgo(0),
-          };
-          yield* Ref.update(serviceUsers, (rows) => [...rows, row]);
-          yield* putDetails(row.id, {
+          const created = new ServiceUserDetail({
+            id: newId("svc") as ServiceUserId,
+            name: payload.name,
+            description: payload.description ?? null,
+            icon: payload.icon ?? null,
+            role: payload.role,
+            projectAccessMode: "all_org_projects",
+            projectIds: [],
+            model: null,
+            monthlySpendCapCredits: null,
+            subscriptionOwnerUserId: null,
+            subscriptionServices: [],
+            createdByUserId: UserId.make(viewer.id),
             disabledAt: null,
-            projectIds: [...sampleServiceUserDefaults.projectIds],
-            subscriptionPlan: sampleServiceUserDefaults.subscriptionPlan,
+            createdAt: fixtureNow,
+            updatedAt: fixtureNow,
           });
-          return row;
-        }),
-      )
-      .handle("get", ({ params }) =>
-        Effect.gen(function* () {
-          const row = yield* find(params.serviceUserId);
-          const extra = yield* readDetails(params.serviceUserId);
-          return { ...row, ...extra, organizationId: params.orgId };
+          yield* Ref.update(users, (rows) => [...rows, created]);
+          yield* Ref.update(db.serviceUsers, (rows) => [
+            ...rows,
+            {
+              id: created.id,
+              name: created.name,
+              description: created.description ?? "",
+              createdBy: viewer.id,
+              createdAt: DateTime.formatIso(fixtureNow),
+            },
+          ]);
+          return created;
         }),
       )
       .handle("update", ({ params, payload }) =>
-        Effect.gen(function* () {
-          const current = yield* find(params.serviceUserId);
-          const input = fields(payload);
-          const next = {
-            ...current,
-            ...(typeof input.name === "string" ? { name: input.name } : {}),
-            ...(typeof input.description === "string"
-              ? { description: input.description }
-              : {}),
-          };
-          return yield* replace(params.serviceUserId, next);
-        }),
+        update(params.serviceUserId, payload),
       )
       .handle("disable", ({ params }) =>
-        Effect.gen(function* () {
-          const row = yield* find(params.serviceUserId);
-          const disabledAt = isoMinutesAgo(0);
-          const extra = yield* readDetails(params.serviceUserId);
-          yield* putDetails(params.serviceUserId, { ...extra, disabledAt });
-          return { ...row, ...extra, disabledAt, enabled: false };
-        }),
+        update(params.serviceUserId, { disabledAt: DateTime.nowUnsafe() }),
       )
       .handle("restore", ({ params }) =>
-        Effect.gen(function* () {
-          const row = yield* find(params.serviceUserId);
-          const extra = yield* readDetails(params.serviceUserId);
-          yield* putDetails(params.serviceUserId, {
-            ...extra,
-            disabledAt: null,
-          });
-          return { ...row, ...extra, disabledAt: null, enabled: true };
-        }),
+        update(params.serviceUserId, { disabledAt: null }),
       )
       .handle("replaceProjects", ({ params, payload }) =>
-        Effect.gen(function* () {
-          yield* find(params.serviceUserId);
-          const input = fields(payload);
-          const candidate = input.projectIds ?? input.ids;
-          const projectIds = Array.isArray(candidate)
-            ? candidate.filter((id): id is string => typeof id === "string")
-            : [projects.web.id];
-          const extra = yield* readDetails(params.serviceUserId);
-          const next = yield* putDetails(params.serviceUserId, {
-            ...extra,
-            projectIds,
-          });
-          return { ok: true, id: params.serviceUserId, ...next };
+        update(params.serviceUserId, {
+          projectAccessMode: payload.projectAccessMode,
+          projectIds:
+            payload.projectAccessMode === "all_org_projects"
+              ? []
+              : payload.projectIds,
         }),
       )
       .handle("setSubscription", ({ params, payload }) =>
-        Effect.gen(function* () {
-          yield* find(params.serviceUserId);
-          const input = fields(payload);
-          const subscriptionPlan =
-            typeof input.plan === "string"
-              ? input.plan
-              : typeof input.subscription === "string"
-                ? input.subscription
-                : sampleServiceUserDefaults.subscriptionPlan;
-          const extra = yield* readDetails(params.serviceUserId);
-          const next = yield* putDetails(params.serviceUserId, {
-            ...extra,
-            subscriptionPlan,
-          });
-          return { ok: true, id: params.serviceUserId, ...next };
+        update(params.serviceUserId, {
+          subscriptionOwnerUserId: payload.ownerUserId,
+          subscriptionServices: payload.ownerUserId === null ? [] : ["claude"],
         }),
       );
   }),

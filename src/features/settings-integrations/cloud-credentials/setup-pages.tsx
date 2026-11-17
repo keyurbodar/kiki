@@ -5,15 +5,16 @@ import {
   type CloudAccess,
   type CloudAccessTarget,
   gcpPermissions,
+  oidcTokenFile,
   vaultDefaultAuthMount,
   vaultLoginCommand,
 } from "@/data/api/schemas/cloud-access";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
+import { Card } from "@/primitives/card";
 import { Input } from "@/primitives/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
-import { Card } from "@/primitives/card";
 import { SettingsRow, SettingsSection } from "../shared";
 import { ProjectCombobox, SetupLoader } from "./cloud-access-page";
 import {
@@ -34,7 +35,6 @@ import {
 import { useIsOrgAdmin } from "./hooks";
 import { CodeBlock, CopyValue, SetupStep } from "./parts";
 import { onlyAdminsCanChangeOidc } from "./providers";
-import { CheckBadge } from "./status-badges";
 import {
   CredentialRow,
   ExportsBlock,
@@ -47,6 +47,7 @@ import {
   ValueRow,
   VerifyButton,
 } from "./setup-kit";
+import { CheckBadge } from "./status-badges";
 import {
   isAudience,
   isAzureId,
@@ -55,10 +56,9 @@ import {
   isRoleArn,
   isServiceAccountEmail,
   oidcAudienceError,
-  oidcTokenPath,
   oidcTokenFileVar,
+  oidcTokenPath,
 } from "./validation";
-import { oidcTokenFile } from "@/data/api/schemas/cloud-access";
 
 type SetupProps = {
   orgId: OrgId;
@@ -759,11 +759,7 @@ function VaultSetup({ orgId, access, target }: SetupProps) {
       projectName={setup.projectName}
       removing={setup.removing}
       setRemoving={setup.setRemoving}
-      status={
-        target === undefined ? null : (
-          <VaultStatus target={target} />
-        )
-      }
+      status={target === undefined ? null : <VaultStatus target={target} />}
       steps={
         <>
           <ProjectStep
@@ -809,7 +805,10 @@ function VaultSetup({ orgId, access, target }: SetupProps) {
               onChange={(event) => setMount(event.currentTarget.value)}
             />
           </SetupStep>
-          <SetupStep title="Namespace" description="Optional, HCP Vault uses admin">
+          <SetupStep
+            title="Namespace"
+            description="Optional, HCP Vault uses admin"
+          >
             <Input
               {...inputProps}
               aria-label="Namespace"
@@ -922,15 +921,15 @@ function VaultStatus({ target }: { target: CloudAccessTarget }) {
         >
           <CheckBadge provider="vault" check={target.lastCheck} />
         </SettingsRow>
-      <ExportsBlock
-        caption="Machines export these, the Vault CLI reads VAULT_ADDR and VAULT_NAMESPACE"
-        text={vaultExports(target)}
-        blockKey={`cloud-access-vault-exports-${target.id}`}
-      />
-      <ExportsBlock
-        caption="The agent logs in with this line, the token lasts up to 15 minutes"
-        text={vaultLoginCommand}
-        blockKey={`cloud-access-vault-login-${target.id}`}
+        <ExportsBlock
+          caption="Machines export these, the Vault CLI reads VAULT_ADDR and VAULT_NAMESPACE"
+          text={vaultExports(target)}
+          blockKey={`cloud-access-vault-exports-${target.id}`}
+        />
+        <ExportsBlock
+          caption="The agent logs in with this line, the token lasts up to 15 minutes"
+          text={vaultLoginCommand}
+          blockKey={`cloud-access-vault-login-${target.id}`}
         />
       </Card>
     </SettingsSection>
@@ -949,12 +948,14 @@ function OidcSetup({ orgId, access, target }: SetupProps) {
     audience === "" || audience === target?.audience
       ? undefined
       : oidcAudienceError(audience);
-  const valid = setup.projectId !== null && audience !== "" && error === undefined;
+  const valid =
+    setup.projectId !== null && audience !== "" && error === undefined;
   const tokenLocation =
     target === undefined
       ? access.targets.some(
           (row) =>
-            row.projectId === setup.projectId && row.tokenFile === oidcTokenFile,
+            row.projectId === setup.projectId &&
+            row.tokenFile === oidcTokenFile,
         )
         ? "a file in $CAPY_OIDC_TOKEN_DIR named after the audience"
         : oidcTokenFileVar
@@ -1093,7 +1094,9 @@ function OidcSetup({ orgId, access, target }: SetupProps) {
                     </span>
                   }
                 />
-                <TooltipContent side="top">{onlyAdminsCanChangeOidc}</TooltipContent>
+                <TooltipContent side="top">
+                  {onlyAdminsCanChangeOidc}
+                </TooltipContent>
               </Tooltip>
             )}
           </SetupStep>

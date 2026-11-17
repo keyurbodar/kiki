@@ -146,7 +146,11 @@ export function SetupLayout({
             size="auto-sm"
             render={
               // biome-ignore lint/a11y/useAnchorContent: Button renders its children into the anchor
-              <a href={meta.guideUrl} target="_blank" rel="noopener noreferrer" />
+              <a
+                href={meta.guideUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              />
             }
           >
             Setup guide
@@ -170,9 +174,7 @@ export function SetupLayout({
           target={target}
           projectName={projectName ?? "this project"}
           onClose={() => setRemoving(false)}
-          onRemoved={() =>
-            void navigate({ to: providerRoutes[provider].list })
-          }
+          onRemoved={() => void navigate({ to: providerRoutes[provider].list })}
         />
       ) : null}
     </SettingsPage>
@@ -240,7 +242,9 @@ export function FailureBlock({
 }) {
   return (
     <div className="flex min-w-0 flex-col gap-2 p-4">
-      <span className="text-sm font-normal text-muted-foreground-1">{said}</span>
+      <span className="text-sm font-normal text-muted-foreground-1">
+        {said}
+      </span>
       <CodeBlock
         text={target.lastCheck?.error ?? "No error returned"}
         language="text"
@@ -255,7 +259,13 @@ export function FailureBlock({
   );
 }
 
-export function ValueRow({ label, value }: { label: string; value: ReactNode }) {
+export function ValueRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: ReactNode;
+}) {
   return (
     <SettingsRow label={label} wrapValue>
       <span className="min-w-0 text-right text-xs break-all text-foreground">

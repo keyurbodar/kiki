@@ -1,104 +1,137 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
-import { ApiClient } from "../../client/ApiClient.ts";
-import { orgId, projects } from "../fixtures/world.ts";
+import { CloudAccessTargetId } from "../../api/schemas/cloud-access.ts";
+import { OrgId, ProjectId } from "../../api/schemas/ids.ts";
+import {
+  checkCloudAccessTargetAtom,
+  cloudAccessAtom,
+  cloudAccessKeys,
+  createCloudAccessTargetAtom,
+  deleteCloudAccessTargetAtom,
+  updateCloudAccessTargetAtom,
+} from "../../atoms/cloud-credentials.ts";
+import { orgId as worldOrgId, projects } from "../fixtures/world.ts";
 
-const key = `cloud-access:${orgId}`;
-const getAccess = ApiClient.query("cloud-access", "getCloudAccess", {
-  params: { orgId },
-  reactivityKeys: [key],
-});
-const createTarget = ApiClient.mutation(
-  "cloud-access",
-  "createCloudAccessTarget",
-);
-const updateTarget = ApiClient.mutation(
-  "cloud-access",
-  "updateCloudAccessTarget",
-);
-const deleteTarget = ApiClient.mutation(
-  "cloud-access",
-  "deleteCloudAccessTarget",
-);
-
-interface Access {
-  readonly targets: ReadonlyArray<{
-    readonly id: string;
-    readonly name: string;
-    readonly status: string;
-  }>;
-}
-
-const names = (value: unknown) =>
-  (value as Access).targets.map((row) => row.name);
+const orgId = OrgId.make(worldOrgId);
+const reactivityKeys = cloudAccessKeys.cloudAccess(orgId);
 
 describe("cloud-access mock", () => {
-  it.effect("answers every cloud-access endpoint", () =>
+  it.effect("serves the org's issuer with no targets", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
-      assert.isAbove(
-        names(yield* AtomRegistry.getResult(registry, getAccess)).length,
-        0,
+      const access = yield* AtomRegistry.getResult(
+        registry,
+        cloudAccessAtom(orgId),
       );
-
-      const check = ApiClient.mutation(
-        "cloud-access",
-        "checkCloudAccessTarget",
+      assert.strictEqual(
+        access.issuer,
+        `https://api.capy.ai/oidc/orgs/${worldOrgId}`,
       );
-      registry.set(check, {
-        params: { orgId, targetId: "cat_sample_linear" },
-        reactivityKeys: [key],
-      });
-      const result = yield* AtomRegistry.getResult(registry, check);
-      assert.isTrue((result as { ok: boolean }).ok);
+      assert.isTrue(access.discoveryUrl.startsWith(access.issuer));
+      assert.deepStrictEqual(access.targets, []);
     }),
   );
 
-  it.effect("refreshes cloud access after create, update and delete", () =>
+  it.effect("creates, updates, checks and removes a target", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
-      registry.mount(getAccess);
-      yield* AtomRegistry.getResult(registry, getAccess);
+      const atom = cloudAccessAtom(orgId);
+      registry.mount(atom);
+      yield* AtomRegistry.getResult(registry, atom);
 
-      registry.set(createTarget, {
+      registry.set(createCloudAccessTargetAtom, {
         params: { orgId },
         payload: {
-          name: "Acme CI",
-          provider: "GitHub",
-          projectId: projects.api.id,
-          externalId: "acme-ci",
+          projectId: ProjectId.make(projects.web.id),
+          provider: "aws",
+          aws: {
+            roleArn: "arn:aws:iam::123456789012:role/capy-agent",
+            region: null,
+            audience: "sts.amazonaws.com",
+          },
         },
-        reactivityKeys: [key],
+        reactivityKeys,
       });
-      const created = yield* AtomRegistry.getResult(registry, createTarget);
-      const id = (created as { id: string }).id;
-      const afterCreate = yield* AtomRegistry.getResult(registry, getAccess, {
+      const created = yield* AtomRegistry.getResult(
+        registry,
+        createCloudAccessTargetAtom,
+      );
+      assert.strictEqual(created.provider, "aws");
+      assert.strictEqual(created.lastCheck?.outcome, "ok");
+      assert.strictEqual(
+        created.subject,
+        `org/${worldOrgId}/project/${projects.web.id}/thread/*`,
+      );
+      const afterCreate = yield* AtomRegistry.getResult(registry, atom, {
         suspendOnWaiting: true,
       });
-      assert.include(names(afterCreate), "Acme CI");
+      assert.lengthOf(afterCreate.targets, 1);
 
-      registry.set(updateTarget, {
-        params: { orgId, targetId: id },
-        payload: { name: "Acme integrations" },
-        reactivityKeys: [key],
+      const targetId = CloudAccessTargetId.make(created.id);
+      registry.set(updateCloudAccessTargetAtom, {
+        params: { orgId, targetId },
+        payload: {
+          aws: {
+            roleArn: "arn:aws:iam::123456789012:role/capy-reader",
+            region: "us-east-1",
+            audience: "sts.amazonaws.com",
+          },
+        },
+        reactivityKeys,
       });
-      yield* AtomRegistry.getResult(registry, updateTarget);
-      const afterUpdate = yield* AtomRegistry.getResult(registry, getAccess, {
-        suspendOnWaiting: true,
-      });
-      assert.include(names(afterUpdate), "Acme integrations");
-      assert.notInclude(names(afterUpdate), "Acme CI");
+      const updated = yield* AtomRegistry.getResult(
+        registry,
+        updateCloudAccessTargetAtom,
+      );
+      assert.strictEqual(updated.aws?.region, "us-east-1");
 
-      registry.set(deleteTarget, {
-        params: { orgId, targetId: id },
-        reactivityKeys: [key],
+      registry.set(checkCloudAccessTargetAtom, {
+        params: { orgId, targetId },
+        reactivityKeys,
       });
-      yield* AtomRegistry.getResult(registry, deleteTarget);
-      const afterDelete = yield* AtomRegistry.getResult(registry, getAccess, {
+      const checked = yield* AtomRegistry.getResult(
+        registry,
+        checkCloudAccessTargetAtom,
+      );
+      assert.strictEqual(checked.lastCheck?.outcome, "ok");
+
+      registry.set(deleteCloudAccessTargetAtom, {
+        params: { orgId, targetId },
+        reactivityKeys,
+      });
+      yield* AtomRegistry.getResult(registry, deleteCloudAccessTargetAtom);
+      const afterDelete = yield* AtomRegistry.getResult(registry, atom, {
         suspendOnWaiting: true,
       });
-      assert.notInclude(names(afterDelete), "Acme integrations");
+      assert.lengthOf(afterDelete.targets, 0);
+    }),
+  );
+
+  it.effect("leaves Vault unchecked because machines check it", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      registry.set(createCloudAccessTargetAtom, {
+        params: { orgId },
+        payload: {
+          projectId: ProjectId.make(projects.api.id),
+          provider: "vault",
+          vault: {
+            address: "https://vault.example.com",
+            role: `capy-${projects.api.id}`,
+            authMount: "capy",
+            namespace: null,
+            audience: "https://vault.example.com",
+          },
+        },
+        reactivityKeys,
+      });
+      const created = yield* AtomRegistry.getResult(
+        registry,
+        createCloudAccessTargetAtom,
+      );
+      assert.isNull(created.lastCheck);
+      assert.strictEqual(created.vault?.authMount, "capy");
     }),
   );
 });

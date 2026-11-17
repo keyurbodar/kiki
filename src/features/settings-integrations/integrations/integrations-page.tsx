@@ -32,6 +32,7 @@ import {
   type ConnectStatus,
   githubStatus,
   paperStatus,
+  type RevylConnection,
   type RevylStatus,
   revylStatus,
   slackStatus,
@@ -99,7 +100,11 @@ function OrgIntegrationRows({ orgId }: { orgId: OrgId }) {
       linear={activeStatus(linear)}
       paperConfigured={paper?.configured === true}
       paper={paperStatus(paper)}
-      revyl={mobile === undefined ? undefined : revylStatus(mobile)}
+      revyl={
+        mobile === undefined
+          ? undefined
+          : revylStatus(mobile as RevylConnection)
+      }
       tailscale={activeStatus(tailscale)}
     />
   );

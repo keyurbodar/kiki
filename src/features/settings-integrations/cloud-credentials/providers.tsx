@@ -32,7 +32,8 @@ export const providers: Record<CloudProvider, ProviderMeta> = {
     guideUrl: "https://docs.capy.ai/cloud-credentials/gcp",
     emptyDescription:
       "Add one, and its machines sign in as the service account you choose",
-    removedEffect: "Its machines lose their Google Cloud identity within the hour",
+    removedEffect:
+      "Its machines lose their Google Cloud identity within the hour",
     keptSetup: "your trust setup in Google Cloud stays",
     checkedByApi: true,
   },
@@ -42,7 +43,8 @@ export const providers: Record<CloudProvider, ProviderMeta> = {
     icon: <AwsIcon />,
     iconTile: "brand",
     guideUrl: "https://docs.capy.ai/cloud-credentials/aws",
-    emptyDescription: "Add one, and its machines sign in as the IAM role you choose",
+    emptyDescription:
+      "Add one, and its machines sign in as the IAM role you choose",
     removedEffect: "Its machines lose their AWS identity within the hour",
     keptSetup: "your role and trust policy in AWS stay",
     checkedByApi: true,

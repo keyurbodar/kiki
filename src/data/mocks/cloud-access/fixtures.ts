@@ -1,59 +1,154 @@
-import { isoMinutesAgo, org, people, projects } from "../fixtures/world.ts";
+import { DateTime } from "effect";
+import {
+  CloudAccess,
+  CloudAccessAws,
+  CloudAccessAzure,
+  CloudAccessCheck,
+  CloudAccessGcp,
+  CloudAccessTarget,
+  CloudAccessTargetId,
+  CloudAccessVault,
+  type CloudProvider,
+  azureAudience,
+  type CreateCloudAccessTargetRequest,
+  oidcTokenFile,
+  type UpdateCloudAccessTargetRequest,
+} from "../../api/schemas/cloud-access.ts";
+import { ProjectId, UserId } from "../../api/schemas/ids.ts";
+import { orgId, viewer } from "../fixtures/world.ts";
+import { fixtureNow } from "../fixtures/time.ts";
 
-export interface CloudAccessTarget {
-  readonly id: string;
-  readonly name: string;
-  readonly provider: "GitHub" | "Linear" | "Slack";
-  readonly projectId: string;
-  readonly status: "connected" | "needs_attention" | "disconnected";
-  readonly externalId: string;
-  readonly lastCheckedAt: string | null;
-  readonly createdBy: string;
-  readonly createdAt: string;
-}
+export const sampleIssuer = `https://api.capy.ai/oidc/orgs/${orgId}`;
 
-export const targets: ReadonlyArray<CloudAccessTarget> = [
-  {
-    id: "cat_sample_github",
-    name: "Acme GitHub",
-    provider: "GitHub",
-    projectId: projects.web.id,
-    status: "connected",
-    externalId: "acme",
-    lastCheckedAt: isoMinutesAgo(15),
-    createdBy: people.alex.id,
-    createdAt: isoMinutesAgo(30 * 24 * 60),
-  },
-  {
-    id: "cat_sample_linear",
-    name: "Acme Linear",
-    provider: "Linear",
-    projectId: projects.api.id,
-    status: "needs_attention",
-    externalId: "ACME",
-    lastCheckedAt: isoMinutesAgo(4 * 60),
-    createdBy: people.sam.id,
-    createdAt: isoMinutesAgo(12 * 24 * 60),
-  },
-  {
-    id: "cat_sample_slack",
-    name: "Acme Slack",
-    provider: "Slack",
-    projectId: projects.docs.id,
-    status: "connected",
-    externalId: "acme-docs",
-    lastCheckedAt: isoMinutesAgo(60),
-    createdBy: people.priya.id,
-    createdAt: isoMinutesAgo(8 * 24 * 60),
-  },
-];
+export const sampleCloudAccess = new CloudAccess({
+  issuer: sampleIssuer,
+  discoveryUrl: `${sampleIssuer}/.well-known/openid-configuration`,
+  jwksUrl: "https://api.capy.ai/oidc/jwks.json",
+  targets: [],
+});
 
-export const providerScopes: Readonly<
-  Record<CloudAccessTarget["provider"], ReadonlyArray<string>>
-> = {
-  GitHub: ["repo", "read:org"],
-  Linear: ["read", "write"],
-  Slack: ["channels:read", "chat:write"],
+export const subjectFor = (provider: CloudProvider, projectId: string) =>
+  provider === "azure"
+    ? `org/${orgId}/project/${projectId}`
+    : `org/${orgId}/project/${projectId}/thread/*`;
+
+const checkedByApi = (provider: CloudProvider) => provider !== "vault";
+
+export const passingCheck = (target: CloudAccessTarget) =>
+  checkedByApi(target.provider)
+    ? new CloudAccessCheck({
+        at: fixtureNow,
+        outcome: "ok",
+        byUserId: UserId.make(viewer.id),
+        principal: null,
+        error: null,
+        grantedPermissions:
+          target.provider === "gcp" ? ["logging.logEntries.list"] : null,
+      })
+    : null;
+
+type Settings = Pick<
+  CloudAccessTarget,
+  "audience" | "gcp" | "aws" | "vault" | "azure"
+>;
+
+const emptySettings = {
+  gcp: null,
+  aws: null,
+  vault: null,
+  azure: null,
+} as const;
+
+export const settingsFrom = (
+  input: CreateCloudAccessTargetRequest | UpdateCloudAccessTargetRequest,
+  current?: CloudAccessTarget,
+): Settings => {
+  if ("gcp" in input) {
+    return {
+      ...emptySettings,
+      audience: current?.audience ?? "",
+      gcp: new CloudAccessGcp(input.gcp),
+    };
+  }
+  if ("aws" in input) {
+    return {
+      ...emptySettings,
+      audience: input.aws.audience,
+      aws: new CloudAccessAws({
+        roleArn: input.aws.roleArn,
+        region: input.aws.region,
+      }),
+    };
+  }
+  if ("vault" in input) {
+    return {
+      ...emptySettings,
+      audience: input.vault.audience,
+      vault: new CloudAccessVault({
+        address: input.vault.address,
+        role: input.vault.role,
+        authMount: input.vault.authMount,
+        namespace: input.vault.namespace,
+      }),
+    };
+  }
+  if ("azure" in input) {
+    return {
+      ...emptySettings,
+      audience: current?.audience ?? azureAudience,
+      azure: new CloudAccessAzure(input.azure),
+    };
+  }
+  return { ...emptySettings, audience: input.audience };
 };
 
-export const organizationName = org.name;
+export const makeTarget = (
+  id: string,
+  input: CreateCloudAccessTargetRequest,
+  existing: ReadonlyArray<CloudAccessTarget>,
+) => {
+  const firstOidc = !existing.some(
+    (target) =>
+      target.projectId === input.projectId && target.tokenFile === oidcTokenFile,
+  );
+  const target = new CloudAccessTarget({
+    id: CloudAccessTargetId.make(id),
+    projectId: ProjectId.make(input.projectId),
+    provider: input.provider,
+    subject: subjectFor(input.provider, input.projectId),
+    ...settingsFrom(input),
+    ...(input.provider === "oidc"
+      ? {
+          tokenFile: firstOidc
+            ? oidcTokenFile
+            : `/etc/capy/cloud-access/oidc/${input.audience.replaceAll("/", "_")}.jwt`,
+        }
+      : {}),
+    lastCheck: null,
+    createdByUserId: UserId.make(viewer.id),
+    createdAt: fixtureNow,
+    updatedAt: fixtureNow,
+  });
+  return new CloudAccessTarget({ ...target, lastCheck: passingCheck(target) });
+};
+
+export const recheck = (target: CloudAccessTarget) =>
+  new CloudAccessTarget({
+    ...target,
+    lastCheck: passingCheck(target) ?? target.lastCheck,
+  });
+
+export const updateTarget = (
+  current: CloudAccessTarget,
+  input: UpdateCloudAccessTargetRequest,
+) => {
+  const updated = new CloudAccessTarget({
+    ...current,
+    ...settingsFrom(input, current),
+    updatedAt: DateTime.add(current.updatedAt, { seconds: 1 }),
+  });
+  return new CloudAccessTarget({
+    ...updated,
+    lastCheck: passingCheck(updated) ?? current.lastCheck,
+  });
+};

@@ -138,7 +138,9 @@ export const gcpCommands = (input: {
 }) => {
   const email = input.serviceAccountEmail;
   const number = input.projectNumber;
-  const saProject = email.split("@")[1]?.replace(".iam.gserviceaccount.com", "");
+  const saProject = email
+    .split("@")[1]
+    ?.replace(".iam.gserviceaccount.com", "");
   return {
     trust: lines(
       `PROJECT_ID=$(gcloud projects describe ${number} --format='value(projectId)')`,
@@ -199,7 +201,9 @@ export const azureCommands = (input: {
 }) => {
   const orgId = input.orgId ?? "<org id>";
   const projectId = input.projectId ?? "<project id>";
-  const app = shellQuote(isAzureId(input.clientId) ? input.clientId : "<client id>");
+  const app = shellQuote(
+    isAzureId(input.clientId) ? input.clientId : "<client id>",
+  );
   const parameters = shellQuote(
     azureCredential({ issuer: input.issuer, orgId, projectId }),
   );

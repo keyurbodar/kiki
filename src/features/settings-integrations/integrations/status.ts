@@ -6,7 +6,6 @@ import type {
   SlackConnection,
   TailscaleConnection,
 } from "@/data/api/schemas/integrations";
-import type { MobileConnection } from "@/data/api/schemas/mobile-connection";
 
 export type ConnectStatus =
   | "connected"
@@ -57,11 +56,19 @@ export type RevylStatus =
   | "not_connected"
   | (string & {});
 
-export function revylStatus(connection: MobileConnection): RevylStatus {
-  if (!connection.configured) return "not_configured";
-  if (!connection.available) return "off_plan";
-  if (connection.disabledAt !== null) return "off";
-  if (connection.state === null || connection.state === "unprovisioned") {
+export type RevylConnection = {
+  readonly configured?: boolean;
+  readonly available?: boolean;
+  readonly disabledAt?: string | null;
+  readonly state?: string | null;
+  readonly approvalOutcome?: string | null;
+};
+
+export function revylStatus(connection: RevylConnection): RevylStatus {
+  if (connection.configured !== true) return "not_configured";
+  if (connection.available !== true) return "off_plan";
+  if (connection.disabledAt != null) return "off";
+  if (connection.state == null || connection.state === "unprovisioned") {
     return connection.approvalOutcome ?? "not_connected";
   }
   return connection.state;

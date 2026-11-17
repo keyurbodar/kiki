@@ -4,7 +4,6 @@ import {
   GitHubUserConnection,
   PaperStatus,
 } from "@/data/api/schemas/integrations";
-import { sampleMobileConnection } from "@/data/mocks/mobileConnection/fixtures";
 import {
   activeStatus,
   githubStatus,
@@ -62,19 +61,34 @@ describe("integration status", () => {
   });
 
   it("derives the Revyl status", () => {
-    expect(revylStatus(sampleMobileConnection)).toBe("off_plan");
-    const make = (patch: Partial<typeof sampleMobileConnection>) =>
-      ({
-        ...sampleMobileConnection,
-        ...patch,
-      }) as typeof sampleMobileConnection;
-    expect(revylStatus(make({ configured: false }))).toBe("not_configured");
-    expect(revylStatus(make({ available: true }))).toBe("not_connected");
-    expect(
-      revylStatus(make({ available: true, approvalOutcome: "declined" })),
-    ).toBe("declined");
-    expect(revylStatus(make({ available: true, state: "connected" }))).toBe(
-      "connected",
+    const make = (patch: Record<string, unknown>) => patch;
+    expect(revylStatus(make({}))).toBe("not_configured");
+    expect(revylStatus(make({ configured: true }))).toBe("off_plan");
+    expect(revylStatus(make({ configured: true, available: true }))).toBe(
+      "not_connected",
     );
+    expect(
+      revylStatus(
+        make({
+          configured: true,
+          available: true,
+          approvalOutcome: "declined",
+        }),
+      ),
+    ).toBe("declined");
+    expect(
+      revylStatus(
+        make({ configured: true, available: true, state: "connected" }),
+      ),
+    ).toBe("connected");
+    expect(
+      revylStatus(
+        make({
+          configured: true,
+          available: true,
+          disabledAt: "2026-03-02T09:00:00.000Z",
+        }),
+      ),
+    ).toBe("off");
   });
 });

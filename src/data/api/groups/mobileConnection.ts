@@ -1,6 +1,5 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
-import { MobileConnection } from "../schemas/mobile-connection.ts";
 import { Undecoded } from "../undecoded.ts";
 
 export class MobileConnectionGroup extends HttpApiGroup.make(
@@ -8,7 +7,7 @@ export class MobileConnectionGroup extends HttpApiGroup.make(
 ).add(
   HttpApiEndpoint.get("get", "/orgs/:orgId/mobile/connection", {
     params: { orgId: Schema.String },
-    success: MobileConnection,
+    success: Undecoded,
   }),
   HttpApiEndpoint.post("connect", "/orgs/:orgId/mobile/connection", {
     params: { orgId: Schema.String },

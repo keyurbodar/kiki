@@ -1,124 +1,73 @@
 import { Effect, Ref } from "effect";
-import { fields, newId } from "../db/MockDb.ts";
-import { isoMinutesAgo } from "../fixtures/world.ts";
+import {
+  CloudAccess,
+  type CloudAccessTarget,
+} from "../../api/schemas/cloud-access.ts";
+import { IntegrationMutationResult } from "../../api/schemas/integrations.ts";
+import { newId } from "../db/MockDb.ts";
+import { projects } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
-  type CloudAccessTarget,
-  organizationName,
-  providerScopes,
-  targets,
+  makeTarget,
+  recheck,
+  sampleCloudAccess,
+  updateTarget,
 } from "./fixtures.ts";
 
-const provider = (value: unknown): CloudAccessTarget["provider"] =>
-  value === "Linear" || value === "Slack" ? value : "GitHub";
+const projectIds = new Set<string>(
+  Object.values(projects).map((project) => project.id),
+);
+
+const unknownRow = (kind: string, id: string) =>
+  Effect.die(new Error(`cloud-access mock: no ${kind} ${id}`));
 
 export const CloudAccessMock = mockGroup("cloud-access", (handlers) =>
   Effect.gen(function* () {
-    const targetRef =
-      yield* Ref.make<ReadonlyArray<CloudAccessTarget>>(targets);
+    const access = yield* Ref.make(sampleCloudAccess);
+
+    const setTargets = (targets: ReadonlyArray<CloudAccessTarget>) =>
+      Ref.update(access, (current) => new CloudAccess({ ...current, targets }));
+
+    const replace = (
+      id: string,
+      next: (target: CloudAccessTarget) => CloudAccessTarget,
+    ) =>
+      Effect.gen(function* () {
+        const { targets } = yield* Ref.get(access);
+        const target = targets.find((row) => row.id === id);
+        if (!target) return yield* unknownRow("target", id);
+        const updated = next(target);
+        yield* setTargets(targets.map((row) => (row.id === id ? updated : row)));
+        return updated;
+      });
 
     return handlers
-      .handle("getCloudAccess", () =>
-        Effect.gen(function* () {
-          const rows = yield* Ref.get(targetRef);
-          return {
-            organizationName,
-            targets: rows,
-            connectedCount: rows.filter((row) => row.status === "connected")
-              .length,
-            needsAttentionCount: rows.filter(
-              (row) => row.status === "needs_attention",
-            ).length,
-          };
-        }),
-      )
+      .handle("getCloudAccess", () => Ref.get(access))
       .handle("createCloudAccessTarget", ({ payload }) =>
         Effect.gen(function* () {
-          const input = fields(payload);
-          const kind = provider(input.provider);
-          const target: CloudAccessTarget = {
-            id: newId("cat"),
-            name: String(input.name ?? `${organizationName} ${kind}`),
-            provider: kind,
-            projectId: String(input.projectId ?? "proj_sample_web"),
-            status: "needs_attention",
-            externalId: String(input.externalId ?? "acme"),
-            lastCheckedAt: null,
-            createdBy: String(input.createdBy ?? "user_sample_alex"),
-            createdAt: isoMinutesAgo(0),
-          };
-          yield* Ref.update(targetRef, (rows) => [...rows, target]);
+          if (!projectIds.has(payload.projectId)) {
+            return yield* unknownRow("project", payload.projectId);
+          }
+          const { targets } = yield* Ref.get(access);
+          const target = makeTarget(newId("cat"), payload, targets);
+          yield* setTargets([...targets, target]);
           return target;
         }),
       )
       .handle("updateCloudAccessTarget", ({ params, payload }) =>
-        Effect.gen(function* () {
-          const rows = yield* Ref.get(targetRef);
-          const current = rows.find((row) => row.id === params.targetId);
-          if (!current) {
-            return yield* Effect.die(
-              new Error(`cloud-access.targets: no row ${params.targetId}`),
-            );
-          }
-          const input = fields(payload);
-          const updated: CloudAccessTarget = {
-            ...current,
-            ...(typeof input.name === "string" ? { name: input.name } : {}),
-            ...(typeof input.projectId === "string"
-              ? { projectId: input.projectId }
-              : {}),
-            ...(typeof input.externalId === "string"
-              ? { externalId: input.externalId }
-              : {}),
-          };
-          yield* Ref.set(
-            targetRef,
-            rows.map((row) => (row.id === current.id ? updated : row)),
-          );
-          return updated;
-        }),
+        replace(params.targetId, (target) => updateTarget(target, payload)),
+      )
+      .handle("checkCloudAccessTarget", ({ params }) =>
+        replace(params.targetId, recheck),
       )
       .handle("deleteCloudAccessTarget", ({ params }) =>
         Effect.gen(function* () {
-          const rows = yield* Ref.get(targetRef);
-          if (!rows.some((row) => row.id === params.targetId)) {
-            return yield* Effect.die(
-              new Error(`cloud-access.targets: no row ${params.targetId}`),
-            );
+          const { targets } = yield* Ref.get(access);
+          if (!targets.some((row) => row.id === params.targetId)) {
+            return yield* unknownRow("target", params.targetId);
           }
-          yield* Ref.set(
-            targetRef,
-            rows.filter((row) => row.id !== params.targetId),
-          );
-          return { ok: true };
-        }),
-      )
-      .handle("checkCloudAccessTarget", ({ params }) =>
-        Effect.gen(function* () {
-          const rows = yield* Ref.get(targetRef);
-          const current = rows.find((row) => row.id === params.targetId);
-          if (!current) {
-            return yield* Effect.die(
-              new Error(`cloud-access.targets: no row ${params.targetId}`),
-            );
-          }
-          const checked = {
-            ...current,
-            status: "connected" as const,
-            lastCheckedAt: isoMinutesAgo(0),
-          };
-          yield* Ref.set(
-            targetRef,
-            rows.map((row) => (row.id === current.id ? checked : row)),
-          );
-          return {
-            targetId: current.id,
-            provider: current.provider,
-            ok: true,
-            status: checked.status,
-            scopes: providerScopes[current.provider],
-            checkedAt: checked.lastCheckedAt,
-          };
+          yield* setTargets(targets.filter((row) => row.id !== params.targetId));
+          return new IntegrationMutationResult({ ok: true });
         }),
       );
   }),
