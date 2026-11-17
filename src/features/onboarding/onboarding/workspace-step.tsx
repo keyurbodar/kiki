@@ -1,5 +1,5 @@
 import { Field } from "@base-ui/react/field";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { Input } from "@/primitives/input";
@@ -74,10 +74,10 @@ export function WorkspaceStep({
   const [view, setViewState] = useState<WorkspaceView>(
     initialView ?? (hasChoices ? "invites" : "audience"),
   );
-  const setView = (next: WorkspaceView) => {
-    setViewState(next);
-    onViewChange?.(next);
-  };
+  const setView = setViewState;
+  useEffect(() => {
+    onViewChange?.(view);
+  }, [onViewChange, view]);
   const [audience, setAudience] = useState<"personal" | "team">();
   const firstChoice =
     invitations[0] !== undefined
