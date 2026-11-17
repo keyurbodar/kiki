@@ -40,7 +40,7 @@ export const segmentedXsButton = cx(
   segmented,
   "h-(--h-control-xs) text-xs gap-1.5 [&_svg:not([class*='size-'])]:size-(--icon-xs)",
   svgEdges,
-  "w-6.5! px-0",
+  "w-6.5! px-0!",
 );
 
 export const menuIconSlot =

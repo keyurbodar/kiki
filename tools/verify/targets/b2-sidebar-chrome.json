@@ -53,6 +53,12 @@
         ],
         "[data-slot=sidebar-content] [data-sidebar-mode] > [role=list]": [
           "height"
+        ],
+        "[data-slot=sidebar-content] header [data-slot=sidebar-mode] > button:nth-of-type(1)": [
+          "width",
+          "height",
+          "padding-left",
+          "padding-right"
         ]
       },
       "expect": {
@@ -111,7 +117,9 @@
         },
         "[data-slot=sidebar-content] header [data-slot=sidebar-mode] > button:nth-of-type(1)": {
           "width": "26px",
-          "height": "24px"
+          "height": "24px",
+          "padding-left": "0px",
+          "padding-right": "0px"
         },
         "[data-slot=sidebar-content] header [data-slot=sidebar-mode] > button:nth-of-type(2)": {
           "width": "26px",
