@@ -398,7 +398,7 @@ export function AuditLog({
           ) : (
             <AuditTable
               aria-label="Audit events"
-              className="px-0 [--table-row-h:var(--spacing-10)]"
+              className="px-0 [--table-row-h:calc(var(--spacing)*10)]"
             >
               <TableHeaderRow className="border-b-(--border-width-hairline) border-border-1">
                 <SortableTableHead

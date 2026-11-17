@@ -23,7 +23,7 @@ const tableVariants = cva(
 );
 
 const lead =
-  "max-md:min-w-auto max-md:first:sticky max-md:first:left-0 max-md:first:z-(--z-table-lead) max-md:in-data-scrolled:first:bg-(--table-lead-bg,var(--panel)) max-md:in-data-scrolled:first:shadow-[-0.5rem_0_0_var(--table-lead-bg,var(--panel)),var(--border-hairline)_0_0_var(--border-1)]";
+  "max-md:min-w-auto max-md:first:sticky max-md:first:left-0 max-md:first:z-(--z-table-lead) max-md:in-data-scrolled:first:bg-(--table-lead-bg,var(--panel)) max-md:in-data-scrolled:first:shadow-[-0.5rem_0_0_var(--table-lead-bg,var(--panel)),var(--border-width-hairline)_0_0_var(--border-1)]";
 
 /** Capy's column rewrite: fluid columns get a min on narrow screens. */
 export function tableColumns(columns: string) {

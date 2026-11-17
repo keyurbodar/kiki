@@ -57,13 +57,13 @@ export function ViewerChrome({
   const hasActions = dirty || onDelete !== undefined;
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-card">
-      <div className="flex h-9 shrink-0 items-center border-b-(length:--border-hairline) border-border-1 px-2 md:hidden">
+      <div className="flex h-9 shrink-0 items-center border-b-(length:--border-width-hairline) border-border-1 px-2 md:hidden">
         <Button variant="ghost" size="xs" onClick={onBack}>
           <Icon name="arrow-left" />
           Files
         </Button>
       </div>
-      <div className="flex min-h-9 shrink-0 items-center gap-2 border-b-(length:--border-hairline) border-border-1 px-3">
+      <div className="flex min-h-9 shrink-0 items-center gap-2 border-b-(length:--border-width-hairline) border-border-1 px-3">
         <nav className="flex min-w-0 flex-1 items-center gap-1 text-sm">
           {segments.slice(0, -1).map((segment, index) => (
             <span
@@ -223,7 +223,7 @@ export function LoadedVolumeFile({
     return (
       <>
         {conflict && (
-          <div className="flex min-h-8 shrink-0 items-center gap-2 border-b-(length:--border-hairline) border-border-1 px-3 text-2xs text-muted-foreground-2">
+          <div className="flex min-h-8 shrink-0 items-center gap-2 border-b-(length:--border-width-hairline) border-border-1 px-3 text-2xs text-muted-foreground-2">
             <span className="min-w-0 flex-1 truncate">
               This file changed since you started editing
             </span>

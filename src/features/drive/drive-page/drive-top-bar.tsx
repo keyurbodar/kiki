@@ -24,7 +24,7 @@ export function DriveTopBar({
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <header className="sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center border-b-(length:--border-hairline) border-border-1 bg-panel px-2">
+    <header className="sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center border-b-(length:--border-width-hairline) border-border-1 bg-panel px-2">
       <h1 className="ml-2.5 min-w-0 truncate text-sm font-medium text-foreground">
         {title}
       </h1>
@@ -43,7 +43,7 @@ export function DriveTopBar({
               search.onValueChange("");
               setOpen(false);
             }}
-            className="h-(--h-control-sm) w-56 min-w-0 rounded border-(length:--border-hairline) border-border-2 bg-input px-2 text-sm text-foreground outline-none placeholder:text-muted-foreground-3 focus-visible:outline-ring-inset"
+            className="h-(--h-control-sm) w-56 min-w-0 rounded border-(length:--border-width-hairline) border-border-2 bg-input px-2 text-sm text-foreground outline-none placeholder:text-muted-foreground-3 focus-visible:outline-ring-inset"
           />
         )}
         {search !== undefined && (

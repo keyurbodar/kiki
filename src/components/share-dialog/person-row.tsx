@@ -139,7 +139,7 @@ export function PeopleList({
   ) {
     const everyone = [ownerUserId, ...people.map((person) => person.userId)];
     return (
-      <ul className="flex flex-col divide-y-(length:--border-hairline) divide-border-1">
+      <ul className="flex flex-col divide-y-(length:--border-width-hairline) divide-border-1">
         <li>
           <button
             data-track-owner="shared/share-dialog.tsx#PeopleList:button[onClick=onMore]"
@@ -168,7 +168,7 @@ export function PeopleList({
     );
   }
   return (
-    <ul className="flex flex-col divide-y-(length:--border-hairline) divide-border-1">
+    <ul className="flex flex-col divide-y-(length:--border-width-hairline) divide-border-1">
       <PersonRow
         size="sm"
         name={nameOf(ownerUserId)}

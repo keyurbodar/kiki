@@ -385,7 +385,7 @@ export function DriveDetailPage({ mount, file }: DriveDetailPageProps) {
     return (
       <>
         <aside
-          className={`flex min-h-0 w-full flex-col border-r-(length:--border-hairline) border-border-1 md:w-72 ${selected === undefined ? "" : "max-md:hidden"}`}
+          className={`flex min-h-0 w-full flex-col border-r-(length:--border-width-hairline) border-border-1 md:w-72 ${selected === undefined ? "" : "max-md:hidden"}`}
         >
           <div className="flex h-9 shrink-0 items-center gap-1 px-2">
             <span className="min-w-0 flex-1 truncate text-xs font-medium text-muted-foreground-2">

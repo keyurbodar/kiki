@@ -141,7 +141,7 @@ export function ShareFolderBody({
                   onPick={(userId) => toggle(userId, true)}
                   description="People you add see this folder but need access to each thread"
                 >
-                  <ul className="flex flex-col divide-y-(length:--border-hairline) divide-border-1">
+                  <ul className="flex flex-col divide-y-(length:--border-width-hairline) divide-border-1">
                     {ownerRow}
                     {folder.members.map((member) => (
                       <PersonRow

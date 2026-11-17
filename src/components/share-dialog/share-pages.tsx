@@ -96,7 +96,7 @@ export function SharePages<K extends string>({
       {current.footer === undefined ? null : (
         <DialogFooter
           className={cn(
-            "border-t-(length:--border-hairline) border-border-1 pt-4",
+            "border-t-(length:--border-width-hairline) border-border-1 pt-4",
             current.footerClassName,
           )}
         >
