@@ -57,7 +57,7 @@ export function SettingsPage({
       className={cx(
         nested
           ? "flex w-full flex-col gap-10"
-          : "mx-auto flex w-full flex-col gap-10 px-6 pt-6 pb-10 md:pt-16",
+          : "mx-auto flex w-full flex-col gap-9.75 px-6 pt-6 pb-10 md:pt-16",
         !nested && widthClass[width],
       )}
     >
