@@ -32,6 +32,7 @@ import {
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
+import { AutomationUsageSection } from "../automation-usage";
 import { OwnerSelect } from "../owner-select";
 import { RunsInRows, RunsInSelect, useProjectThreads } from "../runs-in-select";
 import {
@@ -46,6 +47,7 @@ import {
   triggerAutomationAtom,
   updateAutomationAtom,
 } from "./atoms";
+import { AutomationDriveRow } from "./drive-row";
 import { EditorSections } from "./editor-sections";
 import {
   ArrowShareRight,
@@ -502,6 +504,8 @@ export function AutomationEditor({
               folders={[]}
               tags={[]}
             />
+            <AutomationUsageSection orgId={orgId} automationId={current.id} />
+            <AutomationDriveRow automationId={current.id} title={name} />
           </div>
         </ScrollAreaViewport>
       </ScrollArea>

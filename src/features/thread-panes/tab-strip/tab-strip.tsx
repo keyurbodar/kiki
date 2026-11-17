@@ -27,13 +27,12 @@ import {
   ContextMenuContent,
   ContextMenuTrigger,
 } from "@/primitives/context-menu";
+import { MenuSeparator, MenuTrigger } from "@/primitives/menu";
 import {
-  Menu,
-  MenuContent,
-  MenuSeparator,
-  MenuTrigger,
-} from "@/primitives/menu";
-import { ResponsiveMenuLevel } from "@/primitives/responsive-menu";
+  ResponsiveMenu,
+  ResponsiveMenuContent,
+  ResponsiveMenuLevel,
+} from "@/primitives/responsive-menu";
 import { PlusGlyph } from "./glyphs";
 import { RailMenuItems, type SplitDirection } from "./rail-menu-items";
 import { ChatTab, PaneTabButton, type TabSignals } from "./tab-button";
@@ -196,7 +195,7 @@ type PlusMenuProps = {
 function PlusMenu({ options }: PlusMenuProps) {
   const [open, setOpen] = useState(false);
   return (
-    <Menu open={open} onOpenChange={setOpen}>
+    <ResponsiveMenu open={open} onOpenChange={setOpen}>
       <MenuTrigger
         data-track-owner="features/thread/pane/tab-strip.tsx#PlusMenu:ResponsiveMenuTrigger.1"
         render={
@@ -211,22 +210,20 @@ function PlusMenu({ options }: PlusMenuProps) {
           </Button>
         }
       />
-      <MenuContent align="end" className="w-80">
-        <ResponsiveMenuLevel data-menu-list="">
-          <ThreadOptions
-            {...options}
-            onOpen={(tab) => {
-              setOpen(false);
-              options.onOpen(tab);
-            }}
-            onOpenBrowser={() => {
-              setOpen(false);
-              options.onOpenBrowser();
-            }}
-          />
-        </ResponsiveMenuLevel>
-      </MenuContent>
-    </Menu>
+      <ResponsiveMenuContent align="end" className="w-80">
+        <ThreadOptions
+          {...options}
+          onOpen={(tab) => {
+            setOpen(false);
+            options.onOpen(tab);
+          }}
+          onOpenBrowser={() => {
+            setOpen(false);
+            options.onOpenBrowser();
+          }}
+        />
+      </ResponsiveMenuContent>
+    </ResponsiveMenu>
   );
 }
 

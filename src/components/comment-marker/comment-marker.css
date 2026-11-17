@@ -52,7 +52,7 @@
   width: calc(var(--spacing) * 5);
   height: calc(var(--spacing) * 5);
   overflow: hidden;
-  border: var(--border-hairline) solid var(--border-2);
+  border: var(--border-width-hairline) solid var(--border-2);
   border-radius: var(--radius);
   background: var(--card);
 }

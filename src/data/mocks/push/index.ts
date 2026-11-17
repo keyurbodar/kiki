@@ -1,6 +1,6 @@
 import { Effect, Ref } from "effect";
 import { fields, newId } from "../db/MockDb.ts";
-import { isoMinutesAgo } from "../fixtures/world.ts";
+import { isoMinutesAgo, viewer } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { samplePushSettings, sampleSubscriptions } from "./fixtures.ts";
 
@@ -12,7 +12,9 @@ export const PushMock = mockGroup("push", (handlers) =>
       ...samplePushSettings,
     });
     const subscriptions = yield* Ref.make<ReadonlyArray<Subscription>>(
-      structuredClone(sampleSubscriptions),
+      structuredClone(sampleSubscriptions).filter(
+        (row) => row.ownerId === viewer.id,
+      ),
     );
 
     const find = (id: string) =>
@@ -50,7 +52,7 @@ export const PushMock = mockGroup("push", (handlers) =>
             typeof input.keys === "object" && input.keys !== null
               ? input.keys
               : { p256dh: "sample-public-key", auth: "sample-auth" },
-          ownerId: input.ownerId ?? "user_sample_alex",
+          ownerId: viewer.id,
           platform: String(input.platform ?? "web"),
           enabled: typeof input.enabled === "boolean" ? input.enabled : true,
           createdAt: isoMinutesAgo(0),

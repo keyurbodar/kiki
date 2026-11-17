@@ -19,8 +19,9 @@ import {
   ThreadCostBadgeControl,
   type ThreadUsage,
 } from "@/features/thread/cost-badge";
+import { isRetiredPane } from "@/features/thread-panes/thread-pane";
 import { searchParams } from "@/lib/search-params";
-import { paneIdForParam, ThreadScreen } from "@/routes/_app/thread/$threadId";
+import { ThreadScreen } from "@/routes/_app/thread/$threadId";
 import { ThreadHeader } from "./thread-header";
 import { paneTabs } from "./thread-tabs";
 
@@ -166,7 +167,7 @@ describe("thread route header", () => {
       component: () => {
         const { threadId } = threadRoute.useParams();
         const { pane } = threadRoute.useSearch();
-        return <ThreadScreen threadId={threadId} pane={paneIdForParam(pane)} />;
+        return <ThreadScreen threadId={threadId} pane={pane} />;
       },
     });
     const router = createRouter({
@@ -224,19 +225,24 @@ describe("thread route header", () => {
     expect(document.querySelectorAll("header").length).toBe(1);
   });
 
-  it("drops a pane param Capy does not honour", async () => {
-    await renderRoute("/thread/jam_sample_0001?pane=files");
+  it("drops the pane params we invented, but not the ones Capy accepts", async () => {
+    await renderRoute("/thread/jam_sample_0001?pane=threads");
     await waitForStrip();
     expect(paneTab("chat")?.querySelector("[data-selected]")).not.toBeNull();
-    expect(paneTab("files")?.querySelector("[data-selected]")).toBeNull();
+    expect(paneTab("threads")?.querySelector("[data-selected]")).toBeNull();
+    cleanup();
+    await renderRoute("/thread/jam_sample_0001?pane=files");
+    await waitForStrip();
+    expect(paneTab("files")?.querySelector("[data-selected]")).not.toBeNull();
   });
 
-  it("resolves only the pane params Capy answers to", () => {
-    expect(paneIdForParam("overview")).toBe("overview");
-    expect(paneIdForParam("diffs")).toBe("diffs");
-    expect(paneIdForParam("files")).toBeUndefined();
-    expect(paneIdForParam("threads")).toBeUndefined();
-    expect(paneIdForParam("captain_issues")).toBeUndefined();
-    expect(paneIdForParam(undefined)).toBeUndefined();
+  it("retires exactly the pane ids Capy has no pane for", () => {
+    for (const id of ["threads", "all-threads", "pull-requests"]) {
+      expect(isRetiredPane(id)).toBe(true);
+    }
+    for (const id of ["overview", "diffs", "files", "captain_issues"]) {
+      expect(isRetiredPane(id)).toBe(false);
+    }
+    expect(isRetiredPane(undefined)).toBe(false);
   });
 });

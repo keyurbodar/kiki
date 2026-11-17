@@ -1,11 +1,12 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { toCapyReview } from "@/components/activity";
 import { cx } from "@/components/activity-card";
 import { CapyMark } from "@/components/capy-logo";
 import { DiffTab, type PullRef } from "@/components/diff-tab";
+import { FileTree } from "@/components/file-tree";
 import { OverviewTab } from "@/components/overview-tab";
 import { PullViewTab } from "@/components/pull-view-tab";
 import {
@@ -47,12 +48,7 @@ import {
 } from "./atoms";
 import { copyText } from "./clipboard";
 import { usePullOrgId } from "./context";
-import {
-  buildFileTree,
-  type FileTreeNode,
-  filterFiles,
-  toDiffFiles,
-} from "./file-tree-model";
+import { toDiffFiles } from "./file-tree-model";
 import {
   ArrowShareRightIcon,
   BranchIcon,
@@ -646,63 +642,52 @@ export function PullPanelHeader({
   );
 }
 
-function FileTreeRows({
-  nodes,
-  depth,
-}: {
-  nodes: ReadonlyArray<FileTreeNode>;
-  depth: number;
-}) {
-  return nodes.map((node) =>
-    node.kind === "dir" ? (
-      <div key={`d:${node.path}`} className="flex flex-col">
-        <div className="flex h-6 items-center gap-1.5 px-2 text-sm text-muted-foreground-2">
-          <Icon name="folder-open" size="xs" className="text-icon-muted" />
-          <span className="min-w-0 truncate">{node.name}</span>
-        </div>
-        <div className="ml-3.5 border-l-hairline border-border-1 pl-1.5">
-          <FileTreeRows nodes={node.children} depth={depth + 1} />
-        </div>
-      </div>
-    ) : (
-      <div
-        key={`f:${node.file.path}`}
-        className="flex h-6 items-center gap-1.5 rounded px-2 text-sm text-foreground hover:bg-secondary"
-      >
-        <Icon name="file-text" size="xs" className="text-icon-muted" />
-        <span
-          className={cx(
-            "min-w-0 flex-1 truncate",
-            node.file.status === "added" && "text-diff-add",
-          )}
-        >
-          {node.name}
-        </span>
-        <span className="shrink-0 text-xs tabular-nums">
-          {node.file.additions > 0 && (
-            <span className="text-diff-add">+{node.file.additions}</span>
-          )}
-          {node.file.deletions > 0 && (
-            <span className="ml-1 text-diff-del">-{node.file.deletions}</span>
-          )}
-        </span>
-        {node.file.status === "added" && (
-          <span className="shrink-0 text-xs text-diff-add">A</span>
-        )}
-      </div>
-    ),
-  );
-}
+const gitStatuses = [
+  "added",
+  "deleted",
+  "ignored",
+  "modified",
+  "renamed",
+  "untracked",
+] as const;
 
-export function PullRail({ pull }: { pull: Pull }) {
+const isGitStatus = (status: string): status is (typeof gitStatuses)[number] =>
+  (gitStatuses as readonly string[]).includes(status);
+
+export function PullRail({
+  pull,
+  onOpenFile,
+}: {
+  pull: Pull;
+  onOpenFile?: (path: string) => void;
+}) {
   const orgId = usePullOrgId();
   const [query, setQuery] = useState("");
   const diff = resultValue(useAtomValue(pullDiffAtom(orgId, pull.id)));
   const rawReview = resultValue(useAtomValue(pullReviewAtom(orgId, pull.id)));
   const parsedReview =
     rawReview === undefined ? undefined : toCapyReview(rawReview);
-  const files = diff === undefined ? [] : toDiffFiles(diff);
-  const visible = filterFiles(files, query);
+  const files = useMemo(
+    () => (diff === undefined ? [] : toDiffFiles(diff)),
+    [diff],
+  );
+  const tree = useMemo(
+    () => ({
+      paths: files.map((file) => file.path),
+      stats: new Map(
+        files.map((file) => [
+          file.path,
+          { additions: file.additions, deletions: file.deletions },
+        ]),
+      ),
+      gitStatus: files.flatMap((file) =>
+        isGitStatus(file.status)
+          ? [{ path: file.path, status: file.status }]
+          : [],
+      ),
+    }),
+    [files],
+  );
   const requestReview = useAtomSet(requestReviewAtom, { mode: "promise" });
   const railReview: CapyReview | null | undefined =
     parsedReview === undefined
@@ -734,44 +719,65 @@ export function PullRail({ pull }: { pull: Pull }) {
           })),
         };
   return (
-    <div className="flex min-h-0 w-full flex-col gap-6 overflow-y-auto px-4 pt-3 pb-4">
-      <ReviewSection
-        pull={{
-          id: pull.id,
-          state: pull.state === "ready" ? "open" : pull.state,
-          author: pull.author,
-          headSha: pull.headSha,
-        }}
-        review={railReview}
-        orgId={orgId}
-        collapsible
-        onRun={({ forceRefresh, tier }) =>
-          requestReview({
-            params: { orgId, pullId: pull.id },
-            payload: { forceRefresh, tier: tier ?? null },
-            reactivityKeys: pullReactivityKeys(orgId, pull.id),
-          })
-        }
-        renderFinding={(finding: ReviewFinding) => (
-          <span className="text-sm text-foreground">{finding.title}</span>
-        )}
-      />
-      <div className="flex min-h-0 flex-col gap-2">
-        <div className="flex items-center gap-1.5 text-xs">
-          <span className="text-muted-foreground-2">Files</span>
-          <span className="text-muted-foreground-3">{files.length}</span>
+    <div className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
+      <div className="flex max-h-[50%] shrink-0 flex-col overflow-y-auto p-3">
+        <ReviewSection
+          pull={{
+            id: pull.id,
+            state: pull.state === "ready" ? "open" : pull.state,
+            author: pull.author,
+            headSha: pull.headSha,
+          }}
+          review={railReview}
+          orgId={orgId}
+          collapsible
+          onRun={({ forceRefresh, tier }) =>
+            requestReview({
+              params: { orgId, pullId: pull.id },
+              payload: { forceRefresh, tier: tier ?? null },
+              reactivityKeys: pullReactivityKeys(orgId, pull.id),
+            })
+          }
+          renderFinding={(finding: ReviewFinding) => (
+            <span className="text-sm text-foreground">{finding.title}</span>
+          )}
+        />
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col pt-2">
+        <div className="flex h-6 shrink-0 items-center gap-1.5 px-3">
+          <span className="text-xs font-medium text-muted-foreground-2">
+            Files
+          </span>
+          <span className="text-xs text-muted-foreground-3">
+            {files.length}
+          </span>
         </div>
-        <label className="flex h-(--h-control-sm) items-center gap-2 rounded border-hairline border-border-2 bg-input px-2 text-sm">
-          <Icon name="search-menu" size="xs" className="text-icon-muted" />
-          <input
-            className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground-3"
-            placeholder="Filter files"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
+        <div className="flex shrink-0 items-center px-3 pt-1.5 pb-1">
+          <label className="relative inline-flex w-full">
+            <input
+              aria-label="Filter files"
+              className="h-(--h-control-sm) w-full min-w-0 rounded border-hairline border-border-2 bg-input px-2 pl-7 text-sm text-foreground outline-none placeholder:text-muted-foreground-3"
+              placeholder="Filter files"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+            <Icon
+              name="search-menu"
+              size="xs"
+              className="pointer-events-none absolute top-1/2 left-2 -translate-y-1/2 text-icon-muted"
+            />
+          </label>
+        </div>
+        <div className="flex min-h-0 flex-1 flex-col pt-1">
+          <FileTree
+            paths={tree.paths}
+            stats={tree.stats}
+            gitStatus={tree.gitStatus}
+            filter={query}
+            initialExpansion="open"
+            onOpen={onOpenFile}
+            className="min-h-0"
           />
-        </label>
-        <div className="flex flex-col">
-          <FileTreeRows nodes={buildFileTree(visible)} depth={0} />
         </div>
       </div>
     </div>
@@ -818,6 +824,17 @@ export function PullView({
   const select = (next: PullTab) => {
     setLocalTab(next);
     onTabChange?.(next);
+  };
+  const [opened, setOpened] = useState<{ file: string; seq: number } | null>(
+    null,
+  );
+  const anchor = useMemo(
+    () => (opened === null ? null : { file: opened.file, nonce: opened.seq }),
+    [opened],
+  );
+  const openFile = (file: string) => {
+    setOpened((previous) => ({ file, seq: (previous?.seq ?? 0) + 1 }));
+    select("diff");
   };
   return (
     <div className="@container/pull flex min-h-0 flex-1 flex-col">
@@ -872,14 +889,14 @@ export function PullView({
               </ScrollAreaViewport>
             </ScrollArea>
           ) : current === "diff" ? (
-            <DiffTab pull={pullRef} />
+            <DiffTab pull={pullRef} anchor={anchor} />
           ) : (
             <TabPlaceholder line="Guide" />
           )}
         </div>
         {host === "page" && current !== "guide" && (
           <div className="hidden w-76 shrink-0 @5xl/pull:flex">
-            <PullRail pull={pull} />
+            <PullRail pull={pull} onOpenFile={openFile} />
           </div>
         )}
       </div>

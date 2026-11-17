@@ -9,7 +9,6 @@ import {
 import {
   activeViewKey,
   buildSections,
-  codePrefixes,
   defaultPrefs,
   emptyFilters,
   emptyText,
@@ -267,23 +266,6 @@ describe("pull sections", () => {
 });
 
 describe("pull labels", () => {
-  it("prefixes the repository only when the rows span repositories", () => {
-    const web = pull({ number: 12, repo: "acme/web" });
-    const api = pull({ id: "pr_2", number: 57, repo: "acme/api" });
-    expect(pullCode(web, codePrefixes([web.repo]).get(web.repo) ?? "")).toBe(
-      "#12",
-    );
-    const spanning = codePrefixes([web.repo, api.repo]);
-    expect(pullCode(web, spanning.get(web.repo) ?? "")).toBe("web#12");
-    expect(pullCode(api, spanning.get(api.repo) ?? "")).toBe("api#57");
-    const sharedWeb = pull({ number: 12, repo: "acme/web" });
-    const shared = codePrefixes([sharedWeb.repo, "partner/web"]);
-    expect(pullCode(sharedWeb, shared.get(sharedWeb.repo) ?? "")).toBe(
-      "acme/web#12",
-    );
-    expect(shared.get("partner/web")).toBe("partner/web");
-  });
-
   it("formats codes, summaries, ages and empty copy", () => {
     expect(pullCode(pull({ number: 12 }))).toBe("#12");
     expect(summarize(["Ready", "Draft"], "states")).toBe("Ready, Draft");

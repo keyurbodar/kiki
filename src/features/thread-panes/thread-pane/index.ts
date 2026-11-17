@@ -2,8 +2,9 @@ export {
   collectPanes,
   definePane,
   findPane,
-  findPaneByParam,
+  isRetiredPane,
   type PaneEntry,
   type PaneProps,
   panes,
+  retiredPaneIds,
 } from "./registry";

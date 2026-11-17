@@ -394,13 +394,6 @@ export function SidebarThreads({
       )}
       {...props}
     >
-      <div className="flex h-8 shrink-0 items-center gap-1 px-2 pb-1">
-        {leading}
-        <span className="px-2 text-sm font-medium text-foreground select-none">
-          {captains ? "Captains" : "Threads"}
-        </span>
-        <div className="ml-auto flex items-center">{actions}</div>
-      </div>
       <div
         aria-hidden
         className="scroll-divider-t max-md:hidden [--scroll-divider-timeline:--threads-scroll]"
@@ -409,6 +402,13 @@ export function SidebarThreads({
         className="min-h-0 flex-1"
         viewportClassName="[scroll-timeline:--threads-scroll]"
       >
+        <div className="sticky top-0 z-1 flex h-8 shrink-0 items-center gap-1 bg-panel px-2 pb-1">
+          {leading}
+          <span className="px-2 text-sm font-medium text-foreground select-none">
+            {captains ? "Captains" : "Threads"}
+          </span>
+          <div className="ml-auto flex items-center">{actions}</div>
+        </div>
         <SidebarRowPopups
           threads={rowMenuThreads}
           actions={rowActions}

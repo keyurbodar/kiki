@@ -57,7 +57,7 @@ function PullPageBody({
     void navigate({ to: "/thread/$threadId", params: { threadId: jamId } });
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <AppTopBar className="flex min-h-11 shrink-0 items-center gap-2 border-b-(length:--border-width-hairline) border-border-1 px-3 text-sm">
+      <AppTopBar className="flex min-h-11 shrink-0 items-center gap-1.5 border-b-(length:--border-width-hairline) border-border-1 px-3 text-sm">
         <span className="flex min-w-0 flex-1 items-center gap-1.5">
           <Link
             data-track-owner={track("PullPage:Link[Pull requests]")}

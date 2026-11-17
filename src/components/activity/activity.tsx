@@ -14,6 +14,7 @@ import { copyText } from "@/components/pull-view/clipboard";
 import { usePullOrgId } from "@/components/pull-view/context";
 import {
   ArrowUndoUpIcon,
+  ArrowUpIcon,
   CommitsIcon,
   PullRequestIcon,
   SquareBehindSquare2Icon,
@@ -22,7 +23,9 @@ import { PullMarkdown } from "@/components/pull-view/markdown";
 import { type Pull, relativeTime } from "@/components/pull-view/pull-model";
 import { resultValue } from "@/components/pull-view/result";
 import { Badge } from "@/primitives/badge";
+import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   type ActivityFilter,
   type ActivityItem,
@@ -386,18 +389,75 @@ export function Activity({ pull }: ActivityProps) {
 function CommentComposer({ pull }: { pull: Pull }) {
   const orgId = usePullOrgId();
   const comment = useAtomSet(commentPullAtom, { mode: "promise" });
+  const [text, setText] = useState("");
+  const submit = () => {
+    const body = text.trim();
+    if (body === "") return;
+    setText("");
+    comment({
+      params: { orgId, pullId: pull.id },
+      payload: { body },
+      reactivityKeys: pullReactivityKeys(orgId, pull.id),
+    }).catch(() => toast.error("GitHub refused"));
+  };
   return (
-    <WriteBox
-      placeholder="Leave a comment"
-      submitLabel="Comment"
-      editorClassName="min-h-12"
-      onSubmit={(body) => {
-        comment({
-          params: { orgId, pullId: pull.id },
-          payload: { body },
-          reactivityKeys: pullReactivityKeys(orgId, pull.id),
-        }).catch(() => toast.error("GitHub refused"));
+    <form
+      data-slot="composer"
+      onSubmit={(event) => {
+        event.preventDefault();
+        submit();
       }}
-    />
+      className="relative @container/composer rounded-(--radius-card) bg-[color:var(--composer-surface,var(--card))] p-3 shadow-composer"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-(--radius-card) border-(length:--border-width-hairline) border-transparent [background:linear-gradient(180deg,var(--border-2),var(--border-1))] [mask:linear-gradient(black,black)_padding-box_exclude,linear-gradient(black,black)_border-box]"
+      />
+      <div className="relative">
+        <textarea
+          aria-label="Message"
+          placeholder="Leave a comment"
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+              event.preventDefault();
+              submit();
+            }
+          }}
+          className="block max-h-56 min-h-12 w-full resize-none overflow-y-auto overscroll-contain bg-transparent p-1 text-base font-normal text-foreground outline-none placeholder:text-muted-foreground-3"
+        />
+      </div>
+      <div className="-mx-1 -mb-1 flex items-center gap-2 pt-1">
+        <span className="min-w-0 flex-1" />
+        <div className="flex shrink-0 items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Voice input"
+                  disabled
+                />
+              }
+            >
+              <Icon name="microphone" size="sm" />
+            </TooltipTrigger>
+            <TooltipContent side="top">Voice input coming soon</TooltipContent>
+          </Tooltip>
+          {text.trim() === "" ? null : (
+            <Button
+              type="submit"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Comment"
+            >
+              <ArrowUpIcon className="size-(--icon-sm)" />
+            </Button>
+          )}
+        </div>
+      </div>
+    </form>
   );
 }

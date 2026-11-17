@@ -220,7 +220,7 @@ function PullsPageFor({ orgId }: { orgId: string }) {
     viewTabs.find((tab) => tab.key === activeKey)?.filters ??
     prefs.savedViews.find((view) => view.id === activeKey)?.filters;
   const dirty = activeView === undefined || !sameFilters(activeView, filters);
-  const chips = pullFilterChips(filters, options, setFilters, activeView);
+  const chips = pullFilterChips(filters, options, setFilters);
 
   const onCreate = (input: NewPullInput) =>
     createPull({
@@ -377,7 +377,6 @@ function PullsPageFor({ orgId }: { orgId: string }) {
           icons={toolbarIcons}
         />
       )}
-      AD
       <ScrollArea className="relative min-h-0 flex-1">
         <ScrollAreaViewport className="size-full overflow-auto overscroll-contain">
           <div className="flex min-h-full flex-col pb-16">

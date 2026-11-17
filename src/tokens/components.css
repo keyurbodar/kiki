@@ -92,3 +92,12 @@
 @theme static {
   --container-crew-asks-footer: 34rem;
 }
+
+/*
+ * File tree: Capy paints an indent guide one physical pixel wide, which is
+ * deliberately not the 0.5px hairline, so the guide reads its own token.
+ */
+:root,
+[data-theme-preview] {
+  --file-tree-indent-guide-w: 1px;
+}

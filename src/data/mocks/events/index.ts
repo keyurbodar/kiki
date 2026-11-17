@@ -1,5 +1,6 @@
 import { DateTime, Effect, Ref, Schema } from "effect";
 import { HttpServerResponse } from "effect/http";
+import type { EventRowEncoded } from "../../events/events.ts";
 import {
   CancelMessageOutcome,
   ContextUsage,
@@ -9,12 +10,12 @@ import { fields, missing } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { people, threads } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
+import { eventId } from "./event-ids.ts";
 import {
   emptyContextUsage,
   type MessageVersionRow,
   messageVersions,
   outline,
-  type StoredEvent,
   sampleContextUsage,
   seedEvents,
 } from "./fixtures.ts";
@@ -23,9 +24,15 @@ import { threadStateSeeds } from "./thread-states.ts";
 const text = (value: unknown): string | undefined =>
   typeof value === "string" && value.length > 0 ? value : undefined;
 
+/** The text of a stored message row, or nothing for any other kind. */
+const messageText = (row: EventRowEncoded) =>
+  row.kind === "message" && "payload" in row ? row.payload.text : undefined;
+
 export const EventsMock = mockGroup("events", (handlers) =>
   Effect.gen(function* () {
-    const eventsRef = yield* Ref.make<ReadonlyArray<StoredEvent>>(seedEvents);
+    const eventsRef =
+      yield* Ref.make<ReadonlyArray<EventRowEncoded>>(seedEvents);
+    const mintedRef = yield* Ref.make(0);
     const versionsRef =
       yield* Ref.make<
         Readonly<Record<string, ReadonlyArray<MessageVersionRow>>>
@@ -48,32 +55,45 @@ export const EventsMock = mockGroup("events", (handlers) =>
         return row;
       });
 
-    const patch = (eventId: string, patchValue: Partial<StoredEvent>) =>
+    const setState = (id: string, state: EventRowEncoded["state"]) =>
       Effect.gen(function* () {
-        const row = yield* findEvent(eventId);
-        const updated = { ...row, ...patchValue };
+        const row = yield* findEvent(id);
+        const updated = { ...row, state } as EventRowEncoded;
         yield* Ref.set(
           eventsRef,
           (yield* Ref.get(eventsRef)).map((candidate) =>
-            candidate.id === eventId ? updated : candidate,
+            candidate.id === id ? updated : candidate,
           ),
         );
         return updated;
       });
 
+    /** A fresh id for a row a mutation appends, in the same shape as the seeds. */
+    const mintId = Effect.gen(function* () {
+      const minted = yield* Ref.updateAndGet(mintedRef, (count) => count + 1);
+      return eventId(DateTime.formatIso(minutesAgo(0)), 900 + minted);
+    });
+
     return handlers
       .handle("compact", ({ params }) =>
         Effect.gen(function* () {
           yield* threadExists(params.jamId);
-          const event: StoredEvent = {
-            id: `evt_mock_compact_${params.jamId}`,
+          const rows = yield* Ref.get(eventsRef);
+          const jamRows = rows.filter((row) => row.jamId === params.jamId);
+          const event = {
+            id: yield* mintId,
             jamId: params.jamId,
             kind: "compact",
             state: "committed",
-            actorId: people.alex.id,
             createdAt: DateTime.formatIso(minutesAgo(0)),
-            summary: "Compacted the checkout retry discussion.",
-          };
+            payload: {
+              actor: { type: "user", userId: people.alex.id },
+              origin: { type: "web", userId: people.alex.id },
+              summary: "Compacted the checkout retry discussion.",
+              throughEventId: jamRows.at(-1)?.id ?? "",
+              triggeredBy: "manual",
+            },
+          } as EventRowEncoded;
           yield* Ref.update(eventsRef, (rows) => [...rows, event]);
           return { id: event.id, deduped: false };
         }),
@@ -152,15 +172,18 @@ export const EventsMock = mockGroup("events", (handlers) =>
       .handle("interrupt", ({ params }) =>
         Effect.gen(function* () {
           yield* threadExists(params.jamId);
-          const row: StoredEvent = {
-            id: `evt_mock_interrupt_${params.jamId}`,
+          const row = {
+            id: yield* mintId,
             jamId: params.jamId,
             kind: "control",
             state: "committed",
-            actorId: people.alex.id,
             createdAt: DateTime.formatIso(minutesAgo(0)),
-            command: "interrupt",
-          };
+            payload: {
+              actor: { type: "user", userId: people.alex.id },
+              origin: { type: "web", userId: people.alex.id },
+              command: { type: "stop" },
+            },
+          } as EventRowEncoded;
           yield* Ref.update(eventsRef, (rows) => [...rows, row]);
           return { id: row.id, deduped: false };
         }),
@@ -172,20 +195,23 @@ export const EventsMock = mockGroup("events", (handlers) =>
           const textValue = text(input.text) ?? "";
           const existing = (yield* Ref.get(eventsRef)).find(
             (row) =>
-              row.jamId === params.jamId &&
-              row.kind === "message" &&
-              row.text === textValue,
+              row.jamId === params.jamId && messageText(row) === textValue,
           );
           if (existing) return { id: existing.id, deduped: true };
-          const row: StoredEvent = {
-            id: `evt_mock_message_${params.jamId}_${Math.abs(hash(textValue))}`,
+          const row = {
+            id: yield* mintId,
             jamId: params.jamId,
             kind: "message",
-            state: "queued",
-            actorId: people.alex.id,
+            state: "pending",
             createdAt: DateTime.formatIso(minutesAgo(0)),
-            text: textValue,
-          };
+            payload: {
+              actor: { type: "user", userId: people.alex.id },
+              origin: { type: "web", userId: people.alex.id },
+              text: textValue,
+              files: [],
+              delivery: "queue",
+            },
+          } as EventRowEncoded;
           yield* Ref.update(eventsRef, (rows) => [...rows, row]);
           yield* Ref.update(versionsRef, (rows) => ({
             ...rows,
@@ -202,7 +228,7 @@ export const EventsMock = mockGroup("events", (handlers) =>
         }),
       )
       .handle("cancelMessage", ({ params }) =>
-        patch(params.eventId, { state: "cancelled" }).pipe(
+        setState(params.eventId, "cancelled").pipe(
           Effect.map(
             (row) =>
               new CancelMessageOutcome({
@@ -212,18 +238,17 @@ export const EventsMock = mockGroup("events", (handlers) =>
         ),
       )
       .handle("sendNowMessage", ({ params }) =>
-        patch(params.eventId, { state: "streaming" }).pipe(
-          Effect.map(
-            (row) =>
-              new SendNowOutcome({
-                outcome:
-                  row.state === "committed" || row.state === "cancelled"
-                    ? "tooLate"
-                    : "sent",
-                id: "evt_sample_queued000000000" as unknown as SendNowOutcome["id"],
-              }),
-          ),
-        ),
+        Effect.gen(function* () {
+          const before = yield* findEvent(params.eventId);
+          const row = yield* setState(params.eventId, "committed");
+          return new SendNowOutcome({
+            outcome:
+              before.state === "committed" || before.state === "cancelled"
+                ? "tooLate"
+                : "sent",
+            id: row.id as unknown as SendNowOutcome["id"],
+          });
+        }),
       )
       .handle("messageVersions", ({ params }) =>
         Effect.gen(function* () {
@@ -231,7 +256,7 @@ export const EventsMock = mockGroup("events", (handlers) =>
           const versions = (yield* Ref.get(versionsRef))[row.id] ?? [
             {
               id: row.id,
-              text: row.text ?? "",
+              text: messageText(row) ?? "",
               createdAt: row.createdAt,
               live: true,
             },
@@ -241,11 +266,3 @@ export const EventsMock = mockGroup("events", (handlers) =>
       );
   }),
 );
-
-const hash = (value: string): number => {
-  let result = 0;
-  for (const character of value) {
-    result = (result * 31 + character.charCodeAt(0)) | 0;
-  }
-  return result;
-};

@@ -377,26 +377,8 @@ export const emptyText = (
 export const summarize = (names: ReadonlyArray<string>, noun: string) =>
   names.length <= 2 ? names.join(", ") : `${names.length} ${noun}`;
 
-/** Row code the list prints: `#12`, or `web#12` once the rows span repositories. */
-export const pullCode = (pull: PullCard, prefix = "") =>
-  prefix === "" ? `#${pull.number}` : `${prefix}#${pull.number}`;
-
-/**
- * Code prefixes for the visible rows: none while they all come from one
- * repository, the short repository name once they span several, and the full
- * name when two owners' repositories share a short name.
- */
-export const codePrefixes = (repos: ReadonlyArray<string>) => {
-  const unique = [...new Set(repos)];
-  const shortNames = unique.map(repoName);
-  const collide = new Set(shortNames).size !== unique.length;
-  return new Map(
-    unique.map((repo) => [
-      repo,
-      unique.length < 2 ? "" : collide ? repo : repoName(repo),
-    ]),
-  );
-};
+/** Row code the list prints: a bare `#12`, in a fixed-width column (Capy caps it at 34 px). */
+export const pullCode = (pull: PullCard) => `#${pull.number}`;
 
 const minute = 60 * 1000;
 

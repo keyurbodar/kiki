@@ -2,18 +2,15 @@ import type { ComponentType } from "react";
 
 export type PaneProps = { threadId: string };
 
-/** One tab kind the thread pane can open. */
+/**
+ * One tab kind the thread pane can open. `id` is the value of the route's
+ * `pane` search param for this kind.
+ */
 export type PaneEntry = {
   id: string;
   label: string;
   order: number;
   component: ComponentType<PaneProps>;
-  /**
-   * The route's `pane` search param value this kind answers to. Capy only
-   * honours `overview` and `diffs` from the URL and drops every other value, so
-   * only those entries carry one; the rest open from the tab strip or a menu.
-   */
-  param?: string;
 };
 
 export function definePane(entry: PaneEntry): PaneEntry {
@@ -45,9 +42,18 @@ export function findPane(id: string | undefined): PaneEntry | undefined {
   return panes.find((pane) => pane.id === id);
 }
 
-/** The pane a `pane` search param value opens, and nothing for a value Capy drops. */
-export function findPaneByParam(value: string | undefined) {
-  return value === undefined
-    ? undefined
-    : panes.find((pane) => pane.param === value);
-}
+/**
+ * Pane ids we invented before the captures showed Capy has no such pane: its
+ * tab menu switches All threads, Pull requests and Side threads into an inline
+ * page instead. The thread route drops these from its URL; every other value —
+ * a registry id or a tab key such as `service-preview:<machine>:<port>` — is
+ * left exactly as it arrived.
+ */
+export const retiredPaneIds: ReadonlySet<string> = new Set([
+  "threads",
+  "all-threads",
+  "pull-requests",
+]);
+
+export const isRetiredPane = (id: string | undefined) =>
+  id !== undefined && retiredPaneIds.has(id);
