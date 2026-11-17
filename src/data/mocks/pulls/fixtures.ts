@@ -274,6 +274,14 @@ interface PullFindingRow {
   readonly path: string;
   readonly line: number;
   readonly createdAt: string;
+  readonly kind?: "issue" | "note";
+  readonly confidence?: "confident" | "investigate" | null;
+  readonly summary?: string;
+  readonly detail?: string | null;
+  readonly suggestion?: string | null;
+  readonly file?: string;
+  readonly startLine?: number | null;
+  readonly observingHeadSha?: string;
 }
 
 export const pullFindings: ReadonlyArray<PullFindingRow> = [
@@ -287,6 +295,16 @@ export const pullFindings: ReadonlyArray<PullFindingRow> = [
     path: pullFiles[0]!.path,
     line: 24,
     createdAt: isoMinutesAgo(26),
+    kind: "issue",
+    confidence: "confident",
+    summary: "Log the retry attempt count",
+    detail:
+      "Support needs the attempt number when a checkout eventually fails.",
+    suggestion:
+      '      if (attempt < 2 && isGatewayTimeout(error)) {\n        logger.warn("checkout retry", { attempt });',
+    file: pullFiles[0]!.path,
+    startLine: 23,
+    observingHeadSha: "c2f8a10d9b47",
   },
   {
     id: "find_sample_2",
@@ -298,6 +316,53 @@ export const pullFindings: ReadonlyArray<PullFindingRow> = [
     path: pullFiles[1]!.path,
     line: 4,
     createdAt: isoMinutesAgo(22),
+    kind: "issue",
+    confidence: "confident",
+    summary: "Cover repeated gateway timeouts",
+    detail: "The current test only retries once.",
+    suggestion: null,
+    file: pullFiles[1]!.path,
+    startLine: null,
+    observingHeadSha: "c2f8a10d9b47",
+  },
+  {
+    id: "find_sample_3",
+    pullId: pulls[0]!.id,
+    title: "Timeout names now match two error classes",
+    body: "Both names are thrown by the gateway client, so the wider check is intended.",
+    severity: "low",
+    status: "open",
+    path: pullFiles[2]!.path,
+    line: 5,
+    createdAt: isoMinutesAgo(21),
+    kind: "note",
+    confidence: null,
+    summary: "Timeout names now match two error classes",
+    detail:
+      "Both names are thrown by the gateway client, so the wider check is intended.",
+    suggestion: null,
+    file: pullFiles[2]!.path,
+    startLine: 4,
+    observingHeadSha: "c2f8a10d9b47",
+  },
+  {
+    id: "find_sample_4",
+    pullId: pulls[0]!.id,
+    title: "Check the order total rounding before retrying",
+    body: "Retries reuse the rounded total from the first attempt.",
+    severity: "high",
+    status: "open",
+    path: "src/checkout/totals.ts",
+    line: 12,
+    createdAt: isoMinutesAgo(20),
+    kind: "issue",
+    confidence: "investigate",
+    summary: "Check the order total rounding before retrying",
+    detail: "Retries reuse the rounded total from the first attempt.",
+    suggestion: null,
+    file: "src/checkout/totals.ts",
+    startLine: null,
+    observingHeadSha: "c2f8a10d9b47",
   },
 ];
 

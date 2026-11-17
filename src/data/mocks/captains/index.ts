@@ -4,6 +4,7 @@ import { isoMinutesAgo, people, projects, threads } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
   captainAccess,
+  captainCard,
   captainMembers,
   promoteProjects,
   sampleImages,
@@ -131,10 +132,7 @@ export const CaptainsMock = mockGroup("captains", (handlers) =>
         }),
       )
       .handle("list", () =>
-        Effect.gen(function* () {
-          const rows = yield* Ref.get(captains);
-          return yield* Effect.forEach(rows, captainDetail);
-        }),
+        Ref.get(captains).pipe(Effect.map((rows) => rows.map(captainCard))),
       )
       .handle("create", ({ payload }) =>
         Effect.gen(function* () {
