@@ -213,7 +213,7 @@ export function CommandMenuSearch({
   const captainRow = (captain: PaletteCaptain) => (
     <PaletteItem
       key={captain.id}
-      value={"captain-" + captain.id}
+      value={`captain-${captain.id}`}
       onClick={open({ kind: "captain", captain })}
     >
       <span className={paletteItemIconClass}>
@@ -245,7 +245,7 @@ export function CommandMenuSearch({
   const threadRow = (thread: PaletteThread) => (
     <PaletteItem
       key={thread.id}
-      value={"thread-" + thread.id}
+      value={`thread-${thread.id}`}
       onClick={open({ kind: "thread", thread })}
     >
       <span className="flex shrink-0 items-center justify-center">
@@ -282,7 +282,7 @@ export function CommandMenuSearch({
   const pullRow = (pull: PalettePull) => (
     <PaletteItem
       key={pull.id}
-      value={"pull-" + pull.id}
+      value={`pull-${pull.id}`}
       onClick={open({ kind: "pull", pull })}
     >
       <span className={paletteItemIconClass}>
@@ -306,7 +306,7 @@ export function CommandMenuSearch({
   const automationRow = (automation: PaletteAutomation) => (
     <PaletteItem
       key={automation.id}
-      value={"automation-" + automation.id}
+      value={`automation-${automation.id}`}
       onClick={open({ kind: "automation", automation })}
     >
       <span className={paletteItemIconClass}>
@@ -367,7 +367,7 @@ export function CommandMenuSearch({
             <button
               type="button"
               data-slot="button"
-              className={paletteGhostButtonClass + " pointer-coarse:hidden"}
+              className={`${paletteGhostButtonClass} pointer-coarse:hidden`}
               onClick={compose}
             >
               New thread
