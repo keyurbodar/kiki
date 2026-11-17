@@ -15,6 +15,12 @@ import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 
+const compactSizeClass = {
+  xs: "size-4 text-2xs",
+  sm: "size-6 text-xs",
+  base: "size-8 text-sm",
+} as const;
+
 export type CaptainPatch = { name?: string; avatar?: CaptainAvatarValue };
 
 export type ChatIdentityAvatarPicker = (props: {
@@ -25,6 +31,10 @@ export type ChatIdentityAvatarPicker = (props: {
 }) => ReactNode;
 
 export type ChatIdentityProps = ComponentProps<"div"> & {
+  /** Compact row usage (thread list): a name initial, or a library image. */
+  name?: string;
+  avatarUrl?: string | null;
+  size?: "xs" | "sm" | "base";
   jamId?: string;
   orgId?: string;
   fallbackName?: string;
@@ -48,6 +58,9 @@ export function nextCaptainName(draft: string, current: string) {
  * to sharing.
  */
 export function ChatIdentity({
+  name: compactName,
+  avatarUrl,
+  size = "xs",
   jamId = "",
   orgId: orgIdProp,
   fallbackName = "",
@@ -67,6 +80,26 @@ export function ChatIdentity({
   const name = captain?.name ?? fallbackName;
   const [draft, setDraft] = useState(name);
   const avatar = captain?.avatar ?? defaultCaptainAvatar;
+
+  if (compactName !== undefined || avatarUrl !== undefined) {
+    return (
+      <div
+        data-slot="chat-identity"
+        className={cx(
+          "flex shrink-0 items-center justify-center overflow-hidden rounded-xs bg-secondary font-medium text-muted-foreground-1",
+          compactSizeClass[size],
+          className,
+        )}
+        {...props}
+      >
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="" className="size-full object-cover" />
+        ) : (
+          compactName?.slice(0, 1).toUpperCase()
+        )}
+      </div>
+    );
+  }
 
   const save = (payload: CaptainPatch) => {
     if (orgId === undefined) return;
