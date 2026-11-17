@@ -31,7 +31,7 @@ import {
 import { Button } from "@/primitives/button";
 import { cardVariants } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
-import { SkeletonPanel } from "@/primitives/skeleton-panel";
+import { SkeletonPulse } from "@/primitives/skeleton-panel";
 import {
   diffCategoryForPath,
   diffExpandedCategoriesAtom,
@@ -423,7 +423,7 @@ export function DiffSurface<A = unknown>({
   const metrics = variant === "minimal" ? DIFF_MINIMAL_METRICS : DIFF_METRICS;
 
   const renderSkeleton = () => (
-    <DiffLoadingRegion
+    <SkeletonPulse
       {...props}
       data-slot="diff-surface"
       label="Loading diff"
@@ -502,7 +502,7 @@ export function DiffSurface<A = unknown>({
             );
           })}
       </div>
-    </DiffLoadingRegion>
+    </SkeletonPulse>
   );
 
   if (!isClient) return renderSkeleton();
@@ -858,39 +858,6 @@ export function DiffBinarySize({ oldSizeBytes, newSizeBytes }: DiffBinaryInfo) {
   );
 }
 
-type DiffLoadingRegionProps = ComponentProps<"div"> & { label: string };
-
-function DiffLoadingRegion({
-  label,
-  className,
-  children,
-  ...props
-}: DiffLoadingRegionProps) {
-  return (
-    <SkeletonPanel
-      {...props}
-      className={cx(
-        "opacity-100 transition-opacity delay-preview duration-base ease-out-quint starting:opacity-0",
-        className,
-      )}
-    >
-      <div
-        role="status"
-        aria-live="polite"
-        aria-busy="true"
-        className="sr-only"
-      >
-        {label}
-      </div>
-      <div aria-hidden className="contents">
-        <div className="animate-skeleton-pulse h-full motion-reduce:animate-none">
-          {children}
-        </div>
-      </div>
-    </SkeletonPanel>
-  );
-}
-
 export type DiffLoadingBodyProps = {
   height: number;
   className?: string;
@@ -932,7 +899,7 @@ export function DiffLoadingBody({
   return grouped === true ? (
     body
   ) : (
-    <DiffLoadingRegion label="Loading diff">{body}</DiffLoadingRegion>
+    <SkeletonPulse label="Loading diff">{body}</SkeletonPulse>
   );
 }
 
