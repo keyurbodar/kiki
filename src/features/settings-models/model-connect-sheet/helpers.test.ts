@@ -11,6 +11,7 @@ import {
   headersEqual,
   listedModels,
   matchedFirst,
+  mergeDiscovered,
   nearestEdge,
   nextHeaderId,
   nextTargetPhrase,
@@ -376,6 +377,26 @@ describe("headers", () => {
     ]);
     expect(nearestEdge(5, { start: 3, end: 18 })).toBe(3);
     expect(nearestEdge(15, { start: 3, end: 18 })).toBe(18);
+  });
+});
+
+describe("mergeDiscovered", () => {
+  it("keeps draft selections and custom models", () => {
+    const drafted = [
+      { model: "openai/*", excluded: true },
+      { model: "acme-coder", name: "Acme Coder" },
+    ];
+    const once = mergeDiscovered(drafted, [], [{ model: "acme/alpha" }]);
+    expect(once).toEqual([...drafted, { model: "acme/alpha" }]);
+    expect(mergeDiscovered(once, [], [{ model: "acme/alpha" }])).toEqual(once);
+  });
+  it("adds each default once and never drops the draft", () => {
+    const drafted = [{ model: "acme-coder", name: "Acme Coder" }];
+    const defaults = [{ model: "acme/*" }, { model: "zen/*" }];
+    const found = [{ model: "acme/alpha", context: 32e3 }];
+    const once = mergeDiscovered(drafted, defaults, found);
+    expect(once).toEqual([...drafted, ...defaults, ...found]);
+    expect(mergeDiscovered(once, defaults, found)).toEqual(once);
   });
 });
 

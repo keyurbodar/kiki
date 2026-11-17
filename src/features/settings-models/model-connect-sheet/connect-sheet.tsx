@@ -92,6 +92,7 @@ import {
   headersEqual,
   listedModels,
   matchedFirst,
+  mergeDiscovered,
   pendingCompactAts,
   readDaybreak,
   readMediaCheck,
@@ -521,16 +522,11 @@ export function ConnectSheet({
           ),
         ];
         setModels((current) =>
-          direct
-            ? current.filter((m) => m.name !== undefined)
-            : preset === undefined
-              ? [
-                  ...current.filter(
-                    (m) => !found.some((f) => f.model === m.model),
-                  ),
-                  ...found,
-                ]
-              : [...labs.map((lab) => ({ model: labWildcard(lab) })), ...found],
+          mergeDiscovered(
+            current,
+            direct ? [] : labs.map((lab) => ({ model: labWildcard(lab) })),
+            found,
+          ),
         );
       })
       .finally(() => setChecking(false));

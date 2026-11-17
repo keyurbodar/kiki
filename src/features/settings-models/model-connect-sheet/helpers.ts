@@ -529,6 +529,20 @@ export const cleanHeaders = (
         ],
   );
 
+export const mergeDiscovered = (
+  current: ReadonlyArray<ModelSetting>,
+  defaults: ReadonlyArray<ModelSetting>,
+  found: ReadonlyArray<ModelSetting>,
+): Array<ModelSetting> => {
+  const known = new Set(current.map((m) => m.model));
+  const added = [...defaults, ...found].filter((m) => {
+    if (known.has(m.model)) return false;
+    known.add(m.model);
+    return true;
+  });
+  return [...current, ...added];
+};
+
 export const pendingCompactAts = (
   drafts: ReadonlyMap<string, number | undefined>,
   customs: ReadonlyArray<ModelSetting>,
