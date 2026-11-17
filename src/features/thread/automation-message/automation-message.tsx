@@ -87,7 +87,7 @@ export function AutomationMessage({
                 data-slot="clamped-body"
                 onClick={clamp ? toggle : undefined}
                 className={[
-                  "whitespace-pre-wrap",
+                  "text-sm leading-normal whitespace-pre-wrap",
                   clamp && "cursor-pointer",
                   clamp && !open && "line-clamp-4",
                 ]
