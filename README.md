@@ -15,6 +15,32 @@ The web app mirrors Capy's web stack, managed with [bun](https://bun.sh).
 - **Files and viewers:** `@pierre/diffs`, `@pierre/trees`, docx-preview, SheetJS (from the SheetJS CDN), fflate, Recharts, shell-quote
 - **Tooling:** Vitest with `@effect/vitest`, Testing Library, Playwright, Biome
 
+## Layout
+
+Start with [CONTRIBUTING.md](CONTRIBUTING.md): it explains how a package plugs in without conflicts.
+
+```
+src/
+  tokens/        token layer (KIKI-10); contract.css holds the names until it lands
+  primitives/    Capy ui/* primitives, one directory each (Base UI + cva)
+  components/    Capy shared/* composites, one directory each
+  features/      screen groups, one directory per unit inside each
+  routes/        TanStack file routes, all 159 app routes
+  data/          data layer (A3, KIKI-13) and event schemas (A8, KIKI-14)
+  lib/           small shared helpers
+```
+
+The data layer modules, owned by their packages:
+
+- `src/data/api/`: the Effect HttpApi definition, one file per group under `src/data/api/groups/`
+- `src/data/client/`: the typed client and the AtomHttpApi service
+- `src/data/mocks/<group>/`: one mock directory per API group
+- `src/data/atoms/`: effect-atom conventions
+- `src/data/realtime/`: SSE `events/stream` and WebSocket services with a fake emitter
+- `src/data/events/`: thread event schemas, timeline row schemas and the fixture generator (A8)
+
+`@/` resolves to `src/` in Vite, Vitest and TypeScript.
+
 ## Commands
 
 ```sh
