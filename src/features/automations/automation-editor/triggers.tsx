@@ -120,7 +120,7 @@ export function ScheduleFields({ trigger, onChange }: ScheduleFieldsProps) {
             type="time"
             size="xs"
             aria-label="Time"
-            className="w-fit"
+            className="w-fit!"
             value={spec.time}
             onChange={(event) => apply({ ...spec, time: event.target.value })}
           />
@@ -152,7 +152,7 @@ export function ScheduleFields({ trigger, onChange }: ScheduleFieldsProps) {
           size="xs"
           aria-label="Cron expression"
           placeholder="0 9 * * 1-5"
-          className="w-32"
+          className="w-32!"
           value={trigger.cron}
           onChange={(event) =>
             onChange({ ...trigger, cron: event.target.value })
