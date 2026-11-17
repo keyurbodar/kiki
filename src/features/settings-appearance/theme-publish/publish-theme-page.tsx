@@ -249,7 +249,9 @@ function PublishTheme({
               <SettingsSection title="Listing">
                 <Card rows>
                   <div className="flex flex-col gap-2 p-4">
-                    <label data-slot="label" htmlFor="theme-description">Description</label>
+                    <label data-slot="label" htmlFor="theme-description">
+                      Description
+                    </label>
                     <Input
                       id="theme-description"
                       size="sm"

@@ -85,7 +85,11 @@ function ColorRow({
   const label = COLOR_LABELS[colorKey];
   return (
     <SettingsRow
-      label={<label data-slot="label" htmlFor={id}>{label}</label>}
+      label={
+        <label data-slot="label" htmlFor={id}>
+          {label}
+        </label>
+      }
       description={
         invalid
           ? "Refers to itself"
@@ -369,7 +373,13 @@ export function ThemeSection() {
           />
           {colorTheme.kind === "custom" ? (
             <>
-              <SettingsRow label={<label data-slot="label" htmlFor="theme-name">Name</label>}>
+              <SettingsRow
+                label={
+                  <label data-slot="label" htmlFor="theme-name">
+                    Name
+                  </label>
+                }
+              >
                 <Input
                   id="theme-name"
                   size="sm"
