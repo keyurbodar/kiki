@@ -13,6 +13,14 @@ type Theme = Record<string, unknown> & {
   updatedAt: string;
 };
 
+/** The appearance editor's fields (light/dark palettes, effect, background). */
+const paletteFields = (input: Record<string, unknown>) =>
+  Object.fromEntries(
+    ["light", "dark", "effect", "background"].flatMap((key) =>
+      key in input ? [[key, input[key]]] : [],
+    ),
+  );
+
 export const ThemesMock = mockGroup("themes", (handlers) =>
   Effect.gen(function* () {
     const themes = yield* Ref.make<ReadonlyArray<Theme>>(
@@ -52,6 +60,7 @@ export const ThemesMock = mockGroup("themes", (handlers) =>
               : {},
           fontFamily: String(input.fontFamily ?? "Inter"),
           fontSize: typeof input.fontSize === "number" ? input.fontSize : 14,
+          ...paletteFields(input),
           published: false,
           version: 1,
           createdAt: isoMinutesAgo(0),
@@ -76,6 +85,7 @@ export const ThemesMock = mockGroup("themes", (handlers) =>
             ...(typeof input.fontSize === "number"
               ? { fontSize: input.fontSize }
               : {}),
+            ...paletteFields(input),
             version: current.version + 1,
             updatedAt: isoMinutesAgo(0),
           };
