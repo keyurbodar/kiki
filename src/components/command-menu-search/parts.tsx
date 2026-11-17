@@ -85,7 +85,6 @@ export function PaletteInput({
     <>
       <div className={paletteInputRowClass}>
         <CommandMenuInput
-          // biome-ignore lint/a11y/noAutofocus: the palette input takes focus when the palette opens
           autoFocus
           className={join(
             paletteInputClass,
