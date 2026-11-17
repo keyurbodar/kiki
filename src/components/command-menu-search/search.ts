@@ -431,9 +431,9 @@ export const buildSearchResults = (
           data.pulls,
           (pull) => [
             pull.title,
-            "#" + pull.number,
+            `#${pull.number}`,
             String(pull.number),
-            pull.repo + "#" + pull.number,
+            `${pull.repo}#${pull.number}`,
             pull.repo,
             pull.author,
             pull.headRef ?? "",
@@ -526,7 +526,7 @@ export const buildSearchResults = (
         },
     ...settingsSections.map((section) =>
       commandGroup(
-        "settings_page_" + section.label,
+        `settings_page_${section.label}`,
         "settings_pages",
         section.label,
         section.commands.map((item) => ({ item, score: 0 })),
@@ -561,13 +561,13 @@ export type FooterMode = "thread" | "openable" | "select";
 export const itemValue = (group: SearchGroup, index: number) => {
   switch (group.kind) {
     case "captains":
-      return "captain-" + group.items[index]?.id;
+      return `captain-${group.items[index]?.id}`;
     case "threads":
-      return "thread-" + group.items[index]?.id;
+      return `thread-${group.items[index]?.id}`;
     case "pulls":
-      return "pull-" + group.items[index]?.id;
+      return `pull-${group.items[index]?.id}`;
     case "automations":
-      return "automation-" + group.items[index]?.id;
+      return `automation-${group.items[index]?.id}`;
     case "commands":
       return group.items[index]?.id ?? "";
   }
@@ -601,12 +601,12 @@ const day = 24 * hour;
 export const formatAge = (then: number, now: number) => {
   const elapsed = Math.max(0, now - then);
   if (elapsed < minute) return "now";
-  if (elapsed < hour) return Math.floor(elapsed / minute) + "m";
-  if (elapsed < day) return Math.floor(elapsed / hour) + "h";
-  if (elapsed < 7 * day) return Math.floor(elapsed / day) + "d";
-  if (elapsed < 30 * day) return Math.floor(elapsed / (7 * day)) + "w";
-  if (elapsed < 365 * day) return Math.floor(elapsed / (30 * day)) + "mo";
-  return Math.floor(elapsed / (365 * day)) + "y";
+  if (elapsed < hour) return `${Math.floor(elapsed / minute)}m`;
+  if (elapsed < day) return `${Math.floor(elapsed / hour)}h`;
+  if (elapsed < 7 * day) return `${Math.floor(elapsed / day)}d`;
+  if (elapsed < 30 * day) return `${Math.floor(elapsed / (7 * day))}w`;
+  if (elapsed < 365 * day) return `${Math.floor(elapsed / (30 * day))}mo`;
+  return `${Math.floor(elapsed / (365 * day))}y`;
 };
 
 export const repoName = (repo: string) => repo.split("/").at(-1) ?? repo;
