@@ -232,6 +232,7 @@ export function ThreadsPageView({
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [checked, setChecked] = useState<ReadonlySet<string>>(new Set());
   const [searchText, setSearchText] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const [moving, setMoving] = useState(false);
   const filters = state.filters;
   const setFilters = (next: ThreadFilters) =>
@@ -349,24 +350,55 @@ export function ThreadsPageView({
       className="relative flex min-h-0 min-w-0 flex-1 flex-col"
     >
       <AppTopBar className="sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center border-b-hairline border-border-1 bg-panel px-2">
-        <h1 className="ml-2.5 min-w-0 truncate text-sm font-medium text-foreground max-md:hidden">
-          Threads
-        </h1>
-        <div className="relative mx-2 flex min-w-0 flex-1 items-center">
-          <Icon
-            name="deep-search"
-            size="sm"
-            aria-hidden
-            className="pointer-events-none absolute left-1.5 text-muted-foreground-2"
-          />
-          <FilterSearch
-            search={search}
+        {searchOpen ? (
+          <form
             aria-label="Search threads"
-            placeholder="Search threads"
-            className="h-7 min-w-0 w-full flex-1 rounded border-hairline border-border-1 bg-input pr-2 pl-7 text-sm text-foreground outline-none placeholder:text-muted-foreground-2 focus-visible:outline-ring-inset"
-          />
-        </div>
+            className="relative mx-2 flex min-w-0 flex-1 items-center"
+            onSubmit={(event) => event.preventDefault()}
+            onBlur={() => {
+              if (searchText === "") setSearchOpen(false);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                setSearchText("");
+                setSearchOpen(false);
+              }
+            }}
+          >
+            <Icon
+              name="deep-search"
+              size="sm"
+              aria-hidden
+              className="pointer-events-none absolute left-1.5 text-muted-foreground-2"
+            />
+            <FilterSearch
+              // biome-ignore lint/a11y/noAutofocus: the field only exists once the search control is pressed
+              autoFocus
+              search={search}
+              aria-label="Search threads"
+              placeholder="Search threads"
+              className="h-7 min-w-0 w-full flex-1 rounded border-hairline border-border-1 bg-input pr-2 pl-7 text-sm text-foreground outline-none placeholder:text-muted-foreground-2 focus-visible:outline-ring-inset"
+            />
+          </form>
+        ) : (
+          <h1 className="ml-2.5 min-w-0 truncate text-sm font-medium text-foreground">
+            Threads
+          </h1>
+        )}
         <div className="ml-auto flex items-center gap-1.5 pl-2">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Search"
+                  onClick={() => setSearchOpen((open) => !open)}
+                />
+              }
+            />
+            <TooltipContent side="bottom">Search</TooltipContent>
+          </Tooltip>
           <Tooltip>
             <TooltipTrigger
               render={
