@@ -9,8 +9,9 @@ import {
 } from "react";
 import { MarkdownChip } from "@/components/markdown-chips";
 import { CodeBlock } from "./code-block";
-import { MarkdownGallery, MarkdownVideo } from "./markdown";
+import { MarkdownGallery } from "./gallery";
 import type { MarkdownTreeTransform } from "./pipeline";
+import { MarkdownVideo } from "./video";
 
 export type MarkdownMermaidProps = { text: string; complete: boolean };
 
@@ -69,12 +70,8 @@ function DefaultGallery({ children }: { children?: ReactNode }) {
   return <MarkdownGallery>{children}</MarkdownGallery>;
 }
 
-function DefaultVideo(props: ComponentProps<"video">) {
-  return (
-    <MarkdownVideo>
-      <video {...props} />
-    </MarkdownVideo>
-  );
+function DefaultVideo({ src, title }: ComponentProps<"video">) {
+  return <MarkdownVideo src={src} title={title} />;
 }
 
 function DefaultImage(props: ComponentProps<"img">) {

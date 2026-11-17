@@ -116,18 +116,6 @@ export function MarkdownMermaidError(props: MarkdownMermaidErrorProps) {
   return <div data-slot="markdown-mermaid-error" {...props} />;
 }
 
-export type MarkdownGalleryProps = ComponentProps<"div">;
-
-export function MarkdownGallery(props: MarkdownGalleryProps) {
-  return <div data-slot="markdown-gallery" {...props} />;
-}
-
-export type MarkdownVideoProps = ComponentProps<"div">;
-
-export function MarkdownVideo(props: MarkdownVideoProps) {
-  return <div data-slot="markdown-video" {...props} />;
-}
-
 export type MermaidStageProps = ComponentProps<"div">;
 
 export function MermaidStage(props: MermaidStageProps) {

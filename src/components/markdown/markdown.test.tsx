@@ -138,8 +138,9 @@ describe("Markdown", () => {
 
   it("turns a bare video link into a video", () => {
     const root = html(<Markdown text="https://cdn.example.com/demo.mp4" />);
+    // Capy opens inline videos at the first frame (#t=0.001) instead of autoplaying.
     expect(root.querySelector("video")?.getAttribute("src")).toBe(
-      "https://cdn.example.com/demo.mp4",
+      "https://cdn.example.com/demo.mp4#t=0.001",
     );
   });
 
