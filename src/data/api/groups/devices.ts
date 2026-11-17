@@ -1,6 +1,22 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
 import { InferredMethod } from "../annotations.ts";
+import {
+  ApproveDeviceCodeRequest,
+  Device,
+  DeviceCodeNotFound,
+  DeviceCodePreview,
+  DeviceCodeResolution,
+  DeviceId,
+  DeviceNotFound,
+  LookupDeviceCodeRequest,
+  RenameDeviceRequest,
+  SetDeviceAccessRequest,
+  SetDeviceAgentAccessRequest,
+  SetDeviceComputerUseAccessRequest,
+  SetDeviceDescriptionRequest,
+} from "../schemas/devices.ts";
+import { OrgId } from "../schemas/ids.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class DevicesGroup extends HttpApiGroup.make("devices").add(
@@ -9,12 +25,14 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     success: Undecoded,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.post("codeDeny", "/devices/code/deny", {
-    payload: Undecoded,
-    success: Undecoded,
+    payload: LookupDeviceCodeRequest,
+    success: DeviceCodeResolution,
+    error: DeviceCodeNotFound,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.post("codeLookup", "/devices/code/lookup", {
-    payload: Undecoded,
-    success: Undecoded,
+    payload: LookupDeviceCodeRequest,
+    success: DeviceCodePreview,
+    error: DeviceCodeNotFound,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.post("codePoll", "/devices/code/poll", {
     payload: Undecoded,
@@ -25,18 +43,20 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     success: Undecoded,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.get("list", "/orgs/:orgId/devices", {
-    params: { orgId: Schema.String },
-    success: Undecoded,
+    params: { orgId: OrgId },
+    success: Schema.Array(Device),
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.patch("rename", "/orgs/:orgId/devices/:deviceId", {
-    params: { orgId: Schema.String, deviceId: Schema.String },
-    payload: Undecoded,
-    success: Undecoded,
+    params: { orgId: OrgId, deviceId: DeviceId },
+    payload: RenameDeviceRequest,
+    success: Device,
+    error: DeviceNotFound,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.post("setAccess", "/orgs/:orgId/devices/:deviceId/access", {
-    params: { orgId: Schema.String, deviceId: Schema.String },
-    payload: Undecoded,
-    success: Undecoded,
+    params: { orgId: OrgId, deviceId: DeviceId },
+    payload: SetDeviceAccessRequest,
+    success: Device,
+    error: DeviceNotFound,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.get("listAccess", "/orgs/:orgId/devices/:deviceId/access", {
     params: { orgId: Schema.String, deviceId: Schema.String },
@@ -102,9 +122,10 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     "setAgentAccess",
     "/orgs/:orgId/devices/:deviceId/agent-access",
     {
-      params: { orgId: Schema.String, deviceId: Schema.String },
-      payload: Undecoded,
-      success: Undecoded,
+      params: { orgId: OrgId, deviceId: DeviceId },
+      payload: SetDeviceAgentAccessRequest,
+      success: Device,
+      error: DeviceNotFound,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.get(
@@ -165,9 +186,10 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     "setComputerUseAccess",
     "/orgs/:orgId/devices/:deviceId/computer-use",
     {
-      params: { orgId: Schema.String, deviceId: Schema.String },
-      payload: Undecoded,
-      success: Undecoded,
+      params: { orgId: OrgId, deviceId: DeviceId },
+      payload: SetDeviceComputerUseAccessRequest,
+      success: Device,
+      error: DeviceNotFound,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -211,9 +233,10 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     "setDescription",
     "/orgs/:orgId/devices/:deviceId/description",
     {
-      params: { orgId: Schema.String, deviceId: Schema.String },
-      payload: Undecoded,
-      success: Undecoded,
+      params: { orgId: OrgId, deviceId: DeviceId },
+      payload: SetDeviceDescriptionRequest,
+      success: Device,
+      error: DeviceNotFound,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.get(
@@ -316,8 +339,9 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post("revoke", "/orgs/:orgId/devices/:deviceId/revoke", {
-    params: { orgId: Schema.String, deviceId: Schema.String },
-    success: Undecoded,
+    params: { orgId: OrgId, deviceId: DeviceId },
+    success: Device,
+    error: DeviceNotFound,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.get(
     "workspaceIndex",
@@ -334,9 +358,10 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
     success: Undecoded,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.post("codeApprove", "/orgs/:orgId/devices/code/approve", {
-    params: { orgId: Schema.String },
-    payload: Undecoded,
-    success: Undecoded,
+    params: { orgId: OrgId },
+    payload: ApproveDeviceCodeRequest,
+    success: DeviceCodeResolution,
+    error: DeviceCodeNotFound,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.get(
     "listProjectCheckouts",
