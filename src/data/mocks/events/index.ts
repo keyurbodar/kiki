@@ -350,6 +350,7 @@ export const EventsMock = mockGroup("events", (handlers) =>
           const input = fields(payload);
           const textValue = text(input.text) ?? "";
           const clientKey = text(input.clientKey);
+          const mentions = Array.isArray(input.mentions) ? input.mentions : [];
           const existing = (yield* Ref.get(eventsRef)).find(
             (row) =>
               row.jamId === params.jamId &&
@@ -370,6 +371,7 @@ export const EventsMock = mockGroup("events", (handlers) =>
               origin: { type: "web", userId: people.alex.id },
               text: textValue,
               files: [],
+              ...(mentions.length === 0 ? {} : { mentions }),
               delivery: deliveryOf(input.delivery),
               ...(clientKey === undefined ? {} : { clientKey }),
             },
