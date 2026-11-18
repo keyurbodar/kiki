@@ -5,20 +5,23 @@ import type { ComponentProps, KeyboardEvent, ReactNode } from "react";
 const cx = (...parts: ReadonlyArray<string | false | null | undefined>) =>
   parts.filter(Boolean).join(" ");
 
+/**
+ * Geometry lives in the menu row recipes, so a density picks a class rather
+ * than a cluster of height, inset and glyph utilities. Radius and state stay
+ * here: the recipe layer owns boxes, not paint or corners.
+ */
 export const menuRowVariants = cva(
   [
-    "relative flex w-full min-w-0 cursor-pointer items-center text-left text-sm font-normal outline-none select-none",
+    "relative cursor-pointer text-left text-sm font-normal outline-none select-none",
     "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
     "[&_svg]:pointer-events-none [&_svg]:shrink-0",
   ],
   {
     variants: {
       density: {
-        default:
-          "h-(--h-menu-row) gap-2 rounded px-2 [&_svg:not([class*='size-'])]:size-(--icon-sm)",
-        rich: "h-auto min-h-9 gap-2 rounded px-2 py-1 [&_svg:not([class*='size-'])]:size-(--icon-sm)",
-        palette:
-          "h-(--h-palette-row) gap-2.5 rounded-(--radius-overlay) px-2.5 [&_svg:not([class*='size-'])]:size-(--icon-base)",
+        default: "kiki-menu-row rounded",
+        rich: "kiki-menu-row-rich rounded",
+        palette: "kiki-palette-row rounded-(--radius-overlay)",
       },
       interaction: {
         highlight:

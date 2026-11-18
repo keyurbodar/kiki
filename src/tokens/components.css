@@ -83,6 +83,10 @@
   --dialog-gap: 16px;
   --dialog-p: 24px;
   --menu-row-h: var(--h-menu-row);
+  --menu-row-px: 8px;
+  --menu-row-gap: 8px;
+  --menu-row-icon: var(--icon-sm);
+  --palette-row-icon: var(--icon-base);
   --palette-row-h: var(--h-palette-row);
   --palette-row-gap: 10px;
   --palette-row-px: 10px;

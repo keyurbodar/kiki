@@ -122,10 +122,8 @@ describe("command menu surface", () => {
     );
     const option = container.querySelector<HTMLElement>('[role="option"]');
     const classes = option?.className.split(" ") ?? [];
-    expect(classes).toEqual(
-      expect.arrayContaining(["h-auto", "min-h-9", "py-1"]),
-    );
-    expect(classes).not.toContain("h-(--h-menu-row)");
+    expect(classes).toContain("kiki-menu-row-rich");
+    expect(classes).not.toContain("kiki-menu-row");
     expect(container.textContent).toContain("Check a diff");
   });
 
@@ -196,9 +194,7 @@ describe("mention menu surface", () => {
     );
     const option = container.querySelector<HTMLElement>('[role="option"]');
     const classes = option?.className.split(" ") ?? [];
-    expect(classes).toEqual(
-      expect.arrayContaining(["h-auto", "min-h-9", "py-1"]),
-    );
+    expect(classes).toContain("kiki-menu-row-rich");
     expect(container.textContent).toContain("Files");
     expect(container.textContent).toContain("Files and folders on the device");
     expect(container.querySelector('[role="option"] svg')).not.toBeNull();
