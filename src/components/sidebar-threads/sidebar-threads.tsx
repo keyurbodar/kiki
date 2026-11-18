@@ -442,7 +442,7 @@ export function PinnedCaptains({
                   </span>
                   <span
                     className={cx(
-                      "mask-fade-r max-w-full overflow-hidden px-0.5 text-xs leading-4 whitespace-nowrap",
+                      "max-w-full overflow-hidden text-ellipsis px-0.5 text-xs leading-4 whitespace-nowrap",
                       active || captain.hasUnreads
                         ? "font-medium text-foreground"
                         : "font-normal text-foreground/80 dark:text-muted-foreground-1",
