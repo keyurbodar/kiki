@@ -131,3 +131,40 @@ describe("system mode sync", () => {
     }
   });
 });
+
+describe("custom colour themes", () => {
+  const css = '[data-color-theme="custom"]:not(.dark) { --bg: #f2f2f4; }';
+
+  it("keeps the generated stylesheet when reading the stored selection", () => {
+    localStorage.setItem(
+      COLOR_THEME_STORAGE_KEY,
+      JSON.stringify({ kind: "custom", id: "t1", name: "Dusk", css }),
+    );
+    expect(readColorTheme()).toEqual({
+      kind: "custom",
+      id: "t1",
+      name: "Dusk",
+      css,
+    });
+  });
+
+  it("paints a custom selection and clears it for a preset", () => {
+    setColorTheme({ kind: "custom", id: "t1", name: "Dusk", css });
+    const style = document.getElementById("capy-custom-theme");
+    expect(document.documentElement.dataset.colorTheme).toBe("custom");
+    expect(style?.textContent).toBe(css);
+    setColorTheme({ kind: "preset", id: "gruvbox" });
+    expect(document.getElementById("capy-custom-theme")).toBeNull();
+    expect(document.documentElement.dataset.colorTheme).toBe("gruvbox");
+  });
+
+  it("paints the stored custom theme on a fresh boot", () => {
+    localStorage.setItem(
+      COLOR_THEME_STORAGE_KEY,
+      JSON.stringify({ kind: "custom", id: "t1", name: "Dusk", css }),
+    );
+    syncAppearance();
+    expect(document.documentElement.dataset.colorTheme).toBe("custom");
+    expect(document.getElementById("capy-custom-theme")?.textContent).toBe(css);
+  });
+});

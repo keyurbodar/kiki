@@ -2,9 +2,11 @@ import { useEffect, useSyncExternalStore } from "react";
 import {
   applyColorMode,
   applyColorTheme,
+  applyCustomTheme,
   COLOR_THEME_IDS,
   COLOR_THEME_LABELS,
   type ColorMode,
+  clearCustomTheme,
   isPresetColorTheme,
   type PresetColorTheme,
   resolveColorMode,
@@ -13,7 +15,7 @@ import {
 export type ColorThemeChoice =
   | { kind: "default" }
   | { kind: "preset"; id: PresetColorTheme }
-  | { kind: "custom"; id: string; name: string };
+  | { kind: "custom"; id: string; name: string; css?: string };
 
 export const APPEARANCE_STORAGE_KEY = "capy-web:appearance";
 export const COLOR_THEME_STORAGE_KEY = "capy-web:color-theme-v2";
@@ -63,7 +65,12 @@ export function readColorTheme(): ColorThemeChoice {
     return { kind: "preset", id: stored.id };
   }
   if (stored.kind === "custom" && typeof stored.name === "string") {
-    return { kind: "custom", id: stored.id, name: stored.name };
+    return {
+      kind: "custom",
+      id: stored.id,
+      name: stored.name,
+      ...(typeof stored.css === "string" ? { css: stored.css } : {}),
+    };
   }
   return { kind: "default" };
 }
@@ -95,12 +102,16 @@ function refresh() {
   const root = document.documentElement;
   applyColorMode(next.mode, root);
   root.style.colorScheme = next.resolvedMode;
-  applyColorTheme(
-    next.displayedColorTheme.kind === "preset"
-      ? next.displayedColorTheme.id
-      : "default",
-    root,
-  );
+  const displayed = next.displayedColorTheme;
+  if (displayed.kind === "custom" && displayed.css !== undefined) {
+    applyCustomTheme(displayed.css, root);
+  } else {
+    clearCustomTheme(root);
+    applyColorTheme(
+      displayed.kind === "preset" ? displayed.id : "default",
+      root,
+    );
+  }
   state = next;
   for (const listener of listeners) listener();
 }
