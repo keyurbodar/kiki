@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { AtomRegistry } from "effect/reactivity";
 import { FileUploadTargets, FileUrl } from "../../api/schemas/files.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
@@ -135,6 +136,28 @@ describe("files mock", () => {
         ).content,
         "Dark mode notes",
       );
+    }),
+  );
+
+  it.effect("answers the 404 both endpoints declare for an unknown file", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const missingUrl = ApiClient.query("files", "url", {
+        params: { orgId, jamId, fileId: "file_nobody" },
+        query: {},
+        reactivityKeys: [key],
+      });
+      const missingVersions = ApiClient.query("files", "versions", {
+        params: { orgId, jamId, fileId: "file_nobody" },
+        reactivityKeys: [key],
+      });
+      for (const atom of [missingUrl, missingVersions]) {
+        const error = yield* AtomRegistry.getResult(
+          registry,
+          atom as never,
+        ).pipe(Effect.flip);
+        assert.instanceOf(error, HttpApiError.NotFound);
+      }
     }),
   );
 });
