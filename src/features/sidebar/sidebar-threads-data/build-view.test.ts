@@ -190,3 +190,44 @@ describe("buildSidebarThreadsView", () => {
     ).toBe("1h");
   });
 });
+
+describe("origin filter", () => {
+  const threads = [
+    thread("web-thread", { origin: "web" }),
+    thread("slack-thread", { origin: "slack" }),
+    thread("bare-thread"),
+  ];
+  const ids = (patch: Partial<SidebarPrefs>) =>
+    buildSidebarThreadsView(source({ threads }), prefs(patch))
+      .sections.flatMap((section) => section.threads.map((row) => row.id))
+      .toSorted();
+
+  it("keeps every thread while no origin is selected", () => {
+    expect(ids({})).toEqual(["bare-thread", "slack-thread", "web-thread"]);
+  });
+
+  it("narrows the list to the selected origins", () => {
+    expect(ids({ filterOrigins: ["slack"] })).toEqual(["slack-thread"]);
+    expect(ids({ filterOrigins: ["slack", "web"] })).toEqual([
+      "bare-thread",
+      "slack-thread",
+      "web-thread",
+    ]);
+  });
+
+  it("treats a thread with no origin as a web thread", () => {
+    expect(ids({ filterOrigins: ["web"] })).toEqual([
+      "bare-thread",
+      "web-thread",
+    ]);
+  });
+
+  it("carries the active filter through to the view", () => {
+    expect(
+      buildSidebarThreadsView(
+        source({ threads }),
+        prefs({ filterOrigins: ["web"] }),
+      ).filterOrigins,
+    ).toEqual(["web"]);
+  });
+});

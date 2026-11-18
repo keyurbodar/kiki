@@ -24,6 +24,7 @@ const thread: SidebarThread = {
   pinned: false,
   archived: false,
   owner: true,
+  origin: "web",
 };
 
 afterEach(() => {

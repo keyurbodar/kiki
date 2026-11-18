@@ -31,6 +31,7 @@ export const ThreadOrigin = Schema.Literals([
   "capy",
   "automation",
 ]);
+export type ThreadOrigin = typeof ThreadOrigin.Type;
 
 export const ThreadSection = Schema.Literals([
   "asks",

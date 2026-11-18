@@ -1,7 +1,7 @@
 import type { ThreadPreviewProps } from "@/components/thread-preview";
 import type { ThreadRunStatus } from "@/components/thread-status";
 import type { CaptainCard } from "@/data/api/schemas/captain";
-import type { ThreadCard } from "@/data/api/schemas/thread";
+import type { ThreadCard, ThreadOrigin } from "@/data/api/schemas/thread";
 import type { CaptainAvatarValue } from "@/primitives/captain-avatar";
 
 export type SidebarMode = "threads" | "captains";
@@ -57,6 +57,8 @@ export type SidebarThread = {
   archived: boolean;
   /** Whether the viewer owns the thread, gating Rename, Regenerate title and Delete. */
   owner: boolean;
+  /** Where the thread was started; the sidebar's filter lists these. */
+  origin: ThreadOrigin;
 } & SidebarThreadPreview;
 
 export type SidebarSectionKind =
@@ -99,6 +101,8 @@ export type SidebarThreadsView = {
   sort: SidebarThreadSort;
   captainSort: SidebarCaptainSort;
   collapse: SidebarCollapse;
+  /** Origins the list is narrowed to; empty means every origin. */
+  filterOrigins: ReadonlyArray<ThreadOrigin>;
   sections: SidebarSection[];
   captains: SidebarCaptain[];
   projects: Record<string, SidebarProject>;

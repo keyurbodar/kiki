@@ -92,6 +92,7 @@ export function mapThread(
     pinned: card.pinned,
     archived: card.archived,
     owner: viewerId !== undefined && card.userId === viewerId,
+    origin: card.origin,
     createdAt: toDate(card.createdAt),
     updatedAt: toDate(card.updatedAt),
     card,

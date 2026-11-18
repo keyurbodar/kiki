@@ -514,7 +514,8 @@ function ThreadSections({
     afterRows = true;
   }
   for (const section of view.sections) {
-    if (section.count === 0) continue;
+    const droppable = section.kind === "folder" || section.kind === "pinned";
+    if (section.count === 0 && !droppable) continue;
     items.push(
       <SectionHeading
         key={section.id}

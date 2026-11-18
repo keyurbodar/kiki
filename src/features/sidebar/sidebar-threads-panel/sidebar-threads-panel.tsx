@@ -1,5 +1,7 @@
+import { useNavigate } from "@tanstack/react-router";
 import { Glyph, SidebarThreads } from "@/components/sidebar-threads";
 import { ThreadPreview } from "@/components/thread-preview";
+import type { ThreadOrigin } from "@/data/api/schemas/thread";
 import { Button } from "@/primitives/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { CaptainPreviewCard } from "../sidebar-captain-preview";
@@ -9,6 +11,7 @@ import {
   useSidebarThreads,
 } from "../sidebar-threads-data";
 import { CaptainOptionsMenu, ThreadOptionsMenu } from "../thread-options-menu";
+import { ThreadFiltersMenu } from "../thread-options-menu/thread-filters";
 import {
   ThreadActionsProvider,
   useThreadActions,
@@ -88,7 +91,20 @@ function SidebarThreadsPanelBody({
 }: SidebarThreadsPanelProps & { controller: SidebarThreadsController }) {
   const sidebar = controller;
   const threadActions = useThreadActions();
+  const navigate = useNavigate();
   const { view } = sidebar;
+  const origins = [
+    ...new Set(
+      view.sections.flatMap((section) =>
+        section.threads.map((thread) => thread.origin),
+      ),
+    ),
+  ].toSorted();
+  const newFolder = onNewFolder ?? (() => threadActions.startNewFolder());
+  const markAllRead = onMarkAllRead ?? threadActions.markAllRead;
+  const viewAll = onViewAll ?? (() => void navigate({ to: "/threads" }));
+  const onFilterOrigins = (next: ReadonlyArray<ThreadOrigin>) =>
+    sidebar.setFilterOrigins(next);
   const captainActions = (
     <>
       <HeaderButton label="New Captain" onClick={onNewCaptain} />
@@ -97,7 +113,8 @@ function SidebarThreadsPanelBody({
         onOrderChange={sidebar.setCaptainSort}
         density={view.density}
         onDensityChange={sidebar.setDensity}
-        onNewFolder={onNewFolder}
+        onNewFolder={() => threadActions.startNewFolder("captains")}
+        newFolderDisabledReason="The Captains list does not draw folder sections yet"
       />
     </>
   );
@@ -113,10 +130,20 @@ function SidebarThreadsPanelBody({
         onDensityChange={sidebar.setDensity}
         collapse={view.collapse}
         onCollapseChange={sidebar.setCollapse}
-        onNewFolder={onNewFolder}
-        onMarkAllRead={onMarkAllRead}
+        onNewFolder={newFolder}
+        onMarkAllRead={markAllRead}
         onSearch={onSearch}
-        onViewAll={onViewAll}
+        filterCount={view.filterOrigins.length}
+        filters={
+          origins.length === 0 ? undefined : (
+            <ThreadFiltersMenu
+              origins={origins}
+              selected={view.filterOrigins}
+              onChange={onFilterOrigins}
+            />
+          )
+        }
+        onViewAll={viewAll}
       />
     </>
   );
