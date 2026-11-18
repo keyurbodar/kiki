@@ -1,7 +1,6 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { toast } from "sonner";
 import { type ExploreCard, ExploreListing } from "@/data/api/schemas/explore";
 import { createThemeAtom, userThemeKey } from "@/data/atoms/appearance";
 import {
@@ -10,6 +9,7 @@ import {
 } from "@/features/settings-appearance/model/appearance-store";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
+import { toast } from "@/primitives/toaster";
 import { errorMessage } from "../dialogs/error-message";
 import {
   useExploreIndex,

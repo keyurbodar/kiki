@@ -2,7 +2,6 @@ import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import type { Device } from "@/data/api/schemas/devices";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { reactivityKeys } from "@/data/atoms/conventions";
@@ -12,6 +11,7 @@ import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import {
   CardListHeader,
   SettingsLoadFailedRow,

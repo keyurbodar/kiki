@@ -1,11 +1,9 @@
 import type { ReactNode, TouchEvent } from "react";
-import { toast } from "sonner";
 import {
   type MediaSource,
   mediaActions,
   mediaShortcutLabel,
 } from "@/components/media-lightbox/media-actions";
-
 import {
   ContextMenu,
   ContextMenuContent,
@@ -13,6 +11,7 @@ import {
 } from "@/primitives/context-menu";
 import { Icon } from "@/primitives/icon";
 import { MenuItem } from "@/primitives/menu";
+import { toast } from "@/primitives/toaster";
 
 export {
   copyImageBlob as copyImage,

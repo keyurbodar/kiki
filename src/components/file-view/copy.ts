@@ -1,4 +1,4 @@
-import { toast } from "sonner";
+import { toast } from "@/primitives/toaster";
 
 export function copyText(text: string, success: string, failure: string) {
   return navigator.clipboard.writeText(text).then(

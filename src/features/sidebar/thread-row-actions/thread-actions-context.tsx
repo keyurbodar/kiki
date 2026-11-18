@@ -2,7 +2,6 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult, Atom } from "effect/reactivity";
 import { createContext, type ReactNode, useContext, useState } from "react";
-import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ShareDialogProvider } from "@/components/share-dialog";
 import { useOpenShareDialog } from "@/components/share-dialog/share-dialog-context";
@@ -35,6 +34,7 @@ import {
   threadOrganizationKeys,
   unpinThreadsAtom,
 } from "@/data/atoms/threadOrganization";
+import { toast } from "@/primitives/toaster";
 import { useSidebarOrgId } from "../sidebar-threads-data/live-source";
 import { NewFolderDialog } from "./new-folder-dialog";
 

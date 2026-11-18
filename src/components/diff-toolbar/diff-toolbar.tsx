@@ -1,7 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { cx } from "class-variance-authority";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import {
   DiffWrapMenuItem,
   menuCheckClassName,
@@ -30,6 +29,7 @@ import {
   MenuTrigger,
 } from "@/primitives/menu";
 import { ResponsiveMenuItem } from "@/primitives/responsive-menu";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 
 export type DiffToolbarFile = {

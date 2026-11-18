@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { type ReactElement, useState } from "react";
-import { toast } from "sonner";
 import {
   captainReactivityKeys,
   removeCaptainLibraryImageAtom,
@@ -17,6 +16,7 @@ import {
   DialogTitle,
 } from "@/primitives/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
+import { toast } from "@/primitives/toaster";
 import { type CaptainAvatarValue, withoutImage } from "./avatar";
 import { AvatarEditor, type AvatarEditorTab } from "./avatar-editor";
 import { squarePng } from "./image-files";

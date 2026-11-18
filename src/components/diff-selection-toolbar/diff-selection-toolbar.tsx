@@ -6,9 +6,9 @@ import {
   useSyncExternalStore,
 } from "react";
 import { createPortal } from "react-dom";
-import { toast } from "sonner";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
+import { toast } from "@/primitives/toaster";
 
 export const selectionToolbarHeight = 38;
 export const selectionToolbarGap = 6;

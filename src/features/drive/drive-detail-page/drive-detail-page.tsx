@@ -1,7 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { DateTime } from "effect";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import { AppTopBar } from "@/components/app-top-bar";
 import type { VolumeVersionRow } from "@/data/api/schemas/drive";
 import type { DriveScopeQuery } from "@/data/atoms/drive";
@@ -33,6 +32,7 @@ import { VolumeHistory } from "@/features/drive/volume-history";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
+import { toast } from "@/primitives/toaster";
 import {
   cleanDraft,
   discardDraft,

@@ -1,11 +1,11 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import type { OrgId } from "@/data/api/schemas/ids";
 import {
   projectMutations,
   projectWriteKeys,
 } from "@/data/atoms/project-settings";
+import { toast } from "@/primitives/toaster";
 import { deriveProjectCode } from "./project-code";
 
 export type CreatableRepo = {

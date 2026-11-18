@@ -1,5 +1,5 @@
-import { toast } from "sonner";
 import { MenuCheckboxItem, MenuItem, MenuSeparator } from "@/primitives/menu";
+import { toast } from "@/primitives/toaster";
 import { menuIcon, menuTrailing } from "./classes";
 import {
   ArrowLeftGlyph,

@@ -1,5 +1,4 @@
 import { useRef, useState } from "react";
-import { toast } from "sonner";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { SettingsConfirmDialog } from "@/features/settings/confirm-dialog";
 import { Button, ButtonIcon } from "@/primitives/button";
@@ -8,6 +7,7 @@ import { CopyField } from "@/primitives/copy-field";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import { SettingsRow } from "@/primitives/settings-row";
+import { toast } from "@/primitives/toaster";
 import {
   type Account,
   type AccountEmail,

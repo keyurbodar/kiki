@@ -1,7 +1,6 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { toast } from "sonner";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import type { OrgId } from "@/data/api/schemas/ids.ts";
 import { Badge } from "@/primitives/badge";
@@ -19,6 +18,7 @@ import { Icon } from "@/primitives/icon";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import { SettingsRow, SettingsRowLink } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import { mcpKeys, pluginMutation } from "../model/atoms.ts";
 import { orgWide } from "../model/draft.ts";
 import { projectRef } from "../model/status.ts";

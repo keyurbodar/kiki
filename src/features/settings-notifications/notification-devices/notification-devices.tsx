@@ -2,7 +2,6 @@ import { useAtom, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import { SettingsSection } from "@/components/settings-page";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
@@ -18,6 +17,7 @@ import {
 import { Icon } from "@/primitives/icon";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import { GlobeIcon, ShareIcon } from "../notification-filter-rows/icons";
 import { SettingsSkeletonCard } from "../notification-filter-rows/settings-skeleton";
 import {

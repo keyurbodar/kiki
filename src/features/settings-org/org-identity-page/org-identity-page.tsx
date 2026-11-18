@@ -2,7 +2,6 @@ import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
 import { AsyncResult, type Atom } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import type { Organization } from "@/data/api/schemas/organization";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
@@ -63,6 +62,7 @@ import {
 } from "@/primitives/menu-select";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import {
   AddDomainDialog,
   ConnectGoogleWorkspaceDialog,

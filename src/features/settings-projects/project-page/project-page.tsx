@@ -2,7 +2,6 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useParams } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import { MachineUsageNote, useMachineUsage } from "@/components/machine-usage";
 import { formatMachine } from "@/components/plan-picker/plan-catalog";
 import { ReadGate } from "@/components/read-gate";
@@ -34,6 +33,7 @@ import {
   MenuSelectValue,
 } from "@/primitives/menu-select";
 import { SettingsRow, SettingsRowLink } from "@/primitives/settings-row";
+import { toast } from "@/primitives/toaster";
 import {
   DeleteProjectDialog,
   RenameProjectDialog,

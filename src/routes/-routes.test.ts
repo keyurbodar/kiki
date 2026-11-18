@@ -19,6 +19,7 @@ const DEV_ONLY_ROUTES = new Set([
   "/__model-picker",
   "/__new-thread-selects",
   "/__markdown",
+  "/__toasts",
 ]);
 
 // Capy ships /design as an internal render page; we deliberately do not implement it,

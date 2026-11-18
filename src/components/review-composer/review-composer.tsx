@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { type KeyboardEvent, useState, useSyncExternalStore } from "react";
-import { toast } from "sonner";
 import { CheckmarkGlyph, CrossMediumGlyph } from "@/components/review-mode";
 import { isPullClosed, type ReviewPull } from "@/components/review-section";
 import { ApiClient } from "@/data/client/ApiClient";
@@ -8,6 +7,7 @@ import { Button } from "@/primitives/button";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/primitives/drawer";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
 import { Textarea } from "@/primitives/textarea";
+import { toast } from "@/primitives/toaster";
 
 export type ReviewEvent = "comment" | "request_changes" | "approve";
 

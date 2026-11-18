@@ -5,7 +5,6 @@ import {
   type ReactNode,
   useState,
 } from "react";
-import { toast } from "sonner";
 import { SettingsSection } from "@/components/settings-page";
 import type { OrgId } from "@/data/api/schemas/ids";
 import {
@@ -40,6 +39,7 @@ import {
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { Switch } from "@/primitives/switch";
 import { Textarea } from "@/primitives/textarea";
+import { toast } from "@/primitives/toaster";
 import {
   CheckIcon,
   ChevronDownIcon,

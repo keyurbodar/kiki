@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { type FormEvent, Fragment, useState } from "react";
-import { toast } from "sonner";
 import {
   ActionButton,
   type AllowedDomain,
@@ -31,6 +30,7 @@ import {
   MenuSelectTrigger,
   MenuSelectValue,
 } from "@/primitives/menu-select";
+import { toast } from "@/primitives/toaster";
 import { TokenList } from "@/primitives/token-list";
 import { SsoRequirementBadge } from "./domain-badges";
 import {

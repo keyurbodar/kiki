@@ -1,4 +1,4 @@
-import { toast } from "sonner";
+import { toast } from "@/primitives/toaster";
 
 /**
  * Capy's bulk runner: runs one request at a time so a shared mutation atom never interrupts

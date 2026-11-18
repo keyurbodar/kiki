@@ -2,7 +2,6 @@ import { useAtomSet } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import type {
   ApiKey,
   ApiKeyId,
@@ -21,6 +20,7 @@ import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
+import { toast } from "@/primitives/toaster";
 import {
   SettingsPage,
   SettingsRow,

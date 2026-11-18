@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { projectsAtom } from "@/data/atoms/projects";
 import {
@@ -8,6 +7,7 @@ import {
   reviewReactivityKeys,
   reviewSettingsAtom,
 } from "@/data/atoms/reviews";
+import { toast } from "@/primitives/toaster";
 import {
   type AutoReviewMode,
   heldElsewhere,

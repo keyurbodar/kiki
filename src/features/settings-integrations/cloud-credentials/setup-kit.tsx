@@ -1,7 +1,6 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import type {
   CloudAccessCheck,
   CloudAccessTarget,
@@ -18,6 +17,7 @@ import {
 } from "@/data/atoms/cloud-credentials";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
+import { toast } from "@/primitives/toaster";
 import { SettingsPage, SettingsRow, SettingsSection } from "../shared";
 import { RemoveDialog, RemoveSection } from "./cloud-access-page";
 import { formatDateTime } from "./format";

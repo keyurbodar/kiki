@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import type { DesktopRequestRow } from "@/data/events";
 import {
   desktopRequestDoneMutation,
@@ -10,6 +9,7 @@ import {
   RequestViewport,
 } from "@/features/thread/request-takeover";
 import { Button } from "@/primitives/button";
+import { toast } from "@/primitives/toaster";
 
 export type DesktopRequestMachine = { label: string; reachable: boolean };
 export type DesktopRequestPhone = { machineId: string; label: string };

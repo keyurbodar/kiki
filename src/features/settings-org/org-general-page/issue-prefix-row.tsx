@@ -1,7 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import type { OrgId } from "@/data/api/schemas/ids";
 import {
   issuePrefixAtom,
@@ -10,6 +9,7 @@ import {
 } from "@/data/atoms/organizations";
 import { Input } from "@/primitives/input";
 import { SettingsRow } from "@/primitives/settings-row";
+import { toast } from "@/primitives/toaster";
 import {
   catalogRow,
   issuePrefixChange,

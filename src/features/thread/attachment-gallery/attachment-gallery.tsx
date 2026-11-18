@@ -9,7 +9,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { toast } from "sonner";
 import {
   ChevronDownSmallGlyph,
   DotsHorizontalGlyph,
@@ -33,6 +32,7 @@ import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Menu, MenuContent, MenuTrigger } from "@/primitives/menu";
 import { ResponsiveMenuItem } from "@/primitives/responsive-menu";
+import { toast } from "@/primitives/toaster";
 import {
   type AttachmentEntry,
   type ComposerUpload,

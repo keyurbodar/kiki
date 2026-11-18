@@ -3,7 +3,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { currentUserAtom } from "@/data/atoms/session";
 import {
@@ -24,6 +23,7 @@ import {
 } from "@/primitives/menu-select";
 import { SettingsRow, SettingsRowLink } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import { NotificationDevicesSection } from "../notification-devices/notification-devices";
 import {
   BellOffIcon,

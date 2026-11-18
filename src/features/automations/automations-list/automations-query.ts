@@ -1,9 +1,9 @@
 import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult, Atom } from "effect/reactivity";
-import { toast } from "sonner";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
 import { ApiClient } from "@/data/client/ApiClient";
+import { toast } from "@/primitives/toaster";
 import {
   type AutomationRow,
   decodeAutomationPage,

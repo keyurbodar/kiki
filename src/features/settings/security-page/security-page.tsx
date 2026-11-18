@@ -1,5 +1,4 @@
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { SettingsConfirmDialog } from "@/features/settings/confirm-dialog";
 import { AddPasskeyDialog } from "@/features/settings/passkeys";
@@ -10,6 +9,7 @@ import { Icon } from "@/primitives/icon";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import { PasswordDialog } from "./password-dialog";
 import {
   generateBackupCodes,

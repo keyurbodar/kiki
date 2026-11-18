@@ -4,7 +4,6 @@ import {
   type ReactNode,
   useState,
 } from "react";
-import { toast } from "sonner";
 import {
   PaletteHint,
   PaletteInput,
@@ -25,6 +24,7 @@ import {
   CommandMenuList,
 } from "@/primitives/command-menu";
 import { Icon } from "@/primitives/icon";
+import { toast } from "@/primitives/toaster";
 
 export type ProjectRepo = { fullName: string };
 

@@ -2,7 +2,6 @@ import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import {
   denyAgentAccessAtom,
   denyComputerUseAtom,
@@ -27,6 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/primitives/dialog";
+import { toast } from "@/primitives/toaster";
 import {
   type AccessAction,
   type AgentAccessRow,

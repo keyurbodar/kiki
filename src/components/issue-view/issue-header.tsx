@@ -2,7 +2,6 @@ import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import type { ReactNode } from "react";
-import { toast } from "sonner";
 import {
   ArrowCornerUpLeft,
   ArrowRotateClockwise,
@@ -37,6 +36,7 @@ import {
   MenuSeparator,
   MenuTrigger,
 } from "@/primitives/menu";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { IssueStatusGlyph } from "./property-rows";
 import {

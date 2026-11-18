@@ -1,7 +1,6 @@
 import { useAtomSet } from "@effect/atom-react";
 import { Exit } from "effect";
 import { useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/primitives/button";
 import {
   Dialog,
@@ -12,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/primitives/dialog";
+import { toast } from "@/primitives/toaster";
 import { failureMessage } from "../model-routing/actions.ts";
 import {
   removeCredentialAtom,

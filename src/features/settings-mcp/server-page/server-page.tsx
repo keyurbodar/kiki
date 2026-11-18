@@ -1,7 +1,6 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { toast } from "sonner";
 import {
   SettingsLoadingCard,
   SettingsPage,
@@ -28,6 +27,7 @@ import { Input } from "@/primitives/input";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import { mcpKeys, mcpMutation } from "../model/atoms.ts";
 import {
   draftFromServer,

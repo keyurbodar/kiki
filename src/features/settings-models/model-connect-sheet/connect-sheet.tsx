@@ -1,7 +1,6 @@
 import { useAtomSet } from "@effect/atom-react";
 import { Exit } from "effect";
 import { type ClipboardEvent, useState } from "react";
-import { toast } from "sonner";
 import {
   ConnectBack,
   ConnectFooter,
@@ -36,6 +35,7 @@ import {
   SideSheetHeader,
   SideSheetTitle,
 } from "@/primitives/side-sheet";
+import { toast } from "@/primitives/toaster";
 import { failureMessage } from "../model-routing/actions.ts";
 import {
   checkMediaUrlAtom,

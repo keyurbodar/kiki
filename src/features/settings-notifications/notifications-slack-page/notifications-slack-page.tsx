@@ -3,12 +3,12 @@ import { Link } from "@tanstack/react-router";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { currentUserAtom } from "@/data/atoms/session";
 import { Card } from "@/primitives/card";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import {
   CompletionRows,
   OriginRows,

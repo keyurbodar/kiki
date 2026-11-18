@@ -19,6 +19,7 @@ import { Route as Char91__mediaLightboxChar93RouteImport } from './routes/[__med
 import { Route as Char91__modelPickerChar93RouteImport } from './routes/[__model-picker]'
 import { Route as Char91__newThreadSelectsChar93RouteImport } from './routes/[__new-thread-selects]'
 import { Route as Char91__threadDeviceChar93RouteImport } from './routes/[__thread-device]'
+import { Route as Char91__toastsChar93RouteImport } from './routes/[__toasts]'
 import { Route as Char91__tokensChar93RouteImport } from './routes/[__tokens]'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
@@ -236,6 +237,11 @@ const Char91__threadDeviceChar93Route =
     path: '/__thread-device',
     getParentRoute: () => rootRouteImport,
   } as any)
+const Char91__toastsChar93Route = Char91__toastsChar93RouteImport.update({
+  id: '/__toasts',
+  path: '/__toasts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char91__tokensChar93Route = Char91__tokensChar93RouteImport.update({
   id: '/__tokens',
   path: '/__tokens',
@@ -1114,6 +1120,7 @@ export interface FileRoutesByFullPath {
   '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
+  '/__toasts': typeof Char91__toastsChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/desktop': typeof DesktopRoute
   '/dither-cover': typeof DitherCoverRoute
@@ -1283,6 +1290,7 @@ export interface FileRoutesByTo {
   '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
+  '/__toasts': typeof Char91__toastsChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/desktop': typeof DesktopRoute
   '/dither-cover': typeof DitherCoverRoute
@@ -1452,6 +1460,7 @@ export interface FileRoutesById {
   '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
+  '/__toasts': typeof Char91__toastsChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
   '/desktop': typeof DesktopRoute
   '/dither-cover': typeof DitherCoverRoute
@@ -1624,6 +1633,7 @@ export interface FileRouteTypes {
     | '/__model-picker'
     | '/__new-thread-selects'
     | '/__thread-device'
+    | '/__toasts'
     | '/__tokens'
     | '/desktop'
     | '/dither-cover'
@@ -1793,6 +1803,7 @@ export interface FileRouteTypes {
     | '/__model-picker'
     | '/__new-thread-selects'
     | '/__thread-device'
+    | '/__toasts'
     | '/__tokens'
     | '/desktop'
     | '/dither-cover'
@@ -1961,6 +1972,7 @@ export interface FileRouteTypes {
     | '/__model-picker'
     | '/__new-thread-selects'
     | '/__thread-device'
+    | '/__toasts'
     | '/__tokens'
     | '/desktop'
     | '/dither-cover'
@@ -2133,6 +2145,7 @@ export interface RootRouteChildren {
   Char91__modelPickerChar93Route: typeof Char91__modelPickerChar93Route
   Char91__newThreadSelectsChar93Route: typeof Char91__newThreadSelectsChar93Route
   Char91__threadDeviceChar93Route: typeof Char91__threadDeviceChar93Route
+  Char91__toastsChar93Route: typeof Char91__toastsChar93Route
   Char91__tokensChar93Route: typeof Char91__tokensChar93Route
   DesktopRoute: typeof DesktopRoute
   DitherCoverRoute: typeof DitherCoverRoute
@@ -2226,6 +2239,13 @@ declare module '@tanstack/react-router' {
       path: '/__thread-device'
       fullPath: '/__thread-device'
       preLoaderRoute: typeof Char91__threadDeviceChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__toasts': {
+      id: '/__toasts'
+      path: '/__toasts'
+      fullPath: '/__toasts'
+      preLoaderRoute: typeof Char91__toastsChar93RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/__tokens': {
@@ -3697,6 +3717,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91__modelPickerChar93Route: Char91__modelPickerChar93Route,
   Char91__newThreadSelectsChar93Route: Char91__newThreadSelectsChar93Route,
   Char91__threadDeviceChar93Route: Char91__threadDeviceChar93Route,
+  Char91__toastsChar93Route: Char91__toastsChar93Route,
   Char91__tokensChar93Route: Char91__tokensChar93Route,
   DesktopRoute: DesktopRoute,
   DitherCoverRoute: DitherCoverRoute,

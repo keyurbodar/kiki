@@ -7,7 +7,6 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { AsyncResult, Atom } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import { organizationsAtom } from "@/data/atoms/session";
 import { Button } from "@/primitives/button";
 import {
@@ -20,6 +19,7 @@ import {
 } from "@/primitives/dialog";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { Table, TableCell, TableGroup, TableRow } from "@/primitives/table";
+import { toast } from "@/primitives/toaster";
 import {
   acceptInvitationAtom,
   decodeJoinableOrganizations,

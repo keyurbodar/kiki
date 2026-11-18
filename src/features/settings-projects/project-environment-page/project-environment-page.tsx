@@ -3,7 +3,6 @@ import { useParams } from "@tanstack/react-router";
 import { DateTime } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import {
   EnvironmentVariables,
   scopeCopy,
@@ -45,6 +44,7 @@ import { Icon } from "@/primitives/icon";
 import { Input, InputGroup } from "@/primitives/input";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import { Textarea } from "@/primitives/textarea";
+import { toast } from "@/primitives/toaster";
 import { CardList, CardListTitle, StatusDot } from "../shared/card-list";
 import { cx } from "../shared/cx";
 import { Glyph } from "../shared/glyphs";

@@ -1,7 +1,6 @@
 import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { toast } from "sonner";
 import { OrgId } from "@/data/api/schemas/ids";
 import type {
   PartnerCreditOfferId,
@@ -12,6 +11,7 @@ import {
   partnerOfferAtom,
 } from "@/data/atoms/promotions";
 import { Button } from "@/primitives/button";
+import { toast } from "@/primitives/toaster";
 import { type ClaimState, claimState } from "../public-promotion/claim-outcome";
 import { partnerOfferDescription } from "../public-promotion/format";
 import {

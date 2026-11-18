@@ -3,7 +3,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { Exit } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useRef, useState } from "react";
-import { toast } from "sonner";
 import type { ComposerHandle, ComposerPayload } from "@/components/composer";
 import { copyText } from "@/components/pull-view";
 import type { JamId, OrgId } from "@/data/api/schemas/ids";
@@ -30,6 +29,7 @@ import {
   ResponsiveMenuItem,
   ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
+import { toast } from "@/primitives/toaster";
 import {
   MobileComposer,
   MobileComposerAddTrigger,

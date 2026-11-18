@@ -5,13 +5,13 @@ import {
   useRef,
   useState,
 } from "react";
-import { toast } from "sonner";
 import {
   PaletteHint,
   paletteSeparatorClass,
 } from "@/components/command-menu-search";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
+import { toast } from "@/primitives/toaster";
 
 export type ComposeProject = { id: string; name: string };
 

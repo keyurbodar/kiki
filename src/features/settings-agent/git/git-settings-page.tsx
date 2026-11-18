@@ -1,7 +1,6 @@
 import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import {
   SettingsLoadingCard,
   SettingsSection,
@@ -17,6 +16,7 @@ import {
 import { reactivityKeys } from "@/data/atoms/conventions";
 import { Button } from "@/primitives/button";
 import { SettingsRow } from "@/primitives/settings-row";
+import { toast } from "@/primitives/toaster";
 import {
   errorMessage,
   type FeedbackSettings,

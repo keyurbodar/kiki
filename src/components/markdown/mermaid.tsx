@@ -13,7 +13,6 @@ import {
 } from "react";
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
-import { toast } from "sonner";
 import { unified } from "unified";
 import { PanZoomControls } from "@/components/pan-zoom/pan-zoom-controls";
 import {
@@ -29,6 +28,7 @@ import {
   DialogTitle,
 } from "@/primitives/dialog";
 import { DotGridIcon } from "@/primitives/dot-grid-icon";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import type { MarkdownMermaidProps } from "./components";
 import {

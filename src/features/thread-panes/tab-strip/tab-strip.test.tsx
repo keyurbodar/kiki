@@ -20,7 +20,11 @@ import {
 } from "./thread-options";
 
 const toastError = vi.hoisted(() => vi.fn());
-vi.mock("sonner", () => ({
+vi.mock("@/primitives/toaster", async () => ({
+  ...(await vi.importActual<typeof import("@/primitives/toaster")>(
+    "@/primitives/toaster",
+  )),
+
   toast: Object.assign(vi.fn(), { error: toastError, success: vi.fn() }),
 }));
 

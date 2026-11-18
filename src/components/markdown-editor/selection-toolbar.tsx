@@ -17,11 +17,11 @@ import {
   useRef,
   useState,
 } from "react";
-import { toast } from "sonner";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
+import { toast } from "@/primitives/toaster";
 import {
   $getBlockKind,
   $getSelectedTableCell,

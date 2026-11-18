@@ -1,7 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 import { toCapyReview } from "@/components/activity";
 import { cx } from "@/components/activity-card";
 import { CapyMark } from "@/components/capy-logo";
@@ -34,6 +33,7 @@ import {
   MenuTrigger,
 } from "@/primitives/menu";
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   closePullAtom,

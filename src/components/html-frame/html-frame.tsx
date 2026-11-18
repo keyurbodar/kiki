@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { toast } from "sonner";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -14,6 +13,7 @@ import {
 } from "@/primitives/context-menu";
 import { DotGridIcon } from "@/primitives/dot-grid-icon";
 import { MenuItem } from "@/primitives/menu";
+import { toast } from "@/primitives/toaster";
 import {
   ARTIFACT_STORAGE_LIMIT,
   type ArtifactValues,

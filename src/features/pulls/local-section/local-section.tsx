@@ -3,11 +3,11 @@ import { Link } from "@tanstack/react-router";
 import { Exit } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import {
   ChevronDownSmallIcon,
   PullRequestIcon,
 } from "@/components/pull-view/icons";
+import { toast } from "@/primitives/toaster";
 import { localPullsAtom, removeLocalPullAtom } from "./atoms";
 import {
   decodeLocalPulls,

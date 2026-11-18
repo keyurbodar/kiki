@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import {
   denyAgentAccessAtom,
   denyComputerUseAtom,
@@ -17,6 +16,7 @@ import {
   type RawDeviceAccess,
 } from "@/features/thread/device-access-dialog";
 import type { ThreadDevice } from "@/features/thread/device-chip";
+import { toast } from "@/primitives/toaster";
 import {
   DeviceAccessOwnerTakeoverView,
   DeviceAccessRequesterTakeoverView,

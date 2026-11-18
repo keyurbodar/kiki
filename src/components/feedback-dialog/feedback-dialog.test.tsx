@@ -5,15 +5,20 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { toast } from "sonner";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { toast } from "@/primitives/toaster";
 import {
   FeedbackDialog,
   feedbackBuildId,
   feedbackPayload,
 } from "./feedback-dialog";
 
-vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("@/primitives/toaster", async () => ({
+  ...(await vi.importActual<typeof import("@/primitives/toaster")>(
+    "@/primitives/toaster",
+  )),
+  toast: { success: vi.fn(), error: vi.fn() },
+}));
 
 afterEach(() => {
   cleanup();

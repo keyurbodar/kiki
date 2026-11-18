@@ -2,7 +2,6 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 import { AppTopBar } from "@/components/app-top-bar";
 import {
   DisplayChoiceSub,
@@ -29,6 +28,7 @@ import {
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   type AutomationRow,

@@ -1,6 +1,5 @@
 import { cx } from "class-variance-authority";
 import { Fragment, type ReactNode } from "react";
-import { toast } from "sonner";
 import {
   overviewRow,
   overviewRowIcon,
@@ -34,6 +33,7 @@ import {
   MenuSeparator,
   MenuTrigger,
 } from "@/primitives/menu";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   ArrowRightGlyph,

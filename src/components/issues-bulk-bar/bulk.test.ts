@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const toastError = vi.fn();
-vi.mock("sonner", () => ({
+vi.mock("@/primitives/toaster", async () => ({
+  ...(await vi.importActual<typeof import("@/primitives/toaster")>(
+    "@/primitives/toaster",
+  )),
+
   toast: { error: (...args: unknown[]) => toastError(...args) },
 }));
 

@@ -1,8 +1,8 @@
 import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { createOrganizationAtom } from "@/data/atoms/promotions";
 import { organizationsAtom } from "@/data/atoms/session";
+import { toast } from "@/primitives/toaster";
 import { failedWithoutValue, resultValue } from "./results";
 
 export type PromotionOrganization = {

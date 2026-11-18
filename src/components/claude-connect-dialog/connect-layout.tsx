@@ -1,5 +1,4 @@
 import { type ReactNode, useEffect, useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/primitives/button";
 import {
   Dialog,
@@ -19,6 +18,7 @@ import {
   SideSheetHeader,
   SideSheetTitle,
 } from "@/primitives/side-sheet";
+import { toast } from "@/primitives/toaster";
 import {
   ArrowUpRightGlyph,
   CheckGlyph,

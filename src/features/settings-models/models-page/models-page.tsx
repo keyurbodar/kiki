@@ -1,9 +1,9 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Exit } from "effect";
 import { useState } from "react";
-import { toast } from "sonner";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { Card } from "@/primitives/card";
+import { toast } from "@/primitives/toaster";
 import { AddConnectionSheet } from "../add-connection-sheet";
 import { ModelDefaultsSection } from "../model-defaults/model-defaults-section";
 import {

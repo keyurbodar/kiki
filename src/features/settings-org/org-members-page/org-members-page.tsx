@@ -2,7 +2,6 @@ import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { DateTime } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { type FormEvent, memo, useState } from "react";
-import { toast } from "sonner";
 import { FailedRead } from "@/components/failed-read";
 import { SettingsPage } from "@/components/settings-page";
 import type { Organization } from "@/data/api/schemas/organization";
@@ -46,6 +45,7 @@ import {
   TableRow,
 } from "@/primitives/table";
 import { Textarea } from "@/primitives/textarea";
+import { toast } from "@/primitives/toaster";
 import { MemberAvatar } from "./avatar";
 import {
   type AccessLevel,

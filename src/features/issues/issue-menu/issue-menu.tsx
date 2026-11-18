@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
-import { toast } from "sonner";
 import { ActorAvatar, type ActorSources } from "@/components/actor-filter";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type {
@@ -23,6 +22,7 @@ import {
   MenuSubTrigger,
 } from "@/primitives/menu";
 import { CheckmarkGlyph } from "@/primitives/responsive-menu/glyphs";
+import { toast } from "@/primitives/toaster";
 import {
   IssueLabelDot,
   IssuePriorityIcon,

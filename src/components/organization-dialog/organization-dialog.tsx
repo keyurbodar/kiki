@@ -8,7 +8,6 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { AsyncResult, Atom } from "effect/reactivity";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import { AvatarEditor } from "@/components/avatar-editor";
 import { ChoiceRow, ChoiceRowGroup } from "@/components/choice-row";
 import { OrgId } from "@/data/api/schemas/ids";
@@ -40,6 +39,7 @@ import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import { Label } from "@/primitives/label";
 import { SettingsRow } from "@/primitives/settings-row";
+import { toast } from "@/primitives/toaster";
 import { JoinOrganizationChoices } from "./join-organization-choices";
 import {
   dialogCopy,

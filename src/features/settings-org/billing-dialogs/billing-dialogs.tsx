@@ -1,7 +1,6 @@
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { useAtomSet } from "@effect/atom-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import { PlanPicker, type PlanPickerStage } from "@/components/plan-picker";
 import { StripeCardForm } from "@/components/stripe-card-form";
 import {
@@ -49,6 +48,7 @@ import {
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { Switch } from "@/primitives/switch";
 import { Textarea } from "@/primitives/textarea";
+import { toast } from "@/primitives/toaster";
 import {
   useBillingAdmin,
   useBillingOrgId,

@@ -2,7 +2,6 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import { AppTopBar } from "@/components/app-top-bar";
 import { useMachineUsage } from "@/components/machine-usage";
 import type { OrgId } from "@/data/api/schemas/ids";
@@ -34,6 +33,7 @@ import {
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import { AutomationUsageSection } from "../automation-usage";
 import { OwnerSelect } from "../owner-select";
 import { RunsInRows, RunsInSelect, useProjectThreads } from "../runs-in-select";

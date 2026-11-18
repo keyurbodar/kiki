@@ -1,10 +1,10 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { toast } from "sonner";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { SettingsRow } from "@/primitives/settings-row";
+import { toast } from "@/primitives/toaster";
 
 export type SkillListingVersion = {
   id: string;

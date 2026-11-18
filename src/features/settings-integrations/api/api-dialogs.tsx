@@ -1,7 +1,6 @@
 import { useAtomSet } from "@effect/atom-react";
 import { DateTime } from "effect";
 import { type FormEvent, useState } from "react";
-import { toast } from "sonner";
 import type { ServiceUser, ServiceUserRole } from "@/data/api/schemas/api-keys";
 import { type OrgId, ServiceUserId } from "@/data/api/schemas/ids";
 import {
@@ -28,6 +27,7 @@ import {
   MenuSelectValue,
 } from "@/primitives/menu-select";
 import { Textarea } from "@/primitives/textarea";
+import { toast } from "@/primitives/toaster";
 import {
   type ExpirationChoice,
   errorMessage,
