@@ -35,6 +35,8 @@ export type ThreadHeaderProps = {
   /** The thread's spend, as the cost badge renders it. */
   cost?: ReactNode;
   expanded?: boolean;
+  /** A dock pane is open, so expanding has something to fill the panel with. */
+  canExpand?: boolean;
   menu?: TabMenuOptions;
   onSelectChat: () => void;
   onSelectTab: (id: string) => void;
@@ -58,6 +60,7 @@ export function ThreadHeader({
   activeId,
   cost,
   expanded = false,
+  canExpand = true,
   menu,
   onSelectChat,
   onSelectTab,
@@ -103,24 +106,26 @@ export function ThreadHeader({
               </MenuItem>
             </MenuContent>
           </Menu>
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={expanded ? "Collapse pane" : "Expand pane"}
-                  aria-pressed={expanded}
-                  onClick={onToggleExpand}
-                >
-                  <Icon name="expand-45" size="sm" />
-                </Button>
-              }
-            />
-            <TooltipContent side="bottom">
-              {expanded ? "Collapse pane" : "Expand pane"}
-            </TooltipContent>
-          </Tooltip>
+          {canExpand && (
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={expanded ? "Collapse pane" : "Expand pane"}
+                    aria-pressed={expanded}
+                    onClick={onToggleExpand}
+                  >
+                    <Icon name="expand-45" size="sm" />
+                  </Button>
+                }
+              />
+              <TooltipContent side="bottom">
+                {expanded ? "Collapse pane" : "Expand pane"}
+              </TooltipContent>
+            </Tooltip>
+          )}
         </>
       }
     >
