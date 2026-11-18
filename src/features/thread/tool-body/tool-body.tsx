@@ -25,6 +25,25 @@ const timedOut = (data: unknown) =>
   data !== null &&
   (data as Record<string, unknown>).timed_out === true;
 
+/**
+ * The tools whose body is what they said, not what they printed. Capy keeps
+ * this as a per-tool spec; the field is where the words live in the call.
+ */
+const PROSE_FIELD: Record<string, string> = {
+  message_agent: "text",
+  end_turn: "reason",
+  environment_request_variables: "reason",
+  request_desktop: "reason",
+  pr_comment: "body",
+  slack_post_to_channel: "text",
+  review_rule_create: "body",
+  review_rule_update: "body",
+  memory_save: "body",
+};
+
+/** A terminal call shows its command head and outcome; the output lives in the pane. */
+const TERMINAL_TOOLS: ReadonlySet<string> = new Set(["request_terminal"]);
+
 /** A JSON block renders as the indented document Capy prints, beside the text. */
 const blockText = (block: Block) => {
   if (block.type === "text") return block.text;
@@ -59,6 +78,8 @@ const hasUnknownBlocks = (row: ToolRow) =>
 
 export function hasToolBody(row: ToolRow) {
   return (
+    PROSE_FIELD[row.toolName] !== undefined ||
+    TERMINAL_TOOLS.has(row.toolName) ||
     patchForTool(row.toolName, row.args) !== undefined ||
     field(row.args, "command") !== undefined ||
     field(row.call?.input, "command") !== undefined ||
@@ -90,7 +111,29 @@ const statusOf = (row: ToolRow): Status | undefined => {
 
 export type ToolBodyProps = { row: ToolRow };
 
+/** The prose body: the words the call carried, in Capy's muted reading tone. */
+function ProseBody({ text }: { text: string | undefined }) {
+  return (
+    <div className="kiki-prose-body overflow-x-hidden overflow-y-auto md:scroll-fade-y">
+      {text === undefined ? (
+        <p className="text-sm text-muted-foreground-3">No text</p>
+      ) : (
+        <p className="text-sm break-words whitespace-pre-wrap text-muted-foreground-2">
+          {text}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function ToolBody({ row }: ToolBodyProps) {
+  const proseField = PROSE_FIELD[row.toolName];
+  if (proseField !== undefined)
+    return (
+      <ProseBody
+        text={field(row.args, proseField) ?? field(row.call?.input, proseField)}
+      />
+    );
   const patch = patchForTool(row.toolName, row.args);
   if (patch !== undefined)
     return (
@@ -102,7 +145,9 @@ export function ToolBody({ row }: ToolBodyProps) {
     );
   const command =
     field(row.args, "command") ?? field(row.call?.input, "command");
-  const { text: output, trimmed } = cleanOutput(resultText(row));
+  const { text: output, trimmed } = cleanOutput(
+    TERMINAL_TOOLS.has(row.toolName) ? "" : resultText(row),
+  );
   const files = resultFiles(row);
   const unknown = hasUnknownBlocks(row);
   const status = statusOf(row);

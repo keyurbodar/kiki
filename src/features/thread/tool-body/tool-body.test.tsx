@@ -212,6 +212,53 @@ it("opens a panel for a write call that returned nothing else", () => {
   ).toBe(true);
 });
 
+it("shows what a prose tool said, not what it printed", () => {
+  const { container } = render(
+    <ToolBody
+      row={toolRow({
+        toolName: "message_agent",
+        args: { to: "2", text: "Re-run shard 3 before you push." },
+        result: {
+          blocks: [{ type: "text", text: "Delivered to Subagent 2." }],
+          isError: false,
+          settledAt: at(2_400),
+        },
+      })}
+    />,
+  );
+  expect(container.textContent).toContain("Re-run shard 3 before you push.");
+  expect(container.textContent).not.toContain("Delivered to Subagent 2.");
+});
+
+it("says No text when a prose tool carried none", () => {
+  const { container } = render(
+    <ToolBody
+      row={toolRow({ toolName: "end_turn", args: {}, result: undefined })}
+    />,
+  );
+  expect(container.textContent).toContain("No text");
+});
+
+it("shows a terminal call's command head and outcome without its output", () => {
+  const { container } = render(
+    <ToolBody
+      row={toolRow({
+        toolName: "request_terminal",
+        args: { command: "bun run seed" },
+        result: {
+          blocks: [{ type: "text", text: "seeded 40 rows" }],
+          data: { exit_code: 0 },
+          isError: false,
+          settledAt: at(2_400),
+        },
+      })}
+    />,
+  );
+  expect(container.textContent).toContain("bun run seed");
+  expect(container.textContent).toContain("exit 0");
+  expect(container.textContent).not.toContain("seeded 40 rows");
+});
+
 it("renders a coloured, carriage-returned output as the terminal would", () => {
   const { container } = render(
     <ToolBody
