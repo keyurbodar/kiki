@@ -15,6 +15,10 @@ export const imageDataUrl = (bytes: Uint8Array) =>
 export const wallpaperSource = (body: unknown): string | undefined => {
   if (body instanceof Uint8Array) return imageDataUrl(body);
   if (typeof body === "string" && body !== "") return body;
+  if (typeof body === "object" && body !== null && "url" in body) {
+    const { url } = body as { url?: unknown };
+    if (typeof url === "string" && url !== "") return url;
+  }
   return undefined;
 };
 

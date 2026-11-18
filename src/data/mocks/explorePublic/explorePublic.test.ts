@@ -86,7 +86,7 @@ describe("explorePublic mock", () => {
         registry,
         wallpaperAtom,
       )) as Icon;
-      assert.include(image.url, "/themes/absolutely.png");
+      assert.match(image.url, /^data:image\/png;base64,iVBOR/);
       assert.strictEqual(image.mimeType, "image/png");
     }),
   );
