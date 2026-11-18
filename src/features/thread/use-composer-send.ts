@@ -28,7 +28,10 @@ export function useComposerSend(jamId?: string) {
     if (jamId === undefined || orgId === undefined) return false;
     send({
       params: { orgId, jamId },
-      payload: { text: payload.text },
+      payload: {
+        text: payload.text,
+        ...(payload.files.length === 0 ? {} : { files: payload.files }),
+      },
       reactivityKeys: [jamEventKey(jamId)],
     }).catch(() => toast.error("Could not send the message"));
     return true;

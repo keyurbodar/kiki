@@ -3,9 +3,15 @@ import { cx } from "class-variance-authority";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useMemo, useState } from "react";
 import { AppTopBar } from "@/components/app-top-bar";
-import { Composer } from "@/components/composer";
+import { Composer, type ComposerPayload } from "@/components/composer";
+import type { OrgId } from "@/data/api/schemas/ids";
 import { threadMachinesAtom } from "@/data/atoms/setup";
 import type { TimelineRow } from "@/data/events";
+import {
+  ComposerAttachments,
+  useComposerAttachments,
+  useFileUploader,
+} from "@/features/composer/attachments";
 import {
   ComposerFooter,
   type FooterMachine,
@@ -216,8 +222,16 @@ export function ThreadView({
   composer,
   takeover,
 }: ThreadViewProps) {
-  const submit = useComposerSend(threadId);
+  const send = useComposerSend(threadId);
   const orgId = handlers.orgId;
+  const attachments = useComposerAttachments(
+    useFileUploader(orgId as OrgId | undefined),
+  );
+  const submit = (payload: ComposerPayload) => {
+    if (!send(payload)) return false;
+    attachments.clearSent();
+    return true;
+  };
   const machineRows = useAtomValue(
     orgId === undefined
       ? threadMachinesAtom("" as never, threadId)
@@ -297,7 +311,17 @@ export function ThreadView({
               <div className="min-h-0 px-4 pb-[calc(var(--spacing)+var(--safe-bottom))]">
                 <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col justify-end">
                   {active === undefined ? (
-                    (composer ?? <Composer onSubmit={submit} />)
+                    (composer ?? (
+                      <Composer
+                        onSubmit={submit}
+                        onFilesAdded={attachments.add}
+                        attachments={
+                          <ComposerAttachments attachments={attachments} />
+                        }
+                        hasAttachments={attachments.entries.length > 0}
+                        uploading={attachments.uploading}
+                      />
+                    ))
                   ) : (
                     <ComposerTakeover {...active} />
                   )}

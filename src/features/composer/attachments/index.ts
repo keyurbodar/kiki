@@ -8,6 +8,5 @@ export * from "./icons";
 export * from "./paste";
 export * from "./progress-ring";
 export * from "./upload";
-export * from "./use-attachment-drop";
 export * from "./use-composer-attachments";
 export * from "./use-file-uploader";

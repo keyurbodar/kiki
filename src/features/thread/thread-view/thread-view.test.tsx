@@ -1,5 +1,5 @@
 import { RegistryProvider } from "@effect/atom-react";
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, render, waitFor } from "@testing-library/react";
 import { Schema } from "effect";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -61,6 +61,19 @@ const messages = rows.filter(
   (row) => row.type === "user-message" || row.type === "agent-message",
 );
 
+/** happy-dom's DragEvent drops its `dataTransfer` init, so the handlers get the fields they read. */
+const dragOver = (target: EventTarget) => {
+  const event = new Event("dragenter", { bubbles: true, cancelable: true });
+  Object.defineProperty(event, "dataTransfer", {
+    value: {
+      types: ["Files"],
+      files: [new File(["#"], "capy-shot.png", { type: "image/png" })],
+      dropEffect: "none",
+    },
+  });
+  target.dispatchEvent(event);
+};
+
 describe("thread view composer slot", () => {
   it("shows the composer on a thread with nothing waiting", () => {
     const { container } = renderRoute(timeline({ rows: messages }));
@@ -69,6 +82,14 @@ describe("thread view composer slot", () => {
     expect(slot(container, "composer-footer")).not.toBeNull();
     expect(slot(container, "clarify-takeover")).toBeNull();
     expect(slot(container, "request-takeover")).toBeNull();
+  });
+
+  it("takes files dragged onto the thread's composer", async () => {
+    const { container } = renderRoute(timeline({ rows: messages }));
+    dragOver(slot(container, "composer") as HTMLElement);
+    await waitFor(() =>
+      expect(document.body.textContent).toContain("Drop files to attach"),
+    );
   });
 
   it("replaces the composer with the clarify takeover", () => {
