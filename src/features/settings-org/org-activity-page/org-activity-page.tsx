@@ -10,7 +10,7 @@ import {
   orgHourlyActivityAtom,
   orgMembersAtom,
 } from "@/data/atoms/activity";
-import { organizationsAtom } from "@/data/atoms/session";
+import { organizationsAtom, useActiveOrgId } from "@/data/atoms/session";
 import { Button } from "@/primitives/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
 import {
@@ -229,12 +229,7 @@ const resultValueOf = <A, E>(result: AsyncResult.AsyncResult<A, E>) =>
 const failedOf = <A, E>(result: AsyncResult.AsyncResult<A, E>) =>
   AsyncResult.isFailure(result) && result.previousSuccess._tag === "None";
 
-function useOrgId() {
-  const organizations = useAtomValue(organizationsAtom);
-  return AsyncResult.isSuccess(organizations)
-    ? (organizations.value[0]?.id as string | undefined)
-    : undefined;
-}
+const useOrgId = useActiveOrgId;
 
 /** The organizations read, so a failed one is not mistaken for "no org yet". */
 function useOrgRead() {

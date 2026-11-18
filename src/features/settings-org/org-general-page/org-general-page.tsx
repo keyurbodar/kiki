@@ -15,7 +15,7 @@ import {
   updateOrganizationAtom,
   updateOrganizationAvatarAtom,
 } from "@/data/atoms/organizations";
-import { organizationsAtom } from "@/data/atoms/session";
+import { organizationsAtom, useActiveOrgId } from "@/data/atoms/session";
 import { readAvatarUploadTarget, uploadToTarget } from "@/lib/upload";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
@@ -34,10 +34,11 @@ import { SharingSection } from "./sharing-section";
 /** Settings → Organization → General for the active organization. */
 export function SettingsOrgGeneralPage() {
   const organizations = useAtomValue(organizationsAtom);
+  const activeOrgId = useActiveOrgId();
   const list = AsyncResult.isSuccess(organizations)
     ? organizations.value
     : undefined;
-  const active = list?.[0];
+  const active = list?.find((organization) => organization.id === activeOrgId);
   if (list === undefined || active === undefined) return null;
   return <OrgGeneral orgId={active.id} organizations={list} />;
 }

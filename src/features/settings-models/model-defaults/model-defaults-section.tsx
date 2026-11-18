@@ -4,7 +4,11 @@ import {
   SettingsLoadFailedRow,
   SettingsSection,
 } from "@/components/settings-page";
-import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
+import {
+  currentUserAtom,
+  organizationsAtom,
+  useActiveOrgId,
+} from "@/data/atoms/session";
 import { toast } from "@/primitives/toaster";
 import { DefaultModelsSection } from "./model-chooser";
 import {
@@ -31,8 +35,9 @@ export function ModelDefaultsSection() {
   const user = useAtomValue(currentUserAtom);
   const organizations = useAtomValue(organizationsAtom);
   const catalogResult = useAtomValue(modelsCatalogAtom);
+  const activeOrgId = useActiveOrgId();
   const organization = AsyncResult.isSuccess(organizations)
-    ? organizations.value[0]
+    ? organizations.value.find((candidate) => candidate.id === activeOrgId)
     : undefined;
   const orgId = organization?.id ?? "";
   const slack = useAtomValue(surfaceDefaultModelAtom(orgId, "slack"));

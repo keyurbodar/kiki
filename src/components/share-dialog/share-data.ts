@@ -4,7 +4,7 @@ import { AsyncResult, Atom } from "effect/reactivity";
 import { useMemo } from "react";
 import { JamId, OrgId } from "@/data/api/schemas/ids";
 import { queryTimeToLive, reactivityKeys } from "@/data/atoms/conventions";
-import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
+import { currentUserAtom, organizationsAtom, useActiveOrgId } from "@/data/atoms/session";
 import { ApiClient } from "@/data/client/ApiClient";
 
 export type Visibility = "shared" | "private";
@@ -288,7 +288,9 @@ export const displayName = (member: OrgMember) =>
   undefined;
 
 export function useActiveOrg() {
-  return resultValue(useAtomValue(organizationsAtom))?.[0];
+  const organizations = resultValue(useAtomValue(organizationsAtom));
+  const activeOrgId = useActiveOrgId();
+  return organizations?.find((organization) => organization.id === activeOrgId);
 }
 
 export function useViewer() {

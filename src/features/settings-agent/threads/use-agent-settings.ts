@@ -1,7 +1,11 @@
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult, Atom } from "effect/reactivity";
 import { feedbackSettingsAtom } from "@/data/atoms/agent-settings";
-import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
+import {
+  currentUserAtom,
+  organizationsAtom,
+  useActiveOrgId,
+} from "@/data/atoms/session";
 import {
   type FeedbackSettings,
   readAgentPreferences,
@@ -13,7 +17,10 @@ import {
 /** The signed-in org (kiki has one org per session until the shell picks one), and whether its list is refetching. */
 export function useActiveOrganization() {
   const result = useAtomValue(organizationsAtom);
-  const query = settingsQuery(result, (items) => items[0]);
+  const activeOrgId = useActiveOrgId();
+  const query = settingsQuery(result, (items) =>
+    items.find((item) => item.id === activeOrgId),
+  );
   return {
     organization: query.value,
     waiting: query.loading,

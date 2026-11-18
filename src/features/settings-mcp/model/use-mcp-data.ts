@@ -61,13 +61,7 @@ const nullable =
 /** The organizations read, so a page can tell a pending one from a failed one. */
 export const useActiveOrgRead = () => useAtomValue(organizationsAtom);
 
-export const useActiveOrgId = (): OrgId | undefined =>
-  readyValue(
-    loadable(
-      useAtomValue(organizationsAtom),
-      (value) => value as ReadonlyArray<{ readonly id: OrgId }>,
-    ),
-  )?.[0]?.id;
+export { useActiveOrgId } from "@/data/atoms/session";
 
 const idle = idleAtom();
 

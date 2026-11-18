@@ -21,6 +21,7 @@ import {
   organizationsAtom,
   resolveActiveOrgId,
   selectedOrgIdAtom,
+  useSelectOrganization,
 } from "@/data/atoms/session";
 import { AuthService, authRuntime } from "@/data/auth";
 import { Icon } from "@/primitives/icon";
@@ -108,7 +109,7 @@ export function UserMenu({ compact = false, ...props }: UserMenuProps) {
     Option.getOrUndefined(AsyncResult.value(useAtomValue(organizationsAtom))) ??
     [];
   const selectedOrgId = useAtomValue(selectedOrgIdAtom);
-  const selectOrg = useAtomSet(selectedOrgIdAtom);
+  const selectOrg = useSelectOrganization();
   const openCreateOrganization = useAtomSet(createOrganizationDialogOpenAtom);
   const signOut = useAtomSet(signOutAtom, { mode: "promise" });
   const activeOrgId = resolveActiveOrgId(organizations, selectedOrgId);

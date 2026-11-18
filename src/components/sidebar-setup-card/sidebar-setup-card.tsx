@@ -3,7 +3,7 @@ import { AsyncResult } from "effect/reactivity";
 import { type ComponentProps, useState } from "react";
 import { CircleDashedIcon, CrossMediumIcon } from "@/components/release";
 import { idleAtom } from "@/data/atoms/idle";
-import { organizationsAtom } from "@/data/atoms/session";
+import { useActiveOrgId } from "@/data/atoms/session";
 import { Button } from "@/primitives/button";
 import { Dialog, DialogContent } from "@/primitives/dialog";
 import {
@@ -29,10 +29,7 @@ export function SidebarSetupCard({
   className,
   ...props
 }: SidebarSetupCardProps) {
-  const organizations = useAtomValue(organizationsAtom);
-  const orgId = AsyncResult.isSuccess(organizations)
-    ? organizations.value[0]?.id
-    : undefined;
+  const orgId = useActiveOrgId();
   const status = useAtomValue(
     orgId === undefined ? idleStatus : onboardingStatusAtom(orgId),
   );

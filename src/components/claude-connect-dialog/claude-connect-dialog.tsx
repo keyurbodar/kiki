@@ -1,8 +1,7 @@
-import { useAtomSet, useAtomValue } from "@effect/atom-react";
+import { useAtomSet } from "@effect/atom-react";
 import { Exit } from "effect";
-import { AsyncResult } from "effect/reactivity";
 import { type ComponentProps, useState } from "react";
-import { organizationsAtom } from "@/data/atoms/session";
+import { useActiveOrgId } from "@/data/atoms/session";
 import { ApiClient } from "@/data/client/ApiClient";
 import { Button } from "@/primitives/button";
 import { Input } from "@/primitives/input";
@@ -51,10 +50,7 @@ export function ClaudeConnectDialog({
   className,
   ...props
 }: ClaudeConnectDialogProps) {
-  const organizations = useAtomValue(organizationsAtom);
-  const orgId = AsyncResult.isSuccess(organizations)
-    ? (organizations.value[0]?.id as string | undefined)
-    : undefined;
+  const orgId = useActiveOrgId();
   const connect = useAtomSet(connectClaudeSeatAtom, { mode: "promiseExit" });
   const [token, setToken] = useState("");
   const [label, setLabel] = useState(reconnect?.label ?? "");

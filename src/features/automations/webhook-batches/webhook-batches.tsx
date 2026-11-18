@@ -3,7 +3,7 @@ import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useEffect, useMemo, useState } from "react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { organizationsAtom } from "@/data/atoms/session";
+import { useActiveOrgId } from "@/data/atoms/session";
 import { Button, ButtonIcon } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { toast } from "@/primitives/toaster";
@@ -44,10 +44,7 @@ const usePage = (result: AsyncResult.AsyncResult<unknown, unknown>) =>
   );
 
 function useOrgId() {
-  const organizations = useAtomValue(organizationsAtom);
-  return AsyncResult.isSuccess(organizations)
-    ? organizations.value[0]?.id
-    : undefined;
+  return useActiveOrgId();
 }
 
 export function AutomationBatchesSection(props: AutomationBatchesSectionProps) {

@@ -1,7 +1,7 @@
 import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult, Atom } from "effect/reactivity";
-import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
+import { currentUserAtom } from "@/data/atoms/session";
 import { ApiClient } from "@/data/client/ApiClient";
 import { toast } from "@/primitives/toaster";
 import {
@@ -78,13 +78,10 @@ export const optimisticAutomationsAtom = Atom.make<OptimisticAutomations>(
   emptyOptimistic,
 ).pipe(Atom.keepAlive);
 
+export { useActiveOrgId } from "@/data/atoms/session";
+
 const resultOf = <A, E>(result: AsyncResult.AsyncResult<A, E>) =>
   Option.getOrUndefined(AsyncResult.value(result));
-
-/** The first organization stands in for the active one, as Session does. */
-export function useActiveOrgId() {
-  return resultOf(useAtomValue(organizationsAtom))?.[0]?.id;
-}
 
 export type Viewer = {
   readonly id: string | undefined;

@@ -8,6 +8,7 @@ import {
   auditPageAtom,
   auditPagesAtom,
 } from "@/data/atoms/audit.ts";
+import { useActiveOrgId } from "@/data/atoms/session";
 import { organizationsAtom } from "@/data/atoms/session.ts";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
@@ -60,12 +61,7 @@ const closeIcon = <Icon name="x" size="xs" />;
 const debounceMs = 250;
 const timestampBase = 1772432400000;
 
-function useOrgId() {
-  const organizations = useAtomValue(organizationsAtom);
-  return AsyncResult.isSuccess(organizations)
-    ? (organizations.value[0]?.id as string | undefined)
-    : undefined;
-}
+const useOrgId = useActiveOrgId;
 
 /** The organizations read, so a failed one is not mistaken for "no org yet". */
 function useOrgRead() {

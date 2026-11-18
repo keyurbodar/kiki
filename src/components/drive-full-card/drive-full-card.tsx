@@ -2,7 +2,7 @@ import { useAtom, useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
-import { organizationsAtom } from "@/data/atoms/session";
+import { organizationsAtom, useActiveOrgId } from "@/data/atoms/session";
 import { planDialogAtom } from "@/lib/plan-dialog";
 import { Button, type ButtonProps } from "@/primitives/button";
 import { Card, CardContent } from "@/primitives/card";
@@ -19,7 +19,10 @@ function useIsOrgAdmin() {
   const organizations = Option.getOrUndefined(
     AsyncResult.value(useAtomValue(organizationsAtom)),
   );
-  const accessLevel = organizations?.[0]?.accessLevel;
+  const activeOrgId = useActiveOrgId();
+  const accessLevel = organizations?.find(
+    (organization) => organization.id === activeOrgId,
+  )?.accessLevel;
   return accessLevel === "admin" || accessLevel === "owner";
 }
 
