@@ -2,6 +2,7 @@ import { Link, type LinkProps } from "@tanstack/react-router";
 import type { MouseEventHandler, ReactNode } from "react";
 import { Input } from "@/primitives/input";
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
+import { SettingsNavPopups } from "./settings-nav-popups";
 
 const cx = (...parts: Array<string | false | null | undefined>) =>
   parts.filter(Boolean).join(" ");
@@ -119,7 +120,7 @@ export function SettingsSidebar({
       </div>
       <ScrollArea className="min-h-0 flex-1 md:[--scroll-fade-surface:var(--chrome)]">
         <ScrollAreaViewport className="size-full">
-          <div className="flex flex-col gap-4 px-2 py-1">
+          <SettingsNavPopups className="flex flex-col gap-4 px-2 py-1">
             {searchActive ? (
               <nav
                 aria-label="Settings search results"
@@ -175,6 +176,9 @@ export function SettingsSidebar({
                     <Link
                       key={link.to}
                       to={link.to}
+                      data-slot="context-menu-trigger"
+                      data-nav-row={link.to}
+                      data-nav-label={link.label}
                       activeProps={{ className: "active" }}
                       className={cx(
                         settingsSidebarNavLinkClass,
@@ -188,7 +192,7 @@ export function SettingsSidebar({
                 </nav>
               ))
             )}
-          </div>
+          </SettingsNavPopups>
         </ScrollAreaViewport>
       </ScrollArea>
       <footer className="shrink-0 border-t-[0.03125rem] border-border-1 p-2">
