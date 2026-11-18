@@ -23,6 +23,7 @@ const card: ThemeListingCard = {
   version: "1.0.0",
   updatedAt: Date.UTC(2026, 9, 2, 12),
   featuredRank: null,
+  popularRank: null,
   theme: { light: {}, dark: {} },
 };
 

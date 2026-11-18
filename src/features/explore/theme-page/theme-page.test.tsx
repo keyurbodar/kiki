@@ -58,6 +58,7 @@ const listing = new ExploreListing({
     category: null,
     firstListedAt: null,
     featuredRank: null,
+    popularRank: null,
     hasIcon: false,
     repository: null,
     stars: null,

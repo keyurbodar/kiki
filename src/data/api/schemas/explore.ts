@@ -57,6 +57,8 @@ export class ExploreCard extends Schema.Class<ExploreCard>("ExploreCard")({
   category: Schema.NullOr(ListingCategory),
   firstListedAt: Schema.NullOr(Timestamp),
   featuredRank: Schema.NullOr(Schema.Number),
+  /** Position in the Popular section, which is a server-side ordering: the grid draws these first, ascending. */
+  popularRank: Schema.NullOr(Schema.Number),
   hasIcon: Schema.Boolean,
   repository: Schema.NullOr(Schema.String),
   stars: Schema.NullOr(Schema.Number),
