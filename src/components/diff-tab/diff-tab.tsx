@@ -93,8 +93,7 @@ export function DiffTab({
   });
 
   const diffLoaded = diffState.status !== "loading";
-  // biome-ignore lint/correctness/useExhaustiveDependencies: an anchor that names
-  // another file only lands once the rail selection has switched to it.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: an anchor that names another file only lands once the rail selection has switched to it.
   useEffect(() => {
     if (anchor !== null && diffLoaded) return focusAnchor(anchor);
   }, [anchor, diffLoaded, selectedPath]);
