@@ -27,12 +27,30 @@ export const org = {
 
 export type Role = "owner" | "admin" | "member";
 
+/** Capy's Captain avatar presets, which double as the demo org's faces. */
+const personAvatars = Object.values(
+  import.meta.glob<string>("../../../assets/brand/avatars/capy-avatar-*.png", {
+    eager: true,
+    query: "?url",
+    import: "default",
+  }),
+).sort();
+
+let personAvatarIndex = 0;
+const nextAvatar = () => {
+  const url = personAvatars[personAvatarIndex % personAvatars.length];
+  personAvatarIndex += 1;
+  return url ?? "";
+};
+
 export interface Person {
   readonly id: string;
   readonly firstName: string;
   readonly lastName: string;
   readonly email: string;
   readonly githubLogin: string;
+  /** The face the member directory resolves an id to; Capy's member rows carry it as `imageUrl`. */
+  readonly imageUrl: string;
   readonly role: Role;
   readonly joinedAt: string;
 }
@@ -48,6 +66,7 @@ const person = (
   lastName,
   email: `${firstName.toLowerCase()}@example.com`,
   githubLogin: `${firstName.toLowerCase()}-sample`,
+  imageUrl: nextAvatar(),
   role,
   joinedAt: isoMinutesAgo(joinedDaysAgo * day),
 });
@@ -58,6 +77,7 @@ const capturedAuthor = (displayName: string): Person => ({
   lastName: "",
   email: "",
   githubLogin: "",
+  imageUrl: nextAvatar(),
   role: "member",
   joinedAt: isoMinutesAgo(90 * day),
 });

@@ -6,6 +6,7 @@ import { orgId, people } from "../fixtures/world.ts";
 
 interface Member {
   readonly id: string;
+  readonly imageUrl: string;
   readonly role: string;
   readonly removedAt: string | null;
   readonly mfaExtension: string | null;
@@ -48,6 +49,10 @@ describe("members mock", () => {
       assert.isAbove(rows.length, 0);
       assert.isTrue(
         rows.some((row) => row.id === people.alex.id && row.role === "owner"),
+      );
+      assert.isTrue(
+        rows.every((row) => row.imageUrl.startsWith("/")),
+        "every member resolves to a face the directory can paint",
       );
       assert.strictEqual(
         rows.find((row) => row.id === people.sam.id)?.mfaExtension,

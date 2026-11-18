@@ -1,4 +1,5 @@
 import { DateTime } from "effect";
+import { CAPY_ILLUSTRATIONS } from "@/assets/brand";
 import { ProjectId } from "../../api/schemas/ids.ts";
 import {
   Project,
@@ -7,6 +8,14 @@ import {
 } from "../../api/schemas/project.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { people, projects as worldProjects } from "../fixtures/world.ts";
+
+/** Capy's own art stand-ins for a project logo; the sidebar chip renders this image. */
+const projectLogos = [
+  CAPY_ILLUSTRATIONS.peer,
+  CAPY_ILLUSTRATIONS.build,
+  CAPY_ILLUSTRATIONS.review,
+  CAPY_ILLUSTRATIONS.detective,
+] as const;
 
 const project = (options: {
   readonly id: string;
@@ -17,6 +26,7 @@ const project = (options: {
   readonly repos: ReadonlyArray<string>;
   readonly deleted?: boolean;
   readonly touchedMinutesAgo: number;
+  readonly logoIndex?: number;
 }) =>
   new Project({
     id: ProjectId.make(options.id),
@@ -25,7 +35,10 @@ const project = (options: {
     description: null,
     icon: options.icon,
     color: options.color,
-    logoUrl: null,
+    logoUrl:
+      options.logoIndex === undefined
+        ? null
+        : (projectLogos[options.logoIndex] ?? null),
     code: options.code,
     tailscaleEnabled: false,
     tailscaleAcceptDns: false,
@@ -75,6 +88,7 @@ export const sampleProjects = [
     icon: "files",
     color: "success",
     repos: worldProjects.docs.repos,
+    logoIndex: 2,
     touchedMinutesAgo: 60 * 24 * 3,
   }),
   project({
