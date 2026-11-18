@@ -12,6 +12,7 @@ import type {
 import { organizationsAtom } from "@/data/atoms/session";
 import { Icon } from "@/primitives/icon";
 import type { IconId } from "@/primitives/icon/icon-ids";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 
 /** Capy's issue colour keys mapped to their text and swatch utilities. */
 export const issueColorClasses: Record<
@@ -123,6 +124,26 @@ export function IssueStateIcon({
 }
 
 export function IssuePriorityIcon({
+  priority,
+  className,
+}: {
+  priority: IssuePriority;
+  className?: string;
+}) {
+  const label = `${issuePriorityLabels[priority]} priority`;
+  // biome-ignore lint/a11y/useAriaPropsSupportedByRole: Capy names the icon on a bare span, and the label is where its census reads it
+  const trigger = <span className="flex shrink-0" aria-label={label} />;
+  return (
+    <Tooltip>
+      <TooltipTrigger render={trigger}>
+        <IssuePriorityGlyph priority={priority} className={className} />
+      </TooltipTrigger>
+      <TooltipContent side="bottom">{label}</TooltipContent>
+    </Tooltip>
+  );
+}
+
+function IssuePriorityGlyph({
   priority,
   className,
 }: {
