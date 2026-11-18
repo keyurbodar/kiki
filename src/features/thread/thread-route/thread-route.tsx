@@ -5,6 +5,7 @@ import { AsyncResult } from "effect/reactivity";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { copyText } from "@/components/file-view/copy";
 import type { EventId, JamId, OrgId } from "@/data/api/schemas/ids";
+import { automationsAtom, idleAutomationsAtom } from "@/data/atoms/automations";
 import { captainsAtom, idleCaptainsAtom } from "@/data/atoms/captains";
 import {
   organizationsAtom,
@@ -87,6 +88,11 @@ export function ThreadRoute({
         orgId === undefined ? idleThreadPageAtom : threadsAtom(orgId as OrgId),
       ),
     ),
+  );
+  // The automated messages in this thread name their automation, so the list
+  // starts loading with the route instead of when the first such row mounts.
+  useAtomValue(
+    orgId === undefined ? idleAutomationsAtom : automationsAtom(orgId as OrgId),
   );
   const thread = listed?.items.find((card) => card.id === threadId);
   // A Captain is a thread the jams list does not carry: the sidebar and
