@@ -15,7 +15,7 @@ Everything the app reads or writes goes through one Effect `HttpApi` definition 
 | `mocks/<group>/`        | One folder per group: `index.ts` exports the group's mock layer, `fixtures.ts` its sample data.        |
 | `mocks/MockServices.ts` | Serves every mock group as an in-memory HTTP handler and exposes it as `MockTransport`.                |
 | `atoms/`                | effect-atom conventions and the shared query atoms.                                                    |
-| `realtime/`             | `ThreadEventStream` (SSE `events/stream`), `RealtimeSocket` (WebSocket) and their fake emitters.       |
+| `realtime/`             | `RealtimeSocket` (WebSocket) and its fake emitter. No event-stream client: see the note below.         |
 | `events/`               | Reserved for A8: the thread event schemas decoded from the bundle.                                     |
 
 ## How a request flows
@@ -26,6 +26,12 @@ Everything the app reads or writes goes through one Effect `HttpApi` definition 
 - **live**: plain `FetchHttpClient` against `VITE_KIKI_API_URL`.
 
 Feature code never knows which one it has.
+
+## Thread event streaming
+
+Capy declares `GET /orgs/:orgId/jams/:jamId/events/stream` with `after`, `before` and `limit`, and a success body of `application/x-ndjson` (its `events` group: `list`, `stream`, `outline`, `contextUsage`). Nothing in Capy's shipped client calls it — no `EventSource`, and no call site for the generated method — so the app does not stream thread events today.
+
+The service we had for it was deleted because it described the wrong protocol: `ThreadEventStream` decoded `text/event-stream` frames with `Sse.decode()`, while the endpoint answers NDJSON, and nothing mounted it. If a surface ever needs it, the faithful shape is the same path with the three query params and an NDJSON decode, and it belongs to the `events/` work rather than to `realtime/`.
 
 ## Reading an atom whose key is an id
 
@@ -97,7 +103,6 @@ Follow `atoms/conventions.ts`, which mirrors how Capy's bundle builds its atoms:
 
 ## Realtime
 
-- `ThreadEventStream.stream({ orgId, jamId, after })` yields raw SSE frames (`id`, `event`, `data`) from `GET /orgs/:orgId/jams/:jamId/events/stream`. Decoding `data` into typed events belongs to A8 (`events/`). `layerLive` uses the HTTP client; `ThreadEventStreamFake` also provides `FakeThreadEvents`, an emitter tests and demos push frames into.
 - `RealtimeSocket` exposes `messages` and `send`. Only the fake (`RealtimeSocketFake`, with `FakeRealtimeSocket` to emit server messages and inspect sent ones) exists, because the realtime host's protocol hasn't been decoded.
 
 ## Testing
