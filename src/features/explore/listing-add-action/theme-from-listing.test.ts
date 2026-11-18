@@ -26,7 +26,10 @@ const listing = {
 describe("themeFromListing", () => {
   it("turns a listing palette into a user theme", () => {
     const theme = themeFromListing(listing);
-    expect(theme?.light.background).toEqual({ kind: "literal", hex: "#eef1f6" });
+    expect(theme?.light.background).toEqual({
+      kind: "literal",
+      hex: "#eef1f6",
+    });
     expect(theme?.light.accent).toEqual({ kind: "literal", hex: "#6a5ae0" });
     expect(theme?.dark.input).toEqual({ kind: "reference", field: "card" });
     expect(theme?.effect).toBe("grain");
