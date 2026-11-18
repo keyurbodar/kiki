@@ -6,8 +6,8 @@ import {
 } from "@tanstack/react-router";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import type { ThreadListItem } from "../threads-page/model";
-import { ThreadsList } from "./threads-list";
+import type { ThreadListItem, ThreadSection } from "../threads-page/model";
+import { ThreadRow, threadsListItems } from "./threads-list";
 
 afterEach(cleanup);
 
@@ -37,24 +37,15 @@ const thread = (id: string): ThreadListItem => ({
   captain: null,
 });
 
-type Sections = Parameters<typeof ThreadsList>[0]["sections"];
+const section = (id: string, ids: ReadonlyArray<string>): ThreadSection => ({
+  id,
+  label: id,
+  members: ids.map(thread),
+  showCount: ids.length > 0,
+});
 
-async function mount(sections: Sections) {
-  const rootRoute = createRootRoute({
-    component: () => (
-      <ThreadsList
-        sections={sections}
-        projects={new Map()}
-        modelName={() => undefined}
-        groupedByProject={false}
-        now={new Date(2026, 10, 17).getTime()}
-        loading={false}
-        emptyText="No threads yet"
-        checked={new Set()}
-        onCheckedChange={() => {}}
-      />
-    ),
-  });
+async function mount(children: React.ReactNode) {
+  const rootRoute = createRootRoute({ component: () => children });
   const router = createRouter({
     routeTree: rootRoute,
     history: createMemoryHistory({ initialEntries: ["/threads"] }),
@@ -63,47 +54,45 @@ async function mount(sections: Sections) {
   return render(<RouterProvider router={router} />);
 }
 
-const rows = () => document.querySelectorAll("[data-thread-row]").length;
+const row = (threadId: string) => (
+  <ThreadRow
+    thread={thread(threadId)}
+    projects={new Map()}
+    modelName={() => undefined}
+    groupedByProject={false}
+    now={new Date(2026, 10, 17).getTime()}
+    checked={false}
+    selectionMode={false}
+    onCheck={() => {}}
+  />
+);
 
-describe("threads list sections", () => {
-  it("draws one row per member of an open section", async () => {
-    await mount([
-      {
-        id: "all",
-        label: "Active",
-        members: [thread("a"), thread("b"), thread("c")],
-        showCount: true,
-      },
-    ]);
-    expect(rows()).toBe(3);
+describe("threads list items", () => {
+  it("puts an open section's rows after its head, in order", () => {
+    const items = threadsListItems([section("all", ["a", "b"])], () => true);
+    expect(items.map((item) => item.kind)).toEqual(["section", "row", "row"]);
+    expect(
+      items.flatMap((item) => (item.kind === "row" ? item.thread.id : [])),
+    ).toEqual(["a", "b"]);
   });
 
-  it("draws a closed section's rows once it is expanded", async () => {
-    await mount([
-      { id: "all", label: "Active", members: [thread("a")], showCount: true },
-      {
-        id: "closed:shelf:settled",
-        label: "Settled",
-        members: [thread("b"), thread("c")],
-        showCount: true,
-      },
+  it("keeps a closed section's rows out of the window", () => {
+    const items = threadsListItems(
+      [section("open", ["a"]), section("closed", ["b", "c"])],
+      (id) => id === "open",
+    );
+    expect(items.map((item) => item.kind)).toEqual([
+      "section",
+      "row",
+      "section",
     ]);
-    expect(rows()).toBe(1);
-    fireEvent.click(screen.getByText("Settled"));
-    expect(rows()).toBe(3);
+    expect(items.at(-1)).toMatchObject({ kind: "section", open: false });
   });
 });
 
 describe("thread row preview card", () => {
   it("opens Capy's preview card when the row takes focus", async () => {
-    await mount([
-      {
-        id: "all",
-        label: "Active",
-        members: [thread("row-a")],
-        showCount: true,
-      },
-    ]);
+    await mount(row("row-a"));
     const link = document.querySelector("[data-thread-row='row-a']");
     if (link === null) throw new Error("no row");
     expect(
@@ -117,14 +106,7 @@ describe("thread row preview card", () => {
   });
 
   it("keeps the row's context menu wired", async () => {
-    await mount([
-      {
-        id: "all",
-        label: "Active",
-        members: [thread("row-b")],
-        showCount: true,
-      },
-    ]);
+    await mount(row("row-b"));
     const link = document.querySelector("[data-thread-row='row-b']");
     if (link === null) throw new Error("no row");
     fireEvent.contextMenu(link);

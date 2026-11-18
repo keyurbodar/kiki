@@ -1,16 +1,12 @@
+import { LegendList } from "@legendapp/list/react";
 import { Link } from "@tanstack/react-router";
-import { type DragEvent, type ReactNode, useState } from "react";
+import { type DragEvent, type ReactNode, useEffect, useState } from "react";
 import type { ChipThread } from "@/components/markdown-chips";
 import { ThreadChipPreview } from "@/components/markdown-chips/previews";
 import { ProviderIcon, providerOfModelId } from "@/components/model-picker";
 import { ProjectChip } from "@/components/sidebar-threads";
 import { ChatIdentity } from "@/features/captains/chat-identity";
 import { Badge } from "@/primitives/badge";
-import {
-  Collapsible,
-  CollapsiblePanel,
-  CollapsibleTrigger,
-} from "@/primitives/collapsible";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -335,6 +331,35 @@ export type ThreadsListProps = {
 };
 
 /** Sectioned thread rows with collapsible headers, a skeleton while loading and an empty line. */
+export type ThreadsListItem =
+  | {
+      readonly kind: "section";
+      readonly section: ThreadSection;
+      readonly open: boolean;
+    }
+  | { readonly kind: "row"; readonly thread: ThreadListItem };
+
+/** Capy's list is one flat run of section heads and rows, so a window can scroll it. */
+export const threadsListItems = (
+  sections: ReadonlyArray<ThreadSection>,
+  isOpen: (id: string) => boolean,
+): ThreadsListItem[] =>
+  sections.flatMap((section): ThreadsListItem[] => {
+    const open = isOpen(section.id);
+    const head: ThreadsListItem = { kind: "section", section, open };
+    if (!open) return [head];
+    return [
+      head,
+      ...section.members.map(
+        (thread): ThreadsListItem => ({ kind: "row", thread }),
+      ),
+    ];
+  });
+
+const sectionHeadClassName =
+  "group/collapsible flex h-9 w-full cursor-pointer items-center gap-2 rounded-(--radius-card) bg-section px-2 text-left text-sm font-medium text-foreground transition-colors duration-100 outline-none focus-visible:outline-ring-inset";
+
+/** Sectioned thread rows in Capy's window, a skeleton while loading and an empty line. */
 export function ThreadsList({
   sections,
   projects,
@@ -354,6 +379,8 @@ export function ThreadsList({
   const [openState, setOpenState] = useState<ReadonlyMap<string, boolean>>(
     new Map(),
   );
+  const [viewport, setViewport] = useState<HTMLDivElement | null>(null);
+  const [windowed, setWindowed] = useState(false);
   const isOpen = (id: string) => openState.get(id) ?? sectionStartsOpen(id);
   const toggle = (id: string) =>
     setOpenState((state) => new Map(state).set(id, !isOpen(id)));
@@ -363,6 +390,15 @@ export function ThreadsList({
     else next.add(id);
     onCheckedChange(next);
   };
+
+  useEffect(() => {
+    if (viewport === null) return;
+    const measure = () => setWindowed(viewport.clientHeight > 0);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(viewport);
+    return () => observer.disconnect();
+  }, [viewport]);
 
   if (sections.length === 0)
     return (
@@ -378,73 +414,123 @@ export function ThreadsList({
       </ScrollArea>
     );
 
+  const items = threadsListItems(sections, isOpen);
+
+  /** Capy's list items: the viewport is the list, so each item is a div with a listitem role. */
+  const itemProps = (index: number) =>
+    ({
+      role: "listitem",
+      "aria-posinset": index + 1,
+      "aria-setsize": items.length,
+    }) as const;
+
+  const sectionItem = (
+    section: ThreadSection,
+    open: boolean,
+    index: number,
+  ) => (
+    <div
+      key={`section:${section.id}`}
+      {...itemProps(index)}
+      data-section={section.id}
+      className="relative flow-root"
+    >
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => toggle(section.id)}
+        className={sectionHeadClassName}
+        onDragOver={(event) => {
+          if (onDropOnSection !== undefined) event.preventDefault();
+        }}
+        onDrop={(event) => {
+          const threadId = event.dataTransfer.getData("text/x-kiki-thread");
+          if (threadId !== "" && onDropOnSection !== undefined) {
+            event.preventDefault();
+            onDropOnSection(section.id, threadId);
+          }
+        }}
+      >
+        <span className="flex w-4 shrink-0 items-center justify-center">
+          <span
+            className={cx(
+              "flex size-(--icon-xs) shrink-0 items-center justify-center text-muted-foreground-3 transition-transform duration-100",
+              open ? "rotate-0" : "-rotate-90",
+            )}
+          >
+            {icons?.chevron}
+          </span>
+        </span>
+        {section.label}
+        {section.showCount ? (
+          <span className="font-normal text-muted-foreground-2 tabular-nums">
+            {section.members.length}
+          </span>
+        ) : null}
+      </button>
+    </div>
+  );
+
+  const rowItem = (thread: ThreadListItem, index: number) => (
+    <div
+      key={`row:${thread.id}`}
+      {...itemProps(index)}
+      className="-m-0.5 p-0.5"
+    >
+      <ThreadRow
+        thread={thread}
+        projects={projects}
+        modelName={modelName}
+        groupedByProject={groupedByProject}
+        now={now}
+        checked={checked.has(thread.id)}
+        selectionMode={checked.size > 0}
+        onCheck={onCheck}
+        onArchive={onArchive}
+        onRename={onRename}
+        icons={icons}
+      />
+    </div>
+  );
+
+  const renderItem = (item: ThreadsListItem, index: number) =>
+    item.kind === "section"
+      ? sectionItem(item.section, item.open, index)
+      : rowItem(item.thread, index);
+
   return (
     <div className="@container/list relative flex min-h-0 flex-1 flex-col [--thread-code-width:max-content]">
-      <ScrollArea className="min-h-0 flex-1" viewportClassName="px-2 pt-1">
-        {sections.map((section, index) => {
-          const open = isOpen(section.id);
-          return (
-            <section
-              key={section.id}
-              data-section={section.id}
-              aria-label={section.label}
-              className={cx("relative flow-root", index > 0 && "mt-1")}
-              onDragOver={(event) => {
-                if (onDropOnSection !== undefined) event.preventDefault();
-              }}
-              onDrop={(event) => {
-                const threadId =
-                  event.dataTransfer.getData("text/x-kiki-thread");
-                if (threadId !== "" && onDropOnSection !== undefined) {
-                  event.preventDefault();
-                  onDropOnSection(section.id, threadId);
-                }
-              }}
-            >
-              <Collapsible open={open} onOpenChange={() => toggle(section.id)}>
-                <CollapsibleTrigger
-                  block
-                  showChevron={false}
-                  className="group/collapsible flex h-9 w-full cursor-pointer items-center gap-2 rounded-(--radius-card) bg-section px-2 text-left text-sm font-medium text-foreground transition-colors duration-100 outline-none focus-visible:outline-ring-inset"
-                >
-                  <span className="flex w-4 shrink-0 items-center justify-center">
-                    <span className="flex size-(--icon-xs) shrink-0 -rotate-90 items-center justify-center text-muted-foreground-3 transition-transform duration-100 group-data-[panel-open]/collapsible:rotate-0">
-                      {icons?.chevron}
-                    </span>
-                  </span>
-                  {section.label}
-                  {section.showCount ? (
-                    <span className="font-normal text-muted-foreground-2 tabular-nums">
-                      {section.members.length}
-                    </span>
-                  ) : null}
-                </CollapsibleTrigger>
-                <CollapsiblePanel>
-                  <div className={cx(section.members.length > 0 && "pt-1")}>
-                    {section.members.map((thread) => (
-                      <div key={thread.id} className="-m-0.5 p-0.5">
-                        <ThreadRow
-                          thread={thread}
-                          projects={projects}
-                          modelName={modelName}
-                          groupedByProject={groupedByProject}
-                          now={now}
-                          checked={checked.has(thread.id)}
-                          selectionMode={checked.size > 0}
-                          onCheck={onCheck}
-                          onArchive={onArchive}
-                          onRename={onRename}
-                          icons={icons}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </CollapsiblePanel>
-              </Collapsible>
-            </section>
-          );
-        })}
-        <div className="pt-16">{footer}</div>
+      <ScrollArea
+        className="min-h-0 flex-1"
+        viewportClassName="px-2 pt-1"
+        viewportProps={{ role: "list" }}
+        onViewport={(node) => setViewport(node)}
+      >
+        {windowed ? (
+          <LegendList<ThreadsListItem>
+            data={items}
+            scrollElement={viewport}
+            estimatedItemSize={44}
+            keyExtractor={(item) =>
+              item.kind === "section"
+                ? "section:" + item.section.id
+                : "row:" + item.thread.id
+            }
+            ListFooterComponent={
+              footer === undefined ? null : (
+                <div className="pt-16">{footer}</div>
+              )
+            }
+            renderItem={({ item, index }) => renderItem(item, index)}
+          />
+        ) : (
+          <div>
+            {items.map((item, index) => renderItem(item, index))}
+            {footer === undefined ? null : (
+              <div className="pt-16">{footer}</div>
+            )}
+          </div>
+        )}
       </ScrollArea>
     </div>
   );

@@ -21,6 +21,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@effect/atom-react": "^4.1.4",
+    "@legendapp/list": "3.7.3",
     "@lexical/clipboard": "^0.53.0",
     "@lexical/code": "^0.53.0",
     "@lexical/dragon": "^0.53.0",
