@@ -36,6 +36,7 @@ import {
 } from "@/data/atoms/invitations";
 import {
   allIssuesAtom,
+  captainIssueActivityAtom,
   issueLabelsAtom,
   issueStatesAtom,
 } from "@/data/atoms/issues";
@@ -63,6 +64,7 @@ import {
 import { foldersAtom } from "@/data/atoms/threadOrganization";
 import { threadsAtom } from "@/data/atoms/threads";
 import {
+  captains,
   driveFiles,
   projects,
   threads,
@@ -74,6 +76,7 @@ import { digest } from "@/data/mocks/volumes/index";
 import { fileUrlAtom } from "@/features/mobile/mobile-view/screenshot-url";
 import { decodeCatalog } from "@/features/settings-models/model-routing/decode";
 import { emailPreferencesAtom } from "@/features/settings-notifications/email-page/atoms";
+import { captainIssueActivityAtom as paneIssueActivityAtom } from "@/features/thread-panes/thread-summary-pane/model";
 
 const orgId = worldOrgId as OrgId;
 /** The fixture volume and its first checkpoint, in the ids the schema brands require. */
@@ -146,6 +149,19 @@ const readers: ReadonlyArray<{
   {
     endpoint: "issues.list",
     consumers: [{ name: "allIssuesAtom", atom: allIssuesAtom(orgId) }],
+  },
+  {
+    endpoint: "issues.captainActivity",
+    consumers: [
+      {
+        name: "captainIssueActivityAtom (data/atoms)",
+        atom: captainIssueActivityAtom(orgId, captains[0]?.id ?? ""),
+      },
+      {
+        name: "captainIssueActivityAtom (thread-summary-pane)",
+        atom: paneIssueActivityAtom(orgId, captains[0]?.id ?? ""),
+      },
+    ],
   },
   {
     endpoint: "issues.states",
