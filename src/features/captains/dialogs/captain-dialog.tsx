@@ -442,7 +442,7 @@ function CaptainDialogForm({
       <>
         <div className={rowClass}>
           <span className={rowLabelClass}>Project</span>
-          <ProjectSelect />
+          <ProjectSelect orgId={orgId} />
         </div>
         {request.kind === "create" ? (
           <div className={rowClass}>
