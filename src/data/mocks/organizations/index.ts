@@ -6,7 +6,7 @@ import {
   MyInvitation,
 } from "../../api/schemas/invitation.ts";
 import { Organization } from "../../api/schemas/organization.ts";
-import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
+import { fields, MockDb, newId, notFound } from "../db/MockDb.ts";
 import { fixtureNow, minutesAgo } from "../fixtures/time.ts";
 import { isoMinutesAgo, org, people, projects } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
@@ -129,7 +129,7 @@ export const OrganizationsMock = mockGroup("organizations", (handlers) =>
       Effect.gen(function* () {
         const rows = yield* Ref.get(members);
         if (!rows.some((row) => row.id === userId)) {
-          return yield* missing("members", userId);
+          return yield* notFound("members", userId);
         }
       });
 

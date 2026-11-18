@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { Forbidden } from "../schemas/errors.ts";
 import { OrgId } from "../schemas/ids.ts";
 import { JoinableOrganization, MyInvitation } from "../schemas/invitation.ts";
@@ -123,6 +123,7 @@ export class OrganizationsGroup extends HttpApiGroup.make("organizations").add(
     "transferPrivateWork",
     "/orgs/:orgId/members/:userId/private-work/transfer",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, userId: Schema.String },
       payload: Undecoded,
       success: Undecoded,

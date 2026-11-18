@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { MockDb, missing } from "../db/MockDb.ts";
+import { MockDb, notFound } from "../db/MockDb.ts";
 import { mockGroup } from "../mockGroup.ts";
 
 export const IssueStatesMock = mockGroup("issue-states", (handlers) =>
@@ -11,7 +11,7 @@ export const IssueStatesMock = mockGroup("issue-states", (handlers) =>
         Effect.gen(function* () {
           const rows = yield* Ref.get(issueStates);
           const current = rows.find((row) => row.id === params.stateId);
-          if (!current) return yield* missing("issueStates", params.stateId);
+          if (!current) return yield* notFound("issueStates", params.stateId);
           yield* Ref.set(
             issueStates,
             rows.filter((row) => row.id !== current.id),
@@ -33,7 +33,7 @@ export const IssueStatesMock = mockGroup("issue-states", (handlers) =>
         Effect.gen(function* () {
           const rows = yield* Ref.get(issueStates);
           const current = rows.find((row) => row.id === params.stateId);
-          if (!current) return yield* missing("issueStates", params.stateId);
+          if (!current) return yield* notFound("issueStates", params.stateId);
           const updated = rows.map((row) => ({
             ...row,
             isDefault:

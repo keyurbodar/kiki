@@ -17,7 +17,7 @@ import {
   SnapshotBuild,
   SnapshotBuildSummary,
 } from "../../api/schemas/project-settings.ts";
-import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
+import { fields, MockDb, newId, notFound } from "../db/MockDb.ts";
 import { fixtureNow } from "../fixtures/time.ts";
 import { isoMinutesAgo, people, viewer } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
@@ -758,7 +758,7 @@ export const ProjectsMock = mockGroup("projects", (handlers) =>
           const requested = stringList(input.memberIds ?? input.userIds);
           const additions = requested.length > 0 ? requested : validIds;
           const invalid = additions.find((id) => !validIds.includes(id));
-          if (invalid !== undefined) return yield* missing("members", invalid);
+          if (invalid !== undefined) return yield* notFound("members", invalid);
           const current = (yield* Ref.get(projectMembers))[params.projectId];
           const updated = Arr.dedupe([...(current ?? []), ...additions]);
           yield* Ref.update(projectMembers, (all) => ({
@@ -807,7 +807,7 @@ export const ProjectsMock = mockGroup("projects", (handlers) =>
           );
           const validIds = (yield* Ref.get(db.members)).map((row) => row.id);
           if (!validIds.includes(ownerId))
-            return yield* missing("members", ownerId);
+            return yield* notFound("members", ownerId);
           return projectJson(
             yield* updateProject(params.projectId, () => ({
               ownerUserId: UserId.make(ownerId),
