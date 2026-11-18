@@ -245,6 +245,19 @@ describe("thread route header", () => {
     expect(screen.getByRole("button", { name: "Open a tab" })).toBeTruthy();
   });
 
+  it("lists a Captain's issues and crew in the menu, and a plain thread's panes", async () => {
+    await renderRoute("/thread/jam_sample_cap3");
+    fireEvent.click(await screen.findByLabelText("Open a tab"));
+    expect(await screen.findByText("Issues")).toBeTruthy();
+    expect(screen.getByText(/All threads/)).toBeTruthy();
+    cleanup();
+
+    await renderRoute("/thread/jam_sample_0001");
+    fireEvent.click(await screen.findByLabelText("Open a tab"));
+    expect(await screen.findByText("Diffs")).toBeTruthy();
+    expect(screen.queryByText("Issues")).toBeNull();
+  });
+
   it("opens a pane from the tab strip and keeps the URL in step", async () => {
     const router = await renderRoute("/thread/jam_sample_0001");
     fireEvent.click(await screen.findByLabelText("Open a tab"));

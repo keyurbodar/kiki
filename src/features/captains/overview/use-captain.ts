@@ -1,5 +1,6 @@
 import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
+import { idleAtom } from "@/data/atoms/idle";
 import { organizationsAtom } from "@/data/atoms/session";
 import {
   type CaptainDrive,
@@ -26,14 +27,23 @@ export type CaptainCrewState = {
   retry: () => void;
 };
 
+/** Held while the thread is not a Captain: subscribing to a crew the route
+ * cannot have would fire a request that can only fail. */
+const idleCrewAtom = idleAtom<unknown>();
+
 export function useCaptainCrew(
   orgId: string | undefined,
   jamId: string,
+  enabled = true,
 ): CaptainCrewState {
-  const atom = captainCrewAtom(orgId ?? "", jamId);
+  const atom =
+    enabled && orgId !== undefined
+      ? captainCrewAtom(orgId, jamId)
+      : idleCrewAtom;
   const result = useAtomValue(atom);
   const retry = useAtomRefresh(atom);
-  if (orgId === undefined) return { crew: undefined, failed: false, retry };
+  if (orgId === undefined || !enabled)
+    return { crew: undefined, failed: false, retry };
   if (AsyncResult.isFailure(result))
     return { crew: undefined, failed: true, retry };
   if (!AsyncResult.isSuccess(result))

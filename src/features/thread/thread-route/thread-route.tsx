@@ -14,6 +14,7 @@ import {
   selectedOrgIdAtom,
 } from "@/data/atoms/session";
 import { idleThreadPageAtom, threadsAtom } from "@/data/atoms/threads";
+import { useCaptainCrew } from "@/features/captains/overview/use-captain";
 import {
   MobileThreadScreen,
   useIsPhoneSurface,
@@ -130,6 +131,14 @@ export function ThreadRoute({
       ),
     ) ?? [];
   const captain = captains.find((card) => card.id === threadId);
+  const crew = useCaptainCrew(orgId, threadId, captain !== undefined).crew;
+  const menuCrew = crew?.map((row) => ({
+    id: row.id,
+    title: row.title,
+    code: row.code ?? undefined,
+    unread: row.unread,
+    active: row.status === "working" || row.status === "waiting",
+  }));
   const title = thread?.title ?? captain?.title ?? "Untitled thread";
   const working = (thread?.status ?? captain?.status) === "working";
   const handlers = useMemo<ThreadTakeoverHandlers>(
@@ -229,7 +238,7 @@ export function ThreadRoute({
               tabs={openTabs.tabs}
               activeId={activeId}
               title={title}
-              menu={{ sideThreads, pulls: pullEntries }}
+              menu={{ sideThreads, pulls: pullEntries, crew: menuCrew }}
               expanded={expanded}
               onSelectTab={selectIn}
               onOpenTab={openTabIn}
@@ -259,7 +268,7 @@ export function ThreadRoute({
             activeId={headerActiveId}
             canExpand={dockOpen}
             onOpenPane={() => openInStrip("overview")}
-            menu={{ sideThreads, pulls: pullEntries }}
+            menu={{ sideThreads, pulls: pullEntries, crew: menuCrew }}
             cost={
               orgId === undefined ? undefined : (
                 <ThreadCostBadge orgId={orgId} jamId={threadId} />
