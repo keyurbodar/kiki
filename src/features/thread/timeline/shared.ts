@@ -202,6 +202,17 @@ export const SETUP_TOOLS = new Set([
 ]);
 
 /** Unwraps Capy's `tool_call` indirection into the called tool. */
+/**
+ * The server a tool call came from, in the shape Capy's own calls carry it:
+ * the name is `<namespace>__<tool>` (`linear__list_issues`,
+ * `github__get_pull_request`, `executor__execute`), so a bare name like `bash`
+ * or `create` is a built-in with no namespace.
+ */
+export const toolNamespace = (toolName: string): string | undefined => {
+  const separator = toolName.indexOf("__");
+  return separator > 0 ? toolName.slice(0, separator) : undefined;
+};
+
 export const unwrapToolCall = (
   toolName: string,
   args: unknown,

@@ -38,6 +38,7 @@ import {
   type Settlement,
   settledAt,
   TERMINAL_REQUEST_TOOL,
+  toolNamespace,
   unwrapToolCall,
 } from "./shared";
 
@@ -573,6 +574,7 @@ const toolUseRows = (
     kind: "tool",
     id: toolCallId,
     toolName,
+    namespace: toolNamespace(toolName),
     args,
     phase: toolPhase(result),
     result,
@@ -804,6 +806,7 @@ const toolUseRows = (
       kind: "tool",
       id: toolCallId,
       toolName,
+      namespace: toolNamespace(toolName),
       args,
       phase: toolPhase(result),
       result,

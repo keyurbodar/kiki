@@ -14,6 +14,7 @@ import {
   type Settlement,
   settledAt,
   startOf,
+  toolNamespace,
   type ToolRow,
   type UpdateRow,
 } from "./shared";
@@ -85,6 +86,7 @@ export const programEntries = (tool: ToolRow): ReadonlyArray<ToolRow> => {
       turnOpen: false,
       turnCloses: false,
       toolName: call.tool,
+      namespace: toolNamespace(call.tool),
       args: call.input,
       phase,
       untimed: true,
@@ -131,6 +133,7 @@ export const programEntries = (tool: ToolRow): ReadonlyArray<ToolRow> => {
       turnOpen: false,
       turnCloses: false,
       toolName: call.tool,
+      namespace: toolNamespace(call.tool),
       args: call.input,
       phase: settlement.isError ? "failed" : "done",
       result: settlement,

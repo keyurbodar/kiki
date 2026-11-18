@@ -132,6 +132,8 @@ export const ActivityRow = Schema.Union([
     ...activityBase,
     kind: Schema.Literal("tool"),
     toolName: Schema.String,
+    /** The server a namespaced call came from, `automation__create` → `automation`. */
+    namespace: optional(Schema.String),
     args: Schema.Unknown,
     phase: ToolPhase,
     result: optional(ToolSettlement),
