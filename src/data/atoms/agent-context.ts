@@ -352,12 +352,12 @@ const modelsQuery = ApiClient.query("models", "list", {
   timeToLive: queryTimeToLive,
 });
 
-/** Capy's model catalog; the mock answers `{ models: [...] }`. */
+/** Capy's model catalog, which `/models` serves as a bare array. */
 export const agentModelsAtom = Atom.make((get) =>
   get.result(modelsQuery).pipe(
-    Effect.flatMap(decode(Schema.Struct({ models: Schema.Array(AgentModel) }))),
+    Effect.flatMap(decode(Schema.Array(AgentModel))),
     Effect.map(
-      ({ models }): ReadonlyArray<ModelOption> =>
+      (models): ReadonlyArray<ModelOption> =>
         models.flatMap((model) => {
           const name = model.name ?? model.label;
           return name === undefined
