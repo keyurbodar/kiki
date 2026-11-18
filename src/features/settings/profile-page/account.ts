@@ -70,3 +70,45 @@ export const sampleAccount: Account = {
     },
   ],
 };
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const text = (value: unknown) =>
+  typeof value === "string" ? value : undefined;
+
+const signIns = ["google", "github", "sso"] as const;
+
+const linkedSignInOf = (value: unknown) =>
+  signIns.find((signIn) => signIn === value);
+
+const emailOf = (row: Record<string, unknown>): AccountEmail | undefined => {
+  const email = text(row.email);
+  if (email === undefined) return undefined;
+  const linkedSignIn = linkedSignInOf(row.linkedSignIn);
+  return {
+    id: text(row.id) ?? email,
+    email,
+    primary: row.primary === true,
+    verified: row.verified === true,
+    ...(linkedSignIn === undefined ? {} : { linkedSignIn }),
+  };
+};
+
+/** The account endpoint is undecoded, so the page reads it through this guard. */
+export function readAccount(value: unknown): Account | undefined {
+  if (!isRecord(value)) return undefined;
+  const id = text(value.id);
+  if (id === undefined) return undefined;
+  const rows = Array.isArray(value.emails) ? value.emails : [];
+  return {
+    id,
+    firstName: text(value.firstName) ?? null,
+    lastName: text(value.lastName) ?? null,
+    imageUrl: text(value.imageUrl),
+    emails: rows.filter(isRecord).flatMap((row) => {
+      const email = emailOf(row);
+      return email === undefined ? [] : [email];
+    }),
+  };
+}

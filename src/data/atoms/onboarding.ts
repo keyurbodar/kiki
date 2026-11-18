@@ -28,11 +28,6 @@ export const setSharingAtom = ApiClient.mutation("organizations", "setSharing");
 
 export const renameOrganizationAtom = ApiClient.mutation("orgs", "update");
 
-export const updateAccountNameAtom = ApiClient.mutation(
-  "users",
-  "updateAccountName",
-);
-
 export const inviteMembersAtom = ApiClient.mutation("members", "invite");
 
 export const skipOnboardingStepAtom = ApiClient.mutation("onboarding", "skip");

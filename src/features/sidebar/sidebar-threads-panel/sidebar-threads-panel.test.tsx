@@ -304,6 +304,19 @@ describe("sidebar captain row menu", () => {
     ]);
   });
 
+  it("opens the Captain's profile dialog, read from the Captain's record", async () => {
+    await renderWithRegistry(
+      <Harness sidebarSource={source([thread()], [captain()])} />,
+    );
+    fireEvent.contextMenu(captainRow());
+    fireEvent.click(await screen.findByText("Profile"));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog.textContent).toContain("Release captain");
+    expect(dialog.textContent).toContain("Runs the weekly web release");
+    expect(screen.getByRole("button", { name: "Save" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Delete Captain" })).toBeTruthy();
+  });
+
   it("asks before deleting a Captain", async () => {
     await renderAt(<Harness sidebarSource={source([thread()], [captain()])} />);
     fireEvent.contextMenu(captainRow());

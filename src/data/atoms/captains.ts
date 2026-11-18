@@ -1,6 +1,6 @@
 import { Atom } from "effect/reactivity";
 import type { CaptainCard } from "../api/schemas/captain.ts";
-import type { OrgId } from "../api/schemas/ids.ts";
+import type { JamId, OrgId } from "../api/schemas/ids.ts";
 import { ApiClient } from "../client/ApiClient.ts";
 import { queryTimeToLive, reactivityKeys } from "./conventions.ts";
 import { idleAtom } from "./idle.ts";
@@ -13,6 +13,19 @@ export const captainsAtom = Atom.family((orgId: OrgId) =>
     timeToLive: queryTimeToLive,
   }),
 );
+
+/**
+ * One Captain's own record, the shape its Profile dialog edits. The row only
+ * carries a card, so the dialog reads the record when it opens.
+ */
+export const captainDetailAtom = Atom.family((key: string) => {
+  const [orgId, jamId] = key.split("/") as [OrgId, JamId];
+  return ApiClient.query("captains", "get", {
+    params: { orgId, jamId },
+    reactivityKeys: [captainReactivityKeys.captain(jamId)],
+    timeToLive: queryTimeToLive,
+  });
+});
 
 /** The Captain list while the org is unknown, so nothing requests a placeholder org. */
 export const idleCaptainsAtom = idleAtom<ReadonlyArray<CaptainCard>>();

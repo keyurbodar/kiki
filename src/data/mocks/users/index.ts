@@ -14,10 +14,65 @@ import {
 
 type Row = Record<string, unknown>;
 
+/**
+ * The profile fields a write leaves behind, so a reload reads them back: the
+ * mock's refs are rebuilt on every page load, and the profile card is the one
+ * place where losing an edit reads as the app forgetting it.
+ */
+const STORED_PROFILE_KEY = "kiki.mock.users.profile";
+
+type StoredProfile = {
+  firstName?: string;
+  lastName?: string;
+  imageUrl?: string;
+};
+
+const storedProfile = (): StoredProfile => {
+  const store = globalThis.localStorage;
+  if (store === undefined) return {};
+  try {
+    const raw = store.getItem(STORED_PROFILE_KEY);
+    const parsed: unknown = raw === null ? {} : JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null) return {};
+    const record = parsed as Record<string, unknown>;
+    const text = (value: unknown) =>
+      typeof value === "string" ? value : undefined;
+    const kept: StoredProfile = {
+      firstName: text(record.firstName),
+      lastName: text(record.lastName),
+      imageUrl: text(record.imageUrl),
+    };
+    return Object.fromEntries(
+      Object.entries(kept).filter(([, value]) => value !== undefined),
+    );
+  } catch {
+    return {};
+  }
+};
+
+const rememberProfile = (patch: StoredProfile) => {
+  const store = globalThis.localStorage;
+  if (store === undefined) return;
+  try {
+    store.setItem(
+      STORED_PROFILE_KEY,
+      JSON.stringify({ ...storedProfile(), ...patch }),
+    );
+  } catch {
+    // A full or blocked store only costs the reload, never the edit.
+  }
+};
+
 export const UsersMock = mockGroup("users", (handlers) =>
   Effect.gen(function* () {
-    const profile = yield* Ref.make(sampleUser);
-    const account = yield* Ref.make<Row>(structuredClone(sampleAccount));
+    const kept = storedProfile();
+    const profile = yield* Ref.make(
+      new UserProfile({ ...sampleUser, ...kept }),
+    );
+    const account = yield* Ref.make<Row>({
+      ...structuredClone(sampleAccount),
+      ...kept,
+    });
     const changes = yield* Ref.make<ReadonlyArray<Row>>(
       structuredClone(sampleAppearanceChanges),
     );
@@ -188,7 +243,10 @@ export const UsersMock = mockGroup("users", (handlers) =>
             ),
           ],
           { concurrency: 1 },
-        ).pipe(Effect.as({ ok: true, imageUrl }));
+        ).pipe(
+          Effect.tap(() => Effect.sync(() => rememberProfile({ imageUrl }))),
+          Effect.as({ ok: true, imageUrl }),
+        );
       })
       .handle("updateAccountName", ({ payload }) => {
         const input = fields(payload);
@@ -207,7 +265,12 @@ export const UsersMock = mockGroup("users", (handlers) =>
             ),
           ],
           { concurrency: 1 },
-        ).pipe(Effect.as({ ok: true, firstName, lastName }));
+        ).pipe(
+          Effect.tap(() =>
+            Effect.sync(() => rememberProfile({ firstName, lastName })),
+          ),
+          Effect.as({ ok: true, firstName, lastName }),
+        );
       })
       .handle("recoverAcquisition", ({ payload }) => {
         const input = fields(payload);
