@@ -56,7 +56,9 @@ describe("appearance pages", () => {
 
   it("renders the publish page for a theme", async () => {
     await renderAt("/settings/appearance/themes/theme_sample_evernight_rain");
-    expect(await screen.findByRole("heading", { name: "Evernight Rain" })).toBeTruthy();
+    expect(
+      await screen.findByRole("heading", { name: "Evernight Rain" }),
+    ).toBeTruthy();
     expect(screen.getByText("Submit to Explore")).toBeTruthy();
   });
 
