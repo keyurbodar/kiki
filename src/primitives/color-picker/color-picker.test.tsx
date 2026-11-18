@@ -103,6 +103,26 @@ describe("ColorPicker", () => {
     expect(onValueChange).toHaveBeenCalledWith("#5fa8e8");
   });
 
+  it("opens on a valid colour when the caller passes nothing usable", async () => {
+    // A derived token or an empty resolve is not a colour the picker can show;
+    // react-colorful renders NaN for it, so the row must seed a real one.
+    render(
+      <ColorPicker
+        label="Accent"
+        value=""
+        onValueChange={vi.fn()}
+        trigger={
+          <button type="button" aria-label="Pick accent color">
+            <span aria-hidden className="color-picker__swatch" />
+          </button>
+        }
+      />,
+    );
+    const input = (await open()) as HTMLInputElement;
+    expect(input.value).toMatch(HEX_COLOR);
+    expect(input.getAttribute("aria-invalid")).toBe("false");
+  });
+
   it("closes from the header button", async () => {
     render(
       <ColorPicker label="Accent" value="#3a7bd5" onValueChange={vi.fn()} />,

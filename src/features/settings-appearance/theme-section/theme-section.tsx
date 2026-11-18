@@ -79,7 +79,10 @@ function ColorRow({
   onReset: () => void;
 }) {
   const required = isRequired(colorKey);
-  const hex = value?.kind === "literal" ? value.hex : undefined;
+  // A literal that is not a hex (an empty resolve) is no colour at all, so the
+  // row falls back to the derived value and the picker to the painted swatch.
+  const hex =
+    value?.kind === "literal" && isHexColor(value.hex) ? value.hex : undefined;
   const malformed =
     field !== undefined && !isHexColor(field) && (required || field !== "");
   const id = `theme-color-${colorKey}`;
