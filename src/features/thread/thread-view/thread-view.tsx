@@ -19,6 +19,8 @@ import {
   PlusMenu,
 } from "@/components/composer";
 import type { OrgId } from "@/data/api/schemas/ids";
+import { idleAtom } from "@/data/atoms/idle";
+import { projectsAtom } from "@/data/atoms/projects";
 import { threadMachinesAtom } from "@/data/atoms/setup";
 import { idleThreadPageAtom, threadsAtom } from "@/data/atoms/threads";
 import type { TimelineRow } from "@/data/events";
@@ -66,6 +68,7 @@ import { Button } from "@/primitives/button";
 import { RightPanelGroup } from "@/primitives/right-panel";
 import { ChatSkeleton } from "./chat-skeleton";
 import { ThreadMessageActions } from "./message-actions";
+import { threadChips } from "./thread-chips";
 import { threadHeaderClassName } from "./thread-header";
 import { threadMentionSources } from "./thread-mention-sources";
 
@@ -371,6 +374,23 @@ export function ThreadView({
       ),
     [orgThreads, threadId],
   );
+  const projects = useAtomValue(
+    orgId === undefined
+      ? idleAtom<ReadonlyArray<{ id: string; code: string }>>()
+      : projectsAtom(orgId as OrgId),
+  );
+  const chips = useMemo(() => {
+    const codes = new Map<string, string>();
+    for (const project of Option.getOrUndefined(AsyncResult.value(projects)) ??
+      [])
+      codes.set(project.id, project.code);
+    return threadChips({
+      threads:
+        Option.getOrUndefined(AsyncResult.value(orgThreads))?.items ?? [],
+      projectCodes: codes,
+      currentThreadId: threadId,
+    });
+  }, [projects, orgThreads, threadId]);
   const navigate = useNavigate();
   const commands = useMemo(
     () => composerCommands({ newThread: () => void navigate({ to: "/new" }) }),
@@ -445,6 +465,7 @@ export function ThreadView({
                 <div className="relative min-h-0 flex-1">
                   <JamChat
                     jamId={threadId}
+                    chips={chips}
                     rows={rows}
                     initialLoading={loading}
                     onStartReached={hasOlder ? onLoadOlder : undefined}
