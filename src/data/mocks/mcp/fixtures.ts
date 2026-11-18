@@ -1,54 +1,169 @@
-import { isoMinutesAgo, orgId, people, threads } from "../fixtures/world.ts";
+import {
+  McpServerId,
+  McpSetupId,
+  PluginInstallationId,
+  ProjectId,
+  ToolCallId,
+} from "../../api/schemas/ids.ts";
+import type { McpSetupView } from "../../api/schemas/mcp.ts";
+import {
+  isoMinutesAgo,
+  orgId,
+  people,
+  projects,
+  threads,
+} from "../fixtures/world.ts";
 
-export interface McpSetup {
-  readonly id: string;
+const checkedAt = (minutes: number) => Date.parse(isoMinutesAgo(minutes));
+
+/**
+ * A setup row: Capy's `McpSetupView` plus the jam the row belongs to, which
+ * only `listSetups` filters on and the view does not carry.
+ */
+export type McpSetup = McpSetupView & {
   readonly orgId: string;
   readonly jamId: string;
-  readonly name: string;
-  readonly status: "pending" | "in_progress" | "completed" | "failed";
-  readonly ownerId: string;
-  readonly attempts: number;
-  readonly createdAt: string;
-  readonly updatedAt: string;
-  readonly completedAt: string | null;
-}
+};
+
+const httpServer = {
+  serverKey: "error-tracker",
+  displayName: "Error tracker",
+  projectId: ProjectId.make(projects.web.id),
+  iconUrl: "https://mcp.example.com/errors.png",
+  enabled: true,
+  privateThreadsOnly: false,
+  transport: {
+    type: "http" as const,
+    url: "https://mcp.example.com/errors",
+    requestHeaderNames: ["X-Acme-Region"],
+    auth: {
+      type: "oauth" as const,
+      clientId: "client_sample_errors",
+      clientSecretRequired: true,
+    },
+  },
+};
 
 export const sampleSetups: ReadonlyArray<McpSetup> = [
   {
-    id: "setup_sample_errors",
+    id: McpSetupId.make("setup_sample_errors"),
     orgId,
     jamId: threads.checkoutTest.id,
-    name: "Error tracker setup",
-    status: "completed",
-    ownerId: people.alex.id,
-    attempts: 1,
-    createdAt: isoMinutesAgo(180),
-    updatedAt: isoMinutesAgo(120),
-    completedAt: isoMinutesAgo(120),
+    toolCallId: ToolCallId.make("call_sample_errors"),
+    proposal: {
+      kind: "add",
+      reason:
+        "The thread asked for the error tracker so the failure can be read.",
+      owner: "organization",
+      server: httpServer,
+      secrets: { client_secret: { value: "example-errors-secret" } },
+      scopes: ["read"],
+      disabledTools: [],
+    },
+    state: "completed",
+    current: "added",
+    expired: false,
+    serverId: McpServerId.make("mcp_sample_errors"),
+    pluginInstallationId: null,
+    owner: "organization",
+    toolCount: 2,
+    health: {
+      state: "ready",
+      toolCount: 2,
+      excluded: 0,
+      checkedAt: checkedAt(4),
+    },
+    recovery: "none",
   },
   {
-    id: "setup_sample_docs",
+    id: McpSetupId.make("setup_sample_docs"),
     orgId,
     jamId: threads.checkoutTest.id,
-    name: "Docs search setup",
-    status: "failed",
-    ownerId: people.sam.id,
-    attempts: 2,
-    createdAt: isoMinutesAgo(90),
-    updatedAt: isoMinutesAgo(15),
-    completedAt: null,
+    toolCallId: ToolCallId.make("call_sample_docs"),
+    proposal: {
+      kind: "connect",
+      reason:
+        "The docs search server is already registered; it only needs a credential.",
+      serverId: McpServerId.make("mcp_sample_docs"),
+      serverKey: "docs-search",
+      displayName: "Docs search",
+      projectId: ProjectId.make(projects.docs.id),
+      cacheStamp: "cache_sample_docs",
+      url: "https://mcp.example.com/docs",
+      requestHeaderNames: [],
+      auth: "oauth",
+      clientId: "client_sample_docs",
+      hasClientSecret: false,
+      credentialHeaderNames: ["Authorization"],
+      secrets: { "header:Authorization": { machine_env: "DOCS_TOKEN" } },
+    },
+    state: "pending",
+    current: "pending",
+    expired: false,
+    serverId: McpServerId.make("mcp_sample_docs"),
+    pluginInstallationId: null,
+    owner: "user",
+    health: {
+      state: "error",
+      stage: "auth",
+      code: "registration_refused",
+      detail: "The provider refused the client registration.",
+      requiredScopes: ["docs:read"],
+      checkedAt: checkedAt(15),
+    },
+    recovery: "exhausted",
   },
   {
-    id: "setup_sample_other",
+    id: McpSetupId.make("setup_sample_other"),
     orgId,
     jamId: threads.darkMode.id,
-    name: "Docs indexing setup",
-    status: "in_progress",
-    ownerId: people.priya.id,
-    attempts: 1,
-    createdAt: isoMinutesAgo(45),
-    updatedAt: isoMinutesAgo(5),
-    completedAt: null,
+    toolCallId: ToolCallId.make("call_sample_other"),
+    proposal: {
+      kind: "update",
+      reason: "The server moved to a new host and keeps its old credential.",
+      serverId: McpServerId.make("mcp_sample_errors"),
+      cacheStamp: "cache_sample_other",
+      before: httpServer,
+      after: {
+        ...httpServer,
+        transport: {
+          ...httpServer.transport,
+          url: "https://mcp.example.com/errors-v2",
+        },
+      },
+      dropsCredentials: false,
+      secrets: {},
+    },
+    state: "changed",
+    current: "changed",
+    expired: true,
+    serverId: McpServerId.make("mcp_sample_errors"),
+    pluginInstallationId: null,
+    owner: "organization",
+    toolCount: 2,
+    health: { state: "unchecked" },
+    recovery: "automatic",
+  },
+  {
+    id: McpSetupId.make("setup_sample_plugin"),
+    orgId,
+    jamId: threads.checkoutTest.id,
+    toolCallId: ToolCallId.make("call_sample_plugin"),
+    proposal: {
+      kind: "plugin",
+      reason: "The crew wants the docs plugin in this project.",
+      owner: "user",
+      projectId: ProjectId.make(projects.docs.id),
+      source: { plugin: "kiki-docs", versionId: "pver_sample_docs" },
+    },
+    state: "private",
+    current: "private",
+    expired: false,
+    serverId: McpServerId.make("mcp_sample_docs"),
+    pluginInstallationId: PluginInstallationId.make("pins_sample_docs"),
+    owner: "user",
+    health: { state: "checking" },
+    recovery: "none",
   },
 ];
 
@@ -66,7 +181,7 @@ export interface McpConnection {
 export const sampleConnections: ReadonlyArray<McpConnection> = [
   {
     id: "conn_sample_errors",
-    serverId: "mcp_sample_errors",
+    serverId: McpServerId.make("mcp_sample_errors"),
     name: "Error tracker credential",
     status: "connected",
     credentialId: "cred_sample_errors",
@@ -76,7 +191,7 @@ export const sampleConnections: ReadonlyArray<McpConnection> = [
   },
   {
     id: "conn_sample_docs",
-    serverId: "mcp_sample_docs",
+    serverId: McpServerId.make("mcp_sample_docs"),
     name: "Docs search credential",
     status: "needs_auth",
     credentialId: null,
@@ -125,13 +240,13 @@ export interface McpSecret {
 
 export const sampleSecrets: ReadonlyArray<McpSecret> = [
   {
-    serverId: "mcp_sample_errors",
+    serverId: McpServerId.make("mcp_sample_errors"),
     position: "0",
     name: "token",
     value: "example-errors-token",
   },
   {
-    serverId: "mcp_sample_docs",
+    serverId: McpServerId.make("mcp_sample_docs"),
     position: "0",
     name: "token",
     value: "example-docs-token",

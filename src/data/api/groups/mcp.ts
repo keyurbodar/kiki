@@ -1,7 +1,11 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { InferredMethod } from "../annotations.ts";
-import { CompleteMcpOAuthRequest, McpOAuthCompletion } from "../schemas/mcp.ts";
+import {
+  CompleteMcpOAuthRequest,
+  McpOAuthCompletion,
+  McpSetupView,
+} from "../schemas/mcp.ts";
 import { Undecoded } from "../undecoded.ts";
 
 export class McpGroup extends HttpApiGroup.make("mcp").add(
@@ -15,7 +19,7 @@ export class McpGroup extends HttpApiGroup.make("mcp").add(
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.get("listSetups", "/orgs/:orgId/jams/:jamId/mcp-setups", {
     params: { orgId: Schema.String, jamId: Schema.String },
-    success: Undecoded,
+    success: Schema.Array(McpSetupView),
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.get("listServers", "/orgs/:orgId/mcp-servers", {
     params: { orgId: Schema.String },
@@ -137,11 +141,12 @@ export class McpGroup extends HttpApiGroup.make("mcp").add(
   HttpApiEndpoint.post("createSetup", "/orgs/:orgId/mcp-setups", {
     params: { orgId: Schema.String },
     payload: Undecoded,
-    success: Undecoded,
+    success: McpSetupView,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.get("getSetup", "/orgs/:orgId/mcp-setups/:setupId", {
     params: { orgId: Schema.String, setupId: Schema.String },
-    success: Undecoded,
+    success: McpSetupView,
+    error: HttpApiError.NotFoundNoContent,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
     "completeSetup",
@@ -149,11 +154,13 @@ export class McpGroup extends HttpApiGroup.make("mcp").add(
     {
       params: { orgId: Schema.String, setupId: Schema.String },
       payload: Undecoded,
-      success: Undecoded,
+      success: McpSetupView,
+      error: HttpApiError.NotFoundNoContent,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post("retrySetup", "/orgs/:orgId/mcp-setups/:setupId/retry", {
     params: { orgId: Schema.String, setupId: Schema.String },
-    success: Undecoded,
+    success: McpSetupView,
+    error: HttpApiError.NotFoundNoContent,
   }).annotate(InferredMethod, true),
 ) {}
