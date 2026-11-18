@@ -365,6 +365,25 @@ describe("editing a sent message", () => {
     await waitFor(() => expect(field(container)?.textContent ?? "").toBe(""));
   });
 
+  it("draws the editing bar even when a custom composer is mounted", () => {
+    const onCancelEdit = vi.fn();
+    render(
+      <RegistryProvider>
+        <ThreadView
+          threadId="jam_sample"
+          rows={messages}
+          handlers={handlers}
+          editing={target as never}
+          onCancelEdit={onCancelEdit}
+          composer={<textarea aria-label="custom composer" />}
+        />
+      </RegistryProvider>,
+    );
+    expect(screen.getByText("Editing message")).toBeTruthy();
+    fireEvent.click(screen.getByLabelText("Cancel editing"));
+    expect(onCancelEdit).toHaveBeenCalledTimes(1);
+  });
+
   it("leaves edit mode on Escape", async () => {
     const onCancelEdit = vi.fn();
     const { container } = renderEditing(onCancelEdit);
