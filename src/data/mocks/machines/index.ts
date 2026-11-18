@@ -1,5 +1,11 @@
 import { Effect, Ref } from "effect";
-import { fields, MockDb, newId, notFound } from "../db/MockDb.ts";
+import {
+  fields,
+  MockDb,
+  newId,
+  notFound,
+  notFoundNamed,
+} from "../db/MockDb.ts";
 import { isoMinutesAgo } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
@@ -30,9 +36,7 @@ const requireRow = <T extends { readonly id: string }>(
   label: string,
 ) => {
   const row = rows.find((candidate) => candidate.id === id);
-  return row
-    ? Effect.succeed(row)
-    : Effect.die(new Error(`machines.${label}: no row ${id}`));
+  return row ? Effect.succeed(row) : notFoundNamed(`machines.${label}`, id);
 };
 
 export const MachinesMock = mockGroup("machines", (handlers) =>
@@ -148,9 +152,7 @@ export const MachinesMock = mockGroup("machines", (handlers) =>
             (phone) => phone.machineId === row.id,
           );
           if (!attached) {
-            return yield* Effect.die(
-              new Error(`machines.phone: no phone on ${row.id}`),
-            );
+            return yield* notFoundNamed("machines.phone", row.id);
           }
           yield* Ref.update(phoneRef, (rows) =>
             rows.filter((phone) => phone.id !== attached.id),
@@ -190,9 +192,7 @@ export const MachinesMock = mockGroup("machines", (handlers) =>
           const row = yield* machine(params.machineId);
           const rows = yield* Ref.get(phoneRef);
           if (!rows.some((phone) => phone.machineId === row.id)) {
-            return yield* Effect.die(
-              new Error(`machines.phone: no phone on ${row.id}`),
-            );
+            return yield* notFoundNamed("machines.phone", row.id);
           }
           yield* Ref.update(phoneRef, (all) =>
             all.map((phone) =>
@@ -284,10 +284,9 @@ export const MachinesMock = mockGroup("machines", (handlers) =>
             (item) => item.machineId === row.id && item.port === params.port,
           );
           if (!preview) {
-            return yield* Effect.die(
-              new Error(
-                `machines.servicePreviews: no port ${params.port} on ${row.id}`,
-              ),
+            return yield* notFoundNamed(
+              `machines.servicePreview on ${row.id}`,
+              params.port,
             );
           }
           yield* Ref.set(
@@ -401,9 +400,7 @@ export const MachinesMock = mockGroup("machines", (handlers) =>
             (item) => item.token === token,
           );
           if (!preview) {
-            return yield* Effect.die(
-              new Error(`machines.previews: no token ${token}`),
-            );
+            return yield* notFoundNamed("machines.preview token", token);
           }
           return {
             ...preview,

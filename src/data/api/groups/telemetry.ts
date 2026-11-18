@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { InferredMethod } from "../annotations.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
@@ -15,6 +15,7 @@ export class TelemetryGroup extends HttpApiGroup.make("telemetry").add(
     {
       params: { orgId: Schema.String, issueId: Schema.String },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -23,6 +24,7 @@ export class TelemetryGroup extends HttpApiGroup.make("telemetry").add(
     {
       params: { orgId: Schema.String, issueId: Schema.String },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -31,6 +33,7 @@ export class TelemetryGroup extends HttpApiGroup.make("telemetry").add(
     {
       params: { orgId: Schema.String, issueId: Schema.String },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -39,6 +42,7 @@ export class TelemetryGroup extends HttpApiGroup.make("telemetry").add(
     {
       params: { orgId: Schema.String, issueId: Schema.String },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post("ingestErrors", "/orgs/:orgId/telemetry/errors", {

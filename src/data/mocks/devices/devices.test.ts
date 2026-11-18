@@ -1,7 +1,8 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect, Exit } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { AtomRegistry } from "effect/reactivity";
-import { DeviceId } from "../../api/schemas/devices.ts";
+import { DeviceId, DeviceNotFound } from "../../api/schemas/devices.ts";
 import { OrgId } from "../../api/schemas/ids.ts";
 import {
   approveDeviceCodeAtom,
@@ -274,5 +275,80 @@ describe("devices mock", () => {
         }),
       );
     }),
+  );
+
+  it.effect(
+    "answers the 404 each device route declares for an unknown id",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        const call = (endpoint: string, input: object) =>
+          AtomRegistry.getResult(
+            registry,
+            ApiClient.query("devices", endpoint as never, input as never),
+          ) as unknown as Effect.Effect<unknown>;
+        const params = { orgId, deviceId: "machine_sample_buildbox" };
+        const missingDevice = { orgId, deviceId: "machine_nobody" };
+        const deviceReads = [
+          ["listAccess", { params: missingDevice }],
+          ["activeThreads", { params: missingDevice }],
+          ["listAgentAccess", { params: missingDevice }],
+          ["browseFolders", { params: missingDevice, query: {} }],
+          ["findCheckouts", { params: missingDevice, payload: {} }],
+          ["setProjectCheckout", { params: missingDevice, payload: {} }],
+          ["clearProjectCheckout", { params: missingDevice, payload: {} }],
+          ["workspaceIndex", { params: missingDevice, query: {} }],
+          ["worktrees", { params: missingDevice, query: {} }],
+          [
+            "pullDetail",
+            { params: { ...missingDevice, number: "214" }, query: {} },
+          ],
+          [
+            "pullAct",
+            {
+              params: { ...missingDevice, number: "214" },
+              query: {},
+              payload: {},
+            },
+          ],
+          [
+            "pullDiff",
+            { params: { ...missingDevice, number: "214" }, query: {} },
+          ],
+          ["pullRefresh", { params: missingDevice, query: {} }],
+        ] as const;
+        for (const [endpoint, input] of deviceReads) {
+          const error = yield* call(endpoint, input).pipe(Effect.flip);
+          assert.instanceOf(error, DeviceNotFound);
+        }
+
+        const missingAccess = { ...params, accessId: "access_nobody" };
+        const accessCalls = [
+          ["grantAccess", { params: missingAccess }],
+          ["denyAccess", { params: missingAccess }],
+          ["revokeAccess", { params: missingAccess }],
+          ["withdrawAccess", { params: missingAccess }],
+          ["grantAgentAccess", { params: missingAccess, payload: {} }],
+          ["denyAgentAccess", { params: missingAccess }],
+          ["revokeAgentAccess", { params: missingAccess }],
+          ["grantComputerUse", { params: missingAccess, payload: {} }],
+          ["denyComputerUse", { params: missingAccess }],
+          ["revokeComputerUse", { params: missingAccess }],
+        ] as const;
+        for (const [endpoint, input] of accessCalls) {
+          const error = yield* call(endpoint, input).pipe(Effect.flip);
+          assert.instanceOf(error, HttpApiError.NotFound);
+        }
+
+        const unknownPull = { ...params, number: "999" };
+        for (const endpoint of ["pullDetail", "pullAct"] as const) {
+          const error = yield* call(endpoint, {
+            params: unknownPull,
+            query: {},
+            payload: {},
+          }).pipe(Effect.flip);
+          assert.instanceOf(error, HttpApiError.NotFound);
+        }
+      }),
   );
 });

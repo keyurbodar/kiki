@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { fields, MockDb, newId } from "../db/MockDb.ts";
+import { fields, MockDb, newId, notFoundNamed } from "../db/MockDb.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
   type BrowserIssue,
@@ -46,7 +46,7 @@ export const TelemetryMock = mockGroup("telemetry", (handlers) =>
         const rows = yield* Ref.get(issues);
         const issue = rows.find((row) => row.id === id);
         if (!issue) {
-          return yield* Effect.die(new Error(`telemetry.issues: no row ${id}`));
+          return yield* notFoundNamed("telemetry.issues", id);
         }
         return issue;
       });

@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId } from "../fixtures/world.ts";
@@ -95,6 +96,27 @@ describe("wallpapers mock", () => {
         ),
         "Canyon",
       );
+    }),
+  );
+
+  it.effect("answers the 404 the routes declare for an unknown wallpaper", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const params = { wallpaperId: "wp_nobody" };
+      const mutations = [
+        ApiClient.mutation("wallpapers", "remove"),
+        ApiClient.mutation("wallpapers", "background"),
+      ];
+      for (const atom of mutations) {
+        const error = yield* run(registry, atom, { params }).pipe(Effect.flip);
+        assert.instanceOf(error, HttpApiError.NotFound);
+      }
+      const image = ApiClient.query("wallpapers", "image", { params });
+      const error = yield* AtomRegistry.getResult(
+        registry,
+        image as never,
+      ).pipe(Effect.flip);
+      assert.instanceOf(error, HttpApiError.NotFound);
     }),
   );
 });

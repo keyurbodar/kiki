@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { devices, orgId, people, viewer } from "../fixtures/world.ts";
@@ -106,5 +107,21 @@ describe("push mock", () => {
         created.id,
       );
     }),
+  );
+
+  it.effect(
+    "answers the 404 the routes declare for an unknown subscription",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        const calls = [patch, unsubscribe, test];
+        for (const atom of calls) {
+          const error = yield* run(registry, atom, {
+            params: { id: "push_sub_nobody" },
+            payload: { enabled: false },
+          }).pipe(Effect.flip);
+          assert.instanceOf(error, HttpApiError.NotFound);
+        }
+      }),
   );
 });

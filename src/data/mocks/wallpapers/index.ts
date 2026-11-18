@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { fields, newId } from "../db/MockDb.ts";
+import { fields, newId, notFoundNamed } from "../db/MockDb.ts";
 import { isoMinutesAgo } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { sampleWallpapers } from "./fixtures.ts";
@@ -20,7 +20,7 @@ export const WallpapersMock = mockGroup("wallpapers", (handlers) =>
         const wallpaper = rows.find((row) => row.id === id);
         return wallpaper
           ? Effect.succeed(wallpaper)
-          : Effect.die(new Error(`wallpapers: no wallpaper ${id}`));
+          : notFoundNamed("wallpapers.wallpaper", id);
       });
 
     return handlers
