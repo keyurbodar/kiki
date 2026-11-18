@@ -9,10 +9,11 @@ import {
 } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
+  checksStateFor,
   defaultLocalPull,
   pullActivity,
   pullBranches,
-  pullChecks,
+  pullChecksFor,
   pullChecksNames,
   pullComments,
   pullCommitDiff,
@@ -96,6 +97,10 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
       [xinPull.id]: xinPullBody,
     });
     const autoMerge = yield* Ref.make<Readonly<Record<string, boolean>>>({});
+    const autoMergeMethods = yield* Ref.make<Readonly<Record<string, string>>>(
+      {},
+    );
+    const updatedBranches = yield* Ref.make<ReadonlyArray<string>>([]);
     const comments = yield* Ref.make([...pullComments]);
     const xinComments: Array<Record<string, unknown>> = [...xinPullComments];
     const findings = yield* Ref.make([...pullFindings, ...xinPullFindings]);
@@ -188,7 +193,17 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
           issues: pullIssues.filter((issue) =>
             detail.issueIds.includes(issue.id),
           ),
+          mergeableState: (yield* Ref.get(updatedBranches)).includes(pullId)
+            ? "clean"
+            : "mergeableState" in detail
+              ? detail.mergeableState
+              : "clean",
+          checksState:
+            row.id === xinPull.id
+              ? checksStateFor(xinPullChecks)
+              : checksStateFor(pullChecksFor(row.number)),
           autoMerge: (yield* Ref.get(autoMerge))[pullId] ?? detail.autoMerge,
+          autoMergeMethod: (yield* Ref.get(autoMergeMethods))[pullId] ?? null,
         };
       });
 
@@ -336,18 +351,26 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
       .handle("setAutoMerge", ({ params, payload }) =>
         Effect.gen(function* () {
           yield* findPull(params.pullId);
-          const enabled = flag(fields(payload).enabled);
+          const input = fields(payload);
+          const enabled = flag(input.enabled);
+          const method = text(input.method);
           yield* Ref.update(autoMerge, (current) => ({
             ...current,
             [params.pullId]: enabled,
+          }));
+          yield* Ref.update(autoMergeMethods, (current) => ({
+            ...current,
+            [params.pullId]: enabled ? (method ?? "squash") : "",
           }));
           return yield* detailOf(params.pullId);
         }),
       )
       .handle("checks", ({ params }) =>
         Effect.gen(function* () {
-          yield* findPull(params.pullId);
-          return params.pullId === xinPull.id ? xinPullChecks : pullChecks;
+          const row = yield* findPull(params.pullId);
+          return params.pullId === xinPull.id
+            ? xinPullChecks
+            : pullChecksFor(row.number);
         }),
       )
       .handle("close", ({ params }) => setPullState(params.pullId, "closed"))
@@ -714,6 +737,11 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
       .handle("updateBranch", ({ params }) =>
         Effect.gen(function* () {
           yield* findPull(params.pullId);
+          yield* Ref.update(updatedBranches, (current) =>
+            current.includes(params.pullId)
+              ? current
+              : [...current, params.pullId],
+          );
           return {
             ok: true,
             pullId: params.pullId,

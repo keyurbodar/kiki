@@ -80,6 +80,39 @@ export const pullChecks = [
   },
 ];
 
+export const pullFailingChecks = [
+  {
+    id: "check_sample_lint",
+    name: "CI / lint",
+    status: "completed",
+    conclusion: "failure",
+    detailsUrl: "https://github.com/acme/web/actions/runs/128",
+    startedAt: isoMinutesAgo(32),
+    completedAt: isoMinutesAgo(30),
+  },
+  ...pullChecks.slice(1),
+];
+
+export const pullPassingChecks = pullChecks
+  .filter((check) => check.status === "completed")
+  .map((check) => ({ ...check, conclusion: check.conclusion ?? "success" }));
+
+export const pullChecksFor = (number: number) => {
+  const last = number % 10;
+  if (last === 7 || last === 8) return pullFailingChecks;
+  if (last === 4 || last === 5) return pullChecks;
+  return pullPassingChecks;
+};
+
+export const checksStateFor = (
+  checks: ReadonlyArray<{ status: string; conclusion: string | null }>,
+) => {
+  if (checks.length === 0) return "none";
+  if (checks.some((check) => check.conclusion === "failure")) return "failed";
+  if (checks.some((check) => check.status !== "completed")) return "pending";
+  return "passed";
+};
+
 export const pullChecksNames = pullChecks.map((check) => check.name);
 
 const authorOf = (authorId: string) =>
@@ -109,7 +142,16 @@ export const pullDetails = pulls.map((pull) => ({
       ? isoMinutesAgo(pull.number === 119 ? 9 * 24 * 60 : 12 * 24 * 60)
       : null,
   draft: pull.state === "draft",
+  mergeableState:
+    pull.number === 57
+      ? "behind"
+      : pull.number === 131
+        ? "blocked"
+        : pull.number === 312
+          ? "dirty"
+          : "clean",
   autoMerge: false,
+  autoMergeMethod: null,
   reviewDecision: pull.state === "ready" ? "review_required" : null,
   additions: pull.additions,
   deletions: pull.deletions,
