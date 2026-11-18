@@ -1,6 +1,6 @@
 import { DateTime, Effect, Ref } from "effect";
 import { McpOAuthCompletion } from "../../api/schemas/mcp.ts";
-import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
+import { fields, MockDb, newId, notFound } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
@@ -36,7 +36,7 @@ export const McpMock = mockGroup("mcp", (handlers) =>
       Effect.gen(function* () {
         const rows = yield* Ref.get(mcpServers);
         const server = rows.find((row) => row.id === id);
-        if (!server) return yield* missing("mcpServers", id);
+        if (!server) return yield* notFound("mcpServers", id);
         return server;
       });
 

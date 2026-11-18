@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class MembersGroup extends HttpApiGroup.make("members").add(
@@ -12,6 +12,7 @@ export class MembersGroup extends HttpApiGroup.make("members").add(
     "grantOwner",
     "/orgs/:orgId/members/:userId/grant-owner",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, userId: Schema.String },
       success: Undecoded,
     },
@@ -20,6 +21,7 @@ export class MembersGroup extends HttpApiGroup.make("members").add(
     "setMemberMfaExtension",
     "/orgs/:orgId/members/:userId/mfa-extension",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, userId: Schema.String },
       payload: Undecoded,
       success: Undecoded,
@@ -29,11 +31,13 @@ export class MembersGroup extends HttpApiGroup.make("members").add(
     "clearMemberMfaExtension",
     "/orgs/:orgId/members/:userId/mfa-extension",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, userId: Schema.String },
       success: Undecoded,
     },
   ),
   HttpApiEndpoint.post("removeMember", "/orgs/:orgId/members/:userId/remove", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, userId: Schema.String },
     success: Undecoded,
   }),
@@ -41,6 +45,7 @@ export class MembersGroup extends HttpApiGroup.make("members").add(
     "restoreMember",
     "/orgs/:orgId/members/:userId/restore",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, userId: Schema.String },
       payload: Undecoded,
       success: Undecoded,
@@ -50,12 +55,14 @@ export class MembersGroup extends HttpApiGroup.make("members").add(
     "revokeOwner",
     "/orgs/:orgId/members/:userId/revoke-owner",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, userId: Schema.String },
       payload: Undecoded,
       success: Undecoded,
     },
   ),
   HttpApiEndpoint.put("setMemberRole", "/orgs/:orgId/members/:userId/role", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, userId: Schema.String },
     payload: Undecoded,
     success: Undecoded,

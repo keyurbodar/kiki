@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { OrgId } from "../schemas/ids.ts";
 import { Project, ProjectColor, ProjectIcon } from "../schemas/project.ts";
 import {
@@ -218,6 +218,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "addMembers",
     "/orgs/:orgId/projects/:projectId/members",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, projectId: Schema.String },
       payload: Undecoded,
       success: Undecoded,
@@ -233,6 +234,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     },
   ),
   HttpApiEndpoint.put("setOwner", "/orgs/:orgId/projects/:projectId/owner", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, projectId: Schema.String },
     payload: Undecoded,
     success: Undecoded,

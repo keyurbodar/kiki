@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { InferredMethod } from "../annotations.ts";
 import { CompleteMcpOAuthRequest, McpOAuthCompletion } from "../schemas/mcp.ts";
 import { Undecoded } from "../undecoded.ts";
@@ -27,6 +27,7 @@ export class McpGroup extends HttpApiGroup.make("mcp").add(
     success: Undecoded,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.patch("updateServer", "/orgs/:orgId/mcp-servers/:serverId", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, serverId: Schema.String },
     payload: Undecoded,
     success: Undecoded,
@@ -35,6 +36,7 @@ export class McpGroup extends HttpApiGroup.make("mcp").add(
     "listConnections",
     "/orgs/:orgId/mcp-servers/:serverId/connections",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, serverId: Schema.String },
       success: Undecoded,
     },
@@ -43,6 +45,7 @@ export class McpGroup extends HttpApiGroup.make("mcp").add(
     "deleteServer",
     "/orgs/:orgId/mcp-servers/:serverId/delete",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, serverId: Schema.String },
       success: Undecoded,
     },
@@ -51,6 +54,7 @@ export class McpGroup extends HttpApiGroup.make("mcp").add(
     "disableServer",
     "/orgs/:orgId/mcp-servers/:serverId/disable",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, serverId: Schema.String },
       success: Undecoded,
     },
@@ -59,6 +63,7 @@ export class McpGroup extends HttpApiGroup.make("mcp").add(
     "disconnectCredential",
     "/orgs/:orgId/mcp-servers/:serverId/disconnect",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, serverId: Schema.String },
       success: Undecoded,
     },
@@ -67,6 +72,7 @@ export class McpGroup extends HttpApiGroup.make("mcp").add(
     "enableServer",
     "/orgs/:orgId/mcp-servers/:serverId/enable",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, serverId: Schema.String },
       success: Undecoded,
     },
@@ -75,6 +81,7 @@ export class McpGroup extends HttpApiGroup.make("mcp").add(
     "startOAuth",
     "/orgs/:orgId/mcp-servers/:serverId/oauth/start",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, serverId: Schema.String },
       payload: Undecoded,
       success: Undecoded,
@@ -84,6 +91,7 @@ export class McpGroup extends HttpApiGroup.make("mcp").add(
     "refreshServer",
     "/orgs/:orgId/mcp-servers/:serverId/refresh",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, serverId: Schema.String },
       success: Undecoded,
     },
@@ -92,6 +100,7 @@ export class McpGroup extends HttpApiGroup.make("mcp").add(
     "getSecretValue",
     "/orgs/:orgId/mcp-servers/:serverId/secrets/:position/:name/value",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         serverId: Schema.String,
@@ -105,6 +114,7 @@ export class McpGroup extends HttpApiGroup.make("mcp").add(
     "testServer",
     "/orgs/:orgId/mcp-servers/:serverId/test",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, serverId: Schema.String },
       payload: Undecoded,
       success: Undecoded,
@@ -114,6 +124,7 @@ export class McpGroup extends HttpApiGroup.make("mcp").add(
     "serverTools",
     "/orgs/:orgId/mcp-servers/:serverId/tools",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, serverId: Schema.String },
       success: Undecoded,
     },

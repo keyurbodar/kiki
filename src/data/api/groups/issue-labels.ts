@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { Undecoded } from "../undecoded.ts";
 
 export class IssueLabelsGroup extends HttpApiGroup.make("issue-labels").add(
@@ -13,11 +13,13 @@ export class IssueLabelsGroup extends HttpApiGroup.make("issue-labels").add(
     success: Undecoded,
   }),
   HttpApiEndpoint.patch("updateLabel", "/orgs/:orgId/issue-labels/:labelId", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, labelId: Schema.String },
     payload: Undecoded,
     success: Undecoded,
   }),
   HttpApiEndpoint.delete("deleteLabel", "/orgs/:orgId/issue-labels/:labelId", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, labelId: Schema.String },
     success: Undecoded,
   }),
