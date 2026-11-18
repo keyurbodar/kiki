@@ -34,7 +34,17 @@ const todoState = decodeState({
 const issue = (
   id: string,
   code: string,
-  patch: { parentIssueId?: string | null; subIssueCount?: number } = {},
+  patch: {
+    parentIssueId?: string | null;
+    subIssueCount?: number;
+    pulls?: ReadonlyArray<{
+      repoFullName: string;
+      prNumber: number;
+      title: string;
+      state: "open" | "merged" | "draft" | "closed";
+    }>;
+    blockedBy?: ReadonlyArray<{ code: string; status: string }>;
+  } = {},
 ) =>
   decodeIssue({
     id,
@@ -51,6 +61,19 @@ const issue = (
     assignee: null,
     subIssueCount: patch.subIssueCount ?? 0,
     closedSubIssueCount: 1,
+    ...(patch.pulls === undefined ? {} : { pulls: patch.pulls }),
+    ...(patch.blockedBy === undefined
+      ? {}
+      : {
+          blockedBy: patch.blockedBy.map((ref) => ({
+            code: ref.code,
+            number: Number(ref.code.split("-")[1]),
+            title: `${ref.code} title`,
+            status: ref.status,
+            stateId: "state_todo",
+            priority: "normal",
+          })),
+        }),
     viewer: {
       subscribed: false,
       unread: false,
@@ -162,5 +185,75 @@ describe("issue row controls", () => {
     const priority = document.querySelector("[aria-label='High priority']");
     expect(priority).not.toBeNull();
     expect(priority?.getAttribute("data-slot")).toBe("tooltip-trigger");
+  });
+});
+
+describe("issue row properties", () => {
+  it("draws Capy's pull chip for a single linked pull", async () => {
+    await mount([
+      issue("iss_pull", "AMA-30", {
+        pulls: [
+          {
+            repoFullName: "acme/web",
+            prNumber: 128,
+            title: "Add dark mode",
+            state: "open",
+          },
+        ],
+      }),
+    ]);
+    const chip = document.querySelector("[aria-label='Open web#128']");
+    expect(chip).not.toBeNull();
+    expect(chip?.textContent).toContain("#128");
+  });
+
+  it("counts linked pulls by state when a row has several", async () => {
+    await mount([
+      issue("iss_pulls", "AMA-31", {
+        pulls: [
+          {
+            repoFullName: "acme/web",
+            prNumber: 119,
+            title: "Bundler",
+            state: "merged",
+          },
+          {
+            repoFullName: "acme/web",
+            prNumber: 128,
+            title: "Dark mode",
+            state: "open",
+          },
+        ],
+      }),
+    ]);
+    expect(document.querySelector("[aria-label='Open web#119']")).toBeNull();
+    const row = document.querySelector("[data-issue-row]");
+    expect(row?.textContent ?? "").toContain("1");
+  });
+
+  it("draws the blocked-by badge Capy puts on a row", async () => {
+    await mount([
+      issue("iss_blocked", "AMA-32", {
+        blockedBy: [{ code: "AMA-33", status: "in_progress" }],
+      }),
+    ]);
+    const chip = document.querySelector("[data-issue-relation='blockedBy']");
+    expect(chip).not.toBeNull();
+    expect(chip?.getAttribute("aria-label")).toBe("Blocked by AMA-33");
+  });
+});
+
+describe("issue row keyboard", () => {
+  it("opens sub-issues with ArrowRight and folds them with ArrowLeft", async () => {
+    const row = await mount([parent, child, other]);
+    if (row === null) throw new Error("no row");
+    fireEvent.keyDown(row, { key: "ArrowRight" });
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    expect(codes()).toEqual(["AMA-12", "AMA-13", "AMA-20"]);
+    const first = document.querySelector("[data-issue-row]");
+    if (first === null) throw new Error("no row");
+    fireEvent.keyDown(first, { key: "ArrowLeft" });
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    expect(codes()).toEqual(["AMA-12", "AMA-20"]);
   });
 });

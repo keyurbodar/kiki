@@ -711,6 +711,31 @@ export const issues = [
     projectId: projects.old.id,
     updatedMinutesAgo: 30 * day,
   }),
+  issue(10, "Search: empty state", "ist_sample_todo", {
+    projectId: projects.docs.id,
+    parentNumber: 6,
+    updatedMinutesAgo: 3 * hour,
+  }),
+  issue(11, "Search: shortcut hints", "ist_sample_todo", {
+    projectId: projects.docs.id,
+    parentNumber: 6,
+    updatedMinutesAgo: 4 * hour,
+  }),
+  issue(12, "Rate limit: 429 body", "ist_sample_waiting", {
+    projectId: projects.api.id,
+    parentNumber: 5,
+    updatedMinutesAgo: 2 * hour,
+  }),
+  issue(13, "Settings: contrast pass", "ist_sample_in_review", {
+    assigneeId: people.sam.id,
+    parentNumber: 3,
+    updatedMinutesAgo: 40,
+  }),
+  issue(14, "Rate limit: retry budget", "ist_sample_todo", {
+    projectId: projects.api.id,
+    pullIds: ["pr_sample_119", "pr_sample_128"],
+    updatedMinutesAgo: 90,
+  }),
 ];
 
 export type PullState = "draft" | "ready" | "merged" | "closed";

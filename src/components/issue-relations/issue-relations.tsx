@@ -175,7 +175,7 @@ export function IssueRelationChip({
                     size="xs"
                     className="shrink-0"
                     data-issue-relation={side}
-                    aria-label={`${label}, show issues`}
+                    aria-label={label}
                     onClick={stop}
                   />
                 }
