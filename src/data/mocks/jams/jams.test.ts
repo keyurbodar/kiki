@@ -1,9 +1,9 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
-import { OrgId } from "../../api/schemas/ids.ts";
+import { JamId, OrgId } from "../../api/schemas/ids.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
-import { orgId, threads, world } from "../fixtures/world.ts";
+import { captains, orgId, threads, world } from "../fixtures/world.ts";
 
 const org = OrgId.make(orgId);
 const key = `jams:${orgId}`;
@@ -53,6 +53,57 @@ const mutate = (
   registry.set(atom, { ...request, reactivityKeys: [key] } as never);
   return AtomRegistry.getResult(registry, atom);
 };
+
+describe("a Captain's jam id", () => {
+  const detail = (jamId: string) =>
+    ApiClient.query("jams", "get", {
+      params: { orgId: org, jamId: JamId.make(jamId) },
+      reactivityKeys: [key],
+    });
+
+  it.effect("opens through jams.get with its project and membership", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      for (const captain of captains) {
+        const found = (yield* AtomRegistry.getResult(
+          registry,
+          detail(captain.id),
+        )) as {
+          id: string;
+          title: string | null;
+          projectId: string | null;
+          membership: { members: ReadonlyArray<{ userId: string }> };
+        };
+        assert.equal(found.id, captain.id);
+        assert.equal(found.title, captain.name);
+        assert.equal(found.projectId, captain.projectId);
+        assert.include(
+          found.membership.members.map((member) => member.userId),
+          captain.ownerId,
+        );
+      }
+    }),
+  );
+
+  it.effect(
+    "never appears in jams.list, which leaves Captains to the Captain list",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        const page = (yield* AtomRegistry.getResult(registry, listAtom)) as {
+          items: ReadonlyArray<Thread>;
+        };
+        const captainIds = new Set(captains.map((captain) => captain.id));
+        assert.deepStrictEqual(
+          page.items
+            .filter((thread) => captainIds.has(thread.id))
+            .map((t) => t.id),
+          [],
+        );
+        assert.strictEqual(page.items.length, 10);
+      }),
+  );
+});
 
 describe("jams mock", () => {
   it.effect("serves every read endpoint with sensible data", () =>

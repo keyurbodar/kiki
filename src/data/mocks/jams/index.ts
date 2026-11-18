@@ -19,6 +19,7 @@ import {
   ThreadMember,
   ThreadMembership,
 } from "../../api/schemas/thread.ts";
+import { captainCard } from "../captains/fixtures.ts";
 import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { isoMinutesAgo, world } from "../fixtures/world.ts";
@@ -29,6 +30,7 @@ import {
   sampleAccessRequests,
   sampleAd,
   sampleAdHocAsks,
+  sampleCaptainAccess,
   sampleConnectionUsage,
   sampleCredits,
   sampleFeedbackRequests,
@@ -158,8 +160,13 @@ const activity = () => minutesAgo(0);
 
 export const JamsMock = mockGroup("jams", (handlers) =>
   Effect.gen(function* () {
-    const { jams, threadPins, threadTagAssignments, threadFolderItems } =
-      yield* MockDb;
+    const {
+      jams,
+      threadPins,
+      threadTagAssignments,
+      threadFolderItems,
+      captains,
+    } = yield* MockDb;
     const threads = yield* Ref.make<ReadonlyArray<ThreadCard>>(sampleThreads);
 
     const organize = (card: ThreadCard) =>
@@ -189,6 +196,21 @@ export const JamsMock = mockGroup("jams", (handlers) =>
           threads,
           rows.map((row) => (row.id === jamId ? change(row) : row)),
         );
+      });
+
+    /**
+     * A Captain is a thread: `jams.list` holds only the sample threads so a
+     * Captain is not listed twice beside its Captain row, but a Captain's jam id
+     * still opens — the thread route and its Setup pane read its detail here.
+     */
+    const captainThread = (jamId: string) =>
+      Effect.gen(function* () {
+        const rows = yield* Ref.get(captains);
+        const index = rows.findIndex((captain) => captain.id === jamId);
+        const row = rows[index];
+        return index === -1 || row === undefined
+          ? undefined
+          : (captainCard(row, index) as ThreadCard);
       });
 
     const batchOutcomes = (
@@ -226,8 +248,10 @@ export const JamsMock = mockGroup("jams", (handlers) =>
           }),
       );
     };
-    const access =
-      yield* Ref.make<ReadonlyArray<ThreadAccess>>(sampleThreadAccess);
+    const access = yield* Ref.make<ReadonlyArray<ThreadAccess>>([
+      ...sampleThreadAccess,
+      ...sampleCaptainAccess,
+    ]);
     const accessRequests =
       yield* Ref.make<ReadonlyArray<(typeof sampleAccessRequests)[number]>>(
         sampleAccessRequests,
@@ -240,7 +264,7 @@ export const JamsMock = mockGroup("jams", (handlers) =>
       Readonly<Record<string, Record<string, string>>>
     >(
       Object.fromEntries(
-        sampleThreadAccess.map((entry) => [
+        [...sampleThreadAccess, ...sampleCaptainAccess].map((entry) => [
           entry.jamId,
           { ...entry.environment },
         ]),
@@ -524,7 +548,9 @@ export const JamsMock = mockGroup("jams", (handlers) =>
       .handle("get", ({ params }) =>
         Effect.gen(function* () {
           const rows = yield* organizedThreads;
-          const found = rows.find((row) => row.id === params.jamId);
+          const found =
+            rows.find((row) => row.id === params.jamId) ??
+            (yield* captainThread(params.jamId));
           if (!found) return yield* new JamNotFound({ jamId: params.jamId });
           const current = yield* currentAccess(found.id);
           return new JamDetail({
