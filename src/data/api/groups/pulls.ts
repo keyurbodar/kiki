@@ -17,6 +17,7 @@ export class PullsGroup extends HttpApiGroup.make("pulls").add(
     {
       params: { orgId: Schema.String, jamId: Schema.String, id: Schema.String },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.get("forThread", "/orgs/:orgId/jams/:jamId/pulls", {
@@ -92,6 +93,7 @@ export class PullsGroup extends HttpApiGroup.make("pulls").add(
       },
       payload: Undecoded,
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.get(
@@ -149,6 +151,7 @@ export class PullsGroup extends HttpApiGroup.make("pulls").add(
       },
       payload: Undecoded,
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.get("image", "/orgs/:orgId/pulls/:pullId/image", {
@@ -223,6 +226,7 @@ export class PullsGroup extends HttpApiGroup.make("pulls").add(
       },
       payload: Undecoded,
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.get("stackRelatives", "/orgs/:orgId/pulls/:pullId/stack", {
