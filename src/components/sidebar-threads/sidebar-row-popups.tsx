@@ -93,7 +93,7 @@ export function SidebarRowPopups({
       >
         {children}
       </ContextMenuTrigger>
-      <ContextMenuContent className="w-52">
+      <ContextMenuContent className="kiki-menu">
         {thread === null || renderMenu === undefined
           ? null
           : renderMenu(thread)}

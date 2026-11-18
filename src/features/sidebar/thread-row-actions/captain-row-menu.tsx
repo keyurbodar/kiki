@@ -31,8 +31,8 @@ const asThread = (captain: SidebarCaptain): SidebarThread => ({
 });
 
 const menuIconClassName =
-  "flex size-(--icon-sm) shrink-0 items-center justify-center text-icon-muted in-data-[intent=danger]:text-destructive";
-const menuSeparatorClassName = "-mx-1 my-1 h-px bg-border-1";
+  "kiki-icon text-icon-muted in-data-[intent=danger]:text-destructive";
+const menuSeparatorClassName = "-mx-1 kiki-menu-separator h-px bg-border-1";
 
 function MenuRow({
   icon,
@@ -47,7 +47,7 @@ function MenuRow({
 }) {
   return (
     <ResponsiveMenuItem data-intent={intent} onClick={onClick}>
-      <span className={menuIconClassName}>
+      <span data-size="sm" className={menuIconClassName}>
         <Icon name={icon} size="sm" />
       </span>
       {label}
@@ -87,7 +87,7 @@ export function CaptainRowMenu({
             key={folder.id}
             onClick={act(() => actions.moveTo(row, folder.id))}
           >
-            <span className={menuIconClassName}>
+            <span data-size="sm" className={menuIconClassName}>
               <Icon name="folder-1" size="sm" />
             </span>
             {folder.name}
@@ -129,12 +129,12 @@ export function CaptainRowMenu({
       )}
       <ResponsiveMenuSub
         icon={
-          <span className={menuIconClassName}>
+          <span data-size="sm" className={menuIconClassName}>
             <Icon name="move-folder" size="sm" />
           </span>
         }
         label="Move to"
-        contentClassName="w-52"
+        contentClassName="kiki-menu"
       >
         {folders}
       </ResponsiveMenuSub>
