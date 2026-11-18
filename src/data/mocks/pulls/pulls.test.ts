@@ -125,7 +125,11 @@ describe("pulls mock", () => {
       const activity = yield* read<ReadonlyArray<{ id: string }>>(
         ApiClient.query("pulls", "activity", { params: { orgId, pullId } }),
       );
-      const orgActivity = yield* read<ReadonlyArray<{ id: string }>>(
+      const orgActivity = yield* read<{
+        days: ReadonlyArray<{ date: string; merged: number }>;
+        touches: ReadonlyArray<{ date: string; total: number }>;
+        mergedAll: { current: number };
+      }>(
         ApiClient.query("pulls", "orgActivity", {
           params: { orgId },
           query: {},
@@ -150,7 +154,9 @@ describe("pulls mock", () => {
         ApiClient.query("pulls", "checks", { params: { orgId, pullId } }),
       );
       assert.isAbove(activity.length, 0);
-      assert.isAbove(orgActivity.length, 0);
+      assert.isAbove(orgActivity.days.length, 0);
+      assert.isAbove(orgActivity.touches.length, 0);
+      assert.isAbove(orgActivity.mergedAll.current, 0);
       assert.isAbove(hourly.length, 0);
       assert.isAbove(branches.length, 0);
       assert.isAbove(checkNames.length, 0);

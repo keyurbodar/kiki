@@ -10,7 +10,6 @@ import {
 import { mockGroup } from "../mockGroup.ts";
 import {
   defaultLocalPull,
-  orgPullActivity,
   pullActivity,
   pullBranches,
   pullChecks,
@@ -50,6 +49,7 @@ import {
   xinPullReviewers,
   xinPullViewedFiles,
 } from "./fixtures.ts";
+import { sampleOrgActivity } from "./org-activity.ts";
 
 const text = (value: unknown): string | undefined =>
   typeof value === "string" && value.length > 0 ? value : undefined;
@@ -757,13 +757,14 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
           return updated;
         }),
       )
-      .handle("orgActivity", ({ query }) =>
-        Effect.gen(function* () {
-          const repo = queryText(query, "repo");
-          const rows = yield* Ref.get(pulls);
-          const matching = rows.filter((row) => !repo || row.repo === repo);
-          return matching.length > 0 ? orgPullActivity : [];
-        }),
+      .handle("orgActivity", () =>
+        Effect.succeed(
+          sampleOrgActivity(new Date(), [
+            people.alex.id,
+            people.priya.id,
+            people.sam.id,
+          ]),
+        ),
       )
       .handle("orgHourlyActivity", () => Effect.succeed(pullHourlyActivity))
       .handle("branches", () => Effect.succeed(pullBranches))

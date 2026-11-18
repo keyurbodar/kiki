@@ -153,11 +153,34 @@ describe("members mock", () => {
 
       const invite = yield* run(ApiClient.mutation("members", "invite"), {
         params: { orgId },
-        payload: { email: "new-member@example.com", role: "member" },
+        payload: {
+          emails: ["new-member@example.com", "garbage-address"],
+          role: "member",
+        },
+      });
+      const outcomes = (
+        invite.result as {
+          invitations: ReadonlyArray<{ email: string; status: string }>;
+        }
+      ).invitations;
+      assert.deepEqual(
+        outcomes.map((row) => [row.email, row.status]),
+        [
+          ["new-member@example.com", "invited"],
+          ["garbage-address", "invalid"],
+        ],
+      );
+      const existing = yield* run(ApiClient.mutation("members", "invite"), {
+        params: { orgId },
+        payload: { emails: [people.alex.email], role: "member" },
       });
       assert.strictEqual(
-        (invite.result as { invitation: { email: string } }).invitation.email,
-        "new-member@example.com",
+        (
+          existing.result as {
+            invitations: ReadonlyArray<{ status: string }>;
+          }
+        ).invitations[0]?.status,
+        "already_member",
       );
     }),
   );
