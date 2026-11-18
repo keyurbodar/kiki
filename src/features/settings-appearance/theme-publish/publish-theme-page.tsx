@@ -14,6 +14,7 @@ import {
   userThemeKey,
   wallpapersAtom,
 } from "@/data/atoms/appearance";
+import { jsonPayload } from "@/data/client/json";
 import { Alert, AlertDescription, AlertTitle } from "@/primitives/alert";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
@@ -178,12 +179,12 @@ function PublishTheme({
     const note = (description ?? "").trim();
     publish({
       params: { themeId: theme.id },
-      payload: {
+      payload: jsonPayload({
         description: note === "" ? undefined : note,
         wallpaperId:
           wallpaper === NONE || wallpaper === CURRENT ? undefined : wallpaper,
         background: wallpaper === CURRENT ? "current" : undefined,
-      },
+      }),
       reactivityKeys,
     }).then(
       (result) => {

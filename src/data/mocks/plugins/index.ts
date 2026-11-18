@@ -35,6 +35,33 @@ const hasNewerVersion = (
       version.publishedAt > (row.installedAt ?? ""),
   );
 
+/**
+ * The installation detail every read answers with. The badge, the Review
+ * control and the review page read one fact — whether a newer version is
+ * published — so the row's own flag is derived here rather than stored.
+ */
+const detailOf = (
+  installation: PluginInstallation,
+  published: ReadonlyArray<PluginVersion>,
+) => {
+  const ofPlugin = published.filter(
+    (version) => version.pluginKey === installation.pluginKey,
+  );
+  const updateAvailable = hasNewerVersion(published, installation);
+  const available = updateAvailable
+    ? ofPlugin
+        .filter((version) => version.id !== installation.versionId)
+        .toSorted((a, b) => b.publishedAt.localeCompare(a.publishedAt))[0]
+    : undefined;
+  return {
+    ...installation,
+    updateAvailable,
+    runningVersion:
+      ofPlugin.find((version) => version.id === installation.versionId) ?? null,
+    availableVersion: available ?? null,
+  };
+};
+
 const lookupInstallation = (
   rows: ReadonlyArray<PluginInstallation>,
   id: string,
@@ -173,6 +200,11 @@ export const PluginsMock = mockGroup("plugins", (handlers) =>
               row.key === version.pluginKey ? { ...row, installed: true } : row,
             ),
           );
+          yield* Ref.update(versions, (rows) =>
+            rows.some((row) => row.id === version.id)
+              ? rows
+              : [...rows, version],
+          );
           return installation;
         }),
       )
@@ -184,29 +216,7 @@ export const PluginsMock = mockGroup("plugins", (handlers) =>
             params.installationId,
           );
           const published = yield* Ref.get(versions);
-          const ofPlugin = published.filter(
-            (version) => version.pluginKey === installation.pluginKey,
-          );
-          const running = ofPlugin.find(
-            (version) => version.id === installation.versionId,
-          );
-          // The badge, the Review control and the review page read one fact:
-          // whether a newer version is published. The row's own flag is
-          // derived here rather than stored, so it cannot drift from it.
-          const updateAvailable = hasNewerVersion(published, installation);
-          const available = updateAvailable
-            ? ofPlugin
-                .filter((version) => version.id !== installation.versionId)
-                .toSorted((a, b) =>
-                  b.publishedAt.localeCompare(a.publishedAt),
-                )[0]
-            : undefined;
-          return {
-            ...installation,
-            updateAvailable,
-            runningVersion: running ?? null,
-            availableVersion: available ?? null,
-          };
+          return detailOf(installation, published);
         }),
       )
       .handle("patchInstallation", ({ params, payload }) =>
