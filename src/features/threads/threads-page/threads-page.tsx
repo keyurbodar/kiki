@@ -53,6 +53,7 @@ import {
 import { allThreadsAtom } from "@/data/atoms/threads";
 import { BulkBar } from "@/primitives/bulk-bar";
 import { Button } from "@/primitives/button";
+import { captainAvatarUrl } from "@/primitives/captain-avatar";
 import {
   Dialog,
   DialogContent,
@@ -139,48 +140,67 @@ export const toListItem = (card: ThreadCard): ThreadListItem => {
 
 type CaptainRow = {
   id: string;
-  name: string;
+  title: string | null;
   projectId: string | null;
-  ownerId: string;
-  createdAt: string;
-  imageUrl: string | null;
-  memberIds?: ReadonlyArray<string>;
+  userId: string;
+  createdAt: unknown;
+  face: {
+    name: string;
+    avatar: { kind: "preset" | "emoji"; value: string; image?: string };
+  };
 };
 
-/** Captains come back undecoded; read the fields the list draws. */
+const captainDate = (value: unknown): Date => {
+  const date =
+    value instanceof Date
+      ? value
+      : typeof value === "string" || typeof value === "number"
+        ? new Date(value)
+        : DateTime.toDate(value as DateTime.Utc);
+  return Number.isNaN(date.getTime()) ? new Date() : date;
+};
+
+const captainRowAvatar = (avatar: CaptainRow["face"]["avatar"]) =>
+  avatar.image ??
+  (avatar.kind === "preset" ? captainAvatarUrl(avatar.value) || null : null);
+
+/** Captains come back as CaptainCards; read the fields the row draws. */
 export const captainItems = (
   value: unknown,
   viewerId: string | undefined,
 ): ThreadListItem[] => {
   if (!Array.isArray(value)) return [];
-  return (value as CaptainRow[]).map((captain) => ({
-    id: captain.id,
-    title: captain.name,
-    status: "idle",
-    archived: false,
-    archivedIdleDays: null,
-    threadNumber: null,
-    userId: captain.ownerId,
-    participated:
-      viewerId !== undefined &&
-      (captain.ownerId === viewerId ||
-        (captain.memberIds ?? []).includes(viewerId)),
-    origin: "web",
-    projectId: captain.projectId,
-    pinned: false,
-    needsYou: false,
-    hasUnreads: false,
-    personal: false,
-    lastModelId: null,
-    pulls: [],
-    createdAt: new Date(captain.createdAt),
-    sortActivityAt: new Date(captain.createdAt),
-    lastActivityAt: new Date(captain.createdAt),
-    settledAt: null,
-    automationName: null,
-    automationId: null,
-    captain: { name: captain.name, avatarUrl: captain.imageUrl },
-  }));
+  return (value as CaptainRow[]).map((captain) => {
+    const createdAt = captainDate(captain.createdAt);
+    return {
+      id: captain.id,
+      title: captain.face.name,
+      status: "idle",
+      archived: false,
+      archivedIdleDays: null,
+      threadNumber: null,
+      userId: captain.userId,
+      participated: viewerId !== undefined && captain.userId === viewerId,
+      origin: "web",
+      projectId: captain.projectId,
+      pinned: false,
+      needsYou: false,
+      hasUnreads: false,
+      personal: false,
+      lastModelId: null,
+      pulls: [],
+      createdAt,
+      sortActivityAt: createdAt,
+      lastActivityAt: createdAt,
+      settledAt: null,
+      automationName: null,
+      automationId: null,
+      captain: {
+        name: captain.face.name,
+        avatarUrl: captainRowAvatar(captain.face.avatar),
+      },
+    };
+  });
 };
 
 const modelLabels: Record<string, string> = {
@@ -341,7 +361,6 @@ export function ThreadsPageView({
     grouping: state.grouping,
     ordering: state.ordering,
     searching,
-    now,
     projectName: (id) =>
       id === null ? "No project" : (projectMap.get(id)?.name ?? "No project"),
     authorName: (id) => (id === viewerId ? "You" : "Unknown"),
