@@ -1,4 +1,4 @@
-import { Button } from "@/primitives/button";
+import { buttonVariants } from "@/primitives/button";
 import {
   Menu,
   MenuContent,
@@ -7,6 +7,7 @@ import {
   MenuLabel,
   MenuTrigger,
 } from "@/primitives/menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { SlidersIcon } from "../icons";
 import {
   type DriveOrdering,
@@ -24,13 +25,28 @@ export function DriveDisplayMenu({
 }) {
   return (
     <Menu>
-      <MenuTrigger
-        render={
-          <Button variant="ghost" size="icon-sm" aria-label="Display options" />
-        }
-      >
-        <SlidersIcon className="size-(--icon-sm)" />
-      </MenuTrigger>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <MenuTrigger
+              render={
+                <button
+                  type="button"
+                  aria-label="Display options"
+                  aria-haspopup="menu"
+                  className={buttonVariants({
+                    variant: "ghost",
+                    size: "icon-sm",
+                  })}
+                >
+                  <SlidersIcon className="size-(--icon-sm)" />
+                </button>
+              }
+            />
+          }
+        />
+        <TooltipContent side="bottom">Display options</TooltipContent>
+      </Tooltip>
       <MenuContent align="end" className="w-60">
         <MenuGroup>
           <MenuLabel>Ordering</MenuLabel>

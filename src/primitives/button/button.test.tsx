@@ -59,7 +59,7 @@ describe("Button", () => {
     expect(button).toHaveProperty("disabled", true);
     expect(button.getAttribute("aria-busy")).toBe("true");
     expect(button.textContent).toBe("Saving");
-    expect(button.querySelector("[data-slot=dot-grid-icon]")).not.toBeNull();
+    expect(button.querySelector(".dot-grid")).not.toBeNull();
   });
 
   it("sets the ButtonIcon side from its position", () => {
@@ -99,6 +99,6 @@ describe("Button", () => {
     const icon = screen
       .getByRole("button")
       .querySelector("[data-slot=button-icon]");
-    expect(icon?.querySelector("[data-slot=dot-grid-icon]")).not.toBeNull();
+    expect(icon?.querySelector(".dot-grid")).not.toBeNull();
   });
 });

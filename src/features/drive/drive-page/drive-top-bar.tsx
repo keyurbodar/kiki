@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { AppTopBar } from "@/components/app-top-bar";
-import { Button } from "@/primitives/button";
+import { buttonVariants } from "@/primitives/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { SearchIcon } from "../icons";
 
 export interface DriveTopBarSearch {
@@ -48,18 +49,28 @@ export function DriveTopBar({
             />
           )}
           {search !== undefined && (
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Search"
-              aria-pressed={open}
-              onClick={() => {
-                if (open) search.onValueChange("");
-                setOpen(!open);
-              }}
-            >
-              <SearchIcon className="size-(--icon-sm)" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <button
+                    type="button"
+                    aria-label="Search"
+                    aria-pressed={open}
+                    className={buttonVariants({
+                      variant: "ghost",
+                      size: "icon-sm",
+                    })}
+                    onClick={() => {
+                      if (open) search.onValueChange("");
+                      setOpen(!open);
+                    }}
+                  >
+                    <SearchIcon className="size-(--icon-sm)" />
+                  </button>
+                }
+              />
+              <TooltipContent side="bottom">Search</TooltipContent>
+            </Tooltip>
           )}
           {trailing}
         </>

@@ -25,7 +25,7 @@ it("draws a retry marker as a rule, an icon and a truncating label", () => {
   const row = container.firstElementChild as HTMLElement;
   expect(row.className).toContain("min-h-7");
   expect(row.className).toContain("gap-3");
-  expect(row.querySelectorAll("[data-slot=icon]").length).toBe(1);
+  expect(row.querySelectorAll("svg[data-icon]").length).toBe(1);
   const truncating = [...row.querySelectorAll("span")].filter(
     (el) =>
       el.textContent === "Keyur retried" && el.className.includes("truncate"),

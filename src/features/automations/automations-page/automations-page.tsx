@@ -1,7 +1,7 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppTopBar } from "@/components/app-top-bar";
 import {
@@ -16,6 +16,7 @@ import {
 } from "@/components/view-toolbar";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { projectsAtom } from "@/data/atoms/projects";
+import { threadsAtom } from "@/data/atoms/threads";
 import { Button } from "@/primitives/button";
 import {
   Dialog,
@@ -43,6 +44,7 @@ import {
   PlusLarge,
   restoreAutomationAtom,
   SortArrowUpDown,
+  type StandingThread,
   useActiveOrgId,
   useAutomationsPage,
   useOrgMembers,
@@ -80,6 +82,31 @@ function useProjectOptions(orgId: string | undefined) {
   return projects
     .filter((project) => !project.deleted)
     .map((project) => ({ id: project.id, name: project.name }));
+}
+
+/** The standing threads a row can name, by jam id: `KIKI-4` and its status. */
+function useStandingThreads(
+  orgId: string | undefined,
+): ReadonlyMap<string, StandingThread> {
+  const projectsResult = useAtomValue(projectsAtom((orgId ?? "") as OrgId));
+  const threadsResult = useAtomValue(threadsAtom((orgId ?? "") as OrgId));
+  return useMemo(() => {
+    const projects =
+      Option.getOrUndefined(AsyncResult.value(projectsResult)) ?? [];
+    const page = Option.getOrUndefined(AsyncResult.value(threadsResult));
+    const threads = new Map<string, StandingThread>();
+    for (const thread of page?.items ?? []) {
+      const project = projects.find(
+        (candidate) => candidate.id === thread.projectId,
+      );
+      if (project !== undefined && thread.threadNumber !== null)
+        threads.set(thread.id, {
+          code: `${project.code}-${thread.threadNumber}`,
+          status: thread.status,
+        });
+    }
+    return threads;
+  }, [projectsResult, threadsResult]);
 }
 
 function useNow() {
@@ -139,6 +166,7 @@ export function AutomationsPage() {
   const viewer = useViewer();
   const members = useOrgMembers(orgId);
   const projectOptions = useProjectOptions(orgId);
+  const standingThreads = useStandingThreads(orgId);
   const now = useNow();
   const [state, setState] = useAutomationsPageState();
   const optimistic = useAtomValue(optimisticAutomationsAtom);
@@ -249,10 +277,7 @@ export function AutomationsPage() {
   const searching = searchOpen;
   return (
     <div className="relative flex h-full min-h-0 flex-col">
-      <AppTopBar
-        data-slot="app-top-bar"
-        className="sticky top-0 flex min-h-11 shrink-0 items-center border-b-(length:--border-width-hairline) border-border-1 bg-panel px-2"
-      >
+      <AppTopBar className="sticky top-0 flex min-h-11 shrink-0 items-center border-b-(length:--border-width-hairline) border-border-1 bg-panel px-2">
         {searching ? (
           <div className="ml-2.5 flex min-w-0 flex-1 items-center gap-1.5">
             <MagnifyingGlass className="size-(--icon-base) shrink-0 text-icon-muted" />
@@ -425,7 +450,7 @@ export function AutomationsPage() {
         }}
         onConfirm={confirmDelete}
       />
-      <ScrollArea className="min-h-0 flex-1">
+      <ScrollArea scrollbar={false} className="min-h-0 flex-1">
         <ScrollAreaViewport className="h-full overscroll-contain">
           <div className="@container/list flex flex-col px-2 pt-1 pb-16">
             <AutomationsList
@@ -439,6 +464,7 @@ export function AutomationsPage() {
               loading={!page.loaded && !page.failed}
               emptyText={emptyText(search, rows.length, serverQuery)}
               orgId={orgId}
+              standingThreads={standingThreads}
             />
             {page.retry === undefined ? null : (
               <div className="flex justify-center">

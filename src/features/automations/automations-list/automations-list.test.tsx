@@ -13,6 +13,7 @@ import {
   type AutomationListSection,
   AutomationsList,
   type AutomationsListProps,
+  type StandingThread,
 } from "./automations-list";
 
 afterEach(cleanup);
@@ -64,6 +65,7 @@ const props: AutomationsListProps = {
   onDelete: () => {},
   emptyText: "No automations yet",
   orgId: "org_1",
+  standingThreads: new Map<string, StandingThread>(),
 };
 
 function renderList(node: ReactNode = <AutomationsList {...props} />) {
@@ -156,5 +158,36 @@ describe("AutomationsList sections", () => {
           ?.textContent?.replace(/\d+$/, ""),
       ),
     ).toEqual(["Active", "Disabled"]);
+  });
+});
+
+describe("AutomationsList standing thread", () => {
+  it("labels the standing thread with its code", async () => {
+    renderList(
+      <AutomationsList
+        {...props}
+        sections={[
+          {
+            id: "active",
+            label: "Active",
+            members: [
+              row("auto_standing", "Flake watch", { singleJamId: "jam_1" }),
+            ],
+          },
+        ]}
+        standingThreads={
+          new Map<string, StandingThread>([
+            ["jam_1", { code: "WEB-41", status: "waiting" }],
+          ])
+        }
+      />,
+    );
+    const chip = await waitFor(() => {
+      const found = document.querySelector("button[data-slot=badge]");
+      if (found === null) throw new Error("no standing thread chip");
+      return found;
+    });
+    expect(chip.getAttribute("aria-label")).toBe("Runs in WEB-41, open thread");
+    expect(chip.textContent).toBe("WEB-41");
   });
 });

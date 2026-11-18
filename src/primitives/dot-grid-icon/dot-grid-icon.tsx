@@ -194,7 +194,6 @@ export function DotGridIcon({
       viewBox="0 0 14 14"
       role={role}
       aria-label={label}
-      data-slot="dot-grid-icon"
       data-state={state}
       className={dotGridIconVariants({ size, className })}
       {...props}
