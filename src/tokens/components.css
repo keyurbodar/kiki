@@ -47,6 +47,13 @@
   --crop-editor-grid:
     linear-gradient(to right, rgba(255, 255, 255, 0.35) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.35) 1px, transparent 1px);
+  /* Skullet's measured skeletons: the fills its bars draw with, held to Capy's
+     own skeleton surfaces (--secondary bars, --card-hover shimmer) so a
+     measured skeleton matches the hand-drawn placeholders it replaces. The
+     radius is Capy's `rounded` on skeleton bars. */
+  --skullet-base: var(--secondary);
+  --skullet-highlight: var(--card-hover);
+  --skullet-radius: var(--spacing);
   /* Geometry recipes: the row and column scale src/tokens/recipes.css reads. */
   --menu-w: 208px;
   --row-h-dense: 28px;

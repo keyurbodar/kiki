@@ -3,12 +3,13 @@ import { Link } from "@tanstack/react-router";
 import { DateTime, Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import type { ReactNode } from "react";
-import type { ExploreCard } from "@/data/api/schemas/explore";
+import { ExploreCard } from "@/data/api/schemas/explore";
 import { orgListingsAtom } from "@/data/atoms/explore";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import { ScrollArea } from "@/primitives/scroll-area";
+import { Skeleton } from "@/primitives/skeleton";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { ExploreFrame } from "../explore-frame";
 import { ListingAddAction } from "../listing-add-action";
@@ -29,7 +30,9 @@ import {
 } from "./search";
 
 const pageClassName = "mx-auto flex w-full max-w-200 flex-col px-6 md:px-0";
-const gridClassName = "grid grid-cols-1 gap-x-12 gap-y-4 md:grid-cols-2";
+/** The Skills grid, shared with the skeleton harness so it measures the real layout. */
+export const exploreGridClassName =
+  "grid grid-cols-1 gap-x-12 gap-y-4 md:grid-cols-2";
 const SKELETON_ROW_KEYS = [
   "one",
   "two",
@@ -93,7 +96,7 @@ export function ExplorePageSkeleton() {
     >
       <div className="flex flex-col gap-2">
         <div className="h-4 w-20 rounded bg-secondary" />
-        <div className={gridClassName}>
+        <div className={exploreGridClassName}>
           {SKELETON_ROW_KEYS.map((key) => (
             <RowSkeleton key={key} />
           ))}
@@ -223,6 +226,81 @@ const toThemeListingCard = (card: ExploreCard): ThemeListingCard => ({
   theme: readTheme(card.theme),
 });
 
+const sampleListedAt = DateTime.fromDateUnsafe(
+  new Date("2026-01-01T00:00:00Z"),
+);
+
+const sampleSkill = (
+  slug: string,
+  displayName: string,
+  description: string,
+  stars: number,
+) =>
+  new ExploreCard({
+    kind: "skill",
+    source: "catalog",
+    slug,
+    displayName,
+    description,
+    maker: null,
+    accent: null,
+    category: null,
+    firstListedAt: sampleListedAt,
+    featuredRank: null,
+    popularRank: null,
+    hasIcon: false,
+    repository: null,
+    stars,
+    starsCheckedAt: sampleListedAt,
+    adds: null,
+    version: null,
+    versionId: null,
+    theme: null,
+    builtIn: null,
+    createdAt: sampleListedAt,
+    updatedAt: sampleListedAt,
+  });
+
+/** The stand-in rows skullet measures the Skills grid's skeleton from. */
+const sampleSkillCards: ReadonlyArray<ExploreCard> = [
+  sampleSkill(
+    "deploy-from-issue",
+    "Deploy from the issue list",
+    "Ship a branch from a Linear issue",
+    128,
+  ),
+  sampleSkill(
+    "nightly-audit",
+    "Nightly dependency audit",
+    "Opens a PR when a lockfile drifts",
+    964,
+  ),
+  sampleSkill(
+    "release-notes",
+    "Release notes drafter",
+    "Summarizes merged PRs into a changelog",
+    42,
+  ),
+  sampleSkill(
+    "flaky-quarantine",
+    "Flaky test quarantine",
+    "Marks a test flaky after three failures",
+    210,
+  ),
+  sampleSkill(
+    "branch-sweeper",
+    "Branch sweeper",
+    "Deletes merged branches on a schedule",
+    64,
+  ),
+  sampleSkill(
+    "review-roulette",
+    "Review roulette",
+    "Picks a reviewer who owes the team one",
+    517,
+  ),
+];
+
 export function ExplorePage({ kind, search, onSearch }: ExplorePageProps) {
   const orgId = useOrgId();
   const result = useAtomValue(orgListingsAtom(orgId ?? ""));
@@ -236,6 +314,14 @@ export function ExplorePage({ kind, search, onSearch }: ExplorePageProps) {
           (card) => card.kind === kind && matchesSearch(card, search.q),
         );
 
+  const gridBody = (rows: ReadonlyArray<ExploreCard>) => (
+    <div className={exploreGridClassName}>
+      {rows.map((card) => (
+        <ListingRow key={card.slug} card={toListingCard(card)} />
+      ))}
+    </div>
+  );
+
   const body =
     failed === true ? (
       <ExploreEmptyState
@@ -243,6 +329,15 @@ export function ExplorePage({ kind, search, onSearch }: ExplorePageProps) {
         line="Explore didn't load"
         sub="Try again in a moment"
       />
+    ) : kind === "skill" && (cards === undefined || cards.length > 0) ? (
+      <Skeleton
+        data={cards ?? null}
+        sample={sampleSkillCards}
+        id="explore-skill-grid"
+        label={`Loading ${label.toLowerCase()}`}
+      >
+        {(rows) => gridBody(rows)}
+      </Skeleton>
     ) : cards === undefined ? (
       <ExplorePageSkeleton />
     ) : kind === "plugin" ? (
@@ -290,11 +385,7 @@ export function ExplorePage({ kind, search, onSearch }: ExplorePageProps) {
         }}
       />
     ) : (
-      <div className={gridClassName}>
-        {cards.map((card) => (
-          <ListingRow key={card.slug} card={toListingCard(card)} />
-        ))}
-      </div>
+      gridBody(cards)
     );
 
   return (

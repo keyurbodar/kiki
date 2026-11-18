@@ -6,6 +6,7 @@ export {
   ExplorePageSkeleton,
   ExploreSearchField,
   type ExploreSearchFieldProps,
+  exploreGridClassName,
 } from "./explore-page";
 export {
   type ExploreKind,
