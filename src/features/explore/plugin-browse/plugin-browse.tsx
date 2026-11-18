@@ -1,13 +1,8 @@
-import { Menu } from "@base-ui/react/menu";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Button, ButtonIcon } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
-import {
-  ResponsiveMenu,
-  ResponsiveMenuItem,
-  ResponsiveMenuLevel,
-} from "@/primitives/responsive-menu";
+import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import peerArt from "./assets/peer.svg";
 import sleepArt from "./assets/sleep.svg";
 import {
@@ -89,8 +84,8 @@ export type PluginCategoriesProps = {
 
 export function PluginCategories({ onSearch }: PluginCategoriesProps) {
   return (
-    <ResponsiveMenu>
-      <Menu.Trigger
+    <Menu>
+      <MenuTrigger
         data-track-owner={`${owner}#PluginCategories:ResponsiveMenuTrigger[Categories]`}
         render={
           <Button
@@ -104,31 +99,25 @@ export function PluginCategories({ onSearch }: PluginCategoriesProps) {
         <ButtonIcon data-side="trailing">
           <Icon name="chevron-grabber-vertical" />
         </ButtonIcon>
-      </Menu.Trigger>
-      <Menu.Portal>
-        <Menu.Positioner>
-          <Menu.Popup>
-            <ResponsiveMenuLevel>
-              <ResponsiveMenuItem
-                data-track-owner={`${owner}#PluginCategories:ResponsiveMenuItem[All categories]`}
-                onClick={() => onSearch({})}
-              >
-                All categories
-              </ResponsiveMenuItem>
-              {PLUGIN_CATEGORIES.map((category) => (
-                <ResponsiveMenuItem
-                  key={category}
-                  data-track-owner={`${owner}#PluginCategories:ResponsiveMenuItem.1`}
-                  onClick={() => onSearch({ category })}
-                >
-                  {PLUGIN_CATEGORY_LABELS[category]}
-                </ResponsiveMenuItem>
-              ))}
-            </ResponsiveMenuLevel>
-          </Menu.Popup>
-        </Menu.Positioner>
-      </Menu.Portal>
-    </ResponsiveMenu>
+      </MenuTrigger>
+      <MenuContent>
+        <MenuItem
+          data-track-owner={`${owner}#PluginCategories:ResponsiveMenuItem[All categories]`}
+          onClick={() => onSearch({})}
+        >
+          All categories
+        </MenuItem>
+        {PLUGIN_CATEGORIES.map((category) => (
+          <MenuItem
+            key={category}
+            data-track-owner={`${owner}#PluginCategories:ResponsiveMenuItem.1`}
+            onClick={() => onSearch({ category })}
+          >
+            {PLUGIN_CATEGORY_LABELS[category]}
+          </MenuItem>
+        ))}
+      </MenuContent>
+    </Menu>
   );
 }
 

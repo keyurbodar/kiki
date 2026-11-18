@@ -455,6 +455,31 @@ export function SidebarContent({ className, ...props }: SidebarContentProps) {
   );
 }
 
+/**
+ * The trigger's slot in a bar: a control-wide box that collapses to nothing
+ * when the sidebar is open beside it, so a page top bar keeps its rhythm.
+ * `tight` pulls the next item one step closer; a bar whose content sits on a
+ * wider inset (the Explore crumb bar) passes `false` and keeps the gap.
+ */
+export function SidebarTriggerRail({ tight = true }: { tight?: boolean }) {
+  const sidebar = useSidebarStateOptional();
+  if (sidebar === null) return null;
+  const visible = sidebar.isNarrow || !sidebar.open;
+  return (
+    <span
+      inert={!visible || undefined}
+      className={cx(
+        "ease-out-quint flex shrink-0 items-center overflow-hidden transition-[width,margin,opacity] duration-base [[data-tab-strip]_&]:hidden motion-reduce:transition-none",
+        visible
+          ? cx("w-(--h-control-sm) opacity-100", tight ? "-mr-1" : "mr-0")
+          : "mr-0 w-0 opacity-0",
+      )}
+    >
+      <SidebarTrigger />
+    </span>
+  );
+}
+
 export type SidebarTriggerProps = { className?: string };
 
 export function SidebarTrigger({ className }: SidebarTriggerProps) {
