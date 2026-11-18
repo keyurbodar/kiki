@@ -2,6 +2,13 @@ import type { Duration } from "effect";
 
 export const queryTimeToLive: Duration.Input = "5 minutes";
 
+/**
+ * How old a cached read may be when a surface mounts again before it is
+ * refreshed underneath the content. Short, because the reader has just told us
+ * they want to see this screen now.
+ */
+export const queryStaleOnMount: Duration.Input = "30 seconds";
+
 export const reactivityKeys = {
   currentUser: "user:current",
   organizations: "organizations",
