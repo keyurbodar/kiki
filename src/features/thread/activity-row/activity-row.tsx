@@ -15,6 +15,7 @@ import {
   CollapsiblePanel,
   CollapsibleTrigger,
 } from "@/primitives/collapsible";
+import { Icon } from "@/primitives/icon";
 import { ShimmerText } from "@/primitives/shimmer-text";
 import { ChevronDownSmall } from "./chevron";
 import { ASK_LABELS, toolLabel } from "./tool-label";
@@ -159,13 +160,25 @@ function ToolLine({ row, open }: { row: ToolRow; open?: boolean }) {
   const live = liveClock(row);
   const ask = row.ask === undefined ? undefined : ASK_LABELS[row.ask];
   const done = settledMs(row);
-  const trailing = ask ? (
+  const clock = ask ? (
     <span className={toolClock}>{ask}</span>
   ) : live && !row.untimed ? (
     <LiveSeconds startedAt={row.startedAt} />
   ) : done !== undefined ? (
     <span className={toolClock}>{formatDuration(done)}</span>
   ) : undefined;
+  const failed = row.phase === "failed";
+  const trailing =
+    failed || clock !== undefined ? (
+      <>
+        {failed && (
+          <span className="flex shrink-0 text-destructive">
+            <Icon name="circle-x" className="size-(--icon-sm)" />
+          </span>
+        )}
+        {clock}
+      </>
+    ) : undefined;
   return (
     <Row
       label={<RowLabel text={toolLabel(row)} live={live} />}
