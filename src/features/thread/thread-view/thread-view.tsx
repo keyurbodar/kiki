@@ -366,6 +366,9 @@ export function ThreadView({
                     rows={rows}
                     initialLoading={loading}
                     onStartReached={hasOlder ? onLoadOlder : undefined}
+                    onInsertQuote={(mention) =>
+                      composerHandle.current?.insertMention(mention, "")
+                    }
                     header={
                       loadingOlder ? (
                         <p

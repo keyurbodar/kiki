@@ -172,6 +172,46 @@ export function parseReply(
 
 const QUOTE_LABEL_MAX = 48;
 
+const quoteLabel = (plain: string) =>
+  plain.length > QUOTE_LABEL_MAX
+    ? `${plain.slice(0, QUOTE_LABEL_MAX - 1)}…`
+    : plain;
+
+/** The excerpt mention carries the wire text, so a chip alone is a whole quote. */
+export type ExcerptMention = Mention & { text: string };
+
+export type ExcerptTarget = {
+  rowId: string;
+  section: number;
+  text: string;
+  /** What the excerpt says it came from, e.g. `Capy's response`. */
+  source: string;
+};
+
+/**
+ * The excerpt mention for a quoted block: the chip shows the flattened quote and
+ * carries the wire text `formatExcerpt` builds, so the composer needs nothing
+ * new at send time and the sent message parses back into a reply quote.
+ */
+export function excerptMention(
+  target: ExcerptTarget,
+  comment = "",
+): ExcerptMention {
+  const wire = formatExcerpt({
+    source: target.source,
+    text: target.text,
+    comment,
+  });
+  return {
+    kind: "excerpt",
+    id: `${REPLY_PREFIX}${target.rowId}:${target.section}`,
+    label: quoteLabel(quotePlainText(target.text)),
+    start: 0,
+    end: wire.length,
+    text: wire,
+  };
+}
+
 /** Prepends a reply excerpt to an outgoing message, the inverse of parseReply. */
 export function buildReply<
   T extends { text: string; mentions: readonly Mention[] },
@@ -179,28 +219,18 @@ export function buildReply<
   message: T,
   target: { eventId: string; rowId: string; section: number; text: string },
 ): T & { mentions: Mention[] } {
-  const wire = formatExcerpt({
-    source: `Reply to message ${target.eventId}, section ${target.section + 1}`,
+  const excerpt = excerptMention({
+    rowId: target.rowId,
+    section: target.section,
     text: target.text,
-    comment: "",
+    source: `Reply to message ${target.eventId}, section ${target.section + 1}`,
   });
-  const lead = `${wire}\n\n`;
-  const plain = quotePlainText(target.text);
+  const lead = `${excerpt.text}\n\n`;
   return {
     ...message,
     text: `${lead}${message.text}`,
     mentions: [
-      {
-        kind: "excerpt",
-        id: `${REPLY_PREFIX}${target.rowId}:${target.section}`,
-        label:
-          plain.length > QUOTE_LABEL_MAX
-            ? `${plain.slice(0, QUOTE_LABEL_MAX - 1)}…`
-            : plain,
-        start: 0,
-        end: wire.length,
-        text: wire,
-      },
+      excerpt,
       ...message.mentions.map((m) => ({
         ...m,
         start: m.start + lead.length,

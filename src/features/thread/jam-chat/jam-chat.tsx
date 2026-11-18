@@ -28,6 +28,8 @@ import {
   apiAttachmentSource,
   pendingAttachmentSource,
 } from "@/features/thread/attachment-gallery/attachment-source";
+import { QuoteSelectionLayer } from "@/features/thread/quote-selection";
+import type { ExcerptMention } from "@/features/thread/reply-quote";
 import { TimelineRow } from "@/features/thread/timeline-row";
 import { ChatScrollPill } from "./chat-scroll-pill";
 import { ChatStamp } from "./chat-stamp";
@@ -83,6 +85,8 @@ export type JamChatProps = ComponentProps<"div"> & {
   now?: number;
   /** Called when the list scrolls to its newest-first start, to page older history in. */
   onStartReached?: () => void;
+  /** Puts an excerpt chip from a quoted selection into the composer. */
+  onInsertQuote?: (mention: ExcerptMention) => void;
 };
 
 /** The thread's chat timeline: a virtualised list of rows with stamps, row gaps and the scroll-to-end pill. */
@@ -93,6 +97,7 @@ export function JamChat({
   initialLoading = false,
   now,
   onStartReached,
+  onInsertQuote,
   className,
   style,
   children,
@@ -110,6 +115,7 @@ export function JamChat({
       ? pendingAttachmentSource
       : apiAttachmentSource(orgId, jamId);
   }, [jamId, organizations, selectedOrgId]);
+  const [viewport, setViewport] = useState<HTMLDivElement | null>(null);
   const gaps = useMemo(() => computeRowGaps(rows), [rows]);
   const context = useMemo(() => ({ gaps, now }), [gaps, now]);
   const [atEnd, setAtEnd] = useState(true);
@@ -140,6 +146,7 @@ export function JamChat({
       data-scroll-restoration-ignore=""
       style={hidden ? { ...style, visibility: "hidden" } : style}
       {...props}
+      ref={setViewport}
     >
       <AttachmentSourceProvider source={attachmentSource}>
         <RowContext.Provider value={context}>
@@ -170,6 +177,12 @@ export function JamChat({
         </RowContext.Provider>
       </AttachmentSourceProvider>
       {children}
+      {onInsertQuote !== undefined && (
+        <QuoteSelectionLayer
+          container={viewport}
+          onInsertQuote={onInsertQuote}
+        />
+      )}
       <ChatScrollPill
         visible={showPill}
         messagesBelow={countMessagesBelow(

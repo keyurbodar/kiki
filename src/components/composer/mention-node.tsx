@@ -9,7 +9,7 @@ import {
   TextNode,
 } from "lexical";
 import type { ReactNode } from "react";
-import { MarkdownChip } from "@/components/markdown-chips";
+import { MentionChip } from "@/components/markdown-chips";
 import type { ComposerMentionKind } from "./types";
 
 export type SerializedMentionNode = Spread<
@@ -98,13 +98,13 @@ export class MentionNode extends DecoratorNode<ReactNode> {
 
   decorate() {
     return (
-      <MarkdownChip
+      <MentionChip
+        kind={this.__kind}
+        label={this.__label}
         data-mention-kind={this.__kind}
         data-mention-id={this.__id}
         title={this.__text}
-      >
-        {this.__label}
-      </MarkdownChip>
+      />
     );
   }
 }
