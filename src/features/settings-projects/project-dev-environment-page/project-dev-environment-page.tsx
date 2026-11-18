@@ -4,6 +4,7 @@ import { DateTime } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
 import { toast } from "sonner";
+import { formatBytes } from "@/components/directory-view/format-bytes";
 import {
   SettingsLoadingCard,
   SettingsPage,
@@ -27,13 +28,6 @@ import { Switch } from "@/primitives/switch";
 import { CardEmpty, CardList, StatusDot } from "../shared/card-list";
 import { formatDuration, formatRelative } from "../shared/relative-time";
 import { useActiveOrgId } from "../shared/use-org";
-
-const bytesLabel = (kilobytes: number) => {
-  const value = kilobytes;
-  if (value >= 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)} GB`;
-  if (value >= 1024) return `${(value / 1024).toFixed(1)} GB`;
-  return `${value} MB`;
-};
 
 export function ProjectDevEnvironmentPage() {
   const { projectId } = useParams({
@@ -210,8 +204,8 @@ function DevEnvironmentSettings({
               </div>
               {snapshot?.estimate && (
                 <div className="text-xs font-normal text-muted-foreground-2 tabular-nums">
-                  {bytesLabel(snapshot.estimate.totalKb)} of{" "}
-                  {bytesLabel(snapshot.estimate.budgetKb)}
+                  {formatBytes(snapshot.estimate.totalKb * 1024)} of{" "}
+                  {formatBytes(snapshot.estimate.budgetKb * 1024)}
                 </div>
               )}
               {snapshot?.enabled && snapshot.freezeFailure && (
