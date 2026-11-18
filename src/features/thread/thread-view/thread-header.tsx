@@ -45,9 +45,9 @@ const asThreadMachine = (value: unknown): ThreadMachine | undefined => {
 };
 
 /**
- * The 14px mark Capy puts at the head of a plain thread's chat tab: the machine
- * the thread runs on, with its own label, or an empty span of the same width
- * while the thread has no machine yet.
+ * The icon-sized mark Capy puts at the head of a plain thread's chat tab: the
+ * machine the thread runs on, with its own label, or an empty span of the same
+ * width while the thread has no machine yet.
  */
 function MachineMark({ machine }: { machine: ThreadMachine | undefined }) {
   if (machine === undefined)
