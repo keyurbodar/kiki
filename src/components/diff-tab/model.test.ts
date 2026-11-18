@@ -102,3 +102,35 @@ describe("groupFindings", () => {
     ).toEqual(["x"]);
   });
 });
+
+describe("diffRows with pinned comments", () => {
+  const patch = "@@ -10,5 +10,5 @@ ctx\n a\n b\n c\n-old\n+new";
+  const kinds = (pinned: ReadonlySet<string>) =>
+    diffRows(patch, { pinnedLines: pinned }).map((row) => row.type);
+
+  it("collapses a context run nothing points at", () => {
+    expect(kinds(new Set())).toEqual(["hunk", "run", "line", "line"]);
+  });
+
+  it("keeps the run open for a RIGHT-anchored pin", () => {
+    expect(kinds(new Set(["RIGHT:11"]))).toEqual([
+      "hunk",
+      "line",
+      "line",
+      "line",
+      "line",
+      "line",
+    ]);
+  });
+
+  it("keeps the run open for a LEFT-anchored pin on a context line", () => {
+    expect(kinds(new Set(["LEFT:11"]))).toEqual([
+      "hunk",
+      "line",
+      "line",
+      "line",
+      "line",
+      "line",
+    ]);
+  });
+});

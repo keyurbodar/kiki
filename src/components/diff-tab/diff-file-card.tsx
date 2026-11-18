@@ -7,7 +7,7 @@ import {
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import type { DiffFile } from "./model";
-import { diffRows, rowKey, unchangedLabel } from "./rows";
+import { diffRows, rowKey, rowKeys, unchangedLabel } from "./rows";
 
 export type DiffFileCardProps = {
   file: DiffFile;
@@ -58,13 +58,13 @@ export function DiffFileCard({
       ? []
       : diffRows(file.patch, { expandedRuns, pinnedLines });
   const open = collapsible ? !collapsed : true;
-  const rowKeys = new Set(
-    rows.flatMap((entry) => (entry.type === "line" ? [rowKey(entry.row)] : [])),
+  const shownKeys = new Set(
+    rows.flatMap((entry) => (entry.type === "line" ? rowKeys(entry.row) : [])),
   );
   const blockComments = [
     ...fileComments,
     ...[...(lineComments ?? [])].flatMap(([key, comments]) =>
-      rowKeys.has(key) ? [] : comments,
+      shownKeys.has(key) ? [] : comments,
     ),
   ];
   const toggle = (id: string) => onToggleComment?.(id);
@@ -193,7 +193,9 @@ export function DiffFileCard({
                       );
                     const { row } = entry;
                     const key = rowKey(row);
-                    const comments = lineComments?.get(key) ?? [];
+                    const comments = rowKeys(row).flatMap(
+                      (candidate) => lineComments?.get(candidate) ?? [],
+                    );
                     const active = comments.find(
                       (comment) => comment.id === activeId,
                     );

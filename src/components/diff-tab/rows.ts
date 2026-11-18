@@ -36,7 +36,7 @@ export const diffRows = (
       const visible =
         run.length < minRunRows ||
         expandedRuns.has(key) ||
-        run.some((row) => pinnedLines.has(rowKey(row)));
+        run.some((row) => rowKeys(row).some((key) => pinnedLines.has(key)));
       if (run.length > 0)
         rows.push(
           ...(visible
@@ -59,6 +59,16 @@ export const diffRows = (
 
 export const rowKey = (row: HunkRow) =>
   row.marker === "-" ? `LEFT:${row.oldNo}` : `RIGHT:${row.newNo}`;
+
+/**
+ * Every key a row answers to. A context line sits on both sides, and a GitHub
+ * comment can be anchored to either, so a run gate or a comment lookup that
+ * asked only `rowKey` would miss a LEFT-anchored comment on an unchanged line.
+ */
+export const rowKeys = (row: HunkRow): ReadonlyArray<string> =>
+  row.marker === " "
+    ? [`LEFT:${row.oldNo}`, `RIGHT:${row.newNo}`]
+    : [rowKey(row)];
 
 export const anchorKey = (side: "LEFT" | "RIGHT", line: number) =>
   `${side}:${line}`;
