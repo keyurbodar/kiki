@@ -1,8 +1,12 @@
+import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { toast } from "sonner";
 import { type ExploreCard, ExploreListing } from "@/data/api/schemas/explore";
+import { createThemeAtom, userThemeKey } from "@/data/atoms/appearance";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
+import { errorMessage } from "../dialogs/error-message";
 import {
   useExploreIndex,
   useOrgId,
@@ -13,6 +17,8 @@ import { CheckmarkGlyph, RotateGlyph } from "../listing-detail/glyphs";
 import { useSignInHref } from "../listing-detail/sign-in-link";
 import { SkillScopeDialog } from "../skill-scope-dialog";
 import { addState, addTarget } from "./add-state";
+import { useRecordAdded } from "./recently-added";
+import { themeFromListing } from "./theme-from-listing";
 
 export type ListingAddActionProps = {
   listing: ExploreCard | ExploreListing;
@@ -32,6 +38,8 @@ export function ListingAddAction({
   const orgId = useOrgId();
   const recent = useRecentlyAdded(orgId);
   const index = useExploreIndex();
+  const createTheme = useAtomSet(createThemeAtom, { mode: "promise" });
+  const recordAdded = useRecordAdded(orgId);
   const [dialog, setDialog] = useState<ExploreCard["kind"] | null>(null);
   const { state, isAdded, hasUpdate } = addState({
     card,
@@ -59,8 +67,38 @@ export function ListingAddAction({
       case "appearance":
         return void navigate({ to: "/settings/appearance" });
       case "dialog":
+        if (target.dialog === "theme") return void addTheme();
         return setDialog(target.dialog);
     }
+  };
+
+  // Adding a theme makes it a user theme, the way Capy turns a listing into one
+  // of yours; the button turning into "Added" is the receipt.
+  const addTheme = () => {
+    const theme = card.theme as Parameters<typeof themeFromListing>[0] | null;
+    const next = theme === null ? undefined : themeFromListing(theme);
+    if (next === undefined) {
+      toast.error(`Could not add ${card.displayName}`);
+      return;
+    }
+    createTheme({
+      payload: {
+        name: card.displayName.slice(0, 40),
+        light: next.light,
+        dark: next.dark,
+        background: null,
+        effect: next.effect,
+        listingVersionId: card.versionId,
+      },
+      reactivityKeys: [userThemeKey()],
+    }).then(
+      () =>
+        recordAdded([
+          { kind: "theme", slug: card.slug, versionId: card.versionId },
+        ]),
+      (error: unknown) =>
+        toast.error(errorMessage(error, `Could not add ${card.displayName}`)),
+    );
   };
 
   return (
