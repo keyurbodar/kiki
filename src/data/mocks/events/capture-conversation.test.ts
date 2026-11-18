@@ -6,12 +6,13 @@ import { decodeProposal } from "@/features/thread/mcp-setup-card/proposal.ts";
 import { buildTimeline } from "@/features/thread/timeline/build.ts";
 import { threads } from "../fixtures/world.ts";
 import { seedEvents } from "./fixtures.ts";
+import { threadStateSeeds } from "./thread-states.ts";
 
 const decodeEvent = (event: EventRowEncoded) =>
   Schema.decodeUnknownSync(EventRow)(event);
 
-const rowsFor = (jamId: string) => {
-  const events = seedEvents
+const rowsOf = (seeds: ReadonlyArray<EventRowEncoded>, jamId: string) => {
+  const events = seeds
     .filter((event) => event.jamId === jamId)
     .map(decodeEvent);
   return buildTimeline(events).rows.flatMap((row): readonly unknown[] => {
@@ -20,6 +21,8 @@ const rowsFor = (jamId: string) => {
     return [row];
   });
 };
+
+const rowsFor = (jamId: string) => rowsOf(seedEvents, jamId);
 
 const ofType = (jamId: string, type: string) =>
   rowsFor(jamId).filter((row) => (row as { type?: string }).type === type);
@@ -61,5 +64,31 @@ describe("the captured thread conversation", () => {
   it("carries tool activity between the turns", () => {
     const activity = ofType(jamId, "activity");
     assert.isAbove(activity.length, 3);
+  });
+});
+
+/**
+ * A proposal the card cannot decode renders nothing, which looks exactly like a
+ * component that was never mounted. Every seeded MCP row therefore has to carry
+ * a proposal `decodeProposal` accepts, in either seed set.
+ */
+describe("every seeded MCP proposal decodes", () => {
+  const jams = [
+    ...new Set([
+      ...seedEvents.map((event) => event.jamId),
+      ...threadStateSeeds.map((event) => event.jamId),
+    ]),
+  ];
+
+  it.each(jams)("%s", (jamId) => {
+    const seeds = [seedEvents, threadStateSeeds];
+    const setups = seeds.flatMap((set) =>
+      rowsOf(set, jamId).filter(
+        (row) => (row as { type?: string }).type === "mcp-setup",
+      ),
+    );
+    for (const setup of setups as ReadonlyArray<{ proposal: unknown }>) {
+      assert.isDefined(decodeProposal(setup.proposal));
+    }
   });
 });

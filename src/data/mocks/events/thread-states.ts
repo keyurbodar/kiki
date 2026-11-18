@@ -173,7 +173,31 @@ const mcpSetupThread: EventRowEncoded[] = [
     mcpJam,
     3,
     "toolu_state_mcp",
-    { setup: { name: "Docs search", status: "needs_auth" } },
+    {
+      setup: {
+        kind: "add",
+        reason: "Search the docs from the docs thread.",
+        project: "current",
+        owner: "user",
+        secrets: {},
+        server: {
+          serverKey: "docs-search",
+          displayName: "Docs search",
+          iconUrl: null,
+          transport: {
+            type: "http",
+            url: "https://mcp.example.com/docs",
+            requestHeaderNames: [],
+            auth: {
+              type: "oauth",
+              credentialHeaderNames: [],
+              clientId: null,
+              clientSecretRequired: false,
+            },
+          },
+        },
+      },
+    },
     "Docs search is ready to authenticate.",
   ),
   reply(mcpJam, 4, "Docs search needs your sign-in before it can be used."),
