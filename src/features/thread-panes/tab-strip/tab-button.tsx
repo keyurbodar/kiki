@@ -155,7 +155,7 @@ export function PaneTabButton({
         {signals?.status ?? icon}
       </span>
       <span
-        data-pane-tab-label=""
+        data-pane-tab-label={label}
         className={[
           (threadLike || file) && "min-w-0 truncate",
           highlighted && "font-semibold text-foreground",
