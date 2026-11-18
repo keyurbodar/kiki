@@ -315,11 +315,47 @@
     height: var(--badge-icon);
   }
 
+  /*
+   * A dialog is a parts stack, not one padded box: the header and the footer
+   * carry their own inset and the body carries the rest, so a single padding
+   * on the content would double every gap Capy measures.
+   */
   .kiki-dialog {
     display: flex;
     flex-direction: column;
+    width: 100%;
+    max-width: var(--dialog-w);
+    overflow-y: auto;
+  }
+
+  .kiki-dialog-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--dialog-header-gap);
+    padding-inline: var(--dialog-px);
+    padding-top: var(--dialog-pt);
+  }
+
+  .kiki-dialog-body {
+    display: flex;
+    flex-direction: column;
     gap: var(--dialog-gap);
-    padding: var(--dialog-p);
+    padding-block: var(--dialog-py);
+    padding-inline: var(--dialog-px);
+  }
+
+  .kiki-dialog-body[data-spacing="relaxed"] {
+    --dialog-py: var(--dialog-py-relaxed);
+    gap: var(--dialog-gap-relaxed);
+  }
+
+  .kiki-dialog-footer {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: var(--dialog-footer-gap);
+    padding-inline: var(--dialog-px);
+    padding-bottom: var(--dialog-pb);
   }
 
   /* A sidebar section header: its own token, its own inset and gap. */

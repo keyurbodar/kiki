@@ -80,8 +80,16 @@
   --badge-px-sm: 6px;
   --badge-px-tight: 2px;
   --badge-icon-overlap: 0px;
-  --dialog-gap: 16px;
-  --dialog-p: 24px;
+  --dialog-w: 32rem;
+  --dialog-px: 20px;
+  --dialog-pt: 16px;
+  --dialog-pb: 16px;
+  --dialog-py: 16px;
+  --dialog-py-relaxed: 20px;
+  --dialog-gap: 12px;
+  --dialog-gap-relaxed: 16px;
+  --dialog-header-gap: 12px;
+  --dialog-footer-gap: 8px;
   --menu-row-h: var(--h-menu-row);
   --menu-row-px: 8px;
   --menu-row-gap: 8px;

@@ -140,7 +140,7 @@ export function DialogPopup(props: DialogPopupProps) {
 }
 
 export const dialogContentClassName =
-  "relative flex w-full max-w-lg flex-col overflow-y-auto rounded-(--radius-panel) border-hairline border-border-2 bg-popover text-left shadow-overlay [--table-lead-bg:var(--popover)] outline-none transition-[opacity,scale] duration-base ease-out-quint data-[starting-style]:scale-95 data-[starting-style]:opacity-0 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[ending-style]:duration-fast";
+  "kiki-dialog relative rounded-(--radius-panel) border-hairline border-border-2 bg-popover text-left shadow-overlay [--table-lead-bg:var(--popover)] outline-none transition-[opacity,scale] duration-base ease-out-quint data-[starting-style]:scale-95 data-[starting-style]:opacity-0 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[ending-style]:duration-fast";
 
 export type DialogContentProps = ComponentProps<typeof BaseDialog.Popup> & {
   nestedBackdrop?: boolean;
@@ -202,10 +202,7 @@ export function DialogHeader({
   return (
     <div
       data-slot="dialog-header"
-      className={cx(
-        "grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 px-5 pt-4",
-        className,
-      )}
+      className={cx("kiki-dialog-header", className)}
       {...props}
     >
       {children}
@@ -279,11 +276,8 @@ export function DialogBody({
   return (
     <div
       data-slot="dialog-body"
-      className={cx(
-        "flex flex-col px-5",
-        spacing === "relaxed" ? "gap-4 py-5" : "gap-3 py-4",
-        className,
-      )}
+      data-spacing={spacing}
+      className={cx("kiki-dialog-body", className)}
       {...props}
     />
   );
@@ -295,7 +289,7 @@ export function DialogFooter({ className, ...props }: DialogFooterProps) {
   return (
     <div
       data-slot="dialog-footer"
-      className={cx("flex flex-row justify-end gap-2 px-5 pb-4", className)}
+      className={cx("kiki-dialog-footer", className)}
       {...props}
     />
   );
