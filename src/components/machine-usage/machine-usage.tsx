@@ -3,6 +3,7 @@ import {
   formatWhole,
   type MachineSize,
   machineHourRates,
+  machineSizes,
 } from "@/components/plan-picker/plan-catalog";
 import { Button } from "@/primitives/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
@@ -34,25 +35,60 @@ export const machineUsageLine = (
     : `Uses ${formatWhole(minuteRate)} ${minuteUnit(minuteRate)} a minute, about ${left}`;
 };
 
-function MachineUsageExplainer({
+/** Capy's panel behind `How usage counts`: one row per size, then the fallthrough note. */
+export function MachineUsagePanel({
   meter,
-  size,
+  defaultSize,
 }: {
   meter: MachineHourMeter;
-  size: MachineSize | null;
+  /** The plan's default size, which the panel marks; unknown leaves every row unmarked. */
+  defaultSize?: MachineSize | null;
 }) {
-  const sizeRate = machineMinuteRate(size);
+  const left = machineHoursLeft(meter);
   return (
-    <div className="flex flex-col gap-2 text-sm font-normal text-muted-foreground-2">
-      <p>
-        {size === null || sizeRate === null
-          ? "Each run bills its machine time to the org's allowance in machine hours."
-          : `Machine time counts at the size a run boots: a minute on ${formatMachine(size)} uses ${formatWhole(sizeRate)} ${minuteUnit(sizeRate)}.`}
-      </p>
-      <p>
-        {`This cycle ${formatWhole(meter.consumed)} of ${formatWhole(meter.allowance)} machine hours are spent, leaving ${formatWhole(machineHoursLeft(meter))} h.`}
-      </p>
-      <p>Past the allowance, machine time is paid from your credits.</p>
+    <div className="flex flex-col gap-4 px-2 pt-1 pb-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-baseline gap-x-6 gap-y-1.5 text-sm font-normal text-foreground tabular-nums">
+        <span className="text-sm font-medium text-foreground">
+          Machine hours
+        </span>
+        <span className="text-right text-xs font-normal text-muted-foreground-2">
+          Per hour
+        </span>
+        <span className="text-right text-xs font-normal text-muted-foreground-2">
+          Hours left
+        </span>
+        {machineSizes.flatMap((size) => {
+          const rate = machineHourRates[size];
+          return [
+            <span
+              key={`${size}:shape`}
+              className="flex min-w-0 items-baseline gap-1.5 text-muted-foreground-1"
+            >
+              <span className="truncate">{formatMachine(size)}</span>
+              {size === defaultSize ? (
+                <span className="shrink-0 text-xs text-muted-foreground-2">
+                  Default
+                </span>
+              ) : null}
+            </span>,
+            <span key={`${size}:weight`} className="text-right">
+              {rate}
+            </span>,
+            <span
+              key={`${size}:hours`}
+              className="text-right text-muted-foreground-2"
+            >
+              {`${formatWhole(left / rate)} h`}
+            </span>,
+          ];
+        })}
+      </div>
+      <div className="flex flex-col gap-2">
+        <div className="-mx-1 my-1 h-px bg-border-1" />
+        <span className="text-xs font-normal text-muted-foreground-2">
+          Past the included amount, work is paid from your usage balance
+        </span>
+      </div>
     </div>
   );
 }
@@ -82,10 +118,10 @@ export function MachineUsageNote({
         </PopoverTrigger>
         <PopoverContent
           side="bottom"
-          align="start"
-          className="w-80 max-w-(--available-width) p-3"
+          align="end"
+          className="w-96 max-w-(--available-width) p-2"
         >
-          <MachineUsageExplainer meter={meter} size={size} />
+          <MachineUsagePanel meter={meter} />
         </PopoverContent>
       </Popover>
     </span>
