@@ -57,11 +57,14 @@ export function ThreadMessageActions({
   orgId,
   editMessage,
   editedRowIds,
+  jumpToSection,
   children,
 }: {
   orgId: string | undefined;
   editMessage?: (target: EditTarget) => void;
   editedRowIds?: ReadonlySet<string>;
+  /** Scrolls the timeline to the row and section a quote points at. */
+  jumpToSection?: (rowId: string, section: number) => void;
   children: ReactNode;
 }) {
   const user = useAtomValue(currentUserAtom);
@@ -80,6 +83,7 @@ export function ThreadMessageActions({
       viewerUserId,
       editMessage,
       editedRowIds,
+      jumpToSection,
       resolveActor: (actor: Actor): MessageActor | undefined => {
         if (actor.type !== "user") return undefined;
         const member = byId.get(actor.userId);
@@ -88,7 +92,7 @@ export function ThreadMessageActions({
           : { name: member.name, imageUrl: member.imageUrl };
       },
     }),
-    [byId, editedRowIds, editMessage, viewerUserId],
+    [byId, editedRowIds, editMessage, jumpToSection, viewerUserId],
   );
   return (
     <MessageActionsProvider value={actions}>{children}</MessageActionsProvider>

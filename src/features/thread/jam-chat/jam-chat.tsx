@@ -13,6 +13,7 @@ import {
   type ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -33,6 +34,7 @@ import type { ExcerptMention } from "@/features/thread/reply-quote";
 import { TimelineRow } from "@/features/thread/timeline-row";
 import { ChatScrollPill } from "./chat-scroll-pill";
 import { ChatStamp } from "./chat-stamp";
+import { type ChatJump, jumpToRow } from "./jump-to-row";
 import {
   computeRowGaps,
   countMessagesBelow,
@@ -87,6 +89,8 @@ export type JamChatProps = ComponentProps<"div"> & {
   onStartReached?: () => void;
   /** Puts an excerpt chip from a quoted selection into the composer. */
   onInsertQuote?: (mention: ExcerptMention) => void;
+  /** Scrolls to a quoted row and focuses its section; a new `request` jumps again. */
+  jump?: ChatJump;
 };
 
 /** The thread's chat timeline: a virtualised list of rows with stamps, row gaps and the scroll-to-end pill. */
@@ -98,6 +102,7 @@ export function JamChat({
   now,
   onStartReached,
   onInsertQuote,
+  jump,
   className,
   style,
   children,
@@ -136,6 +141,17 @@ export function JamChat({
     },
     [],
   );
+
+  useEffect(() => {
+    if (jump === undefined) return;
+    const scroll = listRef.current?.getScrollableNode() ?? null;
+    if (scroll === null) return;
+    if (jumpToRow(listRef.current, scroll, jump) !== null) return;
+    const frame = requestAnimationFrame(() => {
+      jumpToRow(listRef.current, scroll, jump);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [jump]);
 
   const showPill = !atEnd && rows.length > 0;
   const hidden = initialLoading && rows.length === 0;
