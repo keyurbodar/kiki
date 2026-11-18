@@ -538,6 +538,16 @@ export const initialGitStates: ReadonlyMap<string, GitThreadState> = new Map([
     }),
   ],
   [
+    world.threads.captureProbe.id,
+    stateFor(world.threads.captureProbe, {
+      repo: webRepo,
+      branch: "fix/shard-timeout",
+      files: shardFiles,
+      staged: [shardsPath],
+      baselineEdits: { [shardsPath]: shardsBaseline },
+    }),
+  ],
+  [
     world.threads.captureFiles.id,
     stateFor(world.threads.captureFiles, {
       repo: webRepo,

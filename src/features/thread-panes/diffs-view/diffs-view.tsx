@@ -1,6 +1,6 @@
-import { useAtomValue } from "@effect/atom-react";
+import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import { cx } from "class-variance-authority";
-import { AsyncResult } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DiffStat } from "@/components/diff-stat";
@@ -43,24 +43,27 @@ const gitParams = (threadId: string) => ({
   jamId: threadId,
 });
 
-const statusAtom = (threadId: string) =>
+const statusAtom = Atom.family((threadId: string) =>
   ApiClient.query("git", "status", {
     params: gitParams(threadId),
     reactivityKeys: [`git:${threadId}`],
-  });
+  }),
+);
 
-const patchAtom = (threadId: string) =>
+const patchAtom = Atom.family((threadId: string) =>
   ApiClient.query("git", "patch", {
     params: gitParams(threadId),
     query: {},
     reactivityKeys: [`git:${threadId}`],
-  });
+  }),
+);
 
-const turnsAtom = (threadId: string) =>
+const turnsAtom = Atom.family((threadId: string) =>
   ApiClient.query("git", "turns", {
     params: gitParams(threadId),
     reactivityKeys: [`git:${threadId}`],
-  });
+  }),
+);
 
 function Toolbar({ children }: { children?: React.ReactNode }) {
   return (
@@ -297,7 +300,23 @@ export function DiffsView({ threadId }: DiffsViewProps) {
   const [choice, setChoice] = useState<DiffScope | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [activePath, setActivePath] = useState<string>();
+  const refresh = useAtomRefresh(statusAtom(threadId));
 
+  if (AsyncResult.isFailure(status))
+    return (
+      <div className="flex min-h-0 flex-1 flex-col">
+        <Toolbar />
+        <EmptyState
+          line="Could not load diffs"
+          sub="The changes for this thread did not load"
+          action={
+            <Button variant="ghost" size="xs" onClick={refresh}>
+              Retry loading
+            </Button>
+          }
+        />
+      </div>
+    );
   if (!AsyncResult.isSuccess(status)) return <DiffsSkeleton />;
   const turns = groupTurns(
     asTurns(AsyncResult.isSuccess(turnsResult) ? turnsResult.value : undefined),
