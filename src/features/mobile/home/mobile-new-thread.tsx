@@ -17,7 +17,7 @@ import {
   mentionCategoryIds,
 } from "../composer";
 import { MobileAddDrawer, MobileModelDrawer } from "../drawers";
-import { modelSections } from "../thread";
+import { type ModelGrouping, modelSections } from "../thread";
 import { mobileModelsAtom } from "../thread/atoms";
 import { MobileHome } from "./mobile-home";
 
@@ -41,14 +41,18 @@ function MobileNewThreadForOrg({
   );
   const [selectedId, setSelectedId] = useState<string>();
   const [modelId, setModelId] = useState<string>();
+  const [grouping, setGrouping] = useState<ModelGrouping>("provider");
   const composerRef = useRef<ComposerHandle>(null);
   const navigate = useNavigate();
   const submit = useComposerSend();
   const models = useAtomValue(mobileModelsAtom);
   const sections = useMemo(
     () =>
-      modelSections(AsyncResult.isSuccess(models) ? models.value : undefined),
-    [models],
+      modelSections(
+        AsyncResult.isSuccess(models) ? models.value : undefined,
+        grouping,
+      ),
+    [models, grouping],
   );
   const model = sections
     .flatMap((section) => section.models)
@@ -107,13 +111,15 @@ function MobileNewThreadForOrg({
             <MobileModelDrawer
               sections={sections}
               selectedId={modelId}
-              groupLabel="By provider"
+              groupLabel={grouping === "route" ? "By route" : "By provider"}
               trigger={
                 <MobileComposerModelTrigger label={model?.name ?? "Model"} />
               }
               onSelect={setModelId}
               onOpenSettings={() => void navigate({ to: "/settings/models" })}
-              onGroupBy={() => {}}
+              onGroupBy={() =>
+                setGrouping(grouping === "route" ? "provider" : "route")
+              }
             />
           }
         />

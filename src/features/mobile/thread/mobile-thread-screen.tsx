@@ -98,7 +98,22 @@ const success = (result: AsyncResult.AsyncResult<unknown, unknown>) =>
  * `{ models, credentials, services }`, so its `models` array is what carries the
  * rows; an array is accepted too, for callers that already unwrapped it.
  */
-export function modelSections(models: unknown): MobileModelSection[] {
+export type ModelGrouping = "provider" | "route";
+
+/** The section a model belongs to on Capy's two axes: its provider, or its route. */
+const sectionKeyOf = (
+  model: Record<string, unknown>,
+  grouping: ModelGrouping,
+) => {
+  if (grouping === "provider") return text(model.provider) ?? "Models";
+  const route = record(model.route);
+  return text(route.label) ?? text(model.provider) ?? "Models";
+};
+
+export function modelSections(
+  models: unknown,
+  grouping: ModelGrouping = "provider",
+): MobileModelSection[] {
   const rows = Array.isArray(models)
     ? models
     : Array.isArray(record(models).models)
@@ -110,7 +125,7 @@ export function modelSections(models: unknown): MobileModelSection[] {
     const id = text(model.id);
     const name = text(model.name) ?? id;
     if (id === undefined || name === undefined) continue;
-    const provider = text(model.provider) ?? "Models";
+    const provider = sectionKeyOf(model, grouping);
     const section = sections.get(provider) ?? {
       id: provider,
       label: provider,
@@ -231,7 +246,8 @@ function MobileThreadBody({
   const [activeTab, setActiveTab] = useState(CHAT_TAB);
   const ActivePane = findPane(activeTab)?.component;
   const [modelId, setModelId] = useState<string>();
-  const sections = modelSections(models);
+  const [grouping, setGrouping] = useState<ModelGrouping>("provider");
+  const sections = modelSections(models, grouping);
   const model = sections
     .flatMap((section) => section.models)
     .find((option) => option.id === modelId);
@@ -326,13 +342,15 @@ function MobileThreadBody({
               <MobileModelDrawer
                 sections={sections}
                 selectedId={modelId}
-                groupLabel="By provider"
+                groupLabel={grouping === "route" ? "By route" : "By provider"}
                 trigger={
                   <MobileComposerModelTrigger label={model?.name ?? "Model"} />
                 }
                 onSelect={setModelId}
                 onOpenSettings={() => void navigate({ to: "/settings/models" })}
-                onGroupBy={() => {}}
+                onGroupBy={() =>
+                  setGrouping(grouping === "route" ? "provider" : "route")
+                }
               />
             }
           />
