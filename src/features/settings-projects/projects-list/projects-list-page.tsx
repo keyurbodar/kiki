@@ -399,7 +399,9 @@ function ProjectRow({
               <Glyph name="rename" className="size-(--icon-sm)" />
               Rename
             </MenuItem>
-            <MenuItem>
+            <MenuItem
+              onClick={() => toast("Sharing arrives with the members editor")}
+            >
               <Glyph name="share" className="size-(--icon-sm)" />
               Share
             </MenuItem>
