@@ -20,7 +20,7 @@ import { searchParams } from "@/lib/search-params";
 
 afterEach(cleanup);
 
-async function renderThread(search?: string) {
+async function renderThread(search?: string, threadId = "jam_sample_0001") {
   const rootRoute = createRootRoute({ component: () => <Outlet /> });
   const threadRoute = createRoute({
     getParentRoute: () => rootRoute,
@@ -37,8 +37,8 @@ async function renderThread(search?: string) {
     history: createMemoryHistory({
       initialEntries: [
         search === undefined
-          ? "/thread/jam_sample_0001"
-          : `/thread/jam_sample_0001?${search}`,
+          ? `/thread/${threadId}`
+          : `/thread/${threadId}?${search}`,
       ],
     }),
   });
@@ -102,6 +102,21 @@ describe("thread route with a pane", () => {
   it("keeps a registered pane id in the URL", async () => {
     const router = await renderThread("pane=overview");
     expect(router.state.location.search).toEqual({ pane: "overview" });
+  });
+});
+
+describe("the Setup pane on a Captain's thread", () => {
+  it("resolves the Captain's project instead of claiming there is none", async () => {
+    await renderThread("pane=setup", "jam_sample_cap3");
+    await waitFor(
+      () =>
+        expect(
+          document.querySelector("[data-slot=setup-view]") ??
+            document.querySelector("[data-slot=setup-skeleton]"),
+        ).not.toBeNull(),
+      { timeout: 4000 },
+    );
+    expect(screen.queryByText(/This thread has no project/)).toBeNull();
   });
 });
 

@@ -297,6 +297,19 @@ export const sampleThreadAccess: ReadonlyArray<ThreadAccess> = [
   },
 ];
 
+/**
+ * Access records for Captain threads. A Captain is a thread: `jams.list` leaves
+ * Captains to the Captain list so they are not listed twice, but `jams.get`
+ * answers for one, because the thread route and its Setup pane open a Captain
+ * by jam id and read its project through that detail.
+ */
+export const sampleCaptainAccess: ReadonlyArray<ThreadAccess> =
+  world.captains.map((captain) => ({
+    ...accessTemplate(captain.id),
+    ownerId: captain.ownerId,
+    memberIds: [...new Set([captain.ownerId, world.people.alex.id])],
+  }));
+
 export interface AccessRequest {
   readonly id: string;
   readonly jamId: string;
