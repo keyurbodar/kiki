@@ -130,12 +130,15 @@ export function ThemeStage({
 
 export type WallpaperFrameProps = {
   image: string | undefined;
+  /** The colour behind the stage when the listing ships no wallpaper. */
+  background?: string | undefined;
   className?: string;
   children?: ReactNode;
 };
 
 export function WallpaperFrame({
   image,
+  background,
   className,
   children,
 }: WallpaperFrameProps) {
@@ -145,6 +148,7 @@ export function WallpaperFrame({
         "relative isolate overflow-hidden rounded-(--radius-panel) border-(length:--border-width-hairline) border-border-1 bg-secondary [&>:not(img)]:relative",
         className,
       )}
+      style={image === undefined && background ? { background } : undefined}
     >
       {image !== undefined && (
         <img

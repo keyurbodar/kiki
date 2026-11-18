@@ -10,7 +10,7 @@ describe("explorePublic theme listing", () => {
       const listing = (yield* AtomRegistry.getResult(
         registry,
         ApiClient.query("explorePublic", "listing", {
-          params: { kind: "theme", slug: "aurora" },
+          params: { kind: "theme", slug: "classic-1pdtkp" },
         }),
       )) as {
         card: { kind: string; displayName: string };
@@ -18,7 +18,7 @@ describe("explorePublic theme listing", () => {
         versions: ReadonlyArray<{ version: string }>;
       };
       assert.strictEqual(listing.card.kind, "theme");
-      assert.strictEqual(listing.card.displayName, "Aurora");
+      assert.strictEqual(listing.card.displayName, "Classic");
       assert.strictEqual(listing.content.kind, "theme");
       assert.isDefined(listing.content.theme?.light);
       assert.isDefined(listing.content.theme?.dark);

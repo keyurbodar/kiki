@@ -16,9 +16,9 @@ export {
   type ThemeBrowseProps,
   type ThemeCardSlot,
   ThemeCover,
-  type ThemeCoverProps,
   ThemeGrid,
   type ThemeGridProps,
   ThemeTile,
   type ThemeTileProps,
+  useCoverWallpaper,
 } from "./theme-browse";

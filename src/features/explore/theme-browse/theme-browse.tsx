@@ -64,47 +64,37 @@ export function Pager({ current, pages, onPage }: PagerProps) {
   );
 }
 
-function WallpaperCover({
-  card,
-  className,
-  children,
-}: {
-  card: ThemeListingCard;
-  className: string;
-  children?: ReactNode;
-}) {
-  const image = useThemeWallpaper(card.slug, card.versionId);
-  return (
-    <WallpaperFrame image={image} className={className}>
-      {children}
-    </WallpaperFrame>
-  );
-}
-
-export type ThemeCoverProps = {
-  card: ThemeListingCard;
-  visible: boolean;
-  className: string;
-  children?: ReactNode;
-};
-
 export function ThemeCover({
   card,
   visible,
   className,
   children,
-}: ThemeCoverProps) {
-  if (visible && card.theme?.wallpaper !== undefined)
-    return (
-      <WallpaperCover card={card} className={className}>
-        {children}
-      </WallpaperCover>
-    );
+}: {
+  card: ThemeListingCard;
+  visible: boolean;
+  className: string;
+  children?: ReactNode;
+}) {
+  const image = useThemeWallpaper(card.slug, card.versionId);
+  const dark = useDarkMode();
   return (
-    <WallpaperFrame image={undefined} className={className}>
+    <WallpaperFrame
+      image={visible ? image : undefined}
+      background={card.theme?.[dark ? "dark" : "light"]["--bg"]}
+      className={className}
+    >
       {children}
     </WallpaperFrame>
   );
+}
+
+/**
+ * A theme draws its wallpaper only when the listing's image is there; a theme
+ * whose image is missing draws its palette instead of an empty frame.
+ */
+export function useCoverWallpaper(card: ThemeListingCard, visible: boolean) {
+  const image = useThemeWallpaper(card.slug, card.versionId);
+  return visible && image !== undefined && card.theme?.wallpaper !== undefined;
 }
 
 export type ThemeTileProps = { card: ThemeListingCard; icon?: ThemeCardSlot };
@@ -112,8 +102,8 @@ export type ThemeTileProps = { card: ThemeListingCard; icon?: ThemeCardSlot };
 export function ThemeTile({ card, icon }: ThemeTileProps) {
   const dark = useDarkMode();
   const [ref, visible] = useInView();
+  const wallpaper = useCoverWallpaper(card, visible);
   if (card.theme === null) return null;
-  const wallpaper = card.theme.wallpaper !== undefined;
   return (
     <Link
       data-track-owner="features/explore/theme-browse.tsx#ThemeTile:Link.1"
@@ -171,8 +161,8 @@ export type FeaturedProps = {
 
 export function Featured({ card, addAction }: FeaturedProps) {
   const dark = useDarkMode();
+  const wallpaper = useCoverWallpaper(card, true);
   if (card.theme === null) return null;
-  const wallpaper = card.theme.wallpaper !== undefined;
   return (
     <section className="overflow-hidden rounded-(--radius-panel) border-(length:--border-width-hairline) border-border-1 bg-card shadow-card">
       <ThemeCover

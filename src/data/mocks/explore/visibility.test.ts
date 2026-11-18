@@ -7,7 +7,7 @@ interface Visibility {
   readonly hidden: boolean;
 }
 
-const slug = "aurora";
+const slug = "classic-1pdtkp";
 const key = "explore:visibility";
 
 const visibilityAtom = ApiClient.query("explore", "themeVisibility", {
