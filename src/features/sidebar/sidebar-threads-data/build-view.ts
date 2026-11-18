@@ -14,6 +14,7 @@ import type {
   SidebarThreadsView,
 } from "@/components/sidebar-threads";
 import type { ThreadRunStatus } from "@/components/thread-status";
+import type { ThreadOrigin } from "@/data/api/schemas/thread";
 
 export const GROUP_ROW_LIMIT = 10;
 
@@ -48,6 +49,8 @@ export type SourceThread = {
   pinned?: boolean;
   archived?: boolean;
   owner?: boolean;
+  /** Where the thread was started, for the sidebar's origin filter. */
+  origin?: ThreadOrigin;
   createdAt: Date;
   updatedAt: Date;
 } & SidebarThreadPreview;
@@ -81,6 +84,8 @@ export type SidebarPrefs = {
   sort: SidebarThreadSort;
   captainSort: SidebarCaptainSort;
   collapse: SidebarCollapse;
+  /** Empty means every origin; otherwise only threads started from these. */
+  filterOrigins: ReadonlyArray<ThreadOrigin>;
   open: Record<string, boolean>;
   expanded: Record<string, boolean>;
 };
@@ -92,6 +97,7 @@ export const defaultSidebarPrefs: SidebarPrefs = {
   sort: "lastActive",
   captainSort: "activity",
   collapse: { working: true, settled: true },
+  filterOrigins: [],
   open: {},
   expanded: {},
 };
@@ -110,7 +116,14 @@ const toRow = (thread: SourceThread, now: Date): SidebarThread => {
     owner = false,
     ...row
   } = thread;
-  return { ...row, pinned, archived, owner, age: formatAge(updatedAt, now) };
+  return {
+    ...row,
+    origin: row.origin ?? "web",
+    pinned,
+    archived,
+    owner,
+    age: formatAge(updatedAt, now),
+  };
 };
 
 export function buildSidebarThreadsView(
@@ -120,7 +133,12 @@ export function buildSidebarThreadsView(
   const compare = byNewest(
     prefs.sort === "createdAt" ? "createdAt" : "updatedAt",
   );
-  const live = source.threads.filter((thread) => thread.status !== "archived");
+  const live = source.threads.filter(
+    (thread) =>
+      thread.status !== "archived" &&
+      (prefs.filterOrigins.length === 0 ||
+        prefs.filterOrigins.includes(thread.origin ?? "web")),
+  );
   const byId = new Map(live.map((thread) => [thread.id, thread]));
   const filed = new Set(source.folders.flatMap((folder) => folder.threadIds));
   const sections: SidebarSection[] = [];
@@ -227,6 +245,7 @@ export function buildSidebarThreadsView(
     sort: prefs.sort,
     captainSort: prefs.captainSort,
     collapse: prefs.collapse,
+    filterOrigins: prefs.filterOrigins,
     sections,
     captains: source.captains
       .filter((captain) => captain.status !== "archived")

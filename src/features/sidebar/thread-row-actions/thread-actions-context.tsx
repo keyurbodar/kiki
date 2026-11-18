@@ -25,12 +25,14 @@ import {
 } from "@/data/atoms/jams";
 import {
   addToFolderAtom,
+  createFolderAtom,
   foldersAtom,
   pinThreadsAtom,
   threadOrganizationKeys,
   unpinThreadsAtom,
 } from "@/data/atoms/threadOrganization";
 import { useSidebarOrgId } from "../sidebar-threads-data/live-source";
+import { NewFolderDialog } from "./new-folder-dialog";
 
 export type ThreadFolderChoice = { id: string; name: string };
 
@@ -55,6 +57,8 @@ export type ThreadActions = {
   commitRename: (threadId: string, title: string) => void;
   cancelRename: () => void;
   markAllRead: () => void;
+  /** Opens the New folder dialog the header menu's first row needs. */
+  startNewFolder: (section?: "threads" | "captains") => void;
 };
 
 const ThreadActionsContext = createContext<ThreadActions | null>(null);
@@ -94,6 +98,9 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
   const orgId = useSidebarOrgId();
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<SidebarThread | null>(null);
+  const [newFolder, setNewFolder] = useState<{
+    section: "threads" | "captains";
+  } | null>(null);
   const settle = useAtomSet(settleThreadAtom, { mode: "promise" });
   const unsettle = useAtomSet(unsettleThreadAtom, { mode: "promise" });
   const read = useAtomSet(markThreadReadAtom, { mode: "promise" });
@@ -110,6 +117,7 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
   const unpin = useAtomSet(unpinThreadsAtom, { mode: "promise" });
   const addToFolder = useAtomSet(addToFolderAtom, { mode: "promise" });
   const promote = useAtomSet(promoteThreadAtom, { mode: "promise" });
+  const createFolder = useAtomSet(createFolderAtom, { mode: "promise" });
   const folders = useAtomValue(
     orgId === undefined ? noFoldersAtom : foldersAtom(orgId),
   );
@@ -292,6 +300,7 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
       );
     },
     cancelRename: () => setRenamingId(null),
+    startNewFolder: (section = "threads") => setNewFolder({ section }),
     markAllRead: () => {
       if (orgId === undefined) return;
       run(
@@ -308,6 +317,26 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
   return (
     <ThreadActionsContext.Provider value={actions}>
       {children}
+      <NewFolderDialog
+        open={newFolder !== null}
+        onOpenChange={(open) => {
+          if (!open) setNewFolder(null);
+        }}
+        onCreate={(name) => {
+          const section = newFolder?.section ?? "threads";
+          setNewFolder(null);
+          if (orgId === undefined) return;
+          run(
+            createFolder({
+              params: { orgId },
+              payload: { name, visibility: "private", section },
+              reactivityKeys: threadOrganizationKeys(orgId),
+            }),
+            "Folder created",
+            "Couldn't create the folder",
+          );
+        }}
+      />
       <ConfirmDialog
         open={deleting !== null}
         onOpenChange={(open) => {

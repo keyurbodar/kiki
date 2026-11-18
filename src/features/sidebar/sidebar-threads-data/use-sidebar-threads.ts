@@ -8,6 +8,7 @@ import type {
   SidebarThreadSort,
   SidebarThreadsView,
 } from "@/components/sidebar-threads";
+import type { ThreadOrigin } from "@/data/api/schemas/thread";
 import {
   buildSidebarThreadsView,
   defaultSidebarPrefs,
@@ -23,6 +24,7 @@ export type SidebarThreadsController = {
   setGrouping: (grouping: SidebarGrouping) => void;
   setSort: (sort: SidebarThreadSort) => void;
   setCaptainSort: (sort: SidebarCaptainSort) => void;
+  setFilterOrigins: (origins: ReadonlyArray<ThreadOrigin>) => void;
   setCollapse: (shelf: SidebarShelf, collapsed: boolean) => void;
   setSectionOpen: (sectionId: string, open: boolean) => void;
   showMore: (sectionId: string) => void;
@@ -48,6 +50,7 @@ export function useSidebarThreads(
     setGrouping: (grouping) => update({ grouping }),
     setSort: (sort) => update({ sort }),
     setCaptainSort: (captainSort) => update({ captainSort }),
+    setFilterOrigins: (filterOrigins) => update({ filterOrigins }),
     setCollapse: (shelf, collapsed) =>
       setPrefs((current) => {
         const open = { ...current.open };

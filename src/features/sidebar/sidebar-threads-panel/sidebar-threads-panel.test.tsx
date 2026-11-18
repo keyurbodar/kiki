@@ -20,6 +20,7 @@ import { PullRequestId } from "@/data/api/schemas/ids";
 import type { ThreadCard } from "@/data/api/schemas/thread";
 import { threadAtom } from "@/data/atoms/jams";
 import { organizationsAtom } from "@/data/atoms/session";
+import { foldersAtom } from "@/data/atoms/threadOrganization";
 import {
   buildSidebarThreadsView,
   defaultSidebarPrefs,
@@ -89,7 +90,29 @@ const renderAt = async (node: ReactNode) => {
   });
   render(<RouterProvider router={router} />);
   await router.load();
+  return router;
 };
+
+const renderWithRegistry = async (node: ReactNode) => {
+  const registry = AtomRegistry.make();
+  const router = createRouter({
+    routeTree: createRootRoute({ component: () => node }),
+    history: createMemoryHistory({ initialEntries: ["/"] }),
+  });
+  render(
+    <RegistryContext.Provider value={registry}>
+      <RouterProvider router={router} />
+    </RegistryContext.Provider>,
+  );
+  await router.load();
+  return registry;
+};
+const orgId = (registry: AtomRegistry.AtomRegistry) =>
+  Option.getOrUndefined(AsyncResult.value(registry.get(organizationsAtom)))?.[0]
+    ?.id;
+
+const openThreadOptions = () =>
+  fireEvent.click(screen.getByLabelText("Thread options"));
 
 const rowLink = () => screen.getByRole("link", { name: /Add dark mode/ });
 
@@ -183,25 +206,6 @@ describe("buildSidebarThreadsView preview data", () => {
 });
 
 describe("sidebar row menu mutations", () => {
-  const renderWithRegistry = async (node: ReactNode) => {
-    const registry = AtomRegistry.make();
-    const router = createRouter({
-      routeTree: createRootRoute({ component: () => node }),
-      history: createMemoryHistory({ initialEntries: ["/"] }),
-    });
-    render(
-      <RegistryContext.Provider value={registry}>
-        <RouterProvider router={router} />
-      </RegistryContext.Provider>,
-    );
-    await router.load();
-    return registry;
-  };
-  const orgId = (registry: AtomRegistry.AtomRegistry) =>
-    Option.getOrUndefined(
-      AsyncResult.value(registry.get(organizationsAtom)),
-    )?.[0]?.id;
-
   it("settles the thread through the mock API when Settle is clicked", async () => {
     const registry = await renderWithRegistry(
       <Harness sidebarSource={source([thread()])} />,
@@ -321,6 +325,78 @@ describe("sidebar row menu", () => {
     fireEvent.contextMenu(rowLink());
     await screen.findByText("Mark as read");
     expect(screen.queryByText("Mark as unread")).toBeNull();
+  });
+});
+
+describe("thread options menu", () => {
+  it("renders Capy's header controls instead of hiding the unmounted ones", async () => {
+    await renderAt(<Harness sidebarSource={source([thread()])} />);
+    openThreadOptions();
+    expect(await screen.findByText("New folder")).toBeTruthy();
+    expect(screen.getByText("Mark all as read")).toBeTruthy();
+    expect(screen.getByText("Filters")).toBeTruthy();
+    expect(screen.getByText("View all threads")).toBeTruthy();
+  });
+
+  it("offers only the origins the list actually carries", async () => {
+    await renderAt(
+      <Harness
+        sidebarSource={source([
+          thread(),
+          thread({ id: "jam_sample_9", origin: "slack" }),
+        ])}
+      />,
+    );
+    openThreadOptions();
+    const filters = await screen.findByText("Filters");
+    fireEvent.pointerMove(filters);
+    fireEvent.click(filters);
+    expect(await screen.findByText("Web")).toBeTruthy();
+    expect(screen.getByText("Slack")).toBeTruthy();
+    expect(screen.queryByText("Linear")).toBeNull();
+  });
+
+  it("creates a folder through the mock API from New folder", async () => {
+    const registry = await renderWithRegistry(
+      <Harness sidebarSource={source([thread()])} />,
+    );
+    openThreadOptions();
+    fireEvent.click(await screen.findByText("New folder"));
+    const input = (await screen.findByLabelText(
+      "Folder name",
+    )) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "Release train" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create folder" }));
+    await waitFor(() => {
+      const org = orgId(registry);
+      if (org === undefined) throw new Error("no org yet");
+      const folders = Option.getOrUndefined(
+        AsyncResult.value(registry.get(foldersAtom(org))),
+      );
+      expect(folders?.some((folder) => folder.name === "Release train")).toBe(
+        true,
+      );
+    });
+  });
+
+  it("sends View all threads to the thread list", async () => {
+    const router = await renderAt(
+      <Harness sidebarSource={source([thread()])} />,
+    );
+    openThreadOptions();
+    fireEvent.click(await screen.findByText("View all threads"));
+    await waitFor(() =>
+      expect(router.state.location.pathname).toBe("/threads"),
+    );
+  });
+});
+
+describe("captain options menu", () => {
+  it("renders New folder beside sort and density", async () => {
+    await renderAt(<Harness sidebarSource={source([thread()])} />);
+    fireEvent.click(screen.getByLabelText("Captain options"));
+    expect(await screen.findByText("New folder")).toBeTruthy();
+    expect(screen.getByText("Sort by")).toBeTruthy();
   });
 });
 

@@ -49,6 +49,7 @@ const THREADS: ReadonlyArray<SidebarThread> = [
     pinned: false,
     archived: false,
     owner: true,
+    origin: "web",
   },
   {
     id: "thread_specimen_2",
@@ -64,6 +65,7 @@ const THREADS: ReadonlyArray<SidebarThread> = [
     pinned: false,
     archived: false,
     owner: true,
+    origin: "web",
   },
   {
     id: "thread_specimen_3",
@@ -79,6 +81,7 @@ const THREADS: ReadonlyArray<SidebarThread> = [
     pinned: false,
     archived: false,
     owner: true,
+    origin: "web",
   },
   {
     id: "thread_specimen_4",
@@ -94,6 +97,7 @@ const THREADS: ReadonlyArray<SidebarThread> = [
     pinned: false,
     archived: false,
     owner: true,
+    origin: "web",
   },
 ];
 
