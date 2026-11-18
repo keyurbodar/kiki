@@ -187,6 +187,7 @@ export const groupIds = [
   "serviceUsers",
   "telemetry",
   "themes",
+  "threadSessions",
   "threadCollection",
   "threadOrganization",
   "users",

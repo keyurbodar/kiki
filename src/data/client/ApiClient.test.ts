@@ -30,7 +30,7 @@ describe("KikiApi", () => {
     const inferred = Object.values(KikiApi.groups)
       .flatMap((group) => Object.values(group.endpoints))
       .filter((endpoint) => Context.get(endpoint.annotations, InferredMethod));
-    assert.strictEqual(inferred.length, 198);
+    assert.strictEqual(inferred.length, 199);
   });
 });
 
