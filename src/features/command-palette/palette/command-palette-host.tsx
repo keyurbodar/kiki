@@ -2,7 +2,7 @@ import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useRouter, useRouterState } from "@tanstack/react-router";
 import { Option } from "effect";
-import { AsyncResult } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import {
   type ReactNode,
   useCallback,
@@ -22,7 +22,8 @@ import {
   paletteOverlayClass,
   palettePositionerClass,
 } from "@/components/command-menu-search";
-import type { OrgId } from "@/data/api/schemas/ids";
+import type { Project } from "@/data/api/schemas/project";
+import type { ThreadCardPage } from "@/data/api/schemas/thread";
 import { reactivityKeys } from "@/data/atoms/conventions";
 import { projectsAtom } from "@/data/atoms/projects";
 import { organizationsAtom } from "@/data/atoms/session";
@@ -98,6 +99,19 @@ export type CommandPaletteHostProps = {
   defaultOpen?: boolean;
 };
 
+/**
+ * The palette host mounts in the shell on every route, so reading these with an
+ * empty org id would fire two requests that cannot succeed on each mount. Until
+ * the org is known they are initial results, which every reader already treats
+ * as "not loaded".
+ */
+const idleThreadPage: Atom.Atom<
+  AsyncResult.AsyncResult<ThreadCardPage, unknown>
+> = Atom.make(AsyncResult.initial(false));
+const idleProjects: Atom.Atom<
+  AsyncResult.AsyncResult<readonly Project[], unknown>
+> = Atom.make(AsyncResult.initial(false));
+
 export function CommandPaletteHost({
   source,
   defaultOpen = false,
@@ -115,8 +129,14 @@ export function CommandPaletteHost({
   >();
   const organizations = useAtomValue(organizationsAtom);
   const orgId = resultValue(organizations)?.[0]?.id;
-  const threadsResult = useAtomValue(threadsAtom(orgId ?? ("" as OrgId)));
-  const projectsResult = useAtomValue(projectsAtom(orgId ?? ("" as OrgId)));
+  const threadsForOrg: Atom.Atom<
+    AsyncResult.AsyncResult<ThreadCardPage, unknown>
+  > = orgId === undefined ? idleThreadPage : threadsAtom(orgId);
+  const projectsForOrg: Atom.Atom<
+    AsyncResult.AsyncResult<readonly Project[], unknown>
+  > = orgId === undefined ? idleProjects : projectsAtom(orgId);
+  const threadsResult = useAtomValue(threadsForOrg);
+  const projectsResult = useAtomValue(projectsForOrg);
   const orgThreads = resultValue(threadsResult)?.items ?? [];
   const orgProjects = resultValue(projectsResult) ?? [];
   const createThread = useAtomSet(createThreadAtom, { mode: "promise" });
