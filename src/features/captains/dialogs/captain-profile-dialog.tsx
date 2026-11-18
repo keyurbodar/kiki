@@ -2,9 +2,9 @@ import { useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import type { JamId } from "@/data/api/schemas/ids";
-import { captainDetailAtom } from "@/data/atoms/captains";
 import { idleAtom } from "@/data/atoms/idle";
 import { projectsAtom } from "@/data/atoms/projects";
+import { captainAtom } from "@/features/captains/overview/captain-data";
 import { CaptainDialog } from "./captain-dialog";
 import { captainProfileOf } from "./captain-profile";
 import { useCurrentUserId, useOrgId } from "./session";
@@ -30,9 +30,7 @@ export function CaptainProfileDialog({
   const userId = useCurrentUserId();
   const detail = Option.getOrUndefined(
     AsyncResult.value(
-      useAtomValue(
-        orgId === undefined ? noDetail : captainDetailAtom(`${orgId}/${jamId}`),
-      ),
+      useAtomValue(orgId === undefined ? noDetail : captainAtom(orgId, jamId)),
     ),
   );
   const projects = Option.getOrUndefined(
