@@ -3,8 +3,13 @@ import { Atom } from "effect/reactivity";
 import type { OrgId, ProjectId } from "../api/schemas/ids.ts";
 import type { ThreadCard, ThreadCardPage } from "../api/schemas/thread.ts";
 import { ApiClient } from "../client/ApiClient.ts";
-import { queryTimeToLive, reactivityKeys } from "./conventions.ts";
+import {
+  queryStaleOnMount,
+  queryTimeToLive,
+  reactivityKeys,
+} from "./conventions.ts";
 import { idleAtom } from "./idle.ts";
+import { revalidateOnMount } from "./revalidate.ts";
 
 export const threadListKey = (orgId: OrgId, projectId?: ProjectId) =>
   projectId === undefined ? orgId : `${orgId}/${projectId}`;
@@ -16,7 +21,7 @@ const threadsQuery = Atom.family((key: string) => {
     query: projectId === undefined ? {} : { projectIds: [projectId] },
     reactivityKeys: [reactivityKeys.threads(orgId)],
     timeToLive: queryTimeToLive,
-  });
+  }).pipe(revalidateOnMount(queryStaleOnMount));
 });
 
 export const threadsAtom = (orgId: OrgId, projectId?: ProjectId) =>
