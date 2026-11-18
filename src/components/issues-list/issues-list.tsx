@@ -573,10 +573,9 @@ export function IssueRow({
       params={{ code: issue.code }}
       data-issue-row={issue.id}
       data-issue-code={issue.code}
-      className={
-        "relative flex h-11 items-center gap-2 rounded px-2 outline-none select-none transition-colors duration-100 hover:bg-section focus-visible:outline-ring-inset data-[selected]:bg-section" +
-        (nested ? " pl-8" : "")
-      }
+      data-density="page"
+      data-nested={nested ? "true" : undefined}
+      className="kiki-row relative outline-none select-none transition-colors duration-100 hover:bg-section focus-visible:outline-ring-inset data-[selected]:bg-section"
       onClick={(event) => {
         if (!selectionMode || onCheck === undefined || !event.shiftKey) return;
         event.preventDefault();
