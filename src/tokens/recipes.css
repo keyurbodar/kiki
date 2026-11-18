@@ -255,14 +255,64 @@
     gap: var(--row-gap-tight);
   }
 
+  /*
+   * A badge's box: the pill centres its content, so `data-size` picks the
+   * height, inset and leading-glyph size that Capy's four badge sizes use.
+   * The glyph rules are scoped to the sizes that had them, because a rule
+   * reading an unset custom property is dropped in silence.
+   */
   .kiki-badge {
     display: inline-flex;
     align-items: var(--row-align);
     justify-content: center;
+    width: fit-content;
     gap: var(--badge-gap);
     height: var(--badge-h);
     min-width: var(--badge-min-w);
     padding-inline: var(--badge-px);
+  }
+
+  .kiki-badge svg:first-of-type {
+    margin-inline-start: var(--badge-icon-overlap);
+  }
+
+  .kiki-badge[data-size="base"] {
+    --badge-icon: var(--icon-sm);
+    --badge-icon-overlap: -2px;
+  }
+
+  .kiki-badge[data-size="sm"] {
+    --badge-h: var(--h-badge-sm);
+    --badge-px: var(--badge-px-sm);
+    --badge-icon: var(--icon-xs);
+    --badge-icon-overlap: -2px;
+  }
+
+  .kiki-badge[data-size="xs"] {
+    --badge-h: var(--h-badge-xs);
+    --badge-px: var(--badge-px-sm);
+    --badge-icon: var(--icon-xs);
+    --badge-icon-overlap: -2px;
+  }
+
+  .kiki-badge[data-size="count"] {
+    --badge-h: var(--h-badge-count);
+    --badge-min-w: 0;
+    --badge-px: 0;
+  }
+
+  .kiki-badge[data-size="auto"] {
+    --badge-h: auto;
+    --badge-px: var(--badge-px-tight);
+    --badge-icon: var(--icon-xs);
+  }
+
+  .kiki-badge[data-size="base"] svg:not([class*="size-"]),
+  .kiki-badge[data-size="sm"] svg:not([class*="size-"]),
+  .kiki-badge[data-size="xs"] svg:not([class*="size-"]),
+  .kiki-badge[data-size="auto"] svg:not([class*="size-"]) {
+    width: var(--badge-icon);
+    height: var(--badge-icon);
   }
 
   .kiki-dialog {

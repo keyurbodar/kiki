@@ -77,6 +77,9 @@
   --badge-h: var(--h-badge-base);
   --badge-min-w: 32px;
   --badge-px: 8px;
+  --badge-px-sm: 6px;
+  --badge-px-tight: 2px;
+  --badge-icon-overlap: 0px;
   --dialog-gap: 16px;
   --dialog-p: 24px;
   --menu-row-h: var(--h-menu-row);
