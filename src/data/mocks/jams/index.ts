@@ -1,5 +1,5 @@
 import { DateTime, Effect, Ref } from "effect";
-import { JamNotFound } from "../../api/schemas/errors.ts";
+import { InvalidRequest, JamNotFound } from "../../api/schemas/errors.ts";
 import {
   JamId,
   ProjectId,
@@ -627,8 +627,10 @@ export const JamsMock = mockGroup("jams", (handlers) =>
           const input = fields(payload);
           const policy = stringValue(input, "policy", "invite");
           if (!["everyone", "invite", "org"].includes(policy)) {
-            return yield* Effect.die(
-              new Error(`jams: unknown access policy ${policy}`),
+            return yield* Effect.fail(
+              new InvalidRequest({
+                message: `Unknown access policy ${policy}`,
+              }),
             );
           }
           const memberIds = listValue(input, "memberIds");

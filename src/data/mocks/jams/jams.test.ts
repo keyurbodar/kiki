@@ -1,7 +1,7 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
-import { JamNotFound } from "../../api/schemas/errors.ts";
+import { InvalidRequest, JamNotFound } from "../../api/schemas/errors.ts";
 import { JamId, OrgId } from "../../api/schemas/ids.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { captains, orgId, threads, world } from "../fixtures/world.ts";
@@ -583,6 +583,22 @@ describe("jams mock", () => {
         suspendOnWaiting: true,
       });
       assert.isNotNull(result);
+    }),
+  );
+
+  it.effect("rejects an unknown access policy with the declared 400", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const setAccess = ApiClient.mutation("jams", "setThreadAccess");
+      registry.set(setAccess as never, {
+        params: { orgId: org, jamId: JamId.make(jamId) },
+        payload: { policy: "nobody" },
+      });
+      const error = yield* AtomRegistry.getResult(
+        registry,
+        setAccess as never,
+      ).pipe(Effect.flip);
+      assert.instanceOf(error, InvalidRequest);
     }),
   );
 });
