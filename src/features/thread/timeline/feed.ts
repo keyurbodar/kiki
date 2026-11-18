@@ -156,6 +156,17 @@ export const newerLoaded = (feed: ThreadFeed, page: EventPage): ThreadFeed => {
   };
 };
 
+/**
+ * A history page that failed to load still ends the skeleton: the thread falls
+ * back to its empty state instead of spinning forever on a missing thread or a
+ * failed request.
+ */
+export const loadFailed = (feed: ThreadFeed): ThreadFeed => ({
+  ...feed,
+  loading: false,
+  loadingOlder: false,
+});
+
 export const olderLoaded = (feed: ThreadFeed, page: EventPage): ThreadFeed => ({
   ...feed,
   events: mergeEvents(feed.events, page.items),

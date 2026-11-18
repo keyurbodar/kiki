@@ -17,6 +17,7 @@ import {
   emptyFeed,
   hintScope,
   historyLoaded,
+  loadFailed,
   newerLoaded,
   newestEventId,
   olderLoaded,
@@ -89,7 +90,13 @@ export const threadSyncAtom = Atom.family((key: string) =>
     Effect.gen(function* () {
       const feedAtom = threadFeedAtom(key);
       const { jamId } = splitKey(key);
-      const first = yield* fetchPage(key, {});
+      const first = yield* fetchPage(key, {}).pipe(
+        Effect.catch(() => Effect.succeed(null)),
+      );
+      if (first === null) {
+        get.set(feedAtom, loadFailed(get.once(feedAtom)));
+        return;
+      }
       get.set(feedAtom, historyLoaded(get.once(feedAtom), first));
       const socket = yield* RealtimeSocket;
       yield* socket.send(

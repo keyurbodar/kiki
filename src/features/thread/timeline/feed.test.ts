@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 import { makeThreadFixtures } from "@/data/events";
-import { decodeEventPage, emptyFeed, historyLoaded } from "./feed";
+import { decodeEventPage, emptyFeed, historyLoaded, loadFailed } from "./feed";
 
 const { events, jamId } = makeThreadFixtures();
 const [first, second] = events;
@@ -47,5 +47,21 @@ describe("decodeEventPage", () => {
     const feed = historyLoaded(emptyFeed, page);
     expect(feed.loading).toBe(false);
     expect(feed.events).toHaveLength(1);
+  });
+});
+
+describe("loadFailed", () => {
+  it("clears the skeleton when the first page never arrives", () => {
+    const feed = loadFailed(emptyFeed);
+    expect(feed.loading).toBe(false);
+    expect(feed.loadingOlder).toBe(false);
+    expect(feed.events).toEqual([]);
+  });
+
+  it("leaves the events it already has alone", () => {
+    const loaded = historyLoaded(emptyFeed, { items: [], cursor: null });
+    const feed = loadFailed(loaded);
+    expect(feed.loading).toBe(false);
+    expect(feed.olderCursor).toBe(null);
   });
 });
