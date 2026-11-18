@@ -49,12 +49,7 @@ describe("issues mock: filters and consistency", () => {
         "list",
         { params: { orgId }, query: { stateId: "ist_sample_in_progress" } },
       );
-      assert.deepStrictEqual(codes(byState), [
-        "ACME-1",
-        "ACME-2",
-        "ACME-5",
-        "ACME-12",
-      ]);
+      assert.deepStrictEqual(codes(byState), ["ACME-1", "ACME-2"]);
       const byAssignee = yield* query<{
         issues: ReadonlyArray<{ code: string }>;
       }>(registry, "list", {

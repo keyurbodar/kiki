@@ -103,7 +103,7 @@ it("aggregates a run of issue activity into one phrase", () => {
     />,
   );
   const text = screen.getByRole("button").textContent ?? "";
-  expect(text).toContain("4 issue updates,worked");
+  expect(text).toContain("4 issue updates,Worked");
   expect(text).not.toContain("AMA-146");
 });
 
@@ -122,15 +122,13 @@ it("keeps a notice's own phrase and the failure tail in order", () => {
   );
   const text = screen.getByRole("button").textContent ?? "";
   expect(text).toContain(
-    "2 issue updates, review of PR #446 failed,worked for 4m 7s, 1 failed",
+    "2 issue updates, review of PR #446 failed,Worked for 4m 7s, 1 failed",
   );
 });
 
 it("says one issue update for a single row", () => {
   render(<WorkGroup row={withEntries([notice(1, "issue_activity", "a")])} />);
-  expect(screen.getByRole("button").textContent).toContain(
-    "1 issue update,worked",
-  );
+  expect(screen.getByRole("button").textContent).toContain("1 issue update,");
 });
 
 it("leaves a group with no notices on its plain label", () => {

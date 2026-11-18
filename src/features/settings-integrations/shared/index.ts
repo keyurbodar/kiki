@@ -15,5 +15,5 @@ export {
 } from "@/primitives/settings-row";
 export { CardListHeader, type CardListHeaderProps } from "./card-list-header";
 export { cx } from "./cx";
-export { useActiveOrgId, useActiveOrgRead } from "./use-active-org-id";
+export { useActiveOrgId } from "./use-active-org-id";
 export { useResultValue } from "./use-result-value";

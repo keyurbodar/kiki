@@ -31,7 +31,6 @@ const pull = (overrides: Partial<PullCard>): PullCard => ({
   thread: null,
   createdAt: 0,
   updatedAt: 0,
-  diffBreakdown: null,
   ...overrides,
 });
 
@@ -69,45 +68,14 @@ describe("PullRow", () => {
     ).not.toBeNull();
   });
 
-  it("prints the author's avatar between the code and title", async () => {
+  it("prints the repository owner's avatar between the code and title", async () => {
     const { container } = renderRow(pull({}));
     await screen.findByText("Add dark mode to settings");
     const row = container.querySelector("[data-pull-row]");
     const cells = [...(row?.children ?? [])];
     expect(cells[2]?.textContent).toBe("#128");
-    expect(cells[3]?.textContent).toBe("S");
+    expect(cells[3]?.textContent).toBe("a");
     expect(cells[4]?.textContent).toBe("Add dark mode to settings");
-  });
-
-  it("prints the author's image when the pull carries one", async () => {
-    const { container } = renderRow(
-      pull({
-        author: "sam",
-        authorAvatarUrl: "https://example.com/avatars/sam.png",
-      }),
-    );
-    await screen.findByText("Add dark mode to settings");
-    const image = container.querySelector("img");
-    expect(image?.getAttribute("src")).toBe(
-      "https://example.com/avatars/sam.png",
-    );
-    expect(image?.getAttribute("alt")).toBe("sam");
-  });
-
-  it("opens the diff breakdown from the stat", async () => {
-    renderRow(
-      pull({
-        diffBreakdown: {
-          database: { count: 1, additions: 4, deletions: 1 },
-          tests: { count: 2, additions: 18, deletions: 3 },
-          generated: { count: 0, additions: 0, deletions: 0 },
-        },
-      }),
-    );
-    await screen.findByText("Add dark mode to settings");
-    expect(
-      screen.getByLabelText("Diff counts and hidden file categories"),
-    ).toBeTruthy();
   });
 
   it("prints the project chip of the linked thread", async () => {
@@ -119,7 +87,6 @@ describe("PullRow", () => {
           number: 30,
           title: "Policy work",
           projectCode: "XIN",
-          archived: false,
         },
       }),
     );

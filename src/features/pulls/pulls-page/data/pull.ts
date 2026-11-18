@@ -18,39 +18,11 @@ export type PullState = (typeof pullStates)[number];
 
 export type ChecksState = "none" | "pending" | "passed" | "failed";
 
-export type DiffCategory = "database" | "tests" | "generated";
-
-/**
- * One category's share of the diff. The count is `count`, not `files`: the list
- * projection guard reserves `files` for a detail surface's file list, and a
- * number of changed files is not that.
- */
-export type DiffCounts = {
-  readonly count: number;
-  readonly additions: number;
-  readonly deletions: number;
-};
-
-export type DiffBreakdown = Readonly<Record<DiffCategory, DiffCounts>>;
-
-export const diffCategories: ReadonlyArray<DiffCategory> = [
-  "database",
-  "tests",
-  "generated",
-];
-
-export const diffCategoryLabel: Readonly<Record<DiffCategory, string>> = {
-  database: "Database",
-  tests: "Tests",
-  generated: "Generated",
-};
-
 export interface PullThreadChip {
   readonly id: string;
   readonly number: number;
   readonly title: string;
   readonly projectCode: string | null;
-  readonly archived: boolean;
 }
 
 export interface PullCard {
@@ -72,7 +44,6 @@ export interface PullCard {
   readonly thread: PullThreadChip | null;
   readonly createdAt: number;
   readonly updatedAt: number;
-  readonly diffBreakdown: DiffBreakdown | null;
 }
 
 export interface PullPage {
@@ -103,24 +74,6 @@ const time = (value: unknown) => {
   return Number.isNaN(parsed) ? undefined : parsed;
 };
 
-const decodeBreakdown = (value: unknown): DiffBreakdown | null => {
-  const fields = record(value);
-  if (fields === undefined) return null;
-  const counts = (category: DiffCategory): DiffCounts => {
-    const row = record(fields[category]);
-    return {
-      count: num(row?.files) ?? num(row?.count) ?? 0,
-      additions: num(row?.additions) ?? 0,
-      deletions: num(row?.deletions) ?? 0,
-    };
-  };
-  return {
-    database: counts("database"),
-    tests: counts("tests"),
-    generated: counts("generated"),
-  };
-};
-
 const isState = (value: unknown): value is PullState =>
   pullStates.includes(value as PullState);
 
@@ -140,7 +93,6 @@ const decodeThread = (value: unknown): PullThreadChip | null => {
     number: num(fields.number) ?? 0,
     title: str(fields.title) ?? "",
     projectCode: str(fields.projectCode) ?? null,
-    archived: fields.archived === true,
   };
 };
 
@@ -174,7 +126,6 @@ export const decodePull = (value: unknown): PullCard | undefined => {
     baseRef: str(fields.baseRef) ?? "",
     threadId: thread?.id ?? str(fields.threadId) ?? null,
     thread,
-    diffBreakdown: decodeBreakdown(fields.diffBreakdown),
     createdAt: time(fields.createdAt) ?? updatedAt,
     updatedAt,
   };

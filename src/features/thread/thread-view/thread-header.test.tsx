@@ -103,35 +103,18 @@ describe("ThreadHeader", () => {
     expect(container.querySelector("header")?.className).toContain("min-h-11");
   });
 
-  it("puts the machine mark before the title in the chat tab", () => {
-    const { container } = renderHeader({
-      machine: { kind: "device", name: "build" },
-    });
+  it("puts the thread's face before its title in the chat tab", () => {
+    const { container } = renderHeader({});
     const chat = container.querySelector('[data-pane-tab="chat"]');
-    const mark = chat?.querySelector("[data-machine-indicator]");
-    expect(mark?.getAttribute("aria-label")).toBe("Paired device · build");
-    expect(mark?.firstElementChild?.tagName.toLowerCase()).toBe("svg");
+    const face = chat?.querySelector("span")?.firstElementChild;
+    expect(
+      face?.matches(
+        '[data-slot="chat-identity"], [data-slot="captain-avatar"]',
+      ),
+    ).toBe(true);
     expect(chat?.querySelector("[data-pane-tab-label]")?.textContent).toBe(
       "Fix flaky checkout test",
     );
-  });
-
-  it("names a cloud machine by its size, as Capy does", () => {
-    const { container } = renderHeader({
-      machine: { kind: "cloud", size: "medium" },
-    });
-    expect(
-      container
-        .querySelector("[data-machine-indicator]")
-        ?.getAttribute("aria-label"),
-    ).toBe("Cloud · Medium");
-  });
-
-  it("leaves a thread without a machine the same 14px of room", () => {
-    const { container } = renderHeader({ machine: null });
-    const chat = container.querySelector('[data-pane-tab="chat"]');
-    expect(chat?.querySelector("[data-machine-indicator]")).toBeNull();
-    expect(chat?.querySelector("[data-machine-placeholder]")).not.toBeNull();
   });
 
   it("sizes the thread actions like Capy's 28×28 header controls", () => {

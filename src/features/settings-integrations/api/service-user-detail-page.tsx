@@ -49,7 +49,6 @@ import {
   SettingsRowLink,
   SettingsSection,
   useActiveOrgId,
-  useActiveOrgRead,
   useResultValue,
 } from "../shared";
 import { CreateApiKeyDialog } from "./api-dialogs";
@@ -97,10 +96,6 @@ export function ServiceUserDetailPage({
   serviceUserId: string;
 }) {
   const orgId = useActiveOrgId();
-  const orgRead = useActiveOrgRead();
-  // A failed organizations read is not a service user that is still loading.
-  if (AsyncResult.isFailure(orgRead))
-    return <ServiceUserUnavailable loading={false} />;
   if (orgId === undefined) return <ServiceUserUnavailable loading />;
   return <ServiceUserLoader orgId={orgId} serviceUserId={serviceUserId} />;
 }

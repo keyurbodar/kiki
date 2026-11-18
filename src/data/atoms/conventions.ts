@@ -14,6 +14,8 @@ export const reactivityKeys = {
   issues: (orgId: string) => `issues:${orgId}`,
   issue: (orgId: string, code: string) => `issue:${orgId}/${code}`,
   issueStates: (orgId: string) => `issue-states:${orgId}`,
+  issueActivity: (orgId: string, jamId: string) =>
+    `issue-activity:${orgId}/${jamId}`,
   issueLabels: (orgId: string) => `issue-labels:${orgId}`,
   modelCatalog: "model_catalog",
 } as const;

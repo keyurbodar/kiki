@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
-import { AsyncResult } from "effect/reactivity";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type {
@@ -26,7 +25,6 @@ import {
   SettingsRow,
   SettingsSection,
   useActiveOrgId,
-  useActiveOrgRead,
 } from "../shared";
 import {
   apiKeyState,
@@ -50,9 +48,6 @@ import {
 
 export function ApiKeyDetailPage({ keyId }: { keyId: string }) {
   const orgId = useActiveOrgId();
-  const orgRead = useActiveOrgRead();
-  // A failed organizations read is not a key that is still loading.
-  if (AsyncResult.isFailure(orgRead)) return <KeyUnavailable loading={false} />;
   if (orgId === undefined) return <KeyUnavailable loading />;
   return <ApiKeyDetailLoader orgId={orgId} keyId={keyId} />;
 }

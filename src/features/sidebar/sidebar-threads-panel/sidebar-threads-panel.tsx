@@ -12,7 +12,6 @@ import {
 } from "../sidebar-threads-data";
 import { CaptainOptionsMenu, ThreadOptionsMenu } from "../thread-options-menu";
 import { ThreadFiltersMenu } from "../thread-options-menu/thread-filters";
-import { CaptainRowMenu } from "../thread-row-actions/captain-row-menu";
 import {
   ThreadActionsProvider,
   useThreadActions,
@@ -154,7 +153,6 @@ function SidebarThreadsPanelBody({
       actions={actions}
       captainActions={captainActions}
       renderRowMenu={(thread) => <ThreadRowMenu thread={thread} />}
-      renderCaptainMenu={(captain) => <CaptainRowMenu captain={captain} />}
       onSectionOpenChange={sidebar.setSectionOpen}
       onShowMore={sidebar.showMore}
       onNewThread={onNewThread}
