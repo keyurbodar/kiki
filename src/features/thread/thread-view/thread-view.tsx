@@ -15,6 +15,7 @@ import {
   Composer,
   type ComposerHandle,
   type ComposerPayload,
+  PlusMenu,
 } from "@/components/composer";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { threadMachinesAtom } from "@/data/atoms/setup";
@@ -418,6 +419,19 @@ export function ThreadView({
                             }
                             autoFocus={draft !== undefined}
                             sources={mentionSources}
+                            submitLabel="Send"
+                            leftControls={
+                              <PlusMenu
+                                sources={mentionSources}
+                                attachShortcut="⌘/"
+                                onAttach={attachments.add}
+                                onPickCategory={(category) =>
+                                  composerHandle.current?.typeCharacter(
+                                    `@${category}:`,
+                                  )
+                                }
+                              />
+                            }
                           />
                         </MessageQueue>
                       ))

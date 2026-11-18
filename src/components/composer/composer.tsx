@@ -287,6 +287,8 @@ export function Composer({
   const blockedByUpload = uploading && !submitWhileUploading;
   const showSend = !empty || hasAttachments || submitPersistent;
   const sendOrStop = showSend || stop !== undefined;
+  /** Capy keeps Send on screen before the first character; it is the stop control that replaces it, and only while a run is live. */
+  const sendVisible = showSend || stop === undefined;
   const raised = surface !== "field" && surface !== "plain";
 
   const hold = useRef<{
@@ -318,7 +320,12 @@ export function Composer({
       size="icon-sm"
       aria-label={submitLabel}
       className="select-none [-webkit-touch-callout:none]"
-      disabled={disabled || blockedByUpload || submitLocked}
+      disabled={
+        disabled ||
+        blockedByUpload ||
+        submitLocked ||
+        (empty && !hasAttachments)
+      }
       onClick={() => handle.current?.submit()}
       onPointerDown={(event) => {
         hold.current.suppress = false;
@@ -427,7 +434,7 @@ export function Composer({
                     ready={voiceReady}
                     voice={voice}
                   />
-                  {raised && showSend ? sendButton : stopButton}
+                  {raised && sendVisible ? sendButton : stopButton}
                 </>
               )}
             </div>
