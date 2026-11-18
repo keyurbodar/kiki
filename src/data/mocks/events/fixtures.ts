@@ -163,6 +163,7 @@ const at = {
   automation: isoMinutesAgo(1),
   toolFail: isoMinutesAgo(2),
   toolDetached: isoMinutesAgo(2),
+  reasoning: isoMinutesAgo(1),
 };
 
 /** The ids the outline and the message versions below point at. */
@@ -1098,6 +1099,42 @@ export const seedEvents: ReadonlyArray<EventRowEncoded> = [
     ],
   }),
   ...captureHistory,
+  row(
+    checkoutJam,
+    at.reasoning,
+    36,
+    "message",
+    {
+      actor: user(people.alex.id),
+      origin: web(people.alex.id),
+      text: "Why did the retry test fail on the gateway timeout?",
+      files: [],
+      delivery: "queue",
+    },
+    "answered",
+  ),
+  row(checkoutJam, at.reasoning, 37, "assistant", {
+    actor: agent(checkoutJam),
+    origin: sys,
+    model: sampleModel,
+    route: { source: "capy" },
+    usage: sampleUsage,
+    stopReason: "end_turn",
+    startedAt: isoMinutesAgo(1),
+    blocks: [
+      {
+        id: "blk_sample_reasoning",
+        type: "thinking",
+        text: "The suite fails only when the gateway is slow, so the retry budget is probably counted per attempt instead of per elapsed time. Check the budget before changing the timeout.",
+        presentation: "displayed",
+      },
+      {
+        id: "blk_sample_reasoning_text",
+        type: "text",
+        text: "The retry budget is counted per attempt, so a slow gateway burns it before the timeout can fire.",
+      },
+    ],
+  }),
   row(checkoutJam, at.toolFail, 32, "assistant", {
     actor: agent(checkoutJam),
     origin: sys,
