@@ -267,6 +267,7 @@ export const filterThreads = (
     )
       return false;
     if (
+      thread.captain === null &&
       participants !== undefined &&
       !keep(
         participants.includes(thread.userId) ||
@@ -381,34 +382,6 @@ export const threadListQuery = (options: {
   excludeFiled: !options.archivedView && !options.showFiledThreads,
 });
 
-export type ThreadShelf = "asks" | "working" | "settled" | "returned";
-
-const busy = (thread: ThreadListItem) =>
-  thread.status === "working" || thread.status === "waiting";
-
-/** Capy's sidebar shelves: needs you, working, settled (merged, idle a week, or settled by hand), the rest. */
-export const threadShelf = (
-  thread: ThreadListItem,
-  now: number,
-): ThreadShelf => {
-  if (thread.needsYou) return "asks";
-  if (busy(thread)) return "working";
-  const settledByHand =
-    thread.settledAt !== null &&
-    thread.settledAt.getTime() > thread.sortActivityAt.getTime();
-  const merged =
-    thread.pulls.length > 0 &&
-    thread.pulls.every(
-      (pull) => pull.state === "merged" || pull.state === "closed",
-    );
-  const stale =
-    now - (thread.lastActivityAt ?? thread.sortActivityAt).getTime() >
-    7 * dayMs;
-  return settledByHand || (!thread.hasUnreads && (merged || stale))
-    ? "settled"
-    : "returned";
-};
-
 export type ThreadSection = {
   readonly id: string;
   readonly label: string;
@@ -425,13 +398,12 @@ export const buildSections = (options: {
   grouping: ThreadGrouping;
   ordering: ThreadOrdering;
   searching: boolean;
-  now: number;
   projectName: (id: string | null) => string;
   authorName: (id: string) => string;
   /** Folder shelves, drawn after the Captains section as Capy orders them. */
   folderSections?: ReadonlyArray<ThreadSection>;
 }): ThreadSection[] => {
-  const { threads, filters, grouping, ordering, now } = options;
+  const { threads, filters, grouping, ordering } = options;
   const compare = threadComparator(ordering);
   if (options.searching) {
     return threads.length === 0
@@ -490,42 +462,19 @@ export const buildSections = (options: {
       })),
     ];
   }
-  const shelves: Record<ThreadShelf, ThreadListItem[]> = {
-    asks: [],
-    returned: [],
-    working: [],
-    settled: [],
-  };
-  for (const thread of rest) shelves[threadShelf(thread, now)].push(thread);
   return [
     ...captainSections,
     ...folderSections,
-    ...[
-      {
-        id: "shelf:asks",
-        label: "Needs you",
-        members: shelves.asks,
-        showCount: true,
-      },
-      {
-        id: "all",
-        label: "Active",
-        members: shelves.returned,
-        showCount: false,
-      },
-      {
-        id: "closed:shelf:working",
-        label: "Working",
-        members: shelves.working,
-        showCount: true,
-      },
-      {
-        id: "closed:shelf:settled",
-        label: "Settled",
-        members: shelves.settled,
-        showCount: true,
-      },
-    ].filter((section) => section.members.length > 0),
+    ...(rest.length === 0
+      ? []
+      : [
+          {
+            id: "all",
+            label: "Threads",
+            members: rest,
+            showCount: false,
+          },
+        ]),
   ];
 };
 
