@@ -171,7 +171,6 @@ export function ListingSetupPanel({
                   value={project}
                   onValueChange={setPicked}
                   onManage={() => navigate({ to: "/settings/projects" })}
-                  onCreateProject={() => navigate({ to: "/settings/projects" })}
                 />
               )}
               <Button
