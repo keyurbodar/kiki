@@ -352,6 +352,9 @@ function SubIssueBadge({
           className="size-3 text-muted-foreground-1"
           role="progressbar"
           aria-label={`${closed} of ${total} sub-issue${plural} closed`}
+          aria-valuemin={0}
+          aria-valuemax={total}
+          aria-valuenow={closed}
         >
           <circle
             cx="8"
