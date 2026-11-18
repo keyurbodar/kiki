@@ -116,22 +116,6 @@ describe("MessageQueue", () => {
     );
   });
 
-  it("shows the editing bar and cancels on Escape", () => {
-    const onCancel = vi.fn();
-    render(
-      <MessageQueue
-        rows={[]}
-        actions={{ departing: new Map(), act: vi.fn() }}
-        editing={{ onCancel }}
-      >
-        <textarea aria-label="composer" />
-      </MessageQueue>,
-    );
-    expect(screen.getByText("Editing message")).toBeTruthy();
-    fireEvent.keyDown(screen.getByLabelText("composer"), { key: "Escape" });
-    expect(onCancel).toHaveBeenCalled();
-  });
-
   it("shows who a reply quotes and drops it from the bar", () => {
     const onCancel = vi.fn();
     render(

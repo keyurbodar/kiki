@@ -275,6 +275,25 @@ export function QueueRow({
   );
 }
 
+/** The editing bar: the one control that leaves edit mode, drawn wherever the draft is read. */
+export function EditBar({ onCancel }: { onCancel: () => void }) {
+  return (
+    <div className={barRow} data-slot="edit-bar">
+      <span className={barIcon}>
+        <Icon name="pencil" className="size-(--icon-sm)" />
+      </span>
+      <span className="min-w-0 flex-1 text-sm text-muted-foreground">
+        Editing message
+      </span>
+      <IconButton
+        label="Cancel editing"
+        icon={<Icon name="cross-medium" />}
+        onClick={onCancel}
+      />
+    </div>
+  );
+}
+
 export type MessageQueueProps = Omit<ComponentProps<"div">, "children"> & {
   rows: ReadonlyArray<QueueRowData>;
   viewerUserId?: string;
@@ -283,7 +302,6 @@ export type MessageQueueProps = Omit<ComponentProps<"div">, "children"> & {
   /** Rendered above the queue (Capy's inventory slot). */
   inventory?: ReactNode;
   inventoryExpanded?: boolean;
-  editing?: { onCancel: () => void };
   replying?: { name: string; text: string; onCancel: () => void };
   uploadSend?: UploadSendHandlers;
   resolveActor?: (actor: QueueActor) => ResolvedActor | undefined;
@@ -291,14 +309,13 @@ export type MessageQueueProps = Omit<ComponentProps<"div">, "children"> & {
   children?: ReactNode;
 };
 
-/** Queued messages, edit and reply bars, drawn on the composer ground above the composer. */
+/** Queued messages and the reply bar, drawn on the composer ground above the composer. */
 export function MessageQueue({
   rows,
   viewerUserId,
   actions,
   inventory,
   inventoryExpanded = false,
-  editing,
   replying,
   uploadSend,
   resolveActor,
@@ -310,12 +327,9 @@ export function MessageQueue({
   const entries = transitions.entries;
   const staying = entries.filter((entry) => entry.leaving === undefined).length;
   const grounded =
-    entries.length > 0 ||
-    inventoryExpanded ||
-    editing !== undefined ||
-    replying !== undefined;
+    entries.length > 0 || inventoryExpanded || replying !== undefined;
   const onKeyDown = (event: KeyboardEvent) => {
-    const cancel = editing?.onCancel ?? replying?.onCancel;
+    const cancel = replying?.onCancel;
     if (
       cancel === undefined ||
       event.key !== "Escape" ||
@@ -337,21 +351,6 @@ export function MessageQueue({
       {...props}
     >
       {inventory}
-      {editing !== undefined && (
-        <div className={barRow}>
-          <span className={barIcon}>
-            <Icon name="pencil" className="size-(--icon-sm)" />
-          </span>
-          <span className="min-w-0 flex-1 text-sm text-muted-foreground">
-            Editing message
-          </span>
-          <IconButton
-            label="Cancel editing"
-            icon={<Icon name="cross-medium" />}
-            onClick={editing.onCancel}
-          />
-        </div>
-      )}
       {replying !== undefined && (
         <div className={barRow}>
           <span className={barIcon}>

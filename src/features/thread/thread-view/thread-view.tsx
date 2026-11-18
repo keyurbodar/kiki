@@ -42,6 +42,7 @@ import {
 } from "@/features/composer/composer-footer";
 import { ContextMeter } from "@/features/composer/context-meter";
 import {
+  EditBar,
   MessageQueue,
   type MessageQueueProps,
   type QueueRowData,
@@ -333,6 +334,19 @@ export function ThreadView({
     onCancelEdit?.();
   }, [onCancelEdit]);
 
+  // The bar and the truncation read one draft: while it exists, Escape leaves
+  // edit mode wherever the keystroke lands, so the bar is never the only way out.
+  useEffect(() => {
+    if (draft === undefined) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      event.preventDefault();
+      cancelEdit();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [draft, cancelEdit]);
+
   const [replying, setReplying] = useState<Replying | null>(null);
 
   const startReply = useCallback((target: ReplyTarget) => {
@@ -546,16 +560,12 @@ export function ThreadView({
                 </div>
                 <div className="min-h-0 px-4 pb-[calc(var(--spacing)+var(--safe-bottom))]">
                   <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col justify-end">
+                    {draft !== undefined && <EditBar onCancel={cancelEdit} />}
                     {active === undefined || draft !== undefined ? (
                       (composer ?? (
                         <MessageQueue
                           rows={noQueuedMessages}
                           actions={noQueueActions}
-                          editing={
-                            draft === undefined
-                              ? undefined
-                              : { onCancel: cancelEdit }
-                          }
                           replying={
                             replying === null
                               ? undefined
