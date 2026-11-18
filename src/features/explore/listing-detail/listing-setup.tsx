@@ -2,21 +2,20 @@ import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useState } from "react";
 import { toast } from "sonner";
+import { ProjectSelect } from "@/components/project-select";
 import type {
   ExploreListing,
   ListingSetup as Setup,
 } from "@/data/api/schemas/explore";
+import type { OrgId } from "@/data/api/schemas/ids";
+import type { Project } from "@/data/api/schemas/project";
 import { addSkillAtom, volumeReactivityKey } from "@/data/atoms/explore";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { SettingsRow } from "@/primitives/settings-row";
 import { errorMessage } from "../dialogs";
 import { useRecordAdded } from "../listing-add-action";
-import {
-  type PickedProject,
-  ProjectPicker,
-  useProjects,
-} from "../skill-scope-dialog/project-picker";
+import { useOrgProjects } from "../skill-scope-dialog/project-picker";
 import { useOrgId, useSignedIn } from "./explore-session";
 import { installDescription, installFailure } from "./format";
 import { ArrowRightGlyph, ArrowUpRightGlyph } from "./glyphs";
@@ -84,11 +83,11 @@ export function ListingSetupPanel({
   const navigate = useNavigate();
   const signedIn = useSignedIn();
   const orgId = useOrgId();
-  const projects = useProjects(orgId);
+  const projects = useOrgProjects(orgId);
   const addSkill = useAtomSet(addSkillAtom, { mode: "promise" });
   const recordAdded = useRecordAdded(orgId);
   const startThread = useStartThread();
-  const [picked, setPicked] = useState<PickedProject>();
+  const [picked, setPicked] = useState<Project>();
   const [busy, setBusy] = useState<"install" | "thread" | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
   const project = signedIn ? (picked ?? projects[0]) : undefined;
@@ -167,10 +166,12 @@ export function ListingSetupPanel({
                   Create a project first
                 </span>
               ) : (
-                <ProjectPicker
-                  projects={projects}
+                <ProjectSelect
+                  orgId={orgId as OrgId}
                   value={project}
                   onValueChange={setPicked}
+                  onManage={() => navigate({ to: "/settings/projects" })}
+                  onCreateProject={() => navigate({ to: "/settings/projects" })}
                 />
               )}
               <Button

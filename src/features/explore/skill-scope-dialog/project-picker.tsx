@@ -1,6 +1,7 @@
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import type { OrgId } from "@/data/api/schemas/ids";
+import type { Project } from "@/data/api/schemas/project";
 import { projectsAtom } from "@/data/atoms/projects";
 import { Icon } from "@/primitives/icon";
 import {
@@ -22,6 +23,15 @@ export function useProjects(
     id: project.id,
     name: project.name,
   }));
+}
+
+/** The org's projects as the schema carries them, for the shared project select. */
+export function useOrgProjects(
+  orgId: string | undefined,
+): ReadonlyArray<Project> {
+  const result = useAtomValue(projectsAtom((orgId ?? "") as OrgId));
+  if (orgId === undefined || !AsyncResult.isSuccess(result)) return [];
+  return result.value;
 }
 
 export type ProjectPickerProps = {
