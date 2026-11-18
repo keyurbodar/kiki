@@ -292,31 +292,37 @@ const interruptedThread: EventRowEncoded[] = [
 
 /** A follow-up whose message carries mention chips and whose call returns json and a file. */
 const mentionThread: EventRowEncoded[] = [
-  row(taskJam, 4, "message", {
-    actor: user,
-    origin: web,
-    text: "use kiki-ux-verify before you ship, and cite acme/docs#57",
-    mentions: [
-      {
-        kind: "skill",
-        id: "kiki-ux-verify",
-        label: "kiki-ux-verify",
-        start: 4,
-        end: 18,
-        text: "kiki-ux-verify",
-      },
-      {
-        kind: "pr",
-        id: "acme/docs#57",
-        label: "acme/docs#57",
-        start: 45,
-        end: 58,
-        text: "acme/docs#57",
-      },
-    ],
-    files: [],
-    delivery: "queue",
-  }, "answered"),
+  row(
+    taskJam,
+    4,
+    "message",
+    {
+      actor: user,
+      origin: web,
+      text: "use kiki-ux-verify before you ship, and cite acme/docs#57",
+      mentions: [
+        {
+          kind: "skill",
+          id: "kiki-ux-verify",
+          label: "kiki-ux-verify",
+          start: 4,
+          end: 18,
+          text: "kiki-ux-verify",
+        },
+        {
+          kind: "pr",
+          id: "acme/docs#57",
+          label: "acme/docs#57",
+          start: 45,
+          end: 58,
+          text: "acme/docs#57",
+        },
+      ],
+      files: [],
+      delivery: "queue",
+    },
+    "answered",
+  ),
   turn(taskJam, 5, "toolu_state_mention", "bash", { command: "ls guide" }),
   row(taskJam, 6, "tool_result", {
     actor: { type: "agent", jamId: taskJam },
