@@ -3,6 +3,7 @@ import { AppCrashSurface } from "@/components/crash-surface";
 import { DesktopQuitDialog } from "@/components/desktop-quit-dialog";
 import { NotFoundPage } from "@/components/not-found-page";
 import { DesktopReverificationDialog } from "@/features/desktop/desktop-reverification-dialog";
+import { useBackgroundHydration } from "@/features/settings-appearance/model/appearance-store";
 import { useSystemColorMode } from "@/features/shell/color-mode";
 
 export const Route = createRootRoute({
@@ -13,6 +14,7 @@ export const Route = createRootRoute({
 
 function RootLayout() {
   useSystemColorMode();
+  useBackgroundHydration();
   return (
     <div className="flex min-h-dvh bg-background text-foreground antialiased">
       <HeadContent />

@@ -1,4 +1,5 @@
 import { Effect, Schema } from "effect";
+import { wallpaperAsset } from "@/assets/wallpapers";
 import {
   ExploreCard,
   ExploreNotFound,
@@ -6,6 +7,21 @@ import {
 } from "../../api/schemas/explore.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { findSampleListing, sampleListings } from "./fixtures.ts";
+
+/** The bundled image an offline build serves where Capy serves its own bytes. */
+const loaded = new Map<string, Promise<Uint8Array>>();
+
+const wallpaperBytes = (url: string) => {
+  const cached = loaded.get(url);
+  if (cached !== undefined) return cached;
+  const bytes = fetch(url).then(async (response) =>
+    response.ok
+      ? new Uint8Array(await response.arrayBuffer())
+      : Promise.reject(new Error(`explorePublic.wallpaperImage: ${url}`)),
+  );
+  loaded.set(url, bytes);
+  return bytes;
+};
 
 const listingKinds: ReadonlyArray<ListingKind> = ["plugin", "skill", "theme"];
 
@@ -80,6 +96,13 @@ export const ExplorePublicMock = mockGroup("explorePublic", (handlers) =>
             )
           : Effect.succeed(listing);
       })
-      .handle("wallpaperImage", () => Effect.succeed({})),
+      .handle("wallpaperImage", ({ params }) => {
+        const asset = wallpaperAsset(params.slug);
+        return asset === undefined
+          ? Effect.fail(
+              new ExploreNotFound({ kind: "theme", slug: params.slug }),
+            )
+          : Effect.promise(() => wallpaperBytes(asset.url));
+      }),
   ),
 );

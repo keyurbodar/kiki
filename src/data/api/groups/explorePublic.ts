@@ -4,6 +4,7 @@ import {
   ExploreListing,
   ExploreNotFound,
   ExploreRateLimited,
+  ImageBytes,
   ListingKind,
   ListingSlug,
 } from "../schemas/explore.ts";
@@ -26,6 +27,7 @@ export class ExplorePublicGroup extends HttpApiGroup.make("explorePublic").add(
   HttpApiEndpoint.get("wallpaperImage", "/explore/themes/:slug/wallpaper", {
     params: { slug: Schema.String },
     query: UndecodedQuery,
-    success: Undecoded,
+    success: ImageBytes,
+    error: [ExploreNotFound],
   }),
 ) {}

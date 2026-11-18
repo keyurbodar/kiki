@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import type { BackgroundEffect } from "@/tokens/effects";
 import {
   applyColorMode,
@@ -12,6 +12,7 @@ import {
   type PresetColorTheme,
   resolveColorMode,
 } from "@/tokens/theme";
+import { readBackgroundFile, saveBackgroundFile } from "./background-file";
 import { type ThemeColors, themeCss } from "./palette";
 
 export {
@@ -123,13 +124,24 @@ const readState = (): AppearanceState => {
     syncMode?: SyncMode;
   } | null;
   return {
-    preferences: { ...DEFAULT_PREFERENCES, ...stored?.preferences },
+    preferences: {
+      ...DEFAULT_PREFERENCES,
+      ...stored?.preferences,
+      // The image itself lives in IndexedDB; `hydrateBackground` puts it back.
+      background: null,
+    },
     syncMode: stored?.syncMode === "device" ? "device" : "synced",
     colorTheme: readColorTheme(),
     diffColors:
       read(DIFF_COLORS_KEY) === "blue-orange" ? "blue-orange" : "red-green",
   };
 };
+
+/** The background as it goes into localStorage: a name and its sliders, no image. */
+const persistedBackground = (background: DashboardBackground | null) =>
+  background === null
+    ? null
+    : { name: background.name, appearance: background.appearance };
 
 export function applyAppearance(
   state: AppearanceState,
@@ -157,10 +169,41 @@ export const getAppearance = (): AppearanceState => {
   return state;
 };
 
+/** The image last handed to IndexedDB, so a slider move does not rewrite it. */
+let savedUrl: string | null = null;
+
+const persistBackground = (background: DashboardBackground | null) => {
+  const url = background?.url ?? null;
+  if (url === savedUrl) return;
+  savedUrl = url;
+  const saved =
+    background === null
+      ? Promise.resolve(null)
+      : fetch(background.url)
+          .then((response) => response.blob())
+          .then((blob) => ({
+            name: background.name,
+            blob,
+            appearance: background.appearance,
+          }));
+  void saved
+    .then((file) => saveBackgroundFile(file))
+    .catch(() => {
+      savedUrl = null;
+    });
+};
+
 const commit = (next: AppearanceState) => {
+  const previous = state?.preferences.background ?? null;
   state = next;
+  if (next.preferences.background !== previous) {
+    persistBackground(next.preferences.background);
+  }
   write(APPEARANCE_KEY, {
-    preferences: next.preferences,
+    preferences: {
+      ...next.preferences,
+      background: persistedBackground(next.preferences.background),
+    },
     syncMode: next.syncMode,
   });
   write(COLOR_THEME_KEY, next.colorTheme);
@@ -222,3 +265,65 @@ export const useAppearance = () =>
 
 export const useResolvedMode = () =>
   resolveColorMode(useAppearance().preferences.mode);
+
+const legacyBackground = async (
+  background: DashboardBackground | null | undefined,
+) => {
+  if (typeof background?.url !== "string") return null;
+  const blob = await fetch(background.url)
+    .then((response) => response.blob())
+    .catch(() => null);
+  return blob === null
+    ? null
+    : {
+        name: background.name,
+        blob,
+        appearance: background.appearance,
+      };
+};
+
+let hydration: Promise<void> | undefined;
+
+/**
+ * The wallpaper's bytes live in IndexedDB, the way Capy keeps them, and the
+ * appearance in localStorage only names it. This reads them back on boot; a
+ * background saved before that split is a data URL in localStorage and moves
+ * across on the first read.
+ */
+export const hydrateBackground = () => {
+  hydration ??= (async () => {
+    const legacy = (
+      read(APPEARANCE_KEY) as {
+        preferences?: Partial<AppearancePreferences>;
+      } | null
+    )?.preferences?.background;
+    const stored =
+      (await readBackgroundFile().catch(() => null)) ??
+      (await legacyBackground(legacy));
+    if (stored === null) return;
+    const appearance =
+      stored.appearance ?? legacy?.appearance ?? DEFAULT_BACKGROUND_ADJUSTMENTS;
+    const url = URL.createObjectURL(stored.blob);
+    savedUrl = url;
+    await saveBackgroundFile({
+      name: stored.name,
+      blob: stored.blob,
+      appearance,
+    }).catch(() => {});
+    commit({
+      ...getAppearance(),
+      preferences: {
+        ...getAppearance().preferences,
+        background: { name: stored.name, url, appearance },
+      },
+    });
+  })().catch(() => {});
+  return hydration;
+};
+
+/** Called once by the app shell, the way Capy reads its own background on boot. */
+export const useBackgroundHydration = () => {
+  useEffect(() => {
+    void hydrateBackground();
+  }, []);
+};

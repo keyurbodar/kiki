@@ -1,5 +1,15 @@
 import { Schema } from "effect";
+import { HttpApiSchema } from "effect/http-api";
 import { Timestamp } from "./ids.ts";
+
+/**
+ * Capy answers a listing's image endpoint with the bytes themselves under
+ * `application/octet-stream`, not JSON: the theme wallpaper, the listing icon.
+ */
+export const ImageBytes = Schema.Uint8Array.pipe(
+  HttpApiSchema.asUint8Array({ contentType: "application/octet-stream" }),
+).annotate({ identifier: "ImageBytes" });
+export type ImageBytes = typeof ImageBytes.Type;
 
 export const ListingKind = Schema.Literals(["plugin", "skill", "theme"]);
 export type ListingKind = typeof ListingKind.Type;
