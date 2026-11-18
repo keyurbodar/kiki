@@ -123,6 +123,9 @@ export function ThreadCostBadgeControl({
   );
 }
 
+/** A thread that has not spent anything yet still carries Capy's chip, reading $0.00. */
+const emptyThreadUsage: ThreadUsage = { members: [], crew: [] };
+
 export type ThreadCostBadgeProps = {
   orgId: string;
   jamId: string;
@@ -142,11 +145,10 @@ export function ThreadCostBadge({
   const usage = parseThreadUsage(
     Option.getOrUndefined(AsyncResult.value(result)),
   );
-  if (usage === null || usage.members.length === 0) return null;
   return (
     <ThreadCostBadgeControl
       threadId={jamId}
-      usage={usage}
+      usage={usage ?? emptyThreadUsage}
       subtree={subtree}
       phone={phone}
       inMenu={inMenu}
