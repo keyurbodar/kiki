@@ -405,6 +405,89 @@ export const sampleListings: ReadonlyArray<ExploreListing> = [
   }),
   new ExploreListing({
     card: card({
+      kind: "plugin",
+      slug: "incident-digest",
+      displayName: "Incident Digest",
+      description: "Roll a week of incidents into one review note",
+      repository: "globex/incident-digest",
+      version: "1.2.0",
+      versionId: "plv_sample_digest_120",
+      category: "monitoring",
+      featuredRank: 3,
+      stars: 1_940,
+      starsCheckedAt: minutesAgo(4 * day),
+    }),
+    content: pluginContent(
+      [
+        [
+          "incident-digest",
+          "Collect the week's incidents, group them by cause, and draft the review note",
+        ],
+      ],
+      oauthServer("Incident Digest", "https://mcp.globex.example/digest/mcp"),
+      "globex/incident-digest",
+    ),
+    setup: null,
+    versions: [firstListing("plv_sample_digest_120", "1.2.0", 12)],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "preview-deploys",
+      displayName: "Preview Deploys",
+      description: "Open a preview URL for every pull request",
+      repository: "initech/preview-deploys",
+      version: "0.9.3",
+      versionId: "plv_sample_preview_093",
+      category: "deployment",
+      stars: 864,
+      starsCheckedAt: minutesAgo(6 * day),
+    }),
+    content: pluginContent(
+      [
+        [
+          "preview-deploys",
+          "Create, list, and tear down preview deployments for a pull request",
+        ],
+      ],
+      oauthServer("Preview Deploys", "https://mcp.initech.example/preview/mcp"),
+      "initech/preview-deploys",
+    ),
+    setup: null,
+    versions: [firstListing("plv_sample_preview_093", "0.9.3", 9)],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "design-tokens",
+      displayName: "Design Tokens",
+      description: "Sync tokens from the design file into the repository",
+      repository: "northwind/design-tokens",
+      version: "3.0.0",
+      versionId: "plv_sample_tokens_300",
+      category: "design",
+      stars: 2_310,
+      starsCheckedAt: minutesAgo(5 * day),
+    }),
+    content: pluginContent(
+      [
+        [
+          "design-tokens",
+          "Pull token values from the design file and write them as theme variables",
+        ],
+        [
+          "token-audit",
+          "Report tokens defined in the design file that no surface uses",
+        ],
+      ],
+      oauthServer("Design Tokens", "https://mcp.northwind.example/tokens/mcp"),
+      "northwind/design-tokens",
+    ),
+    setup: null,
+    versions: [firstListing("plv_sample_tokens_300", "3.0.0", 6)],
+  }),
+  new ExploreListing({
+    card: card({
       kind: "skill",
       slug: "debugging-playbook",
       displayName: "Debugging Playbook",
