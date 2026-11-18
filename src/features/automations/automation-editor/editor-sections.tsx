@@ -327,6 +327,7 @@ export function EditorSections({
               <Input
                 type="number"
                 min={1}
+                className="w-full"
                 aria-label="Max runs per day"
                 placeholder="No limit"
                 value={
