@@ -127,3 +127,31 @@ describe("SidebarThreadRow actions", () => {
     expect(starts).toEqual([thread.id]);
   });
 });
+
+describe("SidebarThreadRow meta line", () => {
+  it("draws the model's provider mark and the machine, as Capy's row does", () => {
+    const { container } = render(
+      <SidebarThreadRow
+        thread={{
+          ...thread,
+          machine: { kind: "cloud", name: "Cloud" },
+          card: {
+            lastModelId: "anthropic/claude-sonnet",
+          } as SidebarThread["card"],
+        }}
+        decorative
+      />,
+    );
+    expect(container.querySelector("svg title")?.textContent).toBe("Anthropic");
+    expect(container.querySelector('[data-icon="cloud"]')).not.toBeNull();
+    expect(container.textContent).toContain("Cloud");
+  });
+
+  it("draws neither mark when the thread has no model and no machine", () => {
+    const { container } = render(
+      <SidebarThreadRow thread={thread} decorative />,
+    );
+    expect(container.querySelector("svg title")).toBeNull();
+    expect(container.querySelector('[data-icon="cloud"]')).toBeNull();
+  });
+});

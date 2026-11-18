@@ -77,7 +77,8 @@ const rowTitle = "mask-fade-r min-w-0 flex-1 overflow-hidden whitespace-nowrap";
 const metaItem = "flex items-center gap-1 whitespace-nowrap";
 const metaIcon = "size-3 shrink-0";
 
-function MachineIcon({ machine }: { machine: { kind: string } }) {
+/** Capy's machine mark: a laptop for your own device, a cloud for a hosted one. */
+export function MachineIcon({ machine }: { machine: { kind: string } }) {
   return (
     <Icon
       name={machine.kind === "device" ? "macbook" : "cloud"}

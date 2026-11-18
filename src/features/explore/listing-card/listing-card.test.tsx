@@ -87,3 +87,21 @@ it("marks a catalog listing as verified by Capy and leaves a user listing unmark
     userContainer.querySelector('[aria-label="Verified by Capy"]'),
   ).toBeNull();
 });
+
+it("draws no metadata column when the card has nothing to put in it", async () => {
+  const { container } = renderInRouter(() => (
+    <ListingRow
+      card={{
+        ...card,
+        maker: null,
+        stars: null,
+        starsCheckedAt: null,
+        adds: null,
+      }}
+    />
+  ));
+  await screen.findByTestId("ready");
+  expect(
+    container.querySelector("a")?.querySelectorAll(":scope > span"),
+  ).toHaveLength(2);
+});
