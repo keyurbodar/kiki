@@ -1,8 +1,9 @@
-import { useAtomSet, useAtomValue } from "@effect/atom-react";
+import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { CAPY_ILLUSTRATIONS } from "@/assets/brand";
+import { FailedRead } from "@/components/failed-read";
 import {
   OverviewSection,
   overviewPullSortAtom,
@@ -244,15 +245,22 @@ export function OverviewPane({ threadId }: OverviewPaneProps) {
   const removeLocalPull = useAtomSet(overviewRemoveLocalPullAtom, {
     mode: "promiseExit",
   });
-  const children = useAtomValue(
-    overviewChildrenAtom(orgId ?? ("" as never), threadId),
+  const childrenAtom = overviewChildrenAtom(orgId ?? ("" as never), threadId);
+  const pullsAtom = overviewPullsAtom(orgId ?? ("" as never), threadId);
+  const localPullsAtom = overviewLocalPullsAtom(
+    orgId ?? ("" as never),
+    threadId,
   );
-  const pulls = useAtomValue(
-    overviewPullsAtom(orgId ?? ("" as never), threadId),
-  );
-  const localPulls = useAtomValue(
-    overviewLocalPullsAtom(orgId ?? ("" as never), threadId),
-  );
+  const children = useAtomValue(childrenAtom);
+  const pulls = useAtomValue(pullsAtom);
+  const localPulls = useAtomValue(localPullsAtom);
+  const refreshChildren = useAtomRefresh(childrenAtom);
+  const refreshPulls = useAtomRefresh(pullsAtom);
+  const refreshLocalPulls = useAtomRefresh(localPullsAtom);
+  const failed =
+    AsyncResult.isFailure(children) ||
+    AsyncResult.isFailure(pulls) ||
+    AsyncResult.isFailure(localPulls);
   const pullRows = useResult(pulls);
   const localPullRows = useResult(localPulls);
   const data = useMemo<OverviewData>(
@@ -280,6 +288,21 @@ export function OverviewPane({ threadId }: OverviewPaneProps) {
     () => ({ repos: [], turns: [], machine: null, sessions: undefined }),
     [],
   );
+  // An overview that could not load is not an empty overview: the sail and its
+  // "nothing here" rows would claim the thread has no tasks, pulls or diffs.
+  if (failed)
+    return (
+      <FailedRead
+        slot="overview-load-failed"
+        line="Couldn't load the overview"
+        sub="This thread's tasks and pull requests did not load"
+        onRetry={() => {
+          refreshChildren();
+          refreshPulls();
+          refreshLocalPulls();
+        }}
+      />
+    );
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <ScrollArea className="min-h-0 flex-1">

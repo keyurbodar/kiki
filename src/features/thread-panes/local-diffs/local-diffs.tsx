@@ -1,6 +1,7 @@
 import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
+import { FailedRead } from "@/components/failed-read";
 import { ApiClient } from "@/data/client/ApiClient";
 import { DiffBodyCard } from "@/features/thread/diff-body";
 import { Button } from "@/primitives/button";
@@ -114,6 +115,20 @@ export function LocalDiffsView({ target }: { target: LocalDiffTarget }) {
   const refreshStatus = useAtomRefresh(statusAtom(params));
   const refreshPatch = useAtomRefresh(patchAtom(params));
 
+  // A failed read is not a read still on its way: say which one this is.
+  if (AsyncResult.isFailure(status)) {
+    return (
+      <FailedRead
+        slot="local-diffs-load-failed"
+        line="Couldn't load local changes"
+        sub="This device's working tree did not load"
+        onRetry={() => {
+          refreshStatus();
+          refreshPatch();
+        }}
+      />
+    );
+  }
   if (!AsyncResult.isSuccess(status)) {
     return (
       <EmptyState
