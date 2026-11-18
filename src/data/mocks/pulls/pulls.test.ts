@@ -352,7 +352,7 @@ describe("pulls mock", () => {
 
       registry.set(mergePull, {
         params: { orgId, pullId },
-        payload: {},
+        payload: { method: "squash", comment: "Merging after CI is green" },
         reactivityKeys: [detailKey],
       });
       yield* AtomRegistry.getResult(registry, mergePull);

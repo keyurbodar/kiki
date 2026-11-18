@@ -37,6 +37,7 @@ import {
   UserIcon,
 } from "@/components/pull-view/icons";
 import { PullMarkdown } from "@/components/pull-view/markdown";
+import { MergeControls } from "@/components/pull-view/merge-controls";
 import {
   type CheckRow,
   type CheckVerdict,
@@ -995,6 +996,7 @@ export function OverviewTab({
       <Description pull={pull} />
       {checkRows.length > 0 && <ChecksSection checkRows={checkRows} />}
       <Activity pull={pull} />
+      {railHosted && <MergeControls baseRef={pull.baseRef} pull={pull} />}
     </div>
   );
 }
