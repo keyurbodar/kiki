@@ -18,6 +18,7 @@ import {
   useMessageActions,
 } from "@/features/thread/message-footer";
 import { parseReply, ReplyQuote } from "@/features/thread/reply-quote";
+import { VersionSwitcher } from "@/features/thread/version-switcher";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
@@ -92,8 +93,16 @@ export function UserMessage({
     onToggleExpanded !== undefined || needsClamp(body, clampHeight);
 
   const phone = useIsPhoneSurface();
+  // Capy offers the switcher on a message the reader wrote that has versions.
+  const versioned = mine && row.versionRoot !== undefined;
+  const phoneFooter = footer && phone && versioned && (
+    <div data-slot="message-footer" className="flex items-center">
+      <VersionSwitcher row={row} />
+    </div>
+  );
   const footerEl = footer && !phone && (
     <MessageFooter touch align={mine ? "end" : "start"}>
+      {versioned && <VersionSwitcher row={row} />}
       <MessageStamp
         date={row.createdAt}
         className="px-1.5"
@@ -226,6 +235,7 @@ export function UserMessage({
             {footerEl}
           </div>
         )}
+        {phoneFooter}
         {body === "" && reply === undefined && footerEl}
       </div>
     </div>

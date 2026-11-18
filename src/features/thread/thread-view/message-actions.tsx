@@ -1,9 +1,10 @@
-import { useAtomValue } from "@effect/atom-react";
+import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
-import { type ReactNode, useMemo } from "react";
+import { type ReactNode, useCallback, useMemo } from "react";
+import type { JamId, OrgId } from "@/data/api/schemas/ids";
 import { orgMembersAtom } from "@/data/atoms/activity";
 import { currentUserAtom } from "@/data/atoms/session";
-import type { Actor } from "@/data/events";
+import type { Actor, EventId, MessageVersion } from "@/data/events";
 import {
   type EditTarget,
   type MessageActions,
@@ -11,6 +12,7 @@ import {
   type MessageActor,
   type ReplyTarget,
 } from "@/features/thread/message-footer";
+import { threadKey, viewedVersionAtom } from "@/features/thread/timeline";
 
 type MemberRecord = { name: string; imageUrl: string | null };
 
@@ -57,6 +59,7 @@ const toMembers = (response: unknown): ReadonlyMap<string, MemberRecord> => {
  */
 export function ThreadMessageActions({
   orgId,
+  jamId,
   reply,
   editMessage,
   editedRowIds,
@@ -64,6 +67,8 @@ export function ThreadMessageActions({
   children,
 }: {
   orgId: string | undefined;
+  /** The thread the rows belong to: the version switcher reads its versions there. */
+  jamId?: string;
   reply?: (target: ReplyTarget) => void;
   editMessage?: (target: EditTarget) => void;
   editedRowIds?: ReadonlySet<string>;
@@ -81,14 +86,28 @@ export function ThreadMessageActions({
       ),
     [memberResult],
   );
+  const setViewedVersion = useAtomSet(
+    viewedVersionAtom(
+      threadKey((orgId ?? "") as OrgId, (jamId ?? "") as JamId),
+    ),
+  );
+  const viewVersion = useCallback(
+    (version: MessageVersion, root: EventId) =>
+      setViewedVersion({ version, root }),
+    [setViewedVersion],
+  );
   const actions = useMemo<MessageActions>(
     () => ({
       now: Date.now(),
+      orgId,
+      jamId,
       viewerUserId,
       reply,
       editMessage,
       editedRowIds,
       jumpToSection,
+      viewVersion:
+        orgId === undefined || jamId === undefined ? undefined : viewVersion,
       resolveActor: (actor: Actor): MessageActor | undefined => {
         if (actor.type !== "user") return undefined;
         const member = byId.get(actor.userId);
@@ -97,7 +116,17 @@ export function ThreadMessageActions({
           : { name: member.name, imageUrl: member.imageUrl };
       },
     }),
-    [byId, editedRowIds, editMessage, jumpToSection, reply, viewerUserId],
+    [
+      byId,
+      editedRowIds,
+      editMessage,
+      jamId,
+      jumpToSection,
+      orgId,
+      reply,
+      viewVersion,
+      viewerUserId,
+    ],
   );
   return (
     <MessageActionsProvider value={actions}>{children}</MessageActionsProvider>

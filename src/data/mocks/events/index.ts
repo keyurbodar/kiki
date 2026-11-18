@@ -388,6 +388,7 @@ export const EventsMock = mockGroup("events", (handlers) =>
                 text: textValue,
                 createdAt: row.createdAt,
                 live: true,
+                branch: [],
               },
             ],
           }));
@@ -426,6 +427,7 @@ export const EventsMock = mockGroup("events", (handlers) =>
               text: messageText(row) ?? "",
               createdAt: row.createdAt,
               live: true,
+              branch: [],
             },
           ];
           return { root: row.id, versions };

@@ -1,7 +1,12 @@
 import { assert, describe, it, layer } from "@effect/vitest";
 import { Effect, Schema } from "effect";
 import { ApiClient, makeApiClientLayer } from "@/data/client/ApiClient.ts";
-import { EventId, EventPage, EventRow } from "@/data/events";
+import {
+  EventId,
+  EventPage,
+  EventRow,
+  MessageVersionsWithBranches,
+} from "@/data/events";
 import { buildTimeline } from "@/features/thread/timeline/build.ts";
 import {
   decodeEventPage,
@@ -52,9 +57,36 @@ describe("events mock seeds", () => {
     }
     for (const [root, versions] of Object.entries(messageVersions)) {
       assert.strictEqual(decodeId(root), root);
+      assert.isTrue(ids.has(root), root);
       for (const version of versions)
         assert.strictEqual(decodeId(version.id), version.id);
     }
+  });
+
+  it("serves versions the contract decodes, branches and all", () => {
+    const decodeVersions = Schema.decodeUnknownSync(
+      MessageVersionsWithBranches,
+    );
+    for (const [root, versions] of Object.entries(messageVersions)) {
+      const decoded = decodeVersions({ root, versions });
+      assert.strictEqual(decoded.root, root);
+      assert.isAbove(decoded.versions.length, 0);
+      for (const version of decoded.versions)
+        assert.deepStrictEqual(version.branch, []);
+    }
+  });
+
+  it("gives the sample thread a message with a second version", () => {
+    const rows = buildTimeline(
+      seedEvents
+        .filter((event) => event.jamId === threads.captureProbe.id)
+        .map((event) => decodeRow(event)),
+      { liveEntries: [], liveSettled: false, expandedGroupIds: new Map() },
+    ).rows;
+    const versioned = rows.filter(
+      (row) => row.type === "user-message" && row.versionRoot !== undefined,
+    );
+    assert.strictEqual(versioned.length, 1);
   });
 
   it("keeps every message row in an input state", () => {

@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { Actor } from "@/data/events";
+import type { Actor, EventId, MessageVersion } from "@/data/events";
 
 export type ReplyTarget = {
   eventId: string;
@@ -31,6 +31,9 @@ export type MessageActor = { name: string; imageUrl?: string | null };
  */
 export type MessageActions = {
   now?: number;
+  /** The thread's scope: what the version switcher reads its versions for. */
+  orgId?: string;
+  jamId?: string;
   viewerUserId?: string;
   /** Name replies to this thread's agent quote, e.g. a Captain's name. */
   agentName?: string;
@@ -47,6 +50,8 @@ export type MessageActions = {
    */
   editedRowIds?: ReadonlySet<string>;
   jumpToSection?: (rowId: string, section: number) => void;
+  /** Shows a version of a message instead of the live one. */
+  viewVersion?: (version: MessageVersion, root: EventId) => void;
   forkQuote?: (kind: "copy" | "summary", quote: QuoteSource) => void;
   sideChatQuote?: (quote: QuoteSource) => void;
 };

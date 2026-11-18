@@ -1,7 +1,7 @@
 import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
-import { EventRow } from "@/data/events";
-import { buildTimeline } from "./build";
+import { EventId, EventRow, MessageVersion } from "@/data/events";
+import { applyViewedVersion, buildTimeline } from "./build";
 
 const decodeEvent = Schema.decodeUnknownSync(EventRow);
 
@@ -277,5 +277,43 @@ describe("a cancelled turn's text", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]?.interrupted).toBe(true);
     expect(rows[0]?.settled).toBe(false);
+  });
+});
+
+describe("applyViewedVersion", () => {
+  const events = [message("000A", "the live text"), message("000B", "second")];
+
+  it("shows the picked version in place of the message it revises", () => {
+    const rows = buildTimeline(events, {}).rows;
+    const viewed = {
+      root: id("000A") as EventId,
+      version: new MessageVersion({
+        id: id("000D") as EventId,
+        text: "an earlier text",
+        createdAt: new Date(2026, 10, 17, 9, 0),
+        live: false,
+      }),
+    };
+    const shown = applyViewedVersion(rows, viewed).flatMap((row) =>
+      row.type === "user-message" ? [[row.eventId, row.text]] : [],
+    );
+    expect(shown).toEqual([
+      [id("000D"), "an earlier text"],
+      [id("000B"), "second"],
+    ]);
+  });
+
+  it("leaves the timeline alone when the root is not in it", () => {
+    const rows = buildTimeline(events, {}).rows;
+    const viewed = {
+      root: id("000C") as EventId,
+      version: new MessageVersion({
+        id: id("000D") as EventId,
+        text: "an earlier text",
+        createdAt: new Date(2026, 10, 17, 9, 0),
+        live: false,
+      }),
+    };
+    expect(applyViewedVersion(rows, viewed)).toEqual(rows);
   });
 });

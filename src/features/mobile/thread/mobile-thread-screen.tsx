@@ -289,7 +289,7 @@ function MobileThreadBody({
     >
       {activeTab === CHAT_TAB
         ? (chat ?? (
-            <ThreadMessageActions orgId={orgId}>
+            <ThreadMessageActions orgId={orgId} jamId={threadId}>
               <JamChat
                 data-thread-id={threadId}
                 jamId={threadId}

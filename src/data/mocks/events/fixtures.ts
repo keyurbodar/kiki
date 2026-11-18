@@ -109,6 +109,8 @@ export interface MessageVersionRow {
   readonly text: string;
   readonly createdAt: string;
   readonly live: boolean;
+  /** The events this version branches to; the sample versions branch to none. */
+  readonly branch: ReadonlyArray<EventRowEncoded>;
 }
 
 const checkoutJam = threads.checkoutTest.id;
@@ -948,6 +950,48 @@ const captureHistory: ReadonlyArray<EventRowEncoded> = [
   ),
 ];
 
+/**
+ * The sample message the version switcher cycles. An edit context marks it as
+ * a version root, and the second version below is what Next version shows; the
+ * live version keeps the text the thread was seeded with.
+ */
+const versionedAskText = "Good, send the pull request when it is up.";
+const versionedAsk = captureHistory.find(
+  (event) =>
+    event.kind === "message" &&
+    "payload" in event &&
+    event.jamId === captureProbeJam &&
+    event.payload.text === versionedAskText,
+);
+if (versionedAsk === undefined)
+  throw new Error("events: no sample message to give a second version");
+const versionedAskEditAt = new Date(
+  Date.parse(versionedAsk.createdAt) + 60_000,
+).toISOString();
+const versionedAskEdit = eventId(versionedAskEditAt, 900);
+const versionedAskContext = row(
+  captureProbeJam,
+  versionedAskEditAt,
+  901,
+  "context",
+  {
+    actor: user(people.alex.id),
+    origin: web(people.alex.id),
+    provider: "web",
+    context: {
+      kind: "edit",
+      operation: "edit",
+      input: versionedAsk.id,
+      root: versionedAsk.id,
+      live: versionedAsk.id,
+      versions: [versionedAsk.id, versionedAskEdit],
+      supersededMessages: 0,
+      supersededTurns: 0,
+      effects: [],
+    },
+  },
+);
+
 export const seedEvents: ReadonlyArray<EventRowEncoded> = [
   row(
     checkoutJam,
@@ -1173,6 +1217,7 @@ export const seedEvents: ReadonlyArray<EventRowEncoded> = [
     ],
   }),
   ...captureHistory,
+  versionedAskContext,
   row(checkoutJam, at.updateLine, 40, "notification", {
     actor: { type: "system", service: "github" },
     origin: sys,
@@ -1376,12 +1421,14 @@ export const messageVersions: Readonly<
       text: "The checkout test times out when the payment gateway is slow.",
       createdAt: at.followUp,
       live: true,
+      branch: [],
     },
     {
       id: ids.edit,
       text: "The checkout test times out when the gateway is slow.",
       createdAt: isoMinutesAgo(84),
       live: false,
+      branch: [],
     },
   ],
   [ids.queued]: [
@@ -1390,6 +1437,23 @@ export const messageVersions: Readonly<
       text: "Also check the timeout on the staging environment.",
       createdAt: at.queued,
       live: true,
+      branch: [],
+    },
+  ],
+  [versionedAsk.id]: [
+    {
+      id: versionedAsk.id,
+      text: versionedAskText,
+      createdAt: versionedAsk.createdAt,
+      live: true,
+      branch: [],
+    },
+    {
+      id: versionedAskEdit,
+      text: "Good, send the pull request when it is up, and tell me when the shard is green.",
+      createdAt: versionedAskEditAt,
+      live: false,
+      branch: [],
     },
   ],
 };

@@ -15,7 +15,12 @@ import {
   RealtimeSocket,
   RealtimeSocketFake,
 } from "@/data/realtime/RealtimeSocket.ts";
-import { buildTimeline, type Timeline } from "./build";
+import {
+  applyViewedVersion,
+  buildTimeline,
+  type Timeline,
+  type ViewedVersion,
+} from "./build";
 import {
   applyRealtime,
   decodeEventPage,
@@ -97,6 +102,11 @@ export type EditDraft = {
 /** The thread's pending edit, null when the composer is composing a new message. */
 export const editDraftAtom = Atom.family((_key: string) =>
   Atom.make<EditDraft | null>(null).pipe(Atom.keepAlive),
+);
+
+/** The thread's viewed message version, null while it shows the live text. */
+export const viewedVersionAtom = Atom.family((_key: string) =>
+  Atom.make<ViewedVersion | null>(null).pipe(Atom.keepAlive),
 );
 
 /**
@@ -248,14 +258,19 @@ export const timelineOf = (
   feed: ThreadFeed,
   expanded: ReadonlyMap<string, boolean>,
   editOf?: EventId,
-): Timeline =>
-  buildTimeline([...feed.events, ...pendingRows(feed)], {
+  viewed: ViewedVersion | null = null,
+): Timeline => {
+  const timeline = buildTimeline([...feed.events, ...pendingRows(feed)], {
     liveEntries: liveEntries(feed.live),
     liveSettled: feed.live.phase === "settled",
     truncatedHistory: feed.olderCursor !== null,
     expandedGroupIds: expanded,
     editOf,
   });
+  return viewed === null
+    ? timeline
+    : { ...timeline, rows: applyViewedVersion(timeline.rows, viewed) };
+};
 
 /** The thread view's rows, gaps and live turn, kept current by realtime. */
 export const useThreadTimeline = (
@@ -267,12 +282,13 @@ export const useThreadTimeline = (
   const feed = useAtomValue(threadFeedAtom(key));
   const expanded = useAtomValue(expandedIdsAtom(key));
   const editOf = useAtomValue(editDraftAtom(key))?.eventId;
+  const viewed = useAtomValue(viewedVersionAtom(key));
   const requestOlder = useAtomSet(loadOlderAtom(key));
   const loadOlder = useCallback(() => requestOlder(), [requestOlder]);
   const retry = useAtomRefresh(threadSyncAtom(key));
   const timeline = useMemo(
-    () => timelineOf(feed, expanded, editOf),
-    [feed, expanded, editOf],
+    () => timelineOf(feed, expanded, editOf, viewed),
+    [feed, expanded, editOf, viewed],
   );
   return {
     ...timeline,

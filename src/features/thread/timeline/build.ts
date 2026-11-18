@@ -1,4 +1,4 @@
-import type { EventId, EventRow, UserId } from "@/data/events";
+import type { EventId, EventRow, MessageVersion, UserId } from "@/data/events";
 import {
   type DeliveryTool,
   type EventPass,
@@ -398,6 +398,28 @@ export interface Timeline {
   readonly queued: ReadonlyArray<QueuedMessage>;
   readonly turnOpen: boolean;
 }
+
+/** A version the reader is looking at instead of the live one, and its root. */
+export type ViewedVersion = {
+  readonly version: MessageVersion;
+  readonly root: EventId;
+};
+
+/**
+ * Shows the version the reader picked in place of the message it revises, as
+ * Capy's switcher does: the root row becomes that version's event, so the
+ * switcher's own position reads the version on screen. Every other row is the
+ * one the live message produced.
+ */
+export const applyViewedVersion = (
+  rows: ReadonlyArray<Row>,
+  viewed: ViewedVersion,
+): ReadonlyArray<Row> =>
+  rows.map((row) =>
+    row.type === "user-message" && row.eventId === viewed.root
+      ? { ...row, eventId: viewed.version.id, text: viewed.version.text }
+      : row,
+  );
 
 const passCache = new WeakMap<
   ReadonlyArray<EventRow>,
