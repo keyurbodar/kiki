@@ -5,7 +5,6 @@ import type { ChipThread } from "@/components/markdown-chips";
 import { ThreadChipPreview } from "@/components/markdown-chips/previews";
 import { ProviderIcon, providerOfModelId } from "@/components/model-picker";
 import { ProjectChip } from "@/components/sidebar-threads";
-import { ChatIdentity } from "@/features/captains/chat-identity";
 import { Badge } from "@/primitives/badge";
 import {
   ContextMenu,
@@ -88,6 +87,8 @@ export function ThreadsListSkeleton() {
 export type ThreadRowProps = {
   thread: ThreadListItem;
   projects: ReadonlyMap<string, ProjectSummary>;
+  /** The thread author's face, from the org's member directory. */
+  authorAvatarUrl?: string | null;
   modelName: (id: string) => string | undefined;
   groupedByProject: boolean;
   now: number;
@@ -111,6 +112,7 @@ export type ThreadsListIcons = {
 export function ThreadRow({
   thread,
   projects,
+  authorAvatarUrl,
   modelName,
   groupedByProject,
   now,
@@ -181,10 +183,35 @@ export function ThreadRow({
       </button>
       <span className={cx(leadSlot, "flex items-center justify-center")}>
         {thread.captain !== null ? (
-          <ChatIdentity
-            name={thread.captain.name}
-            avatarUrl={thread.captain.avatarUrl}
-          />
+          <span
+            role="img"
+            aria-label={thread.captain.name}
+            className="flex size-4 shrink-0 items-center justify-center overflow-hidden rounded-(--radius-inner) text-2xs"
+            style={
+              thread.captain.background === undefined
+                ? undefined
+                : { background: thread.captain.background }
+            }
+          >
+            {thread.captain.avatarUrl === null ? (
+              thread.captain.name.slice(0, 1).toUpperCase()
+            ) : (
+              <img
+                src={thread.captain.avatarUrl}
+                alt=""
+                draggable={false}
+                className="size-full object-cover select-none"
+              />
+            )}
+          </span>
+        ) : authorAvatarUrl != null && authorAvatarUrl !== "" ? (
+          <span className="relative flex size-4 shrink-0 items-center justify-center overflow-hidden rounded bg-secondary">
+            <img
+              alt={thread.title ?? ""}
+              className="absolute inset-0 size-full object-cover"
+              src={authorAvatarUrl}
+            />
+          </span>
         ) : thread.archived ? (
           icons?.archived
         ) : null}
@@ -203,6 +230,13 @@ export function ThreadRow({
         >
           {title}
         </span>
+        {thread.needsYou ? (
+          <span
+            role="img"
+            aria-label="Waiting on you"
+            className="block size-1.5 shrink-0 rounded-full bg-(--primary)"
+          />
+        ) : null}
         {thread.personal && thread.captain === null ? (
           <span className="text-muted-foreground-2">{icons?.person}</span>
         ) : null}
@@ -255,8 +289,10 @@ export function ThreadRow({
           </Badge>
         )}
       </span>
-      <span className="w-14 shrink-0 text-right text-xs font-normal text-muted-foreground-2 tabular-nums">
-        {formatAge(thread.sortActivityAt, { now, minified: true })}
+      <span className="flex w-14 shrink-0 items-center justify-end">
+        <span className="block text-xs font-normal text-muted-foreground-2 tabular-nums">
+          {formatAge(thread.sortActivityAt, { now, minified: true })}
+        </span>
       </span>
     </Link>
   );
@@ -319,6 +355,8 @@ export type ThreadsListProps = {
   modelName: (id: string) => string | undefined;
   groupedByProject: boolean;
   now: number;
+  /** Thread author id → their avatar, so each row paints the face Capy paints. */
+  authorAvatars?: ReadonlyMap<string, string>;
   loading: boolean;
   emptyText: string;
   checked: ReadonlySet<string>;
@@ -366,6 +404,7 @@ export function ThreadsList({
   modelName,
   groupedByProject,
   now,
+  authorAvatars,
   loading,
   emptyText,
   checked,
@@ -471,27 +510,39 @@ export function ThreadsList({
     </div>
   );
 
-  const rowItem = (thread: ThreadListItem, index: number) => (
-    <div
-      key={`row:${thread.id}`}
-      {...itemProps(index)}
-      className="-m-0.5 p-0.5"
-    >
-      <ThreadRow
-        thread={thread}
-        projects={projects}
-        modelName={modelName}
-        groupedByProject={groupedByProject}
-        now={now}
-        checked={checked.has(thread.id)}
-        selectionMode={checked.size > 0}
-        onCheck={onCheck}
-        onArchive={onArchive}
-        onRename={onRename}
-        icons={icons}
-      />
-    </div>
-  );
+  const rowItem = (thread: ThreadListItem, index: number) => {
+    const first = index > 0 && items[index - 1]?.kind === "section";
+    const next = items[index + 1];
+    const last = next === undefined || next.kind === "section";
+    return (
+      <div
+        key={`row:${thread.id}`}
+        {...itemProps(index)}
+        className={cx(
+          "relative flow-root",
+          first && "pt-1",
+          last && "rounded-b",
+        )}
+      >
+        <div className="-m-0.5 p-0.5">
+          <ThreadRow
+            thread={thread}
+            projects={projects}
+            authorAvatarUrl={authorAvatars?.get(thread.userId) ?? null}
+            modelName={modelName}
+            groupedByProject={groupedByProject}
+            now={now}
+            checked={checked.has(thread.id)}
+            selectionMode={checked.size > 0}
+            onCheck={onCheck}
+            onArchive={onArchive}
+            onRename={onRename}
+            icons={icons}
+          />
+        </div>
+      </div>
+    );
+  };
 
   const renderItem = (item: ThreadsListItem, index: number) =>
     item.kind === "section"
