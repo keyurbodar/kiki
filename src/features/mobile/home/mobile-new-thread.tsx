@@ -1,9 +1,10 @@
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
-import { useState } from "react";
-import { Composer } from "@/components/composer";
+import { useMemo, useRef, useState } from "react";
+import { Composer, type ComposerHandle } from "@/components/composer";
 import { projectsAtom } from "@/data/atoms/projects";
 import { organizationsAtom } from "@/data/atoms/session";
+import { composerCommands } from "@/features/composer/composer-commands";
 import { useComposerSend } from "@/features/thread/use-composer-send";
 import { Button } from "@/primitives/button";
 import { MobileHome } from "./mobile-home";
@@ -27,7 +28,18 @@ function MobileNewThreadForOrg({
     () => [],
   );
   const [selectedId, setSelectedId] = useState<string>();
+  const composerRef = useRef<ComposerHandle>(null);
   const submit = useComposerSend();
+  const commands = useMemo(
+    () =>
+      composerCommands({
+        newThread: () => {
+          composerRef.current?.reset(null);
+          composerRef.current?.focus();
+        },
+      }),
+    [],
+  );
   return (
     <MobileHome
       projects={projects.map((project) => ({
@@ -40,7 +52,9 @@ function MobileNewThreadForOrg({
           Cloud
         </Button>
       }
-      composer={<Composer onSubmit={submit} />}
+      composer={
+        <Composer ref={composerRef} onSubmit={submit} commands={commands} />
+      }
       onSelectProject={setSelectedId}
       onNewProject={() => {}}
       onManageProjects={() => {}}

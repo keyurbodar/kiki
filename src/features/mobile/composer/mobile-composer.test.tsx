@@ -144,9 +144,7 @@ describe("MobileComposer", () => {
     act(() => ref.current?.typeCharacter("/"));
     await settle();
     fireEvent.keyDown(editor, { key: "Enter" });
-    expect(onCommand).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "new" }),
-    );
+    expect(onCommand).toHaveBeenCalledWith("new");
     expect(
       document.querySelector('[data-slot="composer-command-menu"]'),
     ).toBeNull();

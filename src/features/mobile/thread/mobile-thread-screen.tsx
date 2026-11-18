@@ -4,6 +4,7 @@ import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
 import type { ComposerPayload } from "@/components/composer";
 import { organizationsAtom } from "@/data/atoms/session";
+import type { ComposerCommandId } from "@/features/composer/composer-commands";
 import {
   ComposerFooter,
   FooterTrigger,
@@ -159,8 +160,8 @@ function MobileThreadBody({
 }: MobileThreadBodyProps) {
   const send = useComposerSend(threadId);
   const navigate = useNavigate();
-  const runCommand = (command: { id: string }) => {
-    if (command.id === "new") void navigate({ to: "/new" });
+  const runCommand = (command: ComposerCommandId) => {
+    if (command === "new") void navigate({ to: "/new" });
   };
   const [openTabs, setOpenTabs] = useState<ReadonlyArray<string>>(["overview"]);
   const [activeTab, setActiveTab] = useState(CHAT_TAB);
