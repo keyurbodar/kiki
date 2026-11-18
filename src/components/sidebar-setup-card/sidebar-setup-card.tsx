@@ -2,7 +2,7 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { type ComponentProps, useState } from "react";
 import { CircleDashedIcon, CrossMediumIcon } from "@/components/release";
-import type { OrgId } from "@/data/api/schemas/ids";
+import { idleAtom } from "@/data/atoms/idle";
 import { organizationsAtom } from "@/data/atoms/session";
 import { Button } from "@/primitives/button";
 import { Dialog, DialogContent } from "@/primitives/dialog";
@@ -21,6 +21,8 @@ import {
 
 const SETUP_ROW_LIMIT = 4;
 
+const idleStatus = idleAtom();
+
 export type SidebarSetupCardProps = ComponentProps<"div">;
 
 export function SidebarSetupCard({
@@ -31,7 +33,9 @@ export function SidebarSetupCard({
   const orgId = AsyncResult.isSuccess(organizations)
     ? organizations.value[0]?.id
     : undefined;
-  const status = useAtomValue(onboardingStatusAtom(orgId ?? ("" as OrgId)));
+  const status = useAtomValue(
+    orgId === undefined ? idleStatus : onboardingStatusAtom(orgId),
+  );
   const [active, setActive] = useState<string | null>(null);
   const skip = useAtomSet(skipOnboardingStepAtom, { mode: "promise" });
   const dismiss = useAtomSet(dismissOnboardingAtom, { mode: "promise" });

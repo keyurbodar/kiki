@@ -1,6 +1,7 @@
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import type { OrgId } from "@/data/api/schemas/ids.ts";
+import { idleAtom } from "@/data/atoms/idle.ts";
 import { projectsAtom } from "@/data/atoms/projects.ts";
 import { organizationsAtom } from "@/data/atoms/session.ts";
 import {
@@ -65,12 +66,15 @@ export const useActiveOrgId = (): OrgId | undefined =>
     ),
   )?.[0]?.id;
 
-const disabledOrg = "" as OrgId;
+const idle = idleAtom();
 
 export const useMcpServersState = (
   orgId: OrgId | undefined,
 ): Loadable<ReadonlyArray<McpServer>> =>
-  loadable(useAtomValue(mcpServersAtom(orgId ?? disabledOrg)), list(toServer));
+  loadable(
+    useAtomValue(orgId === undefined ? idle : mcpServersAtom(orgId)),
+    list(toServer),
+  );
 
 export const useMcpServers = (orgId: OrgId | undefined) =>
   readyValue(useMcpServersState(orgId));
@@ -80,7 +84,7 @@ export const usePluginInstallations = (
 ): ReadonlyArray<InstalledPlugin> | undefined =>
   readyValue(
     loadable(
-      useAtomValue(pluginInstallationsAtom(orgId ?? disabledOrg)),
+      useAtomValue(orgId === undefined ? idle : pluginInstallationsAtom(orgId)),
       list(toInstallation),
     ),
   );
@@ -90,7 +94,7 @@ export const useMarketplace = (
 ): ReadonlyArray<MarketplacePlugin> | undefined =>
   readyValue(
     loadable(
-      useAtomValue(marketplaceAtom(orgId ?? disabledOrg)),
+      useAtomValue(orgId === undefined ? idle : marketplaceAtom(orgId)),
       list(toMarketplacePlugin),
     ),
   );
@@ -127,7 +131,7 @@ export const useServerTools = (
 export const useProjects = (orgId: OrgId | undefined) =>
   readyValue(
     loadable(
-      useAtomValue(projectsAtom(orgId ?? disabledOrg)),
+      useAtomValue(orgId === undefined ? idle : projectsAtom(orgId)),
       (value) =>
         value as ReadonlyArray<{ readonly id: string; readonly name: string }>,
     ),
