@@ -4,8 +4,10 @@ import {
   exploreKindOf,
   parseExploreSearch,
 } from "@/features/explore/explore-page";
+import { pageTitle } from "@/lib/page-title";
 
 export const Route = createFileRoute("/_app/explore/")({
+  head: () => ({ meta: [{ title: pageTitle("Explore") }] }),
   validateSearch: parseExploreSearch,
   component: RouteComponent,
 });

@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PullPage } from "@/components/pull-view";
+import { pageTitle } from "@/lib/page-title";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/pull/$owner/$repo/$prNumber")({
+  head: () => ({ meta: [{ title: pageTitle("Pull requests") }] }),
   validateSearch: searchParams(["chat", "org", "tab", "thread"]),
   component: RouteComponent,
 });
