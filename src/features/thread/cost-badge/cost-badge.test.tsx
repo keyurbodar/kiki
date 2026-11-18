@@ -24,11 +24,21 @@ const rows = [
   costRow("jam_1", "Subagent 1", [member("jam_1", 100, 0)]),
 ];
 
+/**
+ * The amount a reader sees and a screen reader announces, once: the chip's text
+ * is drawn per character (torph morphs a changed amount instead of replacing
+ * it), so the readable copy is the element torph marks as its accessible text.
+ */
+const amountOf = (chip: HTMLElement) =>
+  chip.querySelector("[torph-sr]")?.textContent ?? chip.textContent;
+
 describe("CostBadge", () => {
   it("renders the amount as a 28px tabular chip", () => {
     render(<CostBadge credits={120} />);
     const chip = screen.getByRole("button", { name: "Thread cost $0.12" });
-    expect(chip.textContent).toBe("$0.12");
+    expect(amountOf(chip)).toBe("$0.12");
+    // Drawn characters are hidden from the reader, so the amount is announced once.
+    expect(chip.querySelector("[torph-sr]")).not.toBeNull();
     expect(chip.className).toContain("h-(--h-control-sm)");
     expect(chip.className).toContain("text-xs");
     const value = chip.querySelector('[data-slot="cost-value"]');
@@ -39,13 +49,13 @@ describe("CostBadge", () => {
   it("shows an em dash until the amount is known", () => {
     render(<CostBadge />);
     const chip = screen.getByRole("button", { name: "Thread cost —" });
-    expect(chip.textContent).toBe("—");
+    expect(amountOf(chip)).toBe("—");
   });
 
   it("totals its rows and opens the breakdown card", async () => {
     render(<CostBadge rows={rows} />);
     const chip = screen.getByRole("button", { name: "Thread cost $0.50" });
-    expect(chip.textContent).toBe("$0.50");
+    expect(amountOf(chip)).toBe("$0.50");
     fireEvent.click(chip);
     expect(await screen.findByText("Charged by Capy")).toBeTruthy();
     expect(
@@ -63,7 +73,7 @@ describe("ThreadCostBadgeControl", () => {
       />,
     );
     const chip = screen.getByRole("button", { name: "Thread cost $0.00" });
-    expect(chip.textContent).toBe("$0.00");
+    expect(amountOf(chip)).toBe("$0.00");
     fireEvent.click(chip);
     expect(await screen.findByText("Charged by Capy")).toBeTruthy();
   });
