@@ -51,6 +51,12 @@ export type SidebarThread = {
   age: string;
   projectId: string | null;
   machine: SidebarMachine | null;
+  /** Settled threads sit on the settled shelf; the row menu offers Un-settle for them. */
+  settled: boolean;
+  pinned: boolean;
+  archived: boolean;
+  /** Whether the viewer owns the thread, gating Rename, Regenerate title and Delete. */
+  owner: boolean;
 } & SidebarThreadPreview;
 
 export type SidebarSectionKind =

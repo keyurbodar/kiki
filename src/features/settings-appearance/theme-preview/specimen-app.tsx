@@ -45,6 +45,10 @@ const THREADS: ReadonlyArray<SidebarThread> = [
     age: "2m",
     projectId: null,
     machine: null,
+    settled: false,
+    pinned: false,
+    archived: false,
+    owner: true,
   },
   {
     id: "thread_specimen_2",
@@ -56,6 +60,10 @@ const THREADS: ReadonlyArray<SidebarThread> = [
     age: "5m",
     projectId: null,
     machine: null,
+    settled: false,
+    pinned: false,
+    archived: false,
+    owner: true,
   },
   {
     id: "thread_specimen_3",
@@ -67,6 +75,10 @@ const THREADS: ReadonlyArray<SidebarThread> = [
     age: "12m",
     projectId: null,
     machine: null,
+    settled: false,
+    pinned: false,
+    archived: false,
+    owner: true,
   },
   {
     id: "thread_specimen_4",
@@ -78,6 +90,10 @@ const THREADS: ReadonlyArray<SidebarThread> = [
     age: "31m",
     projectId: null,
     machine: null,
+    settled: false,
+    pinned: false,
+    archived: false,
+    owner: true,
   },
 ];
 

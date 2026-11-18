@@ -42,3 +42,18 @@ export const archiveThreadsAtom = ApiClient.mutation("jams", "archive");
 export const unarchiveThreadsAtom = ApiClient.mutation("jams", "unarchive");
 
 export const deleteThreadsAtom = ApiClient.mutation("jams", "delete");
+
+export const settleThreadAtom = ApiClient.mutation("jams", "settle");
+
+export const unsettleThreadAtom = ApiClient.mutation("jams", "unsettle");
+
+export const markThreadReadAtom = ApiClient.mutation("jams", "read");
+
+export const markThreadUnreadAtom = ApiClient.mutation("jams", "unread");
+
+export const markAllThreadsReadAtom = ApiClient.mutation("jams", "readAll");
+
+export const regenerateThreadTitleAtom = ApiClient.mutation(
+  "jams",
+  "regenerateTitle",
+);

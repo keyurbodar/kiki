@@ -1,14 +1,25 @@
+import { RegistryContext } from "@effect/atom-react";
 import {
   createMemoryHistory,
   createRootRoute,
   createRouter,
   RouterProvider,
 } from "@tanstack/react-router";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import { Option } from "effect";
+import { AsyncResult, AtomRegistry } from "effect/reactivity";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { PullRequestId } from "@/data/api/schemas/ids";
 import type { ThreadCard } from "@/data/api/schemas/thread";
+import { threadAtom } from "@/data/atoms/jams";
+import { organizationsAtom } from "@/data/atoms/session";
 import {
   buildSidebarThreadsView,
   defaultSidebarPrefs,
@@ -171,6 +182,55 @@ describe("buildSidebarThreadsView preview data", () => {
   });
 });
 
+describe("sidebar row menu mutations", () => {
+  const renderWithRegistry = async (node: ReactNode) => {
+    const registry = AtomRegistry.make();
+    const router = createRouter({
+      routeTree: createRootRoute({ component: () => node }),
+      history: createMemoryHistory({ initialEntries: ["/"] }),
+    });
+    render(
+      <RegistryContext.Provider value={registry}>
+        <RouterProvider router={router} />
+      </RegistryContext.Provider>,
+    );
+    await router.load();
+    return registry;
+  };
+  const orgId = (registry: AtomRegistry.AtomRegistry) =>
+    Option.getOrUndefined(
+      AsyncResult.value(registry.get(organizationsAtom)),
+    )?.[0]?.id;
+
+  it("settles the thread through the mock API when Settle is clicked", async () => {
+    const registry = await renderWithRegistry(
+      <Harness sidebarSource={source([thread()])} />,
+    );
+    fireEvent.contextMenu(rowLink());
+    fireEvent.click(await screen.findByText("Settle"));
+    await waitFor(() => {
+      const org = orgId(registry);
+      if (org === undefined) throw new Error("no org yet");
+      const card = Option.getOrUndefined(
+        AsyncResult.value(registry.get(threadAtom(`${org}/jam_sample_2`))),
+      );
+      expect(card?.settledAt).not.toBeNull();
+    });
+  });
+
+  it("asks for confirmation before deleting", async () => {
+    await renderWithRegistry(
+      <Harness sidebarSource={source([thread({ owner: true })])} />,
+    );
+    fireEvent.contextMenu(rowLink());
+    fireEvent.click(await screen.findByText("Delete"));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog.textContent).toContain("Delete thread");
+    expect(dialog.textContent).toContain("Add dark mode to settings");
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeTruthy();
+  });
+});
+
 describe("sidebar row menu", () => {
   it("opens Capy's row menu on right-click and opens the thread in a new tab", async () => {
     const openSpy = vi.spyOn(window, "open").mockReturnValue(null);
@@ -190,6 +250,77 @@ describe("sidebar row menu", () => {
     fireEvent.contextMenu(list);
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(screen.queryByText("Open in new tab")).toBeNull();
+  });
+});
+
+describe("sidebar row action cluster", () => {
+  it("mounts the cluster on the row so hovering it reveals Capy's actions", async () => {
+    await renderAt(<Harness sidebarSource={source([thread()])} />);
+    const row = rowLink().closest("[data-drag-row]");
+    expect(row?.querySelector('[aria-label="Settle"]')).not.toBeNull();
+    expect(row?.querySelector('[aria-label="Archive thread"]')).not.toBeNull();
+    expect(row?.querySelector('[aria-label="Thread actions"]')).not.toBeNull();
+    expect(row?.querySelector("span.mask-fade-l")).not.toBeNull();
+  });
+
+  it("hides the cluster on settled rows and offers un-settle instead", async () => {
+    await renderAt(
+      <Harness sidebarSource={source([thread({ settled: true })])} />,
+    );
+    fireEvent.click(screen.getByText("Settled"));
+    const row = rowLink().closest("[data-drag-row]");
+    expect(row?.querySelector('[aria-label="Settle"]')).toBeNull();
+    expect(row?.querySelector('[aria-label="Un-settle"]')).not.toBeNull();
+  });
+});
+
+describe("sidebar row menu", () => {
+  it("renders Capy's items in Capy's order", async () => {
+    await renderAt(
+      <Harness
+        sidebarSource={source([thread({ owner: true, hasUnreads: false })])}
+      />,
+    );
+    fireEvent.contextMenu(rowLink());
+    await screen.findByText("Open in new tab");
+    const labels = [...document.querySelectorAll("[role=menuitem]")].map(
+      (item) => item.textContent?.trim(),
+    );
+    expect(labels).toEqual([
+      "Share",
+      "Open in new tab",
+      "Pin",
+      "Move to",
+      "Promote to Captain",
+      "Rename",
+      "Regenerate title",
+      "Copy link",
+      "Mark as unread",
+      "Settle",
+      "Archive",
+      "Delete",
+    ]);
+  });
+
+  it("keeps owner-only items but disables them on a thread the viewer does not own", async () => {
+    await renderAt(
+      <Harness sidebarSource={source([thread({ owner: false })])} />,
+    );
+    fireEvent.contextMenu(rowLink());
+    await screen.findByText("Rename");
+    const rename = screen.getByText("Rename").closest("[role=menuitem]");
+    expect(rename?.getAttribute("aria-disabled")).toBe("true");
+    expect(screen.queryByText("Promote to Captain")).toBeNull();
+    expect(screen.queryByText("Delete")).toBeTruthy();
+  });
+
+  it("offers mark as read on an unread thread", async () => {
+    await renderAt(
+      <Harness sidebarSource={source([thread({ hasUnreads: true })])} />,
+    );
+    fireEvent.contextMenu(rowLink());
+    await screen.findByText("Mark as read");
+    expect(screen.queryByText("Mark as unread")).toBeNull();
   });
 });
 

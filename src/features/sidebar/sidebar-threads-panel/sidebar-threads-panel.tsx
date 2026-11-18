@@ -9,6 +9,11 @@ import {
   useSidebarThreads,
 } from "../sidebar-threads-data";
 import { CaptainOptionsMenu, ThreadOptionsMenu } from "../thread-options-menu";
+import {
+  ThreadActionsProvider,
+  useThreadActions,
+} from "../thread-row-actions/thread-actions-context";
+import { ThreadRowMenu } from "../thread-row-actions/thread-row-menu";
 
 export type SidebarThreadsPanelProps = {
   controller?: SidebarThreadsController;
@@ -57,7 +62,32 @@ export function SidebarThreadsPanel({
   onMarkAllRead,
 }: SidebarThreadsPanelProps) {
   const fallback = useSidebarThreads();
-  const sidebar = controller ?? fallback;
+  return (
+    <ThreadActionsProvider>
+      <SidebarThreadsPanelBody
+        controller={controller ?? fallback}
+        onNewThread={onNewThread}
+        onNewCaptain={onNewCaptain}
+        onNewFolder={onNewFolder}
+        onSearch={onSearch}
+        onViewAll={onViewAll}
+        onMarkAllRead={onMarkAllRead}
+      />
+    </ThreadActionsProvider>
+  );
+}
+
+function SidebarThreadsPanelBody({
+  controller,
+  onNewThread,
+  onNewCaptain,
+  onNewFolder,
+  onSearch,
+  onViewAll,
+  onMarkAllRead,
+}: SidebarThreadsPanelProps & { controller: SidebarThreadsController }) {
+  const sidebar = controller;
+  const threadActions = useThreadActions();
   const { view } = sidebar;
   const captainActions = (
     <>
@@ -95,6 +125,7 @@ export function SidebarThreadsPanel({
       view={view}
       actions={actions}
       captainActions={captainActions}
+      renderRowMenu={(thread) => <ThreadRowMenu thread={thread} />}
       onSectionOpenChange={sidebar.setSectionOpen}
       onShowMore={sidebar.showMore}
       onNewThread={onNewThread}
@@ -118,6 +149,20 @@ export function SidebarThreadsPanel({
             project={project}
             density={density}
             active={active}
+            actions={{
+              onSettle: thread.settled
+                ? undefined
+                : () => threadActions.settle(thread),
+              onUnsettle: thread.settled
+                ? () => threadActions.unsettle(thread)
+                : undefined,
+              onArchive: () => threadActions.archive(thread),
+              menu: <ThreadRowMenu thread={thread} onClose={() => undefined} />,
+              renaming: threadActions.renamingId === thread.id,
+              onRenameStart: () => threadActions.startRename(thread.id),
+              onRename: (title) => threadActions.commitRename(thread.id, title),
+              onRenameCancel: threadActions.cancelRename,
+            }}
             preview={
               thread.card === undefined ? undefined : (
                 <ThreadPreview
