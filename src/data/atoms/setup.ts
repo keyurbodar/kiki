@@ -101,8 +101,37 @@ const threadMachinesQuery = Atom.family((key: string) => {
   });
 });
 
+const machinePreviewsQuery = Atom.family((key: string) => {
+  const [orgId, jamId] = splitKey(key);
+  return ApiClient.query("machines", "listServicePreviews", {
+    params: { orgId, jamId },
+    reactivityKeys: [setupReactivityKeys.machines(orgId, jamId)],
+    timeToLive: queryTimeToLive,
+  });
+});
+
+const machineSessionsQuery = Atom.family((key: string) => {
+  const [orgId, jamId, machineId] = key.split("/") as [string, string, string];
+  return ApiClient.query("machines", "sessions", {
+    params: { orgId, jamId, machineId },
+    reactivityKeys: [setupReactivityKeys.machines(orgId, jamId)],
+    timeToLive: queryTimeToLive,
+  });
+});
+
 /** The machines attached to one thread. */
 export const threadMachinesAtom = (orgId: OrgId, jamId: string) =>
   threadMachinesQuery(setupKey(orgId, jamId));
+
+/** The previews running on a thread's machines, which open as service tabs. */
+export const machinePreviewsAtom = (orgId: OrgId, jamId: string) =>
+  machinePreviewsQuery(setupKey(orgId, jamId));
+
+/** The shells and agent sessions a machine holds. */
+export const machineSessionsAtom = (
+  orgId: OrgId,
+  jamId: string,
+  machineId: string,
+) => machineSessionsQuery(`${setupKey(orgId, jamId)}/${machineId}`);
 
 export const rerunSetupAtom = ApiClient.mutation("machines", "rerunSetup");

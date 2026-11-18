@@ -56,6 +56,8 @@ import {
 import { projectsAtom } from "@/data/atoms/projects";
 import { promotionRecipientByCodeAtom } from "@/data/atoms/promotions";
 import {
+  machinePreviewsAtom,
+  machineSessionsAtom,
   projectSetupAtom,
   snapshotBuildsAtom,
   snapshotConfigAtom,
@@ -67,6 +69,7 @@ import { accountAtom } from "@/data/atoms/users";
 import {
   captains,
   driveFiles,
+  machines,
   projects,
   threads,
   orgId as worldOrgId,
@@ -340,6 +343,28 @@ const readers: ReadonlyArray<{
       {
         name: "threadMachinesAtom",
         atom: threadMachinesAtom(orgId, threads.checkoutTest.id),
+      },
+    ],
+  },
+  {
+    endpoint: "machines.listServicePreviews",
+    consumers: [
+      {
+        name: "machinePreviewsAtom",
+        atom: machinePreviewsAtom(orgId, threads.checkoutTest.id),
+      },
+    ],
+  },
+  {
+    endpoint: "machines.sessions",
+    consumers: [
+      {
+        name: "machineSessionsAtom",
+        atom: machineSessionsAtom(
+          orgId,
+          threads.checkoutTest.id,
+          machines[0].id,
+        ),
       },
     ],
   },
