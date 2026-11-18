@@ -1,16 +1,29 @@
 import { useAtomSet } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
 import { DateTime } from "effect";
-import { Fragment, type MouseEvent, type ReactNode, useState } from "react";
+import {
+  Fragment,
+  type MouseEvent,
+  type ReactNode,
+  useId,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import type { ActorSources } from "@/components/actor-filter";
 import { IssueDueChip } from "@/components/issue-due";
 import { IssueRowContextMenu } from "@/components/issue-menu/issue-row-context-menu";
+import { CircleBanGlyph } from "@/components/issue-pickers";
+import { IssuePullChips } from "@/components/issue-pulls";
+import {
+  IssueRelationChip,
+  issueRelationSides,
+} from "@/components/issue-relations";
 import {
   type ChipIssue,
   MarkdownChipsProvider,
 } from "@/components/markdown-chips";
 import { IssuePreview } from "@/components/markdown-chips/previews";
+import { UserAvatar } from "@/components/user-menu/user-avatar";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type {
   IssuePriority,
@@ -32,6 +45,7 @@ import {
   CollapsiblePanel,
   CollapsibleTrigger,
 } from "@/primitives/collapsible";
+import { Icon } from "@/primitives/icon";
 import { Menu, MenuContent, MenuTrigger } from "@/primitives/menu";
 import {
   PreviewCard,
@@ -39,7 +53,6 @@ import {
   PreviewCardTrigger,
 } from "@/primitives/preview-card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
-import { ActorAvatar } from "../actor-filter";
 import { type IssueFilters, localDate, stateVisible } from "../issues-filters";
 import {
   ChevronDownGlyph,
@@ -386,6 +399,115 @@ function SubIssueBadge({
   );
 }
 
+/**
+ * Capy's tree line beside a nested row: a vertical run for the branch, an
+ * elbow for the row itself, and an end for the last child.
+ */
+function IssueTreeConnector({
+  kind,
+  height,
+  className,
+}: {
+  kind: "root" | "branch" | "last";
+  height: number;
+  className?: string;
+}) {
+  const center = height / 2;
+  const path =
+    kind === "root"
+      ? `M0.5 ${center + 10} V${height}`
+      : kind === "last"
+        ? `M0.5 0 V${center - 6} A6 6 0 0 0 6.5 ${center} H10.5`
+        : `M0.5 0 V${height} M0.5 ${center - 6} A6 6 0 0 0 6.5 ${center} H10.5`;
+  const mask = useId().replace(/[^a-zA-Z0-9_-]/gu, "");
+  return (
+    <span
+      aria-hidden
+      className={`pointer-events-none absolute top-0 left-(--issue-tree-line-inset) h-full w-3 overflow-visible text-border-1 ${className ?? ""}`}
+    >
+      <svg aria-hidden width="12" height={height} className="overflow-visible">
+        <mask
+          id={mask}
+          maskUnits="userSpaceOnUse"
+          x="-1"
+          y="-1"
+          width="14"
+          height={height + 2}
+        >
+          <path
+            d={path}
+            stroke="white"
+            strokeWidth={1}
+            fill="none"
+            className="-translate-y-(--spacing-hairline) [@media(min-resolution:2dppx)]:translate-x-(--spacing-hairline) [@media(min-resolution:2dppx)]:translate-y-0"
+          />
+        </mask>
+        <rect
+          x="-1"
+          y="-1"
+          width="14"
+          height={height + 2}
+          fill="currentColor"
+          mask={`url(#${mask})`}
+        />
+      </svg>
+    </span>
+  );
+}
+
+/** Capy's row relations: a blocked-by badge and a blocking badge, when either applies. */
+function IssueRelations({ issue }: { issue: IssueSummary }) {
+  const open = issue.openBlockers ?? 0;
+  const sides = ["blockedBy", "blocking"] as const;
+  if (issue.blockedBy === undefined && open > 0) {
+    const label = open === 1 ? "Blocked" : `Blocked by ${open}`;
+    return (
+      <Badge
+        size="xs"
+        className="shrink-0"
+        data-issue-relation="blockedBy"
+        aria-label={label}
+      >
+        <CircleBanGlyph className="text-destructive" />
+        <span className="whitespace-nowrap @max-md/list:hidden">{label}</span>
+        <span className="hidden tabular-nums @max-md/list:inline">{open}</span>
+      </Badge>
+    );
+  }
+  return (
+    <>
+      {sides.map((side) => {
+        const refs = issue[side] ?? [];
+        const first = refs[0];
+        if (first === undefined) return null;
+        const total = Math.max(
+          refs.length,
+          (side === "blockedBy" ? issue.openBlockers : issue.blockingCount) ??
+            0,
+        );
+        const capped = side === "blocking" && total >= 100;
+        const label = capped
+          ? `${issueRelationSides[side].label} 99+`
+          : side === "blocking" || total > 1
+            ? `${issueRelationSides[side].label} ${total}`
+            : `${issueRelationSides[side].label} ${first.code}`;
+        return (
+          <IssueRelationChip
+            key={side}
+            side={side}
+            subject={issue.code}
+            refs={refs}
+            total={total}
+            capped={capped}
+            label={label}
+            count={capped ? "99+" : String(total)}
+          />
+        );
+      })}
+    </>
+  );
+}
+
 export type IssueRowProps = {
   issue: IssueSummary;
   orgId: OrgId;
@@ -400,6 +522,8 @@ export type IssueRowProps = {
   onToggleSubIssues?: () => void;
   /** Depth under an expanded parent: Capy indents a sub-issue row one step. */
   nested?: boolean;
+  /** A nested row that is the last of its siblings ends the tree line. */
+  lastChild?: boolean;
 };
 
 /** Capy's IssueRow at page density: status, ID, title, badges, properties. */
@@ -415,10 +539,18 @@ export function IssueRow({
   subIssuesOpen = false,
   onToggleSubIssues,
   nested = false,
+  lastChild = false,
 }: IssueRowProps) {
   const hidden = (property: IssueDisplay["hidden"][number]) =>
     display.hidden.includes(property);
   const labels = hidden("labels") ? [] : (issue.labels ?? []);
+  const pulls = hidden("pulls") ? [] : (issue.pulls ?? []);
+  const actors = hidden("assignee")
+    ? []
+    : (issue.assignees ?? (issue.assignee === null ? [] : [issue.assignee]));
+  const relations = hidden("relations") ? null : (
+    <IssueRelations issue={issue} />
+  );
   const unread = issue.viewer.unread || issue.viewer.mentions > 0;
   const chipIssue: ChipIssue = {
     code: issue.code,
@@ -450,7 +582,26 @@ export function IssueRow({
         event.preventDefault();
         onCheck(issue, true);
       }}
+      onKeyDown={(event) => {
+        if (onToggleSubIssues === undefined) return;
+        if (event.altKey || event.metaKey || event.ctrlKey || event.shiftKey)
+          return;
+        if (event.key !== (subIssuesOpen ? "ArrowLeft" : "ArrowRight")) return;
+        event.preventDefault();
+        onToggleSubIssues();
+      }}
     >
+      {nested || subIssuesOpen ? (
+        <IssueTreeConnector
+          kind={nested ? (lastChild ? "last" : "branch") : "root"}
+          height={44}
+          className={
+            checked === undefined
+              ? undefined
+              : "left-(--issue-tree-line-checked-inset)"
+          }
+        />
+      ) : null}
       {checked === undefined || onCheck === undefined ? null : (
         <RowCheckbox
           checked={checked}
@@ -466,7 +617,7 @@ export function IssueRow({
           {issue.code}
         </span>
       )}
-      <span className="flex min-w-0 flex-1 items-center gap-1">
+      <span className="flex flex-1 items-center gap-1">
         <span
           className={
             "mask-fade-r overflow-hidden leading-5 whitespace-nowrap " +
@@ -480,28 +631,43 @@ export function IssueRow({
         >
           {issue.title}
         </span>
-        {issue.subIssueCount > 0 ? (
-          <span className="ml-1 flex shrink-0 items-center gap-1">
+        {issue.visibility === "private" ? (
+          <span
+            role="img"
+            aria-label="Only specific people"
+            className="size-3 shrink-0 text-muted-foreground-2"
+          >
+            <Icon name="lock" className="size-3 shrink-0" />
+          </span>
+        ) : null}
+        <span className="ml-1 flex shrink-0 items-center gap-1">
+          {relations}
+          {issue.subIssueCount > 0 ? (
             <SubIssueBadge
               closed={issue.closedSubIssueCount}
               total={issue.subIssueCount}
               open={subIssuesOpen}
               onToggle={onToggleSubIssues}
             />
-          </span>
-        ) : null}
+          ) : null}
+        </span>
       </span>
-      {labels.length > 0 ? (
-        <span className="@max-md/list:hidden flex max-w-[40%] min-w-0 shrink items-center justify-end gap-1 overflow-hidden">
-          {labels.map((label) => (
-            <span
-              key={label.id}
-              className="flex h-5 shrink-0 items-center gap-1 rounded border-hairline border-border-2 px-1.5 text-xs font-normal text-muted-foreground-1"
-            >
-              <IssueLabelDot color={label.color} />
-              {label.name}
+      {pulls.length > 0 || labels.length > 0 ? (
+        <span className="flex max-w-[40%] min-w-0 shrink items-center justify-end gap-1">
+          {pulls.length > 0 ? <IssuePullChips pulls={pulls} /> : null}
+          {labels.length > 0 ? (
+            <span className="@max-md/list:hidden flex min-w-0 shrink items-center justify-end gap-1 overflow-hidden">
+              {labels.map((label) => (
+                <span
+                  key={label.id}
+                  className="flex h-5 shrink-0 items-center gap-1 rounded border-hairline border-border-2 px-1.5 text-xs font-normal text-muted-foreground-1"
+                >
+                  <IssueLabelDot color={label.color} />
+                  {label.name}
+                </span>
+              ))}
             </span>
-          ))}
+          ) : null}
         </span>
       ) : null}
       <span className="flex shrink-0 items-center gap-2">
@@ -543,11 +709,30 @@ export function IssueRow({
       </span>
       <span className="flex shrink-0 items-center gap-1.5">
         <span className="flex min-w-4 items-center justify-end">
-          {issue.assignee === null || hidden("assignee") ? null : (
-            <ActorAvatar
-              name={issue.assignee.name}
-              avatarUrl={issue.assignee.avatarUrl}
-            />
+          {actors.length === 0 || hidden("assignee") ? null : (
+            <Tooltip>
+              <TooltipTrigger render={<span className="flex" />}>
+                <span className="flex shrink-0 items-center gap-0.5">
+                  {actors.slice(0, 3).map((actor) => (
+                    <UserAvatar
+                      key={actor.id}
+                      src={actor.avatarUrl}
+                      name={actor.name}
+                      size="xs"
+                    />
+                  ))}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {actors
+                  .map((actor) =>
+                    actor.code === null || actor.captain
+                      ? actor.name
+                      : `${actor.code} ${actor.name}`,
+                  )
+                  .join(", ")}
+              </TooltipContent>
+            </Tooltip>
           )}
         </span>
         {hidden("updated") ? null : (
@@ -744,6 +929,7 @@ export function IssuesList({
     issue: IssueSummary,
     nested: boolean,
     ancestors: ReadonlySet<string> = new Set(),
+    lastChild = false,
   ): ReactNode => {
     const subIssues = ancestors.has(issue.id) ? [] : subIssuesOf(issue);
     const subIssuesOpen = expandedRows[issue.id] ?? false;
@@ -761,6 +947,7 @@ export function IssuesList({
               selectionMode={(checked?.size ?? 0) > 0}
               onCheck={onCheck}
               nested={nested}
+              lastChild={lastChild}
               subIssuesOpen={subIssuesOpen && subIssues.length > 0}
               onToggleSubIssues={
                 subIssues.length === 0
@@ -775,8 +962,13 @@ export function IssuesList({
           </IssueRowContextMenu>
         </li>
         {subIssuesOpen
-          ? subIssues.map((child) =>
-              renderRow(child, true, new Set([...ancestors, issue.id])),
+          ? subIssues.map((child, index) =>
+              renderRow(
+                child,
+                true,
+                new Set([...ancestors, issue.id]),
+                index === subIssues.length - 1,
+              ),
             )
           : null}
       </Fragment>

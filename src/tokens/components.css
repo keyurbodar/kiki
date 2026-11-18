@@ -45,6 +45,8 @@
   --crop-editor-grid:
     linear-gradient(to right, rgba(255, 255, 255, 0.35) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.35) 1px, transparent 1px);
+  --issue-tree-line-inset: 15px;
+  --issue-tree-line-checked-inset: 39px;
   --markdown-editor-toolbar-offset: 8px;
   --markdown-editor-toolbar-half-width: 140px;
   --markdown-editor-toolbar-clearance: 52px;

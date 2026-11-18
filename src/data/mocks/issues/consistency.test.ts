@@ -5,7 +5,7 @@ import type { OrgId } from "../../api/schemas/ids.ts";
 import { issueAtom } from "../../atoms/issues.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { fixtureNow } from "../fixtures/time.ts";
-import { people, orgId as worldOrgId } from "../fixtures/world.ts";
+import { issues, people, orgId as worldOrgId } from "../fixtures/world.ts";
 
 const orgId = worldOrgId as OrgId;
 
@@ -75,7 +75,9 @@ describe("issues mock: filters and consistency", () => {
           payload: { projectId: "proj_sample_web", title: "Audit retries" },
         },
       );
-      assert.strictEqual(created.issue.code, "QA-10");
+      // One past the highest fixture row, so the fixture can grow.
+      const highest = Math.max(...issues.map((row) => row.number));
+      assert.strictEqual(created.issue.code, `QA-${highest + 1}`);
       const list = yield* query<{ prefix: string }>(registry, "list", {
         params: { orgId },
         query: {},
