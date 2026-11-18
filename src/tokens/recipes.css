@@ -125,6 +125,8 @@
     align-items: var(--row-align);
     height: var(--row-h);
     padding-inline: var(--row-px-tight);
+  }
+
   .kiki-cell {
     display: flex;
     align-items: var(--row-align);
