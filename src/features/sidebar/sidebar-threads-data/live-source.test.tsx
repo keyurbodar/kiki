@@ -1,12 +1,12 @@
 import { RegistryContext } from "@effect/atom-react";
 import { assert, describe, it } from "@effect/vitest";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
-import { DateTime } from "effect";
-import { AtomRegistry } from "effect/reactivity";
+import { DateTime, Option } from "effect";
+import { AsyncResult, AtomRegistry } from "effect/reactivity";
 import type { ReactNode } from "react";
 import { afterEach, expect } from "vitest";
 import type { CaptainCard } from "@/data/api/schemas/captain";
-import { JamId } from "@/data/api/schemas/ids";
+import { JamId, OrgId } from "@/data/api/schemas/ids";
 import type { Project } from "@/data/api/schemas/project";
 import { ThreadCard } from "@/data/api/schemas/thread";
 import { ThreadFolder } from "@/data/api/schemas/threadOrganization";
@@ -18,6 +18,7 @@ import {
   mapPinnedFolder,
   mapProject,
   mapThread,
+  sidebarAtoms,
   toSidebarSource,
   useLiveSidebarSource,
 } from "./live-source";
@@ -114,6 +115,43 @@ describe("sidebar mapping", () => {
       name: "Web",
       logoUrl: null,
     });
+  });
+});
+
+describe("sidebarAtoms", () => {
+  it("holds empty results, and issues nothing, until the org is known", () => {
+    const registry = AtomRegistry.make();
+    const idle = sidebarAtoms(undefined);
+    assert.deepEqual(
+      Option.getOrUndefined(AsyncResult.value(registry.get(idle.threads))),
+      [],
+    );
+    assert.deepEqual(
+      Option.getOrUndefined(AsyncResult.value(registry.get(idle.folders))),
+      [],
+    );
+    assert.deepEqual(
+      Option.getOrUndefined(AsyncResult.value(registry.get(idle.board))),
+      [],
+    );
+    assert.deepEqual(
+      Option.getOrUndefined(AsyncResult.value(registry.get(idle.captains))),
+      [],
+    );
+    assert.deepEqual(
+      Option.getOrUndefined(AsyncResult.value(registry.get(idle.projects))),
+      [],
+    );
+  });
+
+  it("switches to the org's list atoms once it is known", () => {
+    const idle = sidebarAtoms(undefined);
+    const live = sidebarAtoms(OrgId.make("org_sample_acme"));
+    assert.notStrictEqual(live.threads, idle.threads);
+    assert.notStrictEqual(live.folders, idle.folders);
+    assert.notStrictEqual(live.board, idle.board);
+    assert.notStrictEqual(live.captains, idle.captains);
+    assert.notStrictEqual(live.projects, idle.projects);
   });
 });
 

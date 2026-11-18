@@ -27,6 +27,21 @@ Everything the app reads or writes goes through one Effect `HttpApi` definition 
 
 Feature code never knows which one it has.
 
+## Reading an atom whose key is an id
+
+Never read a family atom with a placeholder id. `allThreadsAtom("" as OrgId)` and its four neighbours do not return "empty" — they issue a real request to `/orgs//jams`, which the API answers with a 403, and Effect's `HttpApiClient` deduplicates failure reasons by structurally hashing the whole error graph. Five of those per mount cost 2.8 million hash calls and ~18s of CPU inside a route tree (kiki#351).
+
+Read the id first and hold the subscription until it exists:
+
+```ts
+const orgId = organizations?.[0]?.id;
+const threads = useAtomValue(
+  orgId === undefined ? idleThreadsAtom : allThreadsAtom(orgId, options),
+);
+```
+
+An idle atom that already holds a success value is free to subscribe to; a family atom with a fabricated key is not. `sidebarAtoms(orgId)` in `features/sidebar/sidebar-threads-data/live-source.ts` is the worked example.
+
 ## Adding or typing an endpoint
 
 Every endpoint already exists in `api/groups/<group>.ts`, with exact names, paths and path params. Endpoints that nobody has decoded yet use `Undecoded` for the payload and success, and `UndecodedQuery` for the query string, so callers pass `query: {}`.
