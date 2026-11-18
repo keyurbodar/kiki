@@ -509,7 +509,7 @@ export function ThreadView({
                 </div>
                 <div className="min-h-0 px-4 pb-[calc(var(--spacing)+var(--safe-bottom))]">
                   <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col justify-end">
-                    {active === undefined ? (
+                    {active === undefined || draft !== undefined ? (
                       (composer ?? (
                         <MessageQueue
                           rows={noQueuedMessages}
@@ -566,6 +566,12 @@ export function ThreadView({
                     ) : (
                       <ComposerTakeover {...active} />
                     )}
+                    {/*
+                      An edit draft outranks a takeover: the timeline truncates
+                      from the edited message, so the editor has to be the thing
+                      on screen or the conversation collapses with no way back.
+                      Cancelling or sending the edit returns the takeover.
+                    */}
                     <ComposerFooter
                       data-slot="composer-footer"
                       machine={<MachineTrigger machine={machines} />}
