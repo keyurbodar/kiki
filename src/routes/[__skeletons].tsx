@@ -1,5 +1,6 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useLayoutEffect, useState } from "react";
+import { SharePanel } from "@/components/share-popover/share-panel";
 import { exploreGridClassName } from "@/features/explore/explore-page";
 import { type ListingCard, ListingRow } from "@/features/explore/listing-card";
 import { Button } from "@/primitives/button";
@@ -128,6 +129,28 @@ function SkeletonsHarness() {
             </div>
           )}
         </Skeleton>
+      </div>
+      <div
+        data-specimen="share-panel"
+        style={{ margin: "0 auto", width: "100%", maxWidth: 420 }}
+      >
+        <SharePanel
+          share={
+            loaded
+              ? {
+                  id: "share_harness",
+                  url: "https://capy.ai/s/harness-shared-link",
+                  visibility: "public",
+                  createdBy: null,
+                  manageable: true,
+                }
+              : undefined
+          }
+          pending={false}
+          removing={false}
+          onVisibility={() => undefined}
+          onRemove={() => undefined}
+        />
       </div>
     </div>
   );
