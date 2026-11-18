@@ -2,7 +2,7 @@ import { cleanup, render } from "@testing-library/react";
 import type { Schema } from "effect";
 import { afterEach, expect, it } from "vitest";
 import type { ActivityRow as ActivityRowSchema } from "@/data/events";
-import { ToolBody } from "./tool-body";
+import { hasToolBody, ToolBody } from "./tool-body";
 
 type ActivityRowData = Schema.Schema.Type<typeof ActivityRowSchema>;
 type ToolRow = Extract<ActivityRowData, { kind: "tool" }>;
@@ -158,4 +158,56 @@ it("prints a zero exit code quietly and a failing one in red", () => {
   );
   expect(failed.container.textContent).toContain("exit 2");
   expect(failed.container.querySelector(".text-destructive")).not.toBeNull();
+});
+
+it("shows the patch an edit call made instead of an empty result", () => {
+  const { container } = render(
+    <ToolBody
+      row={toolRow({
+        toolName: "edit",
+        args: {
+          path: "src/a.ts",
+          old_string: "const a = 1;",
+          new_string: "const a = 2;",
+        },
+        result: { blocks: [], isError: false, settledAt: at(2_400) },
+      })}
+    />,
+  );
+  expect(container.querySelector("[data-slot=diff-card]")).not.toBeNull();
+  expect(container.textContent).not.toContain("No output");
+});
+
+it("shows the patch an apply_patch call carried", () => {
+  const { container } = render(
+    <ToolBody
+      row={toolRow({
+        toolName: "apply_patch",
+        args: {
+          patch_text: [
+            "*** Begin Patch",
+            "*** Update File: src/a.ts",
+            "@@",
+            "-old",
+            "+new",
+            "*** End Patch",
+          ].join("\n"),
+        },
+        result: { blocks: [], isError: false, settledAt: at(2_400) },
+      })}
+    />,
+  );
+  expect(container.querySelector("[data-slot=diff-card]")).not.toBeNull();
+});
+
+it("opens a panel for a write call that returned nothing else", () => {
+  expect(
+    hasToolBody(
+      toolRow({
+        toolName: "write",
+        args: { path: "src/a.ts", content: "x" },
+        result: { blocks: [], isError: false, settledAt: at(2_400) },
+      }),
+    ),
+  ).toBe(true);
 });

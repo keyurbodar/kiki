@@ -1,5 +1,7 @@
 import { FileChip } from "@/components/markdown-chips";
 import type { ActivityRow } from "@/data/events";
+import { DiffBodyCard } from "@/features/thread/diff-body";
+import { EXPANDABLE_PATCH_LINES, patchForTool, patchPath } from "./patch";
 
 type ToolRow = Extract<typeof ActivityRow.Type, { kind: "tool" }>;
 type Block = NonNullable<ToolRow["result"]>["blocks"][number];
@@ -56,6 +58,7 @@ const hasUnknownBlocks = (row: ToolRow) =>
 
 export function hasToolBody(row: ToolRow) {
   return (
+    patchForTool(row.toolName, row.args) !== undefined ||
     field(row.args, "command") !== undefined ||
     field(row.call?.input, "command") !== undefined ||
     resultText(row) !== "" ||
@@ -87,6 +90,15 @@ const statusOf = (row: ToolRow): Status | undefined => {
 export type ToolBodyProps = { row: ToolRow };
 
 export function ToolBody({ row }: ToolBodyProps) {
+  const patch = patchForTool(row.toolName, row.args);
+  if (patch !== undefined)
+    return (
+      <DiffBodyCard
+        patch={patch}
+        path={patchPath(patch)}
+        expandable={patch.split("\n").length <= EXPANDABLE_PATCH_LINES}
+      />
+    );
   const command =
     field(row.args, "command") ?? field(row.call?.input, "command");
   const output = resultText(row);
