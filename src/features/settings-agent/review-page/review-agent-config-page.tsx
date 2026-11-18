@@ -1,6 +1,7 @@
 import { useAtomSet } from "@effect/atom-react";
 import { type ComponentProps, useState } from "react";
 import { toast } from "sonner";
+import { FailedRead } from "@/components/failed-read";
 import {
   SettingsLoadingCard,
   SettingsPage,
@@ -42,14 +43,21 @@ import {
 } from "./review-shared";
 
 export function ReviewAgentConfigPage() {
-  const { orgId } = useReviewOrg();
+  const { orgId, orgFailed, refreshOrganizations } = useReviewOrg();
   return (
     <SettingsPage
       title="Agent config"
       description="How thorough Capy is, what it skips, and what it follows"
       headerContent={<ReviewAdminNotice scope="agent" />}
     >
-      {orgId === undefined ? (
+      {orgFailed ? (
+        <FailedRead
+          slot="review-config-failed"
+          line="Couldn't load your organization"
+          sub="Check your connection and try again"
+          onRetry={refreshOrganizations}
+        />
+      ) : orgId === undefined ? (
         <SettingsSection title="Review tiers" description={tiersDescription}>
           <SettingsLoadingCard />
         </SettingsSection>
