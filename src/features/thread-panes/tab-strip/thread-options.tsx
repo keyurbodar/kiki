@@ -408,8 +408,12 @@ function MachineRows({
     jamId: rootJamId,
     localIndex: null,
   };
+  // Nothing reads what a launch returns yet, so a command is listed and shown
+  // disabled: the row is real, the press is not wired.
+  const launchable = onLaunch !== undefined;
   const launch = (command: CommandEntry) => {
-    onLaunch?.(machine.machineId, command).then(onOpen, () =>
+    if (onLaunch === undefined) return;
+    onLaunch(machine.machineId, command).then(onOpen, () =>
       toast.error(`Could not launch ${command.name}`),
     );
   };
@@ -417,6 +421,7 @@ function MachineRows({
     <ResponsiveMenuItem
       key={`${command.repository}:${command.name}`}
       data-track-owner="features/thread/pane/tab-strip.tsx#commandRow:ResponsiveMenuItem.1"
+      disabled={!launchable}
       onClick={() => launch(command)}
     >
       <span className={menuIcon}>

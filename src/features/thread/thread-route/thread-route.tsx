@@ -149,6 +149,7 @@ export function ThreadRoute({
   const machines = useThreadMachineEntries(
     orgId as OrgId | undefined,
     threadId as JamId,
+    thread?.projectId ?? undefined,
   );
   const browserSession = useMachineBrowserSession(
     orgId as OrgId | undefined,
