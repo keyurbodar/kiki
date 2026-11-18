@@ -1,6 +1,7 @@
 import { cx } from "class-variance-authority";
 import type { Schema } from "effect";
 import type { ComponentProps } from "react";
+import { useState } from "react";
 import type {
   ClusterRow as ClusterRowSchema,
   UpdateRow as UpdateRowSchema,
@@ -12,12 +13,8 @@ import { Icon } from "@/primitives/icon";
 type ClusterRowData = Schema.Schema.Type<typeof ClusterRowSchema>;
 type UpdateRow = Schema.Schema.Type<typeof UpdateRowSchema>;
 
-export type ClusterRowProps = Omit<
-  ComponentProps<"div">,
-  "children" | "onToggle"
-> & {
+export type ClusterRowProps = Omit<ComponentProps<"div">, "children"> & {
   row: ClusterRowData;
-  onToggle?: () => void;
   onOpenThread?: (jamId: string) => void;
 };
 
@@ -44,19 +41,18 @@ export function clusterSummary(members: readonly UpdateRow[]): string {
 /** Consecutive update lines folded behind one collapsible summary. */
 export function ClusterRow({
   row,
-  onToggle,
   onOpenThread,
   className,
   ...props
 }: ClusterRowProps) {
-  const expanded = row.expanded === true;
+  const [expanded, setExpanded] = useState(row.expanded === true);
   const summary = clusterSummary(row.members);
   const trigger = (
     <button
       type="button"
       data-slot="collapsible-trigger"
       aria-expanded={expanded}
-      onClick={onToggle}
+      onClick={() => setExpanded((open) => !open)}
       className="flex w-fit max-w-full min-w-0 cursor-pointer items-center gap-1 text-xs whitespace-nowrap text-muted-foreground-2 hover:text-foreground focus-visible:outline-ring-inset"
     >
       <Icon

@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import type { Schema } from "effect";
 import type { ReactNode } from "react";
@@ -222,14 +223,18 @@ export function UpdateRow({
       <UpdateIcon row={row} />
       <span className="min-w-0 truncate">
         {row.kind === "task" && row.reference.kind === "thread" ? (
-          <Button
-            variant="link"
-            size="auto-xs"
-            onClick={() => onOpenThread?.(row.childJamId)}
-            className="p-0 text-xs whitespace-nowrap"
+          <Link
+            to="/thread/$threadId"
+            params={{ threadId: row.childJamId }}
+            onClick={(event) => {
+              if (onOpenThread === undefined) return;
+              event.preventDefault();
+              onOpenThread(row.childJamId);
+            }}
+            className="cursor-pointer text-xs whitespace-nowrap underline-offset-2 hover:underline"
           >
             {row.reference.code}
-          </Button>
+          </Link>
         ) : (
           label.slice(
             0,
