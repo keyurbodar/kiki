@@ -139,9 +139,9 @@ describe("end_turn", () => {
 
 describe("file steps", () => {
   it("names the path a file tool touched", () => {
-    expect(toolLabel(tool({ toolName: "read", args: { path: "a/b.sh" } }))).toBe(
-      "Read a/b.sh",
-    );
+    expect(
+      toolLabel(tool({ toolName: "read", args: { path: "a/b.sh" } })),
+    ).toBe("Read a/b.sh");
     expect(
       toolLabel(tool({ toolName: "edit", args: { path: "a/b.ts" } })),
     ).toBe("Edited a/b.ts");
