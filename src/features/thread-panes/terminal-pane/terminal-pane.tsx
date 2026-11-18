@@ -6,6 +6,8 @@ import { threadMachinesAtom } from "@/data/atoms/setup";
 export type TerminalPaneProps = {
   threadId: string;
   orgId?: OrgId | undefined;
+  /** The client this tab was opened for, when the route names one. */
+  clientId?: string | undefined;
 };
 
 const machineName = (rows: unknown): string | undefined => {
@@ -24,7 +26,7 @@ const machineName = (rows: unknown): string | undefined => {
  * not — it says so instead of swallowing input into a fake prompt, which would
  * read as working and be nothing.
  */
-export function TerminalPane({ threadId, orgId }: TerminalPaneProps) {
+export function TerminalPane({ threadId, orgId, clientId }: TerminalPaneProps) {
   const machines = useAtomValue(
     orgId === undefined
       ? threadMachinesAtom("" as never, threadId as JamId)
@@ -46,6 +48,7 @@ export function TerminalPane({ threadId, orgId }: TerminalPaneProps) {
       </p>
       <p
         data-slot="terminal-note"
+        data-client={clientId}
         className="mt-2 whitespace-pre-wrap text-muted-foreground-2"
       >
         No terminal session is attached to this thread in this build. Capy runs

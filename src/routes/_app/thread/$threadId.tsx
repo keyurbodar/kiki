@@ -30,12 +30,15 @@ import {
   threadKey,
   useThreadTimeline,
 } from "@/features/thread/timeline";
+import { BrowserPane } from "@/features/thread-panes/browser-pane";
 import { useSideThreads } from "@/features/thread-panes/side-threads";
 import { tabKey } from "@/features/thread-panes/tab-strip";
+import { TerminalPane } from "@/features/thread-panes/terminal-pane";
 import { ThreadDock } from "@/features/thread-panes/thread-dock";
 import {
   findPane,
   keepsPaneParam,
+  parseSessionPane,
   surfaceOf,
   writesPaneParam,
 } from "@/features/thread-panes/thread-pane";
@@ -96,7 +99,16 @@ export function ThreadRoute({
   const [expanded, setExpanded] = useState(false);
   const sideThreads = useSideThreads(orgId ?? "", threadId);
   const entry = findPane(pane);
+  const session = entry === undefined ? parseSessionPane(pane) : undefined;
   const activeId = activeTabId(entry);
+  const mainPane =
+    entry !== undefined && surfaceOf(entry) === "main" ? (
+      <entry.component threadId={threadId} />
+    ) : session?.kind === "browser" ? (
+      <BrowserPane threadId={threadId} sessionId={session.sessionId} />
+    ) : session?.kind === "shell" ? (
+      <TerminalPane threadId={threadId} clientId={session.clientId} />
+    ) : undefined;
   return (
     <ThreadView
       threadId={threadId}
@@ -112,11 +124,7 @@ export function ThreadRoute({
       editing={editing}
       onEditMessage={startEdit}
       onCancelEdit={stopEdit}
-      mainPane={
-        entry !== undefined && surfaceOf(entry) === "main" ? (
-          <entry.component threadId={threadId} />
-        ) : undefined
-      }
+      mainPane={mainPane}
       dock={
         entry !== undefined && surfaceOf(entry) === "dock" ? (
           <ThreadDock
