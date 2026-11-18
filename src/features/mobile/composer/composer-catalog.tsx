@@ -84,6 +84,11 @@ export const mentionCategories: ReadonlyArray<MobileMentionCategory> = [
   },
 ];
 
+/** The categories the add menu can insert, by id. */
+export const mentionCategoryIds: ReadonlySet<string> = new Set(
+  mentionCategories.map((category) => category.id),
+);
+
 /** The phone's `/` menu, from the commands every surface shares. */
 export const composerCommands = (
   onRun: (command: ComposerCommandId) => void,
