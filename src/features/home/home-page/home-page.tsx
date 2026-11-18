@@ -1,7 +1,13 @@
 import { useAtomValue } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
-import { type ComponentProps, useCallback, useRef, useState } from "react";
+import {
+  type ComponentProps,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ASK_ANYTHING_PLACEHOLDER,
   Composer,
@@ -46,6 +52,7 @@ import {
   useComposerAttachments,
   useFileUploader,
 } from "@/features/composer/attachments";
+import { composerCommands } from "@/features/composer/composer-commands";
 import { DashboardBackdrop } from "@/features/settings-appearance/background-effect";
 import { useAppearance } from "@/features/settings-appearance/model/appearance-store";
 import { useSidebarState } from "@/features/shell/sidebar-container";
@@ -201,6 +208,17 @@ function HomePageBody({
     composerRef.current?.focus();
   }, []);
 
+  const commands = useMemo(
+    () =>
+      composerCommands({
+        newThread: () => {
+          composerRef.current?.reset(null);
+          composerRef.current?.focus();
+        },
+      }),
+    [],
+  );
+
   const pickProject = useCallback(
     (picked: HomeWelcomeProject) => {
       setPickedProjectId(picked.id);
@@ -305,6 +323,7 @@ function HomePageBody({
               autoFocus
               defaultValue={initialDraft}
               sources={noSources}
+              commands={commands}
               submitLocked={locked}
               submitWhileUploading
               onSubmit={submit}

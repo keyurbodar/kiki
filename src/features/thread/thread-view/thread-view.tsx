@@ -27,6 +27,7 @@ import {
   useComposerAttachments,
   useFileUploader,
 } from "@/features/composer/attachments";
+import { composerCommands } from "@/features/composer/composer-commands";
 import {
   ComposerFooter,
   type FooterMachine,
@@ -63,7 +64,6 @@ import { useComposerSend } from "@/features/thread/use-composer-send";
 import { RightPanelGroup } from "@/primitives/right-panel";
 import { ChatSkeleton } from "./chat-skeleton";
 import { ThreadMessageActions } from "./message-actions";
-import { threadComposerCommands } from "./thread-composer-commands";
 import { threadHeaderClassName } from "./thread-header";
 import { threadMentionSources } from "./thread-mention-sources";
 
@@ -326,7 +326,7 @@ export function ThreadView({
   );
   const navigate = useNavigate();
   const commands = useMemo(
-    () => threadComposerCommands(() => void navigate({ to: "/new" })),
+    () => composerCommands({ newThread: () => void navigate({ to: "/new" }) }),
     [navigate],
   );
   const attachments = useComposerAttachments(
