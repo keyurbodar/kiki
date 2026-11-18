@@ -416,6 +416,24 @@ describe("TabStrip", () => {
     expect(onCloseTab).toHaveBeenCalledWith("captain_issues");
   });
 
+  it("keeps the close affordance out of the tab's own flow", () => {
+    render(
+      <TabStrip
+        threadId="jam_1"
+        tabs={tabs}
+        activeId="overview"
+        onSelectTab={() => undefined}
+        onCloseTab={() => undefined}
+      />,
+    );
+    const close = screen.getByRole("button", { name: "Close Overview" });
+    const holder = close.parentElement;
+    // Capy overlays a 20 px close on the tab's right edge; the tab keeps its
+    // label's width, so the control may not sit in the tab's flex flow.
+    expect(holder?.className).toContain("absolute");
+    expect(close.closest("[data-pane-tab] > button")).toBeNull();
+  });
+
   it("puts the pinned chat tab first", () => {
     render(
       <TabStrip

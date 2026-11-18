@@ -236,13 +236,6 @@ export function ThreadRoute({
               onCloseTab={closeIn}
               onClose={() => closeIn(openTabs.active)}
               onToggleExpand={() => setExpanded((current) => !current)}
-              onCopyLink={(path) =>
-                void copyText(
-                  `${window.location.origin}${path}`,
-                  "Link copied",
-                  "Could not copy link",
-                )
-              }
             >
               <PaneContent
                 tab={activeDock}

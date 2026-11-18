@@ -5,7 +5,6 @@ import {
   TabStrip,
   tabKey,
   tabLabel,
-  tabLink,
 } from "@/features/thread-panes/tab-strip";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
@@ -28,7 +27,6 @@ export type ThreadDockProps = {
   onCloseTab?: (id: string) => void;
   onOpenTab?: (tab: PaneTab) => void;
   /** Receives the path of the selected tab's link. */
-  onCopyLink?: (path: string) => void;
   onToggleExpand?: () => void;
   onClose?: () => void;
   /** The open pane. */
@@ -51,7 +49,6 @@ export function ThreadDock({
   onSelectTab,
   onCloseTab,
   onOpenTab,
-  onCopyLink,
   onToggleExpand,
   onClose,
   children,
@@ -74,23 +71,6 @@ export function ThreadDock({
           onCloseTab={onCloseTab}
           onOpenTab={onOpenTab}
         />
-        {onCopyLink && (
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label="Copy pane link"
-                  onClick={() => onCopyLink(tabLink(threadId, activeTab))}
-                >
-                  <Icon name="chain-link-1" size="sm" />
-                </Button>
-              }
-            />
-            <TooltipContent side="bottom">Copy link</TooltipContent>
-          </Tooltip>
-        )}
         {onToggleExpand && (
           <Tooltip>
             <TooltipTrigger
@@ -121,7 +101,7 @@ export function ThreadDock({
                   aria-label="Close pane"
                   onClick={onClose}
                 >
-                  <Icon name="x" size="sm" />
+                  <Icon name="sidebar-simple-right-wide" size="sm" />
                 </Button>
               }
             />
