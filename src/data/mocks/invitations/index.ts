@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { MockDb, missing } from "../db/MockDb.ts";
+import { MockDb, notFound } from "../db/MockDb.ts";
 import { isoMinutesAgo, people } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { invitationHistory } from "./fixtures.ts";
@@ -17,7 +17,7 @@ export const InvitationsMock = mockGroup("invitations", (handlers) =>
       Effect.gen(function* () {
         const rows = yield* Ref.get(pendingInvitations);
         const invitation = rows.find((row) => row.id === id);
-        if (!invitation) return yield* missing("pendingInvitations", id);
+        if (!invitation) return yield* notFound("pendingInvitations", id);
         return invitation;
       });
 

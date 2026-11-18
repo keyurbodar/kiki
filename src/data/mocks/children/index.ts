@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { MockDb, missing } from "../db/MockDb.ts";
+import { MockDb, notFound } from "../db/MockDb.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { childThreads, taskThreads } from "./fixtures.ts";
 
@@ -22,7 +22,7 @@ export const ChildrenMock = mockGroup("children", (handlers) =>
             matching.length === 0 &&
             !allMachines.some((machine) => machine.threadId === params.jamId)
           ) {
-            return yield* missing("machines", params.jamId);
+            return yield* notFound("machines", params.jamId);
           }
           return matching.map((row) => ({
             ...row,

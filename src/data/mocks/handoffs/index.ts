@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
+import { fields, MockDb, newId, notFound } from "../db/MockDb.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { sampleHandoff } from "./fixtures.ts";
 
@@ -26,7 +26,7 @@ export const HandoffsMock = mockGroup("handoffs", (handlers) =>
             input.toUserId ?? input.assigneeId ?? memberIds[1] ?? "",
           );
           if (toUserId && !memberIds.includes(toUserId)) {
-            return yield* missing("members", toUserId);
+            return yield* notFound("members", toUserId);
           }
           const handoff: Handoff = {
             id: newId("handoff"),

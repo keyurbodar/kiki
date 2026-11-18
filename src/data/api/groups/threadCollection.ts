@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class ThreadCollectionGroup extends HttpApiGroup.make(
@@ -9,6 +9,7 @@ export class ThreadCollectionGroup extends HttpApiGroup.make(
     "folderThreads",
     "/orgs/:orgId/folders/:folderId/threads",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, folderId: Schema.String },
       query: UndecodedQuery,
       success: Undecoded,

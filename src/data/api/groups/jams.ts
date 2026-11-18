@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { Forbidden, InvalidRequest, JamNotFound } from "../schemas/errors.ts";
 import {
   ActorId,
@@ -264,6 +264,7 @@ export class JamsGroup extends HttpApiGroup.make("jams").add(
     },
   ),
   HttpApiEndpoint.put("setThreadOwner", "/orgs/:orgId/jams/:jamId/owner", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, jamId: Schema.String },
     payload: Undecoded,
     success: Undecoded,
@@ -389,6 +390,7 @@ export class JamsGroup extends HttpApiGroup.make("jams").add(
     error: InvalidRequest,
   }),
   HttpApiEndpoint.post("create", "/orgs/:orgId/projects/:projectId/jams", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, projectId: Schema.String },
     payload: Undecoded,
     success: Undecoded,

@@ -20,8 +20,8 @@ const listAtom = ApiClient.query("invitations", "listInvitations", {
   params: { orgId },
   reactivityKeys: [key],
 });
-const run = <A, I extends object>(
-  atom: import("effect/reactivity/Atom").AtomResultFn<I, A>,
+const run = <A, I extends object, E = never>(
+  atom: import("effect/reactivity/Atom").AtomResultFn<I, A, E>,
   input: I,
 ) => {
   const registry = AtomRegistry.make();
