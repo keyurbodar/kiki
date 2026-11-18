@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { MockDb, missing } from "../db/MockDb.ts";
+import { MockDb, notFound } from "../db/MockDb.ts";
 import { orgId as sampleOrgId } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { sampleSecondaryGitHubAccount } from "./fixtures.ts";
@@ -12,7 +12,7 @@ export const GithubMock = mockGroup("github", (handlers) =>
     const checkOrg = (params: { readonly orgId: string }) =>
       params.orgId === sampleOrgId
         ? Effect.void
-        : missing("members", params.orgId);
+        : notFound("members", params.orgId);
 
     return handlers
       .handle("listDependencyReaderRepos", ({ params }) =>

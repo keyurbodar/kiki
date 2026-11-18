@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { fields, MockDb, missing } from "../db/MockDb.ts";
+import { fields, MockDb, notFound } from "../db/MockDb.ts";
 import { orgId, branches as worldBranches } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { repoBranch, sampleRepoTrees, sampleSkills } from "./fixtures.ts";
@@ -33,7 +33,7 @@ export const ReposMock = mockGroup("repos", (handlers) =>
             (row) => fullName !== undefined && row.fullName === fullName,
           ) ?? rows.find((row) => id !== undefined && row.id === id);
         if (!found) {
-          return yield* missing("repos", fullName ?? id ?? "unspecified");
+          return yield* notFound("repos", fullName ?? id ?? "unspecified");
         }
         return found;
       });
@@ -42,7 +42,7 @@ export const ReposMock = mockGroup("repos", (handlers) =>
     const checkOrg = (input: Record<string, unknown>) =>
       input.orgId === undefined || first(input.orgId) === orgId
         ? Effect.void
-        : missing("repos", first(input.orgId) ?? "unspecified");
+        : notFound("repos", first(input.orgId) ?? "unspecified");
 
     return handlers
       .handle("branches", ({ query }) =>
