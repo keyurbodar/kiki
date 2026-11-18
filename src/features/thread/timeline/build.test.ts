@@ -204,6 +204,43 @@ describe("an assistant turn's reply", () => {
 });
 
 describe("a cancelled turn's text", () => {
+  it("reads as interrupted when the row itself is cancelled", () => {
+    const events = [
+      decodeEvent({
+        id: id("000K"),
+        jamId: "jam_edit",
+        kind: "assistant",
+        state: "cancelled",
+        createdAt: "2026-11-17T09:00:11.000Z",
+        payload: {
+          actor: { type: "agent", jamId: "jam_edit" },
+          origin: { type: "system" },
+          model: {
+            modelId: "anthropic/claude-sample",
+            providerModelId: "claude-sample",
+            reasoningMode: "medium",
+          },
+          route: { source: "capy" },
+          usage: {
+            inputTokens: 10,
+            outputTokens: 20,
+            cacheReadTokens: 0,
+            cacheWriteTokens: 0,
+          },
+          stopReason: "end_turn",
+          blocks: [{ id: "blk_state", type: "text", text: "Partial ans" }],
+        },
+      }),
+    ];
+    const rows = buildTimeline(events, {
+      liveEntries: [],
+      liveSettled: false,
+      expandedGroupIds: new Map(),
+    }).rows.flatMap((row) => (row.type === "agent-message" ? [row] : []));
+    expect(rows[0]?.interrupted).toBe(true);
+    expect(rows[0]?.settled).toBe(false);
+  });
+
   it("reads as interrupted, not as a finished reply", () => {
     const events = [
       decodeEvent({
