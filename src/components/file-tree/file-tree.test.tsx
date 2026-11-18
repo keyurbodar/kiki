@@ -61,3 +61,93 @@ it("drops the inset inside a popover", () => {
     0,
   );
 });
+
+/**
+ * jsdom reports every element as zero-sized, so pierre's virtualiser mounts no
+ * rows. Give elements a real viewport height for the duration of these tests.
+ */
+const VIEWPORT_HEIGHT = 400;
+
+function stubViewport() {
+  const originalRect = HTMLElement.prototype.getBoundingClientRect;
+  const originalClient = Object.getOwnPropertyDescriptor(
+    HTMLElement.prototype,
+    "clientHeight",
+  );
+  HTMLElement.prototype.getBoundingClientRect = () =>
+    ({
+      x: 0,
+      y: 0,
+      width: 300,
+      height: VIEWPORT_HEIGHT,
+      top: 0,
+      right: 300,
+      bottom: VIEWPORT_HEIGHT,
+      left: 0,
+      toJSON: () => ({}),
+    }) as DOMRect;
+  Object.defineProperty(HTMLElement.prototype, "clientHeight", {
+    configurable: true,
+    get: () => VIEWPORT_HEIGHT,
+  });
+  return () => {
+    HTMLElement.prototype.getBoundingClientRect = originalRect;
+    if (originalClient === undefined) {
+      Reflect.deleteProperty(HTMLElement.prototype, "clientHeight");
+    } else {
+      Object.defineProperty(
+        HTMLElement.prototype,
+        "clientHeight",
+        originalClient,
+      );
+    }
+  };
+}
+
+const settled = () => new Promise((resolve) => setTimeout(resolve, 50));
+
+function selectedRows() {
+  const host = document.querySelector<HTMLElement>(".capy-tree");
+  const rows = host?.shadowRoot?.querySelectorAll('[role="treeitem"]') ?? [];
+  const selected = [...rows]
+    .filter((row) => row.getAttribute("aria-selected") === "true")
+    .map((row) => row.getAttribute("data-item-path"));
+  return { paths: selected, mounted: [...rows].length };
+}
+
+it("marks the file the rail is showing, and moves the mark with the prop", async () => {
+  const restore = stubViewport();
+  try {
+    const paths = ["src/a.ts", "src/b.ts", "README.md"];
+    const { rerender } = render(
+      <FileTree paths={paths} selectedPath="src/b.ts" />,
+    );
+    await settled();
+    expect(selectedRows().paths).toEqual(["src/b.ts"]);
+
+    rerender(<FileTree paths={paths} selectedPath="README.md" />);
+    await settled();
+    expect(selectedRows().paths).toEqual(["README.md"]);
+
+    rerender(<FileTree paths={paths} selectedPath="src/a.ts" />);
+    await settled();
+    expect(selectedRows().paths).toEqual(["src/a.ts"]);
+
+    rerender(<FileTree paths={paths} selectedPath="src/missing.ts" />);
+    await settled();
+    expect(selectedRows().paths).toEqual([]);
+  } finally {
+    restore();
+  }
+});
+
+it("leaves selection alone when no file is marked", async () => {
+  const restore = stubViewport();
+  try {
+    render(<FileTree paths={["README.md"]} />);
+    await settled();
+    expect(selectedRows()).toEqual({ paths: [], mounted: 1 });
+  } finally {
+    restore();
+  }
+});
