@@ -46,7 +46,7 @@ export function VersionSwitcherControls({
   const next = versions[index + 1];
   const view = (version: MessageVersion) => onView?.(version, root);
   return (
-    <span className="flex items-center text-xs text-muted-foreground-2 tabular-nums">
+    <span className="kiki-inline text-xs text-muted-foreground-2 tabular-nums">
       <Button
         variant="ghost"
         size="icon-xs"

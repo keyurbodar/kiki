@@ -96,7 +96,7 @@ export function UserMessage({
   // Capy offers the switcher on a message the reader wrote that has versions.
   const versioned = mine && row.versionRoot !== undefined;
   const phoneFooter = footer && phone && versioned && (
-    <div data-slot="message-footer" className="flex items-center">
+    <div data-slot="message-footer" className="kiki-inline">
       <VersionSwitcher row={row} />
     </div>
   );

@@ -86,6 +86,16 @@
     --row-h: var(--row-h-page);
   }
 
+  /* A row that keeps the page's tighter inset at another height. */
+  .kiki-row[data-padding="tight"] {
+    --row-px: var(--row-px-tight);
+  }
+
+  /* A pane's row: Capy's 36px line, held at the page's tighter inset. */
+  .kiki-row[data-density="pane"] {
+    --row-px: var(--row-px-tight);
+  }
+
   .kiki-row[data-nested="true"] {
     padding-inline-start: var(--row-indent);
   }
@@ -93,6 +103,28 @@
   .kiki-row[data-density="roomy"] {
     --row-h: var(--row-h-roomy);
     --row-px: var(--row-px-loose);
+  }
+
+  /* A pane section header: Capy's 28px strip over the section fill. */
+  .kiki-pane-section {
+    display: flex;
+    align-items: var(--row-align);
+    height: var(--row-h-dense);
+    border-radius: var(--row-radius);
+  }
+
+  /* The trigger fills the strip and carries its own inset, as Capy's does. */
+  .kiki-pane-section-trigger {
+    height: 100%;
+    padding-inline: var(--row-px-tight);
+  }
+
+  /* A section's empty line: one pane row, so a zero-count state keeps its shape. */
+  .kiki-pane-empty {
+    display: flex;
+    align-items: var(--row-align);
+    height: var(--row-h);
+    padding-inline: var(--row-px-tight);
   }
 
   .kiki-cell {
@@ -168,6 +200,38 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* Icon boxes ------------------------------------------------------------- */
+
+  /*
+   * A square that centres a glyph or a small control. `data-size` picks the
+   * box, so a call site names its size instead of writing width, height and
+   * two alignment utilities.
+   */
+  .kiki-icon {
+    display: flex;
+    flex: none;
+    align-items: var(--row-align);
+    justify-content: center;
+    width: var(--icon-box);
+    height: var(--icon-box);
+  }
+
+  .kiki-icon[data-size="xs"] {
+    --icon-box: var(--icon-xs);
+  }
+
+  .kiki-icon[data-size="sm"] {
+    --icon-box: var(--icon-sm);
+  }
+
+  .kiki-icon[data-size="base"] {
+    --icon-box: var(--icon-base);
+  }
+
+  .kiki-icon[data-size="lg"] {
+    --icon-box: var(--icon-lg);
+  }
+
   /* Badges, dialogs, menu rows, palette rows ------------------------------- */
 
   .kiki-badge {
@@ -185,6 +249,47 @@
     flex-direction: column;
     gap: var(--dialog-gap);
     padding: var(--dialog-p);
+  }
+
+  /* A sidebar section header: its own token, its own inset and gap. */
+  .kiki-sidebar-section {
+    display: flex;
+    align-items: var(--row-align);
+    gap: var(--row-gap-tight);
+    height: var(--sidebar-section-header);
+    padding-inline: var(--row-px-tight);
+    border-radius: var(--row-radius);
+    text-align: start;
+  }
+
+  /* A menu separator's breathing room, in one place. */
+  .kiki-menu-separator {
+    margin-block: var(--row-gap-tight);
+  }
+
+  /* The theme grid: one column on a narrow viewport, two from the container. */
+  .kiki-theme-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    column-gap: var(--grid-gap-x);
+    row-gap: var(--grid-gap-y);
+  }
+
+  @media (min-width: 48rem) {
+    .kiki-theme-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* A run of inline controls: one baseline, one gap. */
+  .kiki-inline {
+    display: flex;
+    align-items: var(--row-align);
+  }
+
+  /* A menu's width, so a call site names the menu rather than a utility. */
+  .kiki-menu {
+    width: var(--menu-w);
   }
 
   .kiki-menu-row {

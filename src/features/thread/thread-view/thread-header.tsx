@@ -55,7 +55,8 @@ function MachineMark({ machine }: { machine: ThreadMachine | undefined }) {
       <span
         aria-hidden
         data-machine-placeholder=""
-        className="size-(--icon-sm) shrink-0"
+        data-size="sm"
+        className="kiki-icon"
       />
     );
   return (
@@ -63,7 +64,8 @@ function MachineMark({ machine }: { machine: ThreadMachine | undefined }) {
       data-machine-indicator=""
       role="img"
       aria-label={machineMarkLabel(machine)}
-      className="inline-flex size-(--icon-sm) shrink-0 items-center justify-center"
+      data-size="sm"
+      className="kiki-icon"
     >
       <Icon
         name={machine.kind === "device" ? "macbook" : "cloud"}

@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { escapes, findGeometry } from "./geometry";
 
@@ -61,5 +62,34 @@ describe("escapes", () => {
     expect(
       escapes('<div data-geometry="free" className="w-[37px]" />'),
     ).toEqual({ explained: 0, unexplained: [1] });
+  });
+});
+
+/**
+ * A guard a merge can silently delete is not a guard: #500 removed
+ * `check-geometry.ts` and its baseline from main and every lane kept reading a
+ * count that no longer meant anything. This asserts the guard is wired in.
+ */
+describe("the geometry guard is installed", () => {
+  const pkg = JSON.parse(readFileSync("package.json", "utf8")) as {
+    scripts?: Record<string, string>;
+  };
+
+  it("runs from the lint script", () => {
+    expect(pkg.scripts?.lint).toContain("bun scripts/check-geometry.ts");
+  });
+
+  it("keeps its script, its logic and its baseline in the tree", () => {
+    for (const file of [
+      "scripts/check-geometry.ts",
+      "scripts/geometry.ts",
+      "scripts/geometry-baseline.ts",
+      "scripts/geometry-baseline.json",
+    ])
+      expect(existsSync(file), file).toBe(true);
+  });
+
+  it("still finds geometry in a file that carries it", () => {
+    expect(findGeometry('<div className="h-11 px-2" />')).toHaveLength(2);
   });
 });

@@ -577,11 +577,12 @@ export function IssueRow({
       params={{ code: issue.code }}
       data-issue-row={issue.id}
       data-issue-code={issue.code}
+      data-density={pane ? "pane" : "page"}
+      data-padding={pane ? undefined : "tight"}
+      data-nested={nested ? "true" : undefined}
       className={
-        (pane
-          ? "relative flex h-9 items-center gap-2 rounded-(--radius) px-2 text-sm outline-none select-none transition-colors duration-100 hover:bg-section focus-visible:outline-ring-inset data-[selected]:bg-section"
-          : "relative flex h-11 items-center gap-2 rounded px-2 outline-none select-none transition-colors duration-100 hover:bg-section focus-visible:outline-ring-inset data-[selected]:bg-section") +
-        (nested ? " pl-8" : "")
+        "kiki-row relative rounded-(--radius) outline-none select-none transition-colors duration-100 hover:bg-section focus-visible:outline-ring-inset data-[selected]:bg-section" +
+        (pane ? " text-sm" : "")
       }
       onClick={(event) => {
         if (!selectionMode || onCheck === undefined || !event.shiftKey) return;
@@ -615,7 +616,7 @@ export function IssueRow({
           onCheck={(shift) => onCheck(issue, shift)}
         />
       )}
-      <span className="flex size-4 shrink-0 items-center justify-center">
+      <span className="kiki-icon" data-size="base">
         <IssueStatusMenu issue={issue} orgId={orgId} state={state} />
       </span>
       {hidden("id") ? null : (
@@ -811,7 +812,7 @@ function IssueSection({
         </div>
       ) : (
         <CollapsibleTrigger tone="section" block showChevron={false}>
-          <span className="flex size-4 shrink-0 items-center justify-center">
+          <span className="kiki-icon" data-size="base">
             <ChevronDownGlyph className="size-(--icon-xs) shrink-0 text-muted-foreground-3 transition-transform duration-100 group-data-[panel-open]/collapsible:rotate-0 -rotate-90" />
           </span>
           {group.label}

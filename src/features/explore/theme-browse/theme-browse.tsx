@@ -22,7 +22,7 @@ import { arrangeThemes, type ThemeBrowseSearch, themeByline } from "./arrange";
 const cx = (...parts: ReadonlyArray<string | false | undefined>) =>
   parts.filter(Boolean).join(" ");
 
-const GRID_CLASS_NAME = "grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-2";
+const GRID_CLASS_NAME = "kiki-theme-grid";
 
 export type ThemeCardSlot = (card: ThemeListingCard) => ReactNode;
 
