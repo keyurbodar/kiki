@@ -54,6 +54,7 @@ import { ReviewFiltersGroup } from "./groups/reviewFilters.ts";
 import { ReviewRulesGroup } from "./groups/reviewRules.ts";
 import { ReviewsGroup } from "./groups/reviews.ts";
 import { ServiceUsersGroup } from "./groups/serviceUsers.ts";
+import { ThreadSessionsGroup } from "./groups/sessions.ts";
 import { TelemetryGroup } from "./groups/telemetry.ts";
 import { ThemesGroup } from "./groups/themes.ts";
 import { ThreadCollectionGroup } from "./groups/threadCollection.ts";
@@ -97,6 +98,7 @@ export class KikiApi extends HttpApi.make("kiki").add(
   MemoryGroup,
   MobileConnectionGroup,
   MobileSessionsGroup,
+  ThreadSessionsGroup,
   ModelsGroup,
   NotificationsGroup,
   OnboardingGroup,

@@ -54,6 +54,7 @@ import { ReviewFiltersMock } from "./reviewFilters/index.ts";
 import { ReviewRulesMock } from "./reviewRules/index.ts";
 import { ReviewsMock } from "./reviews/index.ts";
 import { ServiceUsersMock } from "./serviceUsers/index.ts";
+import { ThreadSessionsMock } from "./sessions/index.ts";
 import { TelemetryMock } from "./telemetry/index.ts";
 import { ThemesMock } from "./themes/index.ts";
 import { ThreadCollectionMock } from "./threadCollection/index.ts";
@@ -97,6 +98,7 @@ export const MockGroups = Layer.mergeAll(
   MemoryMock,
   MobileConnectionMock,
   MobileSessionsMock,
+  ThreadSessionsMock,
   ModelsMock,
   NotificationsMock,
   OnboardingMock,
