@@ -7,6 +7,7 @@ import {
   useCallback,
   useEffect,
   useEffectEvent,
+  useId,
   useImperativeHandle,
   useRef,
   useState,
@@ -16,6 +17,8 @@ import { cn } from "@/lib/cn";
 import { Button } from "@/primitives/button";
 import { DotGridIcon } from "@/primitives/dot-grid-icon";
 import { Icon } from "@/primitives/icon";
+import { AttachmentDropOverlay } from "./drop-overlay";
+import { dropTargetFor, registerDropTarget } from "./drop-targets";
 import {
   type ComposerEditorHandle,
   type ComposerEditorProps,
@@ -133,27 +136,6 @@ const hasFiles = (data: DataTransfer | null) =>
   data?.types.includes("Files") === true;
 const filesOf = (data: DataTransfer | null) => Array.from(data?.files ?? []);
 
-function DropOverlay() {
-  return createPortal(
-    <div className="pointer-events-none fixed inset-0 z-(--z-overlay-content) flex items-center justify-center bg-overlay p-6 transition-opacity duration-fast ease-out">
-      <div className="flex max-w-md flex-col items-center gap-3 rounded-(--radius-panel) border-(length:--border-width-hairline) border-dashed border-border-3 bg-popover px-12 py-10 text-center shadow-overlay">
-        <span className="flex size-10 items-center justify-center rounded-(--radius) bg-secondary text-icon-muted">
-          <Icon name="images-1" size="lg" />
-        </span>
-        <div className="flex flex-col gap-1">
-          <span className="text-base font-medium text-foreground">
-            Drop files to attach
-          </span>
-          <span className="text-sm text-muted-foreground-2">
-            Up to 250 MB per file
-          </span>
-        </div>
-      </div>
-    </div>,
-    document.body,
-  );
-}
-
 export function Composer({
   ref,
   placeholder = "Describe a task",
@@ -221,11 +203,17 @@ export function Composer({
   const [mounted, setMounted] = useState(false);
   const [dragging, setDragging] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const root = useRef<HTMLDivElement>(null);
+  const dropId = useId();
   const touchOnly = useTouchOnly();
   useEffect(() => setMounted(true), []);
 
-  const canDrop = onFilesAdded !== undefined;
+  const canDrop = onFilesAdded !== undefined && attachments !== undefined;
   const addFiles = useEffectEvent((files: File[]) => onFilesAdded?.(files));
+  useEffect(() => {
+    if (!canDrop) return;
+    return registerDropTarget(dropId, root);
+  }, [canDrop, dropId]);
   useEffect(() => {
     if (!canDrop) return;
     let depth = 0;
@@ -235,22 +223,26 @@ export function Composer({
     };
     const enter = (event: DragEvent) => {
       if (!hasFiles(event.dataTransfer)) return;
+      if (dropTargetFor(event.target) !== dropId) return;
       event.preventDefault();
       depth += 1;
       setDragging(true);
     };
     const leave = (event: DragEvent) => {
       if (event.relatedTarget === null) return reset();
+      if (dropTargetFor(event.target) !== dropId) return;
       depth = Math.max(0, depth - 1);
       if (depth === 0) setDragging(false);
     };
     const over = (event: DragEvent) => {
       if (!hasFiles(event.dataTransfer)) return;
+      if (dropTargetFor(event.target) !== dropId) return;
       event.preventDefault();
       if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
     };
     const drop = (event: DragEvent) => {
       if (!hasFiles(event.dataTransfer)) return;
+      if (dropTargetFor(event.target) !== dropId) return;
       event.preventDefault();
       event.stopPropagation();
       const files = filesOf(event.dataTransfer);
@@ -268,7 +260,24 @@ export function Composer({
       document.removeEventListener("dragover", over);
       document.removeEventListener("drop", drop);
     };
-  }, [canDrop]);
+  }, [canDrop, dropId]);
+
+  useEffect(() => {
+    if (!dragging) return;
+    const reset = () => {
+      setDragging(false);
+    };
+    window.addEventListener("drop", reset, true);
+    window.addEventListener("dragend", reset, true);
+    window.addEventListener("pointermove", reset, true);
+    window.addEventListener("pointerdown", reset, true);
+    return () => {
+      window.removeEventListener("drop", reset, true);
+      window.removeEventListener("dragend", reset, true);
+      window.removeEventListener("pointermove", reset, true);
+      window.removeEventListener("pointerdown", reset, true);
+    };
+  }, [dragging]);
 
   const voiceActive = voice !== undefined && isVoiceActive(voice.state);
   const voiceReady =
@@ -484,7 +493,6 @@ export function Composer({
       "rounded-(--radius-card) bg-[color:var(--composer-surface,var(--card))] p-3 shadow-composer",
     surface === "field" &&
       "rounded border-(length:--border-width-hairline) border-border-2 bg-input px-1.5 py-1.5 focus-within:outline-ring-inset",
-    dragging && "outline-ring-inset",
     className,
   ]
     .filter(Boolean)
@@ -492,6 +500,7 @@ export function Composer({
 
   return (
     <div
+      ref={root}
       data-slot="composer"
       {...rest}
       className={surfaceClass}
@@ -504,7 +513,7 @@ export function Composer({
         onFilesAdded(files);
       }}
     >
-      {dragging ? <DropOverlay /> : null}
+      <AttachmentDropOverlay open={dragging} />
       {surface === "card" ? (
         <div
           aria-hidden

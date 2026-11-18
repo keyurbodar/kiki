@@ -2,8 +2,8 @@ import type { RefObject } from "react";
 
 /*
  * Several composers can be mounted at once (thread, side thread, pane). A drop
- * goes to the composer under the pointer, else the one last focused or
- * pressed, else the newest. Same bookkeeping as Capy's composer.
+ * goes to the composer under the pointer, else the one mounted last. Same
+ * bookkeeping as Capy's composer.
  */
 
 const roots = new Map<string, RefObject<HTMLElement | null>>();
@@ -19,10 +19,6 @@ export const registerDropTarget = (
     roots.delete(id);
     if (active === id) active = Array.from(roots.keys()).at(-1);
   };
-};
-
-export const activateDropTarget = (id: string) => {
-  if (roots.has(id)) active = id;
 };
 
 export const dropTargetFor = (target: EventTarget | null) => {
