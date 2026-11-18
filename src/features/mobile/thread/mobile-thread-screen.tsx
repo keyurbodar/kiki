@@ -1,6 +1,8 @@
 import { useAtomValue } from "@effect/atom-react";
+import { useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
+import type { ComposerPayload } from "@/components/composer";
 import { organizationsAtom } from "@/data/atoms/session";
 import {
   ComposerFooter,
@@ -8,6 +10,7 @@ import {
 } from "@/features/composer/composer-footer";
 import { useSidebarActions } from "@/features/shell/sidebar-container";
 import { JamChat } from "@/features/thread/jam-chat";
+import { useComposerSend } from "@/features/thread/use-composer-send";
 import { Button } from "@/primitives/button";
 import {
   MobileComposer,
@@ -154,6 +157,11 @@ function MobileThreadBody({
   models,
   machine,
 }: MobileThreadBodyProps) {
+  const send = useComposerSend(threadId);
+  const navigate = useNavigate();
+  const runCommand = (command: { id: string }) => {
+    if (command.id === "new") void navigate({ to: "/new" });
+  };
   const [openTabs, setOpenTabs] = useState<ReadonlyArray<string>>(["overview"]);
   const [activeTab, setActiveTab] = useState(CHAT_TAB);
   const [modelId, setModelId] = useState<string>();
@@ -205,7 +213,14 @@ function MobileThreadBody({
       composer={
         <>
           <MobileComposer
-            onSend={() => {}}
+            onCommand={runCommand}
+            onSend={(text) =>
+              void send({
+                text,
+                mentions: [],
+                files: [],
+              } satisfies ComposerPayload)
+            }
             addMenu={
               <MobileAddDrawer
                 trigger={<MobileComposerAddTrigger />}
