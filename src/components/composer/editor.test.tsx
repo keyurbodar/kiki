@@ -6,7 +6,7 @@ import {
   type ComposerFieldHeight,
   EDITOR_FIELD_HEIGHT_CLASS,
   editorFieldClass,
-} from "./editor";
+} from "./editor-field";
 import { ToolbarAction } from "./toolbar-action";
 import { VoiceControl } from "./voice-control";
 

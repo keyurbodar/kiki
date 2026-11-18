@@ -19,12 +19,11 @@ import { DotGridIcon } from "@/primitives/dot-grid-icon";
 import { Icon } from "@/primitives/icon";
 import { AttachmentDropOverlay } from "./drop-overlay";
 import { dropTargetFor, registerDropTarget } from "./drop-targets";
+import type { ComposerEditorHandle, ComposerEditorProps } from "./editor";
 import {
-  type ComposerEditorHandle,
-  type ComposerEditorProps,
   type ComposerFieldHeight,
   EDITOR_FIELD_HEIGHT_CLASS,
-} from "./editor";
+} from "./editor-field";
 import { ShortcutTooltip } from "./shortcut-tooltip";
 import { ToolbarAction } from "./toolbar-action";
 import type {
