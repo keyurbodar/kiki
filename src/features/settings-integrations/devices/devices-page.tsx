@@ -105,11 +105,7 @@ export function DevicesPage({ pair }: DevicesPageProps) {
             <SettingsLoadingCard />
           </SettingsSection>
         ) : (
-          <DeviceSections
-            orgId={orgId}
-            userId={user?.id}
-            pairButton={pairButton}
-          />
+          <DeviceSections orgId={orgId} pairButton={pairButton} />
         )}
         <SettingsSection
           id={cloudCheckpoints.id}
@@ -163,11 +159,9 @@ export function DevicesPage({ pair }: DevicesPageProps) {
 
 function DeviceSections({
   orgId,
-  userId,
   pairButton,
 }: {
   orgId: OrgId;
-  userId: string | undefined;
   pairButton: ReactNode;
 }) {
   const result = useAtomValue(devicesAtom(orgId));
@@ -177,14 +171,6 @@ function DeviceSections({
     : AsyncResult.isFailure(result) && Option.isSome(result.previousSuccess)
       ? result.previousSuccess.value.value.toSorted(compareDevices)
       : [];
-  const mine =
-    userId === undefined
-      ? sorted
-      : sorted.filter((device) => device.userId === userId);
-  const team =
-    userId === undefined
-      ? []
-      : sorted.filter((device) => device.userId !== userId);
 
   if (AsyncResult.isInitial(result)) {
     return (
@@ -227,46 +213,25 @@ function DeviceSections({
     );
   }
   return (
-    <>
-      {mine.length > 0 && (
-        <SettingsSection
-          id={pairedDevicesId}
-          title={yourDevicesTitle}
-          description={yourDevicesDescription}
-        >
-          <Card rows>
-            <CardListHeader
-              label={countLabel(mine.length, "device")}
-              action={pairButton}
-            />
-            {mine.map((device) => (
-              <DeviceRow key={device.id} device={device} own />
-            ))}
-          </Card>
-        </SettingsSection>
-      )}
-      {team.length > 0 && (
-        <SettingsSection
-          id={mine.length === 0 ? pairedDevicesId : undefined}
-          title="Team devices"
-          description="Devices paired by other members"
-        >
-          <Card rows>
-            <CardListHeader
-              label={countLabel(team.length, "device")}
-              action={mine.length === 0 ? pairButton : undefined}
-            />
-            {team.map((device) => (
-              <DeviceRow key={device.id} device={device} own={false} />
-            ))}
-          </Card>
-        </SettingsSection>
-      )}
-    </>
+    <SettingsSection
+      id={pairedDevicesId}
+      title={yourDevicesTitle}
+      description={yourDevicesDescription}
+    >
+      <Card rows>
+        <CardListHeader
+          label={countLabel(sorted.length, "device")}
+          action={pairButton}
+        />
+        {sorted.map((device) => (
+          <DeviceRow key={device.id} device={device} />
+        ))}
+      </Card>
+    </SettingsSection>
   );
 }
 
-function DeviceRow({ device, own }: { device: Device; own: boolean }) {
+function DeviceRow({ device }: { device: Device }) {
   const status = deviceStatus(device);
   return (
     <SettingsRowLink
@@ -278,9 +243,7 @@ function DeviceRow({ device, own }: { device: Device; own: boolean }) {
       description={
         <span className="flex items-center gap-1.5">
           <StatusDot color={status.color} />
-          {own || device.ownerName === null
-            ? status.label
-            : `${status.label}, ${device.ownerName}'s device`}
+          {status.label}
         </span>
       }
     >
