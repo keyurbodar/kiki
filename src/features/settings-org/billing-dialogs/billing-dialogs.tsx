@@ -535,7 +535,7 @@ function DollarInput({
   onValueChange: (value: string) => void;
 }) {
   return (
-    <InputGroup className={cx("flex items-center gap-1", className)}>
+    <InputGroup className={cx("flex w-full items-center gap-1", className)}>
       <span aria-hidden className="text-sm text-muted-foreground-2">
         $
       </span>

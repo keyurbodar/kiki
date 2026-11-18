@@ -13,6 +13,24 @@ describe("Input", () => {
     expect(input.className).toContain("bg-input");
   });
 
+  it("leaves the width to the caller, so a width class is not overruled", () => {
+    const base = inputVariants({});
+    expect(base).not.toContain("w-full");
+    expect(base).not.toContain("w-auto");
+    render(<Input aria-label="Hex" className="w-24" />);
+    const input = screen.getByLabelText("Hex");
+    expect(input.className).toContain("w-24");
+    expect(input.className).not.toContain("w-full");
+  });
+
+  it("fills its group when it carries an icon, and the group fills its caller", () => {
+    render(<Input aria-label="Search" icon={<svg data-testid="i" />} />);
+    const input = screen.getByLabelText("Search");
+    const group = input.parentElement;
+    expect(group?.className).toContain("w-full");
+    expect(group?.className).toContain("[&>[data-slot=input]]:w-full");
+  });
+
   it("applies variant, size and font", () => {
     const classes = inputVariants({
       variant: "ghost",
