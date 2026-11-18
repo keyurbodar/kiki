@@ -6,6 +6,7 @@ import { SidebarThreadRow } from "@/features/sidebar/sidebar-thread-row";
 import { RowLabel, rowStatic } from "@/features/thread/activity-row";
 import type { AgentMessageRow } from "@/features/thread/agent-message";
 import { AgentMessage } from "@/features/thread/agent-message";
+import { formatDuration } from "@/features/thread/live-status";
 import { MessageActionsProvider } from "@/features/thread/message-footer";
 import {
   UserMessage,
@@ -217,7 +218,7 @@ function TurnSummary() {
     <div className="flex flex-col">
       <SummaryRow label="Read" file="retry.ts" />
       <SummaryRow label="Edited" file="retry.ts" added={2} removed={1} />
-      <SummaryRow label="Ran test" note="4s" />
+      <SummaryRow label="Ran test" note={formatDuration(4_000)} />
     </div>
   );
 }
