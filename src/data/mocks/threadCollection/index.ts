@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { fields, MockDb, missing } from "../db/MockDb.ts";
+import { fields, MockDb, notFound } from "../db/MockDb.ts";
 import { threads as worldThreads } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { folderThreadItems, sampleRead } from "./fixtures.ts";
@@ -21,7 +21,7 @@ export const ThreadCollectionMock = mockGroup("threadCollection", (handlers) =>
         Effect.gen(function* () {
           const folders = yield* Ref.get(threadFolders);
           if (!folders.some((folder) => folder.id === params.folderId)) {
-            return yield* missing("threadFolders", params.folderId);
+            return yield* notFound("threadFolders", params.folderId);
           }
           const rows = (yield* Ref.get(items))
             .filter((item) => item.folderId === params.folderId)

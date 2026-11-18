@@ -1,9 +1,10 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class ChildrenGroup extends HttpApiGroup.make("children").add(
   HttpApiEndpoint.get("list", "/orgs/:orgId/jams/:jamId/children", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, jamId: Schema.String },
     success: Undecoded,
   }),

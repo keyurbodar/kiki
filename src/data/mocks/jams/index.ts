@@ -20,7 +20,7 @@ import {
   ThreadMembership,
 } from "../../api/schemas/thread.ts";
 import { captainCard } from "../captains/fixtures.ts";
-import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
+import { fields, MockDb, newId, notFound } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { isoMinutesAgo, world } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
@@ -507,7 +507,7 @@ export const JamsMock = mockGroup("jams", (handlers) =>
             (candidate) => candidate.id === params.projectId,
           );
           if (!project) {
-            return yield* missing("repos", params.projectId);
+            return yield* notFound("repos", params.projectId);
           }
           const created = new ThreadCard({
             ...fallbackThread,
@@ -999,7 +999,7 @@ export const JamsMock = mockGroup("jams", (handlers) =>
             "userId",
             world.people.alex.id,
           );
-          if (!person(ownerId)) return yield* missing("members", ownerId);
+          if (!person(ownerId)) return yield* notFound("members", ownerId);
           const updated = yield* patchAccess(params.jamId, (current) => ({
             ...current,
             ownerId,
