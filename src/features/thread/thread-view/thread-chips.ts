@@ -1,10 +1,12 @@
 import {
+  type ChipIssue,
   type ChipPull,
   type ChipThread,
   type MarkdownChipsContextValue,
   pullKey,
 } from "@/components/markdown-chips";
 import { threadCode } from "@/components/thread-preview";
+import type { IssueSummary } from "@/data/api/schemas/issue";
 import type { ThreadCard } from "@/data/api/schemas/thread";
 
 /**
@@ -21,11 +23,13 @@ export type ThreadChipsInput = {
   projectCodes: ReadonlyMap<string, string>;
   /** The thread being read; its own pulls name the repository bare `#N` refers to. */
   currentThreadId: string;
+  /** The org's issues, so a code typed in prose resolves to its chip. */
+  issues: ReadonlyArray<IssueSummary>;
 };
 
 export type ThreadChips = Pick<
   MarkdownChipsContextValue,
-  "threads" | "pullRequests" | "repository"
+  "threads" | "pullRequests" | "repository" | "issues"
 >;
 
 const chipStatus = (status: ThreadCard["status"]): ChipThread["status"] =>
@@ -43,10 +47,28 @@ const chipPull = (pull: ThreadCard["pulls"][number]): ChipPull => ({
   authorAvatarUrl: pull.authorAvatarUrl,
 });
 
+const chipIssue = (issue: IssueSummary): ChipIssue => ({
+  code: issue.code,
+  title: issue.title,
+  status: issue.status,
+  priority: issue.priority,
+  visibility: issue.visibility === "org" ? "shared" : "private",
+  assignee:
+    issue.assignee === null
+      ? null
+      : {
+          name: issue.assignee.name,
+          ...(issue.assignee.avatarUrl === null
+            ? {}
+            : { avatarUrl: issue.assignee.avatarUrl }),
+        },
+});
+
 export const threadChips = ({
   threads,
   projectCodes,
   currentThreadId,
+  issues,
 }: ThreadChipsInput): ThreadChips => {
   const byCode = new Map<string, ChipThread>();
   const pulls = new Map<string, ChipPull>();
@@ -72,5 +94,10 @@ export const threadChips = ({
     if (thread.id === currentThreadId && thread.pulls[0] !== undefined)
       repository = thread.pulls[0].repo;
   }
-  return { threads: byCode, pullRequests: pulls, repository };
+  return {
+    threads: byCode,
+    pullRequests: pulls,
+    repository,
+    issues: new Map(issues.map((issue) => [issue.code, chipIssue(issue)])),
+  };
 };

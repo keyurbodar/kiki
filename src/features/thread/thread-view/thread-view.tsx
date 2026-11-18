@@ -18,8 +18,11 @@ import {
   type ComposerPayload,
   PlusMenu,
 } from "@/components/composer";
+import type { ChipIssue } from "@/components/markdown-chips";
 import type { OrgId } from "@/data/api/schemas/ids";
+import type { IssueList } from "@/data/api/schemas/issue";
 import { idleAtom } from "@/data/atoms/idle";
+import { allIssuesAtom } from "@/data/atoms/issues";
 import { projectsAtom } from "@/data/atoms/projects";
 import { threadMachinesAtom } from "@/data/atoms/setup";
 import { idleThreadPageAtom, threadsAtom } from "@/data/atoms/threads";
@@ -44,6 +47,10 @@ import {
   type QueueRowData,
 } from "@/features/composer/message-queue";
 import { useDriveListing } from "@/features/drive/drive-detail-page/use-drive-listing";
+import {
+  IssueStateIcon,
+  issueStatusDefaults,
+} from "@/features/issues/issue-parts";
 import {
   AttachmentSourceProvider,
   apiAttachmentSource,
@@ -393,6 +400,9 @@ export function ThreadView({
       ? idleAtom<ReadonlyArray<{ id: string; code: string }>>()
       : projectsAtom(orgId as OrgId),
   );
+  const orgIssues = useAtomValue(
+    orgId === undefined ? idleAtom<IssueList>() : allIssuesAtom(orgId as OrgId),
+  );
   const chips = useMemo(() => {
     const codes = new Map<string, string>();
     for (const project of Option.getOrUndefined(AsyncResult.value(projects)) ??
@@ -403,8 +413,21 @@ export function ThreadView({
         Option.getOrUndefined(AsyncResult.value(orgThreads))?.items ?? [],
       projectCodes: codes,
       currentThreadId: threadId,
+      issues: Option.getOrUndefined(AsyncResult.value(orgIssues))?.issues ?? [],
     });
-  }, [projects, orgThreads, threadId]);
+  }, [orgIssues, projects, orgThreads, threadId]);
+  const chipValue = useMemo(
+    () => ({
+      ...chips,
+      renderIssueState: (issue: ChipIssue, className: string) => (
+        <IssueStateIcon
+          {...issueStatusDefaults[issue.status]}
+          className={className}
+        />
+      ),
+    }),
+    [chips],
+  );
   const navigate = useNavigate();
   const commands = useMemo(
     () => composerCommands({ newThread: () => void navigate({ to: "/new" }) }),
@@ -479,7 +502,7 @@ export function ThreadView({
                 <div className="relative min-h-0 flex-1">
                   <JamChat
                     jamId={threadId}
-                    chips={chips}
+                    chips={chipValue}
                     rows={rows}
                     initialLoading={loading}
                     onStartReached={hasOlder ? onLoadOlder : undefined}
