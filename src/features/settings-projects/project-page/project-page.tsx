@@ -5,7 +5,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { MachineUsageNote, useMachineUsage } from "@/components/machine-usage";
 import { formatMachine } from "@/components/plan-picker/plan-catalog";
-import { ReadGate } from "@/components/read-gate";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { Project, ProjectRepo } from "@/data/api/schemas/project";
@@ -20,7 +19,6 @@ import {
   sharedVariablesAtom,
   snapshotBuildsAtom,
 } from "@/data/atoms/project-settings";
-import { organizationsAtom } from "@/data/atoms/session";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
@@ -42,7 +40,7 @@ import { CardList, CardListTitle } from "../shared/card-list";
 import { Glyph } from "../shared/glyphs";
 import { ProjectGlyph } from "../shared/project-glyph";
 import { formatRelative } from "../shared/relative-time";
-import { useActiveOrgId, useActiveOrgRead } from "../shared/use-org";
+import { useActiveOrgId } from "../shared/use-org";
 
 const machineSizeKeys = ["small", "medium", "large", "ultra", "hyper"] as const;
 
@@ -65,23 +63,11 @@ export function ProjectPage() {
     from: "/_app/settings/projects_/$projectId",
   });
   const orgId = useActiveOrgId();
-  const orgRead = useActiveOrgRead();
   return (
     <SettingsPage title="Project">
-      <ReadGate
-        result={orgRead}
-        atom={organizationsAtom}
-        slot="project-failed"
-        line="Couldn't load your organization"
-        sub="Check your connection and try again"
-      >
-        {(orgs) => (
-          <ProjectSettings
-            orgId={orgs[0]?.id ?? (orgId as OrgId)}
-            projectId={projectId}
-          />
-        )}
-      </ReadGate>
+      {orgId === undefined ? null : (
+        <ProjectSettings orgId={orgId} projectId={projectId} />
+      )}
     </SettingsPage>
   );
 }

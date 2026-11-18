@@ -58,9 +58,6 @@ const nullable =
   (value: unknown) =>
     value === null || value === undefined ? null : map(value);
 
-/** The organizations read, so a page can tell a pending one from a failed one. */
-export const useActiveOrgRead = () => useAtomValue(organizationsAtom);
-
 export const useActiveOrgId = (): OrgId | undefined =>
   readyValue(
     loadable(
@@ -82,18 +79,15 @@ export const useMcpServersState = (
 export const useMcpServers = (orgId: OrgId | undefined) =>
   readyValue(useMcpServersState(orgId));
 
-export const usePluginInstallationsState = (
-  orgId: OrgId | undefined,
-): Loadable<ReadonlyArray<InstalledPlugin>> =>
-  loadable(
-    useAtomValue(orgId === undefined ? idle : pluginInstallationsAtom(orgId)),
-    list(toInstallation),
-  );
-
 export const usePluginInstallations = (
   orgId: OrgId | undefined,
 ): ReadonlyArray<InstalledPlugin> | undefined =>
-  readyValue(usePluginInstallationsState(orgId));
+  readyValue(
+    loadable(
+      useAtomValue(orgId === undefined ? idle : pluginInstallationsAtom(orgId)),
+      list(toInstallation),
+    ),
+  );
 
 export const useMarketplace = (
   orgId: OrgId | undefined,

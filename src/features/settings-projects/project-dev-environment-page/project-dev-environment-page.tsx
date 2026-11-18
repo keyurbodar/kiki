@@ -5,7 +5,6 @@ import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
 import { toast } from "sonner";
 import { formatBytes } from "@/components/directory-view/format-bytes";
-import { ReadGate } from "@/components/read-gate";
 import {
   SettingsLoadingCard,
   SettingsPage,
@@ -22,41 +21,29 @@ import {
   snapshotBuildsAtom,
   snapshotConfigAtom,
 } from "@/data/atoms/project-settings";
-import { organizationsAtom } from "@/data/atoms/session";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { SettingsRow, SettingsRowLink } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
 import { CardEmpty, CardList, StatusDot } from "../shared/card-list";
 import { formatDuration, formatRelative } from "../shared/relative-time";
-import { useActiveOrgId, useActiveOrgRead } from "../shared/use-org";
+import { useActiveOrgId } from "../shared/use-org";
 
 export function ProjectDevEnvironmentPage() {
   const { projectId } = useParams({
     from: "/_app/settings/projects_/$projectId_/dev-environment",
   });
   const orgId = useActiveOrgId();
-  const orgRead = useActiveOrgRead();
   return (
     <SettingsPage
       title="Setup & snapshot"
       description="Install, update, and startup scripts per repository, baked into a snapshot"
     >
-      <ReadGate
-        result={orgRead}
-        atom={organizationsAtom}
-        slot="setup-failed"
-        line="Couldn't load your organization"
-        sub="Check your connection and try again"
-        pending={<SettingsLoadingCard />}
-      >
-        {(orgs) => (
-          <DevEnvironmentSettings
-            orgId={orgs[0]?.id ?? (orgId as OrgId)}
-            projectId={projectId}
-          />
-        )}
-      </ReadGate>
+      {orgId === undefined ? (
+        <SettingsLoadingCard />
+      ) : (
+        <DevEnvironmentSettings orgId={orgId} projectId={projectId} />
+      )}
     </SettingsPage>
   );
 }

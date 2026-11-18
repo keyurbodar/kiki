@@ -10,7 +10,6 @@ import {
   VariableRow,
   type VariableScope,
 } from "@/components/environment-variables";
-import { ReadGate } from "@/components/read-gate";
 import {
   SettingsLoadingCard,
   SettingsPage,
@@ -29,7 +28,6 @@ import {
   projectSettingsKeys,
   sharedVariablesAtom,
 } from "@/data/atoms/project-settings";
-import { organizationsAtom } from "@/data/atoms/session";
 import { Button } from "@/primitives/button";
 import {
   Dialog,
@@ -48,7 +46,7 @@ import { Textarea } from "@/primitives/textarea";
 import { CardList, CardListTitle, StatusDot } from "../shared/card-list";
 import { cx } from "../shared/cx";
 import { Glyph } from "../shared/glyphs";
-import { useActiveOrgId, useActiveOrgRead } from "../shared/use-org";
+import { useActiveOrgId } from "../shared/use-org";
 
 const reachabilityColor = {
   reachable: "success",
@@ -65,27 +63,16 @@ export function ProjectEnvironmentPage() {
     from: "/_app/settings/projects_/$projectId_/environment-variables",
   });
   const orgId = useActiveOrgId();
-  const orgRead = useActiveOrgRead();
   return (
     <SettingsPage
       title="Environment variables"
       description="Values reach a machine when it starts; running threads pick up changes through refresh"
     >
-      <ReadGate
-        result={orgRead}
-        atom={organizationsAtom}
-        slot="environment-variables-failed"
-        line="Couldn't load your organization"
-        sub="Check your connection and try again"
-        pending={<SettingsLoadingCard />}
-      >
-        {(orgs) => (
-          <EnvironmentVariablesSettings
-            orgId={orgs[0]?.id ?? (orgId as OrgId)}
-            projectId={projectId}
-          />
-        )}
-      </ReadGate>
+      {orgId === undefined ? (
+        <SettingsLoadingCard />
+      ) : (
+        <EnvironmentVariablesSettings orgId={orgId} projectId={projectId} />
+      )}
     </SettingsPage>
   );
 }

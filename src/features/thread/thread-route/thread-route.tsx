@@ -257,7 +257,6 @@ export function ThreadRoute({
             threadId={threadId}
             title={title}
             working={working}
-            machine={thread?.primaryMachine}
             tabs={
               entry !== undefined && surfaceOf(entry) === "main"
                 ? [tabForKey(pane) ?? { kind: "overview" }]

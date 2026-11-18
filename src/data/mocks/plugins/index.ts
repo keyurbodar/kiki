@@ -24,33 +24,16 @@ const locallyMissing = (table: string, id: string) =>
 const text = (value: unknown, fallback: string) =>
   typeof value === "string" && value.trim() !== "" ? value : fallback;
 
-/**
- * The newest published version that is newer than the one running.
- *
- * "Newer" is relative to the version installed, not to when it was installed:
- * comparing against `installedAt` makes every seeded version newer than any
- * installation, so the badge never clears and the review page offers whatever
- * version is left — including an older one. A running version the marketplace
- * does not list falls back to the install time, since there is nothing else to
- * compare against.
- */
-const newestPublished = (
+const hasNewerVersion = (
   published: ReadonlyArray<PluginVersion>,
   row: PluginInstallation,
-) => {
-  const ofPlugin = published.filter(
-    (version) => version.pluginKey === row.pluginKey,
+) =>
+  published.some(
+    (version) =>
+      version.pluginKey === row.pluginKey &&
+      version.id !== row.versionId &&
+      version.publishedAt > (row.installedAt ?? ""),
   );
-  const since =
-    ofPlugin.find((version) => version.id === row.versionId)?.publishedAt ??
-    row.installedAt ??
-    "";
-  return ofPlugin
-    .filter(
-      (version) => version.id !== row.versionId && version.publishedAt > since,
-    )
-    .toSorted((a, b) => b.publishedAt.localeCompare(a.publishedAt))[0];
-};
 
 /**
  * The installation detail every read answers with. The badge, the Review
@@ -64,10 +47,15 @@ const detailOf = (
   const ofPlugin = published.filter(
     (version) => version.pluginKey === installation.pluginKey,
   );
-  const available = newestPublished(published, installation);
+  const updateAvailable = hasNewerVersion(published, installation);
+  const available = updateAvailable
+    ? ofPlugin
+        .filter((version) => version.id !== installation.versionId)
+        .toSorted((a, b) => b.publishedAt.localeCompare(a.publishedAt))[0]
+    : undefined;
   return {
     ...installation,
-    updateAvailable: available !== undefined,
+    updateAvailable,
     runningVersion:
       ofPlugin.find((version) => version.id === installation.versionId) ?? null,
     availableVersion: available ?? null,
@@ -125,7 +113,7 @@ export const PluginsMock = mockGroup("plugins", (handlers) =>
                 ?.name ?? null,
             // The same fact the detail page reads: an update exists when a
             // newer version is published, not when the row's status says so.
-            updateAvailable: newestPublished(published, row) !== undefined,
+            updateAvailable: hasNewerVersion(published, row),
           }));
         }),
       )

@@ -4,16 +4,12 @@ import {
   ContextMenuContent,
   ContextMenuTrigger,
 } from "@/primitives/context-menu";
-import type { SidebarCaptain, SidebarThread } from "./types";
+import type { SidebarThread } from "./types";
 
 export type SidebarRowPopupsProps = Omit<ComponentProps<"div">, "children"> & {
   threads: ReadonlyMap<string, SidebarThread>;
-  /** Captains, so a right-click on a Captain row opens the Captain's menu. */
-  captains?: ReadonlyMap<string, SidebarCaptain>;
   /** Capy's thread menu, mounted here and in each row's `…` cluster. */
   renderMenu?: (thread: SidebarThread) => ReactNode;
-  /** Capy's Captain menu for the Captain rows. */
-  renderCaptainMenu?: (captain: SidebarCaptain) => ReactNode;
   mode?: string;
   children: ReactNode;
 };
@@ -26,9 +22,7 @@ export type SidebarRowPopupsProps = Omit<ComponentProps<"div">, "children"> & {
  */
 export function SidebarRowPopups({
   threads,
-  captains,
   renderMenu,
-  renderCaptainMenu,
   mode,
   className,
   onClickCapture,
@@ -36,7 +30,6 @@ export function SidebarRowPopups({
   ...props
 }: SidebarRowPopupsProps) {
   const [thread, setThread] = useState<SidebarThread | null>(null);
-  const [captain, setCaptain] = useState<SidebarCaptain | null>(null);
   const row = useRef<Element | null>(null);
   const resolveFrom = (
     target: EventTarget | null,
@@ -44,30 +37,20 @@ export function SidebarRowPopups({
   ) => {
     const found =
       target instanceof Element ? target.closest("[data-row-menu]") : null;
-    const marker =
-      found?.getAttribute("data-sidebar-target") ??
-      found
-        ?.querySelector("[data-sidebar-target]")
-        ?.getAttribute("data-sidebar-target");
-    const captainRow = found?.hasAttribute("data-captain-row") === true;
-    const match =
-      marker === null || marker === undefined
-        ? undefined
-        : captainRow
-          ? captains?.get(marker)
-          : threads.get(marker);
+    const id = found
+      ?.querySelector("[data-sidebar-target]")
+      ?.getAttribute("data-sidebar-target");
+    const match = id === null || id === undefined ? undefined : threads.get(id);
     if (match === undefined) {
       preventDefault();
       setThread(null);
-      setCaptain(null);
       return;
     }
-    setCaptain(captainRow ? (match as SidebarCaptain) : null);
-    setThread(captainRow ? null : (match as SidebarThread));
     if (row.current !== found) {
       row.current?.removeAttribute("data-popup-open");
       row.current = found;
     }
+    setThread(match);
   };
   return (
     <ContextMenu
@@ -76,7 +59,6 @@ export function SidebarRowPopups({
         if (!open) {
           row.current = null;
           setThread(null);
-          setCaptain(null);
         }
       }}
     >
@@ -97,9 +79,6 @@ export function SidebarRowPopups({
         {thread === null || renderMenu === undefined
           ? null
           : renderMenu(thread)}
-        {captain === null || renderCaptainMenu === undefined
-          ? null
-          : renderCaptainMenu(captain)}
       </ContextMenuContent>
     </ContextMenu>
   );

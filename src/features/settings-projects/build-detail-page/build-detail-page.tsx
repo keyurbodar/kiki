@@ -2,7 +2,6 @@ import { useAtomValue } from "@effect/atom-react";
 import { useParams } from "@tanstack/react-router";
 import { DateTime } from "effect";
 import { AsyncResult } from "effect/reactivity";
-import { ReadGate } from "@/components/read-gate";
 import {
   SettingsLoadingCard,
   SettingsPage,
@@ -13,7 +12,6 @@ import {
   snapshotBuildAtom,
   snapshotBuildKey,
 } from "@/data/atoms/project-settings";
-import { organizationsAtom } from "@/data/atoms/session";
 import { SettingsRow } from "@/primitives/settings-row";
 import {
   CardEmpty,
@@ -22,7 +20,7 @@ import {
   StatusDot,
 } from "../shared/card-list";
 import { formatDuration, formatRelative } from "../shared/relative-time";
-import { useActiveOrgId, useActiveOrgRead } from "../shared/use-org";
+import { useActiveOrgId } from "../shared/use-org";
 
 const statusLabel = (status: string) =>
   status === "succeeded"
@@ -47,25 +45,13 @@ export function BuildDetailPage() {
     from: "/_app/settings/projects_/$projectId_/dev-environment_/builds/$buildId",
   });
   const orgId = useActiveOrgId();
-  const orgRead = useActiveOrgRead();
   return (
     <SettingsPage title="Build">
-      <ReadGate
-        result={orgRead}
-        atom={organizationsAtom}
-        slot="build-failed"
-        line="Couldn't load your organization"
-        sub="Check your connection and try again"
-        pending={<SettingsLoadingCard />}
-      >
-        {(orgs) => (
-          <BuildDetail
-            orgId={orgs[0]?.id ?? (orgId as OrgId)}
-            projectId={projectId}
-            buildId={buildId}
-          />
-        )}
-      </ReadGate>
+      {orgId === undefined ? (
+        <SettingsLoadingCard />
+      ) : (
+        <BuildDetail orgId={orgId} projectId={projectId} buildId={buildId} />
+      )}
     </SettingsPage>
   );
 }

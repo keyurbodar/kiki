@@ -138,11 +138,14 @@ const icons = { check: <CheckGlyph />, remove: <CloseGlyph /> };
 export function IssuesDisplayMenu({
   display,
   onChange,
+  properties = issueProperties,
 }: {
   display: IssueDisplay;
   onChange: (display: IssueDisplay) => void;
+  /** The properties to offer; every one the row can draw by default. */
+  properties?: ReadonlyArray<IssueProperty>;
 }) {
-  const shown = issueProperties.filter(
+  const shown = properties.filter(
     (property) => !display.hidden.includes(property),
   );
   return (
@@ -189,13 +192,11 @@ export function IssuesDisplayMenu({
         icon={<EyeOffGlyph />}
         label="Properties"
         value={
-          shown.length === issueProperties.length
-            ? "All"
-            : `${shown.length} shown`
+          shown.length === properties.length ? "All" : `${shown.length} shown`
         }
         contentClassName="w-48"
       >
-        {issueProperties.map((property) => (
+        {properties.map((property) => (
           <DisplayToggle
             key={property}
             label={issuePropertyLabels[property]}

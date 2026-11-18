@@ -43,7 +43,6 @@ const pull = (overrides: Partial<PullCard>): PullCard => ({
   thread: null,
   createdAt: now - 48 * hour,
   updatedAt: now - hour,
-  diffBreakdown: null,
   ...overrides,
 });
 

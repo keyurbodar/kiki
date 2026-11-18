@@ -119,6 +119,22 @@ export const matchOptions: ReadonlyArray<{ value: IssueMatch; label: string }> =
     { value: "any", label: "Any filter" },
   ];
 
+/** The submenus the filter menu can offer; a surface shows the ones it reads. */
+export const issueFilterSections = [
+  "status",
+  "priority",
+  "project",
+  "label",
+  "due",
+  "assignee",
+  "creator",
+  "mentions",
+  "subscribers",
+  "relations",
+  "pull",
+] as const;
+export type IssueFilterSection = (typeof issueFilterSections)[number];
+
 type ListKey = "stateIds" | "priorities" | "projectIds" | "labelIds";
 
 type ListFilter = {
@@ -358,13 +374,26 @@ export function IssuesFilterMenu({
   sources,
   onChange,
   onClear,
+  only,
 }: {
   filters: IssueFilters;
   sources: IssueFilterSources;
   onChange: (filters: IssueFilters) => void;
   onClear: () => void;
+  /** The submenus to offer; every section by default. */
+  only?: ReadonlyArray<IssueFilterSection>;
 }) {
+  const shows = (section: IssueFilterSection) =>
+    only === undefined || only.includes(section);
   const lists = listFilters(sources);
+  const listSection = (key: ListKey): IssueFilterSection =>
+    key === "stateIds"
+      ? "status"
+      : key === "priorities"
+        ? "priority"
+        : key === "projectIds"
+          ? "project"
+          : "label";
   const listSubmenu = (filter: ListFilter) => (
     <MenuSubmenu
       key={filter.key}
@@ -459,80 +488,89 @@ export function IssuesFilterMenu({
         <TooltipContent side="bottom">Filter</TooltipContent>
       </Tooltip>
       <MenuContent align="end" className="w-56">
-        {listSubmenu(lists[0] as ListFilter)}
-        {listSubmenu(lists[1] as ListFilter)}
-        <MenuSubmenu
-          icon={<CalendarGlyph />}
-          label="Due date"
-          value={dueCount(filters) > 0 ? dueCount(filters) : undefined}
-          contentClassName="w-72"
-        >
-          <DueFilterItems filters={filters} onChange={onChange} />
-        </MenuSubmenu>
-        {actorKinds.map(actorSubmenu)}
-        {peopleKinds.map(peopleSubmenu)}
-        {listSubmenu(lists[2] as ListFilter)}
-        {listSubmenu(lists[3] as ListFilter)}
-        <MenuSubmenu
-          icon={<LinkGlyph />}
-          label="Relations"
-          value={relationCount > 0 ? relationCount : undefined}
-          contentClassName="w-56"
-        >
-          {relationFilterOptions.map((option) => {
-            const on =
-              filters.relations.includes(option.value) ||
-              filters.excludedRelations.includes(option.value);
-            return (
+        {lists
+          .filter((filter) => shows(listSection(filter.key)))
+          .map(listSubmenu)}
+        {shows("due") ? (
+          <MenuSubmenu
+            icon={<CalendarGlyph />}
+            label="Due date"
+            value={dueCount(filters) > 0 ? dueCount(filters) : undefined}
+            contentClassName="w-72"
+          >
+            <DueFilterItems filters={filters} onChange={onChange} />
+          </MenuSubmenu>
+        ) : null}
+        {actorKinds.filter((kind) => shows(kind.key)).map(actorSubmenu)}
+        {peopleKinds
+          .filter((kind) =>
+            shows(kind.key === "mentioned" ? "mentions" : "subscribers"),
+          )
+          .map(peopleSubmenu)}
+        {shows("relations") ? (
+          <MenuSubmenu
+            icon={<LinkGlyph />}
+            label="Relations"
+            value={relationCount > 0 ? relationCount : undefined}
+            contentClassName="w-56"
+          >
+            {relationFilterOptions.map((option) => {
+              const on =
+                filters.relations.includes(option.value) ||
+                filters.excludedRelations.includes(option.value);
+              return (
+                <CheckRow
+                  key={option.value}
+                  leading={<LinkGlyph />}
+                  label={option.label}
+                  checked={on}
+                  onClick={() =>
+                    onChange(
+                      on
+                        ? withoutRelation(filters, option.value)
+                        : {
+                            ...filters,
+                            relations: [...filters.relations, option.value],
+                          },
+                    )
+                  }
+                />
+              );
+            })}
+          </MenuSubmenu>
+        ) : null}
+        {shows("pull") ? (
+          <MenuSubmenu
+            icon={<PullRequestGlyph />}
+            label="Pull request"
+            value={
+              pullFilterOptions.find((option) => option.value === filters.pull)
+                ?.chip
+            }
+            contentClassName="w-48"
+          >
+            {pullFilterOptions.map((option) => (
               <CheckRow
                 key={option.value}
-                leading={<LinkGlyph />}
-                label={option.label}
-                checked={on}
-                onClick={() =>
-                  onChange(
-                    on
-                      ? withoutRelation(filters, option.value)
-                      : {
-                          ...filters,
-                          relations: [...filters.relations, option.value],
-                        },
+                leading={
+                  option.value === "linked" ? (
+                    <PullRequestGlyph />
+                  ) : (
+                    <CloseGlyph />
                   )
                 }
+                label={option.label}
+                checked={filters.pull === option.value}
+                onClick={() =>
+                  onChange({
+                    ...filters,
+                    pull: filters.pull === option.value ? null : option.value,
+                  })
+                }
               />
-            );
-          })}
-        </MenuSubmenu>
-        <MenuSubmenu
-          icon={<PullRequestGlyph />}
-          label="Pull request"
-          value={
-            pullFilterOptions.find((option) => option.value === filters.pull)
-              ?.chip
-          }
-          contentClassName="w-48"
-        >
-          {pullFilterOptions.map((option) => (
-            <CheckRow
-              key={option.value}
-              leading={
-                option.value === "linked" ? (
-                  <PullRequestGlyph />
-                ) : (
-                  <CloseGlyph />
-                )
-              }
-              label={option.label}
-              checked={filters.pull === option.value}
-              onClick={() =>
-                onChange({
-                  ...filters,
-                  pull: filters.pull === option.value ? null : option.value,
-                })
-              }
-            />
-          ))}
-        </MenuSubmenu>
+            ))}
+          </MenuSubmenu>
+        ) : null}
         <MenuSeparator />
         <CheckRow
           leading={<EyeOffGlyph />}

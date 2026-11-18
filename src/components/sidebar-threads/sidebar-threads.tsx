@@ -267,12 +267,7 @@ export function CaptainRow({
     </span>
   );
   return (
-    <div
-      data-captain-row={captain.id}
-      data-row-menu=""
-      data-sidebar-target={captain.id}
-      className="group/captain"
-    >
+    <div data-captain-row={captain.id} className="group/captain">
       <PreviewCard>
         <PreviewCardTrigger
           render={
@@ -410,8 +405,6 @@ export function PinnedCaptains({
           >
             <div
               data-captain-row={captain.id}
-              data-row-menu=""
-              data-sidebar-target={captain.id}
               className="group/captain relative flex w-(--sidebar-pin-cell) items-center"
             >
               <PreviewCard>
@@ -442,9 +435,9 @@ export function PinnedCaptains({
                   </span>
                   <span
                     className={cx(
-                      "mask-fade-r max-w-full overflow-hidden px-0.5 text-xs leading-4 whitespace-nowrap",
+                      "mask-fade-r max-w-full overflow-hidden whitespace-nowrap text-xs",
                       active || captain.hasUnreads
-                        ? "font-medium text-foreground"
+                        ? "text-foreground"
                         : "font-normal text-foreground/80 dark:text-muted-foreground-1",
                     )}
                   >
@@ -496,8 +489,6 @@ export type SidebarThreadsProps = ComponentProps<"div"> & {
   onNewCaptain?: () => void;
   /** The thread menu shared by the rows' `…` clusters and the list's right-click. */
   renderRowMenu?: (thread: SidebarThread) => ReactNode;
-  /** The Captain menu the Captain rows open on right-click. */
-  renderCaptainMenu?: (captain: SidebarCaptain) => ReactNode;
 };
 
 export function SidebarThreads({
@@ -513,7 +504,6 @@ export function SidebarThreads({
   onNewThread,
   onNewCaptain,
   renderRowMenu,
-  renderCaptainMenu,
   className,
   ...props
 }: SidebarThreadsProps) {
@@ -556,15 +546,10 @@ export function SidebarThreads({
       section.threads.map((thread) => [thread.id, thread] as const),
     ),
   );
-  const rowMenuCaptains = new Map(
-    captainList.map((captain) => [captain.id, captain] as const),
-  );
   return (
     <SidebarRowPopups
       threads={rowMenuThreads}
-      captains={rowMenuCaptains}
       renderMenu={renderRowMenu}
-      renderCaptainMenu={renderCaptainMenu}
       mode={view.mode}
       className={cx(
         "mt-3 flex min-h-0 flex-1 flex-col [timeline-scope:--threads-scroll]",

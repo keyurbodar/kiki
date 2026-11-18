@@ -1,7 +1,6 @@
-import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
+import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { useMemo, useState } from "react";
-import { FailedRead } from "@/components/failed-read";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { organizationsAtom } from "@/data/atoms/session.ts";
 import { Button } from "@/primitives/button";
@@ -34,7 +33,6 @@ const FALLBACK_ORG = "org_acme";
 
 export function SettingsOrgUsagePage() {
   const organizations = useAtomValue(organizationsAtom);
-  const refreshOrganizations = useAtomRefresh(organizationsAtom);
   const orgId = AsyncResult.isSuccess(organizations)
     ? (organizations.value[0]?.id ?? FALLBACK_ORG)
     : FALLBACK_ORG;
@@ -107,14 +105,6 @@ export function SettingsOrgUsagePage() {
       description="Spend across models, images, members, and machines"
       width="wide"
     >
-      {AsyncResult.isFailure(organizations) && (
-        <FailedRead
-          slot="usage-failed"
-          line="Couldn't load your organization"
-          sub="Check your connection and try again"
-          onRetry={refreshOrganizations}
-        />
-      )}
       <SettingsSection>
         <CycleHeader now={now} summary={decodedSummary} />
       </SettingsSection>

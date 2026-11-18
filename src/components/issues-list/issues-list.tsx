@@ -524,6 +524,8 @@ export type IssueRowProps = {
   nested?: boolean;
   /** A nested row that is the last of its siblings ends the tree line. */
   lastChild?: boolean;
+  /** Page rows are the page's height; a pane's are one short line. */
+  density?: IssueDensity;
 };
 
 /** Capy's IssueRow at page density: status, ID, title, badges, properties. */
@@ -540,7 +542,9 @@ export function IssueRow({
   onToggleSubIssues,
   nested = false,
   lastChild = false,
+  density = "page",
 }: IssueRowProps) {
+  const pane = density === "pane";
   const hidden = (property: IssueDisplay["hidden"][number]) =>
     display.hidden.includes(property);
   const labels = hidden("labels") ? [] : (issue.labels ?? []);
@@ -573,9 +577,12 @@ export function IssueRow({
       params={{ code: issue.code }}
       data-issue-row={issue.id}
       data-issue-code={issue.code}
-      data-density="page"
-      data-nested={nested ? "true" : undefined}
-      className="kiki-row relative outline-none select-none transition-colors duration-100 hover:bg-section focus-visible:outline-ring-inset data-[selected]:bg-section"
+      className={
+        (pane
+          ? "relative flex h-9 items-center gap-2 rounded-(--radius) px-2 text-sm outline-none select-none transition-colors duration-100 hover:bg-section focus-visible:outline-ring-inset data-[selected]:bg-section"
+          : "relative flex h-11 items-center gap-2 rounded px-2 outline-none select-none transition-colors duration-100 hover:bg-section focus-visible:outline-ring-inset data-[selected]:bg-section") +
+        (nested ? " pl-8" : "")
+      }
       onClick={(event) => {
         if (!selectionMode || onCheck === undefined || !event.shiftKey) return;
         event.preventDefault();
@@ -771,33 +778,60 @@ export function IssueRow({
   );
 }
 
+export type IssueDensity = "page" | "pane";
+
 function IssueSection({
   group,
   open,
   onOpenChange,
+  density,
   children,
 }: {
   group: IssueGroup;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  density: IssueDensity;
   children: ReactNode;
 }) {
+  const count = String(group.issues.length);
   return (
     <Collapsible open={open} onOpenChange={onOpenChange}>
-      <CollapsibleTrigger tone="section" block showChevron={false}>
-        <span className="flex size-4 shrink-0 items-center justify-center">
-          <ChevronDownGlyph className="size-(--icon-xs) shrink-0 text-muted-foreground-3 transition-transform duration-100 group-data-[panel-open]/collapsible:rotate-0 -rotate-90" />
-        </span>
-        {group.label}
-        {open || !group.closed ? (
-          <span className="font-normal text-muted-foreground-2 tabular-nums">
-            {group.issues.length}
+      {density === "pane" ? (
+        <div className="flex h-7 w-full items-center rounded-(--radius) bg-section">
+          <CollapsibleTrigger
+            block
+            showChevron={false}
+            className="h-full flex-1 px-2 text-xs"
+          >
+            <span className="text-foreground">{group.label}</span>
+            <span className="font-normal text-muted-foreground-3 tabular-nums">
+              {count}
+            </span>
+          </CollapsibleTrigger>
+        </div>
+      ) : (
+        <CollapsibleTrigger tone="section" block showChevron={false}>
+          <span className="flex size-4 shrink-0 items-center justify-center">
+            <ChevronDownGlyph className="size-(--icon-xs) shrink-0 text-muted-foreground-3 transition-transform duration-100 group-data-[panel-open]/collapsible:rotate-0 -rotate-90" />
           </span>
-        ) : null}
-      </CollapsibleTrigger>
-      <CollapsiblePanel className="-m-0.5 p-0.5">
+          {group.label}
+          {open || !group.closed ? (
+            <span className="font-normal text-muted-foreground-2 tabular-nums">
+              {count}
+            </span>
+          ) : null}
+        </CollapsibleTrigger>
+      )}
+      <CollapsiblePanel
+        className={density === "pane" ? undefined : "-m-0.5 p-0.5"}
+      >
         {group.issues.length === 0 ? (
-          <div className="flex h-11 items-center px-2 pt-0.5 text-sm font-normal text-muted-foreground-2">
+          <div
+            className={
+              "flex items-center px-2 pt-0.5 text-sm font-normal text-muted-foreground-2 " +
+              (density === "pane" ? "h-9" : "h-11")
+            }
+          >
             No issues in {group.label}
           </div>
         ) : (
@@ -823,6 +857,10 @@ export type IssuesListProps = {
   onCheckedChange?: (checked: ReadonlyMap<string, IssueSummary>) => void;
   /** The people, Captains and threads a row menu's Assignee row offers. */
   actors?: ActorSources;
+  /** Defaults to the page's rows and full section headers. */
+  density?: IssueDensity;
+  /** Opens an issue in place; without it a row navigates to the issue page. */
+  onOpenIssue?: (code: string) => void;
 };
 
 /** Capy's IssuesList: state sections of issue rows, with loading and empty states. */
@@ -840,6 +878,8 @@ export function IssuesList({
   checked,
   onCheckedChange,
   actors,
+  density = "page",
+  onOpenIssue,
 }: IssuesListProps) {
   const [openSections, setOpenSections] = useState<
     Readonly<Record<string, boolean>>
@@ -870,7 +910,13 @@ export function IssuesList({
           <span className="h-2.5 w-16 rounded bg-secondary" />
         </div>
         {[0, 1, 2].map((row) => (
-          <div key={row} className="flex h-11 items-center gap-2 px-2">
+          <div
+            key={row}
+            className={
+              "flex items-center gap-2 px-2 " +
+              (density === "pane" ? "h-9" : "h-11")
+            }
+          >
             <span className="size-3.5 rounded-full bg-secondary" />
             <span className="h-2.5 w-12 rounded bg-secondary" />
             <span className="h-2.5 w-48 rounded bg-secondary" />
@@ -935,7 +981,11 @@ export function IssuesList({
     return (
       <Fragment key={issue.id}>
         <li className="group/row">
-          <IssueRowContextMenu issue={issue} actors={actors}>
+          <IssueRowContextMenu
+            issue={issue}
+            actors={actors}
+            onOpenIssue={onOpenIssue}
+          >
             <IssueRow
               issue={issue}
               orgId={orgId}
@@ -947,6 +997,7 @@ export function IssuesList({
               onCheck={onCheck}
               nested={nested}
               lastChild={lastChild}
+              density={density}
               subIssuesOpen={subIssuesOpen && subIssues.length > 0}
               onToggleSubIssues={
                 subIssues.length === 0
@@ -989,6 +1040,7 @@ export function IssuesList({
               key={group.key}
               group={group}
               open={open}
+              density={density}
               onOpenChange={(next) =>
                 setOpenSections((current) => ({
                   ...current,

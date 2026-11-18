@@ -68,6 +68,16 @@ const stateOverrides: Record<
     icon: "progress",
     color: "green",
   },
+  ist_sample_needs_you: {
+    status: "in_progress",
+    icon: "question",
+    color: "orange",
+  },
+  ist_sample_waiting: {
+    status: "in_progress",
+    icon: "hourglass",
+    color: "blue",
+  },
 };
 
 const labelColors: Record<string, IssueColor> = {
