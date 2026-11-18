@@ -113,6 +113,7 @@ export function GeneralPage() {
               id="desktop-handoff"
               label="Open links in desktop app"
               description="Open Capy links in the installed desktop app"
+              className="max-md:hidden"
             >
               <Switch
                 checked={handoff === "always"}
