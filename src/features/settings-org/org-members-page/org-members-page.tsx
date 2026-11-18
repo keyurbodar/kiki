@@ -685,11 +685,26 @@ function InviteMembersDialog({
 
 /** Settings → Organization → Members (Capy's SettingsOrgMembersPage). */
 export function OrgMembersPage() {
-  const organizations = valueOr(useAtomValue(organizationsAtom), []);
+  const organizationsResult = useAtomValue(organizationsAtom);
+  const organizations = valueOr(organizationsResult, []);
   const organization: Organization | undefined = organizations[0];
   const viewer = useAtomValue(currentUserAtom);
   const viewerId = AsyncResult.isSuccess(viewer) ? viewer.value.id : undefined;
   const refreshOrganizations = useAtomRefresh(organizationsAtom);
+  // A failed organizations read is not "you have no organization": the page
+  // used to render its title and nothing else, which reads as an empty org.
+  if (AsyncResult.isFailure(organizationsResult)) {
+    return (
+      <SettingsPage title="Members" width="wide">
+        <FailedRead
+          slot="members-org-failed"
+          line="Couldn't load your organization"
+          sub="Check your connection and try again"
+          onRetry={refreshOrganizations}
+        />
+      </SettingsPage>
+    );
+  }
   return organization === undefined ? (
     <SettingsPage title="Members" width="wide" />
   ) : (

@@ -58,6 +58,9 @@ const nullable =
   (value: unknown) =>
     value === null || value === undefined ? null : map(value);
 
+/** The organizations read, so a page can tell a pending one from a failed one. */
+export const useActiveOrgRead = () => useAtomValue(organizationsAtom);
+
 export const useActiveOrgId = (): OrgId | undefined =>
   readyValue(
     loadable(

@@ -1,12 +1,13 @@
 import { useAtomRefresh } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
-import type { Atom } from "effect/reactivity";
+import { AsyncResult, type Atom } from "effect/reactivity";
 import { useState } from "react";
 import { FailedRead } from "@/components/failed-read";
 import {
   SettingsSection as Section,
   SettingsPage,
 } from "@/components/settings-page";
+import { organizationsAtom } from "@/data/atoms/session.ts";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import { Card, CardListHeader } from "@/primitives/card";
@@ -29,6 +30,7 @@ import {
 import type { MarketplacePlugin, McpServer } from "../model/types.ts";
 import {
   useActiveOrgId,
+  useActiveOrgRead,
   useMarketplace,
   useMcpServersState,
   usePluginInstallationsState,
@@ -53,6 +55,7 @@ export interface McpAndPluginsPageProps {
 export function McpAndPluginsPage({ github }: McpAndPluginsPageProps) {
   const navigate = useNavigate();
   const orgId = useActiveOrgId();
+  const orgRead = useActiveOrgRead();
   const serversState = useMcpServersState(orgId);
   const pluginsState = usePluginInstallationsState(orgId);
   const servers =
@@ -63,8 +66,13 @@ export function McpAndPluginsPage({ github }: McpAndPluginsPageProps) {
   const projects = useProjects(orgId);
   const [queries, setQueries] = useState<Record<string, string>>({});
   const failed =
-    serversState.status === "failed" || pluginsState.status === "failed";
-  const serversAtom = orgId === undefined ? null : mcpServersAtom(orgId);
+    serversState.status === "failed" ||
+    pluginsState.status === "failed" ||
+    AsyncResult.isFailure(orgRead);
+  const serversAtom =
+    orgId === undefined
+      ? (organizationsAtom as Atom.Atom<unknown>)
+      : (mcpServersAtom(orgId) as Atom.Atom<unknown>);
 
   const sections =
     servers === undefined || plugins === undefined
@@ -334,7 +342,7 @@ function McpListFailed({ atom }: { readonly atom: Atom.Atom<unknown> | null }) {
       slot="mcp-list-failed"
       line="Couldn't load your plugins and MCP servers"
       sub="Check your connection and try again"
-      onRetry={atom === null ? undefined : refresh}
+      onRetry={refresh}
     />
   );
 }
