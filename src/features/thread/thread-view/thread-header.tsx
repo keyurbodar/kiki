@@ -1,7 +1,6 @@
 import { cx } from "class-variance-authority";
 import type { ReactNode } from "react";
 import { AppTopBar } from "@/components/app-top-bar";
-import { ChatIdentity } from "@/features/captains/chat-identity";
 import { WorkProgressEdge } from "@/features/thread/live-status";
 import {
   type PaneTab,
@@ -138,7 +137,6 @@ export function ThreadHeader({
           title,
           content: (
             <span className="flex min-w-0 items-center gap-1.5">
-              <ChatIdentity name={title} size="xs" />
               <span data-pane-tab-label={title} className="min-w-0 truncate">
                 {title}
               </span>
