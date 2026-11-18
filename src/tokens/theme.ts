@@ -64,6 +64,30 @@ export function applyColorTheme(
   root.dataset.colorTheme = theme;
 }
 
+export const CUSTOM_THEME_ATTR = "custom";
+export const CUSTOM_THEME_STYLE_ID = "capy-custom-theme";
+
+export function applyCustomTheme(
+  css: string,
+  root: HTMLElement = document.documentElement,
+) {
+  const existing = document.getElementById(CUSTOM_THEME_STYLE_ID);
+  const style =
+    existing instanceof HTMLStyleElement
+      ? existing
+      : document.createElement("style");
+  style.id = CUSTOM_THEME_STYLE_ID;
+  if (style.textContent !== css) style.textContent = css;
+  if (existing === null) document.head.appendChild(style);
+  root.dataset.colorTheme = CUSTOM_THEME_ATTR;
+}
+
+export function clearCustomTheme(root: HTMLElement = document.documentElement) {
+  document.getElementById(CUSTOM_THEME_STYLE_ID)?.remove();
+  if (root.dataset.colorTheme === CUSTOM_THEME_ATTR)
+    delete root.dataset.colorTheme;
+}
+
 export function applyColorMode(
   mode: ColorMode,
   root: HTMLElement = document.documentElement,

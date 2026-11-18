@@ -2,6 +2,7 @@ import { useAtomValue } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { type ComponentProps, useState } from "react";
+import { ProjectIcon } from "@/components/project-icon";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { Project } from "@/data/api/schemas/project";
 import type { ThreadCardPage } from "@/data/api/schemas/thread";
@@ -26,7 +27,6 @@ import {
   projectActivity,
   projectDisplayName,
 } from "./order-projects";
-import { ProjectIcon } from "./project-icon";
 import {
   joinClasses,
   SelectorCheck,

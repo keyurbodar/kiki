@@ -10,7 +10,15 @@
         const presets = ["absolutely", "bearded-oled", "catppuccin", "codex", "crimson-evernight", "everforest", "firecrawl", "github", "gruvbox", "hub", "linear", "notion", "one"];
         const read = (key) => JSON.parse(localStorage.getItem(key) || "null");
         const theme = read("capy-web:color-theme-v2");
-        if (theme?.kind === "preset" && presets.includes(theme.id)) d.dataset.colorTheme = theme.id;
+        if (theme?.kind === "preset" && presets.includes(theme.id)) {
+          d.dataset.colorTheme = theme.id;
+        } else if (theme?.kind === "custom" && typeof theme.css === "string") {
+          d.dataset.colorTheme = "custom";
+          const style = document.createElement("style");
+          style.id = "capy-custom-theme";
+          style.textContent = theme.css;
+          document.head.appendChild(style);
+        }
         const mode = read("capy-web:appearance")?.preferences?.mode || "system";
         const dark = mode === "dark" || (mode === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
         d.classList.toggle("dark", dark);

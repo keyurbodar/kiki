@@ -2,8 +2,12 @@ import { useSyncExternalStore } from "react";
 import type { BackgroundEffect } from "@/tokens/effects";
 import {
   applyColorMode,
+  applyColorTheme,
+  applyCustomTheme,
   COLOR_THEME_LABELS,
   type ColorMode,
+  CUSTOM_THEME_ATTR,
+  clearCustomTheme,
   isPresetColorTheme,
   type PresetColorTheme,
   resolveColorMode,
@@ -83,8 +87,6 @@ export const DEFAULT_PREFERENCES: AppearancePreferences = {
 const APPEARANCE_KEY = "capy-web:appearance";
 const COLOR_THEME_KEY = "capy-web:color-theme-v2";
 const DIFF_COLORS_KEY = "capy-web:diff-colors";
-const CUSTOM_THEME_STYLE_ID = "capy-custom-theme";
-const CUSTOM_THEME_ATTR = "custom";
 
 export const colorThemeLabel = (theme: ColorThemeSelection) =>
   theme.kind === "custom"
@@ -136,17 +138,11 @@ export function applyAppearance(
   applyColorMode(state.preferences.mode, root);
   root.style.colorScheme = resolveColorMode(state.preferences.mode);
   const theme = state.colorTheme;
-  const existing = document.getElementById(CUSTOM_THEME_STYLE_ID);
   if (theme.kind === "custom") {
-    const style = existing ?? document.createElement("style");
-    style.id = CUSTOM_THEME_STYLE_ID;
-    style.textContent = theme.css;
-    if (!existing) document.head.appendChild(style);
-    root.dataset.colorTheme = CUSTOM_THEME_ATTR;
+    applyCustomTheme(theme.css, root);
   } else {
-    existing?.remove();
-    if (theme.kind === "preset") root.dataset.colorTheme = theme.id;
-    else delete root.dataset.colorTheme;
+    clearCustomTheme(root);
+    applyColorTheme(theme.kind === "preset" ? theme.id : "default", root);
   }
   if (state.diffColors === "blue-orange")
     root.dataset.diffColors = "blue-orange";
