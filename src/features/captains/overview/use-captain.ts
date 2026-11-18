@@ -1,4 +1,4 @@
-import { useAtomValue } from "@effect/atom-react";
+import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { organizationsAtom } from "@/data/atoms/session";
 import {
@@ -20,14 +20,30 @@ export function useCaptain(orgId: string | undefined, jamId: string) {
     : undefined;
 }
 
+export type CaptainCrewState = {
+  crew: CrewThread[] | undefined;
+  failed: boolean;
+  retry: () => void;
+};
+
 export function useCaptainCrew(
   orgId: string | undefined,
   jamId: string,
-): CrewThread[] | undefined {
-  const result = useAtomValue(captainCrewAtom(orgId ?? "", jamId));
-  if (orgId === undefined || !AsyncResult.isSuccess(result)) return undefined;
+): CaptainCrewState {
+  const atom = captainCrewAtom(orgId ?? "", jamId);
+  const result = useAtomValue(atom);
+  const retry = useAtomRefresh(atom);
+  if (orgId === undefined) return { crew: undefined, failed: false, retry };
+  if (AsyncResult.isFailure(result))
+    return { crew: undefined, failed: true, retry };
+  if (!AsyncResult.isSuccess(result))
+    return { crew: undefined, failed: false, retry };
   const rows = Array.isArray(result.value) ? result.value : [];
-  return sortCrew(rows.flatMap((row) => toCrewThread(row) ?? []));
+  return {
+    crew: sortCrew(rows.flatMap((row) => toCrewThread(row) ?? [])),
+    failed: false,
+    retry,
+  };
 }
 
 export type CaptainDriveState = {
