@@ -1,6 +1,13 @@
 import { DateTime, Effect, Ref } from "effect";
-import { McpOAuthCompletion } from "../../api/schemas/mcp.ts";
-import { fields, MockDb, newId, notFound } from "../db/MockDb.ts";
+import { McpSetupId, ToolCallId } from "../../api/schemas/ids.ts";
+import { McpOAuthCompletion, McpSetupView } from "../../api/schemas/mcp.ts";
+import {
+  fields,
+  MockDb,
+  newId,
+  notFound,
+  notFoundNamed,
+} from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
@@ -20,6 +27,18 @@ const text = (value: unknown, fallback: string) =>
 
 const flag = (value: unknown, fallback: boolean) =>
   typeof value === "boolean" ? value : fallback;
+
+/** The row minus the jam it belongs to, which the view does not carry. */
+const viewOf = ({ orgId: _orgId, jamId: _jamId, ...view }: McpSetup) =>
+  new McpSetupView(view);
+
+/** What a proposal becomes once the server has acted on it. */
+const currentOf = (proposal: McpSetup["proposal"]) => {
+  if (proposal.kind === "add") return "added";
+  if (proposal.kind === "update") return "updated";
+  if (proposal.kind === "connect") return "connected";
+  return "ready";
+};
 
 export const McpMock = mockGroup("mcp", (handlers) =>
   Effect.gen(function* () {
@@ -44,20 +63,14 @@ export const McpMock = mockGroup("mcp", (handlers) =>
       Effect.gen(function* () {
         const rows = yield* Ref.get(setups);
         const setup = rows.find((row) => row.id === id);
-        if (!setup) {
-          return yield* Effect.die(new Error(`mcp.setups: no row ${id}`));
-        }
+        if (!setup) return yield* notFoundNamed("mcp setup", id);
         return setup;
       });
 
     const patchSetup = (id: string, patch: Partial<McpSetup>) =>
       Effect.gen(function* () {
         const current = yield* requireSetup(id);
-        const updated = {
-          ...current,
-          ...patch,
-          updatedAt: isoNow(),
-        };
+        const updated = { ...current, ...patch };
         yield* Ref.update(setups, (rows) =>
           rows.map((row) => (row.id === id ? updated : row)),
         );
@@ -111,10 +124,12 @@ export const McpMock = mockGroup("mcp", (handlers) =>
       .handle("listSetups", ({ params }) =>
         Effect.gen(function* () {
           const rows = yield* Ref.get(setups);
-          return rows.filter(
-            (setup) =>
-              setup.orgId === params.orgId && setup.jamId === params.jamId,
-          );
+          return rows
+            .filter(
+              (setup) =>
+                setup.orgId === params.orgId && setup.jamId === params.jamId,
+            )
+            .map(viewOf);
         }),
       )
       .handle("listServers", () =>
@@ -320,47 +335,74 @@ export const McpMock = mockGroup("mcp", (handlers) =>
           };
         }),
       )
-      .handle("createSetup", ({ payload }) =>
+      .handle("createSetup", ({ params, payload }) =>
         Effect.gen(function* () {
           const input = fields(payload);
+          // The server derives the proposal from the tool call; the mock has no
+          // event store to read it back from, so it starts from the sample add.
+          const sample = sampleSetups[0] as McpSetup;
           const setup: McpSetup = {
-            id: newId("setup"),
-            orgId: text(input.orgId, sampleSetups[0]?.orgId ?? ""),
-            jamId: text(input.jamId, sampleSetups[0]?.jamId ?? ""),
-            name: text(input.name, "New MCP setup"),
-            status: "pending",
-            ownerId: text(input.ownerId, sampleSetups[0]?.ownerId ?? ""),
-            attempts: 0,
-            createdAt: isoNow(),
-            updatedAt: isoNow(),
-            completedAt: null,
+            ...sample,
+            id: McpSetupId.make(newId("setup")),
+            orgId: params.orgId,
+            jamId: text(input.jamId, sample.jamId),
+            toolCallId: ToolCallId.make(
+              text(input.toolCallId, "call_mock_setup"),
+            ),
+            state: "pending",
+            current: "pending",
+            expired: false,
+            serverId: undefined,
+            pluginInstallationId: null,
+            toolCount: undefined,
+            health: { state: "unchecked" },
+            recovery: "none",
           };
           yield* Ref.update(setups, (rows) => [...rows, setup]);
-          return setup;
+          return viewOf(setup);
         }),
       )
-      .handle("getSetup", ({ params }) => requireSetup(params.setupId))
+      .handle("getSetup", ({ params }) =>
+        Effect.map(requireSetup(params.setupId), viewOf),
+      )
       .handle("completeSetup", ({ params, payload }) =>
         Effect.gen(function* () {
           const current = yield* requireSetup(params.setupId);
           const input = fields(payload);
-          return yield* patchSetup(current.id, {
-            status: "completed",
-            ...(typeof input.name === "string" ? { name: input.name } : {}),
-            completedAt: isoNow(),
-          });
+          if (input.decision === "decline") {
+            return viewOf(
+              yield* patchSetup(current.id, {
+                state: "declined",
+                current: "declined",
+                recovery: "none",
+              }),
+            );
+          }
+          const owner = input.owner;
+          return viewOf(
+            yield* patchSetup(current.id, {
+              state: "completed",
+              current: currentOf(current.proposal),
+              recovery: "none",
+              ...(owner === "user" || owner === "organization"
+                ? { owner }
+                : {}),
+            }),
+          );
         }),
       )
       .handle("retrySetup", ({ params }) =>
         Effect.gen(function* () {
           const current = yield* requireSetup(params.setupId);
-          return yield* patchSetup(current.id, {
-            status: "in_progress",
-            attempts: current.attempts + 1,
-          });
+          return viewOf(
+            yield* patchSetup(current.id, {
+              state: "pending",
+              current: "pending",
+              health: { state: "checking" },
+              recovery: "automatic",
+            }),
+          );
         }),
       );
   }),
 );
-
-const isoNow = () => DateTime.formatIso(minutesAgo(0));

@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { costRow, type UsageMember } from "./cost";
 import { CostBadge } from "./cost-badge";
+import { ThreadCostBadgeControl } from "./thread-cost-badge";
 
 afterEach(cleanup);
 
@@ -50,5 +51,20 @@ describe("CostBadge", () => {
     expect(
       screen.getByRole("button", { name: "This thread $0.30 $0.10" }),
     ).toBeTruthy();
+  });
+});
+
+describe("ThreadCostBadgeControl", () => {
+  it("still paints Capy's chip for a thread that has spent nothing", async () => {
+    render(
+      <ThreadCostBadgeControl
+        threadId="jam_fresh"
+        usage={{ members: [], crew: [] }}
+      />,
+    );
+    const chip = screen.getByRole("button", { name: "Thread cost $0.00" });
+    expect(chip.textContent).toBe("$0.00");
+    fireEvent.click(chip);
+    expect(await screen.findByText("Charged by Capy")).toBeTruthy();
   });
 });

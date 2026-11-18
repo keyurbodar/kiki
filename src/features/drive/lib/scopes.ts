@@ -1,3 +1,4 @@
+import type { CaptainAvatarValue } from "@/primitives/captain-avatar";
 import type { DriveScopeFields, DriveTarget } from "./mount";
 
 export interface DriveScopeSummary extends DriveScopeFields {
@@ -13,6 +14,7 @@ export interface DriveScopeRow {
   readonly personal: boolean;
   readonly summary: DriveScopeSummary;
   readonly target: DriveTarget;
+  readonly avatar: CaptainAvatarValue | null;
 }
 
 export interface DriveScopeNames {
@@ -29,6 +31,7 @@ export interface DriveScopeNames {
   readonly captains: ReadonlyArray<{
     readonly id: string;
     readonly name: string;
+    readonly avatar: CaptainAvatarValue | null;
   }>;
 }
 
@@ -62,6 +65,7 @@ const organizationRow = (
   personal: false,
   summary,
   target: { kind: "organization" },
+  avatar: null,
 });
 
 const personalRow = (summary: DriveScopeSummary): DriveScopeRow => ({
@@ -71,6 +75,7 @@ const personalRow = (summary: DriveScopeSummary): DriveScopeRow => ({
   personal: true,
   summary,
   target: { kind: "personal" },
+  avatar: null,
 });
 
 /** One row per summary the viewer can name; unknown projects and automations drop out. */
@@ -90,6 +95,7 @@ export function scopeRows(
           personal: false,
           summary,
           target: { kind: "captain", jamId },
+          avatar: names.captains.find((c) => c.id === jamId)?.avatar ?? null,
         },
       ];
     }
@@ -106,6 +112,7 @@ export function scopeRows(
           personal: false,
           summary,
           target: { kind: "automation", automationId: automation.id },
+          avatar: null,
         },
       ];
     }
@@ -123,6 +130,7 @@ export function scopeRows(
           personal,
           summary,
           target: { kind: "project", projectId: project.id, personal },
+          avatar: null,
         },
       ];
     }

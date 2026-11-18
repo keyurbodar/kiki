@@ -5,7 +5,7 @@ import {
   FileUploadTargets,
   FileUrl,
 } from "../../api/schemas/files.ts";
-import { fields, newId } from "../db/MockDb.ts";
+import { fields, newId, notFoundNamed } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
@@ -39,11 +39,7 @@ export const FilesMock = mockGroup("files", (handlers) =>
       Effect.gen(function* () {
         const rows = yield* Ref.get(filesRef);
         const row = rows.find((candidate) => candidate.id === fileId);
-        if (!row) {
-          return yield* Effect.die(
-            new Error(`files.threadFiles: no row ${fileId}`),
-          );
-        }
+        if (!row) return yield* notFoundNamed("file", fileId);
         return row;
       });
 

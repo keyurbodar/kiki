@@ -14,9 +14,11 @@ interface Server {
 
 interface Setup {
   readonly id: string;
-  readonly name: string;
-  readonly status: string;
-  readonly attempts: number;
+  readonly toolCallId: string;
+  readonly state: string;
+  readonly current: string;
+  readonly recovery: string;
+  readonly health: { readonly state: string };
 }
 
 const key = `mcp:${orgId}`;
@@ -86,9 +88,12 @@ describe("mcp mock", () => {
         "mcp_sample_docs",
         "mcp_sample_untested",
       ]);
-      assert.include(
-        names(yield* read(registry, setupsAtom)),
-        "Error tracker setup",
+      // Three setups live in this thread; the fourth belongs to another jam.
+      assert.deepStrictEqual(
+        (yield* read<ReadonlyArray<Setup>>(registry, setupsAtom)).map(
+          (setup) => setup.id,
+        ),
+        ["setup_sample_errors", "setup_sample_docs", "setup_sample_plugin"],
       );
       assert.isAbove(
         (yield* read<ReadonlyArray<unknown>>(registry, connectionsAtom)).length,
@@ -230,19 +235,33 @@ describe("mcp mock", () => {
       yield* Registry.getResult(registry, setupsAfterMutationsAtom as any);
       registry.set(createSetup, {
         params: { orgId },
-        payload: { name: "Added MCP setup" },
+        payload: {
+          jamId: threads.checkoutTest.id,
+          assistantEventId: "evt_sample_setup",
+          toolResultEventId: "evt_sample_setup_result",
+          toolCallId: "call_mock_created",
+        },
         reactivityKeys: [key],
       });
       const created = (yield* Registry.getResult(registry, createSetup as any, {
         suspendOnWaiting: true,
       })) as unknown as Setup;
+      assert.equal(created.toolCallId, "call_mock_created");
+      assert.equal(created.state, "pending");
+      assert.equal(created.health.state, "unchecked");
 
       registry.set(completeSetup, {
         params: { orgId, setupId: created.id },
-        payload: {},
+        payload: { decision: "approve", owner: "organization" },
         reactivityKeys: [key],
       });
-      yield* Registry.getResult(registry, completeSetup as any);
+      const approved = (yield* Registry.getResult(
+        registry,
+        completeSetup as any,
+        { suspendOnWaiting: true },
+      )) as unknown as Setup;
+      assert.equal(approved.state, "completed");
+      assert.equal(approved.current, "added");
 
       registry.set(retrySetup, {
         params: { orgId, setupId: created.id },
@@ -254,11 +273,56 @@ describe("mcp mock", () => {
         registry,
         setupsAfterMutationsAtom,
       );
-      assert.equal(
-        after.find((row) => row.id === created.id)?.status,
-        "in_progress",
+      const retried = after.find((row) => row.id === created.id);
+      assert.equal(retried?.state, "pending");
+      assert.equal(retried?.recovery, "automatic");
+      assert.equal(retried?.health.state, "checking");
+    }),
+  );
+
+  it.effect("records a declined setup instead of dropping it", () =>
+    Effect.gen(function* () {
+      const registry = Registry.make();
+      registry.set(createSetup, {
+        params: { orgId },
+        payload: {
+          jamId: threads.checkoutTest.id,
+          assistantEventId: "evt_sample_declined",
+          toolResultEventId: "evt_sample_declined_result",
+          toolCallId: "call_mock_declined",
+        },
+        reactivityKeys: [key],
+      });
+      const created = (yield* Registry.getResult(registry, createSetup as any, {
+        suspendOnWaiting: true,
+      })) as unknown as Setup;
+
+      registry.set(completeSetup, {
+        params: { orgId, setupId: created.id },
+        payload: { decision: "decline" },
+        reactivityKeys: [key],
+      });
+      const declined = (yield* Registry.getResult(
+        registry,
+        completeSetup as any,
+        { suspendOnWaiting: true },
+      )) as unknown as Setup;
+      assert.equal(declined.state, "declined");
+      assert.equal(declined.current, "declined");
+    }),
+  );
+
+  it.effect("answers the 404 the endpoint declares for an unknown setup", () =>
+    Effect.gen(function* () {
+      const registry = Registry.make();
+      const missing = ApiClient.query("mcp", "getSetup", {
+        params: { orgId, setupId: "setup_nobody" },
+        reactivityKeys: [key],
+      });
+      const error = yield* Registry.getResult(registry, missing as never).pipe(
+        Effect.flip,
       );
-      assert.equal(after.find((row) => row.id === created.id)?.attempts, 1);
+      assert.instanceOf(error, HttpApiError.NotFound);
     }),
   );
 

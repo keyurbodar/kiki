@@ -124,6 +124,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
         name: Schema.String,
       },
       success: Schema.Array(ProjectEnvironmentVariable),
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.get(

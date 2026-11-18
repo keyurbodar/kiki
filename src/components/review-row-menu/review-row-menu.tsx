@@ -1,6 +1,8 @@
-import { useAtomSet } from "@effect/atom-react";
+import { useAtomRefresh, useAtomSet } from "@effect/atom-react";
 import { type KeyboardEvent, useState } from "react";
 import { toast } from "sonner";
+import { pullReviewersAtom } from "@/components/pull-view/atoms";
+import { goneOr } from "@/components/pull-view/gone";
 import {
   DotsHorizontalGlyph,
   RotateClockwiseGlyph,
@@ -69,6 +71,9 @@ export function ReviewRowMenu({
   onDismissed,
 }: ReviewRowMenuProps) {
   const setReviewer = useAtomSet(setReviewerAtom, { mode: "promise" });
+  const refreshReviewers = useAtomRefresh(
+    pullReviewersAtom(orgId ?? "", pull.id),
+  );
   const [dismissing, setDismissing] = useState(false);
   const [busy, setBusy] = useState(false);
   if (orgId === undefined || isPullClosed(pull)) return null;
@@ -85,7 +90,10 @@ export function ReviewRowMenu({
       .then(() =>
         toast.success("Review re-requested", { description: review.reviewer }),
       )
-      .catch(githubRefused)
+      .catch((error: unknown) => {
+        if (goneOr(error, "This review", refreshReviewers)) return;
+        githubRefused(error);
+      })
       .finally(() => setBusy(false));
   };
 
@@ -170,6 +178,9 @@ export function DismissReviewDialog({
   onDismissed,
 }: DismissReviewDialogProps) {
   const dismiss = useAtomSet(dismissReviewAtom, { mode: "promise" });
+  const refreshReviewers = useAtomRefresh(
+    pullReviewersAtom(orgId ?? "", pullId),
+  );
   const [reason, setReason] = useState("");
   const [pending, setPending] = useState(false);
   const message = reason.trim();
@@ -187,7 +198,14 @@ export function DismissReviewDialog({
         setReason("");
         onOpenChange(false);
       })
-      .catch(githubRefused)
+      .catch((error: unknown) => {
+        if (!goneOr(error, "This review", refreshReviewers)) {
+          githubRefused(error);
+          return;
+        }
+        setReason("");
+        onOpenChange(false);
+      })
       .finally(() => setPending(false));
   };
 

@@ -1,5 +1,12 @@
 import { Effect, Ref } from "effect";
-import { fields, type JamRow, MockDb, newId, notFound } from "../db/MockDb.ts";
+import {
+  fields,
+  type JamRow,
+  MockDb,
+  newId,
+  notFound,
+  notFoundNamed,
+} from "../db/MockDb.ts";
 import {
   isoMinutesAgo,
   people,
@@ -236,9 +243,7 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
         Effect.gen(function* () {
           const rows = yield* Ref.get(localPulls);
           if (!rows.some((row) => row.id === params.id)) {
-            return yield* Effect.die(
-              new Error(`pulls.localPulls: no row ${params.id}`),
-            );
+            return yield* notFoundNamed("local pull", params.id);
           }
           yield* Ref.set(
             localPulls,
@@ -415,9 +420,7 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
           }
           const comment = current.find((item) => item.id === params.commentId);
           if (!comment) {
-            return yield* Effect.die(
-              new Error(`pulls.comments: no row ${params.commentId}`),
-            );
+            return yield* notFoundNamed("pull comment", params.commentId);
           }
           const resolved = { ...comment, resolved: true };
           yield* Ref.set(
@@ -471,9 +474,7 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
           const current = yield* Ref.get(findings);
           const finding = current.find((item) => item.id === params.findingId);
           if (!finding) {
-            return yield* Effect.die(
-              new Error(`pulls.findings: no row ${params.findingId}`),
-            );
+            return yield* notFoundNamed("pull finding", params.findingId);
           }
           const status = text(fields(payload).status) ?? finding.status;
           const updated = { ...finding, status };
@@ -649,9 +650,7 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
             (item) => item.githubReviewId === params.githubReviewId,
           );
           if (!review) {
-            return yield* Effect.die(
-              new Error(`pulls.reviews: no row ${params.githubReviewId}`),
-            );
+            return yield* notFoundNamed("pull review", params.githubReviewId);
           }
           const dismissed = { ...review, state: "dismissed" };
           yield* Ref.set(

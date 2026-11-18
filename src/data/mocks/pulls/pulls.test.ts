@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { Atom, AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId, pulls, threads } from "../fixtures/world.ts";
@@ -468,6 +469,35 @@ describe("pulls mock", () => {
       });
       const removed = yield* AtomRegistry.getResult(registry, removeLocalPull);
       assert.isTrue((removed as { ok: boolean }).ok);
+    }),
+  );
+
+  it.effect("answers the 404 each mutation declares for an unknown id", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const calls = [
+        ApiClient.mutation("pulls", "removeLocalPull"),
+        ApiClient.mutation("pulls", "resolveComment"),
+        ApiClient.mutation("pulls", "updateFinding"),
+        ApiClient.mutation("pulls", "dismissReview"),
+      ];
+      const params = [
+        { orgId, jamId: pulls[0]!.threadId!, id: "pull_nobody" },
+        { orgId, pullId, commentId: "cmt_nobody" },
+        { orgId, pullId, findingId: "fnd_nobody" },
+        { orgId, pullId, githubReviewId: "999999" },
+      ];
+      for (const [index, atom] of calls.entries()) {
+        registry.set(atom as never, {
+          params: params[index],
+          payload: { resolved: true, status: "resolved" },
+        });
+        const error = yield* AtomRegistry.getResult(
+          registry,
+          atom as never,
+        ).pipe(Effect.flip);
+        assert.instanceOf(error, HttpApiError.NotFound);
+      }
     }),
   );
 });

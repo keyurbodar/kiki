@@ -133,8 +133,15 @@ export const missing = (table: TableName, id: string) =>
  * contract never described.
  */
 export const notFound = (table: TableName, id: string) =>
+  notFoundNamed(table, id);
+
+/**
+ * The same 404 for a row that is not a table of its own, e.g. a setup the
+ * mcp group keeps beside its server rows.
+ */
+export const notFoundNamed = (label: string, id: string) =>
   Effect.fail(
-    new HttpApiError.NotFound({ message: `No ${table} row ${id}` } as never),
+    new HttpApiError.NotFound({ message: `No ${label} ${id}` } as never),
   );
 
 /** A fresh id for a row a mock creates, e.g. `newId("lbl")` → `lbl_mock_1`. */

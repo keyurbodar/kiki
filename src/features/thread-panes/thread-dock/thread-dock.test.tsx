@@ -57,8 +57,7 @@ describe("ThreadDock", () => {
     ).toBe("closed");
   });
 
-  it("offers the pane's link, expand and close from the bar", () => {
-    const onCopyLink = vi.fn();
+  it("offers expand and close from the bar, and no link control Capy does not have", () => {
     const onToggleExpand = vi.fn();
     const onClose = vi.fn();
     render(
@@ -68,7 +67,6 @@ describe("ThreadDock", () => {
           tabs={tabs}
           activeId="overview"
           onSelectTab={() => undefined}
-          onCopyLink={onCopyLink}
           onToggleExpand={onToggleExpand}
           onClose={onClose}
         >
@@ -76,12 +74,9 @@ describe("ThreadDock", () => {
         </ThreadDock>
       </RightPanelGroup>,
     );
-    fireEvent.click(screen.getByLabelText("Copy pane link"));
+    expect(screen.queryByLabelText("Copy pane link")).toBeNull();
     fireEvent.click(screen.getByLabelText("Expand pane"));
     fireEvent.click(screen.getByLabelText("Close pane"));
-    expect(onCopyLink).toHaveBeenCalledWith(
-      expect.stringContaining("/thread/jam_sample_0001"),
-    );
     expect(onToggleExpand).toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
   });

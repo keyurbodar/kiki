@@ -1,11 +1,12 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { Undecoded } from "../undecoded.ts";
 
 export class PluginsGroup extends HttpApiGroup.make("plugins").add(
   HttpApiEndpoint.get("listThreadPlugins", "/orgs/:orgId/jams/:jamId/plugins", {
     params: { orgId: Schema.String, jamId: Schema.String },
     success: Undecoded,
+    error: HttpApiError.NotFoundNoContent,
   }),
   HttpApiEndpoint.get(
     "listInstallations",
@@ -16,6 +17,7 @@ export class PluginsGroup extends HttpApiGroup.make("plugins").add(
     params: { orgId: Schema.String },
     payload: Undecoded,
     success: Undecoded,
+    error: HttpApiError.NotFoundNoContent,
   }),
   HttpApiEndpoint.get(
     "getInstallation",
@@ -23,6 +25,7 @@ export class PluginsGroup extends HttpApiGroup.make("plugins").add(
     {
       params: { orgId: Schema.String, installationId: Schema.String },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.patch(
@@ -32,6 +35,7 @@ export class PluginsGroup extends HttpApiGroup.make("plugins").add(
       params: { orgId: Schema.String, installationId: Schema.String },
       payload: Undecoded,
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.delete(
@@ -40,6 +44,7 @@ export class PluginsGroup extends HttpApiGroup.make("plugins").add(
     {
       params: { orgId: Schema.String, installationId: Schema.String },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.post(
@@ -49,6 +54,7 @@ export class PluginsGroup extends HttpApiGroup.make("plugins").add(
       params: { orgId: Schema.String, installationId: Schema.String },
       payload: Undecoded,
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.post(
@@ -58,6 +64,7 @@ export class PluginsGroup extends HttpApiGroup.make("plugins").add(
       params: { orgId: Schema.String, installationId: Schema.String },
       payload: Undecoded,
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.post(
@@ -71,6 +78,7 @@ export class PluginsGroup extends HttpApiGroup.make("plugins").add(
       },
       payload: Undecoded,
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.delete(
@@ -83,6 +91,7 @@ export class PluginsGroup extends HttpApiGroup.make("plugins").add(
         serverKey: Schema.String,
       },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.post(
@@ -91,6 +100,7 @@ export class PluginsGroup extends HttpApiGroup.make("plugins").add(
     {
       params: { orgId: Schema.String, installationId: Schema.String },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.post(
@@ -100,11 +110,13 @@ export class PluginsGroup extends HttpApiGroup.make("plugins").add(
       params: { orgId: Schema.String, installationId: Schema.String },
       payload: Undecoded,
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.get("getVersion", "/orgs/:orgId/plugin-versions/:versionId", {
     params: { orgId: Schema.String, versionId: Schema.String },
     success: Undecoded,
+    error: HttpApiError.NotFoundNoContent,
   }),
   HttpApiEndpoint.get(
     "getVersionIcon",
@@ -112,6 +124,7 @@ export class PluginsGroup extends HttpApiGroup.make("plugins").add(
     {
       params: { orgId: Schema.String, versionId: Schema.String },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.post(

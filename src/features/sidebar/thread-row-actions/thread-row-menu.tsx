@@ -20,7 +20,7 @@ import { useSidebarOrgId } from "../sidebar-threads-data/live-source";
 import { useThreadActions } from "./thread-actions-context";
 
 const menuIconClassName =
-  "flex size-(--icon-sm) shrink-0 items-center justify-center text-icon-muted in-data-[intent=danger]:text-destructive";
+  "kiki-icon text-icon-muted in-data-[intent=danger]:text-destructive";
 const menuSeparatorClassName = "-mx-1 my-1 h-px bg-border-1";
 const menuLabelClassName =
   "mt-1 flex min-h-[calc(var(--spacing)*5.5)] items-center px-2 text-xs font-medium text-muted-foreground-2 first:mt-0";
@@ -49,7 +49,7 @@ function MenuRow({
         if (!disabled) onClick();
       }}
     >
-      <span className={menuIconClassName}>
+      <span data-size="sm" className={menuIconClassName}>
         <Icon name={icon} size="sm" />
       </span>
       {label}
@@ -96,7 +96,7 @@ function TagRows({ threadId }: { threadId: string }) {
               }).catch(() => undefined);
             }}
           >
-            <span className={menuIconClassName}>
+            <span data-size="sm" className={menuIconClassName}>
               <Icon name={tagged ? "checkmark-1" : "tag"} size="sm" />
             </span>
             {tag.name}
@@ -136,7 +136,7 @@ export function ThreadRowMenu({
             key={folder.id}
             onClick={act(() => actions.moveTo(thread, folder.id))}
           >
-            <span className={menuIconClassName}>
+            <span data-size="sm" className={menuIconClassName}>
               <Icon name="folder-1" size="sm" />
             </span>
             {folder.name}
@@ -169,23 +169,23 @@ export function ThreadRowMenu({
       )}
       <ResponsiveMenuSub
         icon={
-          <span className={menuIconClassName}>
+          <span data-size="sm" className={menuIconClassName}>
             <Icon name="move-folder" size="sm" />
           </span>
         }
         label="Move to"
-        contentClassName="w-52"
+        contentClassName="kiki-menu"
       >
         {folders}
       </ResponsiveMenuSub>
       <ResponsiveMenuSub
         icon={
-          <span className={menuIconClassName}>
+          <span data-size="sm" className={menuIconClassName}>
             <Icon name="tag" size="sm" />
           </span>
         }
         label="Tags"
-        contentClassName="w-52"
+        contentClassName="kiki-menu"
       >
         <TagRows threadId={thread.id} />
       </ResponsiveMenuSub>

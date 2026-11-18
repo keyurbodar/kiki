@@ -28,7 +28,7 @@ import type {
 } from "./types";
 
 export const sidebarSectionHeaderClassName = cx(
-  "flex h-(--sidebar-section-header) min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded px-2 text-left text-xs text-muted-foreground-2 outline-none select-none",
+  "kiki-sidebar-section min-w-0 flex-1 cursor-pointer text-xs text-muted-foreground-2 outline-none select-none",
   "transition-colors duration-100 hover:text-foreground focus-visible:outline-ring-inset",
 );
 

@@ -216,41 +216,45 @@ export function PaneTabButton({
         button
       )}
       {closable && (
-        <Tooltip>
-          <TooltipTrigger
-            data-track-owner="features/thread/pane/tab-strip.tsx#TabButton:TooltipTrigger.1"
-            render={
-              <Button
-                data-track-owner="features/thread/pane/tab-strip.tsx#TabButton:Button.2"
-                variant="bare"
-                size="icon-shrink"
-                aria-label={`Close ${label}`}
-                tabIndex={-1}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onClose(id);
-                }}
-                className={[
-                  "absolute top-1/2 right-1 size-5 w-5! -translate-y-1/2 rounded-(--radius-inner)",
-                  !coarse &&
-                    "pointer-events-none opacity-0 transition-opacity duration-hover group-hover/tab:pointer-events-auto group-hover/tab:opacity-100 group-has-[:focus-visible]/tab:pointer-events-auto group-has-[:focus-visible]/tab:opacity-100",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-              >
-                <CrossGlyph />
-              </Button>
-            }
-          />
-          <TooltipContent side="bottom">
-            Close {label}
-            {!coarse && closeShortcutTarget === id && (
-              <span data-slot="tooltip-shortcut">
-                {shortcutFor("tab.close")}
-              </span>
-            )}
-          </TooltipContent>
-        </Tooltip>
+        <span
+          className={[
+            "absolute top-1/2 right-1 -translate-y-1/2",
+            !coarse &&
+              "pointer-events-none opacity-0 transition-opacity duration-hover group-hover/tab:pointer-events-auto group-hover/tab:opacity-100 group-has-[:focus-visible]/tab:pointer-events-auto group-has-[:focus-visible]/tab:opacity-100",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          <Tooltip>
+            <TooltipTrigger
+              data-track-owner="features/thread/pane/tab-strip.tsx#TabButton:TooltipTrigger.1"
+              render={
+                <Button
+                  data-track-owner="features/thread/pane/tab-strip.tsx#TabButton:Button.2"
+                  variant="bare"
+                  size="icon-shrink"
+                  aria-label={`Close ${label}`}
+                  tabIndex={-1}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onClose(id);
+                  }}
+                  className="size-5 w-5! rounded-(--radius-inner)"
+                >
+                  <CrossGlyph />
+                </Button>
+              }
+            />
+            <TooltipContent side="bottom">
+              Close {label}
+              {!coarse && closeShortcutTarget === id && (
+                <span data-slot="tooltip-shortcut">
+                  {shortcutFor("tab.close")}
+                </span>
+              )}
+            </TooltipContent>
+          </Tooltip>
+        </span>
       )}
     </span>
   );

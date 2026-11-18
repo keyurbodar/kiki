@@ -80,3 +80,17 @@ export const DriveShareId = Schema.String.check(
   Schema.isPattern(/^dsh_[A-Za-z0-9_-]{24}$/u),
 ).pipe(Schema.brand("Core.DriveShareId"));
 export type DriveShareId = typeof DriveShareId.Type;
+
+export const McpSetupId = Schema.String.pipe(Schema.brand("Core.McpSetupId"));
+export type McpSetupId = typeof McpSetupId.Type;
+
+export const McpServerId = Schema.String.pipe(Schema.brand("Core.McpServerId"));
+export type McpServerId = typeof McpServerId.Type;
+
+export const PluginInstallationId = Schema.String.pipe(
+  Schema.brand("Core.PluginInstallationId"),
+);
+export type PluginInstallationId = typeof PluginInstallationId.Type;
+
+export const ToolCallId = Schema.String.pipe(Schema.brand("Core.ToolCallId"));
+export type ToolCallId = typeof ToolCallId.Type;

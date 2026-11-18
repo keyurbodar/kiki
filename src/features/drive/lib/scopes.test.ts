@@ -23,7 +23,7 @@ const names = {
   userId: "user_a",
   projects: [{ id: "proj_web", name: "Web app" }],
   automations: [{ id: "auto_1", name: "Nightly check" }],
-  captains: [{ id: "jam_cap", name: "Release captain" }],
+  captains: [{ id: "jam_cap", name: "Release captain", avatar: null }],
 };
 
 describe("drive scope rows", () => {
@@ -52,6 +52,28 @@ describe("drive scope rows", () => {
         "Your drive in Web app",
         "Your threads in Web app",
       ],
+    ]);
+  });
+
+  it("carries a Captain's avatar onto its row, and only its row", () => {
+    const avatar = {
+      kind: "preset" as const,
+      value: "capy-avatar-1",
+      background: "#ef722a",
+    };
+    const rows = scopeRows(
+      [
+        summary({ captainJamId: "jam_cap" }),
+        summary({ projectId: "proj_web" }),
+      ],
+      {
+        ...names,
+        captains: [{ id: "jam_cap", name: "Release captain", avatar }],
+      },
+    );
+    expect(rows.map((row) => [row.key, row.avatar])).toEqual([
+      ["captain:jam_cap", avatar],
+      ["project:proj_web:shared", null],
     ]);
   });
 
