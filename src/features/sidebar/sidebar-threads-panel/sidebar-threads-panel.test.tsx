@@ -295,6 +295,7 @@ describe("sidebar row menu", () => {
       "Open in new tab",
       "Pin",
       "Move to",
+      "Tags",
       "Promote to Captain",
       "Rename",
       "Regenerate title",
