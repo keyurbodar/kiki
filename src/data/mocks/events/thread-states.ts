@@ -335,6 +335,19 @@ const mentionThread: EventRowEncoded[] = [
     ],
     data: {},
   }),
+  turn(taskJam, 7, "toolu_state_diff", "edit", {
+    path: "guide/quickstart.md",
+    old_string: "Run the CLI.",
+    new_string: "Run the CLI with --help.",
+  }),
+  row(taskJam, 8, "tool_result", {
+    actor: { type: "agent", jamId: taskJam },
+    origin: sys,
+    toolCallId: "toolu_state_diff",
+    isError: false,
+    blocks: [],
+    data: {},
+  }),
 ];
 
 export const threadStateSeeds: ReadonlyArray<EventRowEncoded> = [
