@@ -7,6 +7,7 @@ import { copyText } from "@/components/file-view/copy";
 import type { EventId, JamId, OrgId } from "@/data/api/schemas/ids";
 import { automationsAtom, idleAutomationsAtom } from "@/data/atoms/automations";
 import { captainsAtom, idleCaptainsAtom } from "@/data/atoms/captains";
+import { overviewPullsAtom } from "@/data/atoms/overview";
 import {
   organizationsAtom,
   resolveActiveOrgId,
@@ -21,19 +22,32 @@ import { ThreadCostBadge } from "@/features/thread/cost-badge";
 import type { EditTarget } from "@/features/thread/message-footer";
 import {
   activeTabId,
-  openTabs,
   ThreadHeader,
   type ThreadTakeoverHandlers,
   ThreadView,
 } from "@/features/thread/thread-view";
+import {
+  closeTab,
+  openTab,
+  type PaneSession,
+  seedSession,
+  selectTab,
+} from "@/features/thread/thread-view/pane-session";
+import { PaneSessionContext } from "@/features/thread/thread-view/pane-session-context";
+import { tabForKey } from "@/features/thread/thread-view/thread-tabs";
 import {
   editDraftAtom,
   threadKey,
   useThreadTimeline,
 } from "@/features/thread/timeline";
 import { BrowserPane } from "@/features/thread-panes/browser-pane";
+import { parsePull, valueList } from "@/features/thread-panes/overview/parse";
 import { useSideThreads } from "@/features/thread-panes/side-threads";
-import { tabKey } from "@/features/thread-panes/tab-strip";
+import {
+  CHAT_TAB_ID,
+  type PaneTab,
+  tabKey,
+} from "@/features/thread-panes/tab-strip";
 import { TerminalPane } from "@/features/thread-panes/terminal-pane";
 import { ThreadDock } from "@/features/thread-panes/thread-dock";
 import {
@@ -43,10 +57,18 @@ import {
   surfaceOf,
   writesPaneParam,
 } from "@/features/thread-panes/thread-pane";
+import { PaneContent } from "./pane-content";
 
 export type ThreadRouteProps = {
   threadId: string;
   pane: string | undefined;
+  /** The panel's open tabs. Capy keeps every tab it opens. */
+  session?: PaneSession;
+  /**
+   * Moves the session: opening, selecting and closing a tab all land here, and
+   * the URL follows the tab the panel is showing.
+   */
+  onSession?: (session: PaneSession) => void;
   /** The route's pane search param; undefined returns the thread to its chat. */
   onSelectPane?: (pane: string | undefined) => void;
 };
@@ -54,6 +76,8 @@ export type ThreadRouteProps = {
 export function ThreadRoute({
   threadId,
   pane,
+  session,
+  onSession,
   onSelectPane,
 }: ThreadRouteProps) {
   const organizations =
@@ -119,54 +143,137 @@ export function ThreadRoute({
   const [expanded, setExpanded] = useState(false);
   const sideThreads = useSideThreads(orgId ?? "", threadId);
   const entry = findPane(pane);
-  const dockOpen = entry !== undefined && surfaceOf(entry) === "dock";
+  const openTabs =
+    session ??
+    seedSession(
+      entry !== undefined && surfaceOf(entry) === "dock"
+        ? tabForKey(entry.id)
+        : undefined,
+      entry?.id,
+    );
+  const activeDock = openTabs.tabs.find(
+    (tab) => tabKey(tab) === openTabs.active,
+  );
+  const dockOpen = activeDock !== undefined;
   useEffect(() => {
     if (!dockOpen) setExpanded(false);
   }, [dockOpen]);
-  const session = entry === undefined ? parseSessionPane(pane) : undefined;
-  const activeId = activeTabId(entry);
+  const sessionPane = entry === undefined ? parseSessionPane(pane) : undefined;
+  const mainEntry =
+    entry !== undefined && surfaceOf(entry) === "main" ? entry : undefined;
+  const activeId = openTabs.active;
+  const headerActiveId =
+    mainEntry === undefined ? CHAT_TAB_ID : activeTabId(mainEntry);
+  const openTabIn = (tab: PaneTab) => onSession?.(openTab(openTabs, tab));
+  const selectIn = (id: string) => onSession?.(selectTab(openTabs, id));
+  const closeIn = (id: string) => onSession?.(closeTab(openTabs, id));
+  /** A menu pick lands in the panel when its pane lives there, and in the chat
+   * column otherwise — the two strips share one menu. */
+  const openInStrip = (id: string) => {
+    const target = findPane(id);
+    const tab = tabForKey(id);
+    const dock = target === undefined || surfaceOf(target) === "dock";
+    if (tab !== undefined && dock) openTabIn(tab);
+    else onSelectPane?.(id);
+  };
+  const pulls = useAtomValue(
+    orgId === undefined
+      ? overviewPullsAtom("" as OrgId, "")
+      : overviewPullsAtom(orgId as OrgId, threadId),
+  );
+  const pullEntries = useMemo(
+    () =>
+      (AsyncResult.isSuccess(pulls) ? valueList(pulls.value) : []).flatMap(
+        (row) => {
+          const pull = parsePull(row);
+          return pull === undefined
+            ? []
+            : [{ number: pull.number, url: pull.url, title: pull.title }];
+        },
+      ),
+    [pulls],
+  );
   const mainPane =
     entry !== undefined && surfaceOf(entry) === "main" ? (
       <Suspense fallback={null}>
         <entry.component threadId={threadId} />
       </Suspense>
-    ) : session?.kind === "browser" ? (
-      <BrowserPane threadId={threadId} sessionId={session.sessionId} />
-    ) : session?.kind === "shell" ? (
-      <TerminalPane threadId={threadId} clientId={session.clientId} />
+    ) : sessionPane?.kind === "browser" ? (
+      <BrowserPane threadId={threadId} sessionId={sessionPane.sessionId} />
+    ) : sessionPane?.kind === "shell" ? (
+      <TerminalPane threadId={threadId} clientId={sessionPane.clientId} />
     ) : undefined;
   return (
-    <ThreadView
-      threadId={threadId}
-      rows={timeline.rows}
-      loading={timeline.loading}
-      failed={timeline.failed}
-      onRetry={timeline.retry}
-      loadingOlder={timeline.loadingOlder}
-      hasOlder={timeline.hasOlder}
-      onLoadOlder={timeline.loadOlder}
-      pendingAsk={timeline.pendingAsk}
-      pendingEnvironment={timeline.pendingEnvironment}
-      handlers={handlers}
-      paneExpanded={expanded}
-      editing={editing}
-      onEditMessage={startEdit}
-      onCancelEdit={stopEdit}
-      mainPane={mainPane}
-      dock={
-        dockOpen ? (
-          <ThreadDock
+    <PaneSessionContext.Provider value={{ openTab: openTabIn }}>
+      <ThreadView
+        threadId={threadId}
+        rows={timeline.rows}
+        loading={timeline.loading}
+        failed={timeline.failed}
+        onRetry={timeline.retry}
+        loadingOlder={timeline.loadingOlder}
+        hasOlder={timeline.hasOlder}
+        onLoadOlder={timeline.loadOlder}
+        pendingAsk={timeline.pendingAsk}
+        pendingEnvironment={timeline.pendingEnvironment}
+        handlers={handlers}
+        paneExpanded={expanded}
+        editing={editing}
+        onEditMessage={startEdit}
+        onCancelEdit={stopEdit}
+        mainPane={mainPane}
+        dock={
+          dockOpen && activeDock !== undefined ? (
+            <ThreadDock
+              threadId={threadId}
+              tabs={openTabs.tabs}
+              activeId={activeId}
+              title={title}
+              menu={{ sideThreads, pulls: pullEntries }}
+              expanded={expanded}
+              onSelectTab={selectIn}
+              onOpenTab={openTabIn}
+              onCloseTab={closeIn}
+              onClose={() => closeIn(openTabs.active)}
+              onToggleExpand={() => setExpanded((current) => !current)}
+              onCopyLink={(path) =>
+                void copyText(
+                  `${window.location.origin}${path}`,
+                  "Link copied",
+                  "Could not copy link",
+                )
+              }
+            >
+              <PaneContent
+                tab={activeDock}
+                threadId={threadId}
+                orgId={orgId as OrgId | undefined}
+              />
+            </ThreadDock>
+          ) : undefined
+        }
+        topBar={
+          <ThreadHeader
             threadId={threadId}
-            tabs={openTabs(entry)}
-            activeId={activeId}
             title={title}
-            menu={{ sideThreads }}
+            working={working}
+            tabs={
+              entry !== undefined && surfaceOf(entry) === "main"
+                ? [tabForKey(pane) ?? { kind: "overview" }]
+                : []
+            }
+            activeId={headerActiveId}
+            menu={{ sideThreads, pulls: pullEntries }}
+            cost={
+              orgId === undefined ? undefined : (
+                <ThreadCostBadge orgId={orgId} jamId={threadId} />
+              )
+            }
             expanded={expanded}
-            onSelectTab={(id) => onSelectPane?.(id)}
-            onOpenTab={(tab) => onSelectPane?.(tabKey(tab))}
+            onSelectChat={() => onSelectPane?.(undefined)}
+            onSelectTab={openInStrip}
+            onOpenBrowser={() => onSelectPane?.("browser")}
             onCloseTab={() => onSelectPane?.(undefined)}
-            onClose={() => onSelectPane?.(undefined)}
-            onToggleExpand={() => setExpanded((current) => !current)}
             onCopyLink={(path) =>
               void copyText(
                 `${window.location.origin}${path}`,
@@ -174,46 +281,11 @@ export function ThreadRoute({
                 "Could not copy link",
               )
             }
-          >
-            <Suspense fallback={null}>
-              <entry.component threadId={threadId} />
-            </Suspense>
-          </ThreadDock>
-        ) : undefined
-      }
-      topBar={
-        <ThreadHeader
-          threadId={threadId}
-          title={title}
-          working={working}
-          tabs={
-            entry !== undefined && surfaceOf(entry) === "main"
-              ? openTabs(entry)
-              : []
-          }
-          activeId={activeId}
-          menu={{ sideThreads }}
-          cost={
-            orgId === undefined ? undefined : (
-              <ThreadCostBadge orgId={orgId} jamId={threadId} />
-            )
-          }
-          expanded={expanded}
-          onSelectChat={() => onSelectPane?.(undefined)}
-          onSelectTab={(id) => onSelectPane?.(id)}
-          onOpenBrowser={() => onSelectPane?.("browser")}
-          onCloseTab={() => onSelectPane?.(undefined)}
-          onCopyLink={(path) =>
-            void copyText(
-              `${window.location.origin}${path}`,
-              "Link copied",
-              "Could not copy link",
-            )
-          }
-          onToggleExpand={() => setExpanded((current) => !current)}
-        />
-      }
-    />
+            onToggleExpand={() => setExpanded((current) => !current)}
+          />
+        }
+      />
+    </PaneSessionContext.Provider>
   );
 }
 
@@ -243,11 +315,20 @@ function PaneSelection({
   pane: string | undefined;
 }) {
   const navigate = useNavigate();
+  const entry = findPane(pane);
   const [selection, setSelection] = useState(() => ({
     threadId,
     param: pane,
-    id: findPane(pane)?.id,
+    id: entry?.id,
   }));
+  const [session, setSession] = useState<PaneSession>(() =>
+    seedSession(
+      entry !== undefined && surfaceOf(entry) === "dock"
+        ? tabForKey(pane)
+        : undefined,
+      pane,
+    ),
+  );
   const active =
     selection.threadId === threadId && selection.param === pane
       ? selection.id
@@ -263,10 +344,23 @@ function PaneSelection({
       replace: true,
     });
   }, [stray, navigate, pane, threadId]);
+  const writePane = (next: PaneSession) => {
+    setSession(next);
+    const key = writesPaneParam(next.active) ? next.active : undefined;
+    if (key === undefined && pane === undefined) return;
+    void navigate({
+      to: "/thread/$threadId",
+      params: { threadId },
+      search: key === undefined ? {} : { pane: key },
+      replace: true,
+    });
+  };
   return (
     <ThreadRoute
       threadId={threadId}
       pane={active}
+      session={session}
+      onSession={writePane}
       onSelectPane={(next) => {
         setSelection({
           threadId,
