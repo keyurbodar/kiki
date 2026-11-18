@@ -190,3 +190,70 @@ describe("events mock", () => {
     }),
   );
 });
+
+describe("events mock send", () => {
+  const appendOne = (payload: Record<string, unknown>) =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      registry.set(message, {
+        params: { orgId, jamId },
+        payload,
+        reactivityKeys: [key],
+      });
+      return (yield* AtomRegistry.getResult(registry, message)) as {
+        id: string;
+        deduped: boolean;
+      };
+    });
+
+  const listOf = () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      return eventsOf(
+        yield* AtomRegistry.getResult(registry, listAtom),
+      ) as ReadonlyArray<{
+        id: string;
+        state: string;
+        payload?: { text?: string; delivery?: string; clientKey?: string };
+      }>;
+    });
+
+  it.effect("stores the gesture the composer sent", () =>
+    Effect.gen(function* () {
+      const admitted = yield* appendOne({
+        text: "steer this into the turn",
+        delivery: "steer",
+        clientKey: "ck_mock_steer",
+      });
+      const row = (yield* listOf()).find((event) => event.id === admitted.id);
+      assert.equal(row?.state, "pending");
+      assert.equal(row?.payload?.delivery, "steer");
+      assert.equal(row?.payload?.clientKey, "ck_mock_steer");
+    }),
+  );
+
+  it.effect(
+    "sends the same client key once and two identical texts twice",
+    () =>
+      Effect.gen(function* () {
+        const first = yield* appendOne({
+          text: "same words",
+          clientKey: "ck_mock_same",
+        });
+        const again = yield* appendOne({
+          text: "same words",
+          clientKey: "ck_mock_same",
+        });
+        assert.isFalse(first.deduped);
+        assert.isTrue(again.deduped);
+        assert.equal(again.id, first.id);
+
+        const other = yield* appendOne({
+          text: "same words",
+          clientKey: "ck_mock_other",
+        });
+        assert.isFalse(other.deduped);
+        assert.notEqual(other.id, first.id);
+      }),
+  );
+});

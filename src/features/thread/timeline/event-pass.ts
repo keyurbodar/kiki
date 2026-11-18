@@ -1534,8 +1534,7 @@ export const eventPass = (
           (payload.actor.type === "system" &&
             payload.actor.service === "system" &&
             payload.origin.type === "system") ||
-          (event.state === "pending" &&
-            (payload.delivery === "queue" || payload.delivery === "steer")) ||
+          (event.state === "pending" && payload.delivery === "queue") ||
           (event.state === "cancelled" && cancelledInputs.has(event.id))
         )
           break;

@@ -7,10 +7,13 @@ import {
   type RealtimeServerMessage,
 } from "@/data/events";
 import { applyDelta, idleLive, type LiveTurn, liveToolCallIds } from "./live";
+import { withoutAnswered } from "./pending";
 
 /** What the thread view holds for one thread: stored history plus the live turn. */
 export interface ThreadFeed {
   readonly events: ReadonlyArray<EventRow>;
+  /** Rows this tab sent and the store has not answered yet, keyed by client key. */
+  readonly pending: ReadonlyArray<EventRow>;
   readonly olderCursor: EventId | null;
   readonly live: LiveTurn;
   readonly loading: boolean;
@@ -22,6 +25,7 @@ export interface ThreadFeed {
 
 export const emptyFeed: ThreadFeed = {
   events: [],
+  pending: [],
   olderCursor: null,
   live: idleLive,
   loading: true,
@@ -159,6 +163,7 @@ export const historyLoaded = (
   return {
     ...feed,
     events,
+    pending: withoutAnswered(feed.pending, events),
     olderCursor: page.cursor,
     loading: false,
     failed: false,
@@ -172,6 +177,7 @@ export const newerLoaded = (feed: ThreadFeed, page: EventPage): ThreadFeed => {
   return {
     ...feed,
     events,
+    pending: withoutAnswered(feed.pending, events),
     serverNow: page.serverNow ?? feed.serverNow,
     live: handOff(feed.live, events),
   };

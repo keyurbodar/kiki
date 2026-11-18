@@ -28,11 +28,60 @@ const text = (value: unknown): string | undefined =>
 const messageText = (row: EventRowEncoded) =>
   row.kind === "message" && "payload" in row ? row.payload.text : undefined;
 
+/** The client key a send carried, so a resend of the same gesture is one row. */
+const messageClientKey = (row: EventRowEncoded) =>
+  row.kind === "message" && "payload" in row
+    ? row.payload.clientKey
+    : undefined;
+
+/**
+ * The delivery the submit gesture asked for: steer for a plain send, queue for
+ * one held until the run ends. An unknown value falls back to steer, as Capy's
+ * server does when the client names no gesture.
+ */
+const deliveryOf = (value: unknown) =>
+  value === "queue" || value === "interrupt" ? value : "steer";
+
+/** Where the rows this mock appends are kept, so a reload reads them back. */
+const STORED_ROWS_KEY = "kiki.mock.events.rows";
+
+/** The rows an earlier page load appended; a browser keeps them for us. */
+const storedRows = (): ReadonlyArray<EventRowEncoded> => {
+  const store = globalThis.localStorage;
+  if (store === undefined) return [];
+  try {
+    const raw = store.getItem(STORED_ROWS_KEY);
+    const parsed: unknown = raw === null ? [] : JSON.parse(raw);
+    return Array.isArray(parsed)
+      ? parsed.filter(
+          (row): row is EventRowEncoded =>
+            typeof row === "object" && row !== null && "id" in row,
+        )
+      : [];
+  } catch {
+    return [];
+  }
+};
+
+const rememberRows = (rows: ReadonlyArray<EventRowEncoded>) => {
+  const store = globalThis.localStorage;
+  if (store === undefined) return;
+  try {
+    store.setItem(STORED_ROWS_KEY, JSON.stringify(rows.slice(-50)));
+  } catch {
+    // A full or blocked store only costs the reload, never the send.
+  }
+};
+
 export const EventsMock = mockGroup("events", (handlers) =>
   Effect.gen(function* () {
-    const eventsRef =
-      yield* Ref.make<ReadonlyArray<EventRowEncoded>>(seedEvents);
-    const mintedRef = yield* Ref.make(0);
+    const kept = storedRows();
+    const keptRef = yield* Ref.make<ReadonlyArray<EventRowEncoded>>(kept);
+    const eventsRef = yield* Ref.make<ReadonlyArray<EventRowEncoded>>([
+      ...seedEvents,
+      ...kept,
+    ]);
+    const mintedRef = yield* Ref.make(kept.length);
     const versionsRef =
       yield* Ref.make<
         Readonly<Record<string, ReadonlyArray<MessageVersionRow>>>
@@ -80,6 +129,14 @@ export const EventsMock = mockGroup("events", (handlers) =>
         return updated;
       });
 
+    /** Appends a row and keeps it, so the next page load still has it. */
+    const appendRow = (row: EventRowEncoded) =>
+      Effect.gen(function* () {
+        yield* Ref.update(eventsRef, (rows) => [...rows, row]);
+        const kept = yield* Ref.updateAndGet(keptRef, (rows) => [...rows, row]);
+        rememberRows(kept);
+      });
+
     /** A fresh id for a row a mutation appends, in the same shape as the seeds. */
     const mintId = Effect.gen(function* () {
       const minted = yield* Ref.updateAndGet(mintedRef, (count) => count + 1);
@@ -106,7 +163,7 @@ export const EventsMock = mockGroup("events", (handlers) =>
               triggeredBy: "manual",
             },
           } as EventRowEncoded;
-          yield* Ref.update(eventsRef, (rows) => [...rows, event]);
+          yield* appendRow(event);
           return { id: event.id, deduped: false };
         }),
       )
@@ -196,7 +253,7 @@ export const EventsMock = mockGroup("events", (handlers) =>
               command: { type: "stop" },
             },
           } as EventRowEncoded;
-          yield* Ref.update(eventsRef, (rows) => [...rows, row]);
+          yield* appendRow(row);
           return { id: row.id, deduped: false };
         }),
       )
@@ -205,9 +262,14 @@ export const EventsMock = mockGroup("events", (handlers) =>
           yield* threadExists(params.jamId);
           const input = fields(payload);
           const textValue = text(input.text) ?? "";
+          const clientKey = text(input.clientKey);
           const existing = (yield* Ref.get(eventsRef)).find(
             (row) =>
-              row.jamId === params.jamId && messageText(row) === textValue,
+              row.jamId === params.jamId &&
+              (clientKey === undefined
+                ? messageText(row) === textValue &&
+                  messageClientKey(row) === undefined
+                : messageClientKey(row) === clientKey),
           );
           if (existing) return { id: existing.id, deduped: true };
           const row = {
@@ -221,10 +283,11 @@ export const EventsMock = mockGroup("events", (handlers) =>
               origin: { type: "web", userId: people.alex.id },
               text: textValue,
               files: [],
-              delivery: "queue",
+              delivery: deliveryOf(input.delivery),
+              ...(clientKey === undefined ? {} : { clientKey }),
             },
           } as EventRowEncoded;
-          yield* Ref.update(eventsRef, (rows) => [...rows, row]);
+          yield* appendRow(row);
           yield* Ref.update(versionsRef, (rows) => ({
             ...rows,
             [row.id]: [

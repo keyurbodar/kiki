@@ -282,7 +282,10 @@ export function ThreadView({
   onCancelEdit,
   takeover,
 }: ThreadViewProps) {
-  const send = useComposerSend(threadId, editing?.eventId);
+  const composerHandle = useRef<ComposerHandle | null>(null);
+  const send = useComposerSend(threadId, editing?.eventId, (payload) =>
+    composerHandle.current?.reset(payload),
+  );
   const [jump, setJump] = useState<ChatJump | undefined>(undefined);
   const jumpCount = useRef(0);
   const jumpToSection = useCallback(
@@ -300,7 +303,6 @@ export function ThreadView({
     [rows],
   );
   const draft = editing ?? undefined;
-  const composerHandle = useRef<ComposerHandle | null>(null);
 
   useEffect(() => {
     if (draft === undefined) return;

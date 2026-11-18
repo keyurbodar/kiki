@@ -12,6 +12,7 @@ import {
 } from "@/features/composer/composer-footer";
 import { useSidebarActions } from "@/features/shell/sidebar-container";
 import { JamChat } from "@/features/thread/jam-chat";
+import { ThreadMessageActions } from "@/features/thread/thread-view/message-actions";
 import { useThreadTimeline } from "@/features/thread/timeline";
 import { useComposerSend } from "@/features/thread/use-composer-send";
 import { Button } from "@/primitives/button";
@@ -288,16 +289,18 @@ function MobileThreadBody({
     >
       {activeTab === CHAT_TAB
         ? (chat ?? (
-            <JamChat
-              data-thread-id={threadId}
-              jamId={threadId}
-              rows={timeline.rows}
-              initialLoading={timeline.loading}
-              onStartReached={
-                timeline.hasOlder ? timeline.loadOlder : undefined
-              }
-              className="flex min-h-0 flex-1 flex-col"
-            />
+            <ThreadMessageActions orgId={orgId}>
+              <JamChat
+                data-thread-id={threadId}
+                jamId={threadId}
+                rows={timeline.rows}
+                initialLoading={timeline.loading}
+                onStartReached={
+                  timeline.hasOlder ? timeline.loadOlder : undefined
+                }
+                className="flex min-h-0 flex-1 flex-col"
+              />
+            </ThreadMessageActions>
           ))
         : null}
     </MobileThreadView>

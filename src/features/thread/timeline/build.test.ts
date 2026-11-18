@@ -81,3 +81,35 @@ describe("buildTimeline with an edited message", () => {
     expect(rowsOf(withEdit, id("000C"))).toEqual(["first", "second, reworded"]);
   });
 });
+
+describe("buildTimeline with a message this tab just sent", () => {
+  const withPending = (delivery: "queue" | "steer" | "interrupt") => [
+    message("000A", "first"),
+    message("000B", "the send", { state: "pending", delivery }),
+  ];
+
+  it("draws a steer send as a row of its own", () => {
+    const rows = buildTimeline(withPending("steer"), {
+      liveEntries: [],
+      liveSettled: false,
+      expandedGroupIds: new Map(),
+    }).rows;
+    expect(rowsOf(withPending("steer"))).toEqual(["first", "the send"]);
+    expect(
+      rows.some(
+        (row) => row.type === "user-message" && row.state === "pending",
+      ),
+    ).toBe(true);
+  });
+
+  it("holds a queued send out of the transcript until the turn ends", () => {
+    expect(rowsOf(withPending("queue"))).toEqual(["first"]);
+    expect(
+      buildTimeline(withPending("queue"), {
+        liveEntries: [],
+        liveSettled: false,
+        expandedGroupIds: new Map(),
+      }).queued.map((queued) => queued.text),
+    ).toEqual(["the send"]);
+  });
+});
