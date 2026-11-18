@@ -63,6 +63,8 @@ export function MarkdownChipRenderer({
     case "task":
       return <TaskChip value={value} />;
     case "thread":
+      // A thread code may be an issue code: IssueChip resolves the issue and
+      // falls back to ThreadChip, so this is the entry point for both.
       return <IssueChip value={value} />;
     case "issue":
       return <IssueChip value={value} />;

@@ -308,3 +308,56 @@ describe("AgentMessage", () => {
     expect(document.querySelector("[data-slot=message-footer]")).toBeNull();
   });
 });
+
+describe("UserMessage mentions", () => {
+  it("paints a skill mention as its token chip", () => {
+    render(
+      <UserMessage
+        row={
+          {
+            ...userRow,
+            text: "use kiki-ux-verify first",
+            mentions: [
+              {
+                kind: "skill",
+                id: "kiki-ux-verify",
+                label: "kiki-ux-verify",
+                start: 4,
+                end: 18,
+                text: "kiki-ux-verify",
+              },
+            ],
+          } as unknown as UserMessageRow
+        }
+      />,
+    );
+    const chip = document.querySelector('[data-chip="skill"]');
+    expect(chip?.textContent).toBe("kiki-ux-verify");
+    expect(document.querySelector("[data-chip=skill] svg")).not.toBeNull();
+  });
+
+  it("leaves a mention outside its range as plain text", () => {
+    render(
+      <UserMessage
+        row={
+          {
+            ...userRow,
+            text: "no mentions here",
+            mentions: [
+              {
+                kind: "skill",
+                id: "kiki-ux-verify",
+                label: "kiki-ux-verify",
+                start: 40,
+                end: 60,
+                text: "kiki-ux-verify",
+              },
+            ],
+          } as unknown as UserMessageRow
+        }
+      />,
+    );
+    expect(document.querySelector('[data-chip="skill"]')).toBeNull();
+    expect(document.body.textContent).toContain("no mentions here");
+  });
+});
