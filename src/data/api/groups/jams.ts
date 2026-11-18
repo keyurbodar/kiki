@@ -81,6 +81,7 @@ export class JamsGroup extends HttpApiGroup.make("jams").add(
     params: { orgId: Schema.String, jamId: Schema.String },
     payload: Undecoded,
     success: Undecoded,
+    error: [JamNotFound, InvalidRequest],
   }),
   HttpApiEndpoint.post(
     "requestThreadAccess",
