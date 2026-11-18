@@ -1,7 +1,7 @@
 import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
 import { Option } from "effect";
-import { AsyncResult } from "effect/reactivity";
+import { AsyncResult, type Atom } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
 import { AppTopBar } from "@/components/app-top-bar";
 import {
@@ -20,7 +20,7 @@ import {
   useActiveOrgId,
   useShareActions,
 } from "@/components/share-popover";
-import type { OrgId } from "@/data/api/schemas/ids";
+import { idleAtom } from "@/data/atoms/idle";
 import { projectsAtom } from "@/data/atoms/projects";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
 import { cn } from "@/lib/cn";
@@ -48,6 +48,9 @@ const track = (owner: string) => `features/drive/shared-page.tsx#${owner}`;
 
 const value = <A, E>(result: AsyncResult.AsyncResult<A, E>) =>
   Option.getOrUndefined(AsyncResult.value(result));
+
+const idleShares = idleAtom();
+const idleProjects = idleAtom();
 
 const gridColumns =
   "grid grid-cols-[minmax(0,3fr)_minmax(0,1.4fr)_minmax(7rem,auto)_minmax(0,1.2fr)_minmax(6rem,auto)_auto] max-md:grid-cols-[minmax(0,1fr)_minmax(6rem,auto)_auto]";
@@ -310,12 +313,15 @@ export function SharedPage({ now = Date.now() }: SharedPageProps) {
   const [search, setSearch] = useState("");
   const [searching, setSearching] = useState(false);
   const [page, setPage] = useState(1);
-  const sharesAtom = orgSharesAtom(orgId ?? ("" as OrgId), page);
+  const sharesAtom: Atom.Atom<AsyncResult.AsyncResult<unknown, unknown>> =
+    orgId === undefined ? idleShares : orgSharesAtom(orgId, page);
   const result = useAtomValue(sharesAtom);
   const refresh = useAtomRefresh(sharesAtom);
   const organization = value(useAtomValue(organizationsAtom))?.[0];
   const user = value(useAtomValue(currentUserAtom));
-  const projects = value(useAtomValue(projectsAtom((orgId ?? "") as OrgId))) as
+  const projects = value(
+    useAtomValue(orgId === undefined ? idleProjects : projectsAtom(orgId)),
+  ) as
     | ReadonlyArray<{ readonly id: string; readonly name: string }>
     | undefined;
   const raw = orgId === undefined ? undefined : value(result);

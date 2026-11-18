@@ -4,9 +4,11 @@ import { AsyncResult } from "effect/reactivity";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { PlusLargeGlyph } from "@/components/issue-pickers";
-import type { OrgId, ProjectId } from "@/data/api/schemas/ids";
+import type { ProjectId } from "@/data/api/schemas/ids";
 import type { IssueDetail } from "@/data/api/schemas/issue";
+import type { Project } from "@/data/api/schemas/project";
 import { reactivityKeys } from "@/data/atoms/conventions";
+import { idleAtom } from "@/data/atoms/idle";
 import { createIssueAtom } from "@/data/atoms/issues";
 import { projectsAtom } from "@/data/atoms/projects";
 import { organizationsAtom } from "@/data/atoms/session";
@@ -54,6 +56,8 @@ const failureMessage = (error: unknown) =>
     ? error.message
     : "Could not create the issue";
 
+const idleProjects = idleAtom<readonly Project[]>();
+
 export function NewIssueDialog({
   open,
   onOpenChange,
@@ -65,7 +69,9 @@ export function NewIssueDialog({
   const orgName = AsyncResult.isSuccess(organizations)
     ? organizations.value.find((org) => org.id === orgId)?.name
     : undefined;
-  const projectsResult = useAtomValue(projectsAtom(orgId ?? ("" as OrgId)));
+  const projectsResult = useAtomValue(
+    orgId === undefined ? idleProjects : projectsAtom(orgId),
+  );
   const projects =
     orgId !== undefined && AsyncResult.isSuccess(projectsResult)
       ? projectsResult.value.filter((project) => !project.deleted)

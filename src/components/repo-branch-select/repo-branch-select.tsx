@@ -1,5 +1,5 @@
 import { useAtomValue } from "@effect/atom-react";
-import { AsyncResult } from "effect/reactivity";
+import { AsyncResult, type Atom } from "effect/reactivity";
 import { type ComponentProps, useRef, useState } from "react";
 import {
   joinClasses,
@@ -25,6 +25,7 @@ import {
 } from "@/components/run-on-select/entries";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { Project, ProjectRepo } from "@/data/api/schemas/project";
+import { idleAtom } from "@/data/atoms/idle";
 import { repoBranchesAtom } from "@/data/atoms/repos";
 import { filterItems } from "@/lib/fuzzy-search";
 import { Button } from "@/primitives/button";
@@ -91,8 +92,12 @@ const branchName = (branch: unknown) =>
       ? String((branch as { name: unknown }).name)
       : undefined;
 
+const idleBranches = idleAtom();
+
 function useBranches(orgId: OrgId | undefined, repo: string) {
-  const result = useAtomValue(repoBranchesAtom(orgId ?? ("" as OrgId), repo));
+  const atom: Atom.Atom<AsyncResult.AsyncResult<unknown, unknown>> =
+    orgId === undefined ? idleBranches : repoBranchesAtom(orgId, repo);
+  const result = useAtomValue(atom);
   if (orgId === undefined) return { branches: undefined, waiting: false };
   const value = AsyncResult.isSuccess(result) ? result.value : undefined;
   return {

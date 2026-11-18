@@ -1,5 +1,5 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
-import { AsyncResult } from "effect/reactivity";
+import { AsyncResult, type Atom } from "effect/reactivity";
 import { toast } from "sonner";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type {
@@ -8,6 +8,7 @@ import type {
   IssueRelationKind,
   UpdateIssueRequest,
 } from "@/data/api/schemas/issue";
+import { idleAtom } from "@/data/atoms/idle";
 import {
   issueAtom,
   linkIssueAtom,
@@ -20,12 +21,14 @@ import { issueMenuKeys } from "@/features/issues/issue-menu";
 import { useIssueOrgId } from "@/features/issues/issue-parts";
 import { commentIssueAtom } from "./atoms";
 
-const loadingAtomKey = "" as OrgId;
+const idleIssue = idleAtom<IssueDetail>();
 
 /** The issue's detail, `undefined` while it loads, and whether it is missing. */
 export function useIssueDetail(code: string) {
   const orgId = useIssueOrgId();
-  const result = useAtomValue(issueAtom(orgId ?? loadingAtomKey, code));
+  const atom: Atom.Atom<AsyncResult.AsyncResult<IssueDetail, unknown>> =
+    orgId === undefined ? idleIssue : issueAtom(orgId, code);
+  const result = useAtomValue(atom);
   if (orgId === undefined) {
     return { orgId, detail: undefined, missing: false } as const;
   }
