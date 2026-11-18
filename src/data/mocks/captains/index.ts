@@ -1,5 +1,12 @@
 import { Effect, Ref } from "effect";
-import { fields, MockDb, newId, notFound, type Row } from "../db/MockDb.ts";
+import {
+  fields,
+  MockDb,
+  newId,
+  notFound,
+  notFoundNamed,
+  type Row,
+} from "../db/MockDb.ts";
 import { isoMinutesAgo, people, projects, threads } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
@@ -50,9 +57,7 @@ export const CaptainsMock = mockGroup("captains", (handlers) =>
     const findThread = (id: string) =>
       Effect.gen(function* () {
         const thread = Object.values(threads).find((row) => row.id === id);
-        if (!thread) {
-          return yield* Effect.die(new Error(`MockDb.threads: no row ${id}`));
-        }
+        if (!thread) return yield* notFoundNamed("thread", id);
         return thread;
       });
 

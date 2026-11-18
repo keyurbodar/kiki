@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId, people, threads } from "../fixtures/world.ts";
@@ -49,5 +50,31 @@ describe("handoffs mock", () => {
       });
       assert.strictEqual((refetched as Handoff).status, "open");
     }),
+  );
+
+  it.effect(
+    "answers the 404 both endpoints declare for an unknown handoff",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        const missingGet = ApiClient.query("handoffs", "get", {
+          params: { orgId, jamId: threads.darkMode.id },
+          reactivityKeys: [key],
+        });
+        const getError = yield* AtomRegistry.getResult(
+          registry,
+          missingGet,
+        ).pipe(Effect.flip);
+        assert.instanceOf(getError, HttpApiError.NotFound);
+
+        registry.set(cancelMutation, {
+          params: { orgId, jamId, handoffId: "handoff_nobody" },
+        });
+        const cancelError = yield* AtomRegistry.getResult(
+          registry,
+          cancelMutation,
+        ).pipe(Effect.flip);
+        assert.instanceOf(cancelError, HttpApiError.NotFound);
+      }),
   );
 });

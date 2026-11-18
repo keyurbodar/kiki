@@ -1,5 +1,5 @@
 import { DateTime, Effect, Ref } from "effect";
-import { fields } from "../db/MockDb.ts";
+import { fields, notFoundNamed } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { isoMinutesAgo, people } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
@@ -16,9 +16,7 @@ export const MemoryMock = mockGroup("memory", (handlers) =>
       Effect.gen(function* () {
         const rows = yield* Ref.get(memoryRef);
         const row = rows.find((candidate) => candidate.id === id);
-        if (!row) {
-          return yield* Effect.die(new Error(`memory.entries: no row ${id}`));
-        }
+        if (!row) return yield* notFoundNamed("memory entry", id);
         return row;
       });
 
