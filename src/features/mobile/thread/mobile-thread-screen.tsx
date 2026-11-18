@@ -1,8 +1,8 @@
 import { useAtomValue } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
-import { type ReactNode, useState } from "react";
-import type { ComposerPayload } from "@/components/composer";
+import { type ReactNode, useRef, useState } from "react";
+import type { ComposerHandle, ComposerPayload } from "@/components/composer";
 import type { JamId, OrgId } from "@/data/api/schemas/ids";
 import { organizationsAtom } from "@/data/atoms/session";
 import type { ComposerCommandId } from "@/features/composer/composer-commands";
@@ -20,6 +20,7 @@ import {
   MobileComposer,
   MobileComposerAddTrigger,
   MobileComposerModelTrigger,
+  mentionCategoryIds,
 } from "../composer";
 import {
   MobileAddDrawer,
@@ -175,6 +176,7 @@ function MobileThreadBody({
   const send = useComposerSend(threadId);
   const timeline = useThreadTimeline((orgId ?? "") as OrgId, threadId as JamId);
   const navigate = useNavigate();
+  const composerRef = useRef<ComposerHandle>(null);
   const runCommand = (command: ComposerCommandId) => {
     if (command === "new") void navigate({ to: "/new" });
   };
@@ -229,6 +231,7 @@ function MobileThreadBody({
       composer={
         <>
           <MobileComposer
+            ref={composerRef}
             onCommand={runCommand}
             onSend={(text) =>
               void send({
@@ -240,7 +243,10 @@ function MobileThreadBody({
             addMenu={
               <MobileAddDrawer
                 trigger={<MobileComposerAddTrigger />}
-                onSelect={() => {}}
+                onSelect={(id) => {
+                  if (!mentionCategoryIds.has(id)) return;
+                  composerRef.current?.typeCharacter(`@${id}:`);
+                }}
               />
             }
             modelMenu={
@@ -252,7 +258,7 @@ function MobileThreadBody({
                   <MobileComposerModelTrigger label={model?.name ?? "Model"} />
                 }
                 onSelect={setModelId}
-                onOpenSettings={() => {}}
+                onOpenSettings={() => void navigate({ to: "/settings/models" })}
                 onGroupBy={() => {}}
               />
             }

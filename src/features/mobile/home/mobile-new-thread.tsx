@@ -1,4 +1,5 @@
 import { useAtomValue } from "@effect/atom-react";
+import { useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useMemo, useRef, useState } from "react";
 import type { ComposerHandle, ComposerPayload } from "@/components/composer";
@@ -13,16 +14,12 @@ import {
   MobileComposer,
   MobileComposerAddTrigger,
   MobileComposerModelTrigger,
-  mentionCategories,
+  mentionCategoryIds,
 } from "../composer";
 import { MobileAddDrawer, MobileModelDrawer } from "../drawers";
 import { modelSections } from "../thread";
 import { mobileModelsAtom } from "../thread/atoms";
 import { MobileHome } from "./mobile-home";
-
-const mentionCategoryIds: ReadonlySet<string> = new Set(
-  mentionCategories.map((category) => category.id),
-);
 
 export function MobileNewThread() {
   const organizations = AsyncResult.getOrElse(
@@ -45,6 +42,7 @@ function MobileNewThreadForOrg({
   const [selectedId, setSelectedId] = useState<string>();
   const [modelId, setModelId] = useState<string>();
   const composerRef = useRef<ComposerHandle>(null);
+  const navigate = useNavigate();
   const submit = useComposerSend();
   const models = useAtomValue(mobileModelsAtom);
   const sections = useMemo(
@@ -114,7 +112,7 @@ function MobileNewThreadForOrg({
                 <MobileComposerModelTrigger label={model?.name ?? "Model"} />
               }
               onSelect={setModelId}
-              onOpenSettings={() => {}}
+              onOpenSettings={() => void navigate({ to: "/settings/models" })}
               onGroupBy={() => {}}
             />
           }
@@ -122,7 +120,7 @@ function MobileNewThreadForOrg({
       }
       onSelectProject={setSelectedId}
       onNewProject={() => {}}
-      onManageProjects={() => {}}
+      onManageProjects={() => void navigate({ to: "/settings/projects" })}
     />
   );
 }
