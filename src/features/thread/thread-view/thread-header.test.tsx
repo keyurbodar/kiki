@@ -248,7 +248,7 @@ describe("thread route header", () => {
   });
 
   it("keeps a parameterised pane key it cannot open yet", async () => {
-    for (const param of ["browser:machine_01", "setup"]) {
+    for (const param of ["browser:machine_01"]) {
       const router = await renderRoute(`/thread/jam_sample_0001?pane=${param}`);
       await waitForStrip();
       expect(paneTab("chat")?.querySelector("[data-selected]")).not.toBeNull();
@@ -258,11 +258,12 @@ describe("thread route header", () => {
   });
 
   it("opens the pane the URL names when Capy honours that param", async () => {
-    await renderRoute("/thread/jam_sample_0001?pane=overview");
-    await waitForStrip();
-    expect(
-      paneTab("overview")?.querySelector("[data-selected]"),
-    ).not.toBeNull();
+    for (const param of ["overview", "setup"]) {
+      await renderRoute(`/thread/jam_sample_0001?pane=${param}`);
+      await waitForStrip();
+      expect(paneTab(param)?.querySelector("[data-selected]")).not.toBeNull();
+      cleanup();
+    }
   });
 
   it("renders one header bar, not a bar inside a bar", async () => {

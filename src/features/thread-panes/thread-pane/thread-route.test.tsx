@@ -51,7 +51,7 @@ async function renderThread(search?: string) {
 }
 
 describe("thread route with a pane", () => {
-  for (const pane of ["overview", "files"]) {
+  for (const pane of ["overview", "files", "setup"]) {
     it(`mounts the ${pane} pane without the error boundary`, async () => {
       await renderThread(`pane=${pane}`);
       expect(screen.queryByText("Something went wrong")).toBeNull();

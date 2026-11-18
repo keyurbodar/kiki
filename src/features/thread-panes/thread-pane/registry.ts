@@ -67,6 +67,7 @@ export const writtenPaneParams: ReadonlySet<string> = new Set([
   "overview",
   "diffs",
   "captain_issues",
+  "setup",
 ]);
 
 /**
@@ -80,12 +81,10 @@ export const parameterisedPaneParams: ReadonlyArray<string> = [
 ];
 
 /**
- * The panes we cannot open yet keep whatever the URL carried: `setup` is a Capy
- * pane the registry has not landed, and a parameterised tab key names a tab the
- * route cannot resolve on its own.
+ * The panes we cannot open yet keep whatever the URL carried: a parameterised
+ * tab key names a tab the route cannot resolve on its own.
  */
 export const keepsPaneParam = (value: string | undefined): boolean =>
   value !== undefined &&
   (writtenPaneParams.has(value) ||
-    value === "setup" ||
     parameterisedPaneParams.some((prefix) => value.startsWith(prefix)));
