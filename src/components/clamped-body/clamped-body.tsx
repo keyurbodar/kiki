@@ -25,6 +25,8 @@ export type ClampedBodyProps = {
   expanded: boolean;
   onToggle: () => void;
   fade?: ClampFade;
+  /** Renders the toggle in view, as Capy's message body does; auxiliary rows keep it for keyboard only. */
+  showToggle?: boolean;
   className?: string;
   children: ReactNode;
 };
@@ -83,6 +85,7 @@ function useHeightTransition(
 export function ClampedBody({
   maxHeight,
   fade = DEFAULT_FADE,
+  showToggle = false,
   expanded,
   onToggle,
   className,
@@ -185,19 +188,21 @@ export function ClampedBody({
           } as React.CSSProperties
         }
         className={cx(
-          "overflow-hidden transition-[height,--clamp-fade] ease-out-quint",
-          expanded ? "duration-fast" : "duration-exit",
+          "overflow-hidden transition-[height,--clamp-fade] duration-exit ease-out-quint",
           !open && FADE_MASK,
         )}
       >
         <div ref={inner}>{children}</div>
       </div>
       {overflows && (
-        <span className="sr-only focus-within:not-sr-only">
+        <span
+          className={showToggle ? "block" : "sr-only focus-within:not-sr-only"}
+        >
           <Button
             variant="ghost"
             size="xs"
             aria-expanded={expanded}
+            aria-label={expanded ? "Show less" : "Show more"}
             onClick={onToggle}
           >
             {expanded ? "Show less" : "Show more"}
