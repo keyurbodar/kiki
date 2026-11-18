@@ -20,10 +20,18 @@ export const captainIssueSearchAtom = Atom.family((_jamId: string) =>
   Atom.make<CaptainIssueSearch>({ text: "", open: false }).pipe(Atom.keepAlive),
 );
 
-/** A pane row is one line, so the columns the page shows start hidden. */
+/** A pane row is one line: the state icon, the title and the age, as Capy's. */
 export const defaultCaptainIssueDisplay: IssueDisplay = {
   ...defaultIssueDisplay,
-  hidden: ["id", "labels", "priority", "assignee", "due"],
+  hidden: [
+    "id",
+    "priority",
+    "labels",
+    "relations",
+    "pulls",
+    "due",
+    "assignee",
+  ],
 };
 
 export const captainIssueDisplayAtom = Atom.family((_jamId: string) =>

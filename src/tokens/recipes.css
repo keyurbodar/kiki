@@ -95,6 +95,33 @@
     --row-px: var(--row-px-loose);
   }
 
+  /* A pane's row: Capy's 36px line, held at the page's tighter inset. */
+  .kiki-row[data-density="pane"] {
+    --row-px: var(--row-px-tight);
+  }
+
+  /* A pane section header: Capy's 28px strip over the section fill. */
+  .kiki-pane-section {
+    display: flex;
+    align-items: var(--row-align);
+    height: var(--row-h-dense);
+    border-radius: var(--row-radius);
+  }
+
+  /* The trigger fills the strip and carries its own inset, as Capy's does. */
+  .kiki-pane-section-trigger {
+    height: 100%;
+    padding-inline: var(--row-px-tight);
+  }
+
+  /* A section's empty line: one pane row, so a zero-count state keeps its shape. */
+  .kiki-pane-empty {
+    display: flex;
+    align-items: var(--row-align);
+    height: var(--row-h);
+    padding-inline: var(--row-px-tight);
+  }
+
   .kiki-cell {
     display: flex;
     align-items: var(--row-align);

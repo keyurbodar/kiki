@@ -524,7 +524,7 @@ export type IssueRowProps = {
   nested?: boolean;
   /** A nested row that is the last of its siblings ends the tree line. */
   lastChild?: boolean;
-  /** Page rows are the page's height; a pane's are one short line. */
+  /** The page draws its rows tall; a pane's are one short line. */
   density?: IssueDensity;
 };
 
@@ -577,11 +577,11 @@ export function IssueRow({
       params={{ code: issue.code }}
       data-issue-row={issue.id}
       data-issue-code={issue.code}
+      data-density={pane ? "pane" : "page"}
+      data-nested={nested ? "true" : undefined}
       className={
-        (pane
-          ? "relative flex h-9 items-center gap-2 rounded-(--radius) px-2 text-sm outline-none select-none transition-colors duration-100 hover:bg-section focus-visible:outline-ring-inset data-[selected]:bg-section"
-          : "relative flex h-11 items-center gap-2 rounded px-2 outline-none select-none transition-colors duration-100 hover:bg-section focus-visible:outline-ring-inset data-[selected]:bg-section") +
-        (nested ? " pl-8" : "")
+        "kiki-row relative outline-none select-none transition-colors duration-100 hover:bg-section focus-visible:outline-ring-inset data-[selected]:bg-section" +
+        (pane ? " text-sm" : "")
       }
       onClick={(event) => {
         if (!selectionMode || onCheck === undefined || !event.shiftKey) return;
@@ -793,15 +793,16 @@ function IssueSection({
   density: IssueDensity;
   children: ReactNode;
 }) {
+  const pane = density === "pane";
   const count = String(group.issues.length);
   return (
     <Collapsible open={open} onOpenChange={onOpenChange}>
-      {density === "pane" ? (
-        <div className="flex h-7 w-full items-center rounded-(--radius) bg-section">
+      {pane ? (
+        <div className="kiki-pane-section w-full bg-section">
           <CollapsibleTrigger
             block
             showChevron={false}
-            className="h-full flex-1 px-2 text-xs"
+            className="kiki-pane-section-trigger flex-1 text-xs"
           >
             <span className="text-foreground">{group.label}</span>
             <span className="font-normal text-muted-foreground-3 tabular-nums">
@@ -822,14 +823,14 @@ function IssueSection({
           ) : null}
         </CollapsibleTrigger>
       )}
-      <CollapsiblePanel
-        className={density === "pane" ? undefined : "-m-0.5 p-0.5"}
-      >
+      <CollapsiblePanel className={pane ? undefined : "-m-0.5 p-0.5"}>
         {group.issues.length === 0 ? (
           <div
             className={
-              "flex items-center px-2 pt-0.5 text-sm font-normal text-muted-foreground-2 " +
-              (density === "pane" ? "h-9" : "h-11")
+              (pane
+                ? "kiki-pane-empty"
+                : "flex h-11 items-center px-2 pt-0.5") +
+              " text-sm font-normal text-muted-foreground-2"
             }
           >
             No issues in {group.label}
@@ -912,9 +913,11 @@ export function IssuesList({
         {[0, 1, 2].map((row) => (
           <div
             key={row}
+            data-density={density === "pane" ? "pane" : undefined}
             className={
-              "flex items-center gap-2 px-2 " +
-              (density === "pane" ? "h-9" : "h-11")
+              density === "pane"
+                ? "kiki-row"
+                : "flex h-11 items-center gap-2 px-2"
             }
           >
             <span className="size-3.5 rounded-full bg-secondary" />
