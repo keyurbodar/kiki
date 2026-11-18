@@ -3,8 +3,8 @@ export * from "./composer";
 export type {
   ComposerEditorHandle,
   ComposerEditorProps,
-  ComposerFieldHeight,
 } from "./editor";
+export type { ComposerFieldHeight } from "./editor-field";
 export * from "./mention-menu";
 export {
   $createMentionNode,
