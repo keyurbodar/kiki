@@ -198,6 +198,7 @@ describe("thread route header", () => {
 
   it("opens a pane from the tab strip and keeps the URL in step", async () => {
     const router = await renderRoute("/thread/jam_sample_0001");
+    fireEvent.click(await screen.findByLabelText("Open a tab"));
     fireEvent.click(await screen.findByText("Files"));
     await waitFor(() => {
       expect(
@@ -295,6 +296,7 @@ describe("thread route header", () => {
 
   it("reseeds the pane from the URL when the thread is entered again", async () => {
     const router = await renderRoute("/thread/jam_sample_0001");
+    fireEvent.click(await screen.findByLabelText("Open a tab"));
     fireEvent.click(await screen.findByText("Files"));
     await waitFor(() => {
       expect(paneTab("files")?.querySelector("[data-selected]")).not.toBeNull();
@@ -314,7 +316,9 @@ describe("thread route header", () => {
     await waitFor(() => {
       expect(paneTab("chat")?.querySelector("[data-selected]")).not.toBeNull();
     });
-    expect(paneTab("files")?.querySelector("[data-selected]")).toBeNull();
+    expect(
+      paneTab("files")?.querySelector("[data-selected]") ?? null,
+    ).toBeNull();
   });
 
   it("retires exactly the pane ids Capy has no pane for", () => {

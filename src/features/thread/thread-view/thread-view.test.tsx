@@ -193,16 +193,17 @@ describe("thread chat column", () => {
   };
 
   const chatColumn = (container: HTMLElement) =>
-    container.firstElementChild?.firstElementChild as HTMLElement;
+    container.querySelector<HTMLElement>("[data-slot=right-panel-group]")
+      ?.firstElementChild as HTMLElement;
 
-  const renderView = (pane: ReactNode) =>
+  const renderView = (dock: ReactNode) =>
     render(
       <RegistryProvider>
         <ThreadView
           threadId="jam_sample"
           rows={messages}
           handlers={handlers}
-          pane={pane}
+          dock={dock}
         />
       </RegistryProvider>,
     );

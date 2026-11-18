@@ -23,6 +23,8 @@ import {
   type ThreadTakeoverHandlers,
   ThreadView,
 } from "@/features/thread/thread-view";
+import { tabKey } from "@/features/thread-panes/tab-strip";
+import { ThreadDock } from "@/features/thread-panes/thread-dock";
 import { useThreadTimeline } from "@/features/thread/timeline";
 import { useSideThreads } from "@/features/thread-panes/side-threads";
 import { findPane, keepsPaneParam } from "@/features/thread-panes/thread-pane";
@@ -81,12 +83,39 @@ export function ThreadRoute({
       pendingEnvironment={timeline.pendingEnvironment}
       handlers={handlers}
       paneExpanded={expanded}
-      pane={entry && <entry.component threadId={threadId} />}
+      dock={
+        entry && (
+          <ThreadDock
+            threadId={threadId}
+            tabs={paneTabs()}
+            activeId={activeId}
+            title={thread?.title ?? "Untitled thread"}
+            menu={{ sideThreads }}
+            expanded={expanded}
+            onSelectTab={(id) => onSelectPane?.(id)}
+            onOpenTab={(tab) => onSelectPane?.(tabKey(tab))}
+            onCloseTab={(id) => {
+              if (id === activeId) onSelectPane?.(undefined);
+            }}
+            onClose={() => onSelectPane?.(undefined)}
+            onToggleExpand={() => setExpanded((current) => !current)}
+            onCopyLink={(path) =>
+              void copyText(
+                `${window.location.origin}${path}`,
+                "Link copied",
+                "Could not copy link",
+              )
+            }
+          >
+            <entry.component threadId={threadId} />
+          </ThreadDock>
+        )
+      }
       topBar={
         <ThreadHeader
           threadId={threadId}
           title={thread?.title ?? "Untitled thread"}
-          tabs={paneTabs()}
+          tabs={[]}
           activeId={activeId}
           menu={{ sideThreads }}
           cost={
