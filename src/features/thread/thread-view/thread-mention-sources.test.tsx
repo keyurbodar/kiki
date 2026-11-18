@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { ThreadCard } from "@/data/api/schemas/thread";
-import { threadMentionSources } from "./thread-mention-sources";
+import {
+  skillNames,
+  skillsMentionSource,
+  threadMentionSources,
+} from "./thread-mention-sources";
 
 /** The builder reads only these three fields, so the card carries no more. */
 const thread = (id: string, title: string | null, archived = false) =>
@@ -49,5 +53,38 @@ describe("thread mention sources", () => {
     expect(
       threadMentionSources([thread("jam_current", "Only one")], "jam_current"),
     ).toEqual([]);
+  });
+});
+
+describe("skill mention source", () => {
+  it("reads a skill name only from its SKILL.md", () => {
+    expect(
+      skillNames([
+        "skills/triage/SKILL.md",
+        "skills/triage/notes.md",
+        "skills/release-notes/SKILL.md",
+        "README.md",
+      ]),
+    ).toEqual(["release-notes", "triage"]);
+  });
+
+  it("offers no skills category when the scope holds none", () => {
+    expect(skillsMentionSource(["README.md"])).toBeUndefined();
+  });
+
+  it("offers the installed skills as a skill mention source", () => {
+    const source = skillsMentionSource([
+      "skills/triage/SKILL.md",
+      "skills/release-notes/SKILL.md",
+    ]);
+    expect(source?.kind).toBe("skill");
+    expect(source?.label).toBe("Skills");
+    expect(source?.initial?.()).toEqual([
+      { kind: "skill", id: "release-notes", label: "release-notes" },
+      { kind: "skill", id: "triage", label: "triage" },
+    ]);
+    expect(source?.search("tri")).toEqual([
+      { kind: "skill", id: "triage", label: "triage" },
+    ]);
   });
 });
