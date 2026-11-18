@@ -96,7 +96,7 @@ describe("AppSidebar", () => {
   it("keeps the footer account trigger on one line", async () => {
     const { container } = await renderSidebar();
     const account = container.querySelector("footer > div > button");
-    expect(account?.textContent).toMatch(/^[A-Z]{1,2}$/);
+    expect(account?.querySelectorAll("img, [role='img']")).toHaveLength(1);
   });
 
   it("puts hidden pages behind More", async () => {
