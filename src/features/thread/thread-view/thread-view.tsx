@@ -1,5 +1,6 @@
 import { useAtomValue } from "@effect/atom-react";
 import { cx } from "class-variance-authority";
+import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import {
   type ReactNode,
@@ -17,6 +18,7 @@ import {
 } from "@/components/composer";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { threadMachinesAtom } from "@/data/atoms/setup";
+import { threadsAtom } from "@/data/atoms/threads";
 import type { TimelineRow } from "@/data/events";
 import {
   ComposerAttachments,
@@ -55,6 +57,7 @@ import { RightPanelGroup } from "@/primitives/right-panel";
 import { ChatSkeleton } from "./chat-skeleton";
 import { ThreadMessageActions } from "./message-actions";
 import { threadHeaderClassName } from "./thread-header";
+import { threadMentionSources } from "./thread-mention-sources";
 
 type ClarifyRow = Extract<TimelineRow, { type: "clarify" }>;
 type EnvironmentRequestRow = Extract<
@@ -288,6 +291,15 @@ export function ThreadView({
     return edited;
   }, [rows]);
   const orgId = handlers.orgId;
+  const orgThreads = useAtomValue(threadsAtom((orgId ?? "") as OrgId));
+  const mentionSources = useMemo(
+    () =>
+      threadMentionSources(
+        Option.getOrUndefined(AsyncResult.value(orgThreads))?.items ?? [],
+        threadId,
+      ),
+    [orgThreads, threadId],
+  );
   const attachments = useComposerAttachments(
     useFileUploader(orgId as OrgId | undefined),
   );
@@ -405,6 +417,7 @@ export function ThreadView({
                                 : { text: draft.text, mentions: [], files: [] }
                             }
                             autoFocus={draft !== undefined}
+                            sources={mentionSources}
                           />
                         </MessageQueue>
                       ))
