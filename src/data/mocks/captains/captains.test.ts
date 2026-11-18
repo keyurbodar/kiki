@@ -2,7 +2,7 @@ import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { HttpApiError } from "effect/http-api";
 import { type AsyncResult, type Atom, AtomRegistry } from "effect/reactivity";
-import { OrgId } from "../../api/schemas/ids.ts";
+import { JamId, OrgId } from "../../api/schemas/ids.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId, threads } from "../fixtures/world.ts";
 
@@ -313,6 +313,44 @@ describe("captains payload spellings", () => {
 });
 
 describe("a Captain's face", () => {
+  it.effect("carries the pin the jam pin table holds", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const read = <A, E>(
+        atom: Atom.Atom<AsyncResult.AsyncResult<A, E>>,
+        options?: { suspendOnWaiting?: boolean },
+      ): Effect.Effect<A, E> => AtomRegistry.getResult(registry, atom, options);
+      const pin = ApiClient.mutation("threadOrganization", "pin");
+      const unpin = ApiClient.mutation("threadOrganization", "unpin");
+      const pinnedOf = (
+        list: ReadonlyArray<{ id: string; pinned?: boolean }>,
+      ) =>
+        list.filter((captain) => captain.pinned === true).map((row) => row.id);
+
+      registry.set(pin, {
+        params: { orgId: OrgId.make(orgId) },
+        payload: { jamIds: [JamId.make("jam_sample_cap1")] },
+        reactivityKeys: [key],
+      });
+      yield* AtomRegistry.getResult(registry, pin);
+      const afterPin = (yield* read(listQuery, {
+        suspendOnWaiting: true,
+      })) as ReadonlyArray<{ id: string; pinned?: boolean }>;
+      assert.deepStrictEqual(pinnedOf(afterPin), ["jam_sample_cap1"]);
+
+      registry.set(unpin, {
+        params: { orgId: OrgId.make(orgId) },
+        payload: { jamIds: [JamId.make("jam_sample_cap1")] },
+        reactivityKeys: [key],
+      });
+      yield* AtomRegistry.getResult(registry, unpin);
+      const afterUnpin = (yield* read(listQuery, {
+        suspendOnWaiting: true,
+      })) as ReadonlyArray<{ id: string; pinned?: boolean }>;
+      assert.deepStrictEqual(pinnedOf(afterUnpin), []);
+    }),
+  );
+
   it.effect("reads the same on the list row and the detail endpoint", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();

@@ -1,4 +1,5 @@
 import { Effect, Ref } from "effect";
+import { CaptainCard } from "../../api/schemas/captain.ts";
 import {
   fields,
   MockDb,
@@ -34,7 +35,7 @@ const asString = (value: unknown) => String(value ?? "");
 
 export const CaptainsMock = mockGroup("captains", (handlers) =>
   Effect.gen(function* () {
-    const { captains, members, threadFolders } = yield* MockDb;
+    const { captains, members, threadFolders, threadPins } = yield* MockDb;
     const images = yield* Ref.make<ReadonlyArray<Image>>([...sampleImages]);
     const captainImages = yield* Ref.make<Readonly<Record<string, string>>>({});
     const access = yield* Ref.make<Readonly<Record<string, string>>>({
@@ -142,7 +143,17 @@ export const CaptainsMock = mockGroup("captains", (handlers) =>
         }),
       )
       .handle("list", () =>
-        Ref.get(captains).pipe(Effect.map((rows) => rows.map(captainCard))),
+        Effect.gen(function* () {
+          const pins = yield* Ref.get(threadPins);
+          const rows = yield* Ref.get(captains);
+          return rows.map(
+            (row, index) =>
+              new CaptainCard({
+                ...captainCard(row, index),
+                pinned: pins.some((pin) => pin.jamId === row.id),
+              }),
+          );
+        }),
       )
       .handle("create", ({ payload }) =>
         Effect.gen(function* () {

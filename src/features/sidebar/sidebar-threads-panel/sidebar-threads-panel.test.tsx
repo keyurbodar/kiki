@@ -16,6 +16,7 @@ import { Option } from "effect";
 import { AsyncResult, AtomRegistry } from "effect/reactivity";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { CaptainCard } from "@/data/api/schemas/captain";
 import { PullRequestId } from "@/data/api/schemas/ids";
 import type { ThreadCard } from "@/data/api/schemas/thread";
 import { threadAtom } from "@/data/atoms/jams";
@@ -274,6 +275,27 @@ describe("sidebar row menu opens on right-click", () => {
     fireEvent.contextMenu(list);
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(screen.queryByText("Open in new tab")).toBeNull();
+  });
+});
+
+describe("pinned Captain tiles", () => {
+  const pinnedGroup = () => document.querySelector('[aria-label="Pinned"]');
+  const withPin = (pinned: boolean) =>
+    captain({ card: { pinned } as CaptainCard });
+
+  it("pins a Captain as a tile once its record says so", async () => {
+    await renderAt(
+      <Harness sidebarSource={source([thread()], [withPin(true)])} />,
+    );
+    expect(pinnedGroup()).not.toBeNull();
+    expect(pinnedGroup()?.querySelector("[data-captain-row]")).not.toBeNull();
+  });
+
+  it("keeps an unpinned Captain out of the tiles", async () => {
+    await renderAt(
+      <Harness sidebarSource={source([thread()], [withPin(false)])} />,
+    );
+    expect(pinnedGroup()).toBeNull();
   });
 });
 

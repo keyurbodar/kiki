@@ -386,7 +386,8 @@ export function PinnedCaptains({
   activeId,
   renderPreview,
 }: PinnedCaptainsProps) {
-  if (captains.length === 0) return null;
+  const pinned = captains.filter((captain) => captain.card?.pinned === true);
+  if (pinned.length === 0) return null;
   return (
     // biome-ignore lint/a11y/useSemanticElements: Capy's pinned grid is a div with role=group
     <div
@@ -395,7 +396,7 @@ export function PinnedCaptains({
       className="mx-auto flex w-full flex-wrap justify-center gap-y-(--sidebar-pin-gap-y) pb-3"
       style={{ maxWidth: 276 }}
     >
-      {captains.map((captain) => {
+      {pinned.map((captain) => {
         const active = activeId === captain.id;
         const presence = pinnedPresence(captain);
         const preview = renderPreview?.(captain, {
