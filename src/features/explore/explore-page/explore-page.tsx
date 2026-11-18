@@ -10,7 +10,6 @@ import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import { ScrollArea } from "@/primitives/scroll-area";
 import { Skeleton } from "@/primitives/skeleton";
-import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { ExploreFrame } from "../explore-frame";
 import { ListingAddAction } from "../listing-add-action";
 import { type ListingCard, ListingIcon, ListingRow } from "../listing-card";
@@ -33,14 +32,93 @@ const pageClassName = "mx-auto flex w-full max-w-200 flex-col px-6 md:px-0";
 /** The Skills grid, shared with the skeleton harness so it measures the real layout. */
 export const exploreGridClassName =
   "grid grid-cols-1 gap-x-12 gap-y-4 md:grid-cols-2";
-const SKELETON_ROW_KEYS = [
-  "one",
-  "two",
-  "three",
-  "four",
-  "five",
-  "six",
-] as const;
+/** The six rows the harness measures against, so the skeleton copies real listing copy. */
+const SKELETON_SAMPLE: ReadonlyArray<ListingCard> = [
+  {
+    kind: "skill",
+    source: "catalog",
+    slug: "deploy-from-issue",
+    displayName: "Deploy from the issue list",
+    description: "Ship a branch from a Linear issue",
+    maker: null,
+    builtIn: null,
+    repository: null,
+    stars: 128,
+    starsCheckedAt: null,
+    adds: null,
+    theme: null,
+  },
+  {
+    kind: "skill",
+    source: "catalog",
+    slug: "nightly-audit",
+    displayName: "Nightly dependency audit",
+    description: "Opens a PR when a lockfile drifts",
+    maker: null,
+    builtIn: null,
+    repository: null,
+    stars: 964,
+    starsCheckedAt: null,
+    adds: null,
+    theme: null,
+  },
+  {
+    kind: "skill",
+    source: "catalog",
+    slug: "release-notes",
+    displayName: "Release notes drafter",
+    description: "Summarizes merged PRs into a changelog",
+    maker: null,
+    builtIn: null,
+    repository: null,
+    stars: 42,
+    starsCheckedAt: null,
+    adds: null,
+    theme: null,
+  },
+  {
+    kind: "skill",
+    source: "catalog",
+    slug: "flaky-quarantine",
+    displayName: "Flaky test quarantine",
+    description: "Marks a test flaky after three failures",
+    maker: null,
+    builtIn: null,
+    repository: null,
+    stars: 210,
+    starsCheckedAt: null,
+    adds: null,
+    theme: null,
+  },
+  {
+    kind: "skill",
+    source: "catalog",
+    slug: "branch-sweeper",
+    displayName: "Branch sweeper",
+    description: "Deletes merged branches on a schedule",
+    maker: null,
+    builtIn: null,
+    repository: null,
+    stars: 64,
+    starsCheckedAt: null,
+    adds: null,
+    theme: null,
+  },
+  {
+    kind: "skill",
+    source: "catalog",
+    slug: "pr-size-guard",
+    displayName: "Pull request size guard",
+    description: "Fails a PR past the review budget",
+    maker: null,
+    builtIn: null,
+    repository: null,
+    stars: 88,
+    starsCheckedAt: null,
+    adds: null,
+    theme: null,
+  },
+];
 
 export type ExploreEmptyStateProps = {
   art: string;
@@ -75,34 +153,27 @@ export function ExploreEmptyState({
   );
 }
 
-function RowSkeleton() {
-  return (
-    <div className="flex h-14 items-center gap-3">
-      <div className="size-10 rounded-(--radius-card) bg-secondary" />
-      <div className="flex flex-1 flex-col gap-1.5">
-        <div className="h-3.5 w-28 rounded bg-secondary" />
-        <div className="h-3 w-48 rounded bg-secondary" />
-      </div>
-    </div>
-  );
-}
-
 export function ExplorePageSkeleton() {
   return (
-    <SkeletonPanel
-      role="status"
-      aria-label="Loading Explore"
-      className="flex flex-col gap-9"
-    >
+    <div className={`${pageClassName} flex flex-col gap-9`}>
       <div className="flex flex-col gap-2">
         <div className="h-4 w-20 rounded bg-secondary" />
-        <div className={exploreGridClassName}>
-          {SKELETON_ROW_KEYS.map((key) => (
-            <RowSkeleton key={key} />
-          ))}
-        </div>
+        <Skeleton
+          data={null}
+          sample={SKELETON_SAMPLE}
+          id="explore-page"
+          label="Loading Explore"
+        >
+          {(cards) => (
+            <div className={exploreGridClassName}>
+              {cards.map((card) => (
+                <ListingRow key={card.slug} card={card} />
+              ))}
+            </div>
+          )}
+        </Skeleton>
       </div>
-    </SkeletonPanel>
+    </div>
   );
 }
 
