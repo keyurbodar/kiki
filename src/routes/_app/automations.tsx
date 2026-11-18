@@ -1,6 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { AutomationsPage } from "@/features/automations/automations-page";
+import { createFileRoute, lazyRouteComponent } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_app/automations")({
-  component: AutomationsPage,
+  component: lazyRouteComponent(
+    () => import("@/features/automations/automations-page"),
+    "AutomationsPage",
+  ),
 });
