@@ -1,5 +1,5 @@
 import { useAtomValue } from "@effect/atom-react";
-import { AsyncResult } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import { type KeyboardEvent, useState } from "react";
 import type { OrgId } from "@/data/api/schemas/ids";
 import {
@@ -86,8 +86,17 @@ function PickerSearch({
   );
 }
 
+type IssueStatesValue = { readonly states: ReadonlyArray<IssueState> };
+const idleStates: Atom.Atom<
+  AsyncResult.AsyncResult<IssueStatesValue, unknown>
+> = Atom.make(AsyncResult.initial(false));
+const idleLabels: Atom.Atom<AsyncResult.AsyncResult<unknown, unknown>> =
+  Atom.make(AsyncResult.initial(false));
+
 export function useIssueStates(orgId: OrgId | undefined) {
-  const result = useAtomValue(issueStatesAtom(orgId ?? ("" as OrgId)));
+  const forOrg: Atom.Atom<AsyncResult.AsyncResult<IssueStatesValue, unknown>> =
+    orgId === undefined ? idleStates : issueStatesAtom(orgId);
+  const result = useAtomValue(forOrg);
   return orgId !== undefined && AsyncResult.isSuccess(result)
     ? result.value.states
     : [];
@@ -102,7 +111,9 @@ export interface IssueLabelOption {
 export function useIssueLabels(
   orgId: OrgId | undefined,
 ): ReadonlyArray<IssueLabelOption> {
-  const result = useAtomValue(issueLabelsAtom(orgId ?? ("" as OrgId)));
+  const forOrg: Atom.Atom<AsyncResult.AsyncResult<unknown, unknown>> =
+    orgId === undefined ? idleLabels : issueLabelsAtom(orgId);
+  const result = useAtomValue(forOrg);
   if (orgId === undefined || !AsyncResult.isSuccess(result)) return [];
   const value = result.value as
     | ReadonlyArray<IssueLabelOption>
