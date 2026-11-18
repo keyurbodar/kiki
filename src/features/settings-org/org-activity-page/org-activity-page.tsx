@@ -2,6 +2,7 @@ import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useEffect, useMemo, useState } from "react";
+import { FailedRead } from "@/components/failed-read";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import {
   orgActivityAtom,
@@ -235,6 +236,11 @@ function useOrgId() {
     : undefined;
 }
 
+/** The organizations read, so a failed one is not mistaken for "no org yet". */
+function useOrgRead() {
+  return useAtomValue(organizationsAtom);
+}
+
 export function OrgActivityPage() {
   return (
     <SettingsPage
@@ -249,6 +255,17 @@ export function OrgActivityPage() {
 
 function OrgActivityLoader() {
   const orgId = useOrgId();
+  const orgRead = useOrgRead();
+  const refreshOrganizations = useAtomRefresh(organizationsAtom);
+  if (AsyncResult.isFailure(orgRead))
+    return (
+      <FailedRead
+        slot="activity-org-failed"
+        line="Couldn't load your organization"
+        sub="Check your connection and try again"
+        onRetry={refreshOrganizations}
+      />
+    );
   if (orgId === undefined)
     return (
       <OrgActivityBody
