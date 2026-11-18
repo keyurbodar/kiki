@@ -158,6 +158,7 @@ const at = {
   docsCaptainTurn: isoMinutesAgo(38),
   platformAsk: isoMinutesAgo(23),
   platformTurn: isoMinutesAgo(20),
+  automation: isoMinutesAgo(1),
 };
 
 /** The ids the outline and the message versions below point at. */
@@ -1093,6 +1094,28 @@ export const seedEvents: ReadonlyArray<EventRowEncoded> = [
     ],
   }),
   ...captureHistory,
+  row(
+    checkoutJam,
+    at.automation,
+    31,
+    "message",
+    {
+      actor: user(people.alex.id),
+      origin: { type: "automation", automationId: "auto_sample_deps" },
+      text: [
+        "Nightly run finished. Three dependencies moved: hono 4.9.2, vitest 5.1.0 and effect 4.0.3.",
+        "",
+        "- acme/web: all tests pass on `main`, nothing to do.",
+        "- acme/api: one snapshot changed with the hono bump and needs a reviewer.",
+        "- acme/docs: the vitest bump fails two component tests in the explorer.",
+        "",
+        "I opened a follow-up thread for the explorer failures and left the snapshot change for whoever owns acme/api this week. No credentials were touched and every branch this run created was pushed before the machine slept.",
+      ].join("\n"),
+      files: [],
+      delivery: "queue",
+    },
+    "answered",
+  ),
 ];
 
 export const outline: ReadonlyArray<EventOutlineSection> = [
