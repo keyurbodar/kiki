@@ -1,7 +1,7 @@
 import { AsyncResult, Atom } from "effect/reactivity";
 import { queryTimeToLive } from "@/data/atoms/conventions";
 import { ApiClient } from "@/data/client/ApiClient";
-import { decodePullPage, type PullCard } from "./pull";
+import { decodePullPage, type PullCard, type PullPage } from "./pull";
 
 /** The reactivity key every pulls query and mutation shares. */
 export const pullsReactivityKey = (orgId: string) => `pulls:${orgId}`;
@@ -51,7 +51,7 @@ const pullsQuery = Atom.family((key: string) => {
     request: PullListRequest;
     cursor: string | null;
   };
-  return ApiClient.query("pulls", "list", {
+  const page = ApiClient.query("pulls", "list", {
     params: { orgId },
     query: {
       ...toListQuery(request),
@@ -60,6 +60,10 @@ const pullsQuery = Atom.family((key: string) => {
     reactivityKeys: [pullsReactivityKey(orgId)],
     timeToLive: queryTimeToLive,
   });
+  // The response is undecoded and every row carries the pull's body, which no
+  // list surface reads. Decoding here means the cache holds the projection a
+  // row renders rather than the record the API happens to return.
+  return Atom.map(page, (result) => AsyncResult.map(result, decodePullPage));
 });
 
 export const pullsAtom = (
@@ -84,16 +88,15 @@ const pullsPagesQuery = Atom.family((key: string) => {
     const items: Array<PullCard> = [];
     let cursor: string | null = null;
     for (let page = 0; page < maxPullPages; page++) {
-      const result = get(
+      const result: AsyncResult.AsyncResult<PullPage, unknown> = get(
         pullsQuery(JSON.stringify({ orgId, request, cursor })),
       );
       if (AsyncResult.isFailure(result))
         return AsyncResult.failure(result.cause);
       if (!AsyncResult.isSuccess(result)) return AsyncResult.initial();
-      const decoded = decodePullPage(result.value);
-      items.push(...decoded.items);
-      cursor = decoded.cursor;
-      if (cursor === null || decoded.items.length === 0) break;
+      items.push(...result.value.items);
+      cursor = result.value.cursor;
+      if (cursor === null || result.value.items.length === 0) break;
     }
     return AsyncResult.success<ReadonlyArray<PullCard>>(items);
   });
