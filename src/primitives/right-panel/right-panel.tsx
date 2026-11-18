@@ -21,8 +21,14 @@ export const RIGHT_PANEL_KEY_STEP_LARGE = 32;
 export const RIGHT_PANEL_MAIN_MIN_REM = 20;
 export const RIGHT_PANEL_WIDTH_KEY = "capy:web:right-panel-width";
 
-const PANEL_WIDTH =
-  "w-[clamp(20rem,var(--right-panel-width),calc(100cqw-20rem))]";
+/**
+ * Capy's dock is `min(its own width, 38% of the work area)`: measured live at
+ * 1440, 1100, 1000, 900, 820 and 780, the panel came back 452, 323, 285, 247,
+ * 217 and 201 px — 38% of the work area every time, never the 32.5rem default
+ * once the area is narrow. The panel shrinks with the transcript instead of
+ * holding a floor and squeezing it.
+ */
+const PANEL_WIDTH = "w-[min(var(--right-panel-width),38cqw)]";
 
 export const clampRightPanelWidth = (width: number) =>
   Math.max(width, RIGHT_PANEL_MIN_WIDTH);
