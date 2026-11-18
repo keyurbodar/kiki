@@ -11,10 +11,12 @@ import {
 } from "@/primitives/dialog";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
-import { MenuContent, MenuSeparator, MenuTrigger } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuSeparator,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { newFilePath, skillNamePattern, skillSlug } from "./authoring";
@@ -54,21 +56,21 @@ export function VolumeAddMenu({
           <Tooltip>
             <TooltipTrigger
               render={
-                <MenuTrigger
+                <ResponsiveMenuTrigger
                   render={
                     <Button variant="ghost" size="icon-xs" aria-label="Add" />
                   }
                 >
                   <Icon name="plus-large" />
-                </MenuTrigger>
+                </ResponsiveMenuTrigger>
               }
             />
             <TooltipContent side="bottom">Add</TooltipContent>
           </Tooltip>
         ) : (
-          <MenuTrigger render={trigger} />
+          <ResponsiveMenuTrigger render={trigger} />
         )}
-        <MenuContent
+        <ResponsiveMenuContent
           align={trigger === undefined ? "end" : "start"}
           className="w-52"
         >
@@ -94,7 +96,7 @@ export function VolumeAddMenu({
                   Add instructions
                 </ResponsiveMenuItem>
               )}
-              <MenuSeparator />
+              <ResponsiveMenuSeparator />
             </>
           )}
           <ResponsiveMenuItem onClick={() => filesInput.current?.click()}>
@@ -109,7 +111,7 @@ export function VolumeAddMenu({
             </span>
             Upload folder
           </ResponsiveMenuItem>
-        </MenuContent>
+        </ResponsiveMenuContent>
       </ResponsiveMenu>
       <input
         ref={filesInput}

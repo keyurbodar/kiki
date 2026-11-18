@@ -1,9 +1,11 @@
 import { type ReactNode, useState } from "react";
 import { Button } from "@/primitives/button";
-import { MenuContent, MenuSearchRow, MenuTrigger } from "@/primitives/menu";
+import { MenuSearchRow } from "@/primitives/menu";
 import {
   ResponsiveMenu,
   ResponsiveMenuCheckboxItem,
+  ResponsiveMenuContent,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 
 export type ActivityFilterOption = {
@@ -103,7 +105,7 @@ export function ActivityFilterMenu({
   const summary = filterSummary(options, selected, allLabel, noun);
   return (
     <ResponsiveMenu onOpenChange={(open) => (open ? undefined : setQuery(""))}>
-      <MenuTrigger
+      <ResponsiveMenuTrigger
         render={
           <Button
             variant="ghost"
@@ -119,8 +121,8 @@ export function ActivityFilterMenu({
         <Stack options={summary.icons} />
         <span className="min-w-0 truncate">{summary.text}</span>
         <ChevronDownSmall className="size-(--icon-sm) shrink-0 text-muted-foreground-3" />
-      </MenuTrigger>
-      <MenuContent align="end" className="w-64">
+      </ResponsiveMenuTrigger>
+      <ResponsiveMenuContent align="end" className="w-64">
         <MenuSearchRow>
           <input
             className="h-(--h-menu-row) w-full min-w-0 bg-transparent px-2 text-sm font-normal text-foreground outline-none placeholder:text-muted-foreground-3"
@@ -168,7 +170,7 @@ export function ActivityFilterMenu({
             </ResponsiveMenuCheckboxItem>
           ))
         )}
-      </MenuContent>
+      </ResponsiveMenuContent>
     </ResponsiveMenu>
   );
 }

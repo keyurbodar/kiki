@@ -12,10 +12,11 @@ import {
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
-import { MenuContent, MenuTrigger } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
@@ -87,7 +88,7 @@ function PickMenu({
   const current = options.find((option) => option.value === value);
   return (
     <ResponsiveMenu>
-      <MenuTrigger
+      <ResponsiveMenuTrigger
         render={
           <Button
             variant="ghost"
@@ -101,7 +102,7 @@ function PickMenu({
           </Button>
         }
       />
-      <MenuContent
+      <ResponsiveMenuContent
         align="end"
         className="max-h-80 w-64 max-w-full overflow-y-auto md:scroll-fade-y"
       >
@@ -120,7 +121,7 @@ function PickMenu({
             )}
           </ResponsiveMenuItem>
         ))}
-      </MenuContent>
+      </ResponsiveMenuContent>
     </ResponsiveMenu>
   );
 }

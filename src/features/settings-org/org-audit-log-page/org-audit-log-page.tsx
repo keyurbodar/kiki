@@ -10,10 +10,11 @@ import {
 import { organizationsAtom } from "@/data/atoms/session.ts";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
-import { MenuContent, MenuTrigger } from "@/primitives/menu";
 import {
   ResponsiveMenu,
   ResponsiveMenuCheckboxItem,
+  ResponsiveMenuContent,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import {
   SideSheet,
@@ -255,7 +256,7 @@ export function AuditLog({
   const people = members.length > 0 ? members : [];
   const actorMenu = (
     <ResponsiveMenu>
-      <MenuTrigger
+      <ResponsiveMenuTrigger
         render={
           <Button
             variant="ghost"
@@ -266,8 +267,8 @@ export function AuditLog({
         }
       >
         {filterIcon}
-      </MenuTrigger>
-      <MenuContent align="end" className="w-56">
+      </ResponsiveMenuTrigger>
+      <ResponsiveMenuContent align="end" className="w-56">
         {actorChoices.map((choice) => {
           const member =
             choice.kind === "human"
@@ -295,12 +296,12 @@ export function AuditLog({
             </ResponsiveMenuCheckboxItem>
           );
         })}
-      </MenuContent>
+      </ResponsiveMenuContent>
     </ResponsiveMenu>
   );
   const familyMenu = (
     <ResponsiveMenu>
-      <MenuTrigger
+      <ResponsiveMenuTrigger
         render={
           <Button
             variant="ghost"
@@ -311,8 +312,8 @@ export function AuditLog({
         }
       >
         {clockIcon}
-      </MenuTrigger>
-      <MenuContent align="end" className="w-64">
+      </ResponsiveMenuTrigger>
+      <ResponsiveMenuContent align="end" className="w-64">
         {(Object.keys(auditFamilyLabels) as AuditFamily[]).map((family) => (
           <ResponsiveMenuCheckboxItem
             key={family}
@@ -324,7 +325,7 @@ export function AuditLog({
             {auditFamilyLabels[family]}
           </ResponsiveMenuCheckboxItem>
         ))}
-      </MenuContent>
+      </ResponsiveMenuContent>
     </ResponsiveMenu>
   );
   return (
