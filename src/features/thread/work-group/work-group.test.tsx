@@ -128,7 +128,9 @@ it("keeps a notice's own phrase and the failure tail in order", () => {
 
 it("says one issue update for a single row", () => {
   render(<WorkGroup row={withEntries([notice(1, "issue_activity", "a")])} />);
-  expect(screen.getByRole("button").textContent).toContain("1 issue update,worked");
+  expect(screen.getByRole("button").textContent).toContain(
+    "1 issue update,worked",
+  );
 });
 
 it("leaves a group with no notices on its plain label", () => {
