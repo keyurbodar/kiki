@@ -26,7 +26,7 @@ export class IssuesGroup extends HttpApiGroup.make("issues").add(
     "captainActivity",
     "/orgs/:orgId/captains/:jamId/issue-activity",
     {
-    error: HttpApiError.NotFoundNoContent,
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, jamId: Schema.String },
       success: Undecoded,
     },
@@ -157,7 +157,7 @@ export class IssuesGroup extends HttpApiGroup.make("issues").add(
     "setSubscription",
     "/orgs/:orgId/issues/:code/subscription",
     {
-    error: HttpApiError.NotFoundNoContent,
+      error: HttpApiError.NotFoundNoContent,
       params: issueParams,
       payload: SetIssueSubscriptionRequest,
       success: IssueViewer,

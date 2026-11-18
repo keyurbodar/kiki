@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { AtomRegistry } from "effect/reactivity";
 import type { OrgId } from "../../api/schemas/ids.ts";
 import { reactivityKeys } from "../../atoms/conventions.ts";
@@ -145,6 +146,32 @@ describe("issues mock", () => {
         { suspendOnWaiting: true },
       );
       assert.strictEqual(unrelated.relations?.length, 0);
+    }),
+  );
+});
+
+describe("an issue code that names no row", () => {
+  it.effect(
+    "answers the 404 the endpoint declares, not an undeclared 500",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        const error = yield* AtomRegistry.getResult(
+          registry,
+          issueAtom(orgId, "ACME-404"),
+        ).pipe(Effect.flip);
+        assert.instanceOf(error, HttpApiError.NotFound);
+      }),
+  );
+
+  it.effect("still answers a row that exists", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const detail = yield* AtomRegistry.getResult(
+        registry,
+        issueAtom(orgId, "ACME-2"),
+      );
+      assert.strictEqual(detail.issue.code, "ACME-2");
     }),
   );
 });
