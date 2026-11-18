@@ -299,7 +299,7 @@ const mentionThread: EventRowEncoded[] = [
     {
       actor: user,
       origin: web,
-      text: "use kiki-ux-verify before you ship, and cite acme/docs#57",
+      text: "use kiki-ux-verify before you ship, and cite acme/api#57",
       mentions: [
         {
           kind: "skill",
@@ -311,11 +311,11 @@ const mentionThread: EventRowEncoded[] = [
         },
         {
           kind: "pr",
-          id: "acme/docs#57",
-          label: "acme/docs#57",
+          id: "acme/api#57",
+          label: "acme/api#57",
           start: 45,
-          end: 58,
-          text: "acme/docs#57",
+          end: 56,
+          text: "acme/api#57",
         },
       ],
       files: [],

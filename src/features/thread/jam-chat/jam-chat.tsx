@@ -15,6 +15,10 @@ import {
   useState,
 } from "react";
 import {
+  type MarkdownChipsContextValue,
+  MarkdownChipsProvider,
+} from "@/components/markdown-chips";
+import {
   organizationsAtom,
   resolveActiveOrgId,
   selectedOrgIdAtom,
@@ -56,6 +60,9 @@ const chatScroller =
 type ChatRowContext = { gaps: ReadonlyMap<string, RowGap>; now?: number };
 const RowContext = createContext<ChatRowContext>({ gaps: new Map() });
 
+/** No references resolved: every code stays the text it was written as. */
+const emptyChips: MarkdownChipsContextValue = {};
+
 function ChatRow({ row }: { row: TimelineRowData }) {
   const { gaps, now } = useContext(RowContext);
   const key = rowKey(row);
@@ -74,6 +81,8 @@ function ChatRow({ row }: { row: TimelineRowData }) {
 
 export type JamChatProps = ComponentProps<"div"> & {
   jamId?: string;
+  /** What this transcript knows about the references in its text. */
+  chips?: MarkdownChipsContextValue;
   rows?: readonly TimelineRowData[];
   header?: ReactNode;
   initialLoading?: boolean;
@@ -104,6 +113,7 @@ const scrollAdapter = (node: HTMLElement): JumpList => ({
  */
 export function JamChat({
   jamId,
+  chips,
   rows = [],
   header,
   initialLoading = false,
@@ -262,25 +272,27 @@ export function JamChat({
       ref={setViewport}
     >
       <AttachmentSourceProvider source={attachmentSource}>
-        <RowContext.Provider value={context}>
-          <div
-            ref={scroller}
-            data-slot="chat-scroller"
-            onScroll={handleScroll}
-            className={chatScroller}
-          >
-            <div>
-              {header !== undefined && (
-                <div>
-                  {header}
-                  <div className="h-3" />
-                </div>
-              )}
-              {rowList}
-              <div className="pb-8 max-md:pb-7" />
+        <MarkdownChipsProvider value={chips ?? emptyChips}>
+          <RowContext.Provider value={context}>
+            <div
+              ref={scroller}
+              data-slot="chat-scroller"
+              onScroll={handleScroll}
+              className={chatScroller}
+            >
+              <div>
+                {header !== undefined && (
+                  <div>
+                    {header}
+                    <div className="h-3" />
+                  </div>
+                )}
+                {rowList}
+                <div className="pb-8 max-md:pb-7" />
+              </div>
             </div>
-          </div>
-        </RowContext.Provider>
+          </RowContext.Provider>
+        </MarkdownChipsProvider>
       </AttachmentSourceProvider>
       {children}
       {onInsertQuote !== undefined && (
