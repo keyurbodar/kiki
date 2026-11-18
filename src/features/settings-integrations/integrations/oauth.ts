@@ -1,5 +1,6 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { ApiClient } from "@/data/client/ApiClient";
 
 const startSlackOAuth = ApiClient.mutation("integrations", "startSlackOAuth");
@@ -27,7 +28,13 @@ export function useStartOAuth(provider: "slack" | "linear" | "paper") {
             ? await linear({ params: { orgId } })
             : await paper({ params: { orgId } });
       const url = authorizeUrlOf(result);
-      if (url !== undefined) window.location.assign(url);
+      if (url === undefined) {
+        toast.error(`Could not open ${provider}'s authorization page`);
+        return;
+      }
+      window.location.assign(url);
+    } catch {
+      toast.error(`Could not start ${provider} authorization`);
     } finally {
       setOpening(false);
     }

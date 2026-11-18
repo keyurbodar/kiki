@@ -913,6 +913,9 @@ export const mcpServers = [
     url: "https://mcp.example.com/errors",
     transport: "http",
     status: "connected",
+    createdAt: isoMinutesAgo(6 * day),
+    updatedAt: isoMinutesAgo(52),
+    lastCheckedAt: isoMinutesAgo(52),
   },
   {
     id: "mcp_sample_docs",
@@ -921,6 +924,9 @@ export const mcpServers = [
     url: "https://mcp.example.com/docs",
     transport: "http",
     status: "needs_auth",
+    createdAt: isoMinutesAgo(3 * day),
+    updatedAt: isoMinutesAgo(60),
+    lastCheckedAt: isoMinutesAgo(60),
   },
 ] as const;
 

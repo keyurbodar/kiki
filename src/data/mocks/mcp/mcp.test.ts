@@ -243,7 +243,16 @@ describe("mcp mock", () => {
       const tested = yield* Registry.getResult(registry, testServer as any, {
         suspendOnWaiting: true,
       });
-      assert.equal((tested as { status: string }).status, "ok");
+      const diagnosis = tested as {
+        version: string | null;
+        failure: unknown;
+        passed: ReadonlyArray<string>;
+        toolCount: number | null;
+      };
+      assert.isNull(diagnosis.failure);
+      assert.include(diagnosis.passed, "list");
+      assert.strictEqual(diagnosis.toolCount, 2);
+      assert.isString(diagnosis.version);
 
       registry.set(refreshServer, { params: { orgId, serverId } });
       const refreshed = yield* Registry.getResult(

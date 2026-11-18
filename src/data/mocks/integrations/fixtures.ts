@@ -269,7 +269,7 @@ export const sampleTailscaleConnection = {
 export const sampleOAuthStart = (provider: string, state: string) => ({
   provider,
   state,
-  authorizationUrl: `https://accounts.example.com/${provider}/authorize?state=${state}`,
+  authorizeUrl: `https://accounts.example.com/${provider}/authorize?state=${state}`,
   expiresAt: isoMinutesAgo(-10),
 });
 

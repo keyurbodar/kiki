@@ -135,9 +135,10 @@ function UpdateReview({
           <SettingsRow
             label={shortVersion(pending.version) ?? pending.version}
             description={
-              rollback
+              pending.notes ??
+              (rollback
                 ? `From ${plugin.version}, back to the version you ran before`
-                : `From ${plugin.version}${pending.source === "github" ? " on GitHub" : " in the marketplace"}. Owner and project stay the same`
+                : `From ${plugin.version}${pending.source === "github" ? " on GitHub" : " in the marketplace"}. Owner and project stay the same`)
             }
           >
             <Badge size="sm">{rollback ? "Rollback" : "Changelog"}</Badge>
