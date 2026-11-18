@@ -72,6 +72,7 @@
     "shiki": "^4.6.0",
     "skullet": "^0.0.3",
     "sonner": "^2.0.8",
+    "torph": "^0.1.4",
     "unified": "^11.0.5",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },

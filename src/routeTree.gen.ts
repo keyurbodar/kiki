@@ -19,6 +19,7 @@ import { Route as Char91__mediaLightboxChar93RouteImport } from './routes/[__med
 import { Route as Char91__modelPickerChar93RouteImport } from './routes/[__model-picker]'
 import { Route as Char91__newThreadSelectsChar93RouteImport } from './routes/[__new-thread-selects]'
 import { Route as Char91__skeletonsChar93RouteImport } from './routes/[__skeletons]'
+import { Route as Char91__textMorphChar93RouteImport } from './routes/[__text-morph]'
 import { Route as Char91__threadDeviceChar93RouteImport } from './routes/[__thread-device]'
 import { Route as Char91__toastsChar93RouteImport } from './routes/[__toasts]'
 import { Route as Char91__tokensChar93RouteImport } from './routes/[__tokens]'
@@ -236,6 +237,11 @@ const Char91__newThreadSelectsChar93Route =
 const Char91__skeletonsChar93Route = Char91__skeletonsChar93RouteImport.update({
   id: '/__skeletons',
   path: '/__skeletons',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91__textMorphChar93Route = Char91__textMorphChar93RouteImport.update({
+  id: '/__text-morph',
+  path: '/__text-morph',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Char91__threadDeviceChar93Route =
@@ -1133,6 +1139,7 @@ export interface FileRoutesByFullPath {
   '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
   '/__skeletons': typeof Char91__skeletonsChar93Route
+  '/__text-morph': typeof Char91__textMorphChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__toasts': typeof Char91__toastsChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
@@ -1305,6 +1312,7 @@ export interface FileRoutesByTo {
   '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
   '/__skeletons': typeof Char91__skeletonsChar93Route
+  '/__text-morph': typeof Char91__textMorphChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__toasts': typeof Char91__toastsChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
@@ -1477,6 +1485,7 @@ export interface FileRoutesById {
   '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
   '/__skeletons': typeof Char91__skeletonsChar93Route
+  '/__text-morph': typeof Char91__textMorphChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__toasts': typeof Char91__toastsChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
@@ -1652,6 +1661,7 @@ export interface FileRouteTypes {
     | '/__model-picker'
     | '/__new-thread-selects'
     | '/__skeletons'
+    | '/__text-morph'
     | '/__thread-device'
     | '/__toasts'
     | '/__tokens'
@@ -1824,6 +1834,7 @@ export interface FileRouteTypes {
     | '/__model-picker'
     | '/__new-thread-selects'
     | '/__skeletons'
+    | '/__text-morph'
     | '/__thread-device'
     | '/__toasts'
     | '/__tokens'
@@ -1995,6 +2006,7 @@ export interface FileRouteTypes {
     | '/__model-picker'
     | '/__new-thread-selects'
     | '/__skeletons'
+    | '/__text-morph'
     | '/__thread-device'
     | '/__toasts'
     | '/__tokens'
@@ -2170,6 +2182,7 @@ export interface RootRouteChildren {
   Char91__modelPickerChar93Route: typeof Char91__modelPickerChar93Route
   Char91__newThreadSelectsChar93Route: typeof Char91__newThreadSelectsChar93Route
   Char91__skeletonsChar93Route: typeof Char91__skeletonsChar93Route
+  Char91__textMorphChar93Route: typeof Char91__textMorphChar93Route
   Char91__threadDeviceChar93Route: typeof Char91__threadDeviceChar93Route
   Char91__toastsChar93Route: typeof Char91__toastsChar93Route
   Char91__tokensChar93Route: typeof Char91__tokensChar93Route
@@ -2266,6 +2279,13 @@ declare module '@tanstack/react-router' {
       path: '/__skeletons'
       fullPath: '/__skeletons'
       preLoaderRoute: typeof Char91__skeletonsChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__text-morph': {
+      id: '/__text-morph'
+      path: '/__text-morph'
+      fullPath: '/__text-morph'
+      preLoaderRoute: typeof Char91__textMorphChar93RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/__thread-device': {
@@ -3758,6 +3778,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91__modelPickerChar93Route: Char91__modelPickerChar93Route,
   Char91__newThreadSelectsChar93Route: Char91__newThreadSelectsChar93Route,
   Char91__skeletonsChar93Route: Char91__skeletonsChar93Route,
+  Char91__textMorphChar93Route: Char91__textMorphChar93Route,
   Char91__threadDeviceChar93Route: Char91__threadDeviceChar93Route,
   Char91__toastsChar93Route: Char91__toastsChar93Route,
   Char91__tokensChar93Route: Char91__tokensChar93Route,

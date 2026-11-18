@@ -13,6 +13,7 @@ import {
   menuRowVariants,
 } from "@/primitives/menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
+import { TextMorph } from "@/primitives/text-morph";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   buildCostRows,
@@ -35,7 +36,7 @@ export function CostValue({ value, className }: CostValueProps) {
         className,
       )}
     >
-      {value}
+      <TextMorph>{value}</TextMorph>
     </span>
   );
 }
