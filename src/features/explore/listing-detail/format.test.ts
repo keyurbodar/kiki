@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { ExploreCard, ExploreListing } from "@/data/api/schemas/explore";
 import { findSampleListing } from "@/data/mocks/explorePublic/fixtures";
+import { minutesAgo } from "@/data/mocks/fixtures/time";
 import {
   compactNumber,
   fileMarkdown,
@@ -14,10 +16,69 @@ import {
   trimPeriod,
 } from "./format";
 
-const plugin = findSampleListing("plugin", "edge-platform");
+/**
+ * A plugin carrying servers, skills and a repository. The sampled catalogue rows
+ * only carry what Capy's shelf showed, so the formatters are exercised on a
+ * listing built here rather than on shelf data that has none of it.
+ */
+const plugin = new ExploreListing({
+  card: new ExploreCard({
+    source: "catalog",
+    kind: "plugin",
+    slug: "edge-platform",
+    displayName: "Edge Platform",
+    description: "Manage workers, zones, and edge configuration",
+    maker: null,
+    accent: null,
+    category: null,
+    firstListedAt: null,
+    featuredRank: null,
+    hasIcon: false,
+    repository: null,
+    stars: null,
+    starsCheckedAt: null,
+    adds: null,
+    version: null,
+    versionId: null,
+    theme: null,
+    builtIn: null,
+    createdAt: minutesAgo(40 * 24 * 60),
+    updatedAt: minutesAgo(30 * 24 * 60),
+  }),
+  content: {
+    kind: "plugin",
+    plugin: {
+      servers: [
+        {
+          displayName: "Edge Platform",
+          transport: "http",
+          placement: "backend",
+          url: "https://mcp.example.com/mcp",
+          command: null,
+          auth: "oauth",
+          connection: "organization",
+          scopes: [],
+          secrets: [],
+        },
+      ],
+      skills: Array.from({ length: 16 }, (_, index) => ({
+        name: `skill-${index}`,
+        description: "A skill",
+        content: null,
+      })),
+      repository: "northwind/skills",
+      path: ".",
+      commit: "4f1c2a9b7e3d5c8a0b6f2e1d9c7a5b3e1f0d2c4a",
+      license: "MIT",
+      warnings: [],
+      prerequisites: null,
+    },
+  },
+  setup: null,
+  versions: [],
+});
 const skill = findSampleListing("skill", "debugging-playbook");
-if (plugin === undefined || skill === undefined)
-  throw new Error("missing fixtures");
+if (skill === undefined) throw new Error("missing fixtures");
 
 describe("listing detail format", () => {
   it("parses the kind path segment", () => {

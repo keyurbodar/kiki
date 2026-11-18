@@ -1,8 +1,6 @@
 import {
   ExploreCard,
-  type ExploreContent,
   ExploreListing,
-  type ExplorePluginServer,
   ExploreVersion,
   type ListingSetup,
 } from "../../api/schemas/explore.ts";
@@ -11,158 +9,8 @@ import { type ThemeListingFixture, themeListings } from "./themes.ts";
 
 const day = 24 * 60;
 
-const edgeSkillNames = [
-  [
-    "workers-sdk",
-    "Build, debug, or review edge worker applications that use the workers SDK",
-  ],
-  [
-    "analytics-pipelines",
-    "Build and troubleshoot analytics pipelines, catalogs, and SQL over stored tables. Use for streaming data into object storage, managing catalogs, or querying those tables; also use for requests that name the older pipeline products",
-  ],
-  [
-    "edge-platform",
-    "Discover and choose edge platform products for apps, APIs, agents, storage, networking, and security. Use for architecture and product selection, including when the user describes a need without naming a product; then find the relevant skill or documentation",
-  ],
-  [
-    "edge-email",
-    "Implement or troubleshoot email sending and routing integrations and their delivery configuration",
-  ],
-  [
-    "zero-trust",
-    "Design, configure, troubleshoot, or review zero trust and secure access deployments. Use zero-trust-migrations for migration planning from other vendors",
-  ],
-  [
-    "zero-trust-migrations",
-    "Plan a migration from another secure access vendor",
-  ],
-  ["dns-records", "Create, update, and audit DNS records for a zone"],
-  ["cache-rules", "Tune cache rules and purge content"],
-  ["kv-storage", "Read and write key-value storage from workers"],
-  ["object-storage", "Manage buckets, objects, and lifecycle rules"],
-  ["queues", "Produce and consume queue messages from workers"],
-  ["durable-objects", "Design stateful coordination with durable objects"],
-  ["images", "Resize, optimize, and serve images at the edge"],
-  ["web-analytics", "Read traffic and performance analytics for a site"],
-  ["waf-rules", "Write and test firewall rules"],
-  ["load-balancing", "Configure pools, monitors, and steering"],
-] as const;
-
-const trackerSkillNames = [
-  [
-    "tracker-create-alert",
-    "Create alerts with the workflow engine API. Use when asked to create alerts, set up notifications, configure issue priority alerts, or build workflow automations. Supports email, chat, paging, and other notification actions",
-  ],
-  [
-    "tracker-debug-issue",
-    "Debug and fix a tracked issue: find it by link, ID, or search, pull full context (stack trace, breadcrumbs, trace, logs), optionally run the root-cause tool, apply the code fix, and resolve it via a fixing commit or pull request",
-  ],
-  [
-    "tracker-fix-stack-traces",
-    "Make stack traces readable: upload source maps for JavaScript and TypeScript, or debug files for native and mobile builds. Use when frames show minified names, bundled paths, or method names with no file or line",
-  ],
-  [
-    "tracker-get-started",
-    "Guided entry point for using the tracker through your agent. Orients you to your current setup and, for a new project, sets up the tracker end to end with sane defaults",
-  ],
-  [
-    "tracker-instrument",
-    "Instrument an application: detect the platform, install and initialize the SDK if needed, and wire up any signal, from error monitoring and tracing to logging and metrics",
-  ],
-  ["tracker-releases", "Create releases and associate commits"],
-  ["tracker-performance", "Find slow transactions and spans"],
-  ["tracker-replays", "Review session replays for an issue"],
-] as const;
-
-const warehouseSkillNames = [
-  [
-    "warehouse-query",
-    "Query warehouse tables with the SQL API. Use when asked for numbers from a table, to check a schema, or to trace a failing pipeline",
-  ],
-  [
-    "warehouse-schema",
-    "Inspect and change table schemas, including column types and partitioning",
-  ],
-] as const;
-
-const docsSkillNames = [
-  [
-    "docs-draft",
-    "Draft and restructure documentation pages. Use when asked to write a guide, tighten an explanation, or split a long page",
-  ],
-  [
-    "docs-publish",
-    "Publish a documentation page and set its navigation position",
-  ],
-] as const;
-
-const designSkillNames = [
-  [
-    "design-frames",
-    "List frames and components, read their tokens, and leave comments on a frame",
-  ],
-  [
-    "design-contrast",
-    "Check a palette pair for contrast and suggest the nearest passing value",
-  ],
-] as const;
-
-const billingSkillNames = [
-  ["billing-invoices", "Look up invoices and refunds for a customer"],
-  [
-    "billing-subscriptions",
-    "Inspect and change subscription state, including trials and cancellations",
-  ],
-] as const;
-
-const tasksSkillNames = [
-  ["tasks-triage", "Create and triage issues, set labels and priority"],
-  ["tasks-standup", "Summarize what moved since yesterday and what is blocked"],
-] as const;
-
-const releaseSkillNames = [
-  [
-    "release-changelog",
-    "Draft a changelog entry from merged pull requests since the last release",
-  ],
-] as const;
-
-const oauthServer = (
-  displayName: string,
-  url: string,
-): ExplorePluginServer => ({
-  displayName,
-  transport: "http",
-  placement: "backend",
-  url,
-  command: null,
-  auth: "oauth",
-  connection: "organization",
-  scopes: [],
-  secrets: [],
-});
-
-const pluginContent = (
-  skills: ReadonlyArray<readonly [string, string]>,
-  server: ExplorePluginServer,
-  repository: string,
-): ExploreContent => ({
-  kind: "plugin",
-  plugin: {
-    servers: [server],
-    skills: skills.map(([name, description]) => ({
-      name,
-      description,
-      content: `# ${name}\n\n${description}.`,
-    })),
-    repository,
-    path: ".",
-    commit: "4f1c2a9b7e3d5c8a0b6f2e1d9c7a5b3e1f0d2c4a",
-    license: "MIT",
-    warnings: [],
-    prerequisites: null,
-  },
-});
+/** The commit every captured listing stands on; Explore only displays it. */
+const capturePlaceholderCommit = "4f1c2a9b7e3d5c8a0b6f2e1d9c7a5b3e1f0d2c4a";
 
 const card = (
   fields: Partial<ExploreCard> &
@@ -251,246 +99,1303 @@ const themeListing = (fixture: ThemeListingFixture, index: number) =>
     ],
   });
 
+/**
+ * Every listing Explore serves, from Capy's own catalogue captures: the plugin
+ * rows are the marketplace shelf as Capy showed it (names, descriptions and
+ * categories read off that page), and the skill rows are the captured skills
+ * list. A captured shelf card carries no detail payload, so a plugin's servers,
+ * skills, repository and versions are empty here rather than filled in.
+ */
 export const sampleListings: ReadonlyArray<ExploreListing> = [
   new ExploreListing({
     card: card({
       kind: "plugin",
-      slug: "edge-platform",
-      displayName: "Edge Platform",
-      description: "Manage workers, zones, and edge configuration",
-      repository: "northwind/skills",
-      version: "1.0.1",
-      versionId: "plv_sample_edge_101",
-      category: "deployment",
+      slug: "keiki",
+      displayName: "Keiki",
+      description:
+        "Build, test, and run customer-facing agents on iMessage, WhatsApp, and Slack",
+      category: "productivity",
+      firstListedAt: minutesAgo(3 * day),
     }),
-    content: pluginContent(
-      edgeSkillNames,
-      oauthServer("Edge Platform", "https://mcp.northwind.example/mcp"),
-      "northwind/skills",
-    ),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
     setup: null,
-    versions: [firstListing("plv_sample_edge_101", "1.0.1", 41)],
+    versions: [],
   }),
   new ExploreListing({
     card: card({
       kind: "plugin",
-      slug: "error-tracker",
-      displayName: "Error Tracker",
-      description: "Investigate errors, traces, and affected releases",
-      repository: "globex/tracker-plugin",
-      version: "1.4.0",
-      versionId: "plv_sample_tracker_140",
+      slug: "godaddy",
+      displayName: "GoDaddy",
+      description: "Brainstorm domain names and check availability",
+      category: "other",
+      firstListedAt: minutesAgo(2 * day),
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "paypal",
+      displayName: "PayPal",
+      description:
+        "Manage orders, invoices, subscriptions, and disputes in PayPal",
+      category: "payments",
+      firstListedAt: minutesAgo(4 * day),
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "twilio-developer-kit",
+      displayName: "Twilio Developer Kit",
+      description:
+        "Twilio skills for setup, planning, products, and guardrails across SMS, Voice, WhatsApp, AI agents, and 30+ more products",
+      category: "productivity",
+      firstListedAt: minutesAgo(5 * day),
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "excalidraw",
+      displayName: "Excalidraw",
+      description: "Draw and export hand-drawn diagrams from chat",
+      category: "design",
+      firstListedAt: minutesAgo(1 * day),
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "webull",
+      displayName: "Webull",
+      description:
+        "View accounts, positions, orders, watchlists, and market data",
+      category: "payments",
+      firstListedAt: minutesAgo(6 * day),
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "elastic",
+      displayName: "Elastic",
+      description:
+        "Elastic skills and documentation \u2014 Elasticsearch, Kibana, Observability, Security, Cloud, ES|QL, OpenTelemetry, and MCP docs access",
       category: "monitoring",
     }),
-    content: pluginContent(
-      trackerSkillNames,
-      oauthServer("Error Tracker", "https://mcp.globex.example/mcp"),
-      "globex/tracker-plugin",
-    ),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
     setup: null,
-    versions: [firstListing("plv_sample_tracker_140", "1.4.0", 41)],
+    versions: [],
   }),
   new ExploreListing({
     card: card({
       kind: "plugin",
-      slug: "data-warehouse",
-      displayName: "Data Warehouse",
-      description: "Query tables, manage schemas, and inspect pipelines",
-      repository: "initech/warehouse-plugin",
-      version: "2.2.0",
-      versionId: "plv_sample_warehouse_220",
+      slug: "thousandeyes",
+      displayName: "ThousandEyes",
+      description:
+        "Connect Claude Code to ThousandEyes MCP endpoints and shared ThousandEyes skills for network intelligence workflows",
+      category: "monitoring",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "raygun",
+      displayName: "Raygun",
+      description: "Investigate crashes, real user monitoring, and deployments",
+      category: "monitoring",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "profound",
+      displayName: "Profound",
+      description: "Track AI visibility, sentiment, and citations",
+      category: "monitoring",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "omni-analytics",
+      displayName: "Omni Analytics",
+      description:
+        "Explore, query, model, embed, and manage Omni Analytics through the REST API and embed SDK. Includes 9 skills, 3 specialized agents, and 4 context rules for model exploration, querying, model building, content browsing, content building, embedding, AI optimization, AI eval, and administration",
+      category: "monitoring",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "openai-ads-conversions",
+      displayName: "OpenAI Ads Conversions",
+      description:
+        "Set up OpenAI Ads Pixel and Conversions API tracking on your site",
+      category: "monitoring",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "val-town",
+      displayName: "Val Town",
+      description:
+        "Write, deploy, and debug vals: HTTP endpoints, crons, and email",
+      category: "deployment",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "statsig",
+      displayName: "Statsig",
+      description:
+        "Manage feature gates and experiments and read their results",
+      category: "deployment",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "sagemaker-ai",
+      displayName: "SageMaker AI",
+      description:
+        "Build, train, and deploy AI models with deep AWS AI/ML expertise brought directly into your coding assistants, covering the surface area of Amazon SageMaker AI",
+      category: "deployment",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "pulumi",
+      displayName: "Pulumi",
+      description:
+        "Search cloud resources across stacks and delegate tasks to Pulumi Neo",
+      category: "deployment",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "launchdarkly",
+      displayName: "LaunchDarkly",
+      description: "Create, target, roll out, and clean up feature flags",
+      category: "deployment",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "heroku",
+      displayName: "Heroku",
+      description: "Deploy and manage Heroku apps, add-ons, dynos, and logs",
+      category: "deployment",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "turbopuffer",
+      displayName: "Turbopuffer",
+      description:
+        "Work with turbopuffer, a serverless vector and full-text search database. Includes guidance for querying (vector ANN, BM25, hybrid), writing, schema management, native embeddings, sharding, pinning, branching, bulk ingestion, and troubleshooting",
       category: "database",
-      featuredRank: 1,
-      stars: 3_120,
-      starsCheckedAt: minutesAgo(3 * day),
     }),
-    content: pluginContent(
-      warehouseSkillNames,
-      oauthServer("Data Warehouse", "https://mcp.initech.example/mcp"),
-      "initech/warehouse-plugin",
-    ),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
     setup: null,
-    versions: [firstListing("plv_sample_warehouse_220", "2.2.0", 12)],
+    versions: [],
   }),
   new ExploreListing({
     card: card({
       kind: "plugin",
-      slug: "docs-writer",
-      displayName: "Docs Writer",
-      description: "Draft, restructure, and publish documentation pages",
-      repository: "acme/docs-plugin",
-      version: "1.1.3",
-      versionId: "plv_sample_docs_113",
+      slug: "turso",
+      displayName: "Turso",
+      description: "Manage Turso databases, branches, and groups, and run SQL",
+      category: "database",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "redis",
+      displayName: "Redis",
+      description:
+        "Apply Redis best practices for data structures, search, and caching",
+      category: "database",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "qdrant",
+      displayName: "Qdrant",
+      description:
+        "Tune Qdrant collections, search quality, scaling, and migrations",
+      category: "database",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "pg-aiguide",
+      displayName: "Tiger Data pg-aiguide",
+      description:
+        "Search Postgres docs and apply Postgres best practices to schemas",
+      category: "database",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "pinecone",
+      displayName: "Pinecone",
+      description: "Search docs and manage indexes and records in Pinecone",
+      category: "database",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "zapier",
+      displayName: "Zapier",
+      description:
+        "Run actions in thousands of apps through your Zapier account",
       category: "docs",
-      firstListedAt: minutesAgo(9 * day),
     }),
-    content: pluginContent(
-      docsSkillNames,
-      oauthServer("Docs Writer", "https://mcp.acme.example/docs/mcp"),
-      "acme/docs-plugin",
-    ),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
     setup: null,
-    versions: [firstListing("plv_sample_docs_113", "1.1.3", 26)],
+    versions: [],
   }),
   new ExploreListing({
     card: card({
       kind: "plugin",
-      slug: "design-review",
-      displayName: "Design Review",
-      description: "Comment on frames, list components, and check contrast",
-      repository: "globex/design-plugin",
-      version: "0.9.4",
-      versionId: "plv_sample_design_094",
+      slug: "test-android-apps",
+      displayName: "Test Android Apps",
+      description:
+        "Reproduce bugs, inspect UI, and profile Android apps on an emulator",
+      category: "docs",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "temporal",
+      displayName: "Temporal",
+      description:
+        "Build, debug, and operate Temporal workflows across SDKs and Temporal Cloud",
+      category: "docs",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "superpowers",
+      displayName: "Superpowers",
+      description:
+        "Plan, test-drive, debug, and review code with a disciplined workflow",
+      category: "docs",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "svelte",
+      displayName: "Svelte",
+      description:
+        "Look up Svelte docs and check components with the Svelte autofixer",
+      category: "docs",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "spottercode",
+      displayName: "Spottercode",
+      description:
+        "ThoughtSpot developer documentation \u2014 search Visual Embed SDK, REST API v2, and developer guides",
+      category: "docs",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "webflow",
+      displayName: "Webflow",
+      description:
+        "Manage Webflow sites, CMS collections, pages, and publishing",
       category: "design",
-      featuredRank: 2,
     }),
-    content: pluginContent(
-      designSkillNames,
-      oauthServer("Design Review", "https://mcp.globex.example/design/mcp"),
-      "globex/design-plugin",
-    ),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
     setup: null,
-    versions: [firstListing("plv_sample_design_094", "0.9.4", 5)],
+    versions: [],
   }),
   new ExploreListing({
     card: card({
       kind: "plugin",
-      slug: "billing-ops",
-      displayName: "Billing Ops",
-      description: "Inspect invoices, refunds, and subscription state",
-      repository: "northwind/billing-plugin",
-      version: "3.0.1",
-      versionId: "plv_sample_billing_301",
+      slug: "remotion",
+      displayName: "Remotion",
+      description:
+        "Make videos in React with animation, captions, audio, and rendering",
+      category: "design",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "product-design",
+      displayName: "Product Design",
+      description:
+        "Explore product ideas, audit flows, and turn mockups into working prototypes",
+      category: "design",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "mermaid-chart",
+      displayName: "Mermaid Chart",
+      description: "Create, validate, render, and save Mermaid diagrams",
+      category: "design",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "magicpath",
+      displayName: "MagicPath",
+      description:
+        "Find, install, and create UI components from MagicPath canvases",
+      category: "design",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "circle",
+      displayName: "Circle",
+      description:
+        "Skills for USDC payments, cross-chain transfers, wallets, and smart contracts, plus Circle's MCP server for SDK and docs guidance",
       category: "payments",
     }),
-    content: pluginContent(
-      billingSkillNames,
-      oauthServer("Billing Ops", "https://mcp.northwind.example/billing/mcp"),
-      "northwind/billing-plugin",
-    ),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
     setup: null,
-    versions: [firstListing("plv_sample_billing_301", "3.0.1", 33)],
+    versions: [],
   }),
   new ExploreListing({
     card: card({
       kind: "plugin",
-      slug: "task-board",
-      displayName: "Task Board",
-      description: "Create and triage issues, track standups, close loops",
-      repository: "initech/tasks-plugin",
-      version: "1.6.0",
-      versionId: "plv_sample_tasks_160",
+      slug: "xero",
+      displayName: "Xero",
+      description: "Read and write invoices, contacts, reports, and payroll",
+      category: "payments",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "sp-global",
+      displayName: "S&P Global",
+      description: "Query S&P Capital IQ financials, prices, and transcripts",
+      category: "payments",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "robinhood",
+      displayName: "Robinhood",
+      description:
+        "View portfolios, positions, orders, watchlists, and market data, and trade in a Robinhood Agentic account",
+      category: "payments",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "typeform",
+      displayName: "Typeform",
+      description: "Build forms, analyze responses, and manage contacts",
       category: "productivity",
     }),
-    content: pluginContent(
-      tasksSkillNames,
-      oauthServer("Task Board", "https://mcp.initech.example/tasks/mcp"),
-      "initech/tasks-plugin",
-    ),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
     setup: null,
-    versions: [firstListing("plv_sample_tasks_160", "1.6.0", 18)],
+    versions: [],
   }),
   new ExploreListing({
     card: card({
       kind: "plugin",
-      slug: "release-notes",
-      displayName: "Release Notes",
-      description: "Draft and publish changelog entries for a release",
-      repository: "acme/release-plugin",
-      version: "1.0.0",
-      versionId: "plv_sample_release_100",
+      slug: "trello",
+      displayName: "Trello",
+      description:
+        "Manage your Trello workspace from chat: browse and create boards, view and move lists, create, update, move, archive, and complete cards with labels and due dates, manage checklists, capture Inbox cards, schedule Planner focus time, and search across boards",
+      category: "productivity",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "todoist",
+      displayName: "Todoist",
+      description: "Create, find, and complete tasks and projects",
+      category: "productivity",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "readwise",
+      displayName: "Readwise",
+      description: "Search highlights and Reader documents, save articles",
+      category: "productivity",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "workable",
+      displayName: "Workable",
+      description: "Search candidates, move pipelines, and manage HR records",
       category: "other",
     }),
-    content: pluginContent(
-      releaseSkillNames,
-      oauthServer("Release Notes", "https://mcp.acme.example/release/mcp"),
-      "acme/release-plugin",
-    ),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
     setup: null,
-    versions: [firstListing("plv_sample_release_100", "1.0.0", 21)],
+    versions: [],
   }),
   new ExploreListing({
     card: card({
       kind: "plugin",
-      slug: "incident-digest",
-      displayName: "Incident Digest",
-      description: "Roll a week of incidents into one review note",
-      repository: "globex/incident-digest",
-      version: "1.2.0",
-      versionId: "plv_sample_digest_120",
-      category: "monitoring",
+      slug: "upwork",
+      displayName: "Upwork",
+      description: "Search talent, post jobs, and manage contracts",
+      category: "other",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "tinyfish",
+      displayName: "TinyFish",
+      description:
+        "Browse and automate the web with TinyFish: run multi-step web automations, search the web, extract clean page content, and drive remote stealth browser sessions",
+      category: "other",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "greenhouse",
+      displayName: "Greenhouse",
+      description:
+        "Search candidates, jobs, and applications, and review scorecards in Greenhouse Recruiting",
+      category: "other",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "forge",
+      displayName: "Forge",
+      description:
+        "Forge \u2014 Work orders, journey progress, artifacts, ForgeScore, dev activity, and project context for AI-assisted development workflows",
+      category: "other",
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "cloudflare",
+      displayName: "Cloudflare",
+      description: "Manage Workers, zones, and edge configuration",
+      category: "other",
+      featuredRank: 1,
+    }),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
+    setup: null,
+    versions: [],
+  }),
+  new ExploreListing({
+    card: card({
+      kind: "plugin",
+      slug: "sentry",
+      displayName: "Sentry",
+      description: "Investigate errors, traces, and affected releases",
+      category: "other",
       featuredRank: 3,
-      stars: 1_940,
-      starsCheckedAt: minutesAgo(4 * day),
     }),
-    content: pluginContent(
-      [
-        [
-          "incident-digest",
-          "Collect the week's incidents, group them by cause, and draft the review note",
-        ],
-      ],
-      oauthServer("Incident Digest", "https://mcp.globex.example/digest/mcp"),
-      "globex/incident-digest",
-    ),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
     setup: null,
-    versions: [firstListing("plv_sample_digest_120", "1.2.0", 12)],
+    versions: [],
   }),
   new ExploreListing({
     card: card({
       kind: "plugin",
-      slug: "preview-deploys",
-      displayName: "Preview Deploys",
-      description: "Open a preview URL for every pull request",
-      repository: "initech/preview-deploys",
-      version: "0.9.3",
-      versionId: "plv_sample_preview_093",
-      category: "deployment",
-      stars: 864,
-      starsCheckedAt: minutesAgo(6 * day),
+      slug: "firecrawl",
+      displayName: "Firecrawl",
+      description: "Search, scrape, crawl, and interact with the live web",
+      category: "other",
+      featuredRank: 2,
     }),
-    content: pluginContent(
-      [
-        [
-          "preview-deploys",
-          "Create, list, and tear down preview deployments for a pull request",
-        ],
-      ],
-      oauthServer("Preview Deploys", "https://mcp.initech.example/preview/mcp"),
-      "initech/preview-deploys",
-    ),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
     setup: null,
-    versions: [firstListing("plv_sample_preview_093", "0.9.3", 9)],
+    versions: [],
   }),
   new ExploreListing({
     card: card({
       kind: "plugin",
-      slug: "design-tokens",
-      displayName: "Design Tokens",
-      description: "Sync tokens from the design file into the repository",
-      repository: "northwind/design-tokens",
-      version: "3.0.0",
-      versionId: "plv_sample_tokens_300",
-      category: "design",
-      stars: 2_310,
-      starsCheckedAt: minutesAgo(5 * day),
+      slug: "vercel",
+      displayName: "Vercel",
+      description: "Inspect projects, deployments, and build failures",
+      category: "other",
+      featuredRank: 4,
     }),
-    content: pluginContent(
-      [
-        [
-          "design-tokens",
-          "Pull token values from the design file and write them as theme variables",
-        ],
-        [
-          "token-audit",
-          "Report tokens defined in the design file that no surface uses",
-        ],
-      ],
-      oauthServer("Design Tokens", "https://mcp.northwind.example/tokens/mcp"),
-      "northwind/design-tokens",
-    ),
+    content: {
+      kind: "plugin",
+      plugin: {
+        servers: [],
+        skills: [],
+        repository: null,
+        path: ".",
+        commit: capturePlaceholderCommit,
+        license: null,
+        warnings: [],
+        prerequisites: null,
+      },
+    },
     setup: null,
-    versions: [firstListing("plv_sample_tokens_300", "3.0.0", 6)],
+    versions: [],
   }),
   new ExploreListing({
     card: card({
