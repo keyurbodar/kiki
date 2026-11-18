@@ -24,6 +24,7 @@ const thread = (options: {
   readonly activeMinutesAgo: number;
   readonly preview?: string;
   readonly pinned?: boolean;
+  readonly localIndex?: number;
   readonly unread?: boolean;
   readonly modelId?: string;
   readonly machine?: { readonly kind: "cloud"; readonly size: string };
@@ -55,6 +56,7 @@ const thread = (options: {
     subscribed: true,
     personal: false,
     tagIds: [],
+    localIndex: options.localIndex ?? null,
     importing: false,
     lastModelId: options.modelId ?? null,
     pulls: options.pull
