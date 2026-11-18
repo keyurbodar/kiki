@@ -38,6 +38,8 @@ export type ThreadHeaderProps = {
   menu?: TabMenuOptions;
   onSelectChat: () => void;
   onSelectTab: (id: string) => void;
+  /** Opens a browser tab from the strip's + menu. */
+  onOpenBrowser?: () => void;
   onCloseTab?: (id: string) => void;
   /** Receives the path of the selected tab's link. */
   onCopyLink?: (path: string) => void;
@@ -59,6 +61,7 @@ export function ThreadHeader({
   menu,
   onSelectChat,
   onSelectTab,
+  onOpenBrowser,
   onCloseTab,
   onCopyLink,
   onToggleExpand,
@@ -141,6 +144,7 @@ export function ThreadHeader({
         onSelectTab={onSelectTab}
         onCloseTab={onCloseTab}
         onOpenTab={(tab) => onSelectTab(tabKey(tab))}
+        onOpenBrowser={onOpenBrowser}
       />
       <WorkProgressEdge active={working} />
     </AppTopBar>
