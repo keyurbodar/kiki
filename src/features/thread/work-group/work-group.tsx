@@ -115,7 +115,7 @@ export function WorkGroup({ row }: WorkGroupProps) {
           data-state={row.live ? "live" : "rest"}
           className="text-shimmer"
         >
-          {state}
+          {phrases.length > 0 ? state.toLowerCase() : state}
         </ShimmerText>
       </span>
       <span className="shrink-0 whitespace-pre">
