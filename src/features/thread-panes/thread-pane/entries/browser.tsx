@@ -9,6 +9,5 @@ export const entry = definePane({
   id: "browser",
   label: "New tab",
   order: 40,
-  surface: "main",
   component: BrowserTab,
 });

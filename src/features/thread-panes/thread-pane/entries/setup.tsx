@@ -9,6 +9,5 @@ export const entry = definePane({
   id: "setup",
   label: "Setup",
   order: 30,
-  surface: "main",
   component: SetupPane,
 });

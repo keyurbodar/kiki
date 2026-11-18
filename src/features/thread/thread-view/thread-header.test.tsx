@@ -361,16 +361,16 @@ describe("thread route header", () => {
     expect(router.state.location.search).toEqual({});
   });
 
-  it("opens a browser pane from the strip's menu", async () => {
+  it("keeps the transcript when the browser row has no session to open", async () => {
     await renderRoute("/thread/jam_sample_0001");
     fireEvent.click(await screen.findByLabelText("Open a tab"));
     fireEvent.click(await screen.findByText("Browser"));
-    await waitFor(() =>
-      expect(
-        document.querySelector('[data-slot="browser-pane"]'),
-      ).not.toBeNull(),
-    );
-    expect(paneTab("chat")?.querySelector("[data-selected]")).toBeNull();
+    await waitFor(() => expect(paneTab("chat")).toBeDefined());
+    // Capy's browser opens as a dock tab named for a session it creates; we
+    // have no call that creates one (AMA-208), so the row must not pretend:
+    // the transcript keeps painting and the chat tab keeps its selection.
+    expect(document.querySelector('[data-slot="browser-pane"]')).toBeNull();
+    expect(paneTab("chat")?.querySelector("[data-selected]")).not.toBeNull();
   });
 
   it("renders one header bar, not a bar inside a bar", async () => {
