@@ -111,6 +111,12 @@ describe("thread view composer slot", () => {
     expect(slot(container, "request-takeover")).toBeNull();
   });
 
+  it("shows the + menu and the send control before the first character", () => {
+    renderRoute(timeline({ rows: messages }));
+    expect(screen.getByRole("button", { name: "Add to message" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Send" })).toBeTruthy();
+  });
+
   it("takes files dragged onto the thread's composer", async () => {
     const { container } = renderRoute(timeline({ rows: messages }));
     dragOver(slot(container, "composer") as HTMLElement);

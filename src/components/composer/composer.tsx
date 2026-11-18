@@ -318,7 +318,12 @@ export function Composer({
       size="icon-sm"
       aria-label={submitLabel}
       className="select-none [-webkit-touch-callout:none]"
-      disabled={disabled || blockedByUpload || submitLocked}
+      disabled={
+        disabled ||
+        blockedByUpload ||
+        submitLocked ||
+        (empty && !hasAttachments)
+      }
       onClick={() => handle.current?.submit()}
       onPointerDown={(event) => {
         hold.current.suppress = false;
