@@ -40,7 +40,15 @@ import {
 } from "@/components/run-on-select";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { Project } from "@/data/api/schemas/project";
-import { projectKey, projectSetupAtom } from "@/data/atoms/project-settings";
+import type {
+  ProjectSetup,
+  ProjectSnapshotConfig,
+} from "@/data/api/schemas/project-settings";
+import {
+  projectKey,
+  projectSetupAtom,
+  snapshotConfigAtom,
+} from "@/data/atoms/project-settings";
 import { projectsAtom } from "@/data/atoms/projects";
 import {
   organizationsAtom,
@@ -60,7 +68,11 @@ import { cn } from "@/lib/cn";
 import { motion } from "@/lib/motion";
 import { SidebarTrigger } from "@/primitives/sidebar";
 import { HomeWelcome, type HomeWelcomeProject } from "../home-welcome";
-import { ProjectEnvironmentHint } from "../project-environment-hint";
+import {
+  ProjectEnvironmentHint,
+  type ProjectEnvironmentHintProject,
+  type ProjectEnvironmentState,
+} from "../project-environment-hint";
 import { FabricBackdrop } from "./fabric-backdrop";
 import {
   emptyOrganizeDraft,
@@ -150,6 +162,49 @@ function ProjectMachineConfig({
   );
 }
 
+/** Undefined until both halves of the environment are known, as in Capy. */
+export const projectEnvironmentState = (
+  setup: ProjectSetup | undefined,
+  snapshot: ProjectSnapshotConfig | undefined,
+): ProjectEnvironmentState | undefined =>
+  setup === undefined || snapshot === undefined
+    ? undefined
+    : {
+        activeVersionId: setup.activeVersionId,
+        building: snapshot.building,
+        hasArtifact: snapshot.hasArtifact,
+        configured: snapshot.configured,
+        enabled: snapshot.enabled,
+      };
+
+/** The row's environment line: unbuilt asks Capy to set up, a version links to its snapshot. */
+function ProjectEnvironment({
+  orgId,
+  project,
+  onSetUp,
+}: {
+  readonly orgId: OrgId;
+  readonly project: Project;
+  readonly onSetUp?: (project: ProjectEnvironmentHintProject) => void;
+}) {
+  const key = projectKey(orgId, project.id);
+  const setup = AsyncResult.getOrElse(
+    useAtomValue(projectSetupAtom(key)),
+    () => undefined,
+  );
+  const snapshot = AsyncResult.getOrElse(
+    useAtomValue(snapshotConfigAtom(key)),
+    () => undefined,
+  );
+  return (
+    <ProjectEnvironmentHint
+      project={project}
+      state={projectEnvironmentState(setup, snapshot)}
+      onSetUp={onSetUp}
+    />
+  );
+}
+
 /** Without a project there is no setup to inherit from and no project rows. */
 function HomeMachineConfig(
   props: MachineConfigMenuProps & {
@@ -218,6 +273,17 @@ function HomePageBody({
       }),
     [],
   );
+
+  const askToSetUp = useCallback((target: ProjectEnvironmentHintProject) => {
+    const composer = composerRef.current;
+    const repoFullName = target.repos[0]?.repoFullName;
+    if (composer === null || repoFullName === undefined) return;
+    const text = `Set up ${repoFullName} for this project: read the capy-setup skill, reconcile the payload against each repository, write the initialize, update-after-checkout, and startup scripts, and test-build the snapshot before activating.`;
+    if (composer.getPayload().text === text) return;
+    // reset() skips a payload it wrote before, so clear the record first.
+    composer.reset(null);
+    composer.reset(payloadOf(text));
+  }, []);
 
   const pickProject = useCallback(
     (picked: HomeWelcomeProject) => {
@@ -302,7 +368,13 @@ function HomePageBody({
               onPlacementChange={setPlacement}
               className="shrink"
             />
-            <ProjectEnvironmentHint project={project} />
+            {orgId === undefined || project === undefined ? null : (
+              <ProjectEnvironment
+                orgId={orgId}
+                project={project}
+                onSetUp={askToSetUp}
+              />
+            )}
             <span className="ml-auto flex min-w-0 shrink items-center gap-2 [&>div]:flex">
               <RepoBranchSelect
                 data-track-owner="features/home/home-page.tsx#HomePage:RepoBranchSelect.1"

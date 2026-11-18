@@ -6,8 +6,12 @@ import {
 } from "@tanstack/react-router";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+import {
+  ProjectSetup,
+  ProjectSnapshotConfig,
+} from "@/data/api/schemas/project-settings";
 import { routeTree } from "@/routeTree.gen";
-import { showsWelcome } from "./home-page";
+import { projectEnvironmentState, showsWelcome } from "./home-page";
 
 afterEach(cleanup);
 
@@ -35,6 +39,66 @@ describe("showsWelcome", () => {
   it("stays out of the way of a draft or a project list", () => {
     expect(showsWelcome("Ship it", [])).toBe(false);
     expect(showsWelcome(undefined, [{ id: "proj_sample_web" }])).toBe(false);
+  });
+});
+
+const setup = (activeVersionId: string | null) =>
+  new ProjectSetup({
+    machineSize: "large",
+    hooks: null,
+    repositories: [],
+    activeVersionId,
+    versionNumber: activeVersionId === null ? null : 3,
+  });
+
+const snapshot = (
+  state: Partial<{
+    configured: boolean;
+    enabled: boolean;
+    building: boolean;
+    hasArtifact: boolean;
+  }>,
+) =>
+  new ProjectSnapshotConfig({
+    configured: false,
+    enabled: false,
+    building: false,
+    buildSmallerTiers: false,
+    repos: [],
+    estimate: null,
+    hasArtifact: false,
+    tiers: [],
+    freezeFailure: null,
+    ...state,
+  });
+
+describe("projectEnvironmentState", () => {
+  it("stays unknown until both the setup and the snapshot have arrived", () => {
+    expect(projectEnvironmentState(undefined, undefined)).toBeUndefined();
+    expect(projectEnvironmentState(setup(null), undefined)).toBeUndefined();
+    expect(projectEnvironmentState(undefined, snapshot({}))).toBeUndefined();
+  });
+
+  it("carries the setup version and the snapshot's build state", () => {
+    expect(projectEnvironmentState(setup(null), snapshot({}))).toEqual({
+      activeVersionId: null,
+      building: false,
+      hasArtifact: false,
+      configured: false,
+      enabled: false,
+    });
+    expect(
+      projectEnvironmentState(
+        setup("setupver_1"),
+        snapshot({ configured: true, enabled: true, hasArtifact: true }),
+      ),
+    ).toEqual({
+      activeVersionId: "setupver_1",
+      building: false,
+      hasArtifact: true,
+      configured: true,
+      enabled: true,
+    });
   });
 });
 

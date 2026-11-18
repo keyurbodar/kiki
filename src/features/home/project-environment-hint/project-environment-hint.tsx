@@ -3,10 +3,10 @@ import type { ComponentProps } from "react";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 
-/** The project shape the hint needs: its id and whether it has any repository to build. */
+/** The project shape the hint needs: its id and the repositories its setup builds. */
 export type ProjectEnvironmentHintProject = {
   readonly id: string;
-  readonly repos: ReadonlyArray<unknown>;
+  readonly repos: ReadonlyArray<{ readonly repoFullName: string }>;
 };
 
 /** Capy's resolved project environment: the mirrored version plus its build state. */
@@ -69,7 +69,7 @@ function ResolvedProjectEnvironmentHint({
         className="-m-1 p-1"
         onClick={() => onSetUp?.(project)}
       >
-        <Icon name="sparkle-2" className="size-(--icon-sm)" />
+        <Icon name="server-2" className="size-(--icon-sm)" />
         <span className="hidden min-w-0 truncate sm:inline">
           Ask Capy to set up
         </span>
