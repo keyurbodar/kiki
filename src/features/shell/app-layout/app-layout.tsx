@@ -1,7 +1,11 @@
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
-import { type ReactNode, useEffect } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
+import {
+  CaptainDialog,
+  type CaptainDialogRequest,
+} from "@/features/captains/dialogs";
 import { CommandPaletteHost } from "@/features/command-palette";
 import { SettingsSidebarPanel } from "@/features/settings/shell";
 import { useSidebarThreads } from "@/features/sidebar/sidebar-threads-data";
@@ -79,6 +83,9 @@ function AppShellBody({ children, banner }: AppLayoutProps) {
   const { setOpenMobile, toggle } = useSidebarActions();
   const pathname = useRouterState({ select: selectPathname });
   const navigate = useNavigate();
+  const [captainDialog, setCaptainDialog] = useState<CaptainDialogRequest | null>(
+    null,
+  );
   const threads = useSidebarThreads();
 
   useSidebarShortcut(toggle);
@@ -103,6 +110,7 @@ function AppShellBody({ children, banner }: AppLayoutProps) {
         <SidebarThreadsPanel
           controller={threads}
           onNewThread={() => navigate({ to: "/new" })}
+          onNewCaptain={() => setCaptainDialog({ kind: "create" })}
           onSearch={() => openCommandPalette("thread")}
         />
       }
@@ -128,6 +136,12 @@ function AppShellBody({ children, banner }: AppLayoutProps) {
           {children}
         </main>
       </Card>
+      {captainDialog === null ? null : (
+        <CaptainDialog
+          request={captainDialog}
+          onClose={() => setCaptainDialog(null)}
+        />
+      )}
       {isNarrow && (
         <Sheet open={openMobile} onOpenChange={setOpenMobile}>
           <SheetContent aria-label="Navigation">{mobileNav}</SheetContent>
