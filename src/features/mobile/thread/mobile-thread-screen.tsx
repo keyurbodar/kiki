@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
 import type { ComposerPayload } from "@/components/composer";
+import type { JamId, OrgId } from "@/data/api/schemas/ids";
 import { organizationsAtom } from "@/data/atoms/session";
 import type { ComposerCommandId } from "@/features/composer/composer-commands";
 import {
@@ -11,6 +12,7 @@ import {
 } from "@/features/composer/composer-footer";
 import { useSidebarActions } from "@/features/shell/sidebar-container";
 import { JamChat } from "@/features/thread/jam-chat";
+import { useThreadTimeline } from "@/features/thread/timeline";
 import { useComposerSend } from "@/features/thread/use-composer-send";
 import { Button } from "@/primitives/button";
 import {
@@ -128,6 +130,7 @@ function MobileThreadData({
   const machine = Array.isArray(machines) ? record(machines[0]) : undefined;
   return (
     <MobileThreadBody
+      orgId={orgId}
       threadId={threadId}
       chat={chat}
       title={text(thread.title)}
@@ -144,6 +147,7 @@ function MobileThreadData({
 }
 
 type MobileThreadBodyProps = MobileThreadScreenProps & {
+  orgId?: string;
   title?: string;
   working?: boolean;
   models?: unknown;
@@ -151,6 +155,7 @@ type MobileThreadBodyProps = MobileThreadScreenProps & {
 };
 
 function MobileThreadBody({
+  orgId,
   threadId,
   chat,
   title,
@@ -159,6 +164,7 @@ function MobileThreadBody({
   machine,
 }: MobileThreadBodyProps) {
   const send = useComposerSend(threadId);
+  const timeline = useThreadTimeline((orgId ?? "") as OrgId, threadId as JamId);
   const navigate = useNavigate();
   const runCommand = (command: ComposerCommandId) => {
     if (command === "new") void navigate({ to: "/new" });
@@ -276,6 +282,12 @@ function MobileThreadBody({
         ? (chat ?? (
             <JamChat
               data-thread-id={threadId}
+              jamId={threadId}
+              rows={timeline.rows}
+              initialLoading={timeline.loading}
+              onStartReached={
+                timeline.hasOlder ? timeline.loadOlder : undefined
+              }
               className="flex min-h-0 flex-1 flex-col"
             />
           ))
