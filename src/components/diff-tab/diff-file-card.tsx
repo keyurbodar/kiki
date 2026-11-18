@@ -13,7 +13,8 @@ export type DiffFileCardProps = {
   file: DiffFile;
   domId: string;
   collapsed: boolean;
-  onCollapsedChange: (path: string, collapsed: boolean) => void;
+  /** Required whenever the card can collapse; absent in a fixed single-file view. */
+  onCollapsedChange?: (path: string, collapsed: boolean) => void;
   collapsible?: boolean;
   trailing?: ReactNode;
   lineComments?: ReadonlyMap<string, ReadonlyArray<MarkerComment>>;
@@ -88,7 +89,7 @@ export function DiffFileCard({
             size="icon-xs"
             aria-label={collapsed ? "Expand file" : "Collapse file"}
             aria-expanded={open}
-            onClick={() => onCollapsedChange(file.path, !collapsed)}
+            onClick={() => onCollapsedChange?.(file.path, !collapsed)}
           >
             <Icon
               name="chevron-right"
