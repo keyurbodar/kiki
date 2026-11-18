@@ -4,7 +4,13 @@ import {
   createRouter,
   RouterProvider,
 } from "@tanstack/react-router";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   ProjectSetup,
@@ -126,6 +132,20 @@ describe("/new", () => {
     expect(screen.getByRole("button", { name: "Model" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Add to message" })).toBeTruthy();
     expect(screen.getByText(", / for commands, @ for context")).toBeTruthy();
+  });
+
+  it("opens the create-project dialog from the Project menu", async () => {
+    await renderHome();
+    await waitFor(() => expect(composerSlot()).not.toBeNull());
+    const trigger = document
+      .querySelector("[data-slot=project-select]")
+      ?.querySelector("button");
+    expect(trigger).not.toBeNull();
+    fireEvent.click(trigger as HTMLButtonElement);
+    fireEvent.click(await screen.findByText("New project"));
+    await waitFor(() =>
+      expect(document.querySelector("[role=dialog]")).not.toBeNull(),
+    );
   });
 
   it("keeps the welcome out of a prompted visit", async () => {
