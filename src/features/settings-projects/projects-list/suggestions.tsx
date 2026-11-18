@@ -1,13 +1,7 @@
+import type { InstallationRepo } from "../shared/installation-repos";
+
 const suggestionWindowMs = 2_592_000_000;
 const maxSuggestions = 10;
-
-export type InstallationRepo = {
-  readonly githubRepoId: number;
-  readonly repoFullName: string;
-  readonly defaultBranch: string | null;
-  readonly pushedAt: Date | null;
-  readonly archived: boolean;
-};
 
 /**
  * Repositories offered as new projects: pushed in the last 30 days, not

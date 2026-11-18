@@ -8,6 +8,7 @@ import { organizationsAtom } from "@/data/atoms/session";
 import { FabricBackdrop } from "@/features/home/home-page/fabric-backdrop";
 import { DashboardBackdrop } from "@/features/settings-appearance/background-effect";
 import { useAppearance } from "@/features/settings-appearance/model/appearance-store";
+import { useOpenCreateProjectDialog } from "@/features/settings-projects/shared/create-project-dialog";
 import { useComposerSend } from "@/features/thread/use-composer-send";
 import { Button } from "@/primitives/button";
 import {
@@ -53,6 +54,7 @@ function MobileNewThreadForOrg({
   const model = sections
     .flatMap((section) => section.models)
     .find((option) => option.id === modelId);
+  const openCreateProject = useOpenCreateProjectDialog();
   const { preferences } = useAppearance();
   const background = preferences.background;
   return (
@@ -119,7 +121,13 @@ function MobileNewThreadForOrg({
         />
       }
       onSelectProject={setSelectedId}
-      onNewProject={() => {}}
+      onNewProject={() =>
+        openCreateProject?.({
+          open: true,
+          intent: "project",
+          mode: { kind: "create" },
+        })
+      }
       onManageProjects={() => void navigate({ to: "/settings/projects" })}
     />
   );

@@ -166,6 +166,16 @@
     justify-content: center;
   }
 
+  /* A two-line cell: a name over its own age, both starting at the same edge. */
+  .kiki-cell[data-col="stack"] {
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    overflow: hidden;
+    text-align: start;
+  }
+
   .kiki-cell[data-col="avatar"] {
     flex: none;
     min-width: var(--col-avatar-w);
@@ -230,6 +240,10 @@
 
   .kiki-icon[data-size="lg"] {
     --icon-box: var(--icon-lg);
+  }
+
+  .kiki-icon[data-size="mark"] {
+    --icon-box: var(--icon-mark);
   }
 
   /* Badges, dialogs, menu rows, palette rows ------------------------------- */
