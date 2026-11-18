@@ -35,7 +35,9 @@ Read the id first and hold the subscription until it exists:
 
 ```ts
 const orgId = organizations?.[0]?.id;
-const threads = useAtomValue(orgId === undefined ? idleThreadsAtom : allThreadsAtom(orgId, options));
+const threads = useAtomValue(
+  orgId === undefined ? idleThreadsAtom : allThreadsAtom(orgId, options),
+);
 ```
 
 An idle atom that already holds a success value is free to subscribe to; a family atom with a fabricated key is not. `sidebarAtoms(orgId)` in `features/sidebar/sidebar-threads-data/live-source.ts` is the worked example.
