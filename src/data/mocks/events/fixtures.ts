@@ -810,7 +810,31 @@ const captureHistory: ReadonlyArray<EventRowEncoded> = [
   captureProbe.result(
     "toolu_capture_probe_mcp",
     "Release runs is ready to authenticate.",
-    { setup: { name: "Release runs", status: "needs_auth" } },
+    {
+      setup: {
+        kind: "add",
+        reason: "Quote the failing run's link in the thread.",
+        project: "current",
+        owner: "user",
+        secrets: {},
+        server: {
+          serverKey: "release-runs",
+          displayName: "Release runs",
+          iconUrl: null,
+          transport: {
+            type: "http",
+            url: "https://mcp.example.com/release-runs",
+            requestHeaderNames: [],
+            auth: {
+              type: "oauth",
+              credentialHeaderNames: [],
+              clientId: null,
+              clientSecretRequired: false,
+            },
+          },
+        },
+      },
+    },
   ),
   ...captureProbe.deliver(
     "toolu_capture_probe_say_mcp",
