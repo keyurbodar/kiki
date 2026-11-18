@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 import { afterEach, expect, it } from "vitest";
 import { Markdown } from "@/components/markdown";
 import { MarkdownChipsProvider } from "@/components/markdown-chips";
+import type { IssueSummary } from "@/data/api/schemas/issue";
 import type { ThreadCard } from "@/data/api/schemas/thread";
 import { threadChips } from "./thread-chips";
 
@@ -44,6 +45,7 @@ it("keys a thread by the code people type", () => {
     threads: [thread({ id: "jam_1" })],
     projectCodes: codes,
     currentThreadId: "jam_1",
+    issues: [],
   });
   expect(chips.threads?.get("KIKI-12")).toMatchObject({
     id: "jam_1",
@@ -57,6 +59,7 @@ it("keys a pull by owner/repo#N and reads the repository from the open thread", 
     threads: [thread({ id: "jam_1", pulls: [pull] as never })],
     projectCodes: codes,
     currentThreadId: "jam_1",
+    issues: [],
   });
   expect(chips.pullRequests?.get("acme/api#7")).toMatchObject({
     number: 7,
@@ -71,6 +74,7 @@ it("falls back to the bare number when the project code is unknown", () => {
     threads: [thread({ id: "jam_1", projectId: null })],
     projectCodes: codes,
     currentThreadId: "jam_1",
+    issues: [],
   });
   expect(chips.threads?.has("#12")).toBe(true);
 });
@@ -80,6 +84,7 @@ it("leaves a thread with no number out of the map", () => {
     threads: [thread({ id: "jam_1", threadNumber: null })],
     projectCodes: codes,
     currentThreadId: "jam_1",
+    issues: [],
   });
   expect(chips.threads?.size).toBe(0);
 });
@@ -94,11 +99,56 @@ async function renderWithRouter(ui: ReactNode) {
   return render(<RouterProvider router={router} />).container;
 }
 
+const issue = (over: Record<string, unknown>) =>
+  ({
+    code: "KIKI-4",
+    title: "Rate limit the public API",
+    status: "in_progress",
+    priority: "high",
+    visibility: "org",
+    assignee: null,
+    ...over,
+  }) as unknown as IssueSummary;
+
+it("keys an issue by its code, with org visibility read as shared", () => {
+  const chips = threadChips({
+    threads: [],
+    projectCodes: codes,
+    currentThreadId: "jam_1",
+    issues: [issue({})],
+  });
+  expect(chips.issues?.get("KIKI-4")).toEqual({
+    code: "KIKI-4",
+    title: "Rate limit the public API",
+    status: "in_progress",
+    priority: "high",
+    visibility: "shared",
+    assignee: null,
+  });
+});
+
+it("resolves a bare issue code in text to its issue, not its thread", async () => {
+  const chips = threadChips({
+    threads: [thread({ id: "jam_1" })],
+    projectCodes: codes,
+    currentThreadId: "jam_1",
+    issues: [issue({})],
+  });
+  const container = await renderWithRouter(
+    <MarkdownChipsProvider value={chips}>
+      <Markdown text="KIKI-4 and KIKI-12 both matter" />
+    </MarkdownChipsProvider>,
+  );
+  expect(container.querySelector('a[href="/issues/KIKI-4"]')).not.toBeNull();
+  expect(container.querySelector('a[href="/thread/jam_1"]')).not.toBeNull();
+});
+
 it("turns a code and a pull reference into chips in message text", async () => {
   const chips = threadChips({
     threads: [thread({ id: "jam_1", pulls: [pull] as never })],
     projectCodes: codes,
     currentThreadId: "jam_1",
+    issues: [],
   });
   const container = await renderWithRouter(
     <MarkdownChipsProvider value={chips}>
