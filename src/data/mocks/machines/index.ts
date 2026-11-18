@@ -77,7 +77,9 @@ export const MachinesMock = mockGroup("machines", (handlers) =>
       )
       .handle("list", ({ params }) =>
         Effect.gen(function* () {
-          const rows = yield* Ref.get(machines);
+          const rows = (yield* Ref.get(machines)).filter(
+            (row) => row.threadId === params.jamId,
+          );
           const phoneRows = yield* Ref.get(phoneRef);
           return rows.map((row) => ({
             ...row,
