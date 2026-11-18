@@ -98,6 +98,11 @@ export function SidebarThreadsPanel({
       onShowMore={sidebar.showMore}
       onNewThread={onNewThread}
       onNewCaptain={onNewCaptain}
+      renderCaptain={(captain) =>
+        captain.card === undefined ? undefined : (
+          <ThreadPreview thread={captain.card} description={captain.preview} />
+        )
+      }
       renderThread={(thread, { density, active }) => {
         const project =
           thread.projectId === null

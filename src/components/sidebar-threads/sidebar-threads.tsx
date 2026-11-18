@@ -11,6 +11,11 @@ import {
   CaptainAvatar as CaptainAvatarTile,
   DEFAULT_CAPTAIN_AVATAR,
 } from "@/primitives/captain-avatar";
+import {
+  PreviewCard,
+  PreviewCardContent,
+  PreviewCardTrigger,
+} from "@/primitives/preview-card";
 import { ScrollArea } from "@/primitives/scroll-area";
 import { Glyph } from "./glyphs";
 import { type SidebarRowActions, SidebarRowPopups } from "./sidebar-row-popups";
@@ -219,9 +224,15 @@ export type CaptainRowProps = {
   captain: SidebarCaptain;
   compact: boolean;
   active: boolean;
+  preview?: ReactNode;
 };
 
-export function CaptainRow({ captain, compact, active }: CaptainRowProps) {
+export function CaptainRow({
+  captain,
+  compact,
+  active,
+  preview,
+}: CaptainRowProps) {
   const busy = captain.status === "working" || captain.status === "waiting";
   const needsYou = captain.needsYou && captain.status !== "working";
   const ask = needsYou ? captain.ask : null;
@@ -257,48 +268,33 @@ export function CaptainRow({ captain, compact, active }: CaptainRowProps) {
   );
   return (
     <div data-captain-row={captain.id} className="group/captain">
-      <Link
-        to="/thread/$threadId"
-        params={{ threadId: captain.id }}
-        aria-label={`${captain.name}${captain.hasUnreads ? ", unread" : ""}`}
-        aria-current={active ? "page" : undefined}
-        className={cx(
-          "relative flex min-w-0 flex-1 rounded outline-none select-none [-webkit-touch-callout:none]",
-          "items-center px-2",
-          compact ? "h-8 gap-2.5" : "h-13 gap-2.5",
-          "transition-colors duration-100 group-hover/captain:bg-secondary",
-          "focus-visible:outline-ring-inset",
-          active && "bg-secondary",
-        )}
-      >
-        <span
-          aria-hidden
+      <PreviewCard>
+        <PreviewCardTrigger
+          render={
+            <Link to="/thread/$threadId" params={{ threadId: captain.id }} />
+          }
+          aria-label={`${captain.name}${captain.hasUnreads ? ", unread" : ""}`}
+          aria-current={active ? "page" : undefined}
           className={cx(
-            "flex shrink-0 items-center justify-center",
-            compact ? "size-5" : "size-8",
+            "relative flex min-w-0 flex-1 rounded outline-none select-none [-webkit-touch-callout:none]",
+            "items-center px-2",
+            compact ? "h-8 gap-2.5" : "h-13 gap-2.5",
+            "transition-colors duration-100 group-hover/captain:bg-secondary",
+            "focus-visible:outline-ring-inset",
+            active && "bg-secondary",
           )}
         >
-          <CaptainAvatar captain={captain} compact={compact} />
-        </span>
-        {compact ? (
-          <>
-            <span
-              className={cx(
-                "mask-fade-r min-w-0 flex-1 overflow-hidden whitespace-nowrap leading-5",
-                titleClassName,
-              )}
-            >
-              {captain.name}
-            </span>
-            <span className="flex shrink-0 items-center gap-2">
-              {crewBadge}
-              {mark}
-              {age}
-            </span>
-          </>
-        ) : (
-          <span className="flex min-w-0 flex-1 flex-col gap-1">
-            <span className="flex h-5 min-w-0 items-baseline gap-2">
+          <span
+            aria-hidden
+            className={cx(
+              "flex shrink-0 items-center justify-center",
+              compact ? "size-5" : "size-8",
+            )}
+          >
+            <CaptainAvatar captain={captain} compact={compact} />
+          </span>
+          {compact ? (
+            <>
               <span
                 className={cx(
                   "mask-fade-r min-w-0 flex-1 overflow-hidden whitespace-nowrap leading-5",
@@ -307,29 +303,54 @@ export function CaptainRow({ captain, compact, active }: CaptainRowProps) {
               >
                 {captain.name}
               </span>
-              {mark}
-              {age}
-            </span>
-            <span className="flex h-4 min-w-0 items-center gap-2">
-              <span className="flex min-w-0 flex-1">
+              <span className="flex shrink-0 items-center gap-2">
+                {crewBadge}
+                {mark}
+                {age}
+              </span>
+            </>
+          ) : (
+            <span className="flex min-w-0 flex-1 flex-col gap-1">
+              <span className="flex h-5 min-w-0 items-baseline gap-2">
                 <span
                   className={cx(
-                    "mask-fade-r min-w-0 flex-1 overflow-hidden whitespace-nowrap text-xs leading-4",
-                    ask === null
-                      ? "font-normal text-muted-foreground"
-                      : "text-primary-ink",
+                    "mask-fade-r min-w-0 flex-1 overflow-hidden whitespace-nowrap leading-5",
+                    titleClassName,
                   )}
                 >
-                  {ask ?? captain.preview}
+                  {captain.name}
                 </span>
+                {mark}
+                {age}
               </span>
-              {crewBadge === null ? null : (
-                <span className="flex shrink-0 items-center">{crewBadge}</span>
-              )}
+              <span className="flex h-4 min-w-0 items-center gap-2">
+                <span className="flex min-w-0 flex-1">
+                  <span
+                    className={cx(
+                      "mask-fade-r min-w-0 flex-1 overflow-hidden whitespace-nowrap text-xs leading-4",
+                      ask === null
+                        ? "font-normal text-muted-foreground"
+                        : "text-primary-ink",
+                    )}
+                  >
+                    {ask ?? captain.preview}
+                  </span>
+                </span>
+                {crewBadge === null ? null : (
+                  <span className="flex shrink-0 items-center">
+                    {crewBadge}
+                  </span>
+                )}
+              </span>
             </span>
-          </span>
+          )}
+        </PreviewCardTrigger>
+        {preview === undefined ? null : (
+          <PreviewCardContent side="right" align="start">
+            {preview}
+          </PreviewCardContent>
         )}
-      </Link>
+      </PreviewCard>
     </div>
   );
 }
@@ -355,6 +376,10 @@ export type SidebarThreadsProps = ComponentProps<"div"> & {
     thread: SidebarThread,
     context: SidebarThreadRenderContext,
   ) => ReactNode;
+  renderCaptain?: (
+    captain: SidebarCaptain,
+    context: Pick<SidebarThreadRenderContext, "density" | "active">,
+  ) => ReactNode;
   onSectionOpenChange?: (sectionId: string, open: boolean) => void;
   onShowMore?: (sectionId: string) => void;
   onNewThread?: () => void;
@@ -369,6 +394,7 @@ export function SidebarThreads({
   captainActions,
   captainsSource,
   renderThread,
+  renderCaptain,
   onSectionOpenChange,
   onShowMore,
   onNewThread,
@@ -392,14 +418,21 @@ export function SidebarThreads({
     captainList.length === 0 ? (
       <NewCaptainRow compact={slim} onClick={onNewCaptain} />
     ) : (
-      captainList.map((captain) => (
-        <CaptainRow
-          key={captain.id}
-          captain={captain}
-          compact={slim}
-          active={view.activeId === captain.id}
-        />
-      ))
+      captainList.map((captain) => {
+        const active = view.activeId === captain.id;
+        return (
+          <CaptainRow
+            key={captain.id}
+            captain={captain}
+            compact={slim}
+            active={active}
+            preview={renderCaptain?.(captain, {
+              density: view.density,
+              active,
+            })}
+          />
+        );
+      })
     );
   const rowMenuThreads = new Map(
     view.sections.flatMap((section) =>

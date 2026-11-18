@@ -1,5 +1,6 @@
 import type { ThreadPreviewProps } from "@/components/thread-preview";
 import type { ThreadRunStatus } from "@/components/thread-status";
+import type { CaptainCard } from "@/data/api/schemas/captain";
 import type { ThreadCard } from "@/data/api/schemas/thread";
 import type { CaptainAvatarValue } from "@/primitives/captain-avatar";
 
@@ -80,6 +81,7 @@ export type SidebarCaptain = {
   hasUnreads: boolean;
   crewMentionCount: number;
   age: string;
+  card?: CaptainCard;
 };
 
 export type SidebarThreadsView = {
