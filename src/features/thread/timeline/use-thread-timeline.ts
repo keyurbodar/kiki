@@ -122,6 +122,22 @@ export const threadSyncAtom = Atom.family((key: string) =>
   ),
 );
 
+/**
+ * Reads the newest events again and merges them into the feed. A send needs this:
+ * the fake socket carries no frame for a message this tab just posted, so the row
+ * exists in the store and the timeline never asks for it.
+ */
+export const refreshNewestAtom = Atom.family((key: string) =>
+  timelineRuntime.fn<void>()((_, get) =>
+    Effect.gen(function* () {
+      const feedAtom = threadFeedAtom(key);
+      const after = newestEventId(get(feedAtom));
+      const page = yield* fetchPage(key, after === undefined ? {} : { after });
+      get.set(feedAtom, newerLoaded(get(feedAtom), page));
+    }),
+  ),
+);
+
 /** Fetches the page before the oldest loaded event. */
 export const loadOlderAtom = Atom.family((key: string) =>
   timelineRuntime.fn<void>()((_, get) =>

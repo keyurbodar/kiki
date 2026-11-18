@@ -9,7 +9,12 @@ import {
   resolveActiveOrgId,
   selectedOrgIdAtom,
 } from "@/data/atoms/session";
+import type { OrgId } from "@/data/api/schemas/ids";
 import type { EventId } from "@/data/events";
+import {
+  refreshNewestAtom,
+  threadKey,
+} from "@/features/thread/timeline/use-thread-timeline";
 
 /**
  * The composer's submit for a thread screen: sends the typed text to `jamId`
@@ -26,6 +31,14 @@ export function useComposerSend(jamId?: string, editOf?: EventId) {
     useAtomValue(selectedOrgIdAtom),
   );
   const send = useAtomSet(sendMessageAtom, { mode: "promise" });
+  const refresh = useAtomSet(
+    refreshNewestAtom(
+      jamId === undefined || orgId === undefined
+        ? ""
+        : threadKey(orgId as OrgId, jamId as never),
+    ),
+    { mode: "promise" },
+  );
   return (payload: ComposerPayload) => {
     if (jamId === undefined || orgId === undefined) return false;
     send({
@@ -36,7 +49,9 @@ export function useComposerSend(jamId?: string, editOf?: EventId) {
         ...(editOf === undefined ? {} : { editOf }),
       },
       reactivityKeys: [jamEventKey(jamId)],
-    }).catch(() => toast.error("Could not send the message"));
+    })
+      .then(() => refresh())
+      .catch(() => toast.error("Could not send the message"));
     return true;
   };
 }
