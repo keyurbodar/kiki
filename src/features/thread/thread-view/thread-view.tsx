@@ -43,6 +43,7 @@ import {
   type MessageQueueProps,
   type QueueRowData,
 } from "@/features/composer/message-queue";
+import { useDriveListing } from "@/features/drive/drive-detail-page/use-drive-listing";
 import {
   AttachmentSourceProvider,
   apiAttachmentSource,
@@ -70,7 +71,10 @@ import { ChatSkeleton } from "./chat-skeleton";
 import { ThreadMessageActions } from "./message-actions";
 import { threadChips } from "./thread-chips";
 import { threadHeaderClassName } from "./thread-header";
-import { threadMentionSources } from "./thread-mention-sources";
+import {
+  skillsMentionSource,
+  threadMentionSources,
+} from "./thread-mention-sources";
 
 type ClarifyRow = Extract<TimelineRow, { type: "clarify" }>;
 type EnvironmentRequestRow = Extract<
@@ -366,13 +370,23 @@ export function ThreadView({
   const orgThreads = useAtomValue(
     orgId === undefined ? idleThreadPageAtom : threadsAtom(orgId as OrgId),
   );
-  const mentionSources = useMemo(
+  const drive = useDriveListing(orgId, {});
+  const skills = useMemo(
     () =>
-      threadMentionSources(
+      skillsMentionSource(
+        (drive.listing?.entries ?? []).map((entry) => entry.path),
+      ),
+    [drive.listing],
+  );
+  const mentionSources = useMemo(
+    () => [
+      ...threadMentionSources(
         Option.getOrUndefined(AsyncResult.value(orgThreads))?.items ?? [],
         threadId,
       ),
-    [orgThreads, threadId],
+      ...(skills === undefined ? [] : [skills]),
+    ],
+    [orgThreads, threadId, skills],
   );
   const projects = useAtomValue(
     orgId === undefined
