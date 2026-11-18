@@ -5,6 +5,13 @@ import { orgId } from "@/data/mocks/fixtures/world";
 import { useMessageActions } from "@/features/thread/message-footer";
 import { ThreadMessageActions } from "./message-actions";
 
+const JumpProbe = () => {
+  const actions = useMessageActions();
+  return (
+    <span>{actions.jumpToSection === undefined ? "no-jump" : "jump"}</span>
+  );
+};
+
 const Probe = () => {
   const actions = useMessageActions();
   const actor = actions.resolveActor?.({
@@ -29,6 +36,32 @@ describe("ThreadMessageActions", () => {
     );
     await waitFor(() => {
       expect(screen.getByText("user_sample_alex|Alex Morgan")).toBeTruthy();
+    });
+  });
+
+  it("hands the timeline a jump for a quote that is clicked", async () => {
+    render(
+      <RegistryProvider>
+        <ThreadMessageActions orgId={orgId} jumpToSection={() => {}}>
+          <JumpProbe />
+        </ThreadMessageActions>
+      </RegistryProvider>,
+    );
+    await waitFor(() => {
+      expect(screen.getByText("jump")).toBeTruthy();
+    });
+  });
+
+  it("leaves the jump unwired when the screen has no timeline to scroll", async () => {
+    render(
+      <RegistryProvider>
+        <ThreadMessageActions orgId={orgId}>
+          <JumpProbe />
+        </ThreadMessageActions>
+      </RegistryProvider>,
+    );
+    await waitFor(() => {
+      expect(screen.getByText("no-jump")).toBeTruthy();
     });
   });
 

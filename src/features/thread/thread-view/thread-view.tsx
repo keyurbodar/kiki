@@ -51,7 +51,12 @@ import {
   type ComposerTakeoverProps,
   takeoverKey,
 } from "@/features/thread/composer-takeover";
-import { JamChat } from "@/features/thread/jam-chat";
+import {
+  type ChatJump,
+  JamChat,
+  rowForJump,
+  rowKey,
+} from "@/features/thread/jam-chat";
 import type { EditTarget } from "@/features/thread/message-footer";
 import type { EditDraft } from "@/features/thread/timeline";
 import { useComposerSend } from "@/features/thread/use-composer-send";
@@ -268,6 +273,22 @@ export function ThreadView({
   takeover,
 }: ThreadViewProps) {
   const send = useComposerSend(threadId, editing?.eventId);
+  const [jump, setJump] = useState<ChatJump | undefined>(undefined);
+  const jumpCount = useRef(0);
+  const jumpToSection = useCallback(
+    (rowId: string, section: number) => {
+      const row = rowForJump(rows, rowId);
+      if (row === undefined) return;
+      jumpCount.current += 1;
+      setJump({
+        rowKey: rowKey(row),
+        section,
+        index: rows.indexOf(row),
+        request: jumpCount.current,
+      });
+    },
+    [rows],
+  );
   const draft = editing ?? undefined;
   const composerHandle = useRef<ComposerHandle | null>(null);
 
@@ -356,6 +377,7 @@ export function ThreadView({
       orgId={handlers.orgId}
       editMessage={onEditMessage}
       editedRowIds={editedRowIds}
+      jumpToSection={jumpToSection}
     >
       <RightPanelGroup className="@container min-w-0 flex-1">
         {!paneExpanded && (
@@ -377,6 +399,7 @@ export function ThreadView({
                     onInsertQuote={(mention) =>
                       composerHandle.current?.insertMention(mention, "")
                     }
+                    jump={jump}
                     header={
                       loadingOlder ? (
                         <p

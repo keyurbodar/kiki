@@ -1,6 +1,7 @@
 export { ChatStamp, type ChatStampProps } from "./chat-stamp";
 export { formatStamp } from "./format-stamp";
 export * from "./jam-chat";
+export * from "./jump-to-row";
 export {
   computeRowGaps,
   countMessagesBelow,
