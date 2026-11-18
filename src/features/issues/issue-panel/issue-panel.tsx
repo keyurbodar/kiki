@@ -77,6 +77,28 @@ function IssuePanelBody({
   );
 }
 
+/**
+ * One issue as a panel tab: the same body the side sheet shows, laid out for a
+ * strip that already has the tab bar and the close button.
+ */
+export function IssuePane({
+  code,
+  onSelect,
+}: {
+  code: string;
+  onSelect?: (code: string | undefined) => void;
+}) {
+  return (
+    <div data-slot="issue-pane" className="flex min-h-0 flex-1 flex-col">
+      <IssuePanelBody
+        code={code}
+        onSelect={onSelect ?? (() => undefined)}
+        onClose={() => onSelect?.(undefined)}
+      />
+    </div>
+  );
+}
+
 /** The issues list's side panel: one issue, opened beside the list. */
 export function IssuePanel({
   code,

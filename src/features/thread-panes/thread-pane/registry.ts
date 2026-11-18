@@ -89,6 +89,16 @@ export const writtenPaneParams: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * The parameterised addresses Capy writes into `?pane=`: a pull request and an
+ * issue keep their tab across a switch and land back on it after a reload.
+ */
+export const writtenPanePrefixes: ReadonlyArray<string> = ["pr:", "issue:"];
+
+const writtenPane = (value: string): boolean =>
+  writtenPaneParams.has(value) ||
+  writtenPanePrefixes.some((prefix) => value.startsWith(prefix));
+
+/**
  * The tab keys the app builds itself are parameterised — the colon separates the
  * kind from the tab's own id — so they are kept even though no registry pane
  * answers to them.
@@ -108,7 +118,7 @@ export const keepsPaneParam = (value: string | undefined): boolean =>
   value !== undefined && survivesReload(value);
 
 const survivesReload = (value: string): boolean =>
-  writtenPaneParams.has(value) ||
+  writtenPane(value) ||
   parameterisedPaneParams.some((prefix) => value.startsWith(prefix));
 
 /**
@@ -117,4 +127,4 @@ const survivesReload = (value: string): boolean =>
  * emitted, because the tab it names is the session's, not the URL's.
  */
 export const writesPaneParam = (value: string | undefined): boolean =>
-  value !== undefined && writtenPaneParams.has(value);
+  value !== undefined && writtenPane(value);

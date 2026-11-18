@@ -1,4 +1,5 @@
 import { lazy } from "react";
+import { usePaneSession } from "@/features/thread/thread-view/pane-session-context";
 import { definePane, type PaneProps } from "../registry";
 
 /** The file view brings `@pierre/diffs` and `@pierre/trees` with it, so it
@@ -10,7 +11,20 @@ const FilesView = lazy(() =>
 );
 
 function FilesPane({ threadId }: PaneProps) {
-  return <FilesView jamId={threadId} />;
+  const { openTab } = usePaneSession();
+  return (
+    <FilesView
+      jamId={threadId}
+      onOpenMachineFile={(target) =>
+        openTab({
+          kind: "file",
+          path: target.path,
+          machineId: target.machineId,
+          jamId: target.jamId,
+        })
+      }
+    />
+  );
 }
 
 export const entry = definePane({

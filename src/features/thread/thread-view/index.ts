@@ -8,8 +8,8 @@ export {
   activeTabId,
   dockTabs,
   mainTabs,
-  openTabs,
   paneTabs,
+  tabForKey,
 } from "./thread-tabs";
 export {
   type ThreadTakeoverHandlers,
