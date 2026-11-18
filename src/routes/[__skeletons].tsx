@@ -1,7 +1,10 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useLayoutEffect, useState } from "react";
 import { SharePanel } from "@/components/share-popover/share-panel";
-import { exploreGridClassName } from "@/features/explore/explore-page";
+import {
+  ExplorePageSkeleton,
+  exploreGridClassName,
+} from "@/features/explore/explore-page";
 import { type ListingCard, ListingRow } from "@/features/explore/listing-card";
 import { CycleHeader } from "@/features/settings-org/org-usage-page/cycle-header";
 import { Button } from "@/primitives/button";
@@ -138,6 +141,28 @@ function SkeletonsHarness() {
             </div>
           )}
         </Skeleton>
+      </div>
+      <div
+        data-specimen="explore-loading"
+        style={{ maxWidth: 800, margin: "0 auto" }}
+      >
+        <Skeleton
+          data={null}
+          sample={sampleCards}
+          id="explore-loading-probe"
+          label="Loading skills"
+        >
+          {(cards) => (
+            <div className={exploreGridClassName}>
+              {cards.map((card) => (
+                <ListingRow key={card.slug} card={card} />
+              ))}
+            </div>
+          )}
+        </Skeleton>
+      </div>
+      <div data-specimen="explore-skeleton">
+        <ExplorePageSkeleton />
       </div>
       <div
         data-specimen="cycle-header"
