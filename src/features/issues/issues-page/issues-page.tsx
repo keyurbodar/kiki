@@ -49,6 +49,7 @@ import {
   useIssueLabels,
   useIssueStates,
 } from "@/features/issues/issue-pickers";
+import { NewIssueDialog } from "@/features/issues/new-issue-dialog";
 import { RightPanel, RightPanelGroup } from "@/primitives/right-panel";
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
 import { SidebarTrigger, useSidebarState } from "@/primitives/sidebar";
@@ -168,6 +169,7 @@ export function IssuesPage() {
   const [display, setDisplay] = useState<IssueDisplay>(defaultIssueDisplay);
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [newIssueOpen, setNewIssueOpen] = useState(false);
   const [checked, setChecked] = useState<ReadonlyMap<string, IssueSummary>>(
     new Map(),
   );
@@ -280,7 +282,10 @@ export function IssuesPage() {
             >
               {searchOpen ? <CloseGlyph /> : <SearchGlyph />}
             </HeaderButton>
-            <HeaderButton label="New issue">
+            <HeaderButton
+              label="New issue"
+              onClick={() => setNewIssueOpen(true)}
+            >
               <PlusGlyph />
             </HeaderButton>
           </div>
@@ -343,6 +348,14 @@ export function IssuesPage() {
           />
         ) : null}
       </div>
+      <NewIssueDialog
+        open={newIssueOpen}
+        onOpenChange={setNewIssueOpen}
+        onCreated={() => {
+          refresh();
+          refreshStates();
+        }}
+      />
       <RightPanel open={false} />
     </RightPanelGroup>
   );
