@@ -2,6 +2,7 @@ import { cx } from "class-variance-authority";
 import type { ReactNode } from "react";
 import { AppTopBar } from "@/components/app-top-bar";
 import { ChatIdentity } from "@/features/captains/chat-identity";
+import { WorkProgressEdge } from "@/features/thread/live-status";
 import {
   type PaneTab,
   type TabMenuOptions,
@@ -25,6 +26,8 @@ export const threadHeaderClassName = cx(
 export type ThreadHeaderProps = {
   threadId: string;
   title: string;
+  /** The thread is running, so the header's progress edge sweeps. */
+  working?: boolean;
   /** The pane tabs the strip lists, in the route's registry order. */
   tabs: readonly PaneTab[];
   /** The selected tab: the active pane's id, or the chat tab's. */
@@ -48,6 +51,7 @@ export type ThreadHeaderProps = {
 export function ThreadHeader({
   threadId,
   title,
+  working = false,
   tabs,
   activeId,
   cost,
@@ -138,6 +142,7 @@ export function ThreadHeader({
         onCloseTab={onCloseTab}
         onOpenTab={(tab) => onSelectTab(tabKey(tab))}
       />
+      <WorkProgressEdge active={working} />
     </AppTopBar>
   );
 }

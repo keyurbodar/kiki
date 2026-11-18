@@ -115,6 +115,7 @@ export function ThreadRoute({
         <ThreadHeader
           threadId={threadId}
           title={thread?.title ?? "Untitled thread"}
+          working={thread?.status === "working"}
           tabs={[]}
           activeId={activeId}
           menu={{ sideThreads }}

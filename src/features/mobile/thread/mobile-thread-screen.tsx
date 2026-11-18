@@ -127,6 +127,7 @@ function MobileThreadData({
       threadId={threadId}
       chat={chat}
       title={text(thread.title)}
+      working={text(thread.status) === "working"}
       models={success(useAtomValue(mobileModelsAtom))}
       machine={
         machine && {
@@ -140,6 +141,7 @@ function MobileThreadData({
 
 type MobileThreadBodyProps = MobileThreadScreenProps & {
   title?: string;
+  working?: boolean;
   models?: unknown;
   machine?: { name: string; live: boolean };
 };
@@ -148,6 +150,7 @@ function MobileThreadBody({
   threadId,
   chat,
   title,
+  working = false,
   models,
   machine,
 }: MobileThreadBodyProps) {
@@ -170,6 +173,7 @@ function MobileThreadBody({
   return (
     <MobileThreadView
       title={threadTitle}
+      working={working}
       sidebarTrigger={<SidebarTrigger />}
       options={
         <Button variant="ghost" size="icon-sm" aria-label="Thread options">

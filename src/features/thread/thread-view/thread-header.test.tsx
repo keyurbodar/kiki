@@ -77,6 +77,21 @@ const tabButton = (label: string) => {
 };
 
 describe("ThreadHeader", () => {
+  it("carries the header's progress edge, sweeping only while the thread works", () => {
+    const { container, unmount } = renderHeader({});
+    const edge = container.querySelector('[data-slot="progress-edge"]');
+    expect(edge).not.toBeNull();
+    expect(edge?.getAttribute("data-active")).toBe("false");
+    expect(edge?.className).toContain("absolute inset-x-0 top-0");
+    unmount();
+    const working = renderHeader({ working: true });
+    expect(
+      working.container
+        .querySelector('[data-slot="progress-edge"]')
+        ?.getAttribute("data-active"),
+    ).toBe("true");
+  });
+
   it("shows the thread title in the chat tab beside the cost chip", () => {
     const { container } = renderHeader({});
     expect(screen.getByText("Fix flaky checkout test")).toBeTruthy();
