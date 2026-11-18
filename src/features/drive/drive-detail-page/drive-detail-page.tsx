@@ -85,7 +85,8 @@ export function DriveDetailPage({ mount, file }: DriveDetailPageProps) {
         ? undefined
         : toQuery(mountScope(mount, session.userId));
   const trail = mountTrail(mount, names, true);
-  const writable = mount.kind !== "captain";
+  /** A Captain's drive is writable too: Capy offers Add, New skill and drop on it. */
+  const writable = true;
   const { listing, failed } = useDriveListing(session.orgId, scope);
   const [reloads, setReloads] = useState(0);
   const entries = listing?.entries ?? [];

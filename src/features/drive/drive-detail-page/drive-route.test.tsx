@@ -50,6 +50,13 @@ describe("drive scope routes", () => {
     expect(crumb()).toContain("Drive");
   });
 
+  it("offers the authoring controls on a Captain's drive, as Capy does", async () => {
+    await renderRoute("/drive/captain/jam_sample_cap1");
+    expect(await screen.findByText("CREW.md")).toBeTruthy();
+    expect(screen.getByLabelText("Add")).toBeTruthy();
+    expect(screen.getAllByLabelText("Delete file").length).toBeGreaterThan(0);
+  });
+
   it("opens a file named in the search params", async () => {
     await renderRoute("/drive/organization?file=AGENTS.md");
     expect(await screen.findByText(/Acme agent instructions/)).toBeTruthy();
