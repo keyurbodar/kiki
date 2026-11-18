@@ -50,6 +50,18 @@ describe("ScrollArea", () => {
     expect(container.querySelector(".scroll-fade-cap-b")).not.toBeNull();
   });
 
+  it("keeps the viewport out of the tab order, as Capy does", () => {
+    const { container } = render(
+      <ScrollArea>
+        <p>Row</p>
+      </ScrollArea>,
+    );
+    const viewport = container.querySelector(
+      "[data-slot=scroll-area-viewport]",
+    );
+    expect(viewport?.getAttribute("tabindex")).toBe("-1");
+  });
+
   it("omits fade caps by default", () => {
     const { container } = render(<ScrollArea>content</ScrollArea>);
     expect(container.querySelector(".scroll-fade-cap-t")).toBeNull();

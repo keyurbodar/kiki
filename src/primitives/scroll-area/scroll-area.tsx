@@ -216,6 +216,7 @@ export function ScrollAreaViewport({
   return (
     <BaseScrollArea.Viewport
       data-slot="scroll-area-viewport"
+      tabIndex={-1}
       className={cx(viewportBase, className)}
       {...props}
     />
