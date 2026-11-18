@@ -265,7 +265,6 @@ export function SpecimenApp() {
                 "Retries hammer the API right after a deploy, so the backoff never settles.",
                 [LOG],
               )}
-              footer={false}
             />
             <TurnSummary />
             <AgentMessage row={agentRow} />
