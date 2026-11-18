@@ -73,7 +73,13 @@ describe("threads page bulk bar", () => {
     expect(screen.queryByText("1 selected")).toBeNull();
     selectFirst();
     expect(screen.getByText("1 selected")).toBeTruthy();
-    for (const label of ["Folder", "Pin", "Archive", "Delete", "Clear"])
+    for (const label of [
+      "Folder",
+      "Pin",
+      "Archive",
+      "Delete",
+      "Clear selection",
+    ])
       expect(screen.getByRole("button", { name: label })).toBeTruthy();
   });
 
