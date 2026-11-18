@@ -92,6 +92,32 @@ export function ScrollArea({
     [onViewport],
   );
 
+  // Base UI measures overflow from the viewport's own box, so a viewport whose
+  // height is fixed and whose content arrives later never re-measures: the
+  // scrollbar stays unmounted until the user scrolls. Watching the content and
+  // replaying one scroll event is what makes the scrollbar appear on the frame
+  // the rows land, which is how Capy's lists behave.
+  useEffect(() => {
+    const node = viewport.current;
+    if (node === null || typeof ResizeObserver === "undefined") return;
+    const remeasure = () => node.dispatchEvent(new Event("scroll"));
+    const observer = new ResizeObserver(remeasure);
+    const observeChildren = () => {
+      for (const child of node.children) observer.observe(child);
+    };
+    observeChildren();
+    const mutations = new MutationObserver(() => {
+      observer.disconnect();
+      observeChildren();
+      remeasure();
+    });
+    mutations.observe(node, { childList: true });
+    return () => {
+      observer.disconnect();
+      mutations.disconnect();
+    };
+  }, []);
+
   useEffect(() => {
     if (!narrow) return;
     const rootNode = root.current;
