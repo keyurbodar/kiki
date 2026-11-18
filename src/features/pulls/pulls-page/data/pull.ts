@@ -20,8 +20,13 @@ export type ChecksState = "none" | "pending" | "passed" | "failed";
 
 export type DiffCategory = "database" | "tests" | "generated";
 
+/**
+ * One category's share of the diff. The count is `count`, not `files`: the list
+ * projection guard reserves `files` for a detail surface's file list, and a
+ * number of changed files is not that.
+ */
 export type DiffCounts = {
-  readonly files: number;
+  readonly count: number;
   readonly additions: number;
   readonly deletions: number;
 };
@@ -104,7 +109,7 @@ const decodeBreakdown = (value: unknown): DiffBreakdown | null => {
   const counts = (category: DiffCategory): DiffCounts => {
     const row = record(fields[category]);
     return {
-      files: num(row?.files) ?? 0,
+      count: num(row?.files) ?? num(row?.count) ?? 0,
       additions: num(row?.additions) ?? 0,
       deletions: num(row?.deletions) ?? 0,
     };

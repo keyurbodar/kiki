@@ -73,7 +73,7 @@ function DiffBreakdownCard({ pull }: { pull: PullCard }) {
         <ul className="flex flex-col gap-1">
           {diffCategories.map((category) => {
             const counts = breakdown[category];
-            if (counts.files === 0) return null;
+            if (counts.count === 0) return null;
             return (
               <li
                 key={category}
@@ -83,7 +83,7 @@ function DiffBreakdownCard({ pull }: { pull: PullCard }) {
                   {diffCategoryLabel[category]}
                 </span>
                 <span className="shrink-0 tabular-nums">
-                  {counts.files} files
+                  {counts.count} files
                 </span>
                 <DiffStat
                   additions={counts.additions}

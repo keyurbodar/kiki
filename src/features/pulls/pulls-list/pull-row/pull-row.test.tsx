@@ -98,9 +98,9 @@ describe("PullRow", () => {
     renderRow(
       pull({
         diffBreakdown: {
-          database: { files: 1, additions: 4, deletions: 1 },
-          tests: { files: 2, additions: 18, deletions: 3 },
-          generated: { files: 0, additions: 0, deletions: 0 },
+          database: { count: 1, additions: 4, deletions: 1 },
+          tests: { count: 2, additions: 18, deletions: 3 },
+          generated: { count: 0, additions: 0, deletions: 0 },
         },
       }),
     );
