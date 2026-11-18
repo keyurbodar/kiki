@@ -79,15 +79,11 @@ describe("explorePublic mock", () => {
     }),
   );
 
-  it.effect("returns a wallpaper image for a preset theme", () =>
+  it.effect("serves no wallpaper image, so a cover draws its palette", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
-      const image = (yield* AtomRegistry.getResult(
-        registry,
-        wallpaperAtom,
-      )) as Icon;
-      assert.match(image.url, /^data:image\/png;base64,iVBOR/);
-      assert.strictEqual(image.mimeType, "image/png");
+      const image = yield* AtomRegistry.getResult(registry, wallpaperAtom);
+      assert.notProperty(image ?? {}, "url");
     }),
   );
 });

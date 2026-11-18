@@ -11,6 +11,7 @@ import { Input } from "@/primitives/input";
 import { ScrollArea } from "@/primitives/scroll-area";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { ExploreFrame } from "../explore-frame";
+import { ListingAddAction } from "../listing-add-action";
 import { type ListingCard, ListingIcon, ListingRow } from "../listing-card";
 import { useOrgId } from "../listing-detail/explore-session";
 import { PluginCategoryControl, PluginShelves } from "../plugin-shelves";
@@ -280,6 +281,12 @@ export function ExplorePage({ kind, search, onSearch }: ExplorePageProps) {
         search={{ q: search.q, page: search.page }}
         onSearch={(next) => onSearch({ ...search, ...next })}
         icon={(card) => <ListingIcon card={toListingCard(card)} size="xs" />}
+        addAction={(card) => {
+          const listing = cards.find((item) => item.slug === card.slug);
+          return listing === undefined ? null : (
+            <ListingAddAction listing={listing} />
+          );
+        }}
       />
     ) : (
       <div className={gridClassName}>

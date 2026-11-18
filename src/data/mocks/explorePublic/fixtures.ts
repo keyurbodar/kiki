@@ -7,6 +7,7 @@ import {
   type ListingSetup,
 } from "../../api/schemas/explore.ts";
 import { minutesAgo } from "../fixtures/time.ts";
+import { type ThemeListingFixture, themeListings } from "./themes.ts";
 
 const day = 24 * 60;
 
@@ -222,28 +223,33 @@ const debuggingSetup: ListingSetup = {
   automations: [],
 };
 
-const auroraTheme = {
-  light: {
-    background: "#f7f8fa",
-    foreground: "#1b1f24",
-    surface: "#ffffff",
-    border: "#e3e6ea",
-    accent: "#4f7cff",
-    "accent-foreground": "#ffffff",
-    muted: "#6b7280",
-  },
-  dark: {
-    background: "#0c1015",
-    foreground: "#e8edf3",
-    surface: "#141a21",
-    border: "#232b35",
-    accent: "#7c9bff",
-    "accent-foreground": "#0c1015",
-    muted: "#93a1b3",
-  },
-  wallpaper: { name: "Dunes" },
-  appearance: { effect: "dither" },
-};
+const themeListing = (fixture: ThemeListingFixture, index: number) =>
+  new ExploreListing({
+    card: card({
+      kind: "theme",
+      slug: fixture.slug,
+      displayName: fixture.displayName,
+      description: fixture.description,
+      maker: fixture.maker,
+      source: fixture.source,
+      theme: fixture.theme,
+      version: fixture.version,
+      versionId: `thv_captured_${fixture.slug}`,
+      adds: fixture.adds,
+      featuredRank: fixture.featuredRank,
+      firstListedAt: minutesAgo(20 * day),
+    }),
+    content: { kind: "theme", theme: fixture.theme },
+    setup: null,
+    versions: [
+      new ExploreVersion({
+        id: `thv_captured_${fixture.slug}`,
+        version: fixture.version,
+        notes: "First listing in Explore",
+        createdAt: minutesAgo((30 - index) * day),
+      }),
+    ],
+  });
 
 export const sampleListings: ReadonlyArray<ExploreListing> = [
   new ExploreListing({
@@ -528,40 +534,7 @@ export const sampleListings: ReadonlyArray<ExploreListing> = [
     setup: debuggingSetup,
     versions: [firstListing("skv_sample_debugging_100", "1.0.0", 20)],
   }),
-  new ExploreListing({
-    card: card({
-      kind: "theme",
-      slug: "aurora",
-      displayName: "Aurora",
-      description:
-        "A quiet, high-contrast theme for long review sessions, with a soft accent and a dither that stays out of the way.",
-      maker: { name: "Priya Shah" },
-      source: "user",
-      theme: {
-        light: auroraTheme.light,
-        dark: auroraTheme.dark,
-        wallpaper: auroraTheme.wallpaper,
-      },
-      version: "1.2.0",
-      versionId: "thv_sample_aurora_120",
-      hasIcon: true,
-      featuredRank: null,
-    }),
-    content: { kind: "theme", theme: auroraTheme },
-    setup: {
-      prompt: "Apply the Aurora theme and keep its wallpaper in both modes.",
-      automations: [],
-    },
-    versions: [
-      firstListing("thv_sample_aurora_100", "1.0.0", 30),
-      new ExploreVersion({
-        id: "thv_sample_aurora_120",
-        version: "1.2.0",
-        notes: "Deeper dark palette and a softer border",
-        createdAt: minutesAgo(6 * day),
-      }),
-    ],
-  }),
+  ...themeListings.map(themeListing),
   new ExploreListing({
     card: card({
       kind: "skill",

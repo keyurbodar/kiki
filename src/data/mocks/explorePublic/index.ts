@@ -27,14 +27,6 @@ const iconFor = (kind: string, slug: string) => ({
   mimeType: "image/png",
 });
 
-const WALLPAPER_PNG =
-  "iVBORw0KGgoAAAANSUhEUgAAAEAAAAAkCAIAAAC2bqvFAAAA1ElEQVR42tXCvUpCAQCA0e8BGoooEQmR4iIaIkWKiViSYpmSlPRncIeCqMEhJKhBiGhwKAgJnFpcWppaWpx6sJ7jOxxmZhfUmZuPqLMYiaoTkyMRX1InWI6rkw4S6mRTK+rkMoE6xbWkOlu5lDrVzVV1GqWMOgfbWXU61XV1znY31AmbeXWu2gV1bo6K6vROSur0u2V1HsKKOoPLHXWer2vqDG/r6rz19tQZ3e2rM75vqfP52FZnMjhU5+upo873y7E6P8NTdX5fz9WZvl+o8/cRqv8DBq+VuYRTNoEAAAAASUVORK5CYII=";
-
-const wallpaperFor = (_slug: string) => ({
-  url: `data:image/png;base64,${WALLPAPER_PNG}`,
-  mimeType: "image/png",
-});
-
 export const ExplorePublicMock = mockGroup("explorePublic", (handlers) =>
   Effect.succeed(
     handlers
@@ -88,8 +80,6 @@ export const ExplorePublicMock = mockGroup("explorePublic", (handlers) =>
             )
           : Effect.succeed(listing);
       })
-      .handle("wallpaperImage", ({ params }) =>
-        Effect.succeed(wallpaperFor(params.slug)),
-      ),
+      .handle("wallpaperImage", () => Effect.succeed({})),
   ),
 );

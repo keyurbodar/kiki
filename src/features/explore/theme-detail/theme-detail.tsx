@@ -35,10 +35,11 @@ type ThemePreviewProps = { listing: ThemeListing; theme: ExploreTheme };
 function ThemeHero({ listing, theme }: ThemePreviewProps) {
   const dark = useDarkMode();
   const image = useThemeWallpaper(listing.card.slug, listing.card.versionId);
-  const wallpaper = theme.wallpaper !== undefined;
+  const wallpaper = theme.wallpaper !== undefined && image !== undefined;
   return (
     <WallpaperFrame
       image={wallpaper ? image : undefined}
+      background={theme[dark ? "dark" : "light"]["--bg"]}
       className={cx(
         themeStageClassName(wallpaper),
         "rounded-none border-0 border-b-(length:--border-width-hairline) sm:aspect-[2/1]",
@@ -61,7 +62,8 @@ function ThemeModePreview({
   const image = useThemeWallpaper(listing.card.slug, listing.card.versionId);
   return (
     <WallpaperFrame
-      image={theme.wallpaper === undefined ? undefined : image}
+      image={image}
+      background={theme[mode]["--bg"]}
       className="flex items-end justify-center px-[6%] pt-[6%]"
     >
       <ThemeSpecimen

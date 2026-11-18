@@ -46,8 +46,8 @@ describe("themes mock", () => {
         AtomRegistry.getResult(registry, listAtom),
         AtomRegistry.getResult(registry, publicationsAtom),
       ]);
-      assert.include(names(list), "Aurora");
-      assert.isAbove((publications as ReadonlyArray<Publication>).length, 0);
+      assert.deepEqual(names(list), ["Classic", "Evernight Rain", "Kiki"]);
+      assert.lengthOf(publications as ReadonlyArray<Publication>, 0);
     }),
   );
 

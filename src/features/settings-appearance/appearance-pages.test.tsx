@@ -36,7 +36,7 @@ describe("appearance pages", () => {
     expect(
       await screen.findByRole("heading", { name: "Your themes" }),
     ).toBeTruthy();
-    expect(await screen.findByText("Not published")).toBeTruthy();
+    expect(await screen.findAllByText("Not published")).toHaveLength(3);
   });
 
   it("composes the theme specimen from the real thread parts", async () => {
@@ -55,8 +55,8 @@ describe("appearance pages", () => {
   });
 
   it("renders the publish page for a theme", async () => {
-    await renderAt("/settings/appearance/themes/theme_sample_paper");
-    expect(await screen.findByRole("heading", { name: "Paper" })).toBeTruthy();
+    await renderAt("/settings/appearance/themes/theme_sample_evernight_rain");
+    expect(await screen.findByRole("heading", { name: "Evernight Rain" })).toBeTruthy();
     expect(screen.getByText("Submit to Explore")).toBeTruthy();
   });
 
