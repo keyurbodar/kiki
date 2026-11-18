@@ -1,6 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
-import type { ComponentProps, MouseEvent, ReactNode } from "react";
+import {
+  type ComponentProps,
+  type MouseEvent,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   Glyph,
   ProjectChip,
@@ -29,7 +36,13 @@ export type SidebarThreadRowActions = {
   onSettle?: () => void;
   onUnsettle?: () => void;
   onArchive?: () => void;
+  /** The row's `…` menu, shared with the list's context menu. */
   menu?: ReactNode;
+  /** Replaces the title with an input while this row is being renamed. */
+  renaming?: boolean;
+  onRenameStart?: () => void;
+  onRename?: (title: string) => void;
+  onRenameCancel?: () => void;
 };
 
 export type SidebarThreadRowProps = ComponentProps<"div"> & {
@@ -47,6 +60,60 @@ const stopRowNavigation = (event: MouseEvent) => {
   event.preventDefault();
   event.stopPropagation();
 };
+
+function RenameField({
+  title,
+  onCommit,
+  onCancel,
+  className,
+}: {
+  title: string;
+  onCommit: (title: string) => void;
+  onCancel: () => void;
+  className?: string;
+}) {
+  const [draft, setDraft] = useState(title);
+  const input = useRef<HTMLInputElement>(null);
+  const done = useRef(false);
+  useEffect(() => {
+    input.current?.focus();
+    input.current?.select();
+  }, []);
+  const finish = (commit: boolean) => {
+    if (done.current) return;
+    done.current = true;
+    const next = draft.trim();
+    if (commit && next !== "" && next !== title) onCommit(next);
+    else onCancel();
+  };
+  return (
+    <input
+      ref={input}
+      aria-label="Thread title"
+      value={draft}
+      onChange={(event) => setDraft(event.target.value)}
+      onClick={stopRowNavigation}
+      onDoubleClick={stopRowNavigation}
+      onPointerDown={(event) => event.stopPropagation()}
+      onBlur={() => finish(true)}
+      onKeyDown={(event) => {
+        event.stopPropagation();
+        if (event.key === "Enter") {
+          event.preventDefault();
+          finish(true);
+        }
+        if (event.key === "Escape") {
+          event.preventDefault();
+          finish(false);
+        }
+      }}
+      className={cx(
+        "relative z-1 -mx-1 min-w-0 flex-1 rounded-sm bg-secondary px-1 text-base leading-5 text-foreground outline-none ring-1 ring-border-3",
+        className,
+      )}
+    />
+  );
+}
 
 function ClusterButton({
   label,
@@ -192,11 +259,31 @@ export function SidebarThreadRow({
       ? "text-foreground"
       : "text-foreground/90 group-hover/thread:text-foreground group-focus-visible/row:text-foreground",
   );
-  const title = (
-    <span className={cx(rowTextClassName, titleClassName)}>
-      {thread.title ?? "Untitled thread"}
-    </span>
-  );
+  const title =
+    actions?.renaming === true && actions.onRename !== undefined ? (
+      <RenameField
+        title={thread.title ?? ""}
+        onCommit={actions.onRename}
+        onCancel={() => actions.onRenameCancel?.()}
+        className={titleClassName}
+      />
+    ) : (
+      // biome-ignore lint/a11y/noStaticElementInteractions: double-click is a pointer shortcut for rename; the row menu's Rename is the keyboard path
+      <span
+        className={cx(rowTextClassName, titleClassName)}
+        onDoubleClick={
+          thread.owner && actions?.onRenameStart !== undefined
+            ? (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                actions.onRenameStart?.();
+              }
+            : undefined
+        }
+      >
+        {thread.title ?? "Untitled thread"}
+      </span>
+    );
   const statusMark = busy ? (
     <span
       className={cx(

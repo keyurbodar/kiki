@@ -18,7 +18,7 @@ import {
 } from "@/primitives/preview-card";
 import { ScrollArea } from "@/primitives/scroll-area";
 import { Glyph } from "./glyphs";
-import { type SidebarRowActions, SidebarRowPopups } from "./sidebar-row-popups";
+import { SidebarRowPopups } from "./sidebar-row-popups";
 import type {
   SidebarCaptain,
   SidebarDensity,
@@ -384,7 +384,8 @@ export type SidebarThreadsProps = ComponentProps<"div"> & {
   onShowMore?: (sectionId: string) => void;
   onNewThread?: () => void;
   onNewCaptain?: () => void;
-  rowActions?: SidebarRowActions;
+  /** The thread menu shared by the rows' `…` clusters and the list's right-click. */
+  renderRowMenu?: (thread: SidebarThread) => ReactNode;
 };
 
 export function SidebarThreads({
@@ -399,7 +400,7 @@ export function SidebarThreads({
   onShowMore,
   onNewThread,
   onNewCaptain,
-  rowActions,
+  renderRowMenu,
   className,
   ...props
 }: SidebarThreadsProps) {
@@ -436,16 +437,13 @@ export function SidebarThreads({
     );
   const rowMenuThreads = new Map(
     view.sections.flatMap((section) =>
-      section.threads.map((thread) => [
-        thread.id,
-        { id: thread.id, hasUnreads: thread.hasUnreads },
-      ]),
+      section.threads.map((thread) => [thread.id, thread] as const),
     ),
   );
   return (
     <SidebarRowPopups
       threads={rowMenuThreads}
-      actions={rowActions}
+      renderMenu={renderRowMenu}
       mode={view.mode}
       className={cx(
         "mt-3 flex min-h-0 flex-1 flex-col [timeline-scope:--threads-scroll]",

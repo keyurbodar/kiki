@@ -9,7 +9,11 @@ import type { ThreadCard } from "@/data/api/schemas/thread";
 import type { ThreadFolder } from "@/data/api/schemas/threadOrganization";
 import { captainsAtom } from "@/data/atoms/captains";
 import { projectsAtom } from "@/data/atoms/projects";
-import { organizationsAtom, selectedOrgIdAtom } from "@/data/atoms/session";
+import {
+  currentUserAtom,
+  organizationsAtom,
+  selectedOrgIdAtom,
+} from "@/data/atoms/session";
 import { folderBoardAtom, foldersAtom } from "@/data/atoms/threadOrganization";
 import { allThreadsAtom } from "@/data/atoms/threads";
 import type {
@@ -20,6 +24,8 @@ import type {
 } from "./build-view";
 
 type LiveData = {
+  /** The signed-in user, so the row menus know which threads they own. */
+  viewerId?: string | undefined;
   threads: readonly ThreadCard[];
   folders: readonly ThreadFolder[];
   board: readonly { folder: ThreadFolder; items: readonly ThreadCard[] }[];
@@ -52,7 +58,10 @@ export const askText = (value: unknown): string | null => {
   return null;
 };
 
-export function mapThread(card: ThreadCard): SourceThread {
+export function mapThread(
+  card: ThreadCard,
+  viewerId?: string | undefined,
+): SourceThread {
   const machine = card.primaryMachine;
   const record =
     typeof machine === "object" && machine !== null
@@ -80,6 +89,9 @@ export function mapThread(card: ThreadCard): SourceThread {
           }
         : null,
     settled: card.settledAt != null,
+    pinned: card.pinned,
+    archived: card.archived,
+    owner: viewerId !== undefined && card.userId === viewerId,
     createdAt: toDate(card.createdAt),
     updatedAt: toDate(card.updatedAt),
     card,
@@ -163,7 +175,7 @@ export function toSidebarSource(data: LiveData, now: Date): SidebarSource {
       mapPinnedFolder(data.threads),
       ...mapFolders(data.folders, data.board),
     ],
-    threads: data.threads.map(mapThread),
+    threads: data.threads.map((card) => mapThread(card, data.viewerId)),
     captains: data.captains.map(mapCaptain),
   };
 }
@@ -201,12 +213,19 @@ export const sidebarAtoms = (orgId: OrgId | undefined) => {
   return { threads, folders, board, captains, projects };
 };
 
-export function useLiveSidebarSource(now: Date): SidebarSource | null {
+/** The org the sidebar lists, shared by the source and the row actions. */
+export function useSidebarOrgId(): OrgId | undefined {
   const organizations = resultValue(useAtomValue(organizationsAtom));
   const selectedOrgId = useAtomValue(selectedOrgIdAtom);
-  const orgId: OrgId | undefined =
+  return (
     organizations?.find((organization) => organization.id === selectedOrgId)
-      ?.id ?? organizations?.[0]?.id;
+      ?.id ?? organizations?.[0]?.id
+  );
+}
+
+export function useLiveSidebarSource(now: Date): SidebarSource | null {
+  const orgId = useSidebarOrgId();
+  const viewerId = resultValue(useAtomValue(currentUserAtom))?.id;
 
   const atoms = sidebarAtoms(orgId);
   const threads = resultValue(useAtomValue(atoms.threads));
@@ -225,5 +244,8 @@ export function useLiveSidebarSource(now: Date): SidebarSource | null {
   )
     return null;
 
-  return toSidebarSource({ threads, folders, board, captains, projects }, now);
+  return toSidebarSource(
+    { viewerId, threads, folders, board, captains, projects },
+    now,
+  );
 }

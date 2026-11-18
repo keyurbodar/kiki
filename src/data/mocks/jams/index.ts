@@ -179,6 +179,18 @@ export const JamsMock = mockGroup("jams", (handlers) =>
       return yield* Effect.forEach(yield* Ref.get(threads), organize);
     });
 
+    const patchThread = (
+      jamId: string,
+      change: (card: ThreadCard) => ThreadCard,
+    ) =>
+      Effect.gen(function* () {
+        const rows = yield* Ref.get(threads);
+        yield* Ref.set(
+          threads,
+          rows.map((row) => (row.id === jamId ? change(row) : row)),
+        );
+      });
+
     const batchOutcomes = (
       jamIds: ReadonlyArray<JamId>,
       change: (row: ThreadCard) => ThreadCard | null,
@@ -288,15 +300,17 @@ export const JamsMock = mockGroup("jams", (handlers) =>
     ) =>
       Effect.gen(function* () {
         const rows = yield* Ref.get(access);
-        const current = rows.find((row) => row.jamId === jamId);
-        if (!current) {
-          return yield* Effect.die(new Error(`jams: no access for ${jamId}`));
+        const found = rows.find((row) => row.jamId === jamId);
+        if (!found) {
+          const seeded = change(accessTemplate(jamId));
+          yield* Ref.set(access, [...rows, seeded]);
+          return seeded;
         }
         const updated = rows.map((row) =>
           row.jamId === jamId ? change(row) : row,
         );
         yield* Ref.set(access, updated);
-        return change(current);
+        return change(found);
       });
 
     const threadSummary = (jamId: string) =>
@@ -976,6 +990,10 @@ export const JamsMock = mockGroup("jams", (handlers) =>
             ...current,
             unread: false,
           }));
+          yield* patchThread(
+            params.jamId,
+            (card) => new ThreadCard({ ...card, hasUnreads: false }),
+          );
           return {
             ok: true,
             jamId: params.jamId,
@@ -989,6 +1007,10 @@ export const JamsMock = mockGroup("jams", (handlers) =>
             ...current,
             unread: true,
           }));
+          yield* patchThread(
+            params.jamId,
+            (card) => new ThreadCard({ ...card, hasUnreads: true }),
+          );
           return {
             ok: true,
             jamId: params.jamId,
@@ -1002,6 +1024,10 @@ export const JamsMock = mockGroup("jams", (handlers) =>
             ...current,
             settled: true,
           }));
+          yield* patchThread(
+            params.jamId,
+            (card) => new ThreadCard({ ...card, settledAt: activity() }),
+          );
           return {
             ok: true,
             jamId: params.jamId,
@@ -1015,6 +1041,10 @@ export const JamsMock = mockGroup("jams", (handlers) =>
             ...current,
             settled: false,
           }));
+          yield* patchThread(
+            params.jamId,
+            (card) => new ThreadCard({ ...card, settledAt: null }),
+          );
           return {
             ok: true,
             jamId: params.jamId,
@@ -1220,6 +1250,15 @@ export const JamsMock = mockGroup("jams", (handlers) =>
           yield* Ref.set(
             access,
             rows.map((row) => ({ ...row, unread: false })),
+          );
+          const cards = yield* Ref.get(threads);
+          yield* Ref.set(
+            threads,
+            cards.map((card) =>
+              card.hasUnreads
+                ? new ThreadCard({ ...card, hasUnreads: false })
+                : card,
+            ),
           );
           return { ok: true, orgId: params.orgId };
         }),

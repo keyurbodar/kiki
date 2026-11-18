@@ -1,42 +1,15 @@
-import { type ComponentProps, type ReactNode, useState } from "react";
+import { type ComponentProps, type ReactNode, useRef, useState } from "react";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuTrigger,
 } from "@/primitives/context-menu";
-import { Icon } from "@/primitives/icon";
-import { ResponsiveMenuItem } from "@/primitives/responsive-menu";
-
-export type SidebarRowAction = (threadId: string) => void;
-
-export type SidebarRowActions = {
-  onMarkRead?: SidebarRowAction;
-  onMarkUnread?: SidebarRowAction;
-  onArchive?: SidebarRowAction;
-  onUnarchive?: SidebarRowAction;
-  onDelete?: SidebarRowAction;
-};
-
-export type SidebarRowMenuThread = {
-  id: string;
-  hasUnreads: boolean;
-};
-
-const menuIconClassName =
-  "flex size-4 shrink-0 items-center justify-center text-icon-muted";
-
-const copyLink = async (threadId: string) => {
-  const url = `${window.location.origin}/thread/${threadId}`;
-  try {
-    await navigator.clipboard.writeText(url);
-  } catch {
-    return;
-  }
-};
+import type { SidebarThread } from "./types";
 
 export type SidebarRowPopupsProps = Omit<ComponentProps<"div">, "children"> & {
-  threads: ReadonlyMap<string, SidebarRowMenuThread>;
-  actions?: SidebarRowActions;
+  threads: ReadonlyMap<string, SidebarThread>;
+  /** Capy's thread menu, mounted here and in each row's `…` cluster. */
+  renderMenu?: (thread: SidebarThread) => ReactNode;
   mode?: string;
   children: ReactNode;
 };
@@ -44,38 +17,51 @@ export type SidebarRowPopupsProps = Omit<ComponentProps<"div">, "children"> & {
 /**
  * Capy's `SidebarRowPopups`: one context menu for the whole thread list rather
  * than one per row. The trigger resolves the row under the pointer from its
- * `[data-row-menu]` marker and opens the list's menu anchored there, so a
+ * `data-row-menu` marker and opens the list's menu anchored there, so a
  * right-click on empty list space opens nothing.
  */
 export function SidebarRowPopups({
   threads,
-  actions,
+  renderMenu,
   mode,
   className,
   onClickCapture,
   children,
   ...props
 }: SidebarRowPopupsProps) {
-  const [thread, setThread] = useState<SidebarRowMenuThread | null>(null);
+  const [thread, setThread] = useState<SidebarThread | null>(null);
+  const row = useRef<Element | null>(null);
   const resolveFrom = (
     target: EventTarget | null,
     preventDefault: () => void,
   ) => {
-    const row =
+    const found =
       target instanceof Element ? target.closest("[data-row-menu]") : null;
-    const id = row
+    const id = found
       ?.querySelector("[data-sidebar-target]")
       ?.getAttribute("data-sidebar-target");
-    const found = id === null || id === undefined ? undefined : threads.get(id);
-    if (found === undefined) {
+    const match = id === null || id === undefined ? undefined : threads.get(id);
+    if (match === undefined) {
       preventDefault();
       setThread(null);
       return;
     }
-    setThread(found);
+    if (row.current !== found) {
+      row.current?.removeAttribute("data-popup-open");
+      row.current = found;
+    }
+    setThread(match);
   };
   return (
-    <ContextMenu onOpenChange={(open) => !open && setThread(null)}>
+    <ContextMenu
+      onOpenChange={(open) => {
+        row.current?.toggleAttribute("data-popup-open", open);
+        if (!open) {
+          row.current = null;
+          setThread(null);
+        }
+      }}
+    >
       <ContextMenuTrigger
         data-track-owner="shared/sidebar-threads.tsx#SidebarRowPopups:ContextMenuTrigger.1"
         data-sidebar-mode={mode}
@@ -90,83 +76,10 @@ export function SidebarRowPopups({
         {children}
       </ContextMenuTrigger>
       <ContextMenuContent className="w-52">
-        {thread === null ? null : (
-          <SidebarRowMenu thread={thread} actions={actions} />
-        )}
+        {thread === null || renderMenu === undefined
+          ? null
+          : renderMenu(thread)}
       </ContextMenuContent>
     </ContextMenu>
-  );
-}
-
-function SidebarRowMenu({
-  thread,
-  actions,
-}: {
-  thread: SidebarRowMenuThread;
-  actions?: SidebarRowActions;
-}) {
-  const run = (action: SidebarRowAction | undefined) => () =>
-    action?.(thread.id);
-  return (
-    <>
-      <ResponsiveMenuItem
-        data-track-owner="shared/sidebar-threads.tsx#ThreadMenuItems:ResponsiveMenuItem[Open in new tab]"
-        onClick={() => window.open(`/thread/${thread.id}`, "_blank")}
-      >
-        <span className={menuIconClassName}>
-          <Icon name="square-arrow-top-right" size="sm" />
-        </span>
-        Open in new tab
-      </ResponsiveMenuItem>
-      <ResponsiveMenuItem
-        data-track-owner="shared/sidebar-threads.tsx#ThreadMenuItems:ResponsiveMenuItem[Copy link]"
-        onClick={() => void copyLink(thread.id)}
-      >
-        <span className={menuIconClassName}>
-          <Icon name="chain-link-1" size="sm" />
-        </span>
-        Copy link
-      </ResponsiveMenuItem>
-      {actions?.onMarkRead === undefined || !thread.hasUnreads ? null : (
-        <ResponsiveMenuItem onClick={run(actions.onMarkRead)}>
-          <span className={menuIconClassName}>
-            <Icon name="checkmark-1" size="sm" />
-          </span>
-          Mark as read
-        </ResponsiveMenuItem>
-      )}
-      {actions?.onMarkUnread === undefined || thread.hasUnreads ? null : (
-        <ResponsiveMenuItem onClick={run(actions.onMarkUnread)}>
-          <span className={menuIconClassName}>
-            <Icon name="circle-dashed" size="sm" />
-          </span>
-          Mark as unread
-        </ResponsiveMenuItem>
-      )}
-      {actions?.onArchive === undefined ? null : (
-        <ResponsiveMenuItem onClick={run(actions.onArchive)}>
-          <span className={menuIconClassName}>
-            <Icon name="archive" size="sm" />
-          </span>
-          Archive
-        </ResponsiveMenuItem>
-      )}
-      {actions?.onUnarchive === undefined ? null : (
-        <ResponsiveMenuItem onClick={run(actions.onUnarchive)}>
-          <span className={menuIconClassName}>
-            <Icon name="archive" size="sm" />
-          </span>
-          Unarchive
-        </ResponsiveMenuItem>
-      )}
-      {actions?.onDelete === undefined ? null : (
-        <ResponsiveMenuItem intent="danger" onClick={run(actions.onDelete)}>
-          <span className={menuIconClassName}>
-            <Icon name="trash-can" size="sm" />
-          </span>
-          Delete
-        </ResponsiveMenuItem>
-      )}
-    </>
   );
 }

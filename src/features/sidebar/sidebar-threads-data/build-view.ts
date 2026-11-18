@@ -45,6 +45,9 @@ export type SourceThread = {
   projectId: string | null;
   machine: SidebarMachine | null;
   settled: boolean;
+  pinned?: boolean;
+  archived?: boolean;
+  owner?: boolean;
   createdAt: Date;
   updatedAt: Date;
 } & SidebarThreadPreview;
@@ -100,12 +103,14 @@ const byNewest =
 
 const toRow = (thread: SourceThread, now: Date): SidebarThread => {
   const {
-    settled: _settled,
     createdAt: _createdAt,
     updatedAt,
+    pinned = false,
+    archived = false,
+    owner = false,
     ...row
   } = thread;
-  return { ...row, age: formatAge(updatedAt, now) };
+  return { ...row, pinned, archived, owner, age: formatAge(updatedAt, now) };
 };
 
 export function buildSidebarThreadsView(
