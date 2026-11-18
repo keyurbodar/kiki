@@ -49,6 +49,7 @@ import {
   folderBoardAtom,
   pinThreadsAtom,
   threadOrganizationKeys,
+  unpinThreadsAtom,
 } from "@/data/atoms/threadOrganization";
 import { allThreadsAtom } from "@/data/atoms/threads";
 import { BulkBar } from "@/primitives/bulk-bar";
@@ -144,6 +145,7 @@ type CaptainRow = {
   title: string | null;
   projectId: string | null;
   userId: string;
+  pinned?: boolean;
   createdAt: unknown;
   face: {
     name: string;
@@ -189,7 +191,7 @@ export const captainItems = (
       participated: viewerId !== undefined && captain.userId === viewerId,
       origin: "web",
       projectId: captain.projectId,
-      pinned: false,
+      pinned: captain.pinned === true,
       needsYou: false,
       hasUnreads: false,
       personal: false,
@@ -236,7 +238,7 @@ export type ThreadsPageViewProps = {
   folderSections?: ReadonlyArray<ThreadSection>;
   onMoveThreads?: (ids: ReadonlyArray<string>, folderId: string) => void;
   onArchive?: (ids: ReadonlyArray<string>, archived: boolean) => void;
-  onPin?: (ids: ReadonlyArray<string>) => void;
+  onPin?: (ids: ReadonlyArray<string>, pinned: boolean) => void;
   onDelete?: (ids: ReadonlyArray<string>) => void;
   onRename?: (id: string, title: string) => void;
   state: ThreadsPageState;
@@ -591,6 +593,7 @@ export function ThreadsPageView({
           }}
           onArchive={(id) => onArchive?.([id], true)}
           onRename={onRename}
+          onPin={(id, pinned) => onPin?.([id], pinned)}
           icons={listIcons}
           footer={
             failed && onRetry !== undefined ? (
@@ -620,7 +623,7 @@ export function ThreadsPageView({
               size="sm"
               aria-label="Pin"
               onClick={() => {
-                onPin?.([...checked]);
+                onPin?.([...checked], true);
                 setChecked(new Set());
               }}
             >
@@ -929,6 +932,7 @@ function ThreadsPageLoaded({
   const user = useAtomValue(currentUserAtom);
   const createFolder = useAtomSet(createFolderAtom, { mode: "promise" });
   const pinThreads = useAtomSet(pinThreadsAtom, { mode: "promise" });
+  const unpinThreads = useAtomSet(unpinThreadsAtom, { mode: "promise" });
   const deleteThreads = useAtomSet(deleteThreadsAtom, { mode: "promise" });
   const moveToFolder = useAtomSet(addToFolderAtom, { mode: "promise" });
   const archive = useAtomSet(archiveThreadsAtom, { mode: "promise" });
@@ -992,13 +996,16 @@ function ThreadsPageLoaded({
       onRetry={retry}
       folders={filed}
       folderSections={folderSections}
-      onPin={(ids) =>
-        pinThreads({
+      onPin={(ids, pinned) =>
+        (pinned ? pinThreads : unpinThreads)({
           params: { orgId },
           payload: { jamIds: ids.map((id) => id as unknown as JamId) },
-          reactivityKeys: threadOrganizationKeys(orgId),
+          reactivityKeys: [
+            ...threadOrganizationKeys(orgId),
+            reactivityKeys.captains(orgId),
+          ],
         }).then(
-          () => toast.success("Pinned"),
+          () => toast.success(pinned ? "Pinned" : "Unpinned"),
           () => toast.error("Couldn't update threads"),
         )
       }

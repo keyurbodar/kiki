@@ -11,6 +11,7 @@ import {
   ContextMenuContent,
   ContextMenuTrigger,
 } from "@/primitives/context-menu";
+import { Icon } from "@/primitives/icon";
 import { MenuItem, MenuSeparator } from "@/primitives/menu";
 import {
   PreviewCard,
@@ -97,6 +98,7 @@ export type ThreadRowProps = {
   onCheck: (id: string) => void;
   onArchive?: (id: string, archived: boolean) => void;
   onRename?: (id: string, title: string) => void;
+  onPin?: (id: string, pinned: boolean) => void;
   icons?: ThreadsListIcons;
 };
 
@@ -121,6 +123,7 @@ export function ThreadRow({
   onCheck,
   onArchive,
   onRename,
+  onPin,
   icons,
 }: ThreadRowProps) {
   const title = thread.title ?? "Untitled thread";
@@ -311,6 +314,14 @@ export function ThreadRow({
             >
               Rename
             </MenuItem>
+            {onPin === undefined ? null : (
+              <MenuItem onClick={() => onPin(thread.id, !thread.pinned)}>
+                <span className={pinIconClassName}>
+                  <Icon name={thread.pinned ? "unpin" : "pin"} size="sm" />
+                </span>
+                {thread.pinned ? "Unpin" : "Pin"}
+              </MenuItem>
+            )}
             <MenuItem onClick={() => onArchive?.(thread.id, !thread.archived)}>
               {thread.archived ? "Unarchive" : "Archive"}
             </MenuItem>
@@ -364,6 +375,7 @@ export type ThreadsListProps = {
   onDropOnSection?: (sectionId: string, threadId: string) => void;
   onArchive?: (id: string) => void;
   onRename?: (id: string, title: string) => void;
+  onPin?: (id: string, pinned: boolean) => void;
   footer?: ReactNode;
   icons?: ThreadsListIcons;
 };
@@ -394,6 +406,8 @@ export const threadsListItems = (
     ];
   });
 
+const pinIconClassName = "kiki-icon text-icon-muted";
+
 const sectionHeadClassName =
   "group/collapsible flex h-9 w-full cursor-pointer items-center gap-2 rounded-(--radius-card) bg-section px-2 text-left text-sm font-medium text-foreground transition-colors duration-100 outline-none focus-visible:outline-ring-inset";
 
@@ -412,6 +426,7 @@ export function ThreadsList({
   onDropOnSection,
   onArchive,
   onRename,
+  onPin,
   footer,
   icons,
 }: ThreadsListProps) {
@@ -537,6 +552,7 @@ export function ThreadsList({
             onCheck={onCheck}
             onArchive={onArchive}
             onRename={onRename}
+            onPin={onPin}
             icons={icons}
           />
         </div>
