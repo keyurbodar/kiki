@@ -99,10 +99,22 @@ export const parameterisedPaneParams: ReadonlyArray<string> = [
 ];
 
 /**
- * The panes we cannot open yet keep whatever the URL carried: a parameterised
- * tab key names a tab the route cannot resolve on its own.
+ * Whether a pane value survives a page load. Two different things are kept for
+ * two different reasons: a pane Capy writes into `?pane=` is a value a reload
+ * should honour, and a parameterised tab key names a tab the route cannot
+ * resolve on its own, so dropping it would lose the tab rather than tidy the URL.
  */
 export const keepsPaneParam = (value: string | undefined): boolean =>
-  value !== undefined &&
-  (writtenPaneParams.has(value) ||
-    parameterisedPaneParams.some((prefix) => value.startsWith(prefix)));
+  value !== undefined && survivesReload(value);
+
+const survivesReload = (value: string): boolean =>
+  writtenPaneParams.has(value) ||
+  parameterisedPaneParams.some((prefix) => value.startsWith(prefix));
+
+/**
+ * Whether picking this pane should write it into the URL. Only Capy's own
+ * vocabulary is written; a parameterised key survives a load but is never
+ * emitted, because the tab it names is the session's, not the URL's.
+ */
+export const writesPaneParam = (value: string | undefined): boolean =>
+  value !== undefined && writtenPaneParams.has(value);

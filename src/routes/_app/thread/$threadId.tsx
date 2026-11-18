@@ -37,6 +37,7 @@ import {
   findPane,
   keepsPaneParam,
   surfaceOf,
+  writesPaneParam,
 } from "@/features/thread-panes/thread-pane";
 import { searchParams } from "@/lib/search-params";
 
@@ -232,15 +233,14 @@ function PaneSelection({
       onSelectPane={(next) => {
         setSelection({
           threadId,
-          param: next !== undefined && keepsPaneParam(next) ? next : undefined,
+          param: writesPaneParam(next) ? next : undefined,
           id: next,
         });
         if (next === undefined && pane === undefined) return;
         void navigate({
           to: "/thread/$threadId",
           params: { threadId },
-          search:
-            next !== undefined && keepsPaneParam(next) ? { pane: next } : {},
+          search: writesPaneParam(next) ? { pane: next } : {},
         });
       }}
     />

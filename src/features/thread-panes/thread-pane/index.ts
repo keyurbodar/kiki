@@ -13,5 +13,6 @@ export {
   parameterisedPaneParams,
   retiredPaneIds,
   surfaceOf,
+  writesPaneParam,
   writtenPaneParams,
 } from "./registry";
