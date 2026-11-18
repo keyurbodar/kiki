@@ -201,7 +201,8 @@ export function AgentContextPreview({
   const filesResult = useAtomValue(
     driveScopesFilesAtom(included.map((scope) => scope.filtersKey).join("\n")),
   );
-  const files = resultValue(filesResult) ?? [];
+  const filesLoaded = resultValue(filesResult);
+  const files = filesLoaded?.files ?? [];
   const serverAtom = agentContextPreviewAtom(
     agentContextPreviewKey(orgId ?? "", {
       projectId: project.id,
@@ -212,7 +213,14 @@ export function AgentContextPreview({
   const serverResult = useAtomValue(serverAtom);
   const retry = useAtomRefresh(serverAtom);
   const server = resultValue(serverResult);
-  const filesReady = included.length > 0 && files.length === included.length;
+  // A scope that failed is not a scope that read as empty: counting it as
+  // loaded would build the preview from a shorter list than the reader asked
+  // for and report that as the whole truth.
+  const filesReady =
+    included.length > 0 &&
+    filesLoaded !== undefined &&
+    filesLoaded.failed === 0 &&
+    files.length === included.length;
   const local =
     filesReady && model !== undefined
       ? localPreviewParts(included, files)
@@ -224,8 +232,7 @@ export function AgentContextPreview({
   const share = windowShare(tokens, contextWindow);
   const failed =
     parts === undefined &&
-    AsyncResult.isFailure(serverResult) &&
-    AsyncResult.isFailure(filesResult);
+    ((filesLoaded?.failed ?? 0) > 0 || AsyncResult.isFailure(serverResult));
   const { shown, deferred, loaded, rest } = groupParts(parts ?? []);
   const asOptions: PickOption[] = [
     { value: "you", label: "As you", icon: <Icon name="user" /> },
