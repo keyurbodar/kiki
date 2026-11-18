@@ -483,6 +483,20 @@ export function ThreadView({
     }
   }
 
+  // Capy defers a request without losing it: Later hides the takeover, the
+  // composer comes back, and a lozenge in its footer reopens the request.
+  const deferred =
+    request !== undefined &&
+    hidden.has(takeoverKey(request.kind, request.row.id))
+      ? request
+      : undefined;
+  const show = (key: string) =>
+    setHidden((current) => {
+      const next = new Set(current);
+      next.delete(key);
+      return next;
+    });
+
   const empty = !loading && !failed && rows.length === 0;
   const attachmentSource = useMemo(
     () => attachmentSourceFor(handlers.orgId, threadId),
@@ -560,6 +574,20 @@ export function ThreadView({
                 </div>
                 <div className="min-h-0 px-4 pb-[calc(var(--spacing)+var(--safe-bottom))]">
                   <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col justify-end">
+                    {deferred !== undefined && (
+                      <Button
+                        data-slot="deferred-request"
+                        variant="ghost"
+                        size="xs"
+                        onClick={() =>
+                          show(takeoverKey(deferred.kind, deferred.row.id))
+                        }
+                      >
+                        {deferred.kind === "environment"
+                          ? "Add variables"
+                          : "Answer questions"}
+                      </Button>
+                    )}
                     {draft !== undefined && <EditBar onCancel={cancelEdit} />}
                     {active === undefined || draft !== undefined ? (
                       (composer ?? (
