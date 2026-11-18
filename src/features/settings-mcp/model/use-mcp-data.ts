@@ -79,15 +79,18 @@ export const useMcpServersState = (
 export const useMcpServers = (orgId: OrgId | undefined) =>
   readyValue(useMcpServersState(orgId));
 
+export const usePluginInstallationsState = (
+  orgId: OrgId | undefined,
+): Loadable<ReadonlyArray<InstalledPlugin>> =>
+  loadable(
+    useAtomValue(orgId === undefined ? idle : pluginInstallationsAtom(orgId)),
+    list(toInstallation),
+  );
+
 export const usePluginInstallations = (
   orgId: OrgId | undefined,
 ): ReadonlyArray<InstalledPlugin> | undefined =>
-  readyValue(
-    loadable(
-      useAtomValue(orgId === undefined ? idle : pluginInstallationsAtom(orgId)),
-      list(toInstallation),
-    ),
-  );
+  readyValue(usePluginInstallationsState(orgId));
 
 export const useMarketplace = (
   orgId: OrgId | undefined,

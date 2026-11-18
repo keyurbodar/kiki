@@ -1,5 +1,8 @@
+import { useAtomRefresh } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
+import type { Atom } from "effect/reactivity";
 import { useState } from "react";
+import { FailedRead } from "@/components/failed-read";
 import {
   SettingsSection as Section,
   SettingsPage,
@@ -10,6 +13,7 @@ import { Card, CardListHeader } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import { SettingsRow, SettingsRowLink } from "@/primitives/settings-row";
+import { mcpServersAtom } from "../model/atoms.ts";
 import {
   listCountLabel,
   type McpSection,
@@ -26,8 +30,8 @@ import type { MarketplacePlugin, McpServer } from "../model/types.ts";
 import {
   useActiveOrgId,
   useMarketplace,
-  useMcpServers,
-  usePluginInstallations,
+  useMcpServersState,
+  usePluginInstallationsState,
   useProjects,
 } from "../model/use-mcp-data.ts";
 import { SearchGlyph } from "../ui/glyphs.tsx";
@@ -49,11 +53,18 @@ export interface McpAndPluginsPageProps {
 export function McpAndPluginsPage({ github }: McpAndPluginsPageProps) {
   const navigate = useNavigate();
   const orgId = useActiveOrgId();
-  const servers = useMcpServers(orgId);
-  const plugins = usePluginInstallations(orgId);
+  const serversState = useMcpServersState(orgId);
+  const pluginsState = usePluginInstallationsState(orgId);
+  const servers =
+    serversState.status === "ready" ? serversState.value : undefined;
+  const plugins =
+    pluginsState.status === "ready" ? pluginsState.value : undefined;
   const marketplace = useMarketplace(orgId);
   const projects = useProjects(orgId);
   const [queries, setQueries] = useState<Record<string, string>>({});
+  const failed =
+    serversState.status === "failed" || pluginsState.status === "failed";
+  const serversAtom = orgId === undefined ? null : mcpServersAtom(orgId);
 
   const sections =
     servers === undefined || plugins === undefined
@@ -106,7 +117,13 @@ export function McpAndPluginsPage({ github }: McpAndPluginsPageProps) {
           </SettingsRowLink>
         </Card>
       </Section>
-      {sections === undefined ? (
+      {failed ? (
+        <Section>
+          <Card>
+            <McpListFailed atom={serversAtom} />
+          </Card>
+        </Section>
+      ) : sections === undefined ? (
         <Section>
           <Card>
             <div className="flex items-center justify-center gap-2 p-8 text-sm font-normal text-muted-foreground-2">
@@ -307,6 +324,18 @@ function ListRowLink({
     >
       {trailing}
     </SettingsRowLink>
+  );
+}
+
+function McpListFailed({ atom }: { readonly atom: Atom.Atom<unknown> | null }) {
+  const refresh = useAtomRefresh(atom as never);
+  return (
+    <FailedRead
+      slot="mcp-list-failed"
+      line="Couldn't load your plugins and MCP servers"
+      sub="Check your connection and try again"
+      onRetry={atom === null ? undefined : refresh}
+    />
   );
 }
 
