@@ -1,7 +1,7 @@
 import { DateTime, Effect, Ref } from "effect";
 import type { IssueRelationKind } from "../../api/schemas/issue.ts";
 import { IssueList, IssueRelationPage } from "../../api/schemas/issue.ts";
-import { fields, MockDb, missing, newId, type Row } from "../db/MockDb.ts";
+import { fields, MockDb, newId, notFound, type Row } from "../db/MockDb.ts";
 import { fixtureNow } from "../fixtures/time.ts";
 import { isoMinutesAgo, org, viewer } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
@@ -50,7 +50,7 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
       Effect.gen(function* () {
         const world = yield* snapshot;
         const row = world.issues.find((issue) => issue.code === code);
-        if (!row) return yield* missing("issues", code);
+        if (!row) return yield* notFound("issues", code);
         return { world, row };
       });
 
@@ -245,7 +245,7 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
           const pull = pulls.find((candidate) =>
             pullMatches(payload.ref, candidate),
           );
-          if (!pull) return yield* missing("pulls", payload.ref);
+          if (!pull) return yield* notFound("pulls", payload.ref);
           if (!row.pullIds.includes(pull.id)) {
             yield* patchRow(params.code, {
               pullIds: [...row.pullIds, pull.id],
@@ -335,7 +335,7 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
         Effect.gen(function* () {
           const world = yield* snapshot;
           const row = world.issues.find((issue) => issue.id === params.issueId);
-          if (!row) return yield* missing("issues", params.issueId);
+          if (!row) return yield* notFound("issues", params.issueId);
           return toIssueSummary(world, row);
         }),
       )
@@ -371,7 +371,7 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
           });
           const detailNow = yield* detail(row.code);
           const posted = detailNow.comments.at(-1);
-          if (!posted) return yield* missing("issues", params.code);
+          if (!posted) return yield* notFound("issues", params.code);
           return posted;
         }),
       )
@@ -380,7 +380,7 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
           const captain = (yield* Ref.get(db.captains)).find(
             (row) => row.id === params.jamId,
           );
-          if (!captain) return yield* missing("captains", params.jamId);
+          if (!captain) return yield* notFound("captains", params.jamId);
           const threadIds = new Set(captain.crew);
           const rows = yield* Ref.get(db.issues);
           const crewPullIds = new Set(
@@ -441,7 +441,7 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
         Effect.gen(function* () {
           const rows = yield* Ref.get(db.issueStates);
           const current = rows.find((row) => row.id === params.stateId);
-          if (!current) return yield* missing("issueStates", params.stateId);
+          if (!current) return yield* notFound("issueStates", params.stateId);
           const input = fields(payload);
           const updated = {
             ...current,
