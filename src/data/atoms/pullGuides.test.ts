@@ -22,7 +22,7 @@ describe("pull guide atom over MockServices", () => {
         guide.groups.map((group) => group.title),
         ["The surface", "The logic", "The tests"],
       );
-      assert.deepStrictEqual(guide.groups[1]?.files, ["src/lib/retry.ts"]);
+      assert.deepStrictEqual(guide.groups[1]?.files, ["src/checkout/retry.ts"]);
     }),
   );
 
