@@ -72,6 +72,20 @@ describe("anchorShift", () => {
     );
   });
 
+  it("holds the anchor when a row above it is replaced by two in the same tick", () => {
+    const anchor = { key: "c", offset: 0 };
+    const compacted = tops([100, 100, 100, 100, 100]);
+    const shift = anchorShift(
+      anchor,
+      rows("a", "x", "y", "c", "d"),
+      200,
+      topAt(compacted),
+    );
+    expect(shift).toBe(100);
+    // The anchored row sits exactly at the top edge once scrollTop takes the shift.
+    expect(compacted[3] - (200 + (shift ?? 0)) + anchor.offset).toBe(0);
+  });
+
   it("returns null once the anchored row is gone", () => {
     const list = tops([100, 100]);
     expect(
