@@ -18,6 +18,7 @@ import { Route as Char91__markdownChar93RouteImport } from './routes/[__markdown
 import { Route as Char91__mediaLightboxChar93RouteImport } from './routes/[__media-lightbox]'
 import { Route as Char91__modelPickerChar93RouteImport } from './routes/[__model-picker]'
 import { Route as Char91__newThreadSelectsChar93RouteImport } from './routes/[__new-thread-selects]'
+import { Route as Char91__skeletonsChar93RouteImport } from './routes/[__skeletons]'
 import { Route as Char91__threadDeviceChar93RouteImport } from './routes/[__thread-device]'
 import { Route as Char91__toastsChar93RouteImport } from './routes/[__toasts]'
 import { Route as Char91__tokensChar93RouteImport } from './routes/[__tokens]'
@@ -231,6 +232,11 @@ const Char91__newThreadSelectsChar93Route =
     path: '/__new-thread-selects',
     getParentRoute: () => rootRouteImport,
   } as any)
+const Char91__skeletonsChar93Route = Char91__skeletonsChar93RouteImport.update({
+  id: '/__skeletons',
+  path: '/__skeletons',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char91__threadDeviceChar93Route =
   Char91__threadDeviceChar93RouteImport.update({
     id: '/__thread-device',
@@ -1119,6 +1125,7 @@ export interface FileRoutesByFullPath {
   '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
   '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
+  '/__skeletons': typeof Char91__skeletonsChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__toasts': typeof Char91__toastsChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
@@ -1289,6 +1296,7 @@ export interface FileRoutesByTo {
   '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
   '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
+  '/__skeletons': typeof Char91__skeletonsChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__toasts': typeof Char91__toastsChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
@@ -1459,6 +1467,7 @@ export interface FileRoutesById {
   '/__media-lightbox': typeof Char91__mediaLightboxChar93Route
   '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
+  '/__skeletons': typeof Char91__skeletonsChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__toasts': typeof Char91__toastsChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
@@ -1632,6 +1641,7 @@ export interface FileRouteTypes {
     | '/__media-lightbox'
     | '/__model-picker'
     | '/__new-thread-selects'
+    | '/__skeletons'
     | '/__thread-device'
     | '/__toasts'
     | '/__tokens'
@@ -1802,6 +1812,7 @@ export interface FileRouteTypes {
     | '/__media-lightbox'
     | '/__model-picker'
     | '/__new-thread-selects'
+    | '/__skeletons'
     | '/__thread-device'
     | '/__toasts'
     | '/__tokens'
@@ -1971,6 +1982,7 @@ export interface FileRouteTypes {
     | '/__media-lightbox'
     | '/__model-picker'
     | '/__new-thread-selects'
+    | '/__skeletons'
     | '/__thread-device'
     | '/__toasts'
     | '/__tokens'
@@ -2144,6 +2156,7 @@ export interface RootRouteChildren {
   Char91__mediaLightboxChar93Route: typeof Char91__mediaLightboxChar93Route
   Char91__modelPickerChar93Route: typeof Char91__modelPickerChar93Route
   Char91__newThreadSelectsChar93Route: typeof Char91__newThreadSelectsChar93Route
+  Char91__skeletonsChar93Route: typeof Char91__skeletonsChar93Route
   Char91__threadDeviceChar93Route: typeof Char91__threadDeviceChar93Route
   Char91__toastsChar93Route: typeof Char91__toastsChar93Route
   Char91__tokensChar93Route: typeof Char91__tokensChar93Route
@@ -2232,6 +2245,13 @@ declare module '@tanstack/react-router' {
       path: '/__new-thread-selects'
       fullPath: '/__new-thread-selects'
       preLoaderRoute: typeof Char91__newThreadSelectsChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__skeletons': {
+      id: '/__skeletons'
+      path: '/__skeletons'
+      fullPath: '/__skeletons'
+      preLoaderRoute: typeof Char91__skeletonsChar93RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/__thread-device': {
@@ -3716,6 +3736,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91__mediaLightboxChar93Route: Char91__mediaLightboxChar93Route,
   Char91__modelPickerChar93Route: Char91__modelPickerChar93Route,
   Char91__newThreadSelectsChar93Route: Char91__newThreadSelectsChar93Route,
+  Char91__skeletonsChar93Route: Char91__skeletonsChar93Route,
   Char91__threadDeviceChar93Route: Char91__threadDeviceChar93Route,
   Char91__toastsChar93Route: Char91__toastsChar93Route,
   Char91__tokensChar93Route: Char91__tokensChar93Route,
