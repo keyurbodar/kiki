@@ -3,7 +3,7 @@ import { AsyncResult } from "effect/reactivity";
 import { useMemo, useState } from "react";
 import { FailedRead } from "@/components/failed-read";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
-import { organizationsAtom } from "@/data/atoms/session.ts";
+import { organizationsAtom, useActiveOrgId } from "@/data/atoms/session.ts";
 import { Button } from "@/primitives/button";
 import { BreakdownSection } from "./breakdown-section";
 import { CycleHeader } from "./cycle-header";
@@ -35,8 +35,9 @@ const FALLBACK_ORG = "org_acme";
 export function SettingsOrgUsagePage() {
   const organizations = useAtomValue(organizationsAtom);
   const refreshOrganizations = useAtomRefresh(organizationsAtom);
+  const activeOrgId = useActiveOrgId();
   const orgId = AsyncResult.isSuccess(organizations)
-    ? (organizations.value[0]?.id ?? FALLBACK_ORG)
+    ? (activeOrgId ?? FALLBACK_ORG)
     : FALLBACK_ORG;
   const [search, setSearch] = useState<UsageQuery>({ preset: "period" });
   const now = useMemo(() => new Date(), []);

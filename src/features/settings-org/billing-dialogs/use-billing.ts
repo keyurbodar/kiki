@@ -1,16 +1,11 @@
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { billingAtom } from "@/data/atoms/billing";
-import { organizationsAtom } from "@/data/atoms/session";
+import { useActiveOrgId } from "@/data/atoms/session";
 import { type BillingView, toBillingView } from "@/lib/billing";
 
-/** The org whose billing the settings pages show: the viewer's first org. */
-export function useBillingOrgId(): string | undefined {
-  const organizations = useAtomValue(organizationsAtom);
-  return AsyncResult.isSuccess(organizations)
-    ? organizations.value[0]?.id
-    : undefined;
-}
+/** The org whose billing the settings pages show: the active one. */
+export const useBillingOrgId = useActiveOrgId;
 
 export function useBillingView(orgId: string | undefined) {
   const result = useAtomValue(billingAtom(orgId ?? ""));

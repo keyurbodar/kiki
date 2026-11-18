@@ -26,7 +26,7 @@ import type { Project } from "@/data/api/schemas/project";
 import type { ThreadCardPage } from "@/data/api/schemas/thread";
 import { reactivityKeys } from "@/data/atoms/conventions";
 import { projectsAtom } from "@/data/atoms/projects";
-import { organizationsAtom } from "@/data/atoms/session";
+import { useActiveOrgId } from "@/data/atoms/session";
 import { threadsAtom } from "@/data/atoms/threads";
 import { ApiClient } from "@/data/client/ApiClient";
 import {
@@ -129,8 +129,7 @@ export function CommandPaletteHost({
   const [selectedProjectId, setSelectedProjectId] = useState<
     string | undefined
   >();
-  const organizations = useAtomValue(organizationsAtom);
-  const orgId = resultValue(organizations)?.[0]?.id;
+  const orgId = useActiveOrgId();
   const threadsForOrg: Atom.Atom<
     AsyncResult.AsyncResult<ThreadCardPage, unknown>
   > = orgId === undefined ? idleThreadPage : threadsAtom(orgId);

@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Option } from "effect";
 import { AsyncResult, type Atom } from "effect/reactivity";
 import type { ReactNode } from "react";
-import { organizationsAtom } from "@/data/atoms/session";
+import { organizationsAtom, useActiveOrgId } from "@/data/atoms/session";
 import { Button } from "@/primitives/button";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import { CheckIcon } from "./review-icons";
@@ -26,8 +26,9 @@ export const checkClass = "size-(--icon-sm) shrink-0 text-foreground";
 export function useReviewOrg() {
   const organizations = useAtomValue(organizationsAtom);
   const refreshOrganizations = useAtomRefresh(organizationsAtom);
+  const activeOrgId = useActiveOrgId();
   const org = AsyncResult.isSuccess(organizations)
-    ? organizations.value[0]
+    ? organizations.value.find((candidate) => candidate.id === activeOrgId)
     : undefined;
   return {
     org,

@@ -2,7 +2,7 @@ import { useAtomValue } from "@effect/atom-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { AppTopBar } from "@/components/app-top-bar";
-import { organizationsAtom } from "@/data/atoms/session";
+import { useActiveOrgId } from "@/data/atoms/session";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
@@ -27,8 +27,8 @@ export type PullPageProps = {
 };
 
 export function PullPage(props: PullPageProps) {
-  const organizations = resultValue(useAtomValue(organizationsAtom));
-  const orgId = props.org ?? organizations?.[0]?.id;
+  const activeOrgId = useActiveOrgId();
+  const orgId = props.org ?? activeOrgId;
   if (orgId === undefined) return null;
   return (
     <PullOrgContext.Provider value={orgId}>

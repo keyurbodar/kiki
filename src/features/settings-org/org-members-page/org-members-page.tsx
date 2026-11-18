@@ -5,7 +5,11 @@ import { type FormEvent, memo, useState } from "react";
 import { FailedRead } from "@/components/failed-read";
 import { SettingsPage } from "@/components/settings-page";
 import type { Organization } from "@/data/api/schemas/organization";
-import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
+import {
+  currentUserAtom,
+  organizationsAtom,
+  useActiveOrgId,
+} from "@/data/atoms/session";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import {
@@ -687,7 +691,10 @@ function InviteMembersDialog({
 export function OrgMembersPage() {
   const organizationsResult = useAtomValue(organizationsAtom);
   const organizations = valueOr(organizationsResult, []);
-  const organization: Organization | undefined = organizations[0];
+  const activeOrgId = useActiveOrgId();
+  const organization: Organization | undefined = organizations.find(
+    (candidate) => candidate.id === activeOrgId,
+  );
   const viewer = useAtomValue(currentUserAtom);
   const viewerId = AsyncResult.isSuccess(viewer) ? viewer.value.id : undefined;
   const refreshOrganizations = useAtomRefresh(organizationsAtom);

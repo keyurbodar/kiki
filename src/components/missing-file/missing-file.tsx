@@ -4,7 +4,7 @@ import { AsyncResult, Atom } from "effect/reactivity";
 import type { VolumeId } from "@/data/api/schemas/drive";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { queryTimeToLive } from "@/data/atoms/conventions";
-import { organizationsAtom } from "@/data/atoms/session";
+import { useActiveOrgId } from "@/data/atoms/session";
 import { ApiClient } from "@/data/client/ApiClient";
 import { Button } from "@/primitives/button";
 import { FileState } from "./file-state";
@@ -165,10 +165,8 @@ export function MissingFile({
   orgId: orgIdProp,
   ...props
 }: MissingFileProps) {
-  const organizations = Option.getOrUndefined(
-    AsyncResult.value(useAtomValue(organizationsAtom)),
-  );
-  const orgId = orgIdProp ?? organizations?.[0]?.id;
+  const activeOrgId = useActiveOrgId();
+  const orgId = orgIdProp ?? activeOrgId;
   const atom: Atom.Atom<AsyncResult.AsyncResult<unknown, unknown>> =
     orgId === undefined
       ? pendingAtom

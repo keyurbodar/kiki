@@ -2,7 +2,6 @@ import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult, Atom } from "effect/reactivity";
 import { queryTimeToLive } from "@/data/atoms/conventions";
-import { organizationsAtom } from "@/data/atoms/session";
 import { ApiClient } from "@/data/client/ApiClient";
 
 const fileUrlQuery = Atom.family((key: string) => {
@@ -24,12 +23,7 @@ export function signedUrlOf(response: unknown): string | undefined {
   return typeof url === "string" ? url : undefined;
 }
 
-export function useActiveOrgId(): string | undefined {
-  const organizations = Option.getOrUndefined(
-    AsyncResult.value(useAtomValue(organizationsAtom)),
-  );
-  return organizations?.[0]?.id;
-}
+export { useActiveOrgId } from "@/data/atoms/session";
 
 export function useFileUrl(orgId: string, jamId: string, fileId: string) {
   const atom = fileUrlAtom(orgId, jamId, fileId);

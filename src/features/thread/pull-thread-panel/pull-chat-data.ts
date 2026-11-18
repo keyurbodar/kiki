@@ -5,7 +5,11 @@ import { useState } from "react";
 import { JamId, OrgId } from "@/data/api/schemas/ids";
 import { queryTimeToLive } from "@/data/atoms/conventions";
 import { projectsAtom } from "@/data/atoms/projects";
-import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
+import {
+  currentUserAtom,
+  organizationsAtom,
+  useActiveOrgId,
+} from "@/data/atoms/session";
 import { ApiClient } from "@/data/client/ApiClient";
 import { toast } from "@/primitives/toaster";
 import {
@@ -81,9 +85,7 @@ const panelSelectionAtom = Atom.family((key: string) =>
 const createThreadAtom = ApiClient.mutation("jams", "create");
 const linkThreadAtom = ApiClient.mutation("pulls", "linkThread");
 
-export function useActiveOrgId() {
-  return value(useAtomValue(organizationsAtom))?.[0]?.id;
-}
+export { useActiveOrgId } from "@/data/atoms/session";
 
 export function usePullThreadSelection(pull: PanelPull): PullPanelSelection {
   return useAtomValue(

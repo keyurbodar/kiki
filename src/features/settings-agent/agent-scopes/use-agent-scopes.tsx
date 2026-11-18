@@ -10,7 +10,11 @@ import {
   driveScopeFilesKey,
 } from "@/data/atoms/agent-context";
 import { projectsAtom } from "@/data/atoms/projects";
-import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
+import {
+  currentUserAtom,
+  organizationsAtom,
+  useActiveOrgId,
+} from "@/data/atoms/session";
 import { Icon } from "@/primitives/icon";
 import {
   CaptainAvatar,
@@ -42,9 +46,11 @@ const idle = <A,>() =>
 export const resultValue = <A, E>(result: AsyncResult.AsyncResult<A, E>) =>
   Option.getOrUndefined(AsyncResult.value(result));
 
-/** The signed-in organization: Capy's current org, here the first one the viewer belongs to. */
+/** The signed-in organization: the one the viewer selected, else the first they belong to. */
 export function useAgentOrg() {
-  const org = resultValue(useAtomValue(organizationsAtom))?.[0];
+  const organizations = resultValue(useAtomValue(organizationsAtom));
+  const activeOrgId = useActiveOrgId();
+  const org = organizations?.find((candidate) => candidate.id === activeOrgId);
   return { org, orgId: org?.id };
 }
 

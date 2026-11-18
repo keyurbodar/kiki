@@ -4,7 +4,11 @@ import { AsyncResult, type Atom } from "effect/reactivity";
 import { useState } from "react";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import type { Organization } from "@/data/api/schemas/organization";
-import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
+import {
+  currentUserAtom,
+  organizationsAtom,
+  useActiveOrgId,
+} from "@/data/atoms/session";
 import {
   type AllowedDomain,
   accountAtom,
@@ -120,7 +124,10 @@ export type GoogleWorkspaceStep = {
 /** Identity & access: /settings/org/identity (Capy's OrgIdentityPage). */
 export function OrgIdentityPage() {
   const organizations = useResult(organizationsAtom);
-  const organization = organizations?.[0];
+  const activeOrgId = useActiveOrgId();
+  const organization = organizations?.find(
+    (candidate) => candidate.id === activeOrgId,
+  );
   const [googleWorkspaceStep, setGoogleWorkspaceStep] =
     useState<GoogleWorkspaceStep>(null);
   if (organization === undefined) return null;
