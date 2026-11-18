@@ -57,6 +57,9 @@ vi.mock("@/features/thread/timeline", async () => {
     useThreadTimeline: () => current.timeline,
     threadKey: (orgId: string, jamId: string) => `${orgId}/${jamId}`,
     editDraftAtom: Atom.family((_key: string) => Atom.make(null)),
+    appendPendingAtom: Atom.family((_key: string) => Atom.make(null)),
+    removePendingAtom: Atom.family((_key: string) => Atom.make(null)),
+    refreshNewestAtom: Atom.family((_key: string) => Atom.make(null)),
   };
 });
 

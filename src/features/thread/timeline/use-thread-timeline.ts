@@ -31,6 +31,8 @@ import {
   type ThreadFeed,
 } from "./feed";
 import { liveEntries } from "./live";
+import type { PendingMessage } from "./pending";
+import { pendingMessageEvent, pendingRows } from "./pending";
 
 /** Events per history page, as Capy's thread view requests them. */
 export const HISTORY_PAGE_SIZE = 100;
@@ -159,6 +161,57 @@ export const threadSyncAtom = Atom.family((key: string) =>
   ),
 );
 
+/**
+ * Reads the newest events again and merges them into the feed. A send needs
+ * this: the fake socket carries no frame for a message this tab just posted, so
+ * the row exists in the store and the timeline never asks for it.
+ */
+export const refreshNewestAtom = Atom.family((key: string) =>
+  timelineRuntime.fn<void>()((_, get) =>
+    Effect.gen(function* () {
+      const feedAtom = threadFeedAtom(key);
+      const after = newestEventId(get(feedAtom));
+      const page = yield* fetchPage(key, after === undefined ? {} : { after });
+      get.set(feedAtom, newerLoaded(get(feedAtom), page));
+    }),
+  ),
+);
+
+/** Appends the row a send shows before the store answers it. */
+export const appendPendingAtom = Atom.family((key: string) =>
+  timelineRuntime.fn<PendingMessage>()((message, get) =>
+    Effect.sync(() => {
+      const feedAtom = threadFeedAtom(key);
+      const feed = get(feedAtom);
+      const { jamId } = splitKey(key);
+      get.set(feedAtom, {
+        ...feed,
+        pending: [
+          ...feed.pending,
+          pendingMessageEvent(jamId as JamId, message, new Date()),
+        ],
+      });
+    }),
+  ),
+);
+
+/** Drops the row a failed send appended, by the client key it was sent with. */
+export const removePendingAtom = Atom.family((key: string) =>
+  timelineRuntime.fn<string>()((clientKey, get) =>
+    Effect.sync(() => {
+      const feedAtom = threadFeedAtom(key);
+      const feed = get(feedAtom);
+      get.set(feedAtom, {
+        ...feed,
+        pending: feed.pending.filter(
+          (event) =>
+            event.kind !== "message" || event.payload.clientKey !== clientKey,
+        ),
+      });
+    }),
+  ),
+);
+
 /** Fetches the page before the oldest loaded event. */
 export const loadOlderAtom = Atom.family((key: string) =>
   timelineRuntime.fn<void>()((_, get) =>
@@ -196,7 +249,7 @@ export const timelineOf = (
   expanded: ReadonlyMap<string, boolean>,
   editOf?: EventId,
 ): Timeline =>
-  buildTimeline(feed.events, {
+  buildTimeline([...feed.events, ...pendingRows(feed)], {
     liveEntries: liveEntries(feed.live),
     liveSettled: feed.live.phase === "settled",
     truncatedHistory: feed.olderCursor !== null,

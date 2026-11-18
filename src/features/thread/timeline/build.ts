@@ -233,7 +233,11 @@ export interface QueuedMessage {
   readonly clientKey: string | undefined;
 }
 
-/** Pending queue and steer messages: the composer shows them as queued chips. */
+/**
+ * Pending queue messages: held until the running turn ends, so the composer
+ * shows them as queued chips. A steer or interrupt send reached the turn and is
+ * drawn as a row instead.
+ */
 export const queuedMessages = (
   events: ReadonlyArray<EventRow>,
 ): ReadonlyArray<QueuedMessage> => {
@@ -249,7 +253,7 @@ export const queuedMessages = (
     if (
       event.kind !== "message" ||
       event.state !== "pending" ||
-      (event.payload.delivery !== "queue" && event.payload.delivery !== "steer")
+      event.payload.delivery !== "queue"
     )
       return [];
     const key = event.payload.clientKey;
