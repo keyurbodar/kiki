@@ -4,6 +4,7 @@ import { type PullCard, repoName } from "@/features/pulls/pulls-page/data/pull";
 import { pullCode, shortAge } from "@/features/pulls/pulls-page/model";
 import { Badge } from "@/primitives/badge";
 import { CheckGlyph, PullStateIcon, ThreadGlyph } from "./pull-icons";
+import { PullRowMenu } from "./pull-row-menu";
 
 /** Thread code for the row badge: `WEB-12`, or `#12` outside a project. */
 export const threadCode = (thread: NonNullable<PullCard["thread"]>) =>
@@ -84,6 +85,8 @@ export const PullRow = memo(function PullRow({
   checked,
   selectionMode,
   onCheck,
+  pinned,
+  onTogglePin,
 }: {
   pull: PullCard;
   now: number;
@@ -91,61 +94,69 @@ export const PullRow = memo(function PullRow({
   checked: boolean;
   selectionMode: boolean;
   onCheck: () => void;
+  pinned?: boolean;
+  onTogglePin?: (id: string) => void;
 }) {
   const owner = pull.repo.slice(0, pull.repo.indexOf("/"));
   return (
-    <div className="group/row relative block">
-      <Link
-        to="/pull/$owner/$repo/$prNumber"
-        params={{
-          owner,
-          repo: repoName(pull.repo),
-          prNumber: String(pull.number),
-        }}
-        data-pull-row={pull.id}
-        data-pull-url={pull.url}
-        data-selected={selected ? "" : undefined}
-        className="flex h-11 items-center gap-2 rounded px-2 outline-none select-none transition-colors duration-hover hover:bg-section focus-visible:outline-ring-inset data-[selected]:bg-section"
-      >
-        <RowCheckbox
-          checked={checked}
-          visible={selectionMode}
-          onCheck={onCheck}
-        />
-        <span className="flex w-4 shrink-0 items-center justify-center">
-          <PullStateIcon state={pull.state} />
-        </span>
-        <span className="w-(--pull-code-width) shrink-0 text-sm font-normal whitespace-nowrap text-muted-foreground-2 tabular-nums @max-lg/list:hidden">
-          <span className="inline-block" data-pull-code-measure>
-            {pullCode(pull)}
-          </span>
-        </span>
-        <RepoAvatar owner={owner} />
-        <span
-          className="mask-fade-r min-w-0 flex-1 overflow-hidden text-sm font-medium whitespace-nowrap text-foreground"
-          title={pull.title}
+    <PullRowMenu
+      pull={pull}
+      pinned={pinned ?? false}
+      onTogglePin={onTogglePin ?? (() => undefined)}
+    >
+      <div className="group/row relative block">
+        <Link
+          to="/pull/$owner/$repo/$prNumber"
+          params={{
+            owner,
+            repo: repoName(pull.repo),
+            prNumber: String(pull.number),
+          }}
+          data-pull-row={pull.id}
+          data-pull-url={pull.url}
+          data-selected={selected ? "" : undefined}
+          className="flex h-11 items-center gap-2 rounded px-2 outline-none select-none transition-colors duration-hover hover:bg-section focus-visible:outline-ring-inset data-[selected]:bg-section"
         >
-          {pull.title}
-        </span>
-        <span className="hidden shrink-0 items-center gap-1.5 @lg/list:flex">
-          {pull.thread === null ? null : (
-            <Badge
-              size="base"
-              className="inline-flex h-(--h-badge-base) w-fit shrink-0 items-center justify-center gap-1 rounded-full border-hairline border-border-2 bg-secondary px-2 text-xs font-normal whitespace-nowrap text-foreground [&_svg]:size-(--icon-sm) [&_svg]:shrink-0 [&_svg:first-of-type]:-ml-0.5 @max-lg/list:hidden"
-              aria-label={`Open thread ${threadCode(pull.thread)}`}
-            >
-              <ThreadGlyph />
-              {threadCode(pull.thread)}
-            </Badge>
-          )}
-          <span className="shrink-0 text-xs font-medium @max-2xl/list:hidden">
-            <DiffStat additions={pull.additions} deletions={pull.deletions} />
+          <RowCheckbox
+            checked={checked}
+            visible={selectionMode}
+            onCheck={onCheck}
+          />
+          <span className="flex w-4 shrink-0 items-center justify-center">
+            <PullStateIcon state={pull.state} />
           </span>
-        </span>
-        <span className="w-10 shrink-0 text-right text-xs font-normal text-muted-foreground-2 tabular-nums">
-          {shortAge(pull.updatedAt, now)}
-        </span>
-      </Link>
-    </div>
+          <span className="w-(--pull-code-width) shrink-0 text-sm font-normal whitespace-nowrap text-muted-foreground-2 tabular-nums @max-lg/list:hidden">
+            <span className="inline-block" data-pull-code-measure>
+              {pullCode(pull)}
+            </span>
+          </span>
+          <RepoAvatar owner={owner} />
+          <span
+            className="mask-fade-r min-w-0 flex-1 overflow-hidden text-sm font-medium whitespace-nowrap text-foreground"
+            title={pull.title}
+          >
+            {pull.title}
+          </span>
+          <span className="hidden shrink-0 items-center gap-1.5 @lg/list:flex">
+            {pull.thread === null ? null : (
+              <Badge
+                size="base"
+                className="inline-flex h-(--h-badge-base) w-fit shrink-0 items-center justify-center gap-1 rounded-full border-hairline border-border-2 bg-secondary px-2 text-xs font-normal whitespace-nowrap text-foreground [&_svg]:size-(--icon-sm) [&_svg]:shrink-0 [&_svg:first-of-type]:-ml-0.5 @max-lg/list:hidden"
+                aria-label={`Open thread ${threadCode(pull.thread)}`}
+              >
+                <ThreadGlyph />
+                {threadCode(pull.thread)}
+              </Badge>
+            )}
+            <span className="shrink-0 text-xs font-medium @max-2xl/list:hidden">
+              <DiffStat additions={pull.additions} deletions={pull.deletions} />
+            </span>
+          </span>
+          <span className="w-10 shrink-0 text-right text-xs font-normal text-muted-foreground-2 tabular-nums">
+            {shortAge(pull.updatedAt, now)}
+          </span>
+        </Link>
+      </div>
+    </PullRowMenu>
   );
 });

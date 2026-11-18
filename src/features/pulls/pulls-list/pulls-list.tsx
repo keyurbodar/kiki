@@ -59,6 +59,8 @@ export function PullsList({
   onToggleSection,
   loading,
   emptyText,
+  pinned = [],
+  onTogglePin,
 }: {
   sections: ReadonlyArray<PullSection>;
   now: number;
@@ -67,6 +69,9 @@ export function PullsList({
   onToggleSection: (id: string) => void;
   loading?: boolean;
   emptyText: string;
+  /** Ids in the page's pinned section; the row menu offers Pin or Unpin. */
+  pinned?: ReadonlyArray<string>;
+  onTogglePin?: (id: string) => void;
 }) {
   const [checked, setChecked] = useState<ReadonlyArray<string>>([]);
   const selectionMode = checked.length > 0;
@@ -177,6 +182,8 @@ export function PullsList({
                         <PullRow
                           pull={pull}
                           now={now}
+                          pinned={pinned.includes(pull.id)}
+                          onTogglePin={onTogglePin}
                           selected={selectedId === pull.id}
                           checked={checked.includes(pull.id)}
                           selectionMode={selectionMode}
