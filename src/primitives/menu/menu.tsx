@@ -135,10 +135,19 @@ export const MenuSub = BaseMenu.SubmenuRoot;
 
 export type MenuSubProps = ComponentProps<typeof BaseMenu.SubmenuRoot>;
 
-export type MenuTriggerProps = ComponentProps<typeof BaseMenu.Trigger>;
+export type MenuTriggerProps = ComponentProps<typeof BaseMenu.Trigger> & {
+  /**
+   * The `data-slot` the trigger carries. Pass null where Capy's trigger carries
+   * only its own state, as the issue list's status button does.
+   */
+  dataSlot?: string | null;
+};
 
-export function MenuTrigger(props: MenuTriggerProps) {
-  return <BaseMenu.Trigger data-slot="menu-trigger" {...props} />;
+export function MenuTrigger({
+  dataSlot = "menu-trigger",
+  ...props
+}: MenuTriggerProps) {
+  return <BaseMenu.Trigger data-slot={dataSlot ?? undefined} {...props} />;
 }
 
 export type MenuContentProps = Omit<

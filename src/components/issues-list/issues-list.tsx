@@ -1,7 +1,7 @@
 import { useAtomSet } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
 import { DateTime } from "effect";
-import { type ReactNode, useState } from "react";
+import { Fragment, type MouseEvent, type ReactNode, useState } from "react";
 import { toast } from "sonner";
 import type { ActorSources } from "@/components/actor-filter";
 import { IssueDueChip } from "@/components/issue-due";
@@ -43,7 +43,6 @@ import { ActorAvatar } from "../actor-filter";
 import { type IssueFilters, localDate, stateVisible } from "../issues-filters";
 import {
   ChevronDownGlyph,
-  ChevronRightGlyph,
   type IssueDisplay,
   type IssueGrouping,
 } from "../issues-toolbar";
@@ -252,8 +251,9 @@ function IssueStatusMenu({
     >
       <Menu>
         <MenuTrigger
+          dataSlot={null}
           aria-label="Change status"
-          className="flex size-5 shrink-0 cursor-pointer items-center justify-center rounded outline-none hover:bg-secondary focus-visible:outline-ring-inset"
+          className="relative -m-1 flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-(--radius) outline-none hover:bg-secondary focus-visible:outline-ring-inset data-[popup-open]:bg-secondary pointer-coarse:after:absolute pointer-coarse:after:-inset-2.5"
         >
           {state === undefined ? null : (
             <IssueStateIcon icon={state.icon} color={state.color} />
@@ -306,9 +306,83 @@ function RowCheckbox({
     >
       <span
         data-checked={checked ? "" : undefined}
-        className="flex size-3.5 items-center justify-center rounded border-hairline border-border-3 data-[checked]:border-foreground data-[checked]:bg-foreground data-[checked]:text-background"
+        className="relative flex size-4 shrink-0 items-center justify-center rounded-(--radius-sm) border-hairline border-border-3 bg-input text-primary-foreground transition-colors duration-100 data-[checked]:border-transparent data-[checked]:bg-primary data-[checked]:[--focus-ring:var(--primary-text)]"
       />
     </button>
+  );
+}
+
+/** Capy's sub-issue badge: a progress ring, the closed count and an expand chevron. */
+function SubIssueBadge({
+  closed,
+  total,
+  open,
+  onToggle,
+}: {
+  closed: number;
+  total: number;
+  open: boolean;
+  onToggle?: () => void;
+}) {
+  const plural = total === 1 ? "" : "s";
+  const label = `${open ? "Collapse" : "Expand"} ${total} sub-issue${plural}`;
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Badge
+            variant="default"
+            size="xs"
+            interactive={onToggle !== undefined}
+            aria-label={label}
+            aria-expanded={onToggle === undefined ? undefined : open}
+            onClick={(event: MouseEvent<HTMLDivElement>) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onToggle?.();
+            }}
+          />
+        }
+      >
+        <svg
+          viewBox="0 0 16 16"
+          className="size-3 text-muted-foreground-1"
+          role="progressbar"
+          aria-label={`${closed} of ${total} sub-issue${plural} closed`}
+        >
+          <circle
+            cx="8"
+            cy="8"
+            r="6"
+            fill="none"
+            stroke="var(--border-3)"
+            strokeWidth="2"
+          />
+          <circle
+            cx="8"
+            cy="8"
+            r="6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            pathLength="100"
+            strokeDasharray={`${(closed / Math.max(total, 1)) * 100} 100`}
+            transform="rotate(-90 8 8)"
+          />
+        </svg>
+        <span className="tabular-nums">
+          {closed}/{total}
+        </span>
+        <ChevronDownGlyph
+          className={
+            "-mr-0.5 size-(--icon-xs) transition-transform duration-100" +
+            (open ? " rotate-0" : " -rotate-90")
+          }
+        />
+      </TooltipTrigger>
+      <TooltipContent side="bottom">{label}</TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -321,6 +395,11 @@ export type IssueRowProps = {
   checked?: boolean;
   selectionMode?: boolean;
   onCheck?: (issue: IssueSummary, shift: boolean) => void;
+  /** Whether this row's sub-issues are showing under it. */
+  subIssuesOpen?: boolean;
+  onToggleSubIssues?: () => void;
+  /** Depth under an expanded parent: Capy indents a sub-issue row one step. */
+  nested?: boolean;
 };
 
 /** Capy's IssueRow at page density: status, ID, title, badges, properties. */
@@ -333,6 +412,9 @@ export function IssueRow({
   checked,
   selectionMode = false,
   onCheck,
+  subIssuesOpen = false,
+  onToggleSubIssues,
+  nested = false,
 }: IssueRowProps) {
   const hidden = (property: IssueDisplay["hidden"][number]) =>
     display.hidden.includes(property);
@@ -359,7 +441,10 @@ export function IssueRow({
       params={{ code: issue.code }}
       data-issue-row={issue.id}
       data-issue-code={issue.code}
-      className="relative flex h-11 items-center gap-2 rounded px-2 outline-none select-none transition-colors duration-100 hover:bg-section focus-visible:outline-ring-inset data-[selected]:bg-section"
+      className={
+        "relative flex h-11 items-center gap-2 rounded px-2 outline-none select-none transition-colors duration-100 hover:bg-section focus-visible:outline-ring-inset data-[selected]:bg-section" +
+        (nested ? " pl-8" : "")
+      }
       onClick={(event) => {
         if (!selectionMode || onCheck === undefined || !event.shiftKey) return;
         event.preventDefault();
@@ -396,11 +481,13 @@ export function IssueRow({
           {issue.title}
         </span>
         {issue.subIssueCount > 0 ? (
-          <span className="ml-1 flex h-5 shrink-0 items-center gap-1 rounded border-hairline border-border-2 px-1.5 text-xs font-medium text-foreground">
-            <span className="tabular-nums">
-              {issue.closedSubIssueCount}/{issue.subIssueCount}
-            </span>
-            <ChevronRightGlyph className="size-(--icon-xs) text-muted-foreground-3" />
+          <span className="ml-1 flex shrink-0 items-center gap-1">
+            <SubIssueBadge
+              closed={issue.closedSubIssueCount}
+              total={issue.subIssueCount}
+              open={subIssuesOpen}
+              onToggle={onToggleSubIssues}
+            />
           </span>
         ) : null}
       </span>
@@ -426,6 +513,7 @@ export function IssueRow({
                   variant="filled"
                   size="count"
                   color="accent"
+                  interactive={false}
                   aria-label={`${issue.viewer.mentions} unread ${issue.viewer.mentions === 1 ? "mention" : "mentions"} of you`}
                   className="h-3.5 min-w-4.5 shrink-0 gap-0 px-1"
                 />
@@ -572,6 +660,9 @@ export function IssuesList({
   const [openSections, setOpenSections] = useState<
     Readonly<Record<string, boolean>>
   >({});
+  const [expandedRows, setExpandedRows] = useState<
+    Readonly<Record<string, boolean>>
+  >({});
   const [anchor, setAnchor] = useState<string | null>(null);
   if (failed)
     return (
@@ -603,7 +694,23 @@ export function IssuesList({
         ))}
       </div>
     );
-  const visible = visibleIssues(issues, filters, display, states);
+  const subIssuesByParent = new Map<string, Array<IssueSummary>>();
+  for (const issue of issues) {
+    if (issue.parentIssueId === null) continue;
+    if (!stateVisible(filters, issue.stateId)) continue;
+    const siblings = subIssuesByParent.get(issue.parentIssueId) ?? [];
+    siblings.push(issue);
+    subIssuesByParent.set(issue.parentIssueId, siblings);
+  }
+  const subIssuesOf = (issue: IssueSummary) =>
+    (subIssuesByParent.get(issue.id) ?? []).toSorted(
+      compareIssues(display, states),
+    );
+  const visible = visibleIssues(issues, filters, display, states).filter(
+    (issue) =>
+      issue.parentIssueId === null ||
+      expandedRows[issue.parentIssueId] !== true,
+  );
   const groups = groupIssues(visible, display.grouping, {
     states: states.filter((state) => stateVisible(filters, state.id)),
     projectNames,
@@ -633,6 +740,48 @@ export function IssuesList({
           }
           onCheckedChange(next);
         };
+  const renderRow = (
+    issue: IssueSummary,
+    nested: boolean,
+    ancestors: ReadonlySet<string> = new Set(),
+  ): ReactNode => {
+    const subIssues = ancestors.has(issue.id) ? [] : subIssuesOf(issue);
+    const subIssuesOpen = expandedRows[issue.id] ?? false;
+    return (
+      <Fragment key={issue.id}>
+        <li className="group/row">
+          <IssueRowContextMenu issue={issue} actors={actors}>
+            <IssueRow
+              issue={issue}
+              orgId={orgId}
+              state={states.find((state) => state.id === issue.stateId)}
+              display={display}
+              now={now}
+              checked={checked?.has(issue.id)}
+              selectionMode={(checked?.size ?? 0) > 0}
+              onCheck={onCheck}
+              nested={nested}
+              subIssuesOpen={subIssuesOpen && subIssues.length > 0}
+              onToggleSubIssues={
+                subIssues.length === 0
+                  ? undefined
+                  : () =>
+                      setExpandedRows((current) => ({
+                        ...current,
+                        [issue.id]: !subIssuesOpen,
+                      }))
+              }
+            />
+          </IssueRowContextMenu>
+        </li>
+        {subIssuesOpen
+          ? subIssues.map((child) =>
+              renderRow(child, true, new Set([...ancestors, issue.id])),
+            )
+          : null}
+      </Fragment>
+    );
+  };
   return (
     <div className="@container/list flex flex-col gap-1 px-2 pt-1 [--issue-code-width:max-content]">
       {anyIssue ? null : (
@@ -662,24 +811,7 @@ export function IssuesList({
                 </div>
               ) : (
                 <ul className="flex flex-col pt-0.5">
-                  {group.issues.map((issue) => (
-                    <li key={issue.id} className="group/row">
-                      <IssueRowContextMenu issue={issue} actors={actors}>
-                        <IssueRow
-                          issue={issue}
-                          orgId={orgId}
-                          state={states.find(
-                            (state) => state.id === issue.stateId,
-                          )}
-                          display={display}
-                          now={now}
-                          checked={checked?.has(issue.id)}
-                          selectionMode={(checked?.size ?? 0) > 0}
-                          onCheck={onCheck}
-                        />
-                      </IssueRowContextMenu>
-                    </li>
-                  ))}
+                  {group.issues.map((issue) => renderRow(issue, false))}
                 </ul>
               )}
             </IssueSection>
