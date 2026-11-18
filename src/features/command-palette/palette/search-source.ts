@@ -27,6 +27,18 @@ import type {
   CommandMenuSearchData,
   RunOptions,
 } from "@/components/command-menu-search";
+import {
+  type SettingsNavEntry,
+  type SettingsSearchRow,
+  settingsNav,
+  settingsNavGroups,
+  settingsNavTitle,
+} from "@/features/settings/nav/registry";
+import {
+  isSettingsRowVisible,
+  settingsRowTitle,
+} from "@/features/settings/nav/search";
+import type { IconId } from "@/primitives/icon";
 
 export const sampleSearchSource = (now: number): PaletteSearchSource => ({
   captains: [
@@ -382,6 +394,66 @@ export const threadCommands = (): PaletteCommand[] => [
   },
 ];
 
+const settingsIcon = (page: SettingsNavEntry): IconId =>
+  (page.icon ?? "settings-gear-1") as IconId;
+
+const settingsRowCommand = (
+  page: SettingsNavEntry,
+  row: SettingsSearchRow,
+  actions: PaletteActions,
+): PaletteCommand => {
+  const pageTitle = settingsNavTitle(page);
+  const title = settingsRowTitle(row);
+  return {
+    id: `settings-${row.id}`,
+    kind: "setting",
+    icon: settingsIcon(page),
+    title,
+    context: pageTitle,
+    searchTerms: [
+      title.toLowerCase(),
+      pageTitle.toLowerCase(),
+      row.keywords ?? "",
+    ],
+    run: (options) => actions.go(row.to ?? page.to, options),
+  };
+};
+
+const settingsPageCommand = (
+  page: SettingsNavEntry,
+  actions: PaletteActions,
+): PaletteCommand => {
+  const title = settingsNavTitle(page);
+  return {
+    id: `settings-${page.to}`,
+    kind: "setting",
+    icon: settingsIcon(page),
+    title,
+    searchTerms: [title.toLowerCase(), page.keywords ?? ""],
+    run: (options) => actions.go(page.to, options),
+  };
+};
+
+/** Every settings page and every row inside one, as Capy's palette lists them. */
+const settingsCommands = (actions: PaletteActions): PaletteCommand[] =>
+  settingsNav.flatMap((page) => [
+    settingsPageCommand(page, actions),
+    ...(page.rows ?? [])
+      .filter((row) => isSettingsRowVisible(row))
+      .map((row) => settingsRowCommand(page, row, actions)),
+  ]);
+
+/** The Settings tab: Capy's nav groups, each holding its pages. */
+const settingsSections = (actions: PaletteActions) =>
+  settingsNavGroups.flatMap((group) => {
+    const commands = settingsNav
+      .filter((page) => page.section === group.section)
+      .map((page) => settingsPageCommand(page, actions));
+    return commands.length === 0
+      ? []
+      : [{ label: group.label ?? "Personal", commands }];
+  });
+
 export const threadIdFromPath = (pathname: string) =>
   /^\/thread\/([^/]+)/.exec(pathname)?.[1];
 
@@ -408,8 +480,8 @@ export const buildSearchData = (
     commands: paletteCommands(actions),
     currentThread:
       thread === undefined ? undefined : { thread, commands: threadCommands() },
-    settings: [],
-    settingsSections: [],
+    settings: settingsCommands(actions),
+    settingsSections: settingsSections(actions),
   };
 };
 

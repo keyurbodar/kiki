@@ -74,4 +74,26 @@ describe("command palette host", () => {
       buildSearchData(source, actions, "/threads").currentThread,
     ).toBeUndefined();
   });
+
+  it("feeds the Settings tab and the Settings group from the settings nav", () => {
+    const data = buildSearchData(sampleSearchSource(0), actions, "/threads");
+    expect(data.settings.length).toBeGreaterThan(0);
+    expect(data.settingsSections.length).toBeGreaterThan(0);
+
+    const threadsRow = data.settings.find(
+      (command) => command.id === "settings-archive-idle-threads",
+    );
+    expect(threadsRow?.title).toBe("Archive idle threads");
+    expect(threadsRow?.context).toBe("Threads");
+
+    const pages = data.settingsSections.flatMap((section) => section.commands);
+    expect(
+      pages.some((command) => command.id === "settings-/settings/threads"),
+    ).toBe(true);
+    expect(
+      data.settingsSections.every((section) =>
+        section.commands.every((command) => command.kind === "setting"),
+      ),
+    ).toBe(true);
+  });
 });
