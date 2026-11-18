@@ -27,6 +27,37 @@ const FORMATS: Record<ColorFormat, string> = { hex: "Hex", rgb: "RGB" };
 
 const CHANNEL_NAMES = ["red", "green", "blue"] as const;
 
+/**
+ * The colour a trigger is painting: the `.color-picker__swatch` inside it when
+ * there is one, else the trigger's own background. Read off the element the
+ * user actually pressed, so a caller-supplied trigger seeds the picker the same
+ * way the built-in one does.
+ */
+const paintedColor = (element: Element | null): string | undefined => {
+  if (element === null) return undefined;
+  const swatch = element.querySelector(".color-picker__swatch") ?? element;
+  const painted = getComputedStyle(swatch).backgroundColor;
+  if (
+    painted === "" ||
+    (typeof CSS !== "undefined" &&
+      typeof CSS.supports === "function" &&
+      !CSS.supports("color", painted))
+  )
+    return undefined;
+  const context = document.createElement("canvas").getContext("2d");
+  if (context === null) return undefined;
+  context.clearRect(0, 0, 1, 1);
+  context.fillStyle = painted;
+  context.fillRect(0, 0, 1, 1);
+  const [red = 0, green = 0, blue = 0, alpha = 0] = context.getImageData(
+    0,
+    0,
+    1,
+    1,
+  ).data;
+  return alpha === 0 ? undefined : toHex(red, green, blue);
+};
+
 export type ColorPickerColor = { label: string; value: string };
 
 export type ColorPickerProps = {
@@ -48,13 +79,17 @@ export function ColorPicker({
   disabled = false,
   trigger,
 }: ColorPickerProps) {
-  const swatchRef = useRef<HTMLSpanElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const labelId = useId();
   const [open, setOpen] = useState(false);
   const [format, setFormat] = useState<ColorFormat>("hex");
   const [fallback, setFallback] = useState(() => toHex(0, 0, 0));
-  const current = value ?? fallback;
+  // A caller can pass a colour the picker cannot express — a derived token, an
+  // empty string — and react-colorful renders NaN for it. Only a hex counts as
+  // a controlled colour; anything else seeds from the swatch that was clicked.
+  const controlled =
+    value !== undefined && HEX_COLOR.test(value) ? value : undefined;
+  const current = controlled ?? fallback;
   const [draft, setDraft] = useState(current);
   const [channels, setChannels] = useState<Channels>(["0", "0", "0"]);
 
@@ -72,18 +107,9 @@ export function ColorPicker({
 
   const handleOpenChange = (next: boolean) => {
     setOpen(next);
-    if (!next || value !== undefined || !swatchRef.current) return;
-    const context = document.createElement("canvas").getContext("2d");
-    if (!context) return;
-    context.fillStyle = getComputedStyle(swatchRef.current).backgroundColor;
-    context.fillRect(0, 0, 1, 1);
-    const [red = 0, green = 0, blue = 0] = context.getImageData(
-      0,
-      0,
-      1,
-      1,
-    ).data;
-    setFallback(toHex(red, green, blue));
+    if (!next || controlled !== undefined) return;
+    const painted = paintedColor(document.activeElement);
+    if (painted !== undefined) setFallback(painted);
   };
 
   return (
@@ -98,10 +124,9 @@ export function ColorPicker({
               aria-label={`Pick ${label.toLowerCase()} color`}
             >
               <span
-                ref={swatchRef}
                 aria-hidden
                 className="color-picker__swatch"
-                style={{ backgroundColor: previewColor ?? value }}
+                style={{ backgroundColor: previewColor ?? controlled }}
               />
             </Button>
           )

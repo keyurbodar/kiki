@@ -6,16 +6,40 @@ import {
   REQUIRED_COLOR_KEYS,
 } from "./palette";
 
+/** True for a colour the browser can parse — "" and "Derived" are not colours. */
+export const isColor = (color: string): boolean =>
+  color.trim() !== "" &&
+  (typeof CSS === "undefined" || typeof CSS.supports !== "function"
+    ? true
+    : CSS.supports("color", color.trim()));
+
 let canvas: CanvasRenderingContext2D | null | undefined;
 
-/** Normalises any CSS colour the browser understands to #rrggbb. */
+/**
+ * Normalises any CSS colour the browser understands to #rrggbb. Painting one
+ * pixel and reading it back is the only way that also covers the colour spaces
+ * `fillStyle` keeps verbatim — Capy's default theme is written in the oklch
+ * colour space, and a string round-trip hands that syntax back, not a hex.
+ */
 export const toHex = (color: string): string | undefined => {
-  canvas ??= document.createElement("canvas").getContext("2d");
+  canvas ??= document.createElement("canvas").getContext("2d", {
+    willReadFrequently: true,
+  });
   if (!canvas) return undefined;
-  canvas.fillStyle = "black";
-  canvas.fillStyle = color;
-  const value = String(canvas.fillStyle);
-  return /^#[0-9a-f]{6}$/i.test(value) ? value.toLowerCase() : undefined;
+  if (!isColor(color)) return undefined;
+  canvas.clearRect(0, 0, 1, 1);
+  canvas.fillStyle = color.trim();
+  canvas.fillRect(0, 0, 1, 1);
+  const [red = 0, green = 0, blue = 0, alpha = 0] = canvas.getImageData(
+    0,
+    0,
+    1,
+    1,
+  ).data;
+  if (alpha === 0) return undefined;
+  const byte = (value: number) =>
+    value.toString(16).padStart(2, "0").toLowerCase();
+  return `#${byte(red)}${byte(green)}${byte(blue)}`;
 };
 
 /**

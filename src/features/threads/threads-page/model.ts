@@ -1,9 +1,11 @@
+import { createElement, Fragment } from "react";
 import type { FilterChipModel } from "@/components/view-toolbar";
 import {
   type DateRange,
   filterOperatorLabel,
   matchesDateRange,
 } from "@/components/view-toolbar";
+import { MenuItem } from "@/primitives/menu";
 
 /** A thread as the list draws it; mapped from the jams list ThreadCard. */
 export type ThreadListItem = {
@@ -572,6 +574,32 @@ export const threadFilterChips = (
       onRemove: () =>
         onChange(clearAxis({ ...filters, automations: [] }, "origins")),
     });
+  const participantsSelector = (current: string) => ({
+    ariaLabel: "Change Participants filter value, currently " + current,
+    content: createElement(
+      Fragment,
+      null,
+      createElement(
+        MenuItem,
+        {
+          closeOnClick: false,
+          onClick: () =>
+            onChange(
+              clearAxis({ ...filters, participants: [] }, "participants"),
+            ),
+        },
+        "Everyone",
+      ),
+      createElement(
+        MenuItem,
+        {
+          closeOnClick: false,
+          onClick: () => onChange({ ...filters, participants: null }),
+        },
+        "Me",
+      ),
+    ),
+  });
   if (filters.participants === null) {
     if (!automationsVisible(filters))
       chips.push({
@@ -580,6 +608,7 @@ export const threadFilterChips = (
         property: "Participants",
         operator: binary("participants", "one"),
         value: "Me",
+        selector: participantsSelector("Me"),
         onRemove: () =>
           onChange(clearAxis({ ...filters, participants: [] }, "participants")),
       });
@@ -593,6 +622,9 @@ export const threadFilterChips = (
         filters.participants.length === 1 ? "one" : "many",
       ),
       value: listLabel(filters.participants.map(names.member), "members"),
+      selector: participantsSelector(
+        listLabel(filters.participants.map(names.member), "members"),
+      ),
       onRemove: () =>
         onChange(clearAxis({ ...filters, participants: [] }, "participants")),
     });
