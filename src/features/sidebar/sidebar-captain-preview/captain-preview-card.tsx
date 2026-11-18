@@ -6,6 +6,8 @@ import {
   groupModels,
   parseEntries,
 } from "@/components/model-picker/catalog";
+import { PersonAvatar } from "@/components/share-dialog/person-avatar";
+import { displayName, usePeople } from "@/components/share-dialog/share-data";
 import type { SidebarCaptain } from "@/components/sidebar-threads";
 import { previewOrigin, ThreadPreview } from "@/components/thread-preview";
 import type { CaptainCard } from "@/data/api/schemas/captain";
@@ -59,6 +61,7 @@ export function CaptainPreviewCard({
     [catalog],
   );
   const crew = useCaptainCrew(orgId, card.id);
+  const owner = usePeople(orgId).memberOf(card.userId);
   const model = useMemo(() => {
     if (card.lastModelId === null) return undefined;
     const group = findGroup(groupModels(entries), card.lastModelId);
@@ -67,6 +70,13 @@ export function CaptainPreviewCard({
   return (
     <ThreadPreview
       thread={card}
+      principal={
+        <PersonAvatar
+          src={owner?.imageUrl}
+          name={owner === undefined ? undefined : displayName(owner)}
+          size="xs"
+        />
+      }
       description={captain.preview}
       originIcon={originIconFor(card.origin)}
       model={model}

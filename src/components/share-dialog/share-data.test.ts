@@ -117,4 +117,18 @@ describe("readOrgMembers", () => {
       },
     ]);
   });
+
+  it("reads the face the directory names imageUrl and nothing else", () => {
+    const [member] = readOrgMembers([
+      { id: "u_sam", imageUrl: "/avatars/capy-avatar-3.png" },
+    ]);
+    expect(member?.imageUrl).toBe("/avatars/capy-avatar-3.png");
+  });
+
+  it("reports drift instead of inventing a face from another field name", () => {
+    const [member] = readOrgMembers([
+      { id: "u_sam", avatarUrl: "/avatars/capy-avatar-3.png" },
+    ]);
+    expect(member?.imageUrl).toBeNull();
+  });
 });

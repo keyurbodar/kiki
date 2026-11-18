@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { cn } from "@/lib/cn";
+import { Icon } from "@/primitives/icon";
 
 const sizes = {
   xs: "size-4 text-[length:--spacing(2)]",
@@ -9,7 +10,8 @@ const sizes = {
 
 export type PersonAvatarProps = {
   src?: string | null;
-  name: string;
+  /** Omitted when nobody in the directory answers to the id being painted. */
+  name?: string;
   size?: keyof typeof sizes;
   className?: string;
 };
@@ -30,6 +32,7 @@ export function PersonAvatar({
   className,
 }: PersonAvatarProps) {
   const [failed, setFailed] = useState(false);
+  const initials = name === undefined ? "" : initialsOf(name);
   if (src != null && src !== "" && !failed)
     return (
       <span
@@ -47,6 +50,20 @@ export function PersonAvatar({
         />
       </span>
     );
+  if (initials === "")
+    return (
+      <span
+        role="img"
+        aria-label="Unknown person"
+        className={cn(
+          "flex shrink-0 items-center justify-center rounded bg-muted text-muted-foreground-2",
+          sizes[size],
+          className,
+        )}
+      >
+        <Icon name="user" size={null} className="size-2.5" />
+      </span>
+    );
   return (
     <span
       role="img"
@@ -57,7 +74,7 @@ export function PersonAvatar({
         className,
       )}
     >
-      {initialsOf(name)}
+      {initials}
     </span>
   );
 }

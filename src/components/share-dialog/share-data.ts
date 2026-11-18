@@ -297,10 +297,12 @@ export function useViewer() {
 
 const noMembers: ReadonlyArray<OrgMember> = [];
 
-export function usePeople() {
-  const orgId = useActiveOrg()?.id;
+/** The org whose member directory to read; defaults to the active org. */
+export function usePeople(orgId?: string) {
+  const activeOrgId = useActiveOrg()?.id;
+  const resolved = orgId ?? activeOrgId;
   const raw = useQueryValue(
-    orgId === undefined ? undefined : orgMembersAtom(orgId),
+    resolved === undefined ? undefined : orgMembersAtom(resolved),
   );
   return useMemo(() => {
     const members = raw === undefined ? noMembers : readOrgMembers(raw);
@@ -308,6 +310,7 @@ export function usePeople() {
       members.find((member) => member.userId === userId);
     return {
       members,
+      memberOf: find,
       nameOf: (userId: string) => {
         const member = find(userId);
         return member === undefined ? userId : (displayName(member) ?? userId);
