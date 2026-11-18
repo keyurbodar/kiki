@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { CaptainCard, CaptainListScope } from "../schemas/captain.ts";
 import { Forbidden } from "../schemas/errors.ts";
 import { OrgId } from "../schemas/ids.ts";
@@ -40,15 +40,18 @@ export class CaptainsGroup extends HttpApiGroup.make("captains").add(
     success: Undecoded,
   }),
   HttpApiEndpoint.get("get", "/orgs/:orgId/captains/:jamId", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, jamId: Schema.String },
     success: Undecoded,
   }),
   HttpApiEndpoint.patch("update", "/orgs/:orgId/captains/:jamId", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, jamId: Schema.String },
     payload: Undecoded,
     success: Undecoded,
   }),
   HttpApiEndpoint.delete("delete", "/orgs/:orgId/captains/:jamId", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, jamId: Schema.String },
     success: Undecoded,
   }),
@@ -56,16 +59,19 @@ export class CaptainsGroup extends HttpApiGroup.make("captains").add(
     "setCaptainAccess",
     "/orgs/:orgId/captains/:jamId/access",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, jamId: Schema.String },
       payload: Undecoded,
       success: Undecoded,
     },
   ),
   HttpApiEndpoint.get("crew", "/orgs/:orgId/captains/:jamId/crew", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, jamId: Schema.String },
     success: Undecoded,
   }),
   HttpApiEndpoint.post("joinCrew", "/orgs/:orgId/captains/:jamId/crew", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, jamId: Schema.String },
     payload: Undecoded,
     success: Undecoded,
@@ -74,6 +80,7 @@ export class CaptainsGroup extends HttpApiGroup.make("captains").add(
     "leaveCrew",
     "/orgs/:orgId/captains/:jamId/crew/:threadId",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
@@ -86,6 +93,7 @@ export class CaptainsGroup extends HttpApiGroup.make("captains").add(
     "moveCrew",
     "/orgs/:orgId/captains/:jamId/crew/:threadId/move",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
@@ -96,6 +104,7 @@ export class CaptainsGroup extends HttpApiGroup.make("captains").add(
     },
   ),
   HttpApiEndpoint.post("demote", "/orgs/:orgId/captains/:jamId/demote", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, jamId: Schema.String },
     success: Undecoded,
   }),
@@ -103,12 +112,14 @@ export class CaptainsGroup extends HttpApiGroup.make("captains").add(
     "setCaptainHidden",
     "/orgs/:orgId/captains/:jamId/hidden",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, jamId: Schema.String },
       payload: Undecoded,
       success: Undecoded,
     },
   ),
   HttpApiEndpoint.post("leaveCaptain", "/orgs/:orgId/captains/:jamId/leave", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, jamId: Schema.String },
     success: Undecoded,
   }),
@@ -116,6 +127,7 @@ export class CaptainsGroup extends HttpApiGroup.make("captains").add(
     "addCaptainMembers",
     "/orgs/:orgId/captains/:jamId/members",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, jamId: Schema.String },
       payload: Undecoded,
       success: Undecoded,
@@ -125,12 +137,14 @@ export class CaptainsGroup extends HttpApiGroup.make("captains").add(
     "removeCaptainMembers",
     "/orgs/:orgId/captains/:jamId/members",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, jamId: Schema.String },
       query: UndecodedQuery,
       success: Undecoded,
     },
   ),
   HttpApiEndpoint.put("setCaptainOwner", "/orgs/:orgId/captains/:jamId/owner", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, jamId: Schema.String },
     payload: Undecoded,
     success: Undecoded,

@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class MachinesGroup extends HttpApiGroup.make("machines").add(
@@ -7,6 +7,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     "previewHandoff",
     "/machines/:machineId/ports/:port/handoff",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { machineId: Schema.String, port: Schema.String },
       success: Undecoded,
     },
@@ -19,6 +20,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     "connect",
     "/orgs/:orgId/jams/:jamId/machines/:machineId/connect",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
@@ -32,6 +34,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     "extend",
     "/orgs/:orgId/jams/:jamId/machines/:machineId/extend",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
@@ -45,6 +48,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     "metrics",
     "/orgs/:orgId/jams/:jamId/machines/:machineId/metrics",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
@@ -57,6 +61,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     "removePhone",
     "/orgs/:orgId/jams/:jamId/machines/:machineId/phone",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
@@ -69,6 +74,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     "pressPhone",
     "/orgs/:orgId/jams/:jamId/machines/:machineId/phone/press",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
@@ -82,6 +88,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     "sleepPhone",
     "/orgs/:orgId/jams/:jamId/machines/:machineId/phone/sleep",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
@@ -94,6 +101,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     "phoneStream",
     "/orgs/:orgId/jams/:jamId/machines/:machineId/phone/stream",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
@@ -106,6 +114,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     "ports",
     "/orgs/:orgId/jams/:jamId/machines/:machineId/ports",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
@@ -118,6 +127,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     "openPort",
     "/orgs/:orgId/jams/:jamId/machines/:machineId/ports/:port/open",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
@@ -132,6 +142,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     "reserve",
     "/orgs/:orgId/jams/:jamId/machines/:machineId/reserve",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
@@ -144,6 +155,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     "release",
     "/orgs/:orgId/jams/:jamId/machines/:machineId/reserve",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
@@ -156,6 +168,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     "removeServicePreview",
     "/orgs/:orgId/jams/:jamId/machines/:machineId/service-previews/:port",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
@@ -169,6 +182,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     "sessions",
     "/orgs/:orgId/jams/:jamId/machines/:machineId/sessions",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
@@ -181,6 +195,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     "launchSetupEntry",
     "/orgs/:orgId/jams/:jamId/machines/:machineId/setup-entries/launch",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
@@ -194,6 +209,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     "rerunSetup",
     "/orgs/:orgId/jams/:jamId/machines/:machineId/setup/rerun",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
@@ -206,6 +222,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     "wake",
     "/orgs/:orgId/jams/:jamId/machines/:machineId/wake",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
@@ -215,6 +232,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     },
   ),
   HttpApiEndpoint.post("attachPhone", "/orgs/:orgId/jams/:jamId/phones", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, jamId: Schema.String },
     payload: Undecoded,
     success: Undecoded,

@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { InferredMethod } from "../annotations.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
@@ -15,10 +15,12 @@ export class AutomationsGroup extends HttpApiGroup.make("automations").add(
     success: Undecoded,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.get("get", "/orgs/:orgId/automations/:automationId", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, automationId: Schema.String },
     success: Undecoded,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.patch("update", "/orgs/:orgId/automations/:automationId", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, automationId: Schema.String },
     payload: Undecoded,
     success: Undecoded,
@@ -27,6 +29,7 @@ export class AutomationsGroup extends HttpApiGroup.make("automations").add(
     "listBatches",
     "/orgs/:orgId/automations/:automationId/batches",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, automationId: Schema.String },
       query: UndecodedQuery,
       success: Undecoded,
@@ -36,6 +39,7 @@ export class AutomationsGroup extends HttpApiGroup.make("automations").add(
     "cancelBatch",
     "/orgs/:orgId/automations/:automationId/batches/:batchId/cancel",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         automationId: Schema.String,
@@ -48,6 +52,7 @@ export class AutomationsGroup extends HttpApiGroup.make("automations").add(
     "flushBatch",
     "/orgs/:orgId/automations/:automationId/batches/:batchId/flush",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         automationId: Schema.String,
@@ -60,6 +65,7 @@ export class AutomationsGroup extends HttpApiGroup.make("automations").add(
     "delete",
     "/orgs/:orgId/automations/:automationId/delete",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, automationId: Schema.String },
       success: Undecoded,
     },
@@ -68,6 +74,7 @@ export class AutomationsGroup extends HttpApiGroup.make("automations").add(
     "disable",
     "/orgs/:orgId/automations/:automationId/disable",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, automationId: Schema.String },
       success: Undecoded,
     },
@@ -76,6 +83,7 @@ export class AutomationsGroup extends HttpApiGroup.make("automations").add(
     "enable",
     "/orgs/:orgId/automations/:automationId/enable",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, automationId: Schema.String },
       success: Undecoded,
     },
@@ -84,6 +92,7 @@ export class AutomationsGroup extends HttpApiGroup.make("automations").add(
     "restore",
     "/orgs/:orgId/automations/:automationId/restore",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, automationId: Schema.String },
       success: Undecoded,
     },
@@ -92,6 +101,7 @@ export class AutomationsGroup extends HttpApiGroup.make("automations").add(
     "cancel",
     "/orgs/:orgId/automations/:automationId/runs/:runId/cancel",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         automationId: Schema.String,
@@ -104,12 +114,14 @@ export class AutomationsGroup extends HttpApiGroup.make("automations").add(
     "trigger",
     "/orgs/:orgId/automations/:automationId/trigger",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, automationId: Schema.String },
       payload: Undecoded,
       success: Undecoded,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.get("usage", "/orgs/:orgId/automations/:automationId/usage", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, automationId: Schema.String },
     query: UndecodedQuery,
     success: Undecoded,
@@ -118,6 +130,7 @@ export class AutomationsGroup extends HttpApiGroup.make("automations").add(
     "rotateWebhook",
     "/orgs/:orgId/automations/:automationId/webhook/rotate",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, automationId: Schema.String },
       success: Undecoded,
     },
