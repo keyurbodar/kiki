@@ -127,3 +127,12 @@ describe("toolLabel failures and execution", () => {
     expect(toolLabel(row)).toBe("Couldn't run the checkout suite");
   });
 });
+
+describe("end_turn", () => {
+  it("names the step that closes a turn, as Capy does", () => {
+    expect(toolLabel(tool({ toolName: "end_turn" }))).toBe("Ended the turn");
+    expect(toolLabel(tool({ toolName: "end_turn", phase: "running" }))).toBe(
+      "Ending the turn",
+    );
+  });
+});

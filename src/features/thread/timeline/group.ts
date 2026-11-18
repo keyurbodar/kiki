@@ -832,11 +832,11 @@ export const groupRows = (
         if (parked?.park !== true) closeTurn();
         queue(row);
       } else if (row.type === "update") {
-        // Capy keeps an update inside the work group that was running when it
+        // Capy keeps a notice inside the work group that was running when it
         // landed, so the group's line can summarise it and its row sits in the
-        // panel in place. A group that has no work line yet leaves it standing
-        // on its own, as before.
-        if (pending.some(isWorkLine)) {
+        // panel in place. A group with no work line yet, and any update that
+        // asks something of the person, still stands on its own.
+        if (row.kind === "notice" && pending.some(isWorkLine)) {
           queue(row);
           continue;
         }

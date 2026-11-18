@@ -171,6 +171,8 @@ export function toolLabel(row: ToolRow) {
   const phase = row.phase === "forming" ? "running" : row.phase;
   if (row.toolName === "execute")
     return byPhase(phase, "Running a script", "Ran a script");
+  if (row.toolName === "end_turn")
+    return byPhase(phase, "Ending the turn", "Ended the turn");
   const command = commandOf(row);
   const description = toolDescription(field(row.args, "description"), command);
   const exitCode = exitCodeOf(row);

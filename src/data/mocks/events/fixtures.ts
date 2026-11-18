@@ -323,6 +323,29 @@ const captureVoice = (jamId: string, said: CaptureStep) => {
         blocks: [{ type: "text", text }],
         data,
       }),
+    /** The call Capy's agent makes to close a turn. */
+    endTurn: (toolCallId: string) => [
+      turn(
+        [
+          {
+            id: blockId("call"),
+            type: "tool_use",
+            toolCallId,
+            toolName: "end_turn",
+            args: {},
+          },
+        ],
+        "end_turn",
+      ),
+      said("tool_result", {
+        actor: agent(jamId),
+        origin: sys,
+        toolCallId,
+        isError: false,
+        blocks: [],
+        data: {},
+      }),
+    ],
     failure: (code: string, message: string, retryable = true) =>
       said("error", {
         actor: systemActor,
@@ -403,6 +426,7 @@ const captureHistory: ReadonlyArray<EventRowEncoded> = [
     "Read scripts/release/lib/retry.sh.",
     { path: "scripts/release/lib/retry.sh", lines: 26 },
   ),
+  ...capturePipeline.endTurn("toolu_capture_end_reads"),
   capturePipeline.call(
     "toolu_capture_grep",
     "bash",
@@ -539,6 +563,7 @@ const captureHistory: ReadonlyArray<EventRowEncoded> = [
     "Three files changed on fix/shard-retry.",
     { files: 3, branch: "fix/shard-retry" },
   ),
+  ...capturePipeline.endTurn("toolu_capture_end_work"),
   ...capturePipeline.deliver(
     "toolu_capture_say_summary",
     [
