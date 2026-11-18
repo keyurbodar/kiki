@@ -1,10 +1,13 @@
+import { useAtomValue } from "@effect/atom-react";
 import { LegendList } from "@legendapp/list/react";
 import { Link } from "@tanstack/react-router";
+import { AsyncResult } from "effect/reactivity";
 import { type DragEvent, type ReactNode, useEffect, useState } from "react";
 import type { ChipThread } from "@/components/markdown-chips";
 import { ThreadChipPreview } from "@/components/markdown-chips/previews";
 import { ProviderIcon, providerOfModelId } from "@/components/model-picker";
 import { ProjectChip } from "@/components/sidebar-threads";
+import { threadTagsAtom } from "@/data/atoms/threadOrganization";
 import { Badge } from "@/primitives/badge";
 import {
   ContextMenu,
@@ -12,7 +15,15 @@ import {
   ContextMenuTrigger,
 } from "@/primitives/context-menu";
 import { Icon } from "@/primitives/icon";
-import { MenuItem, MenuSeparator } from "@/primitives/menu";
+import {
+  MenuItem,
+  MenuLabel,
+  MenuSearchRow,
+  MenuSeparator,
+  MenuSub,
+  MenuSubContent,
+  MenuSubTrigger,
+} from "@/primitives/menu";
 import {
   PreviewCard,
   PreviewCardContent,
@@ -99,7 +110,24 @@ export type ThreadRowProps = {
   onArchive?: (id: string, archived: boolean) => void;
   onRename?: (id: string, title: string) => void;
   onPin?: (id: string, pinned: boolean) => void;
+  menu?: ThreadRowMenuSources;
   icons?: ThreadsListIcons;
+};
+
+/**
+ * The row menu's folder and tag sources. A caller that cannot offer them
+ * (a test, or a surface with no folders) passes nothing and the rows stay out.
+ */
+export type ThreadRowMenuSources = {
+  readonly orgId: string;
+  readonly folders: ReadonlyArray<{
+    readonly id: string;
+    readonly name: string;
+  }>;
+  readonly moveTo: (id: string, folderId: string) => void;
+  readonly tags: ReadonlyArray<{ readonly id: string; readonly name: string }>;
+  readonly toggleTag: (id: string, tagId: string, tagged: boolean) => void;
+  readonly createTag: (id: string, name: string) => void;
 };
 
 export type ThreadsListIcons = {
@@ -124,6 +152,7 @@ export function ThreadRow({
   onArchive,
   onRename,
   onPin,
+  menu,
   icons,
 }: ThreadRowProps) {
   const title = thread.title ?? "Untitled thread";
@@ -322,6 +351,12 @@ export function ThreadRow({
                 {thread.pinned ? "Unpin" : "Pin"}
               </MenuItem>
             )}
+            {menu === undefined ? null : (
+              <MoveToRow threadId={thread.id} sources={menu} />
+            )}
+            {menu === undefined || menu.tags.length === 0 ? null : (
+              <TagsRow threadId={thread.id} sources={menu} />
+            )}
             <MenuItem onClick={() => onArchive?.(thread.id, !thread.archived)}>
               {thread.archived ? "Unarchive" : "Archive"}
             </MenuItem>
@@ -376,6 +411,7 @@ export type ThreadsListProps = {
   onArchive?: (id: string) => void;
   onRename?: (id: string, title: string) => void;
   onPin?: (id: string, pinned: boolean) => void;
+  menu?: ThreadRowMenuSources;
   footer?: ReactNode;
   icons?: ThreadsListIcons;
 };
@@ -408,6 +444,89 @@ export const threadsListItems = (
 
 const pinIconClassName = "kiki-icon text-icon-muted";
 
+function MoveToRow({
+  threadId,
+  sources,
+}: {
+  readonly threadId: string;
+  readonly sources: ThreadRowMenuSources;
+}) {
+  return (
+    <MenuSub>
+      <MenuSubTrigger>Move to</MenuSubTrigger>
+      <MenuSubContent>
+        {sources.folders.length === 0 ? (
+          <MenuLabel>No folders yet</MenuLabel>
+        ) : (
+          sources.folders.map((folder) => (
+            <MenuItem
+              key={folder.id}
+              onClick={() => sources.moveTo(threadId, folder.id)}
+            >
+              {folder.name}
+            </MenuItem>
+          ))
+        )}
+      </MenuSubContent>
+    </MenuSub>
+  );
+}
+
+/** Capy's Tags row: every tag, checked on the thread's own assignment, plus a create row. */
+function TagsRow({
+  threadId,
+  sources,
+}: {
+  readonly threadId: string;
+  readonly sources: ThreadRowMenuSources;
+}) {
+  const assigned = useAtomValue(threadTagsAtom(`${sources.orgId}/${threadId}`));
+  const [draft, setDraft] = useState("");
+  const on = new Set(
+    AsyncResult.isSuccess(assigned)
+      ? (assigned.value as ReadonlyArray<{ id?: string }>).map((tag) => tag.id)
+      : [],
+  );
+  return (
+    <MenuSub>
+      <MenuSubTrigger>Tags</MenuSubTrigger>
+      <MenuSubContent>
+        {sources.tags.map((tag) => {
+          const tagged = on.has(tag.id);
+          return (
+            <MenuItem
+              key={tag.id}
+              onClick={() => sources.toggleTag(threadId, tag.id, !tagged)}
+            >
+              <span className={pinIconClassName}>
+                <Icon name={tagged ? "checkmark-1" : "tag"} size="sm" />
+              </span>
+              {tag.name}
+            </MenuItem>
+          );
+        })}
+        <MenuSeparator />
+        <MenuSearchRow>
+          <input
+            aria-label="New tag"
+            placeholder="New tag"
+            className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground-2"
+            value={draft}
+            onChange={(event) => setDraft(event.currentTarget.value)}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter") return;
+              const name = draft.trim();
+              if (name === "") return;
+              sources.createTag(threadId, name);
+              setDraft("");
+            }}
+          />
+        </MenuSearchRow>
+      </MenuSubContent>
+    </MenuSub>
+  );
+}
+
 const sectionHeadClassName =
   "group/collapsible flex h-9 w-full cursor-pointer items-center gap-2 rounded-(--radius-card) bg-section px-2 text-left text-sm font-medium text-foreground transition-colors duration-100 outline-none focus-visible:outline-ring-inset";
 
@@ -427,6 +546,7 @@ export function ThreadsList({
   onArchive,
   onRename,
   onPin,
+  menu,
   footer,
   icons,
 }: ThreadsListProps) {
@@ -553,6 +673,7 @@ export function ThreadsList({
             onArchive={onArchive}
             onRename={onRename}
             onPin={onPin}
+            menu={menu}
             icons={icons}
           />
         </div>

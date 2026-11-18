@@ -1,4 +1,5 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
+import { AsyncResult } from "effect/reactivity";
 import type { ReactNode } from "react";
 import type { SidebarThread } from "@/components/sidebar-threads";
 import type { JamId, ThreadTagId } from "@/data/api/schemas/ids";
@@ -68,10 +69,12 @@ function TagRows({ threadId }: { threadId: string }) {
   const assigned = useAtomValue(threadTagsAtom(`${orgId ?? ""}/${threadId}`));
   const assign = useAtomSet(assignTagAtom, { mode: "promise" });
   const unassign = useAtomSet(unassignTagAtom, { mode: "promise" });
-  const list = Array.isArray(tags) ? (tags as ReadonlyArray<TagRow>) : [];
+  const list = AsyncResult.isSuccess(tags)
+    ? (tags.value as ReadonlyArray<TagRow>)
+    : [];
   const on = new Set(
-    Array.isArray(assigned)
-      ? (assigned as ReadonlyArray<{ id?: string }>).map((tag) => tag.id)
+    AsyncResult.isSuccess(assigned)
+      ? (assigned.value as ReadonlyArray<{ id?: string }>).map((tag) => tag.id)
       : [],
   );
   if (list.length === 0)

@@ -77,6 +77,11 @@ export const removeFromFolderAtom = ApiClient.mutation(
   "removeFromFolder",
 );
 
+export const createTagAtom = ApiClient.mutation(
+  "threadOrganization",
+  "createTag",
+);
+
 export const assignTagAtom = ApiClient.mutation(
   "threadOrganization",
   "assignTag",
