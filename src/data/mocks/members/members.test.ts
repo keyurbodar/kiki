@@ -50,13 +50,17 @@ describe("members mock", () => {
       assert.isTrue(
         rows.some((row) => row.id === people.alex.id && row.role === "owner"),
       );
-      const faces = rows.flatMap((row) => (row.imageUrl === null ? [] : [row.imageUrl]));
+      const faces = rows.flatMap((row) =>
+        row.imageUrl === null ? [] : [row.imageUrl],
+      );
       assert.isTrue(
         faces.every((face) => face.startsWith("/")),
         "every face the directory reports is a src the page can paint",
       );
       assert.strictEqual(
-        rows.find((row) => row.id === people.alex.id)?.imageUrl?.startsWith("/"),
+        rows
+          .find((row) => row.id === people.alex.id)
+          ?.imageUrl?.startsWith("/"),
         true,
         "the viewer has a face",
       );
