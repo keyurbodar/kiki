@@ -68,3 +68,62 @@ describe("toolLabel", () => {
     expect(shortenCommand(`FOO=1 ${"x".repeat(60)}`)).toHaveLength(40);
   });
 });
+
+describe("toolLabel failures and execution", () => {
+  const settled = (exitCode: number | undefined, isError = true) => ({
+    blocks: [],
+    isError,
+    settledAt: new Date(1000),
+    data: exitCode === undefined ? {} : { exit_code: exitCode },
+  });
+
+  it("reads a non-zero exit as what it was doing, then failed (exit N)", () => {
+    const row = tool({
+      phase: "failed",
+      args: {
+        command: "bun run test:checkout",
+        description: "Running the checkout suite",
+      },
+      result: settled(2),
+    });
+    expect(toolLabel(row)).toBe("Run the checkout suite failed (exit 2)");
+  });
+
+  it("names the call when a failed command carried no description", () => {
+    const row = tool({
+      phase: "failed",
+      args: { command: "bun run test:checkout" },
+      result: settled(2),
+    });
+    expect(toolLabel(row)).toBe("Command failed (exit 2)");
+  });
+
+  it("keeps the Couldn't form when a failed call reported no exit code", () => {
+    const row = tool({
+      phase: "failed",
+      args: { description: "Running the checkout suite" },
+      result: settled(undefined),
+    });
+    expect(toolLabel(row)).toBe("Couldn't run the checkout suite");
+  });
+
+  it("marks a detached or background call the way Capy does", () => {
+    const detached = tool({
+      args: { command: "bun run dev", execution: "detached" },
+    });
+    expect(toolLabel(detached)).toBe("bun run dev (detached)");
+    const background = tool({
+      args: { command: "bun run build", execution: "background" },
+    });
+    expect(toolLabel(background)).toBe("bun run build (background)");
+  });
+
+  it("leaves a zero exit alone", () => {
+    const row = tool({
+      phase: "failed",
+      args: { description: "Running the checkout suite" },
+      result: settled(0),
+    });
+    expect(toolLabel(row)).toBe("Couldn't run the checkout suite");
+  });
+});

@@ -143,6 +143,8 @@ const sampleUsage = {
 };
 
 const retryCallId = "toolu_sample_retry";
+const failCallId = "toolu_sample_fail";
+const detachedCallId = "toolu_sample_detached";
 
 const at = {
   prompt: isoMinutesAgo(90),
@@ -159,6 +161,8 @@ const at = {
   platformAsk: isoMinutesAgo(23),
   platformTurn: isoMinutesAgo(20),
   automation: isoMinutesAgo(1),
+  toolFail: isoMinutesAgo(2),
+  toolDetached: isoMinutesAgo(2),
 };
 
 /** The ids the outline and the message versions below point at. */
@@ -1094,6 +1098,65 @@ export const seedEvents: ReadonlyArray<EventRowEncoded> = [
     ],
   }),
   ...captureHistory,
+  row(checkoutJam, at.toolFail, 32, "assistant", {
+    actor: agent(checkoutJam),
+    origin: sys,
+    model: sampleModel,
+    route: { source: "capy" },
+    usage: sampleUsage,
+    stopReason: "tool_use",
+    blocks: [
+      {
+        id: "blk_sample_fail_call",
+        type: "tool_use",
+        toolCallId: failCallId,
+        toolName: "bash",
+        args: {
+          command: "bun run test:checkout",
+          description: "Running the checkout suite",
+        },
+      },
+    ],
+  }),
+  row(checkoutJam, at.toolFail, 33, "tool_result", {
+    actor: agent(checkoutJam),
+    origin: sys,
+    toolCallId: failCallId,
+    isError: true,
+    blocks: [
+      { type: "text", text: "2 tests failed in src/checkout/retry.test.ts" },
+    ],
+    data: { exit_code: 2, duration_ms: 4_800, timed_out: false },
+  }),
+  row(checkoutJam, at.toolDetached, 34, "assistant", {
+    actor: agent(checkoutJam),
+    origin: sys,
+    model: sampleModel,
+    route: { source: "capy" },
+    usage: sampleUsage,
+    stopReason: "tool_use",
+    blocks: [
+      {
+        id: "blk_sample_detached_call",
+        type: "tool_use",
+        toolCallId: detachedCallId,
+        toolName: "bash",
+        args: {
+          command: "bun run dev",
+          description: "Serving the app",
+          execution: "detached",
+        },
+      },
+    ],
+  }),
+  row(checkoutJam, at.toolDetached, 35, "tool_result", {
+    actor: agent(checkoutJam),
+    origin: sys,
+    toolCallId: detachedCallId,
+    isError: false,
+    blocks: [{ type: "text", text: "vite v8.3.8 ready in 412 ms" }],
+    data: { operation_id: "op_sample_dev", execution: "detached" },
+  }),
   row(
     checkoutJam,
     at.automation,

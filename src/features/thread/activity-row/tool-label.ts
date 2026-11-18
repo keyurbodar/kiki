@@ -96,12 +96,13 @@ export const ASK_LABELS = {
   declined: "Declined",
 } as const;
 
-export function inflect(text: string, phase: Phase) {
+export function inflect(text: string, phase: Phase, bare = false) {
   const [first = "", ...rest] = text.split(" ");
   const verb = VERBS.get(first);
   if (verb === undefined) return text;
-  const head =
-    phase === "failed"
+  const head = bare
+    ? verb.bare
+    : phase === "failed"
       ? `Couldn't ${verb.bare.toLowerCase()}`
       : phase === "done"
         ? verb.past
@@ -150,13 +151,39 @@ export function commandOf(row: ToolRow) {
   return field(row.args, "command") ?? field(row.call?.input, "command");
 }
 
+const numberField = (value: unknown, key: string) => {
+  if (typeof value !== "object" || value === null) return undefined;
+  const found = (value as Record<string, unknown>)[key];
+  return typeof found === "number" && Number.isFinite(found)
+    ? found
+    : undefined;
+};
+
+/** The exit code a shell call settled with, when it reported one. */
+export function exitCodeOf(row: ToolRow) {
+  return numberField(row.result?.data, "exit_code");
+}
+
+const executionOf = (row: ToolRow) =>
+  field(row.args, "execution") ?? field(row.call?.input, "execution");
+
 export function toolLabel(row: ToolRow) {
   const phase = row.phase === "forming" ? "running" : row.phase;
   if (row.toolName === "execute")
     return byPhase(phase, "Running a script", "Ran a script");
   const command = commandOf(row);
   const description = toolDescription(field(row.args, "description"), command);
-  if (description !== undefined) return inflect(description, phase);
-  if (command !== undefined) return shortenCommand(command);
-  return row.toolName;
+  const exitCode = exitCodeOf(row);
+  const failed = phase === "failed" && exitCode !== undefined && exitCode !== 0;
+  const label = failed
+    ? `${description === undefined ? "Command" : inflect(description, phase, true)} failed (exit ${exitCode})`
+    : description !== undefined
+      ? inflect(description, phase)
+      : command !== undefined
+        ? shortenCommand(command)
+        : row.toolName;
+  const execution = executionOf(row);
+  return execution === "detached" || execution === "background"
+    ? `${label} (${execution})`
+    : label;
 }
