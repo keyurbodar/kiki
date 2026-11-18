@@ -137,6 +137,7 @@ export function mapCaptain(card: CaptainCard, position: number): SourceCaptain {
     preview: card.preview,
     hasUnreads: card.hasUnreads,
     crewMentionCount: card.crewMentionCount,
+    card,
     position,
     createdAt: toDate(card.createdAt),
     updatedAt: toDate(card.updatedAt),
