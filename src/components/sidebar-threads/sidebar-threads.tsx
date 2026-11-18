@@ -7,6 +7,10 @@ import {
   ThreadStatusIcon,
   threadStatusState,
 } from "@/components/thread-status";
+import {
+  CaptainAvatar as CaptainAvatarTile,
+  DEFAULT_CAPTAIN_AVATAR,
+} from "@/primitives/captain-avatar";
 import { ScrollArea } from "@/primitives/scroll-area";
 import { Glyph } from "./glyphs";
 import { type SidebarRowActions, SidebarRowPopups } from "./sidebar-row-popups";
@@ -156,30 +160,15 @@ export function CaptainAvatar({
   captain,
   compact,
 }: {
-  captain: Pick<SidebarCaptain, "name" | "avatarUrl">;
+  captain: Pick<SidebarCaptain, "name" | "avatar">;
   compact: boolean;
 }) {
   return (
-    <span
-      role="img"
-      aria-label={captain.name}
-      className={cx(
-        "flex shrink-0 items-center justify-center overflow-hidden leading-none",
-        compact
-          ? "size-5 rounded-(--radius-inner) text-xs"
-          : "size-8 rounded-(--radius-sm) text-sm",
-        captain.avatarUrl === null && "bg-(--primary)",
-      )}
-    >
-      {captain.avatarUrl === null ? null : (
-        <img
-          src={captain.avatarUrl}
-          alt=""
-          draggable={false}
-          className="size-full object-cover select-none"
-        />
-      )}
-    </span>
+    <CaptainAvatarTile
+      avatar={captain.avatar}
+      name={captain.name}
+      size={compact ? "compact" : "base"}
+    />
   );
 }
 
@@ -208,7 +197,7 @@ export function NewCaptainRow({
         )}
       >
         <CaptainAvatar
-          captain={{ name: "New Captain", avatarUrl: null }}
+          captain={{ name: "New Captain", avatar: DEFAULT_CAPTAIN_AVATAR }}
           compact={compact}
         />
       </span>
