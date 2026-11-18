@@ -27,7 +27,6 @@ describe("DotGridIcon", () => {
   it("renders Capy's 3x3 dot grid with the status role and label", () => {
     render(<DotGridIcon label="Cloning" />);
     const svg = screen.getByRole("status", { name: "Cloning" });
-    expect(svg.dataset.slot).toBe("dot-grid-icon");
     expect(svg.dataset.state).toBe("working");
     expect(svg.querySelectorAll("[data-dot]")).toHaveLength(9);
     expect(svg.querySelectorAll("[data-ring]")).toHaveLength(8);

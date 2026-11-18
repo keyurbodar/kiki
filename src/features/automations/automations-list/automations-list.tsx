@@ -1,5 +1,11 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { type MouseEvent, memo, type ReactNode, useRef, useState } from "react";
+import type { ThreadRunStatus } from "@/components/thread-status";
+import {
+  isActiveStatus,
+  ThreadStatusIcon,
+  threadStatusState,
+} from "@/components/thread-status";
 import { cx, menuIconSlotClassName } from "@/components/view-toolbar";
 import { Badge } from "@/primitives/badge";
 import { BulkBar } from "@/primitives/bulk-bar";
@@ -49,6 +55,12 @@ const checkboxBoxClassName =
   "flex size-3.5 items-center justify-center rounded border-hairline border-border-2 bg-card data-[checked]:border-transparent data-[checked]:bg-primary data-[checked]:text-primary-foreground";
 const menuTrailingClassName = "ml-auto pl-3 text-xs text-muted-foreground-2";
 
+/** What a row shows about the thread its runs continue. */
+export type StandingThread = {
+  readonly code: string;
+  readonly status: ThreadRunStatus;
+};
+
 export type AutomationListSection = {
   readonly id: string;
   readonly label: string;
@@ -66,6 +78,8 @@ export type AutomationsListProps = {
   loading?: boolean;
   emptyText: string;
   orgId: string | undefined;
+  /** Standing threads by jam id, so a row can label the thread its runs continue. */
+  standingThreads: ReadonlyMap<string, StandingThread>;
 };
 
 /** Initials avatar at Capy's xs size; creators carry no image in the list. */
@@ -78,8 +92,9 @@ export function InitialsAvatar({ name }: { name: string }) {
     .join("");
   return (
     <span
-      data-slot="avatar"
-      className="flex size-4 shrink-0 items-center justify-center overflow-hidden rounded-full bg-secondary text-2xs font-medium text-muted-foreground-1"
+      role="img"
+      aria-label={name}
+      className="flex size-4 shrink-0 items-center justify-center rounded bg-muted text-2xs font-medium text-foreground"
     >
       {initials}
     </span>
@@ -124,22 +139,32 @@ function RowCheckbox({
   );
 }
 
-function StandingThreadBadge({ jamId }: { jamId: string }) {
+/** Capy's chip: the standing thread's status and code, opening that thread. */
+function StandingThreadBadge({
+  jamId,
+  thread,
+}: {
+  jamId: string;
+  thread: StandingThread | undefined;
+}) {
   const navigate = useNavigate();
-  const title = "Thread";
+  const label = thread?.code ?? "Thread";
   return (
     <Badge
       data-track-owner={track("StandingThreadBadge:Badge.1")}
       size="base"
       className="max-w-48"
-      aria-label={`Runs in ${title}, open thread`}
+      aria-label={`Runs in ${label}, open thread`}
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();
         void navigate({ to: "/thread/$threadId", params: { threadId: jamId } });
       }}
     >
-      <span className="min-w-0 truncate">{title}</span>
+      {thread !== undefined && isActiveStatus(thread.status) ? (
+        <ThreadStatusIcon state={threadStatusState(thread.status)} size="sm" />
+      ) : null}
+      <span className="min-w-0 truncate">{label}</span>
     </Badge>
   );
 }
@@ -289,6 +314,7 @@ type AutomationRowItemProps = {
   checked: boolean;
   selectionMode: boolean;
   orgId: string | undefined;
+  thread: StandingThread | undefined;
   onCheck: (id: string, shift: boolean) => void;
   onDelete: (rows: ReadonlyArray<AutomationRow>) => void;
 };
@@ -300,6 +326,7 @@ const AutomationRowItem = memo(function AutomationRowItem({
   checked,
   selectionMode,
   orgId,
+  thread,
   onCheck,
   onDelete,
 }: AutomationRowItemProps) {
@@ -358,7 +385,10 @@ const AutomationRowItem = memo(function AutomationRowItem({
           </span>
           <span className="hidden shrink-0 items-center gap-1.5 @lg/list:flex">
             {automation.singleJamId === null ? null : (
-              <StandingThreadBadge jamId={automation.singleJamId} />
+              <StandingThreadBadge
+                jamId={automation.singleJamId}
+                thread={thread}
+              />
             )}
             {extraSources.map((type) => (
               <Badge key={type} size="base" className="@max-xl/list:hidden">
@@ -445,6 +475,7 @@ export function AutomationsList({
   loading = false,
   emptyText,
   orgId,
+  standingThreads,
 }: AutomationsListProps) {
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
   const anchor = useRef<string | null>(null);
@@ -546,6 +577,11 @@ export function AutomationsList({
                       checked={checked.has(row.id)}
                       selectionMode={checked.size > 0}
                       orgId={orgId}
+                      thread={
+                        row.singleJamId === null
+                          ? undefined
+                          : standingThreads.get(row.singleJamId)
+                      }
                       onCheck={onCheck}
                       onDelete={onDelete}
                     />

@@ -276,7 +276,8 @@ function ScopeIcon({ row }: { row: DriveScopeRow }) {
   if (target.kind === "captain") {
     return (
       <span
-        aria-hidden="true"
+        role="img"
+        aria-label={row.label}
         className="flex size-(--icon-base) shrink-0 items-center justify-center rounded-xs bg-secondary text-2xs font-medium text-foreground"
       >
         {row.label.slice(0, 1)}

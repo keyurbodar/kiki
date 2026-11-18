@@ -84,7 +84,6 @@ export function ViewToolbar({
 }: ViewToolbarProps) {
   return (
     <div
-      data-slot="view-toolbar"
       className={cx(
         "flex min-h-11 shrink-0 items-center gap-2 px-2",
         className,
@@ -448,10 +447,7 @@ export type FilterChipProps = {
 
 export function FilterChip({ chip, icons }: FilterChipProps) {
   return (
-    <span
-      data-slot="filter-chip"
-      className="flex h-6 max-w-full shrink-0 items-center overflow-clip rounded border-hairline border-border-2 bg-card text-xs font-normal whitespace-nowrap shadow-plate"
-    >
+    <span className="flex h-6 max-w-full shrink-0 items-center overflow-clip rounded border-hairline border-border-2 bg-card text-xs font-normal whitespace-nowrap shadow-plate">
       <span
         className={cx(
           chipSegmentClassName,
@@ -505,10 +501,7 @@ export function FilterChipBar({
   icons,
 }: FilterChipBarProps) {
   return (
-    <div
-      data-slot="filter-chip-bar"
-      className="flex shrink-0 items-center gap-2 px-2 pb-1.5"
-    >
+    <div className="flex shrink-0 items-center gap-2 px-2 pb-1.5">
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
         {leading}
         {chips.map((chip) => (

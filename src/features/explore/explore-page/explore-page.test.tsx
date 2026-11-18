@@ -64,7 +64,7 @@ it("mounts the search field inside an input group", async () => {
   const input = await screen.findByRole("searchbox");
   const group = input.parentElement;
   expect(group?.getAttribute("data-slot")).toBe("input-group");
-  expect(group?.querySelector('[data-slot="icon"]')).not.toBeNull();
+  expect(group?.querySelector("svg[data-icon]")).not.toBeNull();
 });
 
 it("scrolls the listing grid inside its own scroll area, below the header", async () => {

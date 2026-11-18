@@ -11,7 +11,6 @@ describe("Icon", () => {
   it("renders a decorative 24-unit glyph from the sprite by default", () => {
     const { container } = render(<Icon name="magnifying-glass" />);
     const svg = container.querySelector("svg");
-    expect(svg?.dataset.slot).toBe("icon");
     expect(svg?.dataset.icon).toBe("magnifying-glass");
     expect(svg?.getAttribute("aria-hidden")).toBe("true");
     expect(svg?.getAttribute("role")).toBeNull();

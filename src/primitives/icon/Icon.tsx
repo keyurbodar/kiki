@@ -26,7 +26,6 @@ export function Icon({ name, label, size, className, ...props }: IconProps) {
   return (
     // biome-ignore lint/a11y/noSvgWithoutTitle: the title renders when a label is given; unlabelled icons are aria-hidden
     <svg
-      data-slot="icon"
       data-icon={name}
       aria-hidden={label === undefined}
       role={label === undefined ? undefined : "img"}

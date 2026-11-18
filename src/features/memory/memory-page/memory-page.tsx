@@ -71,10 +71,7 @@ function MemoryTopBar({
   actions?: React.ReactNode;
 }) {
   return (
-    <header
-      data-slot="app-top-bar"
-      className="flex min-h-11 shrink-0 items-center gap-2 border-b-hairline border-border-1 bg-panel px-2"
-    >
+    <header className="flex min-h-11 shrink-0 items-center gap-2 border-b-hairline border-border-1 bg-panel px-2">
       {back}
       <span className="mask-fade-r min-w-0 flex-1 truncate text-sm font-medium text-foreground">
         {title}

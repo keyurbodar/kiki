@@ -60,6 +60,8 @@ export type ScrollAreaProps = Omit<
   retainScroll?: boolean;
   scrollRestorationId?: string;
   onViewport?: Ref<HTMLDivElement>;
+  /** Mount the overlay scrollbar. Capy's list panes hide it and have no scrollbar. */
+  scrollbar?: boolean;
   children?: ReactNode;
 };
 
@@ -70,6 +72,7 @@ export function ScrollArea({
   retainScroll = false,
   scrollRestorationId,
   onViewport,
+  scrollbar = true,
   children,
   ...props
 }: ScrollAreaProps) {
@@ -189,9 +192,11 @@ export function ScrollArea({
         <NestedViewport.Provider value>{children}</NestedViewport.Provider>
       </ScrollAreaViewport>
       {caps}
-      <ScrollAreaScrollbar>
-        <ScrollAreaThumb />
-      </ScrollAreaScrollbar>
+      {scrollbar ? (
+        <ScrollAreaScrollbar>
+          <ScrollAreaThumb />
+        </ScrollAreaScrollbar>
+      ) : null}
     </BaseScrollArea.Root>
   );
 }

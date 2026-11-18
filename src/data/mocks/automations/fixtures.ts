@@ -80,7 +80,7 @@ export const runs: ReadonlyArray<AutomationRun> = [
     id: "run_sample_followup_1",
     automationId: "auto_sample_pr_followup",
     status: "cancelled",
-    trigger: "pull_request.merged",
+    trigger: "pull_request_merged",
     startedAt: isoMinutesAgo(3 * 24 * 60),
     finishedAt: isoMinutesAgo(3 * 24 * 60 - 1),
     threadId: threads.darkMode.id,
@@ -198,6 +198,7 @@ const detail = (
     readonly schedule?: { readonly cron: string; readonly timezone: string };
     readonly event?: string;
     readonly enabledFor?: string;
+    readonly runIn?: string;
     readonly createdAgo: number;
     readonly creator: {
       readonly id: string;
@@ -211,9 +212,9 @@ const detail = (
   triggers:
     options.schedule !== undefined
       ? [{ type: "schedule", ...options.schedule }]
-      : [{ type: "github", event: options.event ?? "pull_request.opened" }],
-  threadMode: "new",
-  singleJamId: null,
+      : [{ type: "github", event: options.event ?? "pull_request_opened" }],
+  threadMode: options.runIn === undefined ? "new" : "single",
+  singleJamId: options.runIn ?? null,
   runAsKind: "human",
   runAsId: people.sam.id,
   slackImpersonation: false,
@@ -251,8 +252,47 @@ export const automationDetails: Readonly<Record<string, AutomationDetails>> = {
     "When a pull request merges, comment the release checklist on the linked issue and tag its assignee.",
     {
       description: "Paused while the release stabilises.",
-      event: "pull_request.merged",
+      event: "pull_request_merged",
       createdAgo: 60 * 24 * 20,
+      creator: people.alex,
+    },
+  ),
+  auto_sample_status_digest: detail(
+    "Post the app's error rate and latency for the last half hour, and open a thread when either crosses its budget.",
+    {
+      description: "Every half hour against the production dashboard.",
+      schedule: { cron: "*/30 * * * *", timezone: "Asia/Calcutta" },
+      runIn: threads.checkoutTest.id,
+      createdAgo: 60 * 24 * 12,
+      creator: people.alex,
+    },
+  ),
+  auto_sample_build_janitor: detail(
+    "Every hour, stop the preview servers and machines whose threads have been idle for a day.",
+    {
+      schedule: { cron: "0 * * * *", timezone: "UTC" },
+      runIn: threads.darkMode.id,
+      createdAgo: 60 * 24 * 7,
+      creator: people.alex,
+    },
+  ),
+  auto_sample_flake_watch: detail(
+    "When a pull request is updated, rerun the tests that failed on the previous head and report the ones that keep failing.",
+    {
+      event: "pull_request_pushed",
+      runIn: threads.paginate.id,
+      createdAgo: 60 * 24 * 30,
+      creator: people.alex,
+    },
+  ),
+  auto_sample_release_notes: detail(
+    "Draft the release notes for the docs project from the merged pull requests of the last two weeks.",
+    {
+      description: "Paused until the docs migration lands.",
+      schedule: { cron: "0 * * * *", timezone: "UTC" },
+      runIn: threads.gettingStarted.id,
+      enabledFor: "3 days",
+      createdAgo: 60 * 24 * 60,
       creator: people.alex,
     },
   ),
