@@ -1,7 +1,7 @@
 import { useAtomValue } from "@effect/atom-react";
 import type { OrgId, ProjectId } from "@/data/api/schemas/ids";
 import { projectsAtom } from "@/data/atoms/projects";
-import { threadsAtom } from "@/data/atoms/threads";
+import { useThreadsAtom } from "@/data/atoms/threads";
 import { resultValue, useOrgId } from "../automation-editor/use-org";
 import { type ThreadRef, threadCode } from "./runs-in";
 
@@ -14,7 +14,7 @@ export function useProjectThreads(
   const projects = resultValue(useAtomValue(projectsAtom(orgId))) ?? [];
   const page = resultValue(
     useAtomValue(
-      threadsAtom(
+      useThreadsAtom(
         orgId,
         projectId === undefined ? undefined : (projectId as ProjectId),
       ),

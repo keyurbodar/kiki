@@ -9,7 +9,7 @@ import {
   reactivityKeys,
 } from "./conventions.ts";
 import { idleAtom } from "./idle.ts";
-import { revalidateOnMount } from "./revalidate.ts";
+import { useRevalidatedAtom } from "./revalidate.ts";
 
 export const threadListKey = (orgId: OrgId, projectId?: ProjectId) =>
   projectId === undefined ? orgId : `${orgId}/${projectId}`;
@@ -21,11 +21,25 @@ const threadsQuery = Atom.family((key: string) => {
     query: projectId === undefined ? {} : { projectIds: [projectId] },
     reactivityKeys: [reactivityKeys.threads(orgId)],
     timeToLive: queryTimeToLive,
-  }).pipe(revalidateOnMount(queryStaleOnMount));
+  });
 });
 
 export const threadsAtom = (orgId: OrgId, projectId?: ProjectId) =>
   threadsQuery(threadListKey(orgId, projectId));
+
+/**
+ * The thread list for a screen the reader leaves and comes back to. The trigger
+ * is held per surface, so the shell's permanent readers of `threadsAtom` cannot
+ * keep the wrapper alive and silence it.
+ */
+export const useThreadsAtom = (
+  orgId: OrgId | undefined,
+  projectId?: ProjectId,
+) =>
+  useRevalidatedAtom(
+    orgId === undefined ? idleThreadPageAtom : threadsAtom(orgId, projectId),
+    queryStaleOnMount,
+  );
 
 /** The thread list while the org is unknown, so nothing requests a placeholder org. */
 export const idleThreadPageAtom = idleAtom<ThreadCardPage>();

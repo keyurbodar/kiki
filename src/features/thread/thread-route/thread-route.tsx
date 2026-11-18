@@ -13,7 +13,7 @@ import {
   resolveActiveOrgId,
   selectedOrgIdAtom,
 } from "@/data/atoms/session";
-import { idleThreadPageAtom, threadsAtom } from "@/data/atoms/threads";
+import { useThreadsAtom } from "@/data/atoms/threads";
 import { useCaptainCrew } from "@/features/captains/overview/use-captain";
 import {
   MobileThreadScreen,
@@ -111,11 +111,7 @@ export function ThreadRoute({
       setEditing(null);
   }, [editing, setEditing, timeline.rows]);
   const listed = Option.getOrUndefined(
-    AsyncResult.value(
-      useAtomValue(
-        orgId === undefined ? idleThreadPageAtom : threadsAtom(orgId as OrgId),
-      ),
-    ),
+    AsyncResult.value(useAtomValue(useThreadsAtom(orgId as OrgId | undefined))),
   );
   // The automated messages in this thread name their automation, so the list
   // starts loading with the route instead of when the first such row mounts.

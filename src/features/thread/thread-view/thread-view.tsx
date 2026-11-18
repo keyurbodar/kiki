@@ -25,7 +25,7 @@ import { idleAtom } from "@/data/atoms/idle";
 import { allIssuesAtom } from "@/data/atoms/issues";
 import { projectsAtom } from "@/data/atoms/projects";
 import { threadMachinesAtom } from "@/data/atoms/setup";
-import { idleThreadPageAtom, threadsAtom } from "@/data/atoms/threads";
+import { useThreadsAtom } from "@/data/atoms/threads";
 import type { TimelineRow } from "@/data/events";
 import {
   ComposerAttachments,
@@ -374,9 +374,7 @@ export function ThreadView({
     return edited;
   }, [rows]);
   const orgId = handlers.orgId;
-  const orgThreads = useAtomValue(
-    orgId === undefined ? idleThreadPageAtom : threadsAtom(orgId as OrgId),
-  );
+  const orgThreads = useAtomValue(useThreadsAtom(orgId as OrgId | undefined));
   const drive = useDriveListing(orgId, {});
   const skills = useMemo(
     () =>
