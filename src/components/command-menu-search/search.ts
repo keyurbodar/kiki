@@ -461,6 +461,10 @@ export const buildSearchResults = (
           data.settings,
           (command) => [command.title, ...command.searchTerms],
           term,
+          // A settings row's own title and the page it lives on outrank its
+          // keywords, which match far more loosely: Capy lists every row whose
+          // title matches before rows matched only by category or keyword.
+          2,
         ).slice(0, category === "settings" ? categoryLimit : groupLimit)
       : [];
 

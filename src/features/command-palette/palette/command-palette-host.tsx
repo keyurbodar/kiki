@@ -8,6 +8,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { toast } from "sonner";
@@ -121,6 +122,7 @@ export function CommandPaletteHost({
     select: (state) => state.location.pathname,
   });
   const [open, setOpen] = useState(defaultOpen);
+  const openerRef = useRef<HTMLElement | null>(null);
   const [view, setView] = useState<PaletteView>({ kind: "search" });
   const [query, setQuery] = useState("");
   const [now] = useState(() => Date.now());
@@ -152,22 +154,40 @@ export function CommandPaletteHost({
     projects.find((candidate) => candidate.id === selectedProjectId) ??
     projects[0];
 
+  /**
+   * Capy returns focus to the control that opened the palette. The shortcut is
+   * not a control, so it lands on the shell's Search button — Capy's own answer
+   * for a keyboard-opened palette. Nothing here is a Base UI trigger, so the
+   * popup has no trigger of its own to restore.
+   */
+  const rememberOpener = useCallback((opener?: Element | null) => {
+    openerRef.current =
+      opener instanceof HTMLElement
+        ? opener
+        : document.querySelector<HTMLElement>('button[aria-label="Search"]');
+  }, []);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (!isPaletteToggle(event)) return;
       event.preventDefault();
+      rememberOpener(null);
       setView({ kind: "search" });
       setOpen((current) => !current);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [rememberOpener]);
 
   useCommandPaletteOpen(
-    useCallback((detail: CommandPaletteOpenDetail) => {
-      setView(viewForIntent(detail.intent));
-      setOpen(true);
-    }, []),
+    useCallback(
+      (detail: CommandPaletteOpenDetail) => {
+        rememberOpener(document.activeElement);
+        setView(viewForIntent(detail.intent));
+        setOpen(true);
+      },
+      [rememberOpener],
+    ),
   );
 
   const close = () => setOpen(false);
@@ -208,6 +228,7 @@ export function CommandPaletteHost({
             data-slot="command-menu-content"
             aria-label="Command menu"
             initialFocus={false}
+            finalFocus={openerRef}
             className={paletteContentClass}
           >
             <div data-slot="command-menu" className={paletteBodyClass}>
