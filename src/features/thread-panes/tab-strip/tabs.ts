@@ -238,11 +238,16 @@ export const routablePaneKinds: ReadonlyArray<PaneTabKind> = [
  * Path the "Copy link" item copies for a tab of thread `threadId`. Parameterised
  * tab keys (`task:`, `side-thread:`, `desktop:`, …) carry the tab's own id, which
  * no registry pane answers to, so those tabs link to the thread rather than to a
- * param the route drops.
+ * param the route drops. A tab that names another thread — a subagent task or a
+ * side thread — links to that thread, which the route does resolve.
  */
 export function tabLink(threadId: string, tab: PaneTab | undefined): string {
-  if (tab === undefined || !routablePaneKinds.includes(tab.kind)) {
-    return `/thread/${threadId}`;
+  if (tab === undefined) return `/thread/${threadId}`;
+  if (routablePaneKinds.includes(tab.kind)) {
+    return `/thread/${threadId}?pane=${encodeURIComponent(tab.kind)}`;
   }
-  return `/thread/${threadId}?pane=${encodeURIComponent(tab.kind)}`;
+  if (tab.kind === "task" || tab.kind === "side_thread") {
+    return `/thread/${tab.jamId}`;
+  }
+  return `/thread/${threadId}`;
 }

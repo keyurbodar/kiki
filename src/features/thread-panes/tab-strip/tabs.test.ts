@@ -128,13 +128,16 @@ describe("tabLink", () => {
     );
   });
 
-  it("links a parameterised tab to the thread, not to a param the route drops", () => {
+  it("links a tab that names another thread to that thread", () => {
     expect(
       tabLink("jam_1", { kind: "task", jamId: "jam_2", localIndex: null }),
-    ).toBe("/thread/jam_1");
+    ).toBe("/thread/jam_2");
     expect(tabLink("jam_1", { kind: "side_thread", jamId: "jam_3" })).toBe(
-      "/thread/jam_1",
+      "/thread/jam_3",
     );
+  });
+
+  it("links a parameterised tab with no pane and no thread to the thread", () => {
     expect(
       tabLink("jam_1", {
         kind: "browser",
