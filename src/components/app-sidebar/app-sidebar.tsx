@@ -37,16 +37,12 @@ import {
   ContextMenuTrigger,
 } from "@/primitives/context-menu";
 import { Icon } from "@/primitives/icon";
-import {
-  MenuContent,
-  MenuSeparator,
-  MenuSub,
-  MenuSubTrigger,
-  MenuTrigger,
-} from "@/primitives/menu";
+import { MenuSeparator, MenuSub, MenuSubTrigger } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { CapyMark } from "./capy-mark";
@@ -241,7 +237,7 @@ export function AppSidebar({
               <TooltipTrigger
                 data-track-owner="shared/app-sidebar.tsx#AppSidebar:TooltipTrigger.2"
                 render={
-                  <MenuTrigger
+                  <ResponsiveMenuTrigger
                     data-track-owner="shared/app-sidebar.tsx#AppSidebar:ResponsiveMenuTrigger.1"
                     render={
                       <Button
@@ -255,12 +251,12 @@ export function AppSidebar({
                     }
                   >
                     <DotGrid1x3HorizontalIcon />
-                  </MenuTrigger>
+                  </ResponsiveMenuTrigger>
                 }
               />
               <TooltipContent side="top">More</TooltipContent>
             </Tooltip>
-            <MenuContent align="end" side="top" className="w-48">
+            <ResponsiveMenuContent align="end" side="top" className="w-48">
               {overflow.map((page) => {
                 const {
                   to,
@@ -295,11 +291,11 @@ export function AppSidebar({
                   </span>
                   Sidebar pages
                 </MenuSubTrigger>
-                <MenuContent className="w-48">
+                <ResponsiveMenuContent className="w-48">
                   <SidebarPagesMenuItems nav={nav} memory={memory} />
-                </MenuContent>
+                </ResponsiveMenuContent>
               </MenuSub>
-            </MenuContent>
+            </ResponsiveMenuContent>
           </ResponsiveMenu>
         ) : null}
       </nav>

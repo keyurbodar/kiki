@@ -1,10 +1,12 @@
 import { cx } from "class-variance-authority";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
-import { MenuContent, MenuTrigger } from "@/primitives/menu";
+
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 
@@ -54,7 +56,7 @@ export function DiffFilesMenu({
   return (
     <div className={className}>
       <ResponsiveMenu>
-        <MenuTrigger
+        <ResponsiveMenuTrigger
           render={
             <Button
               variant="ghost"
@@ -73,7 +75,7 @@ export function DiffFilesMenu({
             </Button>
           }
         />
-        <MenuContent align="start" className="w-76">
+        <ResponsiveMenuContent align="start" className="w-76">
           <div className="flex max-h-96 flex-col overflow-y-auto">
             {paths.map((path) => (
               <ResponsiveMenuItem key={path} onClick={() => onOpenFile(path)}>
@@ -83,7 +85,7 @@ export function DiffFilesMenu({
               </ResponsiveMenuItem>
             ))}
           </div>
-        </MenuContent>
+        </ResponsiveMenuContent>
       </ResponsiveMenu>
     </div>
   );

@@ -27,11 +27,12 @@ import {
   ContextMenuContent,
   ContextMenuTrigger,
 } from "@/primitives/context-menu";
-import { MenuSeparator, MenuTrigger } from "@/primitives/menu";
+import { MenuSeparator } from "@/primitives/menu";
 import {
   ResponsiveMenu,
   ResponsiveMenuContent,
   ResponsiveMenuLevel,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { PlusGlyph } from "./glyphs";
 import { RailMenuItems, type SplitDirection } from "./rail-menu-items";
@@ -196,7 +197,7 @@ function PlusMenu({ options }: PlusMenuProps) {
   const [open, setOpen] = useState(false);
   return (
     <ResponsiveMenu open={open} onOpenChange={setOpen}>
-      <MenuTrigger
+      <ResponsiveMenuTrigger
         data-track-owner="features/thread/pane/tab-strip.tsx#PlusMenu:ResponsiveMenuTrigger.1"
         render={
           <Button

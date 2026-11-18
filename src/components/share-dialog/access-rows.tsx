@@ -1,14 +1,11 @@
 import { type ComponentType, useState } from "react";
 import { Button } from "@/primitives/button";
-import {
-  MenuContent,
-  MenuGroup,
-  MenuLabel,
-  MenuTrigger,
-} from "@/primitives/menu";
+import { MenuGroup, MenuLabel } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import {
   CheckIcon,
@@ -93,7 +90,7 @@ export function AccessRows({
             if (!next) setConfirming(false);
           }}
         >
-          <MenuTrigger
+          <ResponsiveMenuTrigger
             data-track-owner="shared/share-dialog.tsx#AccessRows:ResponsiveMenuTrigger.1"
             render={
               <Button
@@ -110,7 +107,7 @@ export function AccessRows({
               </Button>
             }
           />
-          <MenuContent className="w-72">
+          <ResponsiveMenuContent className="w-72">
             {confirming ? (
               <MenuGroup>
                 <MenuLabel>Making this private makes you its owner</MenuLabel>
@@ -133,7 +130,7 @@ export function AccessRows({
                 {item("private", LockIcon, "Only specific people")}
               </>
             )}
-          </MenuContent>
+          </ResponsiveMenuContent>
         </ResponsiveMenu>
       )}
     </div>

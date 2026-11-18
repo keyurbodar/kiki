@@ -1,9 +1,11 @@
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
-import { MenuContent, MenuTrigger } from "@/primitives/menu";
+
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { copyText } from "./copy";
@@ -26,7 +28,7 @@ export function CopyMenu({ copyPath, text, link }: CopyMenuProps) {
         <TooltipTrigger
           data-track-owner={track("TooltipTrigger.1")}
           render={
-            <MenuTrigger
+            <ResponsiveMenuTrigger
               data-track-owner={track("ResponsiveMenuTrigger.1")}
               render={
                 <Button
@@ -38,12 +40,12 @@ export function CopyMenu({ copyPath, text, link }: CopyMenuProps) {
               }
             >
               <Icon name="clipboard" size="sm" />
-            </MenuTrigger>
+            </ResponsiveMenuTrigger>
           }
         />
         <TooltipContent side="bottom">Copy</TooltipContent>
       </Tooltip>
-      <MenuContent align="end" className="w-48">
+      <ResponsiveMenuContent align="end" className="w-48">
         {copyPath !== false && (
           <ResponsiveMenuItem
             data-track-owner={track("ResponsiveMenuItem[Copy path]")}
@@ -83,7 +85,7 @@ export function CopyMenu({ copyPath, text, link }: CopyMenuProps) {
             Copy link
           </ResponsiveMenuItem>
         )}
-      </MenuContent>
+      </ResponsiveMenuContent>
     </ResponsiveMenu>
   );
 }

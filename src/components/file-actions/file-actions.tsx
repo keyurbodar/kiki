@@ -2,10 +2,12 @@ import { toast } from "sonner";
 import type { PullRef } from "@/components/diff-tab/model";
 import { Button } from "@/primitives/button";
 import { Icon, type IconId } from "@/primitives/icon";
-import { MenuContent, MenuSeparator, MenuTrigger } from "@/primitives/menu";
+import { MenuSeparator } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { appFileUrl, githubBlobUrl } from "./links";
 
@@ -45,14 +47,14 @@ export function FileActionsMenu({
   const name = path.slice(path.lastIndexOf("/") + 1);
   return (
     <ResponsiveMenu>
-      <MenuTrigger
+      <ResponsiveMenuTrigger
         render={
           <Button variant="ghost" size="icon-xs" aria-label="File actions">
             <Icon name="circle-dotted" size="sm" />
           </Button>
         }
       />
-      <MenuContent align="end" className="w-52">
+      <ResponsiveMenuContent align="end" className="w-52">
         {onComment !== undefined && (
           <ResponsiveMenuItem onClick={onComment}>
             <ItemIcon name="bubble-text" />
@@ -99,7 +101,7 @@ export function FileActionsMenu({
           <ItemIcon name="text-1" />
           Copy filename
         </ResponsiveMenuItem>
-      </MenuContent>
+      </ResponsiveMenuContent>
     </ResponsiveMenu>
   );
 }

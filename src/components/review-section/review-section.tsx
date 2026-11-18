@@ -13,10 +13,11 @@ import {
 } from "@/components/review-mode";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
-import { MenuContent, MenuTrigger } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
 import { ShimmerText } from "@/primitives/shimmer-text";
@@ -377,7 +378,7 @@ export function ReviewRunControl({
           {runLabel(running, completed)}
         </Button>
         <ResponsiveMenu>
-          <MenuTrigger
+          <ResponsiveMenuTrigger
             data-track-owner="shared/pull-view/review-section.tsx#ReviewRunControl:ResponsiveMenuTrigger.1"
             render={
               <Button
@@ -391,7 +392,7 @@ export function ReviewRunControl({
               </Button>
             }
           />
-          <MenuContent align="end" className="w-80">
+          <ResponsiveMenuContent align="end" className="w-80">
             {reviewTiers.map((tier) => (
               <ResponsiveMenuItem
                 key={tier}
@@ -406,7 +407,7 @@ export function ReviewRunControl({
                 />
               </ResponsiveMenuItem>
             ))}
-          </MenuContent>
+          </ResponsiveMenuContent>
         </ResponsiveMenu>
       </div>
       <span className="text-center text-xs text-muted-foreground-2">

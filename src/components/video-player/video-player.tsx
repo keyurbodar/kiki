@@ -10,16 +10,12 @@ import {
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Kbd } from "@/primitives/kbd";
-import {
-  MenuContent,
-  MenuGroup,
-  MenuLabel,
-  MenuSeparator,
-  MenuTrigger,
-} from "@/primitives/menu";
+import { MenuGroup, MenuLabel, MenuSeparator } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
@@ -419,7 +415,7 @@ export function VideoPlayer({
           </VideoVolume>
         ) : null}
         <ResponsiveMenu>
-          <MenuTrigger
+          <ResponsiveMenuTrigger
             render={
               <Button
                 variant="ghost"
@@ -435,8 +431,8 @@ export function VideoPlayer({
               {formatSpeed(speed)}
             </span>
             <Icon name="chevron-down-small" />
-          </MenuTrigger>
-          <MenuContent align="end" side="top" className="w-44">
+          </ResponsiveMenuTrigger>
+          <ResponsiveMenuContent align="end" side="top" className="w-44">
             <MenuGroup>
               <MenuLabel>Speed</MenuLabel>
               <ResponsiveMenuItem onClick={() => setSpeedPreference("auto")}>
@@ -469,7 +465,7 @@ export function VideoPlayer({
                 ) : null}
               </ResponsiveMenuItem>
             ))}
-          </MenuContent>
+          </ResponsiveMenuContent>
         </ResponsiveMenu>
         {onExpand === undefined ? null : (
           <Tip

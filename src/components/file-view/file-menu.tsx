@@ -1,10 +1,12 @@
 import { Fragment, type ReactNode, useContext } from "react";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
-import { MenuContent, MenuSeparator, MenuTrigger } from "@/primitives/menu";
+import { MenuSeparator } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { DiffWrapContext } from "./file-context";
@@ -68,7 +70,7 @@ export function FileMenu({ actions, onOpenDiffs, wrap }: FileMenuProps) {
         <TooltipTrigger
           data-track-owner={track("TooltipTrigger.1")}
           render={
-            <MenuTrigger
+            <ResponsiveMenuTrigger
               data-track-owner={track("ResponsiveMenuTrigger.1")}
               render={
                 <Button
@@ -80,19 +82,19 @@ export function FileMenu({ actions, onOpenDiffs, wrap }: FileMenuProps) {
               }
             >
               <Icon name="bubble-dots" size="sm" />
-            </MenuTrigger>
+            </ResponsiveMenuTrigger>
           }
         />
         <TooltipContent side="bottom">Options</TooltipContent>
       </Tooltip>
-      <MenuContent align="end" className="w-56">
+      <ResponsiveMenuContent align="end" className="w-56">
         {groups.map((group, index) => (
           <Fragment key={group.key}>
             {index > 0 && <MenuSeparator />}
             {group.node}
           </Fragment>
         ))}
-      </MenuContent>
+      </ResponsiveMenuContent>
     </ResponsiveMenu>
   );
 }

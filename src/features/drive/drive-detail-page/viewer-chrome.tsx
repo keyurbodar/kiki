@@ -11,10 +11,11 @@ import {
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Kbd } from "@/primitives/kbd";
-import { MenuContent, MenuTrigger } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { Textarea } from "@/primitives/textarea";
 import { changedUnderDraft, type FileDraft, type LoadedFile } from "./draft";
@@ -107,7 +108,7 @@ export function ViewerChrome({
         )}
         {hasActions && (
           <ResponsiveMenu>
-            <MenuTrigger
+            <ResponsiveMenuTrigger
               render={
                 <Button
                   variant="ghost"
@@ -117,8 +118,8 @@ export function ViewerChrome({
               }
             >
               <Icon name="chevron-down-small" />
-            </MenuTrigger>
-            <MenuContent align="end" className="w-52">
+            </ResponsiveMenuTrigger>
+            <ResponsiveMenuContent align="end" className="w-52">
               {onSave !== undefined && (
                 <ResponsiveMenuItem disabled={saving} onClick={onSave}>
                   <span className={menuIconClassName}>
@@ -146,7 +147,7 @@ export function ViewerChrome({
                   Delete file
                 </ResponsiveMenuItem>
               )}
-            </MenuContent>
+            </ResponsiveMenuContent>
           </ResponsiveMenu>
         )}
       </div>

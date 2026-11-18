@@ -12,15 +12,12 @@ import { currentUserAtom } from "@/data/atoms/session";
 import { threadsAtom } from "@/data/atoms/threads";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
-import {
-  MenuContent,
-  MenuLabel,
-  MenuSeparator,
-  MenuTrigger,
-} from "@/primitives/menu";
+import { MenuLabel, MenuSeparator } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import {
   orderProjects,
@@ -173,7 +170,7 @@ export function ProjectSelect({
           if (!next) setQuery("");
         }}
       >
-        <MenuTrigger
+        <ResponsiveMenuTrigger
           data-track-owner="shared/new-thread/project-select.tsx#ProjectSelect:ResponsiveMenuTrigger.1"
           render={
             <Button
@@ -205,8 +202,8 @@ export function ProjectSelect({
             )}
           </span>
           {chevron ? <SelectorChevron /> : null}
-        </MenuTrigger>
-        <MenuContent className="w-64">
+        </ResponsiveMenuTrigger>
+        <ResponsiveMenuContent className="w-64">
           <SelectorLayout
             search={
               <SelectorSearch
@@ -271,7 +268,7 @@ export function ProjectSelect({
               </>
             )}
           </SelectorLayout>
-        </MenuContent>
+        </ResponsiveMenuContent>
       </ResponsiveMenu>
     </div>
   );
