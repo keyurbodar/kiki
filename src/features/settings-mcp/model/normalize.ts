@@ -196,7 +196,13 @@ export const toInstallation = (raw: unknown): InstalledPlugin => {
     toolCount: 0,
     skillCount: 0,
     status: legacyStatus[status] ?? null,
-    updateNeedsYou: status === "needs_review",
+    // One fact, not two: an update exists when the payload says a newer version
+    // is published. The status string is only a fallback for a payload that
+    // carries no such flag, so a badge and the page it opens cannot disagree.
+    updateNeedsYou:
+      typeof row.updateAvailable === "boolean"
+        ? row.updateAvailable
+        : status === "needs_review",
     createdAt: str(row.installedAt, new Date(0).toISOString()),
     updatedAt: str(row.updatedAt, new Date(0).toISOString()),
   };

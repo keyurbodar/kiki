@@ -10,6 +10,7 @@ import {
   type MarketplaceListing,
   type PluginInstallation,
   type PluginServerConnection,
+  type PluginVersion,
   sampleInstallations,
   sampleMarketplace,
   sampleThreadPlugins,
@@ -22,6 +23,17 @@ const locallyMissing = (table: string, id: string) =>
 
 const text = (value: unknown, fallback: string) =>
   typeof value === "string" && value.trim() !== "" ? value : fallback;
+
+const hasNewerVersion = (
+  published: ReadonlyArray<PluginVersion>,
+  row: PluginInstallation,
+) =>
+  published.some(
+    (version) =>
+      version.pluginKey === row.pluginKey &&
+      version.id !== row.versionId &&
+      version.publishedAt > (row.installedAt ?? ""),
+  );
 
 const lookupInstallation = (
   rows: ReadonlyArray<PluginInstallation>,
@@ -66,11 +78,15 @@ export const PluginsMock = mockGroup("plugins", (handlers) =>
       .handle("listInstallations", () =>
         Effect.gen(function* () {
           const rows = yield* Ref.get(installations);
+          const published = yield* Ref.get(versions);
           return rows.map((row) => ({
             ...row,
             projectName:
               Object.values(worldProjects).find((p) => p.id === row.projectId)
                 ?.name ?? null,
+            // The same fact the detail page reads: an update exists when a
+            // newer version is published, not when the row's status says so.
+            updateAvailable: hasNewerVersion(published, row),
           }));
         }),
       )
@@ -174,9 +190,11 @@ export const PluginsMock = mockGroup("plugins", (handlers) =>
           const running = ofPlugin.find(
             (version) => version.id === installation.versionId,
           );
-          // The badge and the Review page read one fact: when a newer version
-          // exists, the detail carries it, so they cannot disagree.
-          const available = installation.updateAvailable
+          // The badge, the Review control and the review page read one fact:
+          // whether a newer version is published. The row's own flag is
+          // derived here rather than stored, so it cannot drift from it.
+          const updateAvailable = hasNewerVersion(published, installation);
+          const available = updateAvailable
             ? ofPlugin
                 .filter((version) => version.id !== installation.versionId)
                 .toSorted((a, b) =>
@@ -185,6 +203,7 @@ export const PluginsMock = mockGroup("plugins", (handlers) =>
             : undefined;
           return {
             ...installation,
+            updateAvailable,
             runningVersion: running ?? null,
             availableVersion: available ?? null,
           };
