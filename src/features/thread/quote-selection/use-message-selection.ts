@@ -145,11 +145,23 @@ export function useMessageSelection(container: Element | null) {
       openBox(event.key);
     };
 
+    /**
+     * Capy re-measures on a Shift+Arrow release: the focus moved with the
+     * keyboard, so the card has to follow the selection instead of the pointer
+     * that made it.
+     */
+    const onKeyUp = (event: KeyboardEvent) => {
+      if (!event.key.startsWith("Arrow") || !event.shiftKey) return;
+      pointerX.current = null;
+      schedule(null);
+    };
+
     doc.addEventListener("pointerdown", onPointerDown, true);
     doc.addEventListener("pointerup", onPointerUp, true);
     doc.addEventListener("selectionchange", onSelectionChange);
     doc.addEventListener("scroll", onScroll, true);
     doc.addEventListener("keydown", onKeyDown, true);
+    doc.addEventListener("keyup", onKeyUp, true);
     window.addEventListener("resize", onResize);
     return () => {
       cancelAnimationFrame(frame.current);
@@ -158,6 +170,7 @@ export function useMessageSelection(container: Element | null) {
       doc.removeEventListener("selectionchange", onSelectionChange);
       doc.removeEventListener("scroll", onScroll, true);
       doc.removeEventListener("keydown", onKeyDown, true);
+      doc.removeEventListener("keyup", onKeyUp, true);
       window.removeEventListener("resize", onResize);
     };
   }, [clear, container, openBox, publish, update]);
