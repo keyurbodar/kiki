@@ -1,4 +1,5 @@
 import type { ComponentProps, Ref } from "react";
+import { FileIcon } from "@/components/directory-view/file-icon";
 import { menuRowVariants } from "@/primitives/menu";
 import { MENTION_MENU_MAX_HEIGHT, MENU_WIDTH } from "./menu-position";
 import {
@@ -82,7 +83,15 @@ export function MentionMenuSurface({
                     icon={
                       row.item.kind === "task"
                         ? row.item.leading
-                        : (row.item.leading ?? <row.source.icon />)
+                        : (row.item.leading ??
+                          (row.item.kind === "file" ? (
+                            <FileIcon
+                              name={row.item.label}
+                              className="size-(--icon-sm)"
+                            />
+                          ) : (
+                            <row.source.icon />
+                          )))
                     }
                     label={
                       row.item.trailing === undefined ? (
