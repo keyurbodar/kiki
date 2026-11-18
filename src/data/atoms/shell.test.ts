@@ -2,6 +2,7 @@ import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
 import { JamId, OrgId } from "../api/schemas/ids.ts";
+import { captains as fixtureCaptains } from "../mocks/fixtures/world.ts";
 import { captainsAtom } from "./captains.ts";
 import {
   archivedThreadsAtom,
@@ -54,7 +55,7 @@ describe("shell atoms over MockServices", () => {
       );
       assert.deepStrictEqual(
         captains.map((captain) => captain.face.name),
-        ["Release captain", "Docs captain"],
+        fixtureCaptains.map((captain) => captain.name),
       );
     }),
   );

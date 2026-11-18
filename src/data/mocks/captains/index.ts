@@ -372,6 +372,9 @@ export const CaptainsMock = mockGroup("captains", (handlers) =>
             projectId: projects.web.id,
             crew: [],
             createdAt: isoMinutesAgo(0),
+            preview: `Promoted from the ${source.name} folder.`,
+            hasUnreads: false,
+            crewMentionCount: 0,
           };
           yield* Ref.update(captains, (rows) => [...rows, captain]);
           return yield* captainDetail(captain);
@@ -395,6 +398,9 @@ export const CaptainsMock = mockGroup("captains", (handlers) =>
             projectId: project?.id ?? projects.web.id,
             crew: [thread.id],
             createdAt: isoMinutesAgo(0),
+            preview: `Promoted from thread #${thread.number}.`,
+            hasUnreads: false,
+            crewMentionCount: 0,
           };
           yield* Ref.update(captains, (rows) => [...rows, captain]);
           return yield* captainDetail(captain);

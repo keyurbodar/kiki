@@ -244,7 +244,21 @@ export const threads = {
   },
 } as const;
 
-export const captains = [
+export type CaptainSeed = {
+  readonly id: string;
+  readonly name: string;
+  readonly alias: string;
+  readonly description: string;
+  readonly ownerId: string;
+  readonly projectId: string;
+  readonly crew: ReadonlyArray<string>;
+  readonly createdAt: string;
+  readonly preview?: string | null;
+  readonly hasUnreads?: boolean;
+  readonly crewMentionCount?: number;
+};
+
+export const captains: ReadonlyArray<CaptainSeed> = [
   {
     id: "jam_sample_cap1",
     name: "Release captain",
@@ -254,6 +268,9 @@ export const captains = [
     projectId: projects.web.id,
     crew: [threads.checkoutTest.id, threads.darkMode.id, threads.bundler.id],
     createdAt: isoMinutesAgo(14 * day),
+    preview: "The release branch is cut and its checks are running.",
+    hasUnreads: false,
+    crewMentionCount: 0,
   },
   {
     id: "jam_sample_cap2",
@@ -264,6 +281,22 @@ export const captains = [
     projectId: projects.docs.id,
     crew: [threads.gettingStarted.id],
     createdAt: isoMinutesAgo(6 * day),
+    preview: "The API reference is regenerated and published.",
+    hasUnreads: false,
+    crewMentionCount: 0,
+  },
+  {
+    id: "jam_sample_cap3",
+    name: "Platform captain",
+    alias: "platform",
+    description: "Watches the build, the queue and the deploy pipeline.",
+    ownerId: people.sam.id,
+    projectId: projects.api.id,
+    crew: [threads.darkMode.id],
+    createdAt: isoMinutesAgo(2 * day),
+    preview: "Someone is asking which branch the fix went to.",
+    hasUnreads: true,
+    crewMentionCount: 1,
   },
 ] as const;
 
