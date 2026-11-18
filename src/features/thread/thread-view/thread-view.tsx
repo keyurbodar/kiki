@@ -33,6 +33,7 @@ import {
 } from "@/features/thread/composer-takeover";
 import { JamChat } from "@/features/thread/jam-chat";
 import { useComposerSend } from "@/features/thread/use-composer-send";
+import { RightPanelGroup } from "@/primitives/right-panel";
 import { ChatSkeleton } from "./chat-skeleton";
 import { ThreadMessageActions } from "./message-actions";
 import { threadHeaderClassName } from "./thread-header";
@@ -63,7 +64,8 @@ export type ThreadViewProps = {
   /** The newest unfulfilled environment request, from the row builder. */
   pendingEnvironment?: EnvironmentRequestRow | undefined;
   topBar?: ReactNode;
-  pane?: ReactNode;
+  /** The right dock: omitted leaves the thread on its chat, as Capy does. */
+  dock?: ReactNode;
   /** Hides the chat column so the open pane fills the panel. */
   paneExpanded?: boolean;
   /** Replaces the composer when no request is waiting on an answer. */
@@ -217,7 +219,7 @@ export function ThreadView({
   pendingAsk,
   pendingEnvironment,
   topBar,
-  pane,
+  dock,
   paneExpanded = false,
   composer,
   takeover,
@@ -269,12 +271,12 @@ export function ThreadView({
 
   return (
     <ThreadMessageActions orgId={handlers.orgId}>
-      <div className="@container flex h-full min-h-0 min-w-0 flex-1">
+      <RightPanelGroup className="@container min-w-0 flex-1">
         {!paneExpanded && (
           <div
             className={cx(
               "flex h-full min-h-0 shrink-0 flex-col",
-              pane === undefined ? "w-full" : chatColumnWithPane,
+              dock === undefined ? "w-full" : chatColumnWithPane,
             )}
           >
             {header}
@@ -339,15 +341,12 @@ export function ThreadView({
             </div>
           </div>
         )}
-        {pane !== undefined && (
+        {dock !== undefined && (
           <AttachmentSourceProvider source={attachmentSource}>
-            <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
-              {paneExpanded && header}
-              {pane}
-            </div>
+            {dock}
           </AttachmentSourceProvider>
         )}
-      </div>
+      </RightPanelGroup>
     </ThreadMessageActions>
   );
 }
