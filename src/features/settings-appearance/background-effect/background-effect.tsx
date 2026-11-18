@@ -1,8 +1,8 @@
 import { ImageDithering } from "@paper-design/shaders-react";
 import { type ComponentProps, useEffect, useRef, useState } from "react";
 import {
-  type BackgroundEffect as Effect,
   DITHER_CONTEXT_ATTRIBUTES,
+  type BackgroundEffect as Effect,
   WALLPAPER_DITHER,
 } from "@/tokens/effects";
 import {
