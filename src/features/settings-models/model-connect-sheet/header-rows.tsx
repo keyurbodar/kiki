@@ -8,15 +8,12 @@ import {
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
-import {
-  MenuContent,
-  MenuSearchRow,
-  MenuTrigger,
-  menuRowVariants,
-} from "@/primitives/menu";
+import { MenuSearchRow, menuRowVariants } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { PlusGlyph } from "../model-routing/glyphs.tsx";
 import {
@@ -61,14 +58,14 @@ export function TagPicker({ onPick }: TagPickerProps) {
         if (!open) setQuery("");
       }}
     >
-      <MenuTrigger
+      <ResponsiveMenuTrigger
         render={
           <Button variant="ghost" size="icon-sm" aria-label="Insert tag">
             <Icon name="code-brackets" />
           </Button>
         }
       />
-      <MenuContent align="end" className="w-80">
+      <ResponsiveMenuContent align="end" className="w-80">
         <MenuSearchRow>
           <input
             className={searchInputClass}
@@ -99,7 +96,7 @@ export function TagPicker({ onPick }: TagPickerProps) {
             </ResponsiveMenuItem>
           ))
         )}
-      </MenuContent>
+      </ResponsiveMenuContent>
     </ResponsiveMenu>
   );
 }

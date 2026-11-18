@@ -5,16 +5,13 @@ import { toast } from "sonner";
 import { BulkBar } from "@/primitives/bulk-bar";
 import { Button } from "@/primitives/button";
 import { Checkbox } from "@/primitives/checkbox";
-import {
-  MenuContent,
-  MenuGroup,
-  MenuLabel,
-  MenuTrigger,
-} from "@/primitives/menu";
+import { MenuGroup, MenuLabel } from "@/primitives/menu";
 import {
   ResponsiveMenu,
   ResponsiveMenuCheckboxItem,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { toastFailure } from "./actions.ts";
@@ -437,7 +434,7 @@ export function ModelsTable({
                   <td className={cx(cellClass, "justify-end pr-0")}>
                     <span className="-mr-1 flex items-center">
                       <ResponsiveMenu>
-                        <MenuTrigger
+                        <ResponsiveMenuTrigger
                           render={
                             <Button
                               variant="ghost"
@@ -448,8 +445,8 @@ export function ModelsTable({
                           }
                         >
                           <DotsHorizontalGlyph />
-                        </MenuTrigger>
-                        <MenuContent align="end" className="w-80">
+                        </ResponsiveMenuTrigger>
+                        <ResponsiveMenuContent align="end" className="w-80">
                           <ResponsiveMenuItem
                             onClick={() => onCompactAt(row.entry, "user")}
                           >
@@ -486,7 +483,7 @@ export function ModelsTable({
                               <ModelSwitchItem row={row} />
                             </MenuGroup>
                           ) : null}
-                        </MenuContent>
+                        </ResponsiveMenuContent>
                       </ResponsiveMenu>
                     </span>
                   </td>

@@ -17,8 +17,11 @@ import {
 import type { ReactNode } from "react";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
-import { MenuContent, MenuTrigger } from "@/primitives/menu";
-import { ResponsiveMenu } from "@/primitives/responsive-menu";
+import {
+  ResponsiveMenu,
+  ResponsiveMenuContent,
+  ResponsiveMenuTrigger,
+} from "@/primitives/responsive-menu";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
 import { ChevronDownGlyph, DotsHorizontalGlyph } from "./glyphs.tsx";
@@ -145,7 +148,7 @@ export function ConnectionShell({
     <>
       {menu === undefined ? null : (
         <ResponsiveMenu>
-          <MenuTrigger
+          <ResponsiveMenuTrigger
             render={
               <Button
                 variant="ghost"
@@ -157,10 +160,10 @@ export function ConnectionShell({
             }
           >
             <DotsHorizontalGlyph />
-          </MenuTrigger>
-          <MenuContent align="end" className="w-48">
+          </ResponsiveMenuTrigger>
+          <ResponsiveMenuContent align="end" className="w-48">
             {menu}
-          </MenuContent>
+          </ResponsiveMenuContent>
         </ResponsiveMenu>
       )}
       {onToggle === undefined ? null : (
