@@ -28,6 +28,7 @@ import {
 import { JamChat } from "@/features/thread/jam-chat";
 import { useComposerSend } from "@/features/thread/use-composer-send";
 import { ChatSkeleton } from "./chat-skeleton";
+import { ThreadMessageActions } from "./message-actions";
 import { threadHeaderClassName } from "./thread-header";
 
 type ClarifyRow = Extract<TimelineRow, { type: "clarify" }>;
@@ -253,74 +254,76 @@ export function ThreadView({
   const header = topBar ?? <AppTopBar className={threadHeaderClassName} />;
 
   return (
-    <div className="@container flex h-full min-h-0 min-w-0 flex-1">
-      {!paneExpanded && (
-        <div
-          className={cx(
-            "flex h-full min-h-0 shrink-0 flex-col",
-            pane === undefined ? "w-full" : chatColumnWithPane,
-          )}
-        >
-          {header}
-          <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
-            <div className="relative min-h-0 flex-1">
-              <JamChat
-                jamId={threadId}
-                rows={rows}
-                initialLoading={loading}
-                onStartReached={hasOlder ? onLoadOlder : undefined}
-                header={
-                  loadingOlder ? (
-                    <p
-                      data-slot="chat-loading-older"
-                      className="py-2 text-center text-xs text-muted-foreground-2"
-                    >
-                      Loading older messages
-                    </p>
-                  ) : undefined
-                }
-              />
-              {loading && rows.length === 0 && <ChatSkeleton />}
-              {empty && (
-                <div
-                  data-slot="thread-empty"
-                  className="pointer-events-none absolute inset-0 flex items-center justify-center px-4"
-                >
-                  <p className="text-sm text-muted-foreground-2">
-                    No messages yet
-                  </p>
-                </div>
-              )}
-            </div>
-            <div className="min-h-0 px-4 pb-[calc(var(--spacing)+var(--safe-bottom))]">
-              <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col justify-end">
-                {active === undefined ? (
-                  (composer ?? <Composer onSubmit={submit} />)
-                ) : (
-                  <ComposerTakeover {...active} />
-                )}
-                <ComposerFooter
-                  data-slot="composer-footer"
-                  machine={<MachineTrigger machine={machines} />}
-                  meter={
-                    orgId === undefined ? undefined : (
-                      <ContextMeter orgId={orgId} jamId={threadId} />
-                    )
+    <ThreadMessageActions orgId={handlers.orgId}>
+      <div className="@container flex h-full min-h-0 min-w-0 flex-1">
+        {!paneExpanded && (
+          <div
+            className={cx(
+              "flex h-full min-h-0 shrink-0 flex-col",
+              pane === undefined ? "w-full" : chatColumnWithPane,
+            )}
+          >
+            {header}
+            <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+              <div className="relative min-h-0 flex-1">
+                <JamChat
+                  jamId={threadId}
+                  rows={rows}
+                  initialLoading={loading}
+                  onStartReached={hasOlder ? onLoadOlder : undefined}
+                  header={
+                    loadingOlder ? (
+                      <p
+                        data-slot="chat-loading-older"
+                        className="py-2 text-center text-xs text-muted-foreground-2"
+                      >
+                        Loading older messages
+                      </p>
+                    ) : undefined
                   }
                 />
+                {loading && rows.length === 0 && <ChatSkeleton />}
+                {empty && (
+                  <div
+                    data-slot="thread-empty"
+                    className="pointer-events-none absolute inset-0 flex items-center justify-center px-4"
+                  >
+                    <p className="text-sm text-muted-foreground-2">
+                      No messages yet
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="min-h-0 px-4 pb-[calc(var(--spacing)+var(--safe-bottom))]">
+                <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col justify-end">
+                  {active === undefined ? (
+                    (composer ?? <Composer onSubmit={submit} />)
+                  ) : (
+                    <ComposerTakeover {...active} />
+                  )}
+                  <ComposerFooter
+                    data-slot="composer-footer"
+                    machine={<MachineTrigger machine={machines} />}
+                    meter={
+                      orgId === undefined ? undefined : (
+                        <ContextMeter orgId={orgId} jamId={threadId} />
+                      )
+                    }
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-      {pane !== undefined && (
-        <AttachmentSourceProvider source={attachmentSource}>
-          <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
-            {paneExpanded && header}
-            {pane}
-          </div>
-        </AttachmentSourceProvider>
-      )}
-    </div>
+        )}
+        {pane !== undefined && (
+          <AttachmentSourceProvider source={attachmentSource}>
+            <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
+              {paneExpanded && header}
+              {pane}
+            </div>
+          </AttachmentSourceProvider>
+        )}
+      </div>
+    </ThreadMessageActions>
   );
 }
