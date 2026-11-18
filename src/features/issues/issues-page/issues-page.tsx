@@ -31,7 +31,9 @@ import {
   type IssueSummary,
   issuePriorities,
 } from "@/data/api/schemas/issue";
+import type { Project } from "@/data/api/schemas/project";
 import { queryTimeToLive, reactivityKeys } from "@/data/atoms/conventions";
+import { idleAtom } from "@/data/atoms/idle";
 import { issueStatesAtom } from "@/data/atoms/issues";
 import { projectsAtom } from "@/data/atoms/projects";
 import { currentUserAtom } from "@/data/atoms/session";
@@ -81,6 +83,13 @@ const issueCountAtom = Atom.family((key: string) => {
     },
   );
 });
+
+type IssueListValue = { readonly issues: ReadonlyArray<IssueSummary> };
+
+const idleList = idleAtom<IssueListValue>();
+const idleCount = idleAtom();
+const idleProjects = idleAtom<readonly Project[]>();
+const idleStates = idleAtom();
 
 const countOf = (value: unknown, field: "open" | "mentions") =>
   typeof value === "number"
@@ -167,15 +176,25 @@ export function IssuesPage() {
   const triggerShown = isNarrow || !sidebarOpen;
   const org = orgId ?? ("" as OrgId);
   const listKey = `${org}|${JSON.stringify(issueListQuery(filters, search, localDate(now)))}`;
-  const listAtom = issueListAtom(listKey);
+  const listAtom: Atom.Atom<AsyncResult.AsyncResult<IssueListValue, unknown>> =
+    orgId === undefined ? idleList : issueListAtom(listKey);
   const list = useAtomValue(listAtom);
   const refresh = useAtomRefresh(listAtom);
-  const all = useAtomValue(issueListAtom(`${org}|{}`));
-  const assigned = useAtomValue(issueCountAtom(`${org}|assignedCount`));
-  const mentions = useAtomValue(issueCountAtom(`${org}|mentionCount`));
+  const all: AsyncResult.AsyncResult<IssueListValue, unknown> = useAtomValue(
+    orgId === undefined ? idleList : issueListAtom(`${org}|{}`),
+  );
+  const assigned = useAtomValue(
+    orgId === undefined ? idleCount : issueCountAtom(`${org}|assignedCount`),
+  );
+  const mentions = useAtomValue(
+    orgId === undefined ? idleCount : issueCountAtom(`${org}|mentionCount`),
+  );
   const currentUser = useAtomValue(currentUserAtom);
-  const projects = useAtomValue(projectsAtom(org));
-  const statesAtomInstance = issueStatesAtom(org);
+  const projects: AsyncResult.AsyncResult<readonly Project[], unknown> =
+    useAtomValue(orgId === undefined ? idleProjects : projectsAtom(orgId));
+  const statesAtomInstance: Atom.Atom<
+    AsyncResult.AsyncResult<unknown, unknown>
+  > = orgId === undefined ? idleStates : issueStatesAtom(orgId);
   const statesResult = useAtomValue(statesAtomInstance);
   const refreshStates = useAtomRefresh(statesAtomInstance);
   const statesFailed = AsyncResult.isFailure(statesResult);

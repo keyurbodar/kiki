@@ -7,7 +7,12 @@ import {
   MENU_MESSAGE,
 } from "@/components/composer/menu-surface";
 import type { OrgId } from "@/data/api/schemas/ids";
-import type { ThreadTagColor } from "@/data/api/schemas/threadOrganization";
+import type {
+  ThreadFolder,
+  ThreadTag,
+  ThreadTagColor,
+} from "@/data/api/schemas/threadOrganization";
+import { idleAtom } from "@/data/atoms/idle";
 import { foldersAtom, tagsAtom } from "@/data/atoms/threadOrganization";
 import { Icon } from "@/primitives/icon";
 import { MenuSearchRow, menuSearchInputClassName } from "@/primitives/menu";
@@ -61,8 +66,8 @@ const tagSwatch: Record<ThreadTagColor, string> = {
   lime: "bg-lime",
 };
 
-/** The atom family reads nothing for an empty id, so the call site can omit the org. */
-const noOrgId = "" as OrgId;
+const idleFolders = idleAtom<ReadonlyArray<ThreadFolder>>();
+const idleTags = idleAtom<ReadonlyArray<ThreadTag>>();
 
 const keepTypeaheadOut = (event: {
   key: string;
@@ -91,7 +96,7 @@ export function OrganizeMenuItems({
   onChange,
 }: OrganizeMenuItemsProps) {
   const folders = AsyncResult.getOrElse(
-    useAtomValue(foldersAtom(orgId ?? noOrgId)),
+    useAtomValue(orgId === undefined ? idleFolders : foldersAtom(orgId)),
     () => [],
   ).filter(
     (folder) =>
@@ -100,7 +105,7 @@ export function OrganizeMenuItems({
       !folder.hidden,
   );
   const tags = AsyncResult.getOrElse(
-    useAtomValue(tagsAtom(orgId ?? noOrgId)),
+    useAtomValue(orgId === undefined ? idleTags : tagsAtom(orgId)),
     () => [],
   ).filter((tag) => !tag.deleted);
   const [folderQuery, setFolderQuery] = useState("");
