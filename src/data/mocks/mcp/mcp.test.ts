@@ -154,6 +154,56 @@ describe("mcp mock", () => {
     }),
   );
 
+  it.effect("records a test on the row the page reads", () =>
+    Effect.gen(function* () {
+      const registry = Registry.make();
+      registry.mount(serversAtom as any)();
+      const before = yield* read<
+        ReadonlyArray<Server & { lastCheckedAt: string | null }>
+      >(registry, serversAtom);
+      assert.isNull(
+        before.find((row) => row.id === "mcp_sample_untested")?.lastCheckedAt,
+      );
+
+      registry.set(testServer, {
+        params: { orgId, serverId: "mcp_sample_untested" },
+        payload: {},
+        reactivityKeys: [key],
+      });
+      const diagnosis = (yield* Registry.getResult(
+        registry,
+        testServer as any,
+        { suspendOnWaiting: true },
+      )) as unknown as { passed: ReadonlyArray<string> };
+
+      const after = yield* read<
+        ReadonlyArray<Server & { lastCheckedAt: string | null }>
+      >(registry, serversAtom);
+      // A test that ran is a check, so the refetch the page does has to carry it.
+      assert.isNotNull(
+        after.find((row) => row.id === "mcp_sample_untested")?.lastCheckedAt,
+      );
+      // An authenticated server reports the stages it actually went through.
+      assert.deepStrictEqual(diagnosis.passed, ["connect", "protocol", "list"]);
+
+      registry.set(testServer, {
+        params: { orgId, serverId: "mcp_sample_docs" },
+        payload: {},
+        reactivityKeys: [key],
+      });
+      const authed = (yield* Registry.getResult(registry, testServer as any, {
+        suspendOnWaiting: true,
+      })) as unknown as { passed: ReadonlyArray<string> };
+      assert.deepStrictEqual(authed.passed, [
+        "connect",
+        "auth",
+        "permissions",
+        "protocol",
+        "list",
+      ]);
+    }),
+  );
+
   it.effect("creates, completes and retries a setup", () =>
     Effect.gen(function* () {
       const registry = Registry.make();
