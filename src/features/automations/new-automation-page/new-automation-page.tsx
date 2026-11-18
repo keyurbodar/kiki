@@ -37,7 +37,7 @@ import {
   withRunAs,
 } from "../automation-editor/model";
 import { chevronClass } from "../automation-editor/parts";
-import { useMachineUsage } from "../automation-editor/use-machine-usage";
+import { useMachineUsage } from "@/components/machine-usage";
 import { resultValue, useOrgId } from "../automation-editor/use-org";
 import { useViewer, type Viewer } from "../automations-list";
 import { OwnerSelect } from "../owner-select";

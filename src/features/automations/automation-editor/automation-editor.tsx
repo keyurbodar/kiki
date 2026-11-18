@@ -4,6 +4,7 @@ import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
 import { toast } from "sonner";
 import { AppTopBar } from "@/components/app-top-bar";
+import { useMachineUsage } from "@/components/machine-usage";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { Project } from "@/data/api/schemas/project";
 import { projectKey, projectSetupAtom } from "@/data/atoms/project-settings";
@@ -76,7 +77,6 @@ import {
   PersonAvatar,
 } from "./parts";
 import { readAutomation } from "./read";
-import { useMachineUsage } from "./use-machine-usage";
 import { resultValue, useOrgId } from "./use-org";
 
 export const errorMessage = (error: unknown, fallback: string) =>

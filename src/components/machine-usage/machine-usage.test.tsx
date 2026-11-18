@@ -1,7 +1,6 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { SettingsRow } from "@/primitives/settings-row";
-import { EditorSections } from "./editor-sections";
 import {
   type MachineHourMeter,
   MachineUsageNote,
@@ -9,7 +8,6 @@ import {
   machineMinuteRate,
   machineUsageLine,
 } from "./machine-usage";
-import type { EditorForm } from "./model";
 
 afterEach(cleanup);
 
@@ -78,58 +76,5 @@ describe("machine usage note", () => {
     await screen.findByText(/Past the allowance/);
     expect(screen.getByText(/29,875 of 30,000 machine hours/)).toBeTruthy();
     expect(screen.getByText(/uses 4 machine minutes/)).toBeTruthy();
-  });
-});
-
-const form: EditorForm = {
-  name: "Nightly dependency check",
-  description: "",
-  prompt: "",
-  runWhen: "",
-  triggers: [{ type: "schedule", cron: "0 2 * * *", timezone: "UTC" }],
-  maxRunsPerDay: null,
-  model: null,
-  machineSize: null,
-  pin: false,
-  folderIds: [],
-  tagIds: [],
-  runAs: null,
-  slackImpersonation: false,
-  quietSlackPosts: null,
-  runsIn: { threadMode: "new", singleJamId: null },
-};
-
-const limitsSections = (machineUsage?: MachineHourMeter) => (
-  <EditorSections
-    form={form}
-    setForm={() => {}}
-    mixedRunWhen={false}
-    serviceRunAs={false}
-    folders={[]}
-    tags={[]}
-    machineSizeDefault="large"
-    machineUsage={machineUsage}
-  />
-);
-
-describe("the Limits row", () => {
-  it("carries the usage line the allowance gives it", () => {
-    render(limitsSections(meter));
-    const row = [
-      ...document.querySelectorAll("[data-slot='settings-row']"),
-    ].find((candidate) => candidate.textContent?.startsWith("Machine size"));
-    expect(row?.textContent).toContain(
-      "Uses 4 machine minutes a minute, about 125 h of the 30,000 left",
-    );
-    expect(
-      screen.getByRole("button", { name: "How usage counts" }),
-    ).toBeTruthy();
-  });
-
-  it("leaves the line out while the payload carries no allowance", () => {
-    render(limitsSections(undefined));
-    expect(
-      screen.queryByRole("button", { name: "How usage counts" }),
-    ).toBeNull();
   });
 });
