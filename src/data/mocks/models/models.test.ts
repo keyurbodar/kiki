@@ -58,8 +58,6 @@ const settingsAtom = ApiClient.query("models", "getSettings", {
 });
 
 const rows = (value: unknown) => value as ReadonlyArray<unknown>;
-const credentials = (value: unknown) =>
-  (value as { credentials: ReadonlyArray<Credential> }).credentials;
 const connections = (value: unknown) => value as ReadonlyArray<Connection>;
 const compactRows = (value: unknown) => value as ReadonlyArray<CompactAt>;
 const setting = (value: unknown) => value as Record<string, unknown>;
@@ -78,15 +76,13 @@ describe("models mock", () => {
           AtomRegistry.getResult(registry, settingsAtom),
         ]);
 
-      const listed = list as { models: ReadonlyArray<{ id: string }> };
-      const ids = listed.models.map((model) => model.id);
+      const ids = rows(list).map((model) => (model as { id: string }).id);
       assert.deepStrictEqual(
         ids.slice(0, world.models.length),
         world.models.map((model) => model.id),
       );
       assert.include(ids, defaultModelId);
-      assert.isAbove(credentials(list).length, 0);
-      assert.isTrue(credentials(list).every((row) => row.id.length > 0));
+      assert.isAbove(ids.length, world.models.length);
       assert.isAbove(compactRows(myCompact).length, 0);
       assert.isAbove(compactRows(orgCompact).length, 0);
       assert.isAbove(connections(connectionsList).length, 0);
@@ -126,12 +122,6 @@ describe("models mock", () => {
       )) as Credential;
       assert.equal(created.name, "Extra workspace");
 
-      const afterCreate = yield* AtomRegistry.getResult(registry, listAtom, {
-        suspendOnWaiting: true,
-      });
-      assert.isTrue(
-        credentials(afterCreate).some((row) => row.id === created.id),
-      );
       const afterCreateConnections = yield* AtomRegistry.getResult(
         registry,
         connectionsAtom,
@@ -174,11 +164,13 @@ describe("models mock", () => {
         reactivityKeys: [key],
       });
       yield* AtomRegistry.getResult(registry, remove);
-      const afterRemove = yield* AtomRegistry.getResult(registry, listAtom, {
-        suspendOnWaiting: true,
-      });
+      const afterRemove = yield* AtomRegistry.getResult(
+        registry,
+        connectionsAtom,
+        { suspendOnWaiting: true },
+      );
       assert.isFalse(
-        credentials(afterRemove).some((row) => row.id === created.id),
+        connections(afterRemove).some((row) => row.credentialId === created.id),
       );
     }),
   );
@@ -407,8 +399,8 @@ describe("models mock", () => {
         ),
       );
       assert.isAbove(discovered.length, 0);
-      const afterDisconnect = credentials(
-        yield* AtomRegistry.getResult(registry, listAtom, {
+      const afterDisconnect = connections(
+        yield* AtomRegistry.getResult(registry, connectionsAtom, {
           suspendOnWaiting: true,
         }),
       );

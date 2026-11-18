@@ -53,14 +53,9 @@ export function toSelection(value: ModelSelection | null): unknown {
   };
 }
 
+/** The catalog rows: `/models` serves a bare array of them. */
 export function extractCatalog(value: unknown): ReadonlyArray<ModelEntry> {
-  const rows = Array.isArray(value)
-    ? value
-    : typeof value === "object" &&
-        value !== null &&
-        Array.isArray((value as { entries?: unknown }).entries)
-      ? (value as { entries: unknown[] }).entries
-      : [];
+  const rows = Array.isArray(value) ? value : [];
   return rows.flatMap((row) => {
     if (typeof row !== "object" || row === null) return [];
     const item = row as Record<string, unknown>;
