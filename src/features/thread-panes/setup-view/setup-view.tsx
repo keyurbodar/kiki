@@ -2,6 +2,7 @@ import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { FailedRead } from "@/components/failed-read";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { organizationsAtom } from "@/data/atoms/session";
 import {
@@ -25,7 +26,6 @@ import {
   threadChanges,
 } from "./logic";
 import {
-  emptySetup,
   parseSetup,
   parseSetupVersions,
   parseSnapshotBuild,
@@ -114,11 +114,24 @@ type ConnectedProps = {
 
 function ThreadSetup(props: ConnectedProps) {
   const thread = useAtomValue(threadDetailAtom(props.orgId, props.threadId));
+  const refresh = useAtomRefresh(threadDetailAtom(props.orgId, props.threadId));
   if (AsyncResult.isInitial(thread)) return <SetupSkeleton />;
-  const projectId = AsyncResult.isSuccess(thread)
-    ? parseThreadProjectId(thread.value)
-    : null;
-  return <ProjectSetupView {...props} projectId={projectId} />;
+  // A failed read is not a thread without a project: say which one happened.
+  if (AsyncResult.isFailure(thread))
+    return (
+      <FailedRead
+        slot="setup-load-failed"
+        line="Couldn't load Setup"
+        sub="This thread's project did not load"
+        onRetry={refresh}
+      />
+    );
+  return (
+    <ProjectSetupView
+      {...props}
+      projectId={parseThreadProjectId(thread.value)}
+    />
+  );
 }
 
 function ProjectSetupView({
@@ -181,9 +194,17 @@ function SetupBodyConnected({
   const now = useNow(SETUP_POLL_INTERVAL);
 
   if (AsyncResult.isInitial(setupResult)) return <SetupSkeleton />;
-  const setup = AsyncResult.isSuccess(setupResult)
-    ? parseSetup(setupResult.value)
-    : emptySetup;
+  // An unreadable Setup is not a project with nothing configured.
+  if (AsyncResult.isFailure(setupResult))
+    return (
+      <FailedRead
+        slot="setup-load-failed"
+        line="Couldn't load this project's Setup"
+        sub="Its scripts and versions did not load"
+        onRetry={refreshSetup}
+      />
+    );
+  const setup = parseSetup(setupResult.value);
   const config = AsyncResult.isSuccess(configResult)
     ? parseSnapshotConfig(configResult.value)
     : undefined;
