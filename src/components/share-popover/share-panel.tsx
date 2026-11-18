@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 import { Button, ButtonIcon } from "@/primitives/button";
-import { SkeletonPanel } from "@/primitives/skeleton-panel";
+import { Skeleton } from "@/primitives/skeleton";
 import { CheckmarkIcon, CopyIcon, TrashCanIcon } from "./icons";
 import {
   SHARE_VISIBILITIES,
@@ -30,6 +30,18 @@ export const shareDescription = (
     : `${share.createdBy ?? "Another member"} controls who can open it`;
 
 export const displayShareUrl = (url: string) => url.replace(/^https?:\/\//, "");
+
+/**
+ * The shape skullet draws while the link is being created: one line of URL at
+ * the row's own height, so the real link lands without moving anything.
+ */
+const sampleShare: ShareLink = {
+  id: "share_sample",
+  url: "https://capy.ai/s/example-shared-link",
+  visibility: "public",
+  createdBy: null,
+  manageable: true,
+};
 
 export function SharePanel({
   share,
@@ -70,43 +82,29 @@ export function SharePanel({
           retryable ? "pr-1" : "pr-2.5",
         )}
       >
-        {share === undefined ? (
-          failed === undefined ? (
-            <SkeletonPanel className="flex min-w-0 flex-1 items-center">
-              <div
-                role="status"
-                aria-live="polite"
-                aria-busy="true"
-                className="sr-only"
+        {failed === undefined ? (
+          <Skeleton
+            data={share}
+            sample={sampleShare}
+            id="share-panel-link"
+            label="Creating link"
+            className="flex min-w-0 flex-1 items-center"
+          >
+            {(live) => (
+              <span
+                title={live.url}
+                className="min-w-0 flex-1 truncate text-xs font-normal text-muted-foreground-1"
               >
-                Creating link
-              </div>
-              <div
-                aria-hidden
-                className="shimmer-surface shimmer-surface-motion-safe h-3 w-48 rounded"
-                style={
-                  {
-                    "--shimmer-surface-base": "var(--secondary)",
-                    "--shimmer-surface-gradient":
-                      "var(--gradient-skeleton-darker)",
-                  } as React.CSSProperties
-                }
-              />
-            </SkeletonPanel>
-          ) : (
-            <span
-              role="alert"
-              className="min-w-0 flex-1 truncate text-xs font-normal text-muted-foreground-2"
-            >
-              {failed}
-            </span>
-          )
+                {displayShareUrl(live.url)}
+              </span>
+            )}
+          </Skeleton>
         ) : (
           <span
-            title={share.url}
-            className="min-w-0 flex-1 truncate text-xs font-normal text-muted-foreground-1"
+            role="alert"
+            className="min-w-0 flex-1 truncate text-xs font-normal text-muted-foreground-2"
           >
-            {displayShareUrl(share.url)}
+            {failed}
           </span>
         )}
         {retryable && (

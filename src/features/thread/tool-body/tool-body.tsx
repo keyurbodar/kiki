@@ -1,6 +1,7 @@
 import { FileChip } from "@/components/markdown-chips";
 import type { ActivityRow } from "@/data/events";
 import { DiffBodyCard } from "@/features/thread/diff-body";
+import { cleanOutput } from "./clean";
 import { EXPANDABLE_PATCH_LINES, patchForTool, patchPath } from "./patch";
 
 type ToolRow = Extract<typeof ActivityRow.Type, { kind: "tool" }>;
@@ -144,7 +145,9 @@ export function ToolBody({ row }: ToolBodyProps) {
     );
   const command =
     field(row.args, "command") ?? field(row.call?.input, "command");
-  const output = TERMINAL_TOOLS.has(row.toolName) ? "" : resultText(row);
+  const { text: output, trimmed } = cleanOutput(
+    TERMINAL_TOOLS.has(row.toolName) ? "" : resultText(row),
+  );
   const files = resultFiles(row);
   const unknown = hasUnknownBlocks(row);
   const status = statusOf(row);
@@ -165,6 +168,11 @@ export function ToolBody({ row }: ToolBodyProps) {
                 {command}
               </span>
             </div>
+          )}
+          {trimmed > 0 && (
+            <p className="text-sm text-muted-foreground-3">
+              {trimmed} earlier {trimmed === 1 ? "line" : "lines"} trimmed
+            </p>
           )}
           {output !== "" && (
             <pre className="min-w-0 break-words whitespace-pre-wrap text-muted-foreground-1">

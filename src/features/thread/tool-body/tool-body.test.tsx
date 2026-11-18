@@ -258,3 +258,46 @@ it("shows a terminal call's command head and outcome without its output", () => 
   expect(container.textContent).toContain("exit 0");
   expect(container.textContent).not.toContain("seeded 40 rows");
 });
+
+it("renders a coloured, carriage-returned output as the terminal would", () => {
+  const { container } = render(
+    <ToolBody
+      row={toolRow({
+        args: { command: "bun test" },
+        result: {
+          blocks: [
+            {
+              type: "text",
+              text: "\u001b[32mPASS\u001b[0m suite\n10%\r55%\r100%\n\ttabbed",
+            },
+          ],
+          isError: false,
+          settledAt: at(2_400),
+        },
+      })}
+    />,
+  );
+  const output = container.querySelector("pre")?.textContent ?? "";
+  expect(output).toBe("PASS suite\n100%\n        tabbed");
+  expect(output).not.toContain("\u001b");
+  expect(output).not.toContain("\r");
+});
+
+it("says how many earlier lines a long output dropped", () => {
+  const log = Array.from({ length: 450 }, (_, i) => `line ${i}`).join("\n");
+  const { container } = render(
+    <ToolBody
+      row={toolRow({
+        result: {
+          blocks: [{ type: "text", text: log }],
+          isError: false,
+          settledAt: at(2_400),
+        },
+      })}
+    />,
+  );
+  expect(container.textContent).toContain("50 earlier lines trimmed");
+  expect(
+    container.querySelector("pre")?.textContent?.startsWith("line 50"),
+  ).toBe(true);
+});

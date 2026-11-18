@@ -11,6 +11,7 @@ import {
 import { quoteTargetOf } from "./quote-target";
 import { AGENT_SOURCE, type SelectionAnchor } from "./selection-anchor";
 import { useMessageSelection } from "./use-message-selection";
+import { useQuoteHighlight } from "./use-quote-highlight";
 
 export type QuoteSelectionLayerProps = {
   /** The timeline viewport the selection has to start inside. */
@@ -41,6 +42,7 @@ export function QuoteSelectionLayer({
 }: QuoteSelectionLayerProps) {
   const { selection, box, openBox, closeBox, dismiss } =
     useMessageSelection(container);
+  useQuoteHighlight(box?.anchor.range ?? null);
 
   const submit = (payload: ComposerPayload) => {
     if (box === null) return false;
