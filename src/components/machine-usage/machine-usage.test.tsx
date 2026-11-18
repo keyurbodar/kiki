@@ -4,6 +4,7 @@ import { SettingsRow } from "@/primitives/settings-row";
 import {
   type MachineHourMeter,
   MachineUsageNote,
+  MachineUsagePanel,
   machineHoursLeft,
   machineMinuteRate,
   machineUsageLine,
@@ -68,13 +69,31 @@ describe("machine usage note", () => {
     expect(description?.childNodes).toHaveLength(2);
   });
 
-  it("opens How usage counts", async () => {
+  it("opens How usage counts onto Capy's panel", async () => {
     renderRow();
     const trigger = screen.getByRole("button", { name: "How usage counts" });
     expect(trigger.dataset.slot).toBe("popover-trigger");
     fireEvent.click(trigger);
-    await screen.findByText(/Past the allowance/);
-    expect(screen.getByText(/29,875 of 30,000 machine hours/)).toBeTruthy();
-    expect(screen.getByText(/uses 4 machine minutes/)).toBeTruthy();
+    await screen.findByText("Machine hours");
+    expect(screen.getByText("Per hour")).toBeTruthy();
+    expect(screen.getByText("Hours left")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Past the included amount, work is paid from your usage balance",
+      ),
+    ).toBeTruthy();
+    expect(screen.getByText("125 h")).toBeTruthy();
+    expect(screen.getByText("31 h")).toBeTruthy();
+  });
+
+  it("derives every panel number from the meter", () => {
+    render(
+      <MachineUsagePanel
+        meter={{ allowance: 30000, consumed: 29900 }}
+        defaultSize="large"
+      />,
+    );
+    expect(screen.getByText("25 h")).toBeTruthy();
+    expect(screen.getByText("Default")).toBeTruthy();
   });
 });
