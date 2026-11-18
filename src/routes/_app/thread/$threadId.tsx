@@ -19,7 +19,8 @@ import { ThreadCostBadge } from "@/features/thread/cost-badge";
 import type { EditTarget } from "@/features/thread/message-footer";
 import {
   activeTabId,
-  paneTabs,
+  dockTabs,
+  mainTabs,
   ThreadHeader,
   type ThreadTakeoverHandlers,
   ThreadView,
@@ -32,7 +33,11 @@ import {
 import { useSideThreads } from "@/features/thread-panes/side-threads";
 import { tabKey } from "@/features/thread-panes/tab-strip";
 import { ThreadDock } from "@/features/thread-panes/thread-dock";
-import { findPane, keepsPaneParam } from "@/features/thread-panes/thread-pane";
+import {
+  findPane,
+  keepsPaneParam,
+  surfaceOf,
+} from "@/features/thread-panes/thread-pane";
 import { searchParams } from "@/lib/search-params";
 
 export const Route = createFileRoute("/_app/thread/$threadId")({
@@ -106,12 +111,20 @@ export function ThreadRoute({
       editing={editing}
       onEditMessage={startEdit}
       onCancelEdit={stopEdit}
+      mainPane={
+        entry !== undefined && surfaceOf(entry) === "main" ? (
+          <entry.component threadId={threadId} />
+        ) : undefined
+      }
       dock={
-        entry && (
+        entry !== undefined &&
+        surfaceOf(entry) === "dock" && (
           <ThreadDock
             threadId={threadId}
-            tabs={paneTabs()}
-            activeId={activeId}
+            tabs={dockTabs()}
+            activeId={
+              entry !== undefined && surfaceOf(entry) === "dock" ? activeId : ""
+            }
             title={thread?.title ?? "Untitled thread"}
             menu={{ sideThreads }}
             expanded={expanded}
@@ -139,7 +152,7 @@ export function ThreadRoute({
           threadId={threadId}
           title={thread?.title ?? "Untitled thread"}
           working={thread?.status === "working"}
-          tabs={[]}
+          tabs={mainTabs()}
           activeId={activeId}
           menu={{ sideThreads }}
           cost={

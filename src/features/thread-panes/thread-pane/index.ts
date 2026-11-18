@@ -1,13 +1,17 @@
 export {
   collectPanes,
   definePane,
+  dockPanes,
   findPane,
   isRetiredPane,
   keepsPaneParam,
+  mainPanes,
   type PaneEntry,
   type PaneProps,
+  type PaneSurface,
   panes,
   parameterisedPaneParams,
   retiredPaneIds,
+  surfaceOf,
   writtenPaneParams,
 } from "./registry";

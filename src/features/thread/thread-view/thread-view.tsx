@@ -84,6 +84,8 @@ export type ThreadViewProps = {
   topBar?: ReactNode;
   /** The right dock: omitted leaves the thread on its chat, as Capy does. */
   dock?: ReactNode;
+  /** A pane the chat column's strip opened: it replaces the transcript. */
+  mainPane?: ReactNode;
   /** Hides the chat column so the open pane fills the panel. */
   paneExpanded?: boolean;
   /** Replaces the composer when no request is waiting on an answer. */
@@ -251,6 +253,7 @@ export function ThreadView({
   pendingEnvironment,
   topBar,
   dock,
+  mainPane,
   paneExpanded = false,
   composer,
   editing,
@@ -343,82 +346,84 @@ export function ThreadView({
             )}
           >
             {header}
-            <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
-              <div className="relative min-h-0 flex-1">
-                <JamChat
-                  jamId={threadId}
-                  rows={rows}
-                  initialLoading={loading}
-                  onStartReached={hasOlder ? onLoadOlder : undefined}
-                  header={
-                    loadingOlder ? (
-                      <p
-                        data-slot="chat-loading-older"
-                        className="py-2 text-center text-xs text-muted-foreground-2"
-                      >
-                        Loading older messages
-                      </p>
-                    ) : undefined
-                  }
-                />
-                {loading && rows.length === 0 && <ChatSkeleton />}
-                {empty && (
-                  <div
-                    data-slot="thread-empty"
-                    className="pointer-events-none absolute inset-0 flex items-center justify-center px-4"
-                  >
-                    <p className="text-sm text-muted-foreground-2">
-                      No messages yet
-                    </p>
-                  </div>
-                )}
-              </div>
-              <div className="min-h-0 px-4 pb-[calc(var(--spacing)+var(--safe-bottom))]">
-                <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col justify-end">
-                  {active === undefined ? (
-                    (composer ?? (
-                      <MessageQueue
-                        rows={noQueuedMessages}
-                        actions={noQueueActions}
-                        editing={
-                          draft === undefined
-                            ? undefined
-                            : { onCancel: cancelEdit }
-                        }
-                      >
-                        <Composer
-                          ref={composerHandle}
-                          onSubmit={submit}
-                          onFilesAdded={attachments.add}
-                          attachments={
-                            <ComposerAttachments attachments={attachments} />
-                          }
-                          hasAttachments={attachments.entries.length > 0}
-                          uploading={attachments.uploading}
-                          defaultValue={
-                            draft === undefined
-                              ? undefined
-                              : { text: draft.text, mentions: [], files: [] }
-                          }
-                          autoFocus={draft !== undefined}
-                        />
-                      </MessageQueue>
-                    ))
-                  ) : (
-                    <ComposerTakeover {...active} />
-                  )}
-                  <ComposerFooter
-                    data-slot="composer-footer"
-                    machine={<MachineTrigger machine={machines} />}
-                    meter={
-                      orgId === undefined ? undefined : (
-                        <ContextMeter orgId={orgId} jamId={threadId} />
-                      )
+            {mainPane ?? (
+              <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+                <div className="relative min-h-0 flex-1">
+                  <JamChat
+                    jamId={threadId}
+                    rows={rows}
+                    initialLoading={loading}
+                    onStartReached={hasOlder ? onLoadOlder : undefined}
+                    header={
+                      loadingOlder ? (
+                        <p
+                          data-slot="chat-loading-older"
+                          className="py-2 text-center text-xs text-muted-foreground-2"
+                        >
+                          Loading older messages
+                        </p>
+                      ) : undefined
                     }
                   />
+                  {loading && rows.length === 0 && <ChatSkeleton />}
+                  {empty && (
+                    <div
+                      data-slot="thread-empty"
+                      className="pointer-events-none absolute inset-0 flex items-center justify-center px-4"
+                    >
+                      <p className="text-sm text-muted-foreground-2">
+                        No messages yet
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <div className="min-h-0 px-4 pb-[calc(var(--spacing)+var(--safe-bottom))]">
+                  <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col justify-end">
+                    {active === undefined ? (
+                      (composer ?? (
+                        <MessageQueue
+                          rows={noQueuedMessages}
+                          actions={noQueueActions}
+                          editing={
+                            draft === undefined
+                              ? undefined
+                              : { onCancel: cancelEdit }
+                          }
+                        >
+                          <Composer
+                            ref={composerHandle}
+                            onSubmit={submit}
+                            onFilesAdded={attachments.add}
+                            attachments={
+                              <ComposerAttachments attachments={attachments} />
+                            }
+                            hasAttachments={attachments.entries.length > 0}
+                            uploading={attachments.uploading}
+                            defaultValue={
+                              draft === undefined
+                                ? undefined
+                                : { text: draft.text, mentions: [], files: [] }
+                            }
+                            autoFocus={draft !== undefined}
+                          />
+                        </MessageQueue>
+                      ))
+                    ) : (
+                      <ComposerTakeover {...active} />
+                    )}
+                    <ComposerFooter
+                      data-slot="composer-footer"
+                      machine={<MachineTrigger machine={machines} />}
+                      meter={
+                        orgId === undefined ? undefined : (
+                          <ContextMeter orgId={orgId} jamId={threadId} />
+                        )
+                      }
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         )}
         {dock !== undefined && (

@@ -3,6 +3,13 @@ import type { ComponentType } from "react";
 export type PaneProps = { threadId: string };
 
 /**
+ * Which of the thread's two strips offers a pane. Capy has both: the chat
+ * column's strip replaces the transcript (`setup`, a browser tab, a terminal),
+ * and the right dock's strip opens the document panes beside it.
+ */
+export type PaneSurface = "main" | "dock";
+
+/**
  * One tab kind the thread pane can open. `id` is the value of the route's
  * `pane` search param for this kind.
  */
@@ -10,6 +17,8 @@ export type PaneEntry = {
   id: string;
   label: string;
   order: number;
+  /** Defaults to the dock, where the document panes live. */
+  surface?: PaneSurface;
   component: ComponentType<PaneProps>;
 };
 
@@ -37,6 +46,15 @@ const modules = import.meta.glob<{ entry: PaneEntry }>("./entries/*.tsx", {
 export const panes = collectPanes(
   Object.values(modules).map((module) => module.entry),
 );
+
+export const surfaceOf = (pane: PaneEntry): PaneSurface =>
+  pane.surface ?? "dock";
+
+/** The panes the chat column's strip offers; they replace the transcript. */
+export const mainPanes = panes.filter((pane) => surfaceOf(pane) === "main");
+
+/** The panes the right dock's strip offers. */
+export const dockPanes = panes.filter((pane) => surfaceOf(pane) === "dock");
 
 export function findPane(id: string | undefined): PaneEntry | undefined {
   return panes.find((pane) => pane.id === id);
