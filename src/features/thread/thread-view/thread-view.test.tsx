@@ -33,6 +33,8 @@ const timeline = (overrides: Partial<ThreadTimeline> = {}): ThreadTimeline => ({
   turnOpen: false,
   live: { phase: "idle" } as ThreadTimeline["live"],
   loading: false,
+  failed: false,
+  retry: () => undefined,
   loadingOlder: false,
   hasOlder: false,
   loadOlder: () => undefined,
@@ -162,6 +164,19 @@ describe("thread view composer slot", () => {
     const { container } = renderRoute(timeline({ loading: true }));
     expect(slot(container, "skeleton-panel")).not.toBeNull();
     expect(slot(container, "thread-empty")).toBeNull();
+  });
+
+  it("shows Capy's failure state instead of a skeleton when the read fails", () => {
+    const retry = vi.fn();
+    const { container, getByRole, getByText } = renderRoute(
+      timeline({ failed: true, retry }),
+    );
+    expect(slot(container, "thread-load-failed")).not.toBeNull();
+    expect(slot(container, "skeleton-panel")).toBeNull();
+    expect(slot(container, "thread-empty")).toBeNull();
+    expect(getByText("Couldn't load this conversation")).toBeDefined();
+    fireEvent.click(getByRole("button", { name: "Retry" }));
+    expect(retry).toHaveBeenCalledTimes(1);
   });
 
   it("shows the empty state once a thread with no rows has loaded", () => {

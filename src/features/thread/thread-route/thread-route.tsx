@@ -5,12 +5,13 @@ import { AsyncResult } from "effect/reactivity";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { copyText } from "@/components/file-view/copy";
 import type { EventId, JamId, OrgId } from "@/data/api/schemas/ids";
+import { captainsAtom, idleCaptainsAtom } from "@/data/atoms/captains";
 import {
   organizationsAtom,
   resolveActiveOrgId,
   selectedOrgIdAtom,
 } from "@/data/atoms/session";
-import { threadsAtom } from "@/data/atoms/threads";
+import { idleThreadPageAtom, threadsAtom } from "@/data/atoms/threads";
 import {
   MobileThreadScreen,
   useIsPhoneSurface,
@@ -61,7 +62,10 @@ export function ThreadRoute({
     organizations,
     useAtomValue(selectedOrgIdAtom),
   );
-  const timeline = useThreadTimeline((orgId ?? "") as OrgId, threadId as JamId);
+  const timeline = useThreadTimeline(
+    orgId as OrgId | undefined,
+    threadId as JamId,
+  );
   const editKey = threadKey((orgId ?? "") as OrgId, threadId as JamId);
   const editing = useAtomValue(editDraftAtom(editKey));
   const setEditing = useAtomSet(editDraftAtom(editKey));
@@ -78,9 +82,26 @@ export function ThreadRoute({
       setEditing(null);
   }, [editing, setEditing, timeline.rows]);
   const listed = Option.getOrUndefined(
-    AsyncResult.value(useAtomValue(threadsAtom((orgId ?? "") as OrgId))),
+    AsyncResult.value(
+      useAtomValue(
+        orgId === undefined ? idleThreadPageAtom : threadsAtom(orgId as OrgId),
+      ),
+    ),
   );
   const thread = listed?.items.find((card) => card.id === threadId);
+  // A Captain is a thread the jams list does not carry: the sidebar and
+  // /threads read its card from the Captain list, so this route does too.
+  const captains =
+    Option.getOrUndefined(
+      AsyncResult.value(
+        useAtomValue(
+          orgId === undefined ? idleCaptainsAtom : captainsAtom(orgId as OrgId),
+        ),
+      ),
+    ) ?? [];
+  const captain = captains.find((card) => card.id === threadId);
+  const title = thread?.title ?? captain?.title ?? "Untitled thread";
+  const working = (thread?.status ?? captain?.status) === "working";
   const handlers = useMemo<ThreadTakeoverHandlers>(
     () => ({
       orgId,
@@ -92,6 +113,10 @@ export function ThreadRoute({
   const [expanded, setExpanded] = useState(false);
   const sideThreads = useSideThreads(orgId ?? "", threadId);
   const entry = findPane(pane);
+  const dockOpen = entry !== undefined && surfaceOf(entry) === "dock";
+  useEffect(() => {
+    if (!dockOpen) setExpanded(false);
+  }, [dockOpen]);
   const session = entry === undefined ? parseSessionPane(pane) : undefined;
   const activeId = activeTabId(entry);
   const mainPane =
@@ -109,6 +134,8 @@ export function ThreadRoute({
       threadId={threadId}
       rows={timeline.rows}
       loading={timeline.loading}
+      failed={timeline.failed}
+      onRetry={timeline.retry}
       loadingOlder={timeline.loadingOlder}
       hasOlder={timeline.hasOlder}
       onLoadOlder={timeline.loadOlder}
@@ -121,12 +148,12 @@ export function ThreadRoute({
       onCancelEdit={stopEdit}
       mainPane={mainPane}
       dock={
-        entry !== undefined && surfaceOf(entry) === "dock" ? (
+        dockOpen ? (
           <ThreadDock
             threadId={threadId}
             tabs={openTabs(entry)}
             activeId={activeId}
-            title={thread?.title ?? "Untitled thread"}
+            title={title}
             menu={{ sideThreads }}
             expanded={expanded}
             onSelectTab={(id) => onSelectPane?.(id)}
@@ -151,8 +178,8 @@ export function ThreadRoute({
       topBar={
         <ThreadHeader
           threadId={threadId}
-          title={thread?.title ?? "Untitled thread"}
-          working={thread?.status === "working"}
+          title={title}
+          working={working}
           tabs={
             entry !== undefined && surfaceOf(entry) === "main"
               ? openTabs(entry)

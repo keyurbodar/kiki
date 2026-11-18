@@ -1,7 +1,13 @@
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 import { makeThreadFixtures } from "@/data/events";
-import { decodeEventPage, emptyFeed, historyLoaded } from "./feed";
+import {
+  decodeEventPage,
+  emptyFeed,
+  historyFailed,
+  historyLoaded,
+  historyPending,
+} from "./feed";
 
 const { events, jamId } = makeThreadFixtures();
 const [first, second] = events;
@@ -47,5 +53,27 @@ describe("decodeEventPage", () => {
     const feed = historyLoaded(emptyFeed, page);
     expect(feed.loading).toBe(false);
     expect(feed.events).toHaveLength(1);
+  });
+});
+
+describe("a history read that fails", () => {
+  it("stops loading and marks the feed failed", () => {
+    const feed = historyFailed(emptyFeed);
+    expect(feed.failed).toBe(true);
+    expect(feed.loading).toBe(false);
+  });
+
+  it("clears the failure once a page lands", () => {
+    const page = decode({ items: [first], cursor: null });
+    const feed = historyLoaded(historyFailed(emptyFeed), page);
+    expect(feed.failed).toBe(false);
+    expect(feed.loading).toBe(false);
+    expect(feed.events).toHaveLength(1);
+  });
+
+  it("puts a retry back on the skeleton", () => {
+    const feed = historyPending(historyFailed(emptyFeed));
+    expect(feed.failed).toBe(false);
+    expect(feed.loading).toBe(true);
   });
 });

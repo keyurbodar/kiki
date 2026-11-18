@@ -4,6 +4,7 @@ import type { OrgId, ProjectId } from "../api/schemas/ids.ts";
 import type { ThreadCard, ThreadCardPage } from "../api/schemas/thread.ts";
 import { ApiClient } from "../client/ApiClient.ts";
 import { queryTimeToLive, reactivityKeys } from "./conventions.ts";
+import { idleAtom } from "./idle.ts";
 
 export const threadListKey = (orgId: OrgId, projectId?: ProjectId) =>
   projectId === undefined ? orgId : `${orgId}/${projectId}`;
@@ -20,6 +21,9 @@ const threadsQuery = Atom.family((key: string) => {
 
 export const threadsAtom = (orgId: OrgId, projectId?: ProjectId) =>
   threadsQuery(threadListKey(orgId, projectId));
+
+/** The thread list while the org is unknown, so nothing requests a placeholder org. */
+export const idleThreadPageAtom = idleAtom<ThreadCardPage>();
 
 export type AllThreadsOptions = {
   readonly archived: boolean;
