@@ -2,7 +2,7 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { copyText } from "@/components/file-view/copy";
 import type { EventId, JamId, OrgId } from "@/data/api/schemas/ids";
 import {
@@ -103,7 +103,9 @@ export function ThreadRoute({
   const activeId = activeTabId(entry);
   const mainPane =
     entry !== undefined && surfaceOf(entry) === "main" ? (
-      <entry.component threadId={threadId} />
+      <Suspense fallback={null}>
+        <entry.component threadId={threadId} />
+      </Suspense>
     ) : session?.kind === "browser" ? (
       <BrowserPane threadId={threadId} sessionId={session.sessionId} />
     ) : session?.kind === "shell" ? (
@@ -151,7 +153,9 @@ export function ThreadRoute({
               )
             }
           >
-            <entry.component threadId={threadId} />
+            <Suspense fallback={null}>
+              <entry.component threadId={threadId} />
+            </Suspense>
           </ThreadDock>
         ) : undefined
       }
