@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import {
   type PaneTab,
-  TabStrip,
   type TabMenuOptions,
+  TabStrip,
   tabKey,
   tabLabel,
   tabLink,

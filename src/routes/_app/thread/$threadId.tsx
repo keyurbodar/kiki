@@ -23,10 +23,10 @@ import {
   type ThreadTakeoverHandlers,
   ThreadView,
 } from "@/features/thread/thread-view";
-import { tabKey } from "@/features/thread-panes/tab-strip";
-import { ThreadDock } from "@/features/thread-panes/thread-dock";
 import { useThreadTimeline } from "@/features/thread/timeline";
 import { useSideThreads } from "@/features/thread-panes/side-threads";
+import { tabKey } from "@/features/thread-panes/tab-strip";
+import { ThreadDock } from "@/features/thread-panes/thread-dock";
 import { findPane, keepsPaneParam } from "@/features/thread-panes/thread-pane";
 import { searchParams } from "@/lib/search-params";
 

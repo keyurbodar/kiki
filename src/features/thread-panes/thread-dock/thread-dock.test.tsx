@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { RightPanelGroup } from "@/primitives/right-panel";
 import type { PaneTab } from "@/features/thread-panes/tab-strip";
+import { RightPanelGroup } from "@/primitives/right-panel";
 import { ThreadDock } from "./thread-dock";
 
 afterEach(cleanup);
