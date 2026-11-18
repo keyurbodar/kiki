@@ -11,10 +11,11 @@ import { Button } from "@/primitives/button";
 import { Card, CardListHeader } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
-import { MenuContent, MenuTrigger } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { SettingsRow } from "@/primitives/settings-row";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
@@ -236,7 +237,7 @@ export function SkillsPage() {
             }
             action={
               <ResponsiveMenu>
-                <MenuTrigger
+                <ResponsiveMenuTrigger
                   render={
                     <Button
                       variant="ghost"
@@ -249,7 +250,7 @@ export function SkillsPage() {
                     </Button>
                   }
                 />
-                <MenuContent align="end" className="w-64 max-w-full">
+                <ResponsiveMenuContent align="end" className="w-64 max-w-full">
                   {writable.map((scope) => (
                     <ResponsiveMenuItem
                       key={scope.key}
@@ -262,7 +263,7 @@ export function SkillsPage() {
                       </span>
                     </ResponsiveMenuItem>
                   ))}
-                </MenuContent>
+                </ResponsiveMenuContent>
               </ResponsiveMenu>
             }
           />

@@ -1,17 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
-import {
-  MenuContent,
-  MenuGroup,
-  MenuLabel,
-  MenuSearchRow,
-  MenuSeparator,
-  MenuTrigger,
-} from "@/primitives/menu";
+import { MenuGroup, MenuLabel, MenuSearchRow } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuSeparator,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import {
   destinationLabel,
@@ -50,7 +46,7 @@ export function ImportDestination({
         if (!open) setQuery("");
       }}
     >
-      <MenuTrigger
+      <ResponsiveMenuTrigger
         render={
           <Button
             variant="outline"
@@ -65,8 +61,8 @@ export function ImportDestination({
           {destinationLabel(name, projectId, unresolved)}
         </span>
         <ChevronDown />
-      </MenuTrigger>
-      <MenuContent>
+      </ResponsiveMenuTrigger>
+      <ResponsiveMenuContent>
         <MenuSearchRow>
           <input
             aria-label="Search projects"
@@ -102,12 +98,12 @@ export function ImportDestination({
             ))}
           </MenuGroup>
         ) : null}
-        <MenuSeparator />
+        <ResponsiveMenuSeparator />
         <ResponsiveMenuItem onClick={onCreate}>
           <Icon name="square-plus" />
           Create new project
         </ResponsiveMenuItem>
-      </MenuContent>
+      </ResponsiveMenuContent>
     </ResponsiveMenu>
   );
 }

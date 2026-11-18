@@ -1,9 +1,10 @@
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
-import { MenuContent, MenuTrigger } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { ProjectGlyph, type ScopeProject } from "./project-glyph";
 
@@ -25,7 +26,7 @@ export function ProjectMenu({
 }) {
   return (
     <ResponsiveMenu>
-      <MenuTrigger
+      <ResponsiveMenuTrigger
         render={
           <Button variant="ghost" size="sm" aria-label="Project">
             <ProjectGlyph project={value} className="size-(--icon-sm)" />
@@ -34,7 +35,7 @@ export function ProjectMenu({
           </Button>
         }
       />
-      <MenuContent align="end" className="w-64 max-w-full">
+      <ResponsiveMenuContent align="end" className="w-64 max-w-full">
         {projects.map((project) => (
           <ResponsiveMenuItem
             key={project.id}
@@ -52,7 +53,7 @@ export function ProjectMenu({
             )}
           </ResponsiveMenuItem>
         ))}
-      </MenuContent>
+      </ResponsiveMenuContent>
     </ResponsiveMenu>
   );
 }
