@@ -4,10 +4,11 @@ import { CheckGlyph, FilterGlyph, SearchGlyph } from "@/components/file-home";
 import { Button } from "@/primitives/button";
 import { Input } from "@/primitives/input";
 import { Kbd } from "@/primitives/kbd";
-import { MenuContent, MenuTrigger } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 
@@ -125,7 +126,7 @@ export function FilesBand({
           <TooltipTrigger
             data-track-owner="features/thread/pane/files-view.tsx#FilesBand:TooltipTrigger.1"
             render={
-              <MenuTrigger
+              <ResponsiveMenuTrigger
                 data-track-owner="features/thread/pane/files-view.tsx#FilesBand:ResponsiveMenuTrigger.1"
                 render={
                   <Button
@@ -143,7 +144,7 @@ export function FilesBand({
           </TooltipTrigger>
           <TooltipContent side="bottom">Filter</TooltipContent>
         </Tooltip>
-        <MenuContent align="end" className="w-44">
+        <ResponsiveMenuContent align="end" className="w-44">
           {filterOptions.map(([value, label]) => (
             <ResponsiveMenuItem
               key={value}
@@ -156,7 +157,7 @@ export function FilesBand({
               )}
             </ResponsiveMenuItem>
           ))}
-        </MenuContent>
+        </ResponsiveMenuContent>
       </ResponsiveMenu>
     </div>
   );

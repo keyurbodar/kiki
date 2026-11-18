@@ -1,15 +1,12 @@
 import { useRef } from "react";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
-import {
-  MenuContent,
-  MenuSeparator,
-  MenuTrigger,
-  menuRowVariants,
-} from "@/primitives/menu";
+import { MenuSeparator, menuRowVariants } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { MENU_LABEL, MENU_LEADING, MENU_TRAILING } from "./menu-surface";
 import type { MentionSource } from "./types";
@@ -45,7 +42,7 @@ export function PlusMenu({
   return (
     <>
       <ResponsiveMenu>
-        <MenuTrigger
+        <ResponsiveMenuTrigger
           render={
             <Button
               variant="ghost"
@@ -65,7 +62,10 @@ export function PlusMenu({
             </Button>
           }
         />
-        <MenuContent className="w-max min-w-56 max-w-sm" finalFocus={false}>
+        <ResponsiveMenuContent
+          className="w-max min-w-56 max-w-sm"
+          finalFocus={false}
+        >
           {onNewSideThread !== undefined ? (
             <>
               <ResponsiveMenuItem className={ROW} onClick={onNewSideThread}>
@@ -117,7 +117,7 @@ export function PlusMenu({
               {source.label}
             </ResponsiveMenuItem>
           ))}
-        </MenuContent>
+        </ResponsiveMenuContent>
       </ResponsiveMenu>
       <input
         ref={input}

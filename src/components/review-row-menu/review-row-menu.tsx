@@ -18,10 +18,12 @@ import {
   DialogTitle,
 } from "@/primitives/dialog";
 import { Icon } from "@/primitives/icon";
-import { MenuContent, MenuTrigger } from "@/primitives/menu";
+
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { Textarea } from "@/primitives/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
@@ -94,7 +96,7 @@ export function ReviewRowMenu({
           <TooltipTrigger
             data-track-owner="shared/pull-view/review-row-menu.tsx#ReviewRowMenu:TooltipTrigger.1"
             render={
-              <MenuTrigger
+              <ResponsiveMenuTrigger
                 data-track-owner="shared/pull-view/review-row-menu.tsx#ReviewRowMenu:ResponsiveMenuTrigger.1"
                 render={
                   <Button
@@ -107,12 +109,12 @@ export function ReviewRowMenu({
                 }
               >
                 <DotsHorizontalGlyph />
-              </MenuTrigger>
+              </ResponsiveMenuTrigger>
             }
           />
           <TooltipContent side="top">Review actions</TooltipContent>
         </Tooltip>
-        <MenuContent align="end" className="w-52">
+        <ResponsiveMenuContent align="end" className="w-52">
           {canRerequest && (
             <ResponsiveMenuItem
               data-track-owner="shared/pull-view/review-row-menu.tsx#ReviewRowMenu:ResponsiveMenuItem[Re request review]"
@@ -136,7 +138,7 @@ export function ReviewRowMenu({
               Dismiss review
             </ResponsiveMenuItem>
           )}
-        </MenuContent>
+        </ResponsiveMenuContent>
       </ResponsiveMenu>
       <DismissReviewDialog
         pullId={pull.id}

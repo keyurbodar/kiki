@@ -1,9 +1,10 @@
 import { cn } from "@/lib/cn";
 import { Button } from "@/primitives/button";
-import { MenuContent, MenuTrigger } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { ChevronRightSmallIcon, CrossIcon, DotsHorizontalIcon } from "./icons";
 import { PersonAvatar } from "./person-avatar";
@@ -57,7 +58,7 @@ export function PersonRow({
       {state === "adding" ? <span className={note}>Adding</span> : null}
       {onTransfer === undefined ? null : (
         <ResponsiveMenu>
-          <MenuTrigger
+          <ResponsiveMenuTrigger
             data-track-owner="shared/share-dialog.tsx#PersonRow:ResponsiveMenuTrigger.1"
             render={
               <Button
@@ -71,14 +72,14 @@ export function PersonRow({
               </Button>
             }
           />
-          <MenuContent>
+          <ResponsiveMenuContent>
             <ResponsiveMenuItem
               data-track-owner="shared/share-dialog.tsx#PersonRow:ResponsiveMenuItem[Transfer ownership]"
               onClick={onTransfer}
             >
               Transfer ownership
             </ResponsiveMenuItem>
-          </MenuContent>
+          </ResponsiveMenuContent>
         </ResponsiveMenu>
       )}
       {onRemove === undefined ? null : state === "dropping" ? (

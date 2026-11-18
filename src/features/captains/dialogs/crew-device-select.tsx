@@ -1,14 +1,11 @@
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
-import {
-  MenuContent,
-  MenuGroup,
-  MenuLabel,
-  MenuTrigger,
-} from "@/primitives/menu";
+import { MenuGroup, MenuLabel } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 
 export type CrewDevice = {
@@ -59,7 +56,7 @@ export function CrewDeviceSelect({
     );
   return (
     <ResponsiveMenu>
-      <MenuTrigger
+      <ResponsiveMenuTrigger
         render={
           <Button
             variant="bare"
@@ -81,7 +78,7 @@ export function CrewDeviceSelect({
           </Button>
         }
       />
-      <MenuContent align="end" className="w-72">
+      <ResponsiveMenuContent align="end" className="w-72">
         <MenuGroup>
           <MenuLabel>Crew runs on</MenuLabel>
         </MenuGroup>
@@ -108,7 +105,7 @@ export function CrewDeviceSelect({
             ) : null}
           </ResponsiveMenuItem>
         ))}
-      </MenuContent>
+      </ResponsiveMenuContent>
     </ResponsiveMenu>
   );
 }

@@ -14,15 +14,12 @@ import {
 } from "@/components/project-select/selector-parts";
 import { Button } from "@/primitives/button";
 import { Icon, type IconProps } from "@/primitives/icon";
-import {
-  MenuContent,
-  MenuLabel,
-  MenuSeparator,
-  MenuTrigger,
-} from "@/primitives/menu";
+import { MenuLabel, MenuSeparator } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import {
   type DeviceHardware,
@@ -200,7 +197,7 @@ export function RunOnSelect({
   return (
     <div data-slot="run-on-select" {...props}>
       <ResponsiveMenu open={open} onOpenChange={setOpen}>
-        <MenuTrigger
+        <ResponsiveMenuTrigger
           data-track-owner="shared/new-thread/run-on-select.tsx#RunOnSelect:ResponsiveMenuTrigger.1"
           render={
             <Button
@@ -236,8 +233,8 @@ export function RunOnSelect({
           )}
           {value?.connected === true ? <StatusDot color="success" /> : null}
           <SelectorChevron />
-        </MenuTrigger>
-        <MenuContent className="w-72">
+        </ResponsiveMenuTrigger>
+        <ResponsiveMenuContent className="w-72">
           <MenuLabel>Machine</MenuLabel>
           <ResponsiveMenuItem
             data-track-owner="shared/new-thread/run-on-select.tsx#RunOnSelect:ResponsiveMenuItem.1"
@@ -347,7 +344,7 @@ export function RunOnSelect({
               </ResponsiveMenuItem>
             </>
           ) : null}
-        </MenuContent>
+        </ResponsiveMenuContent>
       </ResponsiveMenu>
     </div>
   );

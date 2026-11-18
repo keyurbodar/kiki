@@ -4,11 +4,12 @@ import {
   MenuSeparator,
   MenuSub,
   MenuSubTrigger,
-  MenuTrigger,
 } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { CheckmarkGlyph, cx } from "./glyphs";
 
@@ -134,11 +135,11 @@ export function AutoReviewModeMenu({
 }: AutoReviewModeMenuProps) {
   return (
     <ResponsiveMenu>
-      <MenuTrigger
+      <ResponsiveMenuTrigger
         data-track-owner="shared/review-mode.tsx#AutoReviewModeMenu:ResponsiveMenuTrigger.1"
         render={trigger}
       />
-      <MenuContent align="end" className="w-72">
+      <ResponsiveMenuContent align="end" className="w-72">
         {autoReviewModes.map((mode) => (
           <ResponsiveMenuItem
             key={mode.value}
@@ -160,7 +161,7 @@ export function AutoReviewModeMenu({
             />
           </ResponsiveMenuItem>
         ))}
-      </MenuContent>
+      </ResponsiveMenuContent>
     </ResponsiveMenu>
   );
 }
@@ -186,11 +187,11 @@ export function ReviewEffortMenu({
   const metered = usage !== undefined;
   return (
     <ResponsiveMenu>
-      <MenuTrigger
+      <ResponsiveMenuTrigger
         data-track-owner="shared/review-mode.tsx#ReviewEffortMenu:ResponsiveMenuTrigger.1"
         render={trigger}
       />
-      <MenuContent align="end" className="w-80">
+      <ResponsiveMenuContent align="end" className="w-80">
         {reviewTiers.map((tier) => (
           <ResponsiveMenuItem
             key={tier}
@@ -247,7 +248,7 @@ export function ReviewEffortMenu({
             </MenuSub>
           </>
         ) : null}
-      </MenuContent>
+      </ResponsiveMenuContent>
     </ResponsiveMenu>
   );
 }

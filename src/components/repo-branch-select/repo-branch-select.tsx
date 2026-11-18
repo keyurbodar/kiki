@@ -31,10 +31,12 @@ import { filterItems } from "@/lib/fuzzy-search";
 import { Button } from "@/primitives/button";
 import { DotGridIcon } from "@/primitives/dot-grid-icon";
 import { Icon } from "@/primitives/icon";
-import { MenuContent, MenuSeparator, MenuTrigger } from "@/primitives/menu";
+import { MenuSeparator } from "@/primitives/menu";
 import {
   ResponsiveMenu,
+  ResponsiveMenuContent,
   ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { Switch } from "@/primitives/switch";
 
@@ -229,7 +231,7 @@ function SingleBranchSelect({
 }: SingleBranchSelectProps) {
   return (
     <ResponsiveMenu defaultOpen={defaultOpen}>
-      <MenuTrigger
+      <ResponsiveMenuTrigger
         data-track-owner="shared/new-thread/repo-branch-select.tsx#SingleBranchSelect:ResponsiveMenuTrigger.1"
         render={
           <Button
@@ -244,8 +246,8 @@ function SingleBranchSelect({
         <Icon name="branch-simple" size="sm" />
         <span className="min-w-0 truncate">{value}</span>
         <SelectorChevron />
-      </MenuTrigger>
-      <MenuContent align="end" className="w-64">
+      </ResponsiveMenuTrigger>
+      <ResponsiveMenuContent align="end" className="w-64">
         <BranchRows
           orgId={orgId}
           repo={repo}
@@ -253,7 +255,7 @@ function SingleBranchSelect({
           onSelect={onValueChange}
           branches={branches}
         />
-      </MenuContent>
+      </ResponsiveMenuContent>
     </ResponsiveMenu>
   );
 }
@@ -419,7 +421,7 @@ function MultiRepoSelect({
         if (!next) setQuery("");
       }}
     >
-      <MenuTrigger
+      <ResponsiveMenuTrigger
         data-track-owner="shared/new-thread/repo-branch-select.tsx#MultiRepoSelect:ResponsiveMenuTrigger.1"
         render={
           <Button
@@ -436,8 +438,8 @@ function MultiRepoSelect({
           {multiRepoLabel(project.repos, selection, isOn)}
         </span>
         <SelectorChevron />
-      </MenuTrigger>
-      <MenuContent align="end" className="w-80">
+      </ResponsiveMenuTrigger>
+      <ResponsiveMenuContent align="end" className="w-80">
         <SelectorLayout
           search={
             project.repos.length >= branchSearchThreshold ? (
@@ -508,7 +510,7 @@ function MultiRepoSelect({
             )
           )}
         </SelectorLayout>
-      </MenuContent>
+      </ResponsiveMenuContent>
     </ResponsiveMenu>
   );
 }

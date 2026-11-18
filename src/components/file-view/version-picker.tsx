@@ -1,6 +1,10 @@
 import { Icon } from "@/primitives/icon";
-import { MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
-import { ResponsiveMenu } from "@/primitives/responsive-menu";
+import { MenuItem } from "@/primitives/menu";
+import {
+  ResponsiveMenu,
+  ResponsiveMenuContent,
+  ResponsiveMenuTrigger,
+} from "@/primitives/responsive-menu";
 import type { FileVersion } from "./file-content";
 import { PreviewMarker } from "./file-view";
 
@@ -25,7 +29,7 @@ export function VersionPicker({
   const selected = list.find((version) => version.value === value);
   return (
     <ResponsiveMenu>
-      <MenuTrigger
+      <ResponsiveMenuTrigger
         data-track-owner={track("ResponsiveMenuTrigger.1")}
         render={
           <button
@@ -43,8 +47,8 @@ export function VersionPicker({
       >
         {!compact && (selected?.label ?? label)}
         <Icon name="chevron-grabber-vertical" size="xs" />
-      </MenuTrigger>
-      <MenuContent align="start" className="w-64">
+      </ResponsiveMenuTrigger>
+      <ResponsiveMenuContent align="start" className="w-64">
         {list.map((version, index) => (
           <MenuItem
             key={version.value}
@@ -72,7 +76,7 @@ export function VersionPicker({
             </span>
           </MenuItem>
         ))}
-      </MenuContent>
+      </ResponsiveMenuContent>
     </ResponsiveMenu>
   );
 }
