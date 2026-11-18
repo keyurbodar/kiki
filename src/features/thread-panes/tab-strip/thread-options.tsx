@@ -671,9 +671,7 @@ export function ThreadOptions({
   );
   const members = (crew ?? []).filter((thread) => !thread.archived);
   const crewRows = members.filter((thread) =>
-    query === ""
-      ? thread.active === true
-      : match(thread.title ?? "Untitled thread", thread.code),
+    query === "" ? true : match(thread.title ?? "Untitled thread", thread.code),
   );
   const allThreads =
     captain && (query === "" || match("all threads") || crewRows.length > 0);
