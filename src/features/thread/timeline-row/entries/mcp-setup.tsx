@@ -1,4 +1,5 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
+import { useParams } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
 import {
@@ -7,7 +8,6 @@ import {
 } from "@/data/atoms/mcp-setup.ts";
 import { organizationsAtom } from "@/data/atoms/session.ts";
 import { McpSetupCard, McpSetupLine } from "@/features/thread/mcp-setup-card";
-import { proposalName } from "@/features/thread/mcp-setup-card/helpers";
 import { decodeProposal } from "@/features/thread/mcp-setup-card/proposal";
 import { defineTimelineRow, type TimelineRowOf } from "../registry";
 
@@ -26,6 +26,7 @@ function useOrg() {
 function McpSetupRowView({ row }: { row: TimelineRowOf<"mcp-setup"> }) {
   const proposal = decodeProposal(row.proposal);
   const org = useOrg();
+  const { threadId } = useParams({ strict: false }) as { threadId?: string };
   const create = useAtomSet(createMcpSetupAtom, { mode: "promise" });
   const complete = useAtomSet(completeMcpSetupAtom, { mode: "promise" });
   const [open, setOpen] = useState(false);
@@ -54,21 +55,44 @@ function McpSetupRowView({ row }: { row: TimelineRowOf<"mcp-setup"> }) {
             const setup = (await create({
               params: { orgId: org.id },
               payload: {
-                name: proposalName(proposal),
-                owner: owner ?? undefined,
-                secrets: values,
-                proposal: row.proposal,
+                jamId: threadId,
+                assistantEventId: row.assistantEventId,
+                toolResultEventId: row.toolResultEventId,
+                toolCallId: row.toolCallId,
+              },
+            })) as { id?: string } | undefined;
+            if (setup?.id === undefined) return;
+            await complete({
+              params: { orgId: org.id, setupId: setup.id },
+              payload: {
+                decision: "approve",
+                owner: owner === "personal" ? "user" : "organization",
+                env: values.environment,
+                headers: values.credentialHeaders,
+                requestHeaders: values.requestHeaders,
+                ...(values.clientSecret === ""
+                  ? {}
+                  : { clientSecret: values.clientSecret }),
+              },
+            });
+            setState("added");
+            setOpen(false);
+          }}
+          onDecline={async () => {
+            const setup = (await create({
+              params: { orgId: org.id },
+              payload: {
+                jamId: threadId,
+                assistantEventId: row.assistantEventId,
+                toolResultEventId: row.toolResultEventId,
+                toolCallId: row.toolCallId,
               },
             })) as { id?: string } | undefined;
             if (setup?.id !== undefined)
               await complete({
                 params: { orgId: org.id, setupId: setup.id },
-                payload: {},
+                payload: { decision: "decline" },
               });
-            setState("added");
-            setOpen(false);
-          }}
-          onDecline={() => {
             setState("declined");
             setOpen(false);
           }}
