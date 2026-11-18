@@ -1,4 +1,5 @@
 import { useAtomValue } from "@effect/atom-react";
+import { useNavigate } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
@@ -57,6 +58,7 @@ import { useComposerSend } from "@/features/thread/use-composer-send";
 import { RightPanelGroup } from "@/primitives/right-panel";
 import { ChatSkeleton } from "./chat-skeleton";
 import { ThreadMessageActions } from "./message-actions";
+import { threadComposerCommands } from "./thread-composer-commands";
 import { threadHeaderClassName } from "./thread-header";
 import { threadMentionSources } from "./thread-mention-sources";
 
@@ -301,6 +303,11 @@ export function ThreadView({
       ),
     [orgThreads, threadId],
   );
+  const navigate = useNavigate();
+  const commands = useMemo(
+    () => threadComposerCommands(() => void navigate({ to: "/new" })),
+    [navigate],
+  );
   const attachments = useComposerAttachments(
     useFileUploader(orgId as OrgId | undefined),
   );
@@ -419,6 +426,7 @@ export function ThreadView({
                             }
                             autoFocus={draft !== undefined}
                             sources={mentionSources}
+                            commands={commands}
                             submitLabel="Send"
                             submitPersistent
                             leftControls={
