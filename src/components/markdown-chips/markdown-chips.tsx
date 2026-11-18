@@ -8,7 +8,6 @@ import {
   ReferenceLinkChip,
   StructuredMentionChip,
   TaskChip,
-  ThreadChip,
 } from "./chips";
 import { chipTransform } from "./references";
 
@@ -64,7 +63,9 @@ export function MarkdownChipRenderer({
     case "task":
       return <TaskChip value={value} />;
     case "thread":
-      return <ThreadChip value={value} />;
+      // A thread code may be an issue code: IssueChip resolves the issue and
+      // falls back to ThreadChip, so this is the entry point for both.
+      return <IssueChip value={value} />;
     case "issue":
       return <IssueChip value={value} />;
     case "mention":
