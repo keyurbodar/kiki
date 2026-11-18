@@ -4,7 +4,7 @@ import {
   createRouter,
   RouterProvider,
 } from "@tanstack/react-router";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { routeTree } from "@/routeTree.gen";
 
@@ -55,6 +55,16 @@ describe("drive scope routes", () => {
     expect(await screen.findByText("CREW.md")).toBeTruthy();
     expect(screen.getByLabelText("Add")).toBeTruthy();
     expect(screen.getAllByLabelText("Delete file").length).toBeGreaterThan(0);
+  });
+
+  it("filters the file list by name and path", async () => {
+    await renderRoute("/drive/organization");
+    const filter = await screen.findByLabelText("Filter names and paths");
+    fireEvent.change(filter, { target: { value: "style" } });
+    expect(await screen.findByText("guides/style.md")).toBeTruthy();
+    expect(screen.queryByText("AGENTS.md")).toBeNull();
+    fireEvent.change(filter, { target: { value: "nothing-here" } });
+    expect(await screen.findByText("No files match")).toBeTruthy();
   });
 
   it("opens a file named in the search params", async () => {
