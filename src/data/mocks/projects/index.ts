@@ -25,7 +25,12 @@ import {
   notFoundNamed,
 } from "../db/MockDb.ts";
 import { fixtureNow } from "../fixtures/time.ts";
-import { isoMinutesAgo, people, viewer } from "../fixtures/world.ts";
+import {
+  isoMinutesAgo,
+  people,
+  orgId as sampleOrgId,
+  viewer,
+} from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
   defaultProjectOwners,
@@ -84,6 +89,17 @@ export const ProjectsMock = mockGroup("projects", (handlers) =>
   Effect.gen(function* () {
     const db = yield* MockDb;
     const projects = yield* Ref.make<ReadonlyArray<Project>>(sampleProjects);
+    /**
+     * The org each project belongs to. `Project` carries no org id, and the
+     * endpoint is addressed by one, so the mock keeps the mapping: the fixture
+     * world's projects live in the sample org and the second org starts empty,
+     * which is what makes "no projects yet" reachable by switching org.
+     */
+    const projectOrgs = yield* Ref.make<Record<string, string>>(
+      Object.fromEntries(
+        sampleProjects.map((project) => [project.id, sampleOrgId]),
+      ),
+    );
     const projectMembers = yield* Ref.make<ByProject<ReadonlyArray<string>>>(
       Object.fromEntries(
         sampleProjects.map((project) => [
@@ -386,7 +402,7 @@ export const ProjectsMock = mockGroup("projects", (handlers) =>
             });
         }),
       )
-      .handle("create", ({ payload }) =>
+      .handle("create", ({ params, payload }) =>
         Effect.gen(function* () {
           const input = fields(payload);
           const requested = Array.isArray(input.repos)
@@ -430,6 +446,10 @@ export const ProjectsMock = mockGroup("projects", (handlers) =>
             lastTouchedAt: fixtureNow,
           });
           yield* Ref.update(projects, (list) => [...list, project]);
+          yield* Ref.update(projectOrgs, (all) => ({
+            ...all,
+            [project.id]: params.orgId,
+          }));
           yield* Ref.update(projectMembers, (all) => ({
             ...all,
             [project.id]: stringList(input.memberIds),
@@ -438,20 +458,23 @@ export const ProjectsMock = mockGroup("projects", (handlers) =>
           return projectJson(project);
         }),
       )
-      .handle("list", ({ query }) =>
-        Ref.get(projects).pipe(
-          Effect.map((list) =>
-            list.filter(
-              (project) => project.deleted === (query.deleted === "true"),
-            ),
-          ),
-        ),
+      .handle("list", ({ params, query }) =>
+        Effect.gen(function* () {
+          const orgs = yield* Ref.get(projectOrgs);
+          return (yield* Ref.get(projects)).filter(
+            (project) =>
+              orgs[project.id] === params.orgId &&
+              project.deleted === (query.deleted === "true"),
+          );
+        }),
       )
-      .handle("settingsDirectory", ({ query }) =>
+      .handle("settingsDirectory", ({ params, query }) =>
         Effect.gen(function* () {
           const search = query.search?.toLowerCase() ?? "";
           const page = Math.max(1, Number(query.page ?? "1") || 1);
+          const orgs = yield* Ref.get(projectOrgs);
           const live = (yield* Ref.get(projects))
+            .filter((project) => orgs[project.id] === params.orgId)
             .filter((project) => !project.deleted)
             .filter(
               (project) =>
