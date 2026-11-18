@@ -131,6 +131,27 @@ describe("MessageQueue", () => {
     fireEvent.keyDown(screen.getByLabelText("composer"), { key: "Escape" });
     expect(onCancel).toHaveBeenCalled();
   });
+
+  it("shows who a reply quotes and drops it from the bar", () => {
+    const onCancel = vi.fn();
+    render(
+      <MessageQueue
+        rows={[]}
+        actions={{ departing: new Map(), act: vi.fn() }}
+        replying={{
+          name: "Alex Morgan",
+          text: "Add a dark mode toggle",
+          onCancel,
+        }}
+      >
+        <textarea aria-label="composer" />
+      </MessageQueue>,
+    );
+    expect(screen.getByText("Replying to")).toBeTruthy();
+    expect(screen.getByText("Add a dark mode toggle")).toBeTruthy();
+    fireEvent.click(screen.getByLabelText("Cancel reply"));
+    expect(onCancel).toHaveBeenCalled();
+  });
 });
 
 describe("QueuedMarker", () => {

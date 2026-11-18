@@ -25,6 +25,11 @@ const Probe = () => {
   );
 };
 
+const ReplyProbe = () => {
+  const actions = useMessageActions();
+  return <span>{actions.reply === undefined ? "no-reply" : "reply"}</span>;
+};
+
 describe("ThreadMessageActions", () => {
   it("gives the chat list the viewer and the member names behind each actor", async () => {
     render(
@@ -49,6 +54,19 @@ describe("ThreadMessageActions", () => {
     );
     await waitFor(() => {
       expect(screen.getByText("jump")).toBeTruthy();
+    });
+  });
+
+  it("hands the chat list the reply its footer opens", async () => {
+    render(
+      <RegistryProvider>
+        <ThreadMessageActions orgId={orgId} reply={() => {}}>
+          <ReplyProbe />
+        </ThreadMessageActions>
+      </RegistryProvider>,
+    );
+    await waitFor(() => {
+      expect(screen.getByText("reply")).toBeTruthy();
     });
   });
 
