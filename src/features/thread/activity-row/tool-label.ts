@@ -167,12 +167,26 @@ export function exitCodeOf(row: ToolRow) {
 const executionOf = (row: ToolRow) =>
   field(row.args, "execution") ?? field(row.call?.input, "execution");
 
+/** File tools Capy names by their verb and the path the call touched. */
+const FILE_TOOLS: Readonly<Record<string, readonly [string, string]>> = {
+  read: ["Reading", "Read"],
+  write: ["Writing", "Wrote"],
+  edit: ["Editing", "Edited"],
+  apply_patch: ["Editing", "Edited"],
+};
+
 export function toolLabel(row: ToolRow) {
   const phase = row.phase === "forming" ? "running" : row.phase;
   if (row.toolName === "execute")
     return byPhase(phase, "Running a script", "Ran a script");
   if (row.toolName === "end_turn")
     return byPhase(phase, "Ending the turn", "Ended the turn");
+  const file = FILE_TOOLS[row.toolName];
+  const path = field(row.args, "path") ?? field(row.call?.input, "path");
+  const fileLabel =
+    file === undefined || path === undefined
+      ? undefined
+      : `${byPhase(phase, file[0], file[1])} ${path}`;
   const command = commandOf(row);
   const description = toolDescription(field(row.args, "description"), command);
   const exitCode = exitCodeOf(row);
@@ -183,7 +197,7 @@ export function toolLabel(row: ToolRow) {
       ? inflect(description, phase)
       : command !== undefined
         ? shortenCommand(command)
-        : row.toolName;
+        : (fileLabel ?? row.toolName);
   const execution = executionOf(row);
   return execution === "detached" || execution === "background"
     ? `${label} (${execution})`
