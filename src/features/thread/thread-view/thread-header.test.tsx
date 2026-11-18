@@ -361,15 +361,27 @@ describe("thread route header", () => {
     expect(router.state.location.search).toEqual({});
   });
 
-  it("keeps the transcript when the browser row has no session to open", async () => {
+  it("opens the machine's browser session beside a transcript that keeps painting", async () => {
     await renderRoute("/thread/jam_sample_0001");
     fireEvent.click(await screen.findByLabelText("Open a tab"));
     fireEvent.click(await screen.findByText("Browser"));
-    await waitFor(() => expect(paneTab("chat")).toBeDefined());
-    // Capy's browser opens as a dock tab named for a session it creates; we
-    // have no call that creates one (AMA-208), so the row must not pretend:
-    // the transcript keeps painting and the chat tab keeps its selection.
-    expect(document.querySelector('[data-slot="browser-pane"]')).toBeNull();
+    // A machine's `sessions` record names the browser it holds, so the row opens
+    // that session's tab rather than creating one (AMA-212), and the transcript
+    // keeps painting beside it.
+    const tab = await waitFor(() => {
+      const found = paneTab("browser:sess_sample_browser");
+      expect(found).toBeDefined();
+      return found;
+    });
+    expect(tab?.textContent).toContain("acme/web");
+    const omnibox = await waitFor(() => {
+      const input = document.querySelector<HTMLInputElement>(
+        '[data-slot="browser-pane"] input',
+      );
+      expect(input).not.toBeNull();
+      return input;
+    });
+    expect(omnibox?.value).toBe("https://example.com/acme/web");
     expect(paneTab("chat")?.querySelector("[data-selected]")).not.toBeNull();
   });
 
