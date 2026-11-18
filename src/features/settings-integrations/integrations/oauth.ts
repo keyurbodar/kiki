@@ -9,7 +9,11 @@ const startPaperOAuth = ApiClient.mutation("integrations", "startPaperOAuth");
 
 export const authorizeUrlOf = (result: unknown): string | undefined => {
   if (typeof result !== "object" || result === null) return undefined;
-  const url = (result as { authorizeUrl?: unknown }).authorizeUrl;
+  const start = result as {
+    authorizeUrl?: unknown;
+    authorizationUrl?: unknown;
+  };
+  const url = start.authorizeUrl ?? start.authorizationUrl;
   return typeof url === "string" ? url : undefined;
 };
 

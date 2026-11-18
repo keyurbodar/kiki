@@ -4,6 +4,11 @@ import { DateTime } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useDeferredValue, useState } from "react";
 import { toast } from "sonner";
+import {
+  type createPayload,
+  NewProjectDialog,
+  type NewProjectRepo,
+} from "@/components/new-project-dialog";
 import { SettingsPage } from "@/components/settings-page";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { ProjectSettingsDirectoryEntry } from "@/data/api/schemas/project-settings";
@@ -179,10 +184,35 @@ function ProjectsDirectory({ orgId }: { readonly orgId: OrgId }) {
   const create = useAtomSet(projectMutations.create, { mode: "promise" });
   const restore = useAtomSet(projectMutations.restore, { mode: "promise" });
   const [creating, setCreating] = useState<string | null>(null);
+  const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [renaming, setRenaming] =
     useState<ProjectSettingsDirectoryEntry | null>(null);
   const [deleting, setDeleting] =
     useState<ProjectSettingsDirectoryEntry | null>(null);
+
+  const dialogRepos: ReadonlyArray<NewProjectRepo> = (
+    installation?.repos ?? []
+  ).map((repo) => ({
+    repoFullName: repo.repoFullName,
+    defaultBranch: repo.defaultBranch,
+  }));
+
+  const createProject = (
+    payload: ReturnType<typeof createPayload>,
+  ): Promise<unknown> =>
+    create({
+      params: { orgId },
+      payload,
+      reactivityKeys: projectWriteKeys(orgId, ""),
+    })
+      .then((result) => {
+        toast.success("Project created");
+        return result;
+      })
+      .catch((error: unknown) => {
+        toast.error("Could not create the project");
+        throw error;
+      });
 
   const createFromRepo = (repo: (typeof suggestions)[number]) => {
     setCreating(repo.repoFullName);
@@ -231,7 +261,12 @@ function ProjectsDirectory({ orgId }: { readonly orgId: OrgId }) {
             />
           </InputGroup>
         </div>
-        <Button variant="solid" size="base" intent="neutral">
+        <Button
+          variant="solid"
+          size="base"
+          intent="neutral"
+          onClick={() => setNewProjectOpen(true)}
+        >
           <Glyph name="plus" className="size-(--icon-base)" />
           New project
         </Button>
@@ -405,6 +440,12 @@ function ProjectsDirectory({ orgId }: { readonly orgId: OrgId }) {
         orgId={orgId}
         project={deleting}
         onClose={() => setDeleting(null)}
+      />
+      <NewProjectDialog
+        open={newProjectOpen}
+        onOpenChange={setNewProjectOpen}
+        repos={dialogRepos}
+        onCreate={createProject}
       />
     </section>
   );
