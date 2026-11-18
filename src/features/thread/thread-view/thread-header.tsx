@@ -2,6 +2,7 @@ import { cx } from "class-variance-authority";
 import type { ReactNode } from "react";
 import { AppTopBar } from "@/components/app-top-bar";
 import { ChatIdentity } from "@/features/captains/chat-identity";
+import { useCaptain, useCaptainOrgId } from "@/features/captains/overview";
 import { WorkProgressEdge } from "@/features/thread/live-status";
 import {
   type PaneTab,
@@ -11,9 +12,32 @@ import {
   tabLink,
 } from "@/features/thread-panes/tab-strip";
 import { Button } from "@/primitives/button";
+import { CaptainAvatar } from "@/primitives/captain-avatar";
 import { Icon } from "@/primitives/icon";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
+
+/**
+ * The tile at the head of the chat tab. Capy paints the Captain's own avatar
+ * there — measured identical to its sidebar row, image and background both —
+ * and a plain thread avatar for everything else, which is the title's initial
+ * until that source is decided.
+ */
+function ChatTabIdentity({
+  threadId,
+  title,
+}: {
+  threadId: string;
+  title: string;
+}) {
+  const orgId = useCaptainOrgId();
+  const captain = useCaptain(orgId, threadId);
+  return captain?.avatar === undefined ? (
+    <ChatIdentity name={title} size="xs" />
+  ) : (
+    <CaptainAvatar avatar={captain.avatar} name={title} size="xs" />
+  );
+}
 
 /** The capture's bar: 44 px, pinned, one hairline under it. */
 export const threadHeaderClassName = cx(
@@ -138,7 +162,7 @@ export function ThreadHeader({
           title,
           content: (
             <span className="flex min-w-0 items-center gap-1.5">
-              <ChatIdentity name={title} size="xs" />
+              <ChatTabIdentity threadId={threadId} title={title} />
               <span data-pane-tab-label={title} className="min-w-0 truncate">
                 {title}
               </span>

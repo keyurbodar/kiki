@@ -39,6 +39,24 @@ export const promoteProjects = [
 
 const captainAvatars = ["capy-avatar-1", "capy-avatar-2", "capy-avatar-3"];
 
+/**
+ * The face a Captain paints everywhere it appears. Capy shows one avatar per
+ * Captain — the sidebar row, the chat tab's tile and the preview card all read
+ * the same stored value — so the list and the detail endpoint must agree.
+ */
+export const captainFace = (
+  captain: Row<"captains">,
+  index: number,
+): CaptainCard["face"] => ({
+  name: captain.name,
+  avatar: {
+    kind: "preset",
+    value: captainAvatars[index % captainAvatars.length] ?? "capy-avatar-1",
+    background: "#ffffff",
+  },
+  description: captain.description,
+});
+
 export const captainCard = (captain: Row<"captains">, index: number) => {
   const createdAt = DateTime.makeUnsafe(captain.createdAt);
   return new CaptainCard({
@@ -87,14 +105,6 @@ export const captainCard = (captain: Row<"captains">, index: number) => {
     automation: undefined,
     pullCount: 0,
     pullStates: [],
-    face: {
-      name: captain.name,
-      avatar: {
-        kind: "preset",
-        value: captainAvatars[index % captainAvatars.length] ?? "capy-avatar-1",
-        background: "#ffffff",
-      },
-      description: captain.description,
-    },
+    face: captainFace(captain, index),
   });
 };
