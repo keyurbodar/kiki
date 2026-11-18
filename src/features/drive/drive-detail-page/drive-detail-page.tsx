@@ -48,6 +48,7 @@ import { DriveConfirmDialog } from "./drive-confirm-dialog";
 import { PaneMessage } from "./pane-message";
 import { type DriveEntry, useDriveListing } from "./use-drive-listing";
 import { useDriveSession } from "./use-drive-session";
+import { useDriveTrailNames } from "./use-drive-trail-names";
 import { LoadedVolumeFile } from "./viewer-chrome";
 
 export interface DriveDetailPageProps {
@@ -72,6 +73,7 @@ const toQuery = (scope: ReturnType<typeof mountScope>): DriveScopeQuery =>
 export function DriveDetailPage({ mount, file }: DriveDetailPageProps) {
   const navigate = useNavigate();
   const session = useDriveSession();
+  const { names } = useDriveTrailNames(mount);
   const scope =
     mount.kind === "directory" &&
     mount.scope === "personal" &&
@@ -82,11 +84,7 @@ export function DriveDetailPage({ mount, file }: DriveDetailPageProps) {
           session.userId === undefined
         ? undefined
         : toQuery(mountScope(mount, session.userId));
-  const trail = mountTrail(
-    mount,
-    { organization: session.organizationName },
-    true,
-  );
+  const trail = mountTrail(mount, names, true);
   const writable = mount.kind !== "captain";
   const { listing, failed } = useDriveListing(session.orgId, scope);
   const [reloads, setReloads] = useState(0);

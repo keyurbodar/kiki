@@ -5,13 +5,10 @@ import {
   type ComposerPayload,
   type ComposerVoice,
 } from "@/components/composer";
+import type { ComposerCommandId } from "@/features/composer/composer-commands";
 import { Button } from "@/primitives/button";
 import { MobileIcon } from "../thread/mobile-icon";
-import {
-  composerCommands,
-  type MobileComposerCommand,
-  mentionSources,
-} from "./composer-catalog";
+import { composerCommands, mentionSources } from "./composer-catalog";
 
 export type MobileComposerProps = {
   ref?: Ref<ComposerHandle>;
@@ -26,7 +23,7 @@ export type MobileComposerProps = {
   onStop?: () => void;
   /** Starts voice input. */
   onVoice?: () => void;
-  onCommand?: (command: MobileComposerCommand) => void;
+  onCommand?: (command: ComposerCommandId) => void;
   /** "Add to message" drawer, with its trigger. */
   addMenu?: ReactNode;
   /** Model drawer, with its trigger. */

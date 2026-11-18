@@ -72,7 +72,14 @@ describe("SideSheet", () => {
       "text-muted-foreground-2",
     );
     expect(slot("side-sheet-body")?.className).toContain("overflow-y-auto");
+    expect(slot("side-sheet-body")?.className).toContain("gap-5");
+    expect(slot("side-sheet-description")?.className).toContain(
+      "flex flex-col",
+    );
     expect(slot("side-sheet-footer")?.className).toContain("border-t-hairline");
+    expect(slot("side-sheet-footer")?.className).toContain("justify-between");
+    expect(slot("side-sheet-footer")?.className).toContain("items-center");
+    expect(slot("side-sheet-footer")?.className).toContain("flex-wrap");
 
     const close = slot("side-sheet-close");
     expect(close?.textContent).toBe("Close");
