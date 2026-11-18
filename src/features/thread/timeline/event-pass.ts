@@ -325,6 +325,8 @@ interface BlockContext {
   readonly exchangeEventId: EventId | undefined;
   readonly turnOpen: boolean;
   readonly turnCloses: boolean;
+  /** The block that carries a closed turn's reply, if this one is it. */
+  readonly replyBlockId: string | undefined;
   readonly settlements: ReadonlyMap<string, Settlement>;
   readonly waitResolutions: ReadonlyMap<string, Date>;
   readonly setupNotificationEventId: EventId | undefined;
@@ -464,18 +466,41 @@ const blockRows = (block: Block, context: BlockContext): Row[] => {
   };
   switch (block.type) {
     case "text":
-      return block.text.length === 0
-        ? []
-        : [
-            {
-              ...base,
-              turnOpen: false,
-              type: "activity",
-              kind: "text",
-              id: block.id,
-              text: block.text,
-            },
-          ];
+      if (block.text.length === 0) return [];
+      // A turn's closing text is the agent's message, with its own identity and
+      // footer; text that introduces more tool calls is a step inside the group.
+      if (block.id === context.replyBlockId)
+        return [
+          {
+            type: "agent-message",
+            id: block.id,
+            eventId: context.eventId,
+            createdAt: context.createdAt,
+            startedAt: context.startedAt,
+            settled: true,
+            interrupted: false,
+            turnCloses: context.turnCloses,
+            exchangeEventId: context.exchangeEventId,
+            text: block.text,
+            files: [],
+            uploads: [],
+            placing: [],
+            placed: [],
+            modelId: context.modelId,
+            reasoningMode: context.reasoningMode,
+            mode: context.mode,
+          },
+        ];
+      return [
+        {
+          ...base,
+          turnOpen: false,
+          type: "activity",
+          kind: "text",
+          id: block.id,
+          text: block.text,
+        },
+      ];
     case "thinking":
       return [
         {
@@ -1799,6 +1824,13 @@ export const eventPass = (
             turnCloses: false,
             text: wireDroppedLabel(payload.wireDropped),
           });
+        const replyBlockId =
+          payload.stopReason === "tool_use"
+            ? undefined
+            : payload.blocks.findLast(
+                (block) =>
+                  block.type === "text" && block.text.trim().length > 0,
+              )?.id;
         const first = rows.length;
         for (const block of payload.blocks)
           rows.push(
@@ -1811,6 +1843,7 @@ export const eventPass = (
               exchangeEventId: payload.interruption?.exchangeEventId,
               turnOpen: event.id === openTurnId,
               turnCloses: closed.has(event.id),
+              replyBlockId,
               settlements,
               waitResolutions,
               setupNotificationEventId:

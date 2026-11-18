@@ -143,6 +143,97 @@ export const EventsMock = mockGroup("events", (handlers) =>
       return eventId(DateTime.formatIso(minutesAgo(0)), 900 + minted);
     });
 
+    /**
+     * The mock's answer to a sent message: one tool step and a closing reply, so
+     * a conversation reads start to finish instead of ending on a work group.
+     */
+    const answer = (jamId: string, messageId: string, sent: string) =>
+      Effect.gen(function* () {
+        const now = DateTime.formatIso(minutesAgo(0));
+        const model = {
+          modelId: "anthropic/claude-sample",
+          providerModelId: "claude-sample",
+          reasoningMode: "medium" as const,
+        };
+        const turn = (
+          id: string,
+          blocks: ReadonlyArray<object>,
+          stopReason: "tool_use" | "end_turn",
+        ) =>
+          ({
+            id,
+            jamId,
+            kind: "assistant",
+            state: "committed",
+            createdAt: now,
+            payload: {
+              actor: { type: "agent", jamId },
+              origin: { type: "system" },
+              model,
+              route: { source: "capy" },
+              usage: {
+                inputTokens: 1_200,
+                outputTokens: 180,
+                cacheReadTokens: 0,
+                cacheWriteTokens: 0,
+              },
+              stopReason,
+              startedAt: now,
+              blocks,
+            },
+          }) as EventRowEncoded;
+        const toolCallId = `toolu_mock_${messageId}`;
+        const stepId = yield* mintId;
+        yield* appendRow(
+          turn(
+            stepId,
+            [
+              {
+                id: `blk_mock_read_${messageId}`,
+                type: "tool_use",
+                toolCallId,
+                toolName: "read",
+                args: { path: "src/checkout/retry.ts" },
+              },
+            ],
+            "tool_use",
+          ),
+        );
+        yield* appendRow({
+          id: yield* mintId,
+          jamId,
+          kind: "tool_result",
+          state: "committed",
+          createdAt: now,
+          payload: {
+            actor: { type: "agent", jamId },
+            origin: { type: "system" },
+            toolCallId,
+            isError: false,
+            blocks: [{ type: "text", text: "Read 84 lines." }],
+            data: { path: "src/checkout/retry.ts" },
+          },
+        } as EventRowEncoded);
+        const asked = sent.trim().split("\n")[0] ?? "";
+        const quoted =
+          asked.length > 60 ? `${asked.slice(0, 59).trimEnd()}…` : asked;
+        const replyId = yield* mintId;
+        yield* appendRow(
+          turn(
+            replyId,
+            [
+              {
+                id: `blk_mock_reply_${messageId}`,
+                type: "text",
+                text: `On it — “${quoted}” is queued. I read the retry path first, and the next step is the one that changes behaviour.`,
+              },
+            ],
+            "end_turn",
+          ),
+        );
+        yield* setState(messageId, "answered");
+      });
+
     return handlers
       .handle("compact", ({ params }) =>
         Effect.gen(function* () {
@@ -288,6 +379,7 @@ export const EventsMock = mockGroup("events", (handlers) =>
             },
           } as EventRowEncoded;
           yield* appendRow(row);
+          yield* answer(params.jamId, row.id, textValue);
           yield* Ref.update(versionsRef, (rows) => ({
             ...rows,
             [row.id]: [

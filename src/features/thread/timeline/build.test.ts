@@ -113,3 +113,92 @@ describe("buildTimeline with a message this tab just sent", () => {
     ).toEqual(["the send"]);
   });
 });
+
+describe("an assistant turn's reply", () => {
+  const assistant = (
+    suffix: string,
+    stopReason: "end_turn" | "tool_use",
+    blocks: unknown[],
+  ): EventRow =>
+    decodeEvent({
+      id: id(suffix),
+      jamId: "jam_edit",
+      kind: "assistant",
+      state: "committed",
+      createdAt: "2026-11-17T09:00:05.000Z",
+      payload: {
+        actor: { type: "agent", jamId: "jam_edit" },
+        origin: { type: "system" },
+        model: {
+          modelId: "anthropic/claude-sample",
+          providerModelId: "claude-sample",
+          reasoningMode: "medium",
+        },
+        route: { source: "capy" },
+        usage: {
+          inputTokens: 10,
+          outputTokens: 20,
+          cacheReadTokens: 0,
+          cacheWriteTokens: 0,
+        },
+        stopReason,
+        blocks,
+      },
+    });
+
+  const types = (events: ReadonlyArray<EventRow>) =>
+    buildTimeline(events, {
+      liveEntries: [],
+      liveSettled: false,
+      expandedGroupIds: new Map(),
+    }).rows.flatMap((row) =>
+      row.type === "agent-message"
+        ? [`agent-message:${row.text}`]
+        : row.type === "work-group"
+          ? row.entries.flatMap((entry) =>
+              entry.type === "activity" && entry.kind === "text"
+                ? [`step:${entry.text}`]
+                : [],
+            )
+          : [],
+    );
+
+  it("renders the closing text as its own message, not a step", () => {
+    const rows = types([
+      message("000D", "why did it fail?"),
+      assistant("000E", "end_turn", [
+        {
+          id: "blk_a",
+          type: "thinking",
+          text: "Check the budget.",
+          presentation: "summary",
+        },
+        {
+          id: "blk_b",
+          type: "text",
+          text: "The retry budget was per attempt.",
+        },
+      ]),
+    ]);
+    expect(rows.some((row) => row.startsWith("agent-message:"))).toBe(true);
+    expect(rows).toContain("agent-message:The retry budget was per attempt.");
+  });
+
+  it("keeps the text that introduces tool calls as a step", () => {
+    const rows = types([
+      message("000F", "fix it"),
+      assistant("000G", "tool_use", [
+        { id: "blk_c", type: "text", text: "I'll add a bounded retry." },
+        {
+          id: "blk_d",
+          type: "tool_use",
+          toolCallId: "toolu_1",
+          toolName: "bash",
+          args: { command: "rg retry", description: "Searching the retry" },
+        },
+      ]),
+    ]);
+    expect(rows.some((row) => row.startsWith("agent-message:"))).toBe(false);
+    expect(rows).toContain("step:I'll add a bounded retry.");
+  });
+});

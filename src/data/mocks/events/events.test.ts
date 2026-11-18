@@ -257,3 +257,54 @@ describe("events mock send", () => {
       }),
   );
 });
+
+describe("events mock answer", () => {
+  it.effect("a sent message gets a tool step and a closing reply", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      registry.mount(listAtom);
+      yield* AtomRegistry.getResult(registry, listAtom);
+
+      registry.set(message, {
+        params: { orgId, jamId },
+        payload: {
+          text: "Does the retry budget count attempts or elapsed time?",
+        },
+        reactivityKeys: [key],
+      });
+      const admitted = (yield* AtomRegistry.getResult(registry, message)) as {
+        id: string;
+      };
+
+      const after = eventsOf(
+        yield* AtomRegistry.getResult(registry, listAtom, {
+          suspendOnWaiting: true,
+        }),
+      );
+      const index = after.findIndex((event) => event.id === admitted.id);
+      const tail = after.slice(index).map((event) => event.kind);
+      assert.includeMembers(tail, ["assistant", "tool_result"]);
+
+      const closing = after
+        .filter((event) => event.kind === "assistant")
+        .find((event) =>
+          JSON.stringify(event).includes(
+            "retry budget count attempts or elapsed",
+          ),
+        );
+      assert.isDefined(closing);
+      const payload = (
+        closing as unknown as {
+          payload: {
+            stopReason: string;
+            blocks: ReadonlyArray<{ type: string; text?: string }>;
+          };
+        }
+      ).payload;
+      assert.equal(payload.stopReason, "end_turn");
+      const reply = payload.blocks.find((block) => block.type === "text");
+      assert.isString(reply?.text);
+      assert.match(reply?.text ?? "", /retry budget count attempts/);
+    }),
+  );
+});
