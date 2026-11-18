@@ -2,6 +2,7 @@ import { assert, describe, it } from "@effect/vitest";
 import { Schema } from "effect";
 import { EventRow, type EventRowEncoded } from "@/data/events";
 import { splitSections } from "@/features/thread/agent-message/sections.ts";
+import { decodeProposal } from "@/features/thread/mcp-setup-card/proposal.ts";
 import { buildTimeline } from "@/features/thread/timeline/build.ts";
 import { threads } from "../fixtures/world.ts";
 import { seedEvents } from "./fixtures.ts";
@@ -50,9 +51,11 @@ describe("the captured thread conversation", () => {
     assert.isAbove(long.length, 0);
   });
 
-  it("carries a proposed MCP server", () => {
+  it("carries a proposed MCP server that decodes", () => {
     const setups = ofType(jamId, "mcp-setup");
     assert.lengthOf(setups, 1);
+    const [setup] = setups as ReadonlyArray<{ proposal: unknown }>;
+    assert.isDefined(decodeProposal(setup?.proposal));
   });
 
   it("carries tool activity between the turns", () => {
