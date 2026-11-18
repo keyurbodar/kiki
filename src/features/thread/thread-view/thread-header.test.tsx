@@ -20,9 +20,9 @@ import {
   ThreadCostBadgeControl,
   type ThreadUsage,
 } from "@/features/thread/cost-badge";
+import { ThreadScreen } from "@/features/thread/thread-route/thread-route";
 import { isRetiredPane } from "@/features/thread-panes/thread-pane";
 import { searchParams } from "@/lib/search-params";
-import { ThreadScreen } from "@/routes/_app/thread/$threadId";
 import { ThreadHeader } from "./thread-header";
 import { paneTabs } from "./thread-tabs";
 

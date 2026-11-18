@@ -15,8 +15,8 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+import { ThreadScreen } from "@/features/thread/thread-route/thread-route";
 import { searchParams } from "@/lib/search-params";
-import { ThreadScreen } from "@/routes/_app/thread/$threadId";
 
 afterEach(cleanup);
 
