@@ -143,6 +143,7 @@ const sampleUsage = {
 };
 
 const retryCallId = "toolu_sample_retry";
+const deliveryCallId = "toolu_sample_delivery";
 const failCallId = "toolu_sample_fail";
 const detachedCallId = "toolu_sample_detached";
 
@@ -164,6 +165,7 @@ const at = {
   toolFail: isoMinutesAgo(2),
   toolDetached: isoMinutesAgo(2),
   reasoning: isoMinutesAgo(1),
+  delivered: isoMinutesAgo(74),
 };
 
 /** The ids the outline and the message versions below point at. */
@@ -173,6 +175,7 @@ const ids = {
   edit: eventId(at.followUp, 21),
   turn: eventId(at.turn, 3),
   result: eventId(at.result, 4),
+  delivery: eventId(at.delivered, 16),
   queued: eventId(at.queued, 5),
   docs: eventId(at.docs, 6),
   command: eventId(at.command, 7),
@@ -977,6 +980,50 @@ export const seedEvents: ReadonlyArray<EventRowEncoded> = [
     isError: false,
     blocks: [{ type: "text", text: "Updated src/checkout/retry.ts" }],
     data: { path: "src/checkout/retry.ts", changed: 12 },
+  }),
+  row(checkoutJam, at.delivered, 16, "assistant", {
+    actor: agent(checkoutJam),
+    origin: sys,
+    model: sampleModel,
+    route: { source: "capy" },
+    usage: sampleUsage,
+    stopReason: "tool_use",
+    blocks: [
+      {
+        id: "blk_sample_delivery_text",
+        type: "text",
+        text: "The retry is in and the checkout test passes.",
+      },
+      {
+        id: "blk_sample_delivery_call",
+        type: "tool_use",
+        toolCallId: deliveryCallId,
+        toolName: "message_user",
+        args: {
+          text: [
+            "Bounded retry is in `src/checkout/retry.ts`, and the checkout test passes on both attempts.",
+            "",
+            "**What changed**",
+            "",
+            "- two retries, 200 ms apart",
+            "- the gateway call fails fast on a 504",
+            "",
+            "```ts",
+            "export const maxRetries = 2;",
+            "```",
+          ].join("\n"),
+        },
+      },
+    ],
+  }),
+  row(checkoutJam, at.delivered, 17, "tool_result", {
+    actor: agent(checkoutJam),
+    origin: sys,
+    assistantEventId: ids.delivery,
+    toolCallId: deliveryCallId,
+    isError: false,
+    blocks: [{ type: "text", text: "Delivered." }],
+    data: { delivered: [] },
   }),
   row(
     checkoutJam,
