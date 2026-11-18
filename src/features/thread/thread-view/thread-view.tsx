@@ -423,6 +423,7 @@ export function ThreadView({
   return (
     <ThreadMessageActions
       orgId={handlers.orgId}
+      jamId={threadId}
       reply={startReply}
       editMessage={onEditMessage}
       editedRowIds={editedRowIds}

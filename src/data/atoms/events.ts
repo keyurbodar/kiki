@@ -17,6 +17,26 @@ const contextUsageQuery = Atom.family((key: string) => {
 export const contextUsageAtom = (orgId: string, jamId: string) =>
   contextUsageQuery(`${orgId}/${jamId}`);
 
+const messageVersionsQuery = Atom.family((key: string) => {
+  const [orgId = "", jamId = "", eventId = ""] = key.split("/");
+  return ApiClient.query("events", "messageVersions", {
+    params: { orgId, jamId, eventId },
+    reactivityKeys: [jamEventKey(jamId)],
+    timeToLive: queryTimeToLive,
+  });
+});
+
+/**
+ * `GET messages/:eventId/versions`: every version of one message and the
+ * events each one branches to. The response is undecoded; the switcher decodes
+ * it with `MessageVersionsWithBranches`.
+ */
+export const messageVersionsAtom = (
+  orgId: string,
+  jamId: string,
+  eventId: string,
+) => messageVersionsQuery(`${orgId}/${jamId}/${eventId}`);
+
 /** `POST jams/:jamId/message`: sends a composer message to a thread. */
 export const sendMessageAtom = ApiClient.mutation("events", "message");
 

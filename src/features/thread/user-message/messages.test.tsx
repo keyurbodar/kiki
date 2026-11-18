@@ -15,6 +15,10 @@ vi.mock("@/features/mobile", async (importOriginal) => ({
   useIsPhoneSurface: () => phoneSurface,
 }));
 
+vi.mock("@/features/thread/version-switcher", () => ({
+  VersionSwitcher: () => <span data-slot="version-switcher" />,
+}));
+
 afterEach(() => {
   cleanup();
   phoneSurface = false;
@@ -46,6 +50,11 @@ const userRow = {
   origin: { type: "web" },
   showOrigin: false,
   state: "answered",
+} as unknown as UserMessageRow;
+
+const versionedRow = {
+  ...userRow,
+  versionRoot: "01JAAAAAAAAAAAAAAAAAAAAAAA",
 } as unknown as UserMessageRow;
 
 describe("UserMessage", () => {
@@ -101,6 +110,52 @@ describe("UserMessage", () => {
     expect(screen.queryByLabelText("Reply")).toBeNull();
     expect(screen.queryByLabelText("Copy message")).toBeNull();
     expect(screen.getByText("Can you check the build?")).toBeTruthy();
+  });
+
+  it("keeps only the version switcher in the phone footer", () => {
+    phoneSurface = true;
+    render(
+      <MessageActionsProvider
+        value={{ viewerUserId: "user_sample", editMessage: () => {} }}
+      >
+        <UserMessage row={versionedRow} />
+      </MessageActionsProvider>,
+    );
+    const footer = document.querySelector("[data-slot=message-footer]");
+    expect(footer?.children).toHaveLength(1);
+    expect(footer?.firstElementChild?.getAttribute("data-slot")).toBe(
+      "version-switcher",
+    );
+    expect(screen.queryByLabelText("Reply")).toBeNull();
+    expect(screen.queryByLabelText("Copy message")).toBeNull();
+    expect(screen.queryByLabelText("Edit message")).toBeNull();
+  });
+
+  it("puts the version switcher first in the desktop footer", () => {
+    render(
+      <MessageActionsProvider
+        value={{ viewerUserId: "user_sample", editMessage: () => {} }}
+      >
+        <UserMessage row={versionedRow} />
+      </MessageActionsProvider>,
+    );
+    const footer = document.querySelector("[data-slot=message-footer]");
+    expect(footer?.firstElementChild?.getAttribute("data-slot")).toBe(
+      "version-switcher",
+    );
+    expect(screen.getByLabelText("Reply")).toBeTruthy();
+    expect(screen.getByLabelText("Copy message")).toBeTruthy();
+    expect(screen.getByLabelText("Edit message")).toBeTruthy();
+  });
+
+  it("offers no switcher on a message someone else wrote", () => {
+    render(
+      <MessageActionsProvider value={{ viewerUserId: "user_other" }}>
+        <UserMessage row={versionedRow} />
+      </MessageActionsProvider>,
+    );
+    expect(document.querySelector("[data-slot=version-switcher]")).toBeNull();
+    expect(document.querySelector("[data-slot=message-footer]")).not.toBeNull();
   });
 
   it("clamps a long message and leaves a short one alone", () => {
