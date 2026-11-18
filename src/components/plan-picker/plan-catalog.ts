@@ -88,6 +88,19 @@ export const tierLimits: Record<
 
 const nbsp = "\u00a0";
 
+/**
+ * The plan a billing plan id belongs to. Ids are the catalog's own
+ * (`capy_lite`, `capy_pro`, `capy_max_200`, and their annual or versioned
+ * forms), so one billing read carries the whole answer.
+ */
+export const planTierOf = (planId: string): PlanTier | undefined => {
+  const base = planId.split("__")[0] ?? planId;
+  if (base.startsWith("capy_lite")) return "lite";
+  if (base.startsWith("capy_pro")) return "pro";
+  if (base.startsWith("capy_max")) return "max";
+  return undefined;
+};
+
 export const formatGb = (gb: number) =>
   gb >= 1024 && gb % 1024 === 0 ? `${gb / 1024}${nbsp}TB` : `${gb}${nbsp}GB`;
 

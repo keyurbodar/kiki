@@ -1,4 +1,5 @@
 import { useAtomValue } from "@effect/atom-react";
+import { useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { type ComponentProps, useCallback, useRef, useState } from "react";
 import {
@@ -13,6 +14,7 @@ import {
   MachineConfigMenu,
   type MachineConfigMenuProps,
   toMachineSize,
+  useMachineEntitlements,
 } from "@/components/machine-config";
 import { ModelPicker } from "@/components/model-picker";
 import {
@@ -53,6 +55,12 @@ import { SidebarTrigger } from "@/primitives/sidebar";
 import { HomeWelcome, type HomeWelcomeProject } from "../home-welcome";
 import { ProjectEnvironmentHint } from "../project-environment-hint";
 import { FabricBackdrop } from "./fabric-backdrop";
+import {
+  emptyOrganizeDraft,
+  type OrganizeDraft,
+  OrganizeMenuItems,
+  organizeDraftActive,
+} from "./organize-menu";
 import { useStartThread } from "./use-start-thread";
 
 export type HomePageProps = ComponentProps<"div"> & {
@@ -175,11 +183,14 @@ function HomePageBody({
   const [branches, setBranches] = useState<BranchSelection>({});
   const [model, setModel] = useState<ModelSelection>(defaultSelection);
   const [machineSize, setMachineSize] = useState<MachineSize | null>(null);
+  const [organize, setOrganize] = useState<OrganizeDraft>(emptyOrganizeDraft);
   const composerRef = useRef<ComposerHandle>(null);
   const initialDraft = useRef(
     prompt === undefined ? undefined : payloadOf(prompt),
   ).current;
   const startThread = useStartThread();
+  const navigate = useNavigate();
+  const entitlements = useMachineEntitlements(orgId);
   const uploader = useFileUploader(orgId);
   const attachments = useComposerAttachments(uploader);
   const project = noProject
@@ -208,10 +219,11 @@ function HomePageBody({
         projectId: project?.id,
         payload,
         machineSize: machineSize ?? undefined,
+        organize,
       });
       return true;
     },
-    [locked, machineSize, orgId, project?.id, startThread],
+    [locked, machineSize, organize, orgId, project?.id, startThread],
   );
 
   return (
@@ -318,6 +330,19 @@ function HomePageBody({
                       runsOn={runOn === null ? "cloud" : "device"}
                       size={machineSize}
                       onSizeChange={setMachineSize}
+                      maxSize={entitlements.maxSize}
+                      bigGuyAvailable={entitlements.bigGuyAvailable}
+                      onUpgrade={() =>
+                        void navigate({ to: "/settings/org/billing" })
+                      }
+                      organize={
+                        <OrganizeMenuItems
+                          orgId={orgId}
+                          draft={organize}
+                          onChange={setOrganize}
+                        />
+                      }
+                      organizeActive={organizeDraftActive(organize)}
                     />
                   </span>
                   <span className="ml-1 flex min-w-0 items-center gap-0.5">

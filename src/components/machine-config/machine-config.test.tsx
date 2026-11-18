@@ -5,6 +5,7 @@ import {
   type MachineSize,
 } from "@/components/plan-picker/plan-catalog";
 import { MachineConfigMenu } from "./machine-config";
+import { planMachineEntitlements } from "./machine-entitlements";
 
 const navigate = vi.hoisted(() => vi.fn());
 
@@ -34,6 +35,12 @@ const sizeRows = (size: MachineSize) =>
 const openMenu = () =>
   fireEvent.click(screen.getByLabelText("Machine configuration"));
 
+/** Every lock chip's text, in menu order, "Needs" included because it is read out. */
+const lockChips = () =>
+  [...document.querySelectorAll("[data-slot=badge]")].map(
+    (chip) => chip.textContent,
+  );
+
 describe("MachineConfigMenu", () => {
   it("opens the menu from the footer trigger", async () => {
     render(<MachineConfigMenu />);
@@ -46,6 +53,12 @@ describe("MachineConfigMenu", () => {
   it("labels itself as the thread configuration when it carries organize rows", () => {
     render(<MachineConfigMenu organize={<span>Pin</span>} />);
     expect(screen.getByLabelText("Thread configuration")).toBeTruthy();
+  });
+
+  it("stays the machine configuration until a call site passes organize rows", () => {
+    render(<MachineConfigMenu />);
+    expect(screen.getByLabelText("Machine configuration")).toBeTruthy();
+    expect(screen.queryByLabelText("Thread configuration")).toBeNull();
   });
 
   it("offers Default, every permitted size, and their price", () => {
@@ -74,7 +87,7 @@ describe("MachineConfigMenu", () => {
     expect(screen.getByText("$3.20/hr")).toBeTruthy();
   });
 
-  it("hides sizes above the largest the org may pick and clamps the default", () => {
+  it("lists the sizes above the plan's largest as locked rows and clamps the default", () => {
     render(
       <MachineConfigMenu
         defaultOpen="machine-size"
@@ -83,9 +96,55 @@ describe("MachineConfigMenu", () => {
       />,
     );
     expect(sizeRows("small")).toHaveLength(1);
-    expect(sizeRows("large")).toHaveLength(0);
-    expect(sizeRows("ultra")).toHaveLength(0);
+    expect(sizeRows("large")).toHaveLength(1);
+    expect(sizeRows("ultra")).toHaveLength(1);
+    // The submenu's value, the Default row and the row itself carry the clamped size.
     expect(sizeRows("medium")).toHaveLength(3);
+    // The lock chips name the cheapest plan that unlocks the row, "Needs" read out for screens.
+    expect(lockChips()).toEqual(["Needs Lite", "Needs Pro", "Needs Max"]);
+  });
+
+  it("sells the plan a locked size needs instead of picking it", () => {
+    const onSizeChange = vi.fn();
+    const onUpgrade = vi.fn();
+    render(
+      <MachineConfigMenu
+        defaultOpen="machine-size"
+        maxSize="medium"
+        onSizeChange={onSizeChange}
+        onUpgrade={onUpgrade}
+      />,
+    );
+    const [largeRow] = sizeRows("large");
+    if (largeRow === undefined) throw new Error("the large row is missing");
+    fireEvent.click(largeRow);
+    expect(onUpgrade).toHaveBeenCalledWith("lite");
+    expect(onSizeChange).not.toHaveBeenCalled();
+    const [mediumRow] = sizeRows("medium");
+    if (mediumRow === undefined) throw new Error("the medium row is missing");
+    fireEvent.click(mediumRow);
+    expect(onSizeChange).toHaveBeenCalledWith("medium");
+  });
+
+  it("leaves a locked row inert when the call site has no upgrade flow", () => {
+    render(<MachineConfigMenu defaultOpen="machine-size" maxSize="medium" />);
+    const [ultraRow] = sizeRows("ultra");
+    if (ultraRow === undefined) throw new Error("the ultra row is missing");
+    expect(ultraRow.closest("[data-disabled]")).not.toBeNull();
+    const [smallRow] = sizeRows("small");
+    if (smallRow === undefined) throw new Error("the small row is missing");
+    expect(smallRow.closest("[data-disabled]")).toBeNull();
+  });
+
+  it("reads a billing plan id as the sizes it permits", () => {
+    expect(planMachineEntitlements("capy_lite")).toEqual({
+      maxSize: "large",
+      bigGuyAvailable: false,
+    });
+    expect(planMachineEntitlements("capy_pro__v2").maxSize).toBe("ultra");
+    expect(planMachineEntitlements("capy_max_200").maxSize).toBe("hyper");
+    expect(planMachineEntitlements(undefined).maxSize).toBeNull();
+    expect(planMachineEntitlements("credit_pack").maxSize).toBeNull();
   });
 
   it("reports the size the row picks and the Default row's inherit", () => {
