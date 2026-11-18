@@ -65,7 +65,7 @@ export type OverviewBodyProps = {
   onSort: (sort: PullSort) => void;
 };
 
-function useResult<T>(result: AsyncResult.AsyncResult<T>): T | undefined {
+function useResult<T, E>(result: AsyncResult.AsyncResult<T, E>): T | undefined {
   return AsyncResult.isSuccess(result) ? result.value : undefined;
 }
 

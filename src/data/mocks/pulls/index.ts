@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { fields, type JamRow, MockDb, missing, newId } from "../db/MockDb.ts";
+import { fields, type JamRow, MockDb, newId, notFound } from "../db/MockDb.ts";
 import {
   isoMinutesAgo,
   people,
@@ -129,7 +129,7 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
       Effect.gen(function* () {
         const rows = yield* Ref.get(pulls);
         const row = rows.find((candidate) => candidate.id === pullId);
-        if (!row) return yield* missing("pulls", pullId);
+        if (!row) return yield* notFound("pulls", pullId);
         return row;
       });
 
@@ -505,7 +505,7 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
           const labelId = text(input.labelId) ?? "lbl_sample_bug";
           const available = yield* Ref.get(issueLabels);
           const label = available.find((item) => item.id === labelId);
-          if (!label) return yield* missing("issueLabels", labelId);
+          if (!label) return yield* notFound("issueLabels", labelId);
           if (params.pullId === xinPull.id) {
             if (!xinLabels.some((item) => item.id === labelId)) {
               xinLabels.push({
@@ -806,7 +806,7 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
               candidate.number === number &&
               (repo === undefined || candidate.repo === repo),
           );
-          if (!row) return yield* missing("pulls", String(number));
+          if (!row) return yield* notFound("pulls", String(number));
           return yield* detailOf(row.id);
         }),
       )
