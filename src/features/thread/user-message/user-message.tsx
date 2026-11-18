@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react";
+import { type ComponentProps, useState } from "react";
 import { ClampedBody } from "@/components/clamped-body";
 import { Markdown } from "@/components/markdown";
 import type { UserMessageRow as UserMessageRowSchema } from "@/data/events";
@@ -56,7 +56,7 @@ export type UserMessageProps = ComponentProps<"div"> & {
 
 export function UserMessage({
   row,
-  expanded = false,
+  expanded: expandedProp = false,
   onToggleExpanded,
   clampHeight,
   footer = true,
@@ -64,6 +64,12 @@ export function UserMessage({
   className,
   ...props
 }: UserMessageProps) {
+  const [localExpanded, setLocalExpanded] = useState(false);
+  const expanded = expandedProp || localExpanded;
+  const toggleExpanded = () => {
+    if (onToggleExpanded) onToggleExpanded();
+    else setLocalExpanded((value) => !value);
+  };
   const actions = useMessageActions();
   const mine =
     actions.viewerUserId !== undefined &&
@@ -198,21 +204,19 @@ export function UserMessage({
                 align={mine ? "end" : "start"}
               />
             )}
-            {body !== "" &&
-              (onToggleExpanded === undefined ||
-              !needsClamp(body, clampHeight) ? (
-                <div className={BUBBLE}>{text}</div>
-              ) : (
-                <ClampedBody
-                  maxHeight={clampHeight ?? CLAMP_HEIGHT}
-                  expanded={expanded}
-                  onToggle={onToggleExpanded}
-                  fade={clampHeight === undefined ? undefined : CLAMP_FADE}
-                  className={BUBBLE}
-                >
-                  {text}
-                </ClampedBody>
-              ))}
+            {body === "" ? null : !needsClamp(body, clampHeight) ? (
+              <div className={BUBBLE}>{text}</div>
+            ) : (
+              <ClampedBody
+                maxHeight={clampHeight ?? CLAMP_HEIGHT}
+                expanded={expanded}
+                onToggle={toggleExpanded}
+                fade={clampHeight === undefined ? undefined : CLAMP_FADE}
+                className={BUBBLE}
+              >
+                {text}
+              </ClampedBody>
+            )}
             {footerEl}
           </div>
         )}

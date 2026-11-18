@@ -120,6 +120,17 @@ describe("UserMessage", () => {
     expect(screen.queryByLabelText("Edit message")).toBeNull();
   });
 
+  it("clamps a long message on its own, without a toggle prop", () => {
+    const long = "Trace the flaky shard timeout. ".repeat(40);
+    render(<UserMessage row={{ ...userRow, text: long } as never} />);
+    expect(document.querySelector("[data-slot=clamped-body]")).not.toBeNull();
+  });
+
+  it("leaves a short message unclamped", () => {
+    render(<UserMessage row={userRow} />);
+    expect(document.querySelector("[data-slot=clamped-body]")).toBeNull();
+  });
+
   it("renders a reply quote above the body", () => {
     const sent = buildReply(
       { text: "Agreed", mentions: [] },
