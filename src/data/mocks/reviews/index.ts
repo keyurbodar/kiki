@@ -1,4 +1,5 @@
 import { Effect, Ref } from "effect";
+import { InvalidRequest } from "../../api/schemas/errors.ts";
 import { fields } from "../db/MockDb.ts";
 import { orgId } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
@@ -32,8 +33,10 @@ export const ReviewsMock = mockGroup("reviews", (handlers) =>
           const input = fields(payload);
           const repo = text(input.repo);
           if (repo === undefined) {
-            return yield* Effect.die(
-              new Error("reviews.configure: repo is required"),
+            return yield* Effect.fail(
+              new InvalidRequest({
+                message: "A review setting needs a repo",
+              }),
             );
           }
           let updated: (typeof sampleReviewSettings)[number] | undefined;
@@ -67,8 +70,10 @@ export const ReviewsMock = mockGroup("reviews", (handlers) =>
             }),
           );
           if (updated === undefined) {
-            return yield* Effect.die(
-              new Error(`reviews.configure: no settings for ${repo}`),
+            return yield* Effect.fail(
+              new InvalidRequest({
+                message: `No review settings for ${repo}`,
+              }),
             );
           }
           return updated;

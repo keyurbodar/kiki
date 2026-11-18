@@ -2,6 +2,7 @@ import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
 import { defaultModelId } from "@/components/model-picker/catalog";
+import { InvalidRequest } from "../../api/schemas/errors.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId, viewer, world } from "../fixtures/world.ts";
 
@@ -407,6 +408,98 @@ describe("models mock", () => {
       assert.isFalse(
         afterDisconnect.find((row) => row.service === service)?.enabled,
       );
+    }),
+  );
+
+  it.effect("answers an unknown id with the declared 400", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const misses: ReadonlyArray<{
+        endpoint:
+          | "updateCredential"
+          | "removeCredential"
+          | "refreshClaudeSeat"
+          | "refreshDaybreak"
+          | "checkMediaUrl"
+          | "moveToOrganization"
+          | "testCredential"
+          | "setConnectionModels"
+          | "discoverModels"
+          | "removeOrgKey"
+          | "setCredentialEnabled"
+          | "startDevice"
+          | "pollDevice";
+        params: Record<string, string>;
+        payload?: Record<string, unknown>;
+      }> = [
+        {
+          endpoint: "updateCredential",
+          params: { ...params, credentialId: "cred_unknown" },
+          payload: { name: "Renamed" },
+        },
+        {
+          endpoint: "removeCredential",
+          params: { ...params, credentialId: "cred_unknown" },
+        },
+        {
+          endpoint: "refreshClaudeSeat",
+          params: { credentialId: "cred_unknown" },
+        },
+        {
+          endpoint: "refreshDaybreak",
+          params: { ...params, credentialId: "cred_unknown" },
+        },
+        {
+          endpoint: "checkMediaUrl",
+          params: { ...params, credentialId: "cred_unknown" },
+        },
+        {
+          endpoint: "moveToOrganization",
+          params: { ...params, credentialId: "cred_unknown" },
+        },
+        {
+          endpoint: "testCredential",
+          params: { ...params, credentialId: "cred_unknown" },
+        },
+        {
+          endpoint: "setConnectionModels",
+          params: { ...params, credentialId: "cred_unknown" },
+          payload: { models: [] },
+        },
+        {
+          endpoint: "discoverModels",
+          params,
+          payload: { credentialId: "cred_unknown" },
+        },
+        {
+          endpoint: "removeOrgKey",
+          params: { ...params, provider: "unknown-provider" },
+        },
+        {
+          endpoint: "setCredentialEnabled",
+          params: { service: "unknown-service" },
+          payload: { enabled: true },
+        },
+        { endpoint: "startDevice", params: { service: "unknown-service" } },
+        {
+          endpoint: "pollDevice",
+          params: { attemptId: "device_attempt_unknown" },
+        },
+      ];
+
+      for (const miss of misses) {
+        const mutation = ApiClient.mutation("models", miss.endpoint);
+        registry.set(mutation, {
+          params: miss.params as { orgId: string },
+          query: {},
+          payload: miss.payload ?? {},
+          reactivityKeys: [key],
+        });
+        const error = yield* AtomRegistry.getResult(registry, mutation).pipe(
+          Effect.flip,
+        );
+        assert.instanceOf(error, InvalidRequest);
+      }
     }),
   );
 });

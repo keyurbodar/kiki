@@ -1,4 +1,5 @@
 import { DateTime, Effect, Ref } from "effect";
+import { InvalidRequest } from "../../api/schemas/errors.ts";
 import { fields, newId } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { mockGroup } from "../mockGroup.ts";
@@ -69,8 +70,8 @@ export const ReviewFiltersMock = mockGroup("reviewFilters", (handlers) =>
         const rows = yield* Ref.get(rules);
         const row = rows.find((candidate) => candidate.id === id);
         if (!row) {
-          return yield* Effect.die(
-            new Error(`reviewFilters.rules: no row ${id}`),
+          return yield* Effect.fail(
+            new InvalidRequest({ message: `No review filter rule ${id}` }),
           );
         }
         return row;
@@ -81,8 +82,10 @@ export const ReviewFiltersMock = mockGroup("reviewFilters", (handlers) =>
         const rows = yield* Ref.get(ignorePaths);
         const row = rows.find((candidate) => candidate.id === id);
         if (!row) {
-          return yield* Effect.die(
-            new Error(`reviewFilters.ignorePaths: no row ${id}`),
+          return yield* Effect.fail(
+            new InvalidRequest({
+              message: `No review ignore-paths entry ${id}`,
+            }),
           );
         }
         return row;

@@ -7,6 +7,7 @@ import {
   CreateCloudAccessTargetRequest,
   UpdateCloudAccessTargetRequest,
 } from "../schemas/cloud-access.ts";
+import { InvalidRequest } from "../schemas/errors.ts";
 import { IntegrationMutationResult } from "../schemas/integrations.ts";
 
 export class CloudAccessGroup extends HttpApiGroup.make("cloud-access").add(
@@ -21,6 +22,7 @@ export class CloudAccessGroup extends HttpApiGroup.make("cloud-access").add(
       params: { orgId: Schema.String },
       payload: CreateCloudAccessTargetRequest,
       success: CloudAccessTarget,
+      error: InvalidRequest,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.patch(
@@ -33,6 +35,7 @@ export class CloudAccessGroup extends HttpApiGroup.make("cloud-access").add(
       },
       payload: UpdateCloudAccessTargetRequest,
       success: CloudAccessTarget,
+      error: InvalidRequest,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.delete(
@@ -44,6 +47,7 @@ export class CloudAccessGroup extends HttpApiGroup.make("cloud-access").add(
         targetId: Schema.String,
       },
       success: IntegrationMutationResult,
+      error: InvalidRequest,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -55,6 +59,7 @@ export class CloudAccessGroup extends HttpApiGroup.make("cloud-access").add(
         targetId: Schema.String,
       },
       success: CloudAccessTarget,
+      error: InvalidRequest,
     },
   ).annotate(InferredMethod, true),
 ) {}

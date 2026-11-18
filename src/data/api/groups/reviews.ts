@@ -1,5 +1,6 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { InvalidRequest } from "../schemas/errors.ts";
 import { Undecoded } from "../undecoded.ts";
 
 export class ReviewsGroup extends HttpApiGroup.make("reviews").add(
@@ -25,5 +26,6 @@ export class ReviewsGroup extends HttpApiGroup.make("reviews").add(
     params: { orgId: Schema.String },
     payload: Undecoded,
     success: Undecoded,
+    error: InvalidRequest,
   }),
 ) {}

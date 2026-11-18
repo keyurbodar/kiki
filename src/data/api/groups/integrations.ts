@@ -1,6 +1,7 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
 import { InferredMethod } from "../annotations.ts";
+import { InvalidRequest } from "../schemas/errors.ts";
 import {
   CompleteGitHubOAuthRequest,
   CompleteLinearLinkRequest,
@@ -178,6 +179,7 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
     {
       params: { orgId: Schema.String, linkId: Schema.String },
       success: Undecoded,
+      error: InvalidRequest,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -229,6 +231,7 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
     {
       params: { orgId: Schema.String, linkId: Schema.String },
       success: Undecoded,
+      error: InvalidRequest,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -270,6 +273,7 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
     {
       params: { orgId: Schema.String, accessId: Schema.String },
       success: Undecoded,
+      error: InvalidRequest,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -279,6 +283,7 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
       params: { orgId: Schema.String, accessId: Schema.String },
       payload: Undecoded,
       success: Undecoded,
+      error: InvalidRequest,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -287,6 +292,7 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
     {
       params: { orgId: Schema.String, accessId: Schema.String },
       success: Undecoded,
+      error: InvalidRequest,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -327,6 +333,7 @@ export class IntegrationsGroup extends HttpApiGroup.make("integrations").add(
     {
       params: { orgId: Schema.String, threadId: Schema.String },
       success: Undecoded,
+      error: InvalidRequest,
     },
   ).annotate(InferredMethod, true),
 ) {}

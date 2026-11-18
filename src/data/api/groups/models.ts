@@ -1,6 +1,7 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
 import { InferredMethod } from "../annotations.ts";
+import { InvalidRequest } from "../schemas/errors.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class ModelsGroup extends HttpApiGroup.make("models").add(
@@ -21,17 +22,23 @@ export class ModelsGroup extends HttpApiGroup.make("models").add(
       query: UndecodedQuery,
       payload: Undecoded,
       success: Undecoded,
+      error: InvalidRequest,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post("startDevice", "/models/credentials/:service/device", {
     params: { service: Schema.String },
     query: UndecodedQuery,
     success: Undecoded,
+    error: InvalidRequest,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
     "refreshClaudeSeat",
     "/models/credentials/claude/:credentialId/refresh",
-    { params: { credentialId: Schema.String }, success: Undecoded },
+    {
+      params: { credentialId: Schema.String },
+      success: Undecoded,
+      error: InvalidRequest,
+    },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.put("connectClaudeSeat", "/models/credentials/claude/token", {
     payload: Undecoded,
@@ -40,7 +47,11 @@ export class ModelsGroup extends HttpApiGroup.make("models").add(
   HttpApiEndpoint.post(
     "pollDevice",
     "/models/credentials/device/:attemptId/poll",
-    { params: { attemptId: Schema.String }, success: Undecoded },
+    {
+      params: { attemptId: Schema.String },
+      success: Undecoded,
+      error: InvalidRequest,
+    },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.get("listMyCompactAt", "/orgs/:orgId/me/models/compact-at", {
     params: { orgId: Schema.String },
@@ -90,6 +101,7 @@ export class ModelsGroup extends HttpApiGroup.make("models").add(
       params: { orgId: Schema.String, credentialId: Schema.String },
       payload: Undecoded,
       success: Undecoded,
+      error: InvalidRequest,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.put(
@@ -113,6 +125,7 @@ export class ModelsGroup extends HttpApiGroup.make("models").add(
       params: { orgId: Schema.String, credentialId: Schema.String },
       payload: Undecoded,
       success: Undecoded,
+      error: InvalidRequest,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.delete(
@@ -121,6 +134,7 @@ export class ModelsGroup extends HttpApiGroup.make("models").add(
     {
       params: { orgId: Schema.String, credentialId: Schema.String },
       success: Undecoded,
+      error: InvalidRequest,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -129,6 +143,7 @@ export class ModelsGroup extends HttpApiGroup.make("models").add(
     {
       params: { orgId: Schema.String, credentialId: Schema.String },
       success: Undecoded,
+      error: InvalidRequest,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -137,6 +152,7 @@ export class ModelsGroup extends HttpApiGroup.make("models").add(
     {
       params: { orgId: Schema.String, credentialId: Schema.String },
       success: Undecoded,
+      error: InvalidRequest,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -145,6 +161,7 @@ export class ModelsGroup extends HttpApiGroup.make("models").add(
     {
       params: { orgId: Schema.String, credentialId: Schema.String },
       success: Undecoded,
+      error: InvalidRequest,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -153,12 +170,14 @@ export class ModelsGroup extends HttpApiGroup.make("models").add(
     {
       params: { orgId: Schema.String, credentialId: Schema.String },
       success: Undecoded,
+      error: InvalidRequest,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post("discoverModels", "/orgs/:orgId/models/discover", {
     params: { orgId: Schema.String },
     payload: Undecoded,
     success: Undecoded,
+    error: InvalidRequest,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.put("upsertOrgKey", "/orgs/:orgId/models/keys/:provider", {
     params: { orgId: Schema.String, provider: Schema.String },
@@ -168,6 +187,7 @@ export class ModelsGroup extends HttpApiGroup.make("models").add(
   HttpApiEndpoint.delete("removeOrgKey", "/orgs/:orgId/models/keys/:provider", {
     params: { orgId: Schema.String, provider: Schema.String },
     success: Undecoded,
+    error: InvalidRequest,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.get("routing", "/orgs/:orgId/models/routing", {
     params: { orgId: Schema.String },

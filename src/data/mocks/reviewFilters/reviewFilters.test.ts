@@ -1,6 +1,7 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
+import { InvalidRequest } from "../../api/schemas/errors.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId } from "../fixtures/world.ts";
 
@@ -168,5 +169,56 @@ describe("reviewFilters mock", () => {
         reactivityKeys: [key],
       });
     }),
+  );
+
+  it.effect(
+    "answers an unknown rule or ignore-path with the declared 400",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        const missing = "rfilt_unknown";
+
+        registry.set(updateRule, {
+          params: { orgId, id: missing },
+          payload: { repo: "acme/web" },
+          reactivityKeys: [key],
+        });
+        const updateRuleMiss = yield* AtomRegistry.getResult(
+          registry,
+          updateRule,
+        ).pipe(Effect.flip);
+        assert.instanceOf(updateRuleMiss, InvalidRequest);
+
+        registry.set(deleteRule, {
+          params: { orgId, id: missing },
+          reactivityKeys: [key],
+        });
+        const deleteRuleMiss = yield* AtomRegistry.getResult(
+          registry,
+          deleteRule,
+        ).pipe(Effect.flip);
+        assert.instanceOf(deleteRuleMiss, InvalidRequest);
+
+        registry.set(updatePaths, {
+          params: { orgId, id: missing },
+          payload: { patterns: ["dist/**"] },
+          reactivityKeys: [key],
+        });
+        const updatePathsMiss = yield* AtomRegistry.getResult(
+          registry,
+          updatePaths,
+        ).pipe(Effect.flip);
+        assert.instanceOf(updatePathsMiss, InvalidRequest);
+
+        registry.set(deletePaths, {
+          params: { orgId, id: missing },
+          reactivityKeys: [key],
+        });
+        const deletePathsMiss = yield* AtomRegistry.getResult(
+          registry,
+          deletePaths,
+        ).pipe(Effect.flip);
+        assert.instanceOf(deletePathsMiss, InvalidRequest);
+      }),
   );
 });

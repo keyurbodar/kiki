@@ -1,4 +1,5 @@
 import { DateTime, Effect, Ref } from "effect";
+import { InvalidRequest } from "../../api/schemas/errors.ts";
 import { fields, newId } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { mockGroup } from "../mockGroup.ts";
@@ -52,7 +53,9 @@ export const ReviewRulesMock = mockGroup("reviewRules", (handlers) =>
         const rows = yield* Ref.get(rules);
         const row = rows.find((candidate) => candidate.id === id);
         if (!row) {
-          return yield* Effect.die(new Error(`reviewRules: no rule ${id}`));
+          return yield* Effect.fail(
+            new InvalidRequest({ message: `No review rule ${id}` }),
+          );
         }
         return row;
       });
@@ -87,8 +90,10 @@ export const ReviewRulesMock = mockGroup("reviewRules", (handlers) =>
           const body = text(input.body) ?? "";
           const file = fileOf(input.file) ?? null;
           if (body === "" && file === null) {
-            return yield* Effect.die(
-              new Error("reviewRules.create: body is required"),
+            return yield* Effect.fail(
+              new InvalidRequest({
+                message: "A review rule needs a body or a file",
+              }),
             );
           }
           const timestamp = DateTime.formatIso(minutesAgo(0));
