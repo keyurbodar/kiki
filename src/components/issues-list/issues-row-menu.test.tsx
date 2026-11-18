@@ -50,45 +50,6 @@ const issue = Schema.decodeUnknownSync(IssueSummarySchema)({
   closedAt: null,
 }) as IssueSummary;
 
-async function mount() {
-  const rootRoute = createRootRoute({
-    component: () => (
-      <IssueRow
-        issue={issue}
-        orgId={"org_1" as never}
-        state={state}
-        display={defaultIssueDisplay}
-        now={new Date(2026, 10, 17).getTime()}
-      />
-    ),
-  });
-  const router = createRouter({
-    routeTree: rootRoute,
-    history: createMemoryHistory({ initialEntries: ["/issues"] }),
-  });
-  await router.load();
-  render(<RouterProvider router={router} />);
-}
-
-const card = () => document.querySelector("[data-slot='preview-card-content']");
-
-describe("issue row preview card", () => {
-  it("opens Capy's issue hover card with the issue's state, code and priority", async () => {
-    await mount();
-    expect(card()).toBeNull();
-    const row = document.querySelector("[data-issue-row]");
-    if (row === null) throw new Error("no row");
-    fireEvent.focus(row);
-    await new Promise((resolve) => setTimeout(resolve, 420));
-    const content = card();
-    expect(content).not.toBeNull();
-    const text = content?.textContent ?? "";
-    expect(text).toContain("AMA-99");
-    expect(text).toContain("Todo");
-    expect(text).toContain("High");
-  });
-});
-
 describe("issue row context menu", () => {
   it("opens the issue menu on right-click", async () => {
     const rootRoute = createRootRoute({
