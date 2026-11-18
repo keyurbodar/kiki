@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { fields, MockDb, newId } from "../db/MockDb.ts";
+import { fields, MockDb, newId, notFoundNamed } from "../db/MockDb.ts";
 import {
   isoMinutesAgo,
   projects as worldProjects,
@@ -19,7 +19,7 @@ import {
 } from "./fixtures.ts";
 
 const locallyMissing = (table: string, id: string) =>
-  Effect.die(new Error(`plugins.${table}: no row ${id}`));
+  notFoundNamed(`plugins.${table} row`, id);
 
 const text = (value: unknown, fallback: string) =>
   typeof value === "string" && value.trim() !== "" ? value : fallback;
