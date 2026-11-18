@@ -84,7 +84,11 @@ export function UserMessage({
 
   const footerEl = footer && (
     <MessageFooter touch align={mine ? "end" : "start"}>
-      <MessageStamp date={row.createdAt} className="px-1.5" />
+      <MessageStamp
+        date={row.createdAt}
+        className="px-1.5"
+        edited={actions.editedRowIds?.has(row.id) ?? false}
+      />
       {canReply && (
         <Tooltip>
           <TooltipTrigger
@@ -119,7 +123,13 @@ export function UserMessage({
                 variant="ghost"
                 size="icon-xs"
                 aria-label="Edit message"
-                onClick={() => actions.editMessage?.(row.id)}
+                onClick={() =>
+                  actions.editMessage?.({
+                    rowId: row.id,
+                    eventId: row.eventId,
+                    text: body,
+                  })
+                }
               >
                 <Icon name="pencil" />
               </Button>

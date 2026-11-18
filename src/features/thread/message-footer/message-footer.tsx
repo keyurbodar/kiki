@@ -81,25 +81,36 @@ export type MessageStampProps = {
   date: Date;
   className?: string;
   visibility?: "visible" | "message-hover";
+  /** True when a later message replaces this row's text. */
+  edited?: boolean;
 };
 
 export function MessageStamp({
   date,
   className,
   visibility = "visible",
+  edited = false,
 }: MessageStampProps) {
   const { now } = useMessageActions();
   return (
-    <span
-      className={cx(
-        "shrink-0 text-xs whitespace-nowrap text-muted-foreground-2 tabular-nums select-none",
-        visibility === "message-hover" &&
-          "opacity-0 transition-opacity duration-hover group-focus-within/message:opacity-100 group-hover/message:opacity-100 pointer-coarse:opacity-100",
-        className,
+    <>
+      <span
+        className={cx(
+          "shrink-0 text-xs whitespace-nowrap text-muted-foreground-2 tabular-nums select-none",
+          visibility === "message-hover" &&
+            "opacity-0 transition-opacity duration-hover group-focus-within/message:opacity-100 group-hover/message:opacity-100 pointer-coarse:opacity-100",
+          className,
+        )}
+      >
+        {formatMessageStamp(date, now)}
+      </span>
+      {edited && (
+        <span className="flex shrink-0 items-center gap-2 text-2xs whitespace-nowrap text-muted-foreground-3 select-none">
+          <span className="h-2.5 w-px shrink-0 bg-border" />
+          Edited
+        </span>
       )}
-    >
-      {formatMessageStamp(date, now)}
-    </span>
+    </>
   );
 }
 
