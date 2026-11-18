@@ -25,6 +25,7 @@ import {
   buildSidebarThreadsView,
   defaultSidebarPrefs,
   type SidebarSource,
+  type SourceCaptain,
   type SourceThread,
   useSidebarThreads,
 } from "../sidebar-threads-data";
@@ -69,13 +70,32 @@ const thread = (patch: Partial<SourceThread> = {}): SourceThread => ({
   ...patch,
 });
 
-const source = (threads: SourceThread[]): SidebarSource => ({
+const source = (
+  threads: SourceThread[],
+  captains: SourceCaptain[] = [],
+): SidebarSource => ({
   now,
   threads,
   folders: [],
   projects: [],
-  captains: [],
+  captains,
   activeId: null,
+});
+
+const captain = (patch: Partial<SourceCaptain> = {}): SourceCaptain => ({
+  id: "jam_sample_cap1",
+  name: "Release captain",
+  avatar: { kind: "preset", value: "capy-avatar-1", background: "#ffffff" },
+  status: "idle",
+  needsYou: false,
+  ask: null,
+  preview: null,
+  hasUnreads: false,
+  crewMentionCount: 0,
+  position: 0,
+  createdAt: ago(9),
+  updatedAt: ago(2),
+  ...patch,
 });
 
 function Harness({ sidebarSource }: { sidebarSource: SidebarSource }) {
@@ -257,6 +277,41 @@ describe("sidebar row menu", () => {
   });
 });
 
+describe("sidebar captain row menu", () => {
+  const captainRow = () => {
+    const row = document.querySelector("[data-captain-row]");
+    if (row === null) throw new Error("no captain row");
+    return row;
+  };
+
+  it("opens Capy's Captain menu on right-click, in Capy's order", async () => {
+    await renderAt(<Harness sidebarSource={source([thread()], [captain()])} />);
+    fireEvent.contextMenu(captainRow());
+    await screen.findByText("Open in new tab");
+    const labels = [...document.querySelectorAll("[role=menuitem]")].map(
+      (item) => item.textContent?.trim(),
+    );
+    expect(labels).toEqual([
+      "Open in new tab",
+      "Profile",
+      "Share",
+      "Pin",
+      "Move to",
+      "Mark as unread",
+      "Archive",
+      "Demote to thread",
+      "Delete",
+    ]);
+  });
+
+  it("asks before deleting a Captain", async () => {
+    await renderAt(<Harness sidebarSource={source([thread()], [captain()])} />);
+    fireEvent.contextMenu(captainRow());
+    fireEvent.click(await screen.findByText("Delete"));
+    expect(await screen.findByText(/deleted for everyone/)).toBeTruthy();
+  });
+});
+
 describe("sidebar row action cluster", () => {
   it("mounts the cluster on the row so hovering it reveals Capy's actions", async () => {
     await renderAt(<Harness sidebarSource={source([thread()])} />);
@@ -295,7 +350,6 @@ describe("sidebar row menu", () => {
       "Open in new tab",
       "Pin",
       "Move to",
-      "Tags",
       "Promote to Captain",
       "Rename",
       "Regenerate title",

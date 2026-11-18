@@ -3,6 +3,7 @@ import { DateTime } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { type FormEvent, memo, useState } from "react";
 import { toast } from "sonner";
+import { FailedRead } from "@/components/failed-read";
 import { SettingsPage } from "@/components/settings-page";
 import type { Organization } from "@/data/api/schemas/organization";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
@@ -684,11 +685,26 @@ function InviteMembersDialog({
 
 /** Settings → Organization → Members (Capy's SettingsOrgMembersPage). */
 export function OrgMembersPage() {
-  const organizations = valueOr(useAtomValue(organizationsAtom), []);
+  const organizationsResult = useAtomValue(organizationsAtom);
+  const organizations = valueOr(organizationsResult, []);
   const organization: Organization | undefined = organizations[0];
   const viewer = useAtomValue(currentUserAtom);
   const viewerId = AsyncResult.isSuccess(viewer) ? viewer.value.id : undefined;
   const refreshOrganizations = useAtomRefresh(organizationsAtom);
+  // A failed organizations read is not "you have no organization": the page
+  // used to render its title and nothing else, which reads as an empty org.
+  if (AsyncResult.isFailure(organizationsResult)) {
+    return (
+      <SettingsPage title="Members" width="wide">
+        <FailedRead
+          slot="members-org-failed"
+          line="Couldn't load your organization"
+          sub="Check your connection and try again"
+          onRetry={refreshOrganizations}
+        />
+      </SettingsPage>
+    );
+  }
   return organization === undefined ? (
     <SettingsPage title="Members" width="wide" />
   ) : (
@@ -756,6 +772,9 @@ function OrgMembersContent({
     organization.mfaEnforceAt === null
       ? null
       : new Date(DateTime.toEpochMillis(organization.mfaEnforceAt));
+
+  const membersFailed = AsyncResult.isFailure(memberResult);
+  const refreshMembers = useAtomRefresh(orgMembersAtom(orgId));
 
   const active = members.filter((member) => !member.disabled);
   const owners = active.filter(
@@ -929,79 +948,90 @@ function OrgMembersContent({
             Invite
           </Button>
         </div>
-        <div className="-mx-4">
-          <Table columns={columns}>
-            <TableHeader>
-              <SortableTableHeaderCell
-                direction={directionOf("name")}
-                onSort={() => sortBy("name")}
-              >
-                Name
-              </SortableTableHeaderCell>
-              <SortableTableHeaderCell
-                direction={directionOf("email")}
-                onSort={() => sortBy("email")}
-              >
-                Email
-              </SortableTableHeaderCell>
-              <SortableTableHeaderCell
-                direction={directionOf("status")}
-                onSort={() => sortBy("status")}
-              >
-                Status
-              </SortableTableHeaderCell>
-              <SortableTableHeaderCell
-                direction={directionOf("joined")}
-                onSort={() => sortBy("joined")}
-              >
-                Joined
-              </SortableTableHeaderCell>
-              <TableHeaderCell aria-hidden />
-            </TableHeader>
-            <TableGroup label="Active" count={activeRows.length} />
-            {activeRows.map((member) => (
-              <MemberRow
-                key={member.userId}
-                member={member}
-                owners={owners}
-                isAdmin={isAdmin}
-                accessLevel={accessLevel}
-                adminReason={adminReason}
-                viewerId={viewerId}
-                busy={busyUserId === member.userId}
-                mfaRequired={organization.mfaRequired}
-                mfaLevel={mfaLevel}
-                mfaEnforceAt={mfaEnforceAt}
-                onChangeRole={changeRole}
-                onRemove={setRemoveTarget}
-                onExtend={setExtendTarget}
-                onClearExtension={removeExtension}
-              />
-            ))}
-            {invitedRows.length > 0 && (
-              <TableGroup label="Invited" count={invitedRows.length} />
-            )}
-            {invitedRows.map((invitation) => (
-              <InvitationRow
-                key={invitation.id}
-                invitation={invitation}
-                canRevoke={isAdmin || invitation.invitedByUserId === viewerId}
-                revoking={revokingId === invitation.id}
-                onRevoke={revoke}
-              />
-            ))}
-            {isAdmin && (
-              <InactiveMemberRows
-                orgId={orgId}
-                members={members}
-                query={query}
-                role={role}
-                isOwner={isOwner}
-                sort={sort}
-              />
-            )}
-          </Table>
-        </div>
+        {membersFailed ? (
+          <div className="-mx-4">
+            <FailedRead
+              slot="members-failed"
+              line="Couldn't load your members"
+              sub="Check your connection and try again"
+              onRetry={refreshMembers}
+            />
+          </div>
+        ) : (
+          <div className="-mx-4">
+            <Table columns={columns}>
+              <TableHeader>
+                <SortableTableHeaderCell
+                  direction={directionOf("name")}
+                  onSort={() => sortBy("name")}
+                >
+                  Name
+                </SortableTableHeaderCell>
+                <SortableTableHeaderCell
+                  direction={directionOf("email")}
+                  onSort={() => sortBy("email")}
+                >
+                  Email
+                </SortableTableHeaderCell>
+                <SortableTableHeaderCell
+                  direction={directionOf("status")}
+                  onSort={() => sortBy("status")}
+                >
+                  Status
+                </SortableTableHeaderCell>
+                <SortableTableHeaderCell
+                  direction={directionOf("joined")}
+                  onSort={() => sortBy("joined")}
+                >
+                  Joined
+                </SortableTableHeaderCell>
+                <TableHeaderCell aria-hidden />
+              </TableHeader>
+              <TableGroup label="Active" count={activeRows.length} />
+              {activeRows.map((member) => (
+                <MemberRow
+                  key={member.userId}
+                  member={member}
+                  owners={owners}
+                  isAdmin={isAdmin}
+                  accessLevel={accessLevel}
+                  adminReason={adminReason}
+                  viewerId={viewerId}
+                  busy={busyUserId === member.userId}
+                  mfaRequired={organization.mfaRequired}
+                  mfaLevel={mfaLevel}
+                  mfaEnforceAt={mfaEnforceAt}
+                  onChangeRole={changeRole}
+                  onRemove={setRemoveTarget}
+                  onExtend={setExtendTarget}
+                  onClearExtension={removeExtension}
+                />
+              ))}
+              {invitedRows.length > 0 && (
+                <TableGroup label="Invited" count={invitedRows.length} />
+              )}
+              {invitedRows.map((invitation) => (
+                <InvitationRow
+                  key={invitation.id}
+                  invitation={invitation}
+                  canRevoke={isAdmin || invitation.invitedByUserId === viewerId}
+                  revoking={revokingId === invitation.id}
+                  onRevoke={revoke}
+                />
+              ))}
+              {isAdmin && (
+                <InactiveMemberRows
+                  orgId={orgId}
+                  members={members}
+                  query={query}
+                  role={role}
+                  isOwner={isOwner}
+                  sort={sort}
+                />
+              )}
+            </Table>
+          </div>
+        )}
       </section>
       <InviteMembersDialog
         open={inviteOpen}

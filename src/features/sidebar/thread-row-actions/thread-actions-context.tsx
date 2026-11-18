@@ -9,7 +9,11 @@ import { useOpenShareDialog } from "@/components/share-dialog/share-dialog-conte
 import type { SidebarThread } from "@/components/sidebar-threads";
 import type { JamId, ThreadFolderId } from "@/data/api/schemas/ids";
 import type { ThreadFolder } from "@/data/api/schemas/threadOrganization";
-import { promoteThreadAtom } from "@/data/atoms/captains";
+import {
+  deleteCaptainAtom,
+  demoteCaptainAtom,
+  promoteThreadAtom,
+} from "@/data/atoms/captains";
 import { reactivityKeys } from "@/data/atoms/conventions";
 import {
   archiveThreadsAtom,
@@ -53,6 +57,10 @@ export type ThreadActions = {
   regenerateTitle: (thread: SidebarThread) => void;
   /** Asks for confirmation before deleting. */
   remove: (thread: SidebarThread) => void;
+  /** Asks for confirmation, then releases the crew and keeps the thread. */
+  demoteCaptain: (captain: { id: string; name: string }) => void;
+  /** Asks for confirmation before deleting a Captain. */
+  removeCaptain: (captain: { id: string; name: string }) => void;
   startRename: (threadId: string) => void;
   commitRename: (threadId: string, title: string) => void;
   cancelRename: () => void;
@@ -97,6 +105,13 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
   const openShare = useOpenShareDialog();
   const orgId = useSidebarOrgId();
   const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [captainAction, setCaptainAction] = useState<{
+    kind: "demote" | "delete";
+    id: string;
+    name: string;
+  } | null>(null);
+  const demoteCaptain = useAtomSet(demoteCaptainAtom, { mode: "promise" });
+  const deleteCaptain = useAtomSet(deleteCaptainAtom, { mode: "promise" });
   const [deleting, setDeleting] = useState<SidebarThread | null>(null);
   const [newFolder, setNewFolder] = useState<{
     section: "threads" | "captains";
@@ -299,6 +314,10 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
         "Couldn't rename the thread",
       );
     },
+    demoteCaptain: (captain) =>
+      setCaptainAction({ kind: "demote", ...captain }),
+    removeCaptain: (captain) =>
+      setCaptainAction({ kind: "delete", ...captain }),
     cancelRename: () => setRenamingId(null),
     startNewFolder: (section = "threads") => setNewFolder({ section }),
     markAllRead: () => {
@@ -334,6 +353,41 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
             }),
             "Folder created",
             "Couldn't create the folder",
+          );
+        }}
+      />
+      <ConfirmDialog
+        open={captainAction !== null}
+        onOpenChange={(open) => {
+          if (!open) setCaptainAction(null);
+        }}
+        title={
+          captainAction?.kind === "demote"
+            ? "Demote to thread"
+            : "Delete Captain"
+        }
+        description={
+          captainAction?.kind === "demote"
+            ? `${captainAction.name} becomes a plain thread and its crew is released.`
+            : `${captainAction?.name ?? "This Captain"} and its history are deleted for everyone. This can't be undone.`
+        }
+        confirmLabel={
+          captainAction?.kind === "demote"
+            ? "Demote to thread"
+            : "Delete Captain"
+        }
+        onConfirm={() => {
+          const request = captainAction;
+          setCaptainAction(null);
+          if (request === null || orgId === undefined) return;
+          const call =
+            request.kind === "demote" ? demoteCaptain : deleteCaptain;
+          run(
+            call({ params: { orgId, jamId: request.id } }),
+            request.kind === "demote" ? "Demoted to thread" : "Captain deleted",
+            request.kind === "demote"
+              ? "Couldn't demote the Captain"
+              : "Couldn't delete the Captain",
           );
         }}
       />

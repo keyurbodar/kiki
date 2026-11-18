@@ -67,8 +67,10 @@ describe("Table", () => {
     expect(table.style.gridTemplateColumns).toBe(
       "auto minmax(var(--table-fluid-min),1fr)",
     );
-    expect(table.className).toContain("[--table-row-h:2rem]");
-    expect(table.className).not.toContain("[--table-row-h:3.125rem]");
+    expect(table.className).toContain("[--table-row-h:var(--row-h-compact)]");
+    expect(table.className).not.toContain(
+      "[--table-row-h:var(--row-h-directory)]",
+    );
     expect(table.hasAttribute("data-pin-lead")).toBe(false);
     expect(screen.getByText("Name").className).toContain("text-foreground");
     expect(screen.getByText("3").className).toContain("justify-end");
