@@ -16,6 +16,8 @@ export type SidebarProject = {
   id: string;
   name: string;
   logoUrl: string | null;
+  /** Capy's project icon name; "folder" is the unchosen default that falls back to initials. */
+  icon?: string;
 };
 
 export type SidebarMachine = { kind: "cloud" | "device"; name: string };
