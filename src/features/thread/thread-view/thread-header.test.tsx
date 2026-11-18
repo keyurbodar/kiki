@@ -103,11 +103,13 @@ describe("ThreadHeader", () => {
     expect(container.querySelector("header")?.className).toContain("min-h-11");
   });
 
-  it("puts the thread's avatar before its name in the chat tab", () => {
+  it("draws the chat tab as the title alone, as Capy does", () => {
     const { container } = renderHeader({});
     const chat = container.querySelector('[data-pane-tab="chat"]');
-    expect(chat?.querySelector('[data-slot="chat-identity"]')).not.toBeNull();
-    expect(chat?.textContent).toContain("Fix flaky checkout test");
+    expect(chat?.querySelector('[data-slot="chat-identity"]')).toBeNull();
+    expect(chat?.querySelector("[data-pane-tab-label]")?.textContent).toBe(
+      "Fix flaky checkout test",
+    );
   });
 
   it("sizes the thread actions like Capy's 28×28 header controls", () => {
