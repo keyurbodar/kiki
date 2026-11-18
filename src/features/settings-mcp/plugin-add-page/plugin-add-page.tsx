@@ -4,16 +4,14 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import type { OrgId } from "@/data/api/schemas/ids.ts";
+import { jsonPayload } from "@/data/client/json";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { SettingsRow } from "@/primitives/settings-row";
 import { mcpKeys, pluginMutation } from "../model/atoms.ts";
 import { orgWide } from "../model/draft.ts";
-import type {
-  InstalledPluginDetail,
-  PluginOwner,
-  PluginVersion,
-} from "../model/types.ts";
+import { toInstallationDetail } from "../model/normalize.ts";
+import type { PluginOwner, PluginVersion } from "../model/types.ts";
 import {
   useActiveOrgId,
   useMarketplace,
@@ -137,23 +135,24 @@ function AddForm({
     setAdding(true);
     add({
       params: { orgId },
-      payload: {
+      payload: jsonPayload({
         versionId: version.id,
         owner,
         projectId: projectId === orgWide ? null : projectId,
         keys: secrets,
         sourceRef,
-      },
+      }),
       reactivityKeys: [mcpKeys.plugins(orgId), mcpKeys.servers(orgId)],
     })
-      .then((value) =>
-        navigate({
+      .then((value) => {
+        // The endpoint answers with the installation row, not the detail the
+        // route renders, so normalize it before reading the new id.
+        const detail = toInstallationDetail(value);
+        return navigate({
           to: "/settings/mcp/plugins/$installationId",
-          params: {
-            installationId: (value as InstalledPluginDetail).installation.id,
-          },
-        }),
-      )
+          params: { installationId: detail.installation.id },
+        });
+      })
       .catch(() => toast.error(`Could not add ${version.displayName}`))
       .finally(() => setAdding(false));
   };
