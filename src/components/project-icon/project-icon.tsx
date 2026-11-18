@@ -1,6 +1,6 @@
+import { joinClasses } from "@/components/project-select/selector-parts";
 import type { Project } from "@/data/api/schemas/project";
 import { Icon, type IconProps } from "@/primitives/icon";
-import { joinClasses } from "./selector-parts";
 
 const projectIcons: Record<string, IconProps["name"]> = {
   home: "home",

@@ -1,5 +1,5 @@
 import { cx } from "class-variance-authority";
-import { Icon, isIconId } from "@/primitives/icon";
+import { ProjectIcon } from "@/components/project-icon";
 import type { SidebarProject } from "./types";
 
 const chipColors = [
@@ -50,8 +50,13 @@ export function ProjectChip({ project, className }: ProjectChipProps) {
     );
   }
   const icon = project.icon ?? "folder";
-  if (icon !== "folder" && isIconId(icon)) {
-    return <Icon name={icon} className={cx("size-3.5 shrink-0", className)} />;
+  if (icon !== "folder") {
+    return (
+      <ProjectIcon
+        project={{ icon, repos: [] }}
+        className={cx("size-3.5 shrink-0", className)}
+      />
+    );
   }
   return (
     <span
