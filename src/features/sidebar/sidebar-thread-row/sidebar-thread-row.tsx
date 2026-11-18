@@ -259,7 +259,7 @@ export function SidebarThreadRow({
     unread ? "font-medium" : "font-normal",
     unread || active
       ? "text-foreground"
-      : "text-foreground/90 group-hover/thread:text-foreground group-focus-visible/row:text-foreground",
+      : "text-foreground/80 dark:text-muted-foreground-1 group-hover/thread:text-foreground group-focus-visible/row:text-foreground",
   );
   const title =
     actions?.renaming === true && actions.onRename !== undefined ? (
@@ -364,7 +364,7 @@ export function SidebarThreadRow({
         {needsYou && ask === undefined ? <NeedsYouDot /> : statusMark}
         {age}
       </span>
-      <span className="@container flex h-4 min-w-0 items-center gap-1.5 text-xs text-muted-foreground-2">
+      <span className="@container flex h-4 min-w-0 items-center gap-1.5 text-xs text-muted-foreground-3">
         {meta}
       </span>
     </span>

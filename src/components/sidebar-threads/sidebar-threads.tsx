@@ -355,6 +355,109 @@ export function CaptainRow({
   );
 }
 
+type PinnedCaptainsProps = {
+  captains: ReadonlyArray<SidebarCaptain>;
+  activeId?: string | null;
+  renderPreview?: (
+    captain: SidebarCaptain,
+    context: { density: SidebarDensity; active: boolean },
+  ) => ReactNode;
+};
+
+function pinnedPresence(captain: SidebarCaptain) {
+  if (captain.status === "working") return "working" as const;
+  if (captain.needsYou) return "needs-you" as const;
+  if (captain.status === "waiting") return "waiting" as const;
+  if (captain.status === "failed") return "failed" as const;
+  return null;
+}
+
+/**
+ * The pinned Captain tiles at the top of the Captains section: a three-up grid
+ * of faces with the name under each and the presence dot in a clipped corner.
+ */
+export function PinnedCaptains({
+  captains,
+  activeId,
+  renderPreview,
+}: PinnedCaptainsProps) {
+  if (captains.length === 0) return null;
+  return (
+    // biome-ignore lint/a11y/useSemanticElements: Capy's pinned grid is a div with role=group
+    <div
+      role="group"
+      aria-label="Pinned"
+      className="mx-auto flex w-full flex-wrap justify-center gap-y-(--sidebar-pin-gap-y) pb-3"
+      style={{ maxWidth: 276 }}
+    >
+      {captains.map((captain) => {
+        const active = activeId === captain.id;
+        const presence = pinnedPresence(captain);
+        const preview = renderPreview?.(captain, {
+          density: "detailed",
+          active,
+        });
+        return (
+          <div
+            key={captain.id}
+            className="flex justify-center"
+            style={{ width: "calc(100% / 3)" }}
+          >
+            <div
+              data-captain-row={captain.id}
+              className="group/captain relative flex w-(--sidebar-pin-cell) items-center"
+            >
+              <PreviewCard>
+                <PreviewCardTrigger
+                  render={
+                    <Link
+                      to="/thread/$threadId"
+                      params={{ threadId: captain.id }}
+                    />
+                  }
+                  aria-label={captain.name}
+                  aria-current={active ? "page" : undefined}
+                  className="relative flex w-(--sidebar-pin-cell) min-w-0 flex-none flex-col items-center gap-(--sidebar-pin-label-gap) py-1 rounded outline-none select-none [-webkit-touch-callout:none] transition-colors duration-100 group-hover/captain:bg-secondary focus-visible:outline-ring-inset"
+                >
+                  <span className="relative flex">
+                    <span className="flex mask-notch-br">
+                      <CaptainAvatarTile
+                        avatar={captain.avatar}
+                        name={captain.name}
+                        size="xl"
+                      />
+                    </span>
+                    {presence === null ? null : (
+                      <span className="absolute -right-0.5 -bottom-0.5 flex">
+                        <ThreadStatusIcon state={presence} size="xs" />
+                      </span>
+                    )}
+                  </span>
+                  <span
+                    className={cx(
+                      "mask-fade-r max-w-full overflow-hidden whitespace-nowrap text-xs",
+                      active || captain.hasUnreads
+                        ? "text-foreground"
+                        : "font-normal text-foreground/80 dark:text-muted-foreground-1",
+                    )}
+                  >
+                    {captain.name}
+                  </span>
+                </PreviewCardTrigger>
+                {preview === undefined ? null : (
+                  <PreviewCardContent side="right" align="start">
+                    {preview}
+                  </PreviewCardContent>
+                )}
+              </PreviewCard>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export type SidebarThreadRenderContext = {
   section: SidebarSection;
   density: SidebarDensity;
@@ -469,6 +572,11 @@ export function SidebarThreads({
         <div className="flex min-h-full flex-col px-2">
           {/* biome-ignore lint/a11y/useSemanticElements: Capy's sidebar list is a div with role=list */}
           <div role="list" className="flex flex-col">
+            <PinnedCaptains
+              captains={captainList}
+              activeId={view.activeId}
+              renderPreview={renderCaptain}
+            />
             {captainRows}
             {captains ? null : (
               <>
