@@ -4,6 +4,7 @@ import { Undecoded } from "../undecoded.ts";
 
 export class OperationsGroup extends HttpApiGroup.make("operations").add(
   HttpApiEndpoint.get("list", "/orgs/:orgId/jams/:jamId/operations", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, jamId: Schema.String },
     success: Undecoded,
   }),

@@ -11,7 +11,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { toast } from "sonner";
 import { CommandMenuCompose } from "@/components/command-menu-compose";
 import { CommandMenuProject } from "@/components/command-menu-project";
 import {
@@ -35,6 +34,7 @@ import {
   useCommandPaletteOpen,
 } from "@/lib/command-palette-events";
 import { CommandMenuDialog } from "@/primitives/command-menu";
+import { toast } from "@/primitives/toaster";
 import { PaletteCapyMark } from "./capy-mark";
 import {
   buildSearchData,

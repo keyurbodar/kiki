@@ -1,9 +1,9 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Exit } from "effect";
 import { useState } from "react";
-import { toast } from "sonner";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { Card } from "@/primitives/card";
+import { toast } from "@/primitives/toaster";
 import { AddConnectionSheet } from "../add-connection-sheet";
 import { ModelDefaultsSection } from "../model-defaults/model-defaults-section";
 import {
@@ -25,6 +25,7 @@ import {
   organizationConnections,
   orgCompactAtAtom,
   RunOutRows,
+  refreshClaudeSeatAtom,
   removeCompactAtAtom,
   removeMyCompactAtAtom,
   reorderConnectionsAtom,
@@ -72,6 +73,9 @@ export function ModelsPage() {
   const myCompactAtResult = useAtomValue(myCompactAtAtom(orgKey));
   const reorder = useAtomSet(reorderConnectionsAtom, { mode: "promiseExit" });
   const disconnect = useAtomSet(disconnectSeatAtom, { mode: "promiseExit" });
+  const refreshClaudeSeat = useAtomSet(refreshClaudeSeatAtom, {
+    mode: "promiseExit",
+  });
   const rename = useAtomSet(updateCredentialAtom, { mode: "promiseExit" });
   const move = useAtomSet(moveToOrganizationAtom, { mode: "promiseExit" });
   const upsertOrg = useAtomSet(upsertCompactAtAtom, { mode: "promiseExit" });
@@ -83,6 +87,14 @@ export function ModelsPage() {
     null,
   );
   const [moveRequest, setMoveRequest] = useState<Credential | null>(null);
+  // The rows carry a chevron and an expanded body; the state behind them was
+  // never added, so every toggle was a no-op.
+  const [openRows, setOpenRows] = useState<ReadonlyArray<string>>([]);
+  const isOpen = (id: string) => openRows.includes(id);
+  const toggleRow = (id: string) =>
+    setOpenRows((rows) =>
+      rows.includes(id) ? rows.filter((row) => row !== id) : [...rows, id],
+    );
   const [compactAtRequest, setCompactAtRequest] =
     useState<CompactAtRequest | null>(null);
 
@@ -108,6 +120,16 @@ export function ModelsPage() {
   const credits = routing?.credentials.find((row) => isCapyCredits(row));
   const rows = routing === undefined ? [] : catalogRows(routing, catalog, []);
   const fable = mine?.some((entry) => entry.seat?.plan === "fable") === true;
+
+  const refreshSeat = (credentialId: string) => {
+    void refreshClaudeSeat({
+      params: { credentialId },
+      reactivityKeys: orgId === undefined ? undefined : routingKeys(orgId),
+    }).then((exit) => {
+      if (failed(exit)) toast.error("Could not refresh the subscription");
+      else toast.success("Subscription refreshed");
+    });
+  };
 
   const saveCompactAt = async (
     request: CompactAtRequest,
@@ -201,8 +223,8 @@ export function ModelsPage() {
                       routing={routing as NonNullable<typeof routing>}
                       editable
                       draggable
-                      expanded={false}
-                      onToggle={() => undefined}
+                      expanded={isOpen(entry.id)}
+                      onToggle={() => toggleRow(entry.id)}
                       onAction={(action) => {
                         if (action === "move" && entry.credential !== undefined)
                           setMoveRequest(entry.credential);
@@ -216,9 +238,9 @@ export function ModelsPage() {
                       routing={routing as NonNullable<typeof routing>}
                       fableColumn={fable}
                       draggable
-                      expanded={false}
-                      onToggle={() => undefined}
-                      onRefresh={() => undefined}
+                      expanded={isOpen(entry.id)}
+                      onToggle={() => toggleRow(entry.id)}
+                      onRefresh={() => refreshSeat(entry.id)}
                       onRename={() =>
                         setRenameRequest({
                           service: entry.seat?.service ?? "claude",
@@ -299,8 +321,8 @@ export function ModelsPage() {
                   routing={routing}
                   editable={admin}
                   draggable={admin}
-                  expanded={false}
-                  onToggle={() => undefined}
+                  expanded={isOpen(credential.id)}
+                  onToggle={() => toggleRow(credential.id)}
                   onAction={(action) => {
                     if (action === "move") setMoveRequest(credential);
                   }}
@@ -310,8 +332,8 @@ export function ModelsPage() {
                 <CapyCreditsRow
                   credential={credits}
                   admin={admin}
-                  expanded={false}
-                  onToggle={() => undefined}
+                  expanded={isOpen(credits.id)}
+                  onToggle={() => toggleRow(credits.id)}
                 />
               )}
             </ConnectionList>

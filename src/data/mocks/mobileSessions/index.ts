@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { MockDb } from "../db/MockDb.ts";
+import { MockDb, notFoundNamed } from "../db/MockDb.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { type MobileSession, sampleSessions, stoppedAt } from "./fixtures.ts";
 
@@ -15,9 +15,7 @@ export const MobileSessionsMock = mockGroup("mobileSessions", (handlers) =>
         const rows = yield* Ref.get(sessions);
         const session = rows.find((row) => row.id === id);
         if (!session) {
-          return yield* Effect.die(
-            new Error(`mobileSessions.sessions: no row ${id}`),
-          );
+          return yield* notFoundNamed("mobileSessions.sessions", id);
         }
         return session;
       });

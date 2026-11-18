@@ -2,7 +2,6 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import {
   createOrganizationAtom,
   inviteMembersAtom,
@@ -16,7 +15,7 @@ import {
 } from "@/data/atoms/onboarding";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
 import { updateAccountNameAtom } from "@/data/atoms/users";
-import { Toaster } from "@/primitives/toaster";
+import { toast } from "@/primitives/toaster";
 import {
   displayName,
   firstStep,
@@ -218,7 +217,6 @@ export function OnboardingPage({ search }: { search: OnboardingSearch }) {
               .finally(() => setBusy(false));
           }}
         />
-        <Toaster position="bottom-right" />
       </OnboardingShell>
     );
   }
@@ -327,7 +325,6 @@ export function OnboardingPage({ search }: { search: OnboardingSearch }) {
       stepper={stepper}
     >
       {content}
-      <Toaster position="bottom-right" />
     </OnboardingShell>
   );
 }

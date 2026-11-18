@@ -1,5 +1,6 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
+import { JamNotFound } from "../schemas/errors.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class ChildrenGroup extends HttpApiGroup.make("children").add(
@@ -16,5 +17,6 @@ export class ChildrenGroup extends HttpApiGroup.make("children").add(
   HttpApiEndpoint.get("taskThread", "/orgs/:orgId/tasks/:taskId/thread", {
     params: { orgId: Schema.String, taskId: Schema.String },
     success: Undecoded,
+    error: JamNotFound,
   }),
 ) {}

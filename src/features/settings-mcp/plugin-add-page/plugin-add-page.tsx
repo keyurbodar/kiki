@@ -1,13 +1,13 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { toast } from "sonner";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import type { OrgId } from "@/data/api/schemas/ids.ts";
 import { jsonPayload } from "@/data/client/json";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { SettingsRow } from "@/primitives/settings-row";
+import { toast } from "@/primitives/toaster";
 import { mcpKeys, pluginMutation } from "../model/atoms.ts";
 import { orgWide } from "../model/draft.ts";
 import { toInstallationDetail } from "../model/normalize.ts";

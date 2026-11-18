@@ -24,16 +24,16 @@ afterEach(cleanup);
 const classes = (className: string) => className.split(" ");
 
 describe("menuRowVariants", () => {
-  it("keeps one gap, padding, radius and icon size per density", () => {
+  it("picks one recipe class per density, and the radius with it", () => {
     const palette = classes(menuRowVariants({ density: "palette" }));
-    expect(palette).toContain("gap-2.5");
-    expect(palette).toContain("px-2.5");
-    expect(palette).not.toContain("gap-2");
-    expect(palette).not.toContain("px-2");
-    expect(palette).not.toContain("rounded");
+    expect(palette).toContain("kiki-palette-row");
+    expect(palette).not.toContain("kiki-menu-row");
+    expect(palette).toContain("rounded-(--radius-overlay)");
+    const rich = classes(menuRowVariants({ density: "rich" }));
+    expect(rich).toContain("kiki-menu-row-rich");
+    expect(rich).not.toContain("kiki-menu-row ");
     const fallback = classes(menuRowVariants());
-    expect(fallback).toContain("h-(--h-menu-row)");
-    expect(fallback).toContain("gap-2");
+    expect(fallback).toContain("kiki-menu-row");
     expect(fallback).toContain("text-foreground");
   });
 

@@ -13,7 +13,7 @@ import {
 } from "react";
 import { cx } from "./class-names";
 import type { ThemePalette } from "./types";
-import { themeWallpaperAtom, wallpaperKey, wallpaperSource } from "./wallpaper";
+import { wallpaperAtomFor, wallpaperSource } from "./wallpaper";
 
 const STAGE_WIDTH = 1280;
 const STAGE_HEIGHT = 720;
@@ -177,9 +177,12 @@ export function useInView() {
   return [ref, visible] as const;
 }
 
-export function useThemeWallpaper(slug: string, versionId: string | null) {
-  const result = useAtomValue(
-    themeWallpaperAtom(wallpaperKey(slug, versionId)),
-  );
+/** `null` is a listing that ships no wallpaper: no request, no image. */
+export function useThemeWallpaper(
+  slug: string | null,
+  versionId: string | null,
+) {
+  const result = useAtomValue(wallpaperAtomFor(slug, versionId));
+  if (result === undefined) return undefined;
   return wallpaperSource(Option.getOrUndefined(AsyncResult.value(result)));
 }

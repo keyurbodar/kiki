@@ -1,4 +1,3 @@
-import { toast } from "sonner";
 import type { PullRef } from "@/components/diff-tab/model";
 import { Button } from "@/primitives/button";
 import { Icon, type IconId } from "@/primitives/icon";
@@ -9,6 +8,7 @@ import {
   ResponsiveMenuItem,
   ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
+import { toast } from "@/primitives/toaster";
 import { appFileUrl, githubBlobUrl } from "./links";
 
 const iconSlot =

@@ -1,9 +1,9 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { cx } from "@/components/activity-card";
 import { Button } from "@/primitives/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
+import { toast } from "@/primitives/toaster";
 import {
   mergePullAtom,
   pullChecksAtom,

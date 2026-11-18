@@ -1,6 +1,7 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
+import { InvalidRequest } from "../../api/schemas/errors.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId } from "../fixtures/world.ts";
 
@@ -74,6 +75,21 @@ describe("experiments mock", () => {
         reactivityKeys: [key],
       });
       yield* AtomRegistry.getResult(registry, create);
+    }),
+  );
+
+  it.effect("answers an unknown feature with the declared 400", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      registry.set(setExperiment, {
+        params: { ...params, feature: "no-such-experiment" },
+        payload: { enabled: true },
+        reactivityKeys: [key],
+      });
+      const error = yield* AtomRegistry.getResult(registry, setExperiment).pipe(
+        Effect.flip,
+      );
+      assert.instanceOf(error, InvalidRequest);
     }),
   );
 });

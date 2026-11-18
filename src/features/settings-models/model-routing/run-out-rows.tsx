@@ -1,7 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import { reactivityKeys as sessionKeys } from "@/data/atoms/conventions";
 import { currentUserAtom } from "@/data/atoms/session";
 import { ApiClient } from "@/data/client/ApiClient";
@@ -14,6 +13,7 @@ import {
 } from "@/primitives/menu-select";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import { toastFailure } from "./actions.ts";
 import {
   setFallbackAtom,

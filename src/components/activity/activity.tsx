@@ -1,6 +1,5 @@
-import { useAtomSet, useAtomValue } from "@effect/atom-react";
+import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { ActivityCard, CardAction, cx } from "@/components/activity-card";
 import { WriteBox } from "@/components/github-write";
 import {
@@ -12,6 +11,7 @@ import {
 } from "@/components/pull-view/atoms";
 import { copyText } from "@/components/pull-view/clipboard";
 import { usePullOrgId } from "@/components/pull-view/context";
+import { goneOr } from "@/components/pull-view/gone";
 import {
   ArrowUndoUpIcon,
   ArrowUpIcon,
@@ -25,6 +25,7 @@ import { resultValue } from "@/components/pull-view/result";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   type ActivityFilter,
@@ -115,6 +116,7 @@ export function CommentCard({
 }: CommentCardProps) {
   const orgId = usePullOrgId();
   const resolve = useAtomSet(resolveCommentAtom, { mode: "promise" });
+  const refreshActivity = useAtomRefresh(pullActivityAtom(orgId, pull.id));
   const reply = useAtomSet(commentPullAtom, { mode: "promise" });
   const [resolved, setResolved] = useState(comment.resolved);
   const [saving, setSaving] = useState(false);
@@ -135,6 +137,7 @@ export function CommentCard({
       .catch((error: unknown) => {
         setResolved(!next);
         setCollapsed(previous);
+        if (goneOr(error, "This comment", refreshActivity)) return;
         toast.error(
           error instanceof Error ? error.message : "GitHub refused this action",
         );

@@ -3,7 +3,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { Exit } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useRef, useState } from "react";
-import { toast } from "sonner";
 import type { ComposerHandle, ComposerPayload } from "@/components/composer";
 import { copyText } from "@/components/pull-view";
 import type { JamId, OrgId } from "@/data/api/schemas/ids";
@@ -20,6 +19,7 @@ import { JamChat } from "@/features/thread/jam-chat";
 import { ThreadMessageActions } from "@/features/thread/thread-view/message-actions";
 import { useThreadTimeline } from "@/features/thread/timeline";
 import { useComposerSend } from "@/features/thread/use-composer-send";
+import { useSideThreads } from "@/features/thread-panes/side-threads";
 import { type PaneTab, tabLink } from "@/features/thread-panes/tab-strip";
 import { findPane } from "@/features/thread-panes/thread-pane";
 import { Button } from "@/primitives/button";
@@ -29,6 +29,7 @@ import {
   ResponsiveMenuItem,
   ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
+import { toast } from "@/primitives/toaster";
 import {
   MobileComposer,
   MobileComposerAddTrigger,
@@ -97,7 +98,22 @@ const success = (result: AsyncResult.AsyncResult<unknown, unknown>) =>
  * `{ models, credentials, services }`, so its `models` array is what carries the
  * rows; an array is accepted too, for callers that already unwrapped it.
  */
-export function modelSections(models: unknown): MobileModelSection[] {
+export type ModelGrouping = "provider" | "route";
+
+/** The section a model belongs to on Capy's two axes: its provider, or its route. */
+const sectionKeyOf = (
+  model: Record<string, unknown>,
+  grouping: ModelGrouping,
+) => {
+  if (grouping === "provider") return text(model.provider) ?? "Models";
+  const route = record(model.route);
+  return text(route.label) ?? text(model.provider) ?? "Models";
+};
+
+export function modelSections(
+  models: unknown,
+  grouping: ModelGrouping = "provider",
+): MobileModelSection[] {
   const rows = Array.isArray(models)
     ? models
     : Array.isArray(record(models).models)
@@ -109,7 +125,7 @@ export function modelSections(models: unknown): MobileModelSection[] {
     const id = text(model.id);
     const name = text(model.name) ?? id;
     if (id === undefined || name === undefined) continue;
-    const provider = text(model.provider) ?? "Models";
+    const provider = sectionKeyOf(model, grouping);
     const section = sections.get(provider) ?? {
       id: provider,
       label: provider,
@@ -208,6 +224,7 @@ function MobileThreadBody({
   const navigate = useNavigate();
   const composerRef = useRef<ComposerHandle>(null);
   const openHandoff = useAtomSet(openHandoffAtom, { mode: "promiseExit" });
+  const sideThreads = useSideThreads(orgId ?? "", threadId);
   const moveToCloud = async () => {
     if (orgId === undefined) return;
     const exit = await openHandoff({
@@ -229,7 +246,8 @@ function MobileThreadBody({
   const [activeTab, setActiveTab] = useState(CHAT_TAB);
   const ActivePane = findPane(activeTab)?.component;
   const [modelId, setModelId] = useState<string>();
-  const sections = modelSections(models);
+  const [grouping, setGrouping] = useState<ModelGrouping>("provider");
+  const sections = modelSections(models, grouping);
   const model = sections
     .flatMap((section) => section.models)
     .find((option) => option.id === modelId);
@@ -287,13 +305,15 @@ function MobileThreadBody({
             ...pane,
             open: openTabs.includes(pane.id),
           }))}
-          sideThreads={0}
+          sideThreads={sideThreads}
           terminals={{
             status: machine?.live ? "Awake" : "Asleep",
             live: machine?.live ?? false,
           }}
           onOpenPane={openPane}
-          onOpenSideThreads={() => {}}
+          onOpenSideThread={(id) =>
+            void navigate({ to: "/thread/$threadId", params: { threadId: id } })
+          }
           onNewTerminal={() => openPane("terminal")}
         />
       }
@@ -322,13 +342,15 @@ function MobileThreadBody({
               <MobileModelDrawer
                 sections={sections}
                 selectedId={modelId}
-                groupLabel="By provider"
+                groupLabel={grouping === "route" ? "By route" : "By provider"}
                 trigger={
                   <MobileComposerModelTrigger label={model?.name ?? "Model"} />
                 }
                 onSelect={setModelId}
                 onOpenSettings={() => void navigate({ to: "/settings/models" })}
-                onGroupBy={() => {}}
+                onGroupBy={() =>
+                  setGrouping(grouping === "route" ? "provider" : "route")
+                }
               />
             }
           />

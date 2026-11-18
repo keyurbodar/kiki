@@ -3,7 +3,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import { AsyncResult } from "effect/reactivity";
 import { type FormEvent, useState } from "react";
-import { toast } from "sonner";
 import { ModelPicker } from "@/components/model-picker";
 import { ProjectSelect } from "@/components/project-select";
 import { RunOnSelect } from "@/components/run-on-select";
@@ -37,6 +36,7 @@ import { type DialogPageSpec, DialogPages } from "@/primitives/dialog-pages";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import { Textarea } from "@/primitives/textarea";
+import { toast } from "@/primitives/toaster";
 import {
   type CaptainAvatarValue,
   defaultCaptainName,

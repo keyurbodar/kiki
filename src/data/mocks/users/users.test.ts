@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { isoMinutesAgo, orgId, people } from "../fixtures/world.ts";
@@ -226,5 +227,21 @@ describe("users mock", () => {
       });
       assert.strictEqual((user as { imageUrl: string }).imageUrl, imageUrl);
     }),
+  );
+
+  it.effect(
+    "answers the 404 the appearance file URL declares for an unknown file",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        const missingUrl = ApiClient.query("users", "appearanceFileUrl", {
+          params: { fileId: "appearance_file_nobody" },
+          reactivityKeys: [key],
+        });
+        const error = yield* AtomRegistry.getResult(registry, missingUrl).pipe(
+          Effect.flip,
+        );
+        assert.instanceOf(error, HttpApiError.NotFound);
+      }),
   );
 });

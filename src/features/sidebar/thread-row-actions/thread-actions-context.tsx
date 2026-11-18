@@ -2,7 +2,6 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult, Atom } from "effect/reactivity";
 import { createContext, type ReactNode, useContext, useState } from "react";
-import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ShareDialogProvider } from "@/components/share-dialog";
 import { useOpenShareDialog } from "@/components/share-dialog/share-dialog-context";
@@ -36,6 +35,7 @@ import {
   unpinThreadsAtom,
 } from "@/data/atoms/threadOrganization";
 import { CaptainProfileDialog } from "@/features/captains/dialogs/captain-profile-dialog";
+import { toast } from "@/primitives/toaster";
 import { useSidebarOrgId } from "../sidebar-threads-data/live-source";
 import { NewFolderDialog } from "./new-folder-dialog";
 
@@ -43,6 +43,12 @@ export type ThreadFolderChoice = { id: string; name: string };
 
 export type ThreadActions = {
   renamingId: string | null;
+  /**
+   * The section whose row started the rename. A thread renders once per section
+   * it appears in (Pinned and its project, for instance), so the id alone would
+   * mount one input per copy and the second copy's focus would cancel the first.
+   */
+  renamingKey: string | null;
   folders: ReadonlyArray<ThreadFolderChoice>;
   share: (thread: SidebarThread) => void;
   markRead: (thread: SidebarThread) => void;
@@ -64,7 +70,7 @@ export type ThreadActions = {
   removeCaptain: (captain: { id: string; name: string }) => void;
   /** Opens Capy's Captain dialog on the Captain's own profile page. */
   profileCaptain: (captain: { id: string; name: string }) => void;
-  startRename: (threadId: string) => void;
+  startRename: (threadId: string, rowKey?: string) => void;
   commitRename: (threadId: string, title: string) => void;
   cancelRename: () => void;
   markAllRead: () => void;
@@ -109,6 +115,7 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
   const orgId = useSidebarOrgId();
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [profileJamId, setProfileJamId] = useState<JamId | null>(null);
+  const [renamingKey, setRenamingKey] = useState<string | null>(null);
   const [captainAction, setCaptainAction] = useState<{
     kind: "demote" | "delete";
     id: string;
@@ -165,6 +172,7 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
 
   const actions: ThreadActions = {
     renamingId,
+    renamingKey,
     folders: folderChoices(Option.getOrUndefined(AsyncResult.value(folders))),
     share: (thread) =>
       openShare?.({
@@ -304,9 +312,13 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
       );
     },
     remove: (thread) => setDeleting(thread),
-    startRename: (threadId) => setRenamingId(threadId),
+    startRename: (threadId, rowKey) => {
+      setRenamingId(threadId);
+      setRenamingKey(rowKey ?? null);
+    },
     commitRename: (threadId, title) => {
       setRenamingId(null);
+      setRenamingKey(null);
       if (orgId === undefined) return;
       run(
         rename({
@@ -323,7 +335,10 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
     removeCaptain: (captain) =>
       setCaptainAction({ kind: "delete", ...captain }),
     profileCaptain: (captain) => setProfileJamId(captain.id as JamId),
-    cancelRename: () => setRenamingId(null),
+    cancelRename: () => {
+      setRenamingId(null);
+      setRenamingKey(null);
+    },
     startNewFolder: (section = "threads") => setNewFolder({ section }),
     markAllRead: () => {
       if (orgId === undefined) return;

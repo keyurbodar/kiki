@@ -1,6 +1,7 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
+import { InvalidRequest, JamNotFound } from "../../api/schemas/errors.ts";
 import { JamId, OrgId } from "../../api/schemas/ids.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { captains, orgId, threads, world } from "../fixtures/world.ts";
@@ -551,5 +552,71 @@ describe("jams mock", () => {
         });
         assert.strictEqual(recorded(projectlessUnknown), null);
       }),
+  );
+
+  it.effect("answers JamNotFound for a jam the world does not have", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const missing = ApiClient.query("jams", "get", {
+        params: { orgId: org, jamId: JamId.make("jam_nobody") },
+        reactivityKeys: [key],
+      });
+      const error = yield* AtomRegistry.getResult(
+        registry,
+        missing as never,
+      ).pipe(Effect.flip);
+      assert.instanceOf(error, JamNotFound);
+    }),
+  );
+
+  it.effect("opens a thread that has no seeded access row", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      // Only a handful of the world's threads carry a seeded access row; the
+      // rest must still open rather than answer a server error.
+      const unseeded = threads.bundler.id;
+      const access = ApiClient.query("jams", "get", {
+        params: { orgId: org, jamId: JamId.make(unseeded) },
+        reactivityKeys: [key],
+      });
+      const result = yield* AtomRegistry.getResult(registry, access as never, {
+        suspendOnWaiting: true,
+      });
+      assert.isNotNull(result);
+    }),
+  );
+
+  it.effect("rejects an unknown access policy with the declared 400", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const setAccess = ApiClient.mutation("jams", "setThreadAccess");
+      registry.set(setAccess as never, {
+        params: { orgId: org, jamId: JamId.make(jamId) },
+        payload: { policy: "nobody" },
+      });
+      const error = yield* AtomRegistry.getResult(
+        registry,
+        setAccess as never,
+      ).pipe(Effect.flip);
+      assert.instanceOf(error, InvalidRequest);
+    }),
+  );
+
+  it.effect("gives a side thread the crew index Capy paints it with", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const createSide = ApiClient.mutation("jams", "createSideThread");
+      registry.set(createSide as never, {
+        params: { orgId: org, jamId: JamId.make(jamId) },
+        payload: { title: "Crew index probe" },
+      });
+      const side = (yield* AtomRegistry.getResult(
+        registry,
+        createSide as never,
+        { suspendOnWaiting: true },
+      )) as { readonly localIndex?: number | null };
+      assert.isNumber(side.localIndex);
+      assert.isAtLeast(side.localIndex as number, 1);
+    }),
   );
 });

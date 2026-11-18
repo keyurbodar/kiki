@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ShareFile } from "@/components/share-file";
 import { searchParams } from "@/lib/search-params";
-import { Toaster } from "@/primitives/toaster";
 
 export const Route = createFileRoute("/s/$shareId")({
   validateSearch: searchParams(["view"]),
@@ -12,9 +11,6 @@ function RouteComponent() {
   const { shareId } = Route.useParams();
   const { view } = Route.useSearch();
   return (
-    <>
-      <ShareFile key={shareId} shareId={shareId} preview={view === "share"} />
-      <Toaster position="bottom-right" />
-    </>
+    <ShareFile key={shareId} shareId={shareId} preview={view === "share"} />
   );
 }

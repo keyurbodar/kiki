@@ -1,7 +1,6 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
-import { toast } from "sonner";
 import { OrgId } from "@/data/api/schemas/ids";
 import type {
   ClaimContext,
@@ -12,6 +11,7 @@ import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { Input } from "@/primitives/input";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
+import { toast } from "@/primitives/toaster";
 import {
   formatCredits,
   formatPriceCents,

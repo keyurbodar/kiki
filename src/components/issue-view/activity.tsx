@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import {
   ArrowCornerUpLeft,
   ArrowUndoUp,
@@ -35,6 +34,7 @@ import {
 } from "@/features/issues/issue-parts";
 import { useIssueStates } from "@/features/issues/issue-pickers";
 import { Button } from "@/primitives/button";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   type ActivityFilter,

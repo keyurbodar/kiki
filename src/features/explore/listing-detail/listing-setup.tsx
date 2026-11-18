@@ -1,7 +1,6 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import { ProjectSelect } from "@/components/project-select";
 import type {
   ExploreListing,
@@ -13,6 +12,7 @@ import { addSkillAtom, volumeReactivityKey } from "@/data/atoms/explore";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { SettingsRow } from "@/primitives/settings-row";
+import { toast } from "@/primitives/toaster";
 import { errorMessage } from "../dialogs";
 import { useRecordAdded } from "../listing-add-action";
 import { useOrgProjects } from "../skill-scope-dialog/project-picker";

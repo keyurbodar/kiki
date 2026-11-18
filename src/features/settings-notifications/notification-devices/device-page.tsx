@@ -1,10 +1,10 @@
 import { useAtom, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
-import { toast } from "sonner";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { currentUserAtom } from "@/data/atoms/session";
 import { Card } from "@/primitives/card";
+import { toast } from "@/primitives/toaster";
 import {
   patchPushSubscriptionAtom,
   pushSubscriptionIdAtom,

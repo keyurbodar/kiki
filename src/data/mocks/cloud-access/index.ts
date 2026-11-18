@@ -3,6 +3,7 @@ import {
   CloudAccess,
   type CloudAccessTarget,
 } from "../../api/schemas/cloud-access.ts";
+import { InvalidRequest } from "../../api/schemas/errors.ts";
 import { IntegrationMutationResult } from "../../api/schemas/integrations.ts";
 import { newId } from "../db/MockDb.ts";
 import { projects } from "../fixtures/world.ts";
@@ -19,7 +20,7 @@ const projectIds = new Set<string>(
 );
 
 const unknownRow = (kind: string, id: string) =>
-  Effect.die(new Error(`cloud-access mock: no ${kind} ${id}`));
+  Effect.fail(new InvalidRequest({ message: `No ${kind} ${id}` }));
 
 export const CloudAccessMock = mockGroup("cloud-access", (handlers) =>
   Effect.gen(function* () {

@@ -9,6 +9,5 @@ export const entry = definePane({
   id: "terminal",
   label: "Terminal",
   order: 50,
-  surface: "main",
   component: TerminalTab,
 });

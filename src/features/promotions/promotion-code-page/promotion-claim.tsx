@@ -1,7 +1,6 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { toast } from "sonner";
 import { OrgId } from "@/data/api/schemas/ids";
 import type {
   ClaimContext,
@@ -9,6 +8,7 @@ import type {
   PromotionRecipient,
 } from "@/data/api/schemas/promotion";
 import { claimPromotionAtom } from "@/data/atoms/promotions";
+import { toast } from "@/primitives/toaster";
 import { type ClaimState, claimState } from "../public-promotion/claim-outcome";
 import {
   creditsAndTrialHeading,

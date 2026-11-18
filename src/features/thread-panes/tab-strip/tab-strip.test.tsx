@@ -20,7 +20,11 @@ import {
 } from "./thread-options";
 
 const toastError = vi.hoisted(() => vi.fn());
-vi.mock("sonner", () => ({
+vi.mock("@/primitives/toaster", async () => ({
+  ...(await vi.importActual<typeof import("@/primitives/toaster")>(
+    "@/primitives/toaster",
+  )),
+
   toast: Object.assign(vi.fn(), { error: toastError, success: vi.fn() }),
 }));
 
@@ -121,6 +125,30 @@ describe("ThreadOptions", () => {
     expect(screen.getByText("Fix the flaky test")).toBeTruthy();
     expect(rows.some((row) => row.startsWith("All threads1"))).toBe(true);
     expect(rows.some((row) => row.startsWith("Pull requests1"))).toBe(true);
+  });
+
+  it("draws a crew row as Capy does: Subagent N over the thread's title", () => {
+    render(
+      <OpenMenu>
+        <ThreadOptions
+          {...base}
+          title={undefined}
+          crew={[
+            {
+              id: "jam_9",
+              title: "Fix the flaky test",
+              subagentIndex: 2,
+              active: true,
+            },
+          ]}
+        />
+      </OpenMenu>,
+    );
+    expect(screen.getByText("Subagent 2")).toBeTruthy();
+    expect(screen.getByText("Fix the flaky test")).toBeTruthy();
+    // Capy's row is one click, not a submenu: no chevron, no nested page.
+    const row = screen.getByText("Subagent 2").closest("[role=menuitem]");
+    expect(row?.querySelector("[data-slot=menu-sub-trigger]")).toBeNull();
   });
 
   it("filters by search and says when nothing matches", () => {

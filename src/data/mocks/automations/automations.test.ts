@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId, people, projects } from "../fixtures/world.ts";
@@ -34,6 +35,9 @@ const getAtom = ApiClient.query("automations", "get", {
 const create = ApiClient.mutation("automations", "create");
 const enable = ApiClient.mutation("automations", "enable");
 const disable = ApiClient.mutation("automations", "disable");
+const cancel = ApiClient.mutation("automations", "cancel");
+const cancelBatch = ApiClient.mutation("automations", "cancelBatch");
+const flushBatch = ApiClient.mutation("automations", "flushBatch");
 
 const values = (result: unknown) => result as ReadonlyArray<Automation>;
 
@@ -294,6 +298,53 @@ describe("automation editor fields", () => {
       assert.deepStrictEqual(updated.triggers, [
         { type: "github", event: "pull_request.opened" },
       ]);
+    }),
+  );
+});
+
+describe("automations mock misses", () => {
+  it.effect("answers the 404 the batch, run and create routes declare", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+
+      registry.set(cancelBatch, {
+        params: { orgId, automationId, batchId: "batch_nobody" },
+        reactivityKeys: [key],
+      });
+      const cancelBatchError = yield* AtomRegistry.getResult(
+        registry,
+        cancelBatch,
+      ).pipe(Effect.flip);
+      assert.instanceOf(cancelBatchError, HttpApiError.NotFound);
+
+      registry.set(flushBatch, {
+        params: { orgId, automationId, batchId: "batch_nobody" },
+        reactivityKeys: [key],
+      });
+      const flushBatchError = yield* AtomRegistry.getResult(
+        registry,
+        flushBatch,
+      ).pipe(Effect.flip);
+      assert.instanceOf(flushBatchError, HttpApiError.NotFound);
+
+      registry.set(cancel, {
+        params: { orgId, automationId, runId: "run_nobody" },
+        reactivityKeys: [key],
+      });
+      const runError = yield* AtomRegistry.getResult(registry, cancel).pipe(
+        Effect.flip,
+      );
+      assert.instanceOf(runError, HttpApiError.NotFound);
+
+      registry.set(create, {
+        params: { orgId },
+        payload: { name: "Ghost project", projectId: "proj_nobody" },
+        reactivityKeys: [key],
+      });
+      const projectError = yield* AtomRegistry.getResult(registry, create).pipe(
+        Effect.flip,
+      );
+      assert.instanceOf(projectError, HttpApiError.NotFound);
     }),
   );
 });

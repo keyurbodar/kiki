@@ -1,6 +1,7 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
+import { JamNotFound } from "../../api/schemas/errors.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId, threads } from "../fixtures/world.ts";
 
@@ -36,6 +37,20 @@ describe("children mock", () => {
         (task as { threadId: string }).threadId,
         threads.checkoutTest.id,
       );
+    }),
+  );
+
+  it.effect("answers JamNotFound for a task thread that is gone", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const atom = ApiClient.query("children", "taskThread", {
+        params: { orgId, taskId: "task_nobody" },
+        reactivityKeys: [key],
+      });
+      const error = yield* AtomRegistry.getResult(registry, atom as never).pipe(
+        Effect.flip,
+      );
+      assert.instanceOf(error, JamNotFound);
     }),
   );
 });

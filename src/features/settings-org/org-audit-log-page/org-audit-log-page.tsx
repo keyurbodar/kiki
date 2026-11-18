@@ -1,6 +1,7 @@
 import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { useEffect, useRef, useState } from "react";
+import { FailedRead } from "@/components/failed-read";
 import { SettingsPage } from "@/components/settings-page";
 import {
   auditMembersAtom,
@@ -66,6 +67,11 @@ function useOrgId() {
     : undefined;
 }
 
+/** The organizations read, so a failed one is not mistaken for "no org yet". */
+function useOrgRead() {
+  return useAtomValue(organizationsAtom);
+}
+
 function useDebounced(value: string, delay = debounceMs) {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -110,6 +116,17 @@ export function AuditLogPage() {
 
 function AuditLogLoader() {
   const orgId = useOrgId();
+  const orgRead = useOrgRead();
+  const refreshOrganizations = useAtomRefresh(organizationsAtom);
+  if (AsyncResult.isFailure(orgRead))
+    return (
+      <FailedRead
+        slot="audit-log-org-failed"
+        line="Couldn't load your organization"
+        sub="Check your connection and try again"
+        onRetry={refreshOrganizations}
+      />
+    );
   if (orgId === undefined)
     return (
       <AuditLog

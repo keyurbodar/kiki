@@ -51,7 +51,7 @@ async function renderThread(search?: string, threadId = "jam_sample_0001") {
 }
 
 describe("the two strips", () => {
-  it("mounts a main-surface pane in the chat column, with no dock", async () => {
+  it("opens setup in the dock, leaving the transcript in the chat column", async () => {
     await renderThread("pane=setup");
     await waitFor(() =>
       expect(
@@ -60,8 +60,11 @@ describe("the two strips", () => {
           document.querySelector("[data-slot=setup-skeleton]"),
       ).not.toBeNull(),
     );
-    expect(document.querySelector("[data-slot=right-panel]")).toBeNull();
-    expect(document.querySelector("[data-slot=thread-dock-header]")).toBeNull();
+    expect(document.querySelector("[data-slot=right-panel]")).not.toBeNull();
+    expect(
+      document.querySelector("[data-slot=thread-dock-header]"),
+    ).not.toBeNull();
+    expect(document.querySelector('[data-pane-tab="setup"]')).not.toBeNull();
   });
 
   it("mounts a dock-surface pane beside the transcript, keeping the chat", async () => {

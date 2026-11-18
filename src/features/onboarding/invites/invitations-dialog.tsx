@@ -7,7 +7,6 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import type {
   JoinableOrganization,
   MyInvitation,
@@ -27,6 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/primitives/dialog";
+import { toast } from "@/primitives/toaster";
 import { InvitationsTable } from "./invitations-table";
 import { acceptingKey, invitationsDialogOpenAtom } from "./invites-state";
 

@@ -4,7 +4,6 @@ import { cx } from "class-variance-authority";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactElement, useState } from "react";
-import { toast } from "sonner";
 import type { VolumeChange, VolumeVersionRow } from "@/data/api/schemas/drive";
 import {
   driveChangesAtom,
@@ -26,6 +25,7 @@ import { Icon } from "@/primitives/icon";
 import { menuRowVariants } from "@/primitives/menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   changeLabels,

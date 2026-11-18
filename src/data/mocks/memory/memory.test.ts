@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId } from "../fixtures/world.ts";
@@ -106,5 +107,33 @@ describe("memory mock", () => {
         memoryId,
       );
     }),
+  );
+
+  it.effect(
+    "answers the 404 every entry endpoint declares for an unknown id",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        const params = { orgId, volumeId: "mem_nobody" };
+        const missingRead = ApiClient.query("memory", "read", {
+          params,
+          query: {},
+          reactivityKeys: [key],
+        });
+        const readError = yield* AtomRegistry.getResult(
+          registry,
+          missingRead,
+        ).pipe(Effect.flip);
+        assert.instanceOf(readError, HttpApiError.NotFound);
+
+        for (const atom of [edit, forget, restore]) {
+          registry.set(atom as never, { params, payload: {} });
+          const error = yield* AtomRegistry.getResult(
+            registry,
+            atom as never,
+          ).pipe(Effect.flip);
+          assert.instanceOf(error, HttpApiError.NotFound);
+        }
+      }),
   );
 });

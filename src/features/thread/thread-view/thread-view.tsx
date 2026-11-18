@@ -18,7 +18,12 @@ import {
   type ComposerPayload,
   PlusMenu,
 } from "@/components/composer";
+import type { ChipIssue } from "@/components/markdown-chips";
 import type { OrgId } from "@/data/api/schemas/ids";
+import type { IssueList } from "@/data/api/schemas/issue";
+import { idleAtom } from "@/data/atoms/idle";
+import { allIssuesAtom } from "@/data/atoms/issues";
+import { projectsAtom } from "@/data/atoms/projects";
 import { threadMachinesAtom } from "@/data/atoms/setup";
 import { idleThreadPageAtom, threadsAtom } from "@/data/atoms/threads";
 import type { TimelineRow } from "@/data/events";
@@ -41,6 +46,11 @@ import {
   type MessageQueueProps,
   type QueueRowData,
 } from "@/features/composer/message-queue";
+import { useDriveListing } from "@/features/drive/drive-detail-page/use-drive-listing";
+import {
+  IssueStateIcon,
+  issueStatusDefaults,
+} from "@/features/issues/issue-parts";
 import {
   AttachmentSourceProvider,
   apiAttachmentSource,
@@ -66,8 +76,12 @@ import { Button } from "@/primitives/button";
 import { RightPanelGroup } from "@/primitives/right-panel";
 import { ChatSkeleton } from "./chat-skeleton";
 import { ThreadMessageActions } from "./message-actions";
+import { threadChips } from "./thread-chips";
 import { threadHeaderClassName } from "./thread-header";
-import { threadMentionSources } from "./thread-mention-sources";
+import {
+  skillsMentionSource,
+  threadMentionSources,
+} from "./thread-mention-sources";
 
 type ClarifyRow = Extract<TimelineRow, { type: "clarify" }>;
 type EnvironmentRequestRow = Extract<
@@ -363,13 +377,56 @@ export function ThreadView({
   const orgThreads = useAtomValue(
     orgId === undefined ? idleThreadPageAtom : threadsAtom(orgId as OrgId),
   );
-  const mentionSources = useMemo(
+  const drive = useDriveListing(orgId, {});
+  const skills = useMemo(
     () =>
-      threadMentionSources(
+      skillsMentionSource(
+        (drive.listing?.entries ?? []).map((entry) => entry.path),
+      ),
+    [drive.listing],
+  );
+  const mentionSources = useMemo(
+    () => [
+      ...threadMentionSources(
         Option.getOrUndefined(AsyncResult.value(orgThreads))?.items ?? [],
         threadId,
       ),
-    [orgThreads, threadId],
+      ...(skills === undefined ? [] : [skills]),
+    ],
+    [orgThreads, threadId, skills],
+  );
+  const projects = useAtomValue(
+    orgId === undefined
+      ? idleAtom<ReadonlyArray<{ id: string; code: string }>>()
+      : projectsAtom(orgId as OrgId),
+  );
+  const orgIssues = useAtomValue(
+    orgId === undefined ? idleAtom<IssueList>() : allIssuesAtom(orgId as OrgId),
+  );
+  const chips = useMemo(() => {
+    const codes = new Map<string, string>();
+    for (const project of Option.getOrUndefined(AsyncResult.value(projects)) ??
+      [])
+      codes.set(project.id, project.code);
+    return threadChips({
+      threads:
+        Option.getOrUndefined(AsyncResult.value(orgThreads))?.items ?? [],
+      projectCodes: codes,
+      currentThreadId: threadId,
+      issues: Option.getOrUndefined(AsyncResult.value(orgIssues))?.issues ?? [],
+    });
+  }, [orgIssues, projects, orgThreads, threadId]);
+  const chipValue = useMemo(
+    () => ({
+      ...chips,
+      renderIssueState: (issue: ChipIssue, className: string) => (
+        <IssueStateIcon
+          {...issueStatusDefaults[issue.status]}
+          className={className}
+        />
+      ),
+    }),
+    [chips],
   );
   const navigate = useNavigate();
   const commands = useMemo(
@@ -445,6 +502,7 @@ export function ThreadView({
                 <div className="relative min-h-0 flex-1">
                   <JamChat
                     jamId={threadId}
+                    chips={chipValue}
                     rows={rows}
                     initialLoading={loading}
                     onStartReached={hasOlder ? onLoadOlder : undefined}
@@ -488,7 +546,7 @@ export function ThreadView({
                 </div>
                 <div className="min-h-0 px-4 pb-[calc(var(--spacing)+var(--safe-bottom))]">
                   <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col justify-end">
-                    {active === undefined ? (
+                    {active === undefined || draft !== undefined ? (
                       (composer ?? (
                         <MessageQueue
                           rows={noQueuedMessages}
@@ -545,6 +603,12 @@ export function ThreadView({
                     ) : (
                       <ComposerTakeover {...active} />
                     )}
+                    {/*
+                      An edit draft outranks a takeover: the timeline truncates
+                      from the edited message, so the editor has to be the thing
+                      on screen or the conversation collapses with no way back.
+                      Cancelling or sending the edit returns the takeover.
+                    */}
                     <ComposerFooter
                       data-slot="composer-footer"
                       machine={<MachineTrigger machine={machines} />}

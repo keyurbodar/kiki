@@ -8,7 +8,6 @@ import {
   type ReactNode,
   useContext,
 } from "react";
-import { toast } from "sonner";
 import { Button, type ButtonProps } from "@/primitives/button";
 import { Card, cardVariants } from "@/primitives/card";
 import {
@@ -21,6 +20,7 @@ import {
 } from "@/primitives/dialog";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
+import { toast } from "@/primitives/toaster";
 
 export const menuIconSlot =
   "flex size-(--icon-sm) shrink-0 items-center justify-center text-icon-muted in-data-[intent=danger]:text-destructive";

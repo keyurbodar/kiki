@@ -1,19 +1,21 @@
-import { useAtomSet } from "@effect/atom-react";
+import { useAtomRefresh, useAtomSet } from "@effect/atom-react";
 import { cx } from "class-variance-authority";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import { CapyMark } from "@/components/capy-logo";
 import {
   pullReactivityKeys,
+  pullReviewAtom,
   updateFindingAtom,
 } from "@/components/diff-tab/atoms";
 import type { PullRef } from "@/components/diff-tab/model";
 import { readyDiff, usePullDiff } from "@/components/diff-tab/use-pull-diff";
+import { goneOr } from "@/components/pull-view/gone";
 import { SuggestionBlock } from "@/components/suggestion-block";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import { Icon, type IconId } from "@/primitives/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   type FindingMemory,
@@ -273,6 +275,7 @@ export function FindingSources({ finding }: { finding: PullFinding }) {
 
 export function useUpdateFinding(pull: PullRef, findingId: string) {
   const update = useAtomSet(updateFindingAtom, { mode: "promise" });
+  const refreshReview = useAtomRefresh(pullReviewAtom(pull.orgId, pull.id));
   const [pending, setPending] = useState(false);
   const setStatus = (status: FindingStatus) => {
     setPending(true);
@@ -281,11 +284,12 @@ export function useUpdateFinding(pull: PullRef, findingId: string) {
       payload: { status },
       reactivityKeys: [pullReactivityKeys.comments(pull.id)],
     })
-      .catch((error: unknown) =>
+      .catch((error: unknown) => {
+        if (goneOr(error, "This finding", refreshReview)) return;
         toast.error("Could not update the finding", {
           description: String(error),
-        }),
-      )
+        });
+      })
       .finally(() => setPending(false));
   };
   return { pending, setStatus };

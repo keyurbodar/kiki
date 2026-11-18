@@ -1,6 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/primitives/alert";
 import { Badge } from "@/primitives/badge";
 import { Button, type ButtonProps } from "@/primitives/button";
@@ -17,6 +16,7 @@ import {
 } from "@/primitives/menu-select";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import {
   automationStep,
   automationsNote,

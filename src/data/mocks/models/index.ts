@@ -1,4 +1,5 @@
 import { DateTime, Effect, Ref, Schema } from "effect";
+import { InvalidRequest } from "../../api/schemas/errors.ts";
 import { fields, MockDb, newId } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import {
@@ -24,6 +25,9 @@ type Settings = {
   defaultModel: string;
   fallbackModel: string;
   memberCredentials: string;
+  allowMemberCredentials: boolean;
+  membersOverrideFallback: boolean;
+  creditsFallback: string;
   availableModels: string[];
   updatedAt: string;
 };
@@ -46,6 +50,9 @@ interface OrgKey {
 
 const notFound = (kind: string, id: string) =>
   Effect.die(new Error(`models.${kind}: no row ${id}`));
+
+const invalid = (message: string) =>
+  Effect.fail(new InvalidRequest({ message }));
 
 const text = (input: Record<string, unknown>, key: string) =>
   typeof input[key] === "string" ? (input[key] as string) : undefined;
@@ -95,6 +102,9 @@ export const ModelsMock = mockGroup("models", (handlers) =>
     });
     const settings = yield* Ref.make<Settings>({
       ...sampleSettings,
+      allowMemberCredentials: true,
+      membersOverrideFallback: false,
+      creditsFallback: "own_then_ask",
       availableModels: [...sampleSettings.availableModels],
       updatedAt: DateTime.formatIso(minutesAgo(60 * 8)),
     });
@@ -110,17 +120,28 @@ export const ModelsMock = mockGroup("models", (handlers) =>
       Effect.gen(function* () {
         const rows = yield* Ref.get(credentials);
         const credential = rows.find((row) => row.id === id);
-        if (!credential) return yield* notFound("credentials", id);
+        if (!credential) return yield* invalid(`No credential ${id}`);
         return credential;
       });
 
-    const patchCredential = (id: string, patch: Partial<SampleCredential>) =>
+    const patchCredential = (
+      current: SampleCredential,
+      patch: Partial<SampleCredential>,
+    ) =>
       Effect.gen(function* () {
-        const current = yield* findCredential(id);
         const updated = { ...current, ...patch };
         yield* Ref.update(credentials, (rows) =>
-          rows.map((row) => (row.id === id ? updated : row)),
+          rows.map((row) => (row.id === current.id ? updated : row)),
         );
+        // The routing payload's rows carry fields the credentials Ref does not
+        // (`ticks` among them), so merge the patch in rather than replacing the
+        // row with the Ref's shape.
+        yield* Ref.update(routing, (payload) => ({
+          ...payload,
+          credentials: (
+            payload.credentials as ReadonlyArray<Record<string, unknown>>
+          ).map((row) => (row.id === current.id ? { ...row, ...patch } : row)),
+        }));
         return updated;
       });
 
@@ -145,7 +166,7 @@ export const ModelsMock = mockGroup("models", (handlers) =>
           const rows = yield* Ref.get(credentials);
           const credential = rows.find((row) => row.service === params.service);
           if (!credential) return yield* notFound("services", params.service);
-          yield* patchCredential(credential.id, {
+          yield* patchCredential(credential, {
             status: "disconnected",
             enabled: false,
           });
@@ -159,19 +180,49 @@ export const ModelsMock = mockGroup("models", (handlers) =>
           return { ok: true, service: params.service };
         }),
       )
-      .handle("setCredentialEnabled", ({ params, payload }) =>
+      .handle("setCredentialEnabled", ({ params, payload, query }) =>
         Effect.gen(function* () {
           const input = fields(payload);
-          const rows = yield* Ref.get(credentials);
-          const credential = rows.find((row) => row.service === params.service);
-          if (!credential) return yield* notFound("services", params.service);
-          const enabled = bool(input, "enabled") ?? !credential.enabled;
-          return summary(
-            yield* patchCredential(credential.id, {
-              enabled,
-              status: enabled ? "connected" : "disconnected",
-            }),
+          const wanted = (query as { credentialId?: string }).credentialId;
+          const seat = yield* Ref.get(routing).pipe(
+            Effect.map((current) =>
+              (current.seats as ReadonlyArray<Record<string, unknown>>).find(
+                (row) =>
+                  row.service === params.service &&
+                  (wanted === undefined || row.credentialId === wanted),
+              ),
+            ),
           );
+          if (seat !== undefined) {
+            const enabled =
+              bool(input, "enabled") ?? !(seat.enabled as boolean | undefined);
+            const updated = { ...seat, enabled };
+            yield* Ref.update(routing, (current) => ({
+              ...current,
+              seats: (current.seats as ReadonlyArray<unknown>).map((row) =>
+                row === seat ? updated : row,
+              ),
+            }));
+            return {
+              id: seat.credentialId,
+              service: seat.service,
+              name: String(seat.accountLabel ?? seat.service),
+              enabled,
+            };
+          }
+          const rows = yield* Ref.get(credentials);
+          const credential =
+            rows.find((row) => row.id === wanted) ??
+            rows.find((row) => row.service === params.service);
+          if (!credential)
+            return yield* invalid(
+              `No credential for service ${params.service}`,
+            );
+          const enabled = bool(input, "enabled") ?? !credential.enabled;
+          // `status` is "active" | "invalid" on the wire, and a row whose status
+          // is neither renders without its power switch at all — writing
+          // "connected"/"disconnected" here made the control vanish once used.
+          return summary(yield* patchCredential(credential, { enabled }));
         }),
       )
       .handle("startDevice", ({ params }) => {
@@ -179,7 +230,10 @@ export const ModelsMock = mockGroup("models", (handlers) =>
         return Effect.gen(function* () {
           const rows = yield* Ref.get(credentials);
           const credential = rows.find((row) => row.service === params.service);
-          if (!credential) return yield* notFound("services", params.service);
+          if (!credential)
+            return yield* invalid(
+              `No credential for service ${params.service}`,
+            );
           yield* Ref.update(deviceAttempts, (all) => ({
             ...all,
             [attemptId]: params.service,
@@ -197,7 +251,7 @@ export const ModelsMock = mockGroup("models", (handlers) =>
       .handle("refreshClaudeSeat", ({ params }) =>
         Effect.gen(function* () {
           const credential = yield* findCredential(params.credentialId);
-          const updated = yield* patchCredential(credential.id, {
+          const updated = yield* patchCredential(credential, {
             status: "connected",
             enabled: true,
           });
@@ -218,7 +272,7 @@ export const ModelsMock = mockGroup("models", (handlers) =>
             return {
               ok: true,
               credential: summary(
-                yield* patchCredential(existing.id, {
+                yield* patchCredential(existing, {
                   status: "connected",
                   enabled: true,
                 }),
@@ -244,7 +298,7 @@ export const ModelsMock = mockGroup("models", (handlers) =>
           const attempts = yield* Ref.get(deviceAttempts);
           const service = attempts[params.attemptId];
           if (!service)
-            return yield* notFound("deviceAttempts", params.attemptId);
+            return yield* invalid(`No device attempt ${params.attemptId}`);
           return {
             attemptId: params.attemptId,
             service,
@@ -324,7 +378,7 @@ export const ModelsMock = mockGroup("models", (handlers) =>
             (row) => row.credentialId === params.credentialId,
           );
           if (!current) {
-            return yield* notFound("connections", params.credentialId);
+            return yield* invalid(`No connection ${params.credentialId}`);
           }
           const updated = { ...current, models: selected };
           yield* Ref.set(
@@ -333,7 +387,9 @@ export const ModelsMock = mockGroup("models", (handlers) =>
               row.credentialId === current.credentialId ? updated : row,
             ),
           );
-          yield* patchCredential(current.credentialId, { models: selected });
+          yield* patchCredential(yield* findCredential(current.credentialId), {
+            models: selected,
+          });
           return updated;
         });
       })
@@ -392,14 +448,11 @@ export const ModelsMock = mockGroup("models", (handlers) =>
         const input = fields(payload);
         return Effect.gen(function* () {
           const current = yield* findCredential(params.credentialId);
-          const updated = yield* patchCredential(current.id, {
+          const updated = yield* patchCredential(current, {
             ...(text(input, "name") ? { name: text(input, "name") } : {}),
-            ...(bool(input, "enabled") !== undefined
-              ? {
-                  enabled: bool(input, "enabled"),
-                  status: bool(input, "enabled") ? "connected" : "disconnected",
-                }
-              : {}),
+            ...(bool(input, "enabled") === undefined
+              ? {}
+              : { enabled: bool(input, "enabled") }),
             ...(list(input, "models") ? { models: list(input, "models") } : {}),
           });
           yield* Ref.update(connections, (rows) =>
@@ -450,7 +503,7 @@ export const ModelsMock = mockGroup("models", (handlers) =>
         Effect.gen(function* () {
           const credential = yield* findCredential(params.credentialId);
           return summary(
-            yield* patchCredential(credential.id, { status: "connected" }),
+            yield* patchCredential(credential, { status: "connected" }),
           );
         }),
       )
@@ -507,7 +560,7 @@ export const ModelsMock = mockGroup("models", (handlers) =>
         Effect.gen(function* () {
           const rows = yield* Ref.get(orgKeys);
           if (!rows.some((row) => row.provider === params.provider)) {
-            return yield* notFound("orgKeys", params.provider);
+            return yield* invalid(`No organization key for ${params.provider}`);
           }
           yield* Ref.set(
             orgKeys,
@@ -535,23 +588,37 @@ export const ModelsMock = mockGroup("models", (handlers) =>
       })
       .handle("setFallback", ({ payload }) => {
         const input = fields(payload);
-        return Ref.updateAndGet(settings, (current) => ({
-          ...current,
-          fallbackModel:
-            text(input, "fallbackModel") ??
-            text(input, "model") ??
-            current.fallbackModel,
-          updatedAt: DateTime.formatIso(minutesAgo(0)),
-        }));
+        return Ref.updateAndGet(settings, (current) => {
+          const credits = text(input, "creditsFallback");
+          const members = bool(input, "membersOverrideFallback");
+          return {
+            ...current,
+            fallbackModel:
+              text(input, "fallbackModel") ??
+              text(input, "model") ??
+              current.fallbackModel,
+            ...(credits === undefined ? {} : { creditsFallback: credits }),
+            ...(members === undefined
+              ? {}
+              : { membersOverrideFallback: members }),
+            updatedAt: DateTime.formatIso(minutesAgo(0)),
+          };
+        });
       })
       .handle("setMemberCredentials", ({ payload }) => {
         const input = fields(payload);
-        return Ref.updateAndGet(settings, (current) => ({
-          ...current,
-          memberCredentials:
-            text(input, "memberCredentials") ?? current.memberCredentials,
-          updatedAt: DateTime.formatIso(minutesAgo(0)),
-        }));
+        return Ref.updateAndGet(settings, (current) => {
+          const allowed = bool(input, "allowed");
+          return {
+            ...current,
+            memberCredentials:
+              text(input, "memberCredentials") ?? current.memberCredentials,
+            ...(allowed === undefined
+              ? {}
+              : { allowMemberCredentials: allowed }),
+            updatedAt: DateTime.formatIso(minutesAgo(0)),
+          };
+        });
       });
   }),
 );

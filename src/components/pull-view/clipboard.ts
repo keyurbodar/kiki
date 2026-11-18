@@ -1,4 +1,4 @@
-import { toast } from "sonner";
+import { toast } from "@/primitives/toaster";
 
 export const copyText = (
   text: string,

@@ -2,7 +2,6 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useParams } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import { ReadGate } from "@/components/read-gate";
 import {
   SettingsLoadingCard,
@@ -25,6 +24,7 @@ import { Button } from "@/primitives/button";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Textarea } from "@/primitives/textarea";
+import { toast } from "@/primitives/toaster";
 import { CardEmpty, CardList } from "../shared/card-list";
 import { Glyph } from "../shared/glyphs";
 import { useActiveOrgId, useActiveOrgRead } from "../shared/use-org";

@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import { addSkillAtom, volumeReactivityKey } from "@/data/atoms/explore";
 import { Button } from "@/primitives/button";
 import {
@@ -13,6 +12,7 @@ import {
   DialogTitle,
 } from "@/primitives/dialog";
 import { Icon } from "@/primitives/icon";
+import { toast } from "@/primitives/toaster";
 import { errorMessage } from "../dialogs/error-message";
 import { useRecordAdded } from "../listing-add-action/recently-added";
 import {

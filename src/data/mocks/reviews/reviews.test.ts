@@ -1,6 +1,7 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
+import { InvalidRequest } from "../../api/schemas/errors.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId } from "../fixtures/world.ts";
 import { sampleReviewSettings } from "./fixtures.ts";
@@ -77,6 +78,36 @@ describe("reviews mock", () => {
         setPolicy,
       )) as SelfPolicy;
       assert.isFalse(policy.selfReviewed);
+    }),
+  );
+
+  it.effect("answers an unknown repo with the declared 400", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      registry.set(configure, {
+        params: { orgId },
+        payload: { repo: "acme/unknown", autoReview: "once" },
+        reactivityKeys: [key],
+      });
+      const error = yield* AtomRegistry.getResult(registry, configure).pipe(
+        Effect.flip,
+      );
+      assert.instanceOf(error, InvalidRequest);
+    }),
+  );
+
+  it.effect("answers a configuration with no repo with a 400", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      registry.set(configure, {
+        params: { orgId },
+        payload: { autoReview: "once" },
+        reactivityKeys: [key],
+      });
+      const error = yield* AtomRegistry.getResult(registry, configure).pipe(
+        Effect.flip,
+      );
+      assert.instanceOf(error, InvalidRequest);
     }),
   );
 });

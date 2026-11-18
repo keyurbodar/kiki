@@ -1,7 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { useRef, useState } from "react";
-import { toast } from "sonner";
 import { SettingsSection } from "@/components/settings-page";
 import {
   removeWallpaperAtom,
@@ -14,6 +13,7 @@ import { Card } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
 import { SettingsRow } from "@/primitives/settings-row";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
+import { toast } from "@/primitives/toaster";
 import { DashboardBackdrop } from "../background-effect";
 import {
   ArrowUpIcon,
@@ -30,6 +30,7 @@ import {
   DEFAULT_BACKGROUND_ADJUSTMENTS,
   useAppearance,
 } from "../model/appearance-store";
+import { prepareBackgroundFile } from "../model/background-file";
 import { RangeField } from "../range-field";
 import { SelectField } from "../select-field";
 
@@ -76,18 +77,19 @@ function HomeBackgroundControl() {
           const file = event.currentTarget.files?.[0];
           event.currentTarget.value = "";
           if (file === undefined) return;
-          const reader = new FileReader();
-          reader.onload = () =>
-            appearanceActions.updatePreferences({
-              background: {
-                name: file.name,
-                url: String(reader.result),
-                appearance:
-                  background?.appearance ?? DEFAULT_BACKGROUND_ADJUSTMENTS,
-              },
-            });
-          reader.onerror = () => toast.error("Could not read the file");
-          reader.readAsDataURL(file);
+          prepareBackgroundFile(file).then(
+            (prepared) =>
+              appearanceActions.updatePreferences({
+                background: {
+                  name: prepared.name,
+                  url: URL.createObjectURL(prepared.blob),
+                  appearance:
+                    background?.appearance ?? DEFAULT_BACKGROUND_ADJUSTMENTS,
+                },
+              }),
+            (error: unknown) =>
+              toast.error(errorMessage(error, "Could not read the file")),
+          );
         }}
       />
       {background === null ? (

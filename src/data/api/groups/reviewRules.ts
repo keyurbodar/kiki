@@ -1,5 +1,6 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { InvalidRequest } from "../schemas/errors.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class ReviewRulesGroup extends HttpApiGroup.make("reviewRules").add(
@@ -12,18 +13,22 @@ export class ReviewRulesGroup extends HttpApiGroup.make("reviewRules").add(
     params: { orgId: Schema.String },
     payload: Undecoded,
     success: Undecoded,
+    error: InvalidRequest,
   }),
   HttpApiEndpoint.get("get", "/orgs/:orgId/review-rules/:id", {
     params: { orgId: Schema.String, id: Schema.String },
     success: Undecoded,
+    error: InvalidRequest,
   }),
   HttpApiEndpoint.patch("update", "/orgs/:orgId/review-rules/:id", {
     params: { orgId: Schema.String, id: Schema.String },
     payload: Undecoded,
     success: Undecoded,
+    error: InvalidRequest,
   }),
   HttpApiEndpoint.delete("remove", "/orgs/:orgId/review-rules/:id", {
     params: { orgId: Schema.String, id: Schema.String },
     success: Undecoded,
+    error: InvalidRequest,
   }),
 ) {}

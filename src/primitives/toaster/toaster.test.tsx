@@ -1,3 +1,4 @@
+import { readdirSync, readFileSync } from "node:fs";
 import {
   act,
   cleanup,
@@ -138,5 +139,36 @@ describe("formatToastDescription", () => {
     expect(formatToastDescription("")).toBe("");
     const node = <b>x</b>;
     expect(formatToastDescription(node)).toBe(node);
+  });
+});
+
+/**
+ * Every toast in the app used to be a raw `toast()` from sonner, which renders
+ * sonner's own card: a near-black panel with no close button and no per-type
+ * colour. These guards keep the app on Capy's card and keep one toaster
+ * mounted, so a call site cannot render a toast nobody sees.
+ */
+describe("toast ownership", () => {
+  const sources = readdirSync("src", { recursive: true, encoding: "utf8" })
+    .map((path) => `src/${path.replaceAll("\\", "/")}`)
+    .filter((path) => /\.tsx?$/.test(path));
+
+  it("imports sonner only from this primitive", () => {
+    const offenders = sources.filter(
+      (path) =>
+        !path.startsWith("src/primitives/toaster/") &&
+        /from "sonner"/.test(readFileSync(path, "utf8")),
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  it("mounts the toaster once, in the root layout", () => {
+    const mounts = sources
+      .filter(
+        (path) => !path.includes(".test.") && !path.includes(".specimen."),
+      )
+      .filter((path) => /<Toaster\b/.test(readFileSync(path, "utf8")))
+      .filter((path) => !path.startsWith("src/routes/[__"));
+    expect(mounts).toEqual(["src/routes/__root.tsx"]);
   });
 });

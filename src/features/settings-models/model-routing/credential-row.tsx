@@ -1,10 +1,10 @@
 import { useAtomSet } from "@effect/atom-react";
 import { Exit } from "effect";
 import { useState } from "react";
-import { toast } from "sonner";
 import { Badge } from "@/primitives/badge";
 import { MenuSeparator } from "@/primitives/menu";
 import { ResponsiveMenuItem } from "@/primitives/responsive-menu";
+import { toast } from "@/primitives/toaster";
 import {
   credentialIconProvider,
   dropServedAsOnUntick,

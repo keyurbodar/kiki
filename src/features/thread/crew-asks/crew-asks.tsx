@@ -1,6 +1,5 @@
 import { Menu as BaseMenu } from "@base-ui/react/menu";
 import { type ComponentProps, useState } from "react";
-import { toast } from "sonner";
 import { ThreadStatus } from "@/components/thread-status";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
@@ -8,6 +7,7 @@ import {
   ResponsiveMenu,
   ResponsiveMenuItem,
 } from "@/primitives/responsive-menu";
+import { toast } from "@/primitives/toaster";
 import {
   CREW_ASKS_PAGE,
   type CrewAsk,

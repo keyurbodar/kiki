@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { toast } from "sonner";
 import { SettingsSection } from "@/components/settings-page";
 import { entry as gitEntry } from "@/features/settings/nav/entries/git";
 import { Badge } from "@/primitives/badge";
@@ -26,6 +25,7 @@ import {
 } from "@/primitives/menu";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import {
   type AgentPreferences,
   catalogRow,

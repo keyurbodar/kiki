@@ -1,4 +1,5 @@
 import { Effect, Ref } from "effect";
+import { InvalidRequest } from "../../api/schemas/errors.ts";
 import { OrgId } from "../../api/schemas/ids.ts";
 import {
   GitHubOAuthCompletion,
@@ -64,7 +65,7 @@ const withConnection = (row: object, connected = true): Connection => ({
 });
 
 const notFound = (kind: string, id: string) =>
-  Effect.die(new Error(`integrations.${kind}: no row ${id}`));
+  Effect.fail(new InvalidRequest({ message: `No ${kind} ${id}` }));
 
 const completeOAuth = <A>(
   connection: Ref.Ref<Connection>,
@@ -115,7 +116,7 @@ export const IntegrationsMock = mockGroup("integrations", (handlers) =>
           Record<string, unknown>
         >;
         if (!requests.some((row) => row.id === accessId)) {
-          return yield* notFound("slackUserReadAccess", accessId);
+          return yield* notFound("Slack user-read access", accessId);
         }
         const updated: Connection = {
           ...current,
@@ -316,7 +317,7 @@ export const IntegrationsMock = mockGroup("integrations", (handlers) =>
         Effect.gen(function* () {
           const rows = yield* Ref.get(linearLinks);
           if (!rows.some((row) => row.id === params.linkId)) {
-            return yield* notFound("linearLinks", params.linkId);
+            return yield* notFound("Linear link", params.linkId);
           }
           yield* Ref.set(
             linearLinks,
@@ -363,7 +364,7 @@ export const IntegrationsMock = mockGroup("integrations", (handlers) =>
         Effect.gen(function* () {
           const rows = yield* Ref.get(slackLinks);
           if (!rows.some((row) => row.id === params.linkId)) {
-            return yield* notFound("slackLinks", params.linkId);
+            return yield* notFound("Slack link", params.linkId);
           }
           yield* Ref.set(
             slackLinks,
@@ -470,7 +471,7 @@ export const IntegrationsMock = mockGroup("integrations", (handlers) =>
         const thread = Object.values(world.threads).find(
           (row) => row.id === params.threadId,
         );
-        if (!thread) return notFound("threads", params.threadId);
+        if (!thread) return notFound("thread", params.threadId);
         return Effect.succeed(
           sampleThreadSlackUserReadAccess.map((row) => ({
             ...row,

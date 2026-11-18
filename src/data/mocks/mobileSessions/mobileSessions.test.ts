@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { type AtomRegistry, AtomRegistry as Registry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId, threads } from "../fixtures/world.ts";
@@ -68,6 +69,23 @@ describe("mobileSessions mock", () => {
       assert.isFalse(
         after.some((row) => row.id === active.id && row.status === "active"),
       );
+    }),
+  );
+
+  it.effect("answers the 404 the routes declare for an unknown session", () =>
+    Effect.gen(function* () {
+      const registry = Registry.make();
+      const missing = { orgId, sessionId: "session_nobody" };
+      const calls = [
+        ApiClient.query("mobileSessions", "get", { params: missing }),
+        ApiClient.query("mobileSessions", "stop", { params: missing }),
+      ];
+      for (const atom of calls) {
+        const error = yield* Registry.getResult(registry, atom as never).pipe(
+          Effect.flip,
+        );
+        assert.instanceOf(error, HttpApiError.NotFound);
+      }
     }),
   );
 });

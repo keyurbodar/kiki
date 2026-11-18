@@ -1,7 +1,7 @@
-import { toast } from "sonner";
 import { useDiffPreferences } from "@/lib/diff-preferences";
 import { Icon } from "@/primitives/icon";
 import { ResponsiveMenuItem } from "@/primitives/responsive-menu";
+import { toast } from "@/primitives/toaster";
 
 export const menuIconSlotClassName =
   "flex size-(--icon-sm) shrink-0 items-center justify-center text-icon-muted in-data-[intent=danger]:text-destructive";

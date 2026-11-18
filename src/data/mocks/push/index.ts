@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { fields, newId } from "../db/MockDb.ts";
+import { fields, newId, notFoundNamed } from "../db/MockDb.ts";
 import { isoMinutesAgo, viewer } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { samplePushSettings, sampleSubscriptions } from "./fixtures.ts";
@@ -22,7 +22,7 @@ export const PushMock = mockGroup("push", (handlers) =>
         const subscription = rows.find((row) => row.id === id);
         return subscription
           ? Effect.succeed(subscription)
-          : Effect.die(new Error(`push: no subscription ${id}`));
+          : notFoundNamed("push.subscription", id);
       });
 
     const put = (subscription: Subscription) =>

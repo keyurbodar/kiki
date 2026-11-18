@@ -1,7 +1,6 @@
 import { useAtomSet } from "@effect/atom-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import type {
   CloudAccess,
   CloudAccessTarget,
@@ -31,6 +30,7 @@ import {
   MenuComboboxTrigger,
 } from "@/primitives/menu-combobox";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   CardListHeader,

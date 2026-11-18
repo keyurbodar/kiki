@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId, people, threads } from "../fixtures/world.ts";
@@ -400,5 +401,36 @@ describe("plugins mock", () => {
         );
         assert.equal(one<Installation>(afterUpdate).version, "1.4.0");
       }),
+  );
+
+  it.effect("answers the 404 every route declares for an unknown id", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const reads = [
+        ApiClient.query("plugins", "listThreadPlugins", {
+          params: { orgId, jamId: "jam_nobody" },
+          reactivityKeys: [key],
+        }),
+        ApiClient.query("plugins", "getInstallation", {
+          params: { orgId, installationId: "plugininst_nobody" },
+          reactivityKeys: [key],
+        }),
+        ApiClient.query("plugins", "getVersion", {
+          params: { orgId, versionId: "plugver_nobody" },
+          reactivityKeys: [key],
+        }),
+        ApiClient.query("plugins", "getVersionIcon", {
+          params: { orgId, versionId: "plugver_nobody" },
+          reactivityKeys: [key],
+        }),
+      ];
+      for (const atom of reads) {
+        const error = yield* AtomRegistry.getResult(
+          registry,
+          atom as never,
+        ).pipe(Effect.flip);
+        assert.instanceOf(error, HttpApiError.NotFound);
+      }
+    }),
   );
 });

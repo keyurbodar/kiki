@@ -63,6 +63,7 @@ import {
 import { composerCommands } from "@/features/composer/composer-commands";
 import { DashboardBackdrop } from "@/features/settings-appearance/background-effect";
 import { useAppearance } from "@/features/settings-appearance/model/appearance-store";
+import { useOpenCreateProjectDialog } from "@/features/settings-projects/shared/create-project-dialog";
 import { useSidebarState } from "@/features/shell/sidebar-container";
 import { cn } from "@/lib/cn";
 import { motion } from "@/lib/motion";
@@ -254,6 +255,7 @@ function HomePageBody({
   const entitlements = useMachineEntitlements(orgId);
   const uploader = useFileUploader(orgId);
   const attachments = useComposerAttachments(uploader);
+  const openCreateProject = useOpenCreateProjectDialog();
   const project = noProject
     ? undefined
     : (projects.find(({ id }) => id === pickedProjectId) ?? projects[0]);
@@ -451,6 +453,13 @@ function HomePageBody({
               projects={projects}
               projectless={projectless}
               onPick={pickProject}
+              onAddProject={() =>
+                openCreateProject?.({
+                  open: true,
+                  intent: "project",
+                  mode: { kind: "create" },
+                })
+              }
               onStart={focusComposer}
             />
           ) : null}

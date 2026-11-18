@@ -2,7 +2,6 @@ import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useLocation } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import type { MachineSize } from "@/components/plan-picker";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import {
@@ -71,6 +70,7 @@ import { SettingsRow, SettingsRowLink } from "@/primitives/settings-row";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { Switch } from "@/primitives/switch";
 import { Table } from "@/primitives/table";
+import { toast } from "@/primitives/toaster";
 
 const DEFAULT_MACHINE_SIZE: MachineSize = "large";
 const DAY_MS = 24 * 60 * 60 * 1000;

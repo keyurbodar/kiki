@@ -2,7 +2,6 @@ import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
 import { organizationsAtom } from "@/data/atoms/session.ts";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
@@ -10,6 +9,7 @@ import { Input, InputGroup } from "@/primitives/input";
 import { Label } from "@/primitives/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
 import { Textarea } from "@/primitives/textarea";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   editMemoryAtom,

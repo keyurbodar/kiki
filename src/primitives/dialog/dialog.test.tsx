@@ -92,7 +92,7 @@ describe("Dialog", () => {
     expect(title.className).toContain("text-base");
     const content = title.closest<HTMLElement>("[data-slot=dialog-content]");
     expect(content?.className).toContain("rounded-(--radius-panel)");
-    expect(content?.className).toContain("max-w-lg");
+    expect(content?.className).toContain("kiki-dialog");
     expect(content?.className).toContain("max-h-full");
     expect(content?.parentElement?.className).toContain("z-(--z-dialog)");
     expect(
@@ -101,7 +101,9 @@ describe("Dialog", () => {
     expect(screen.getByText("Its machines stop.").dataset.slot).toBe(
       "dialog-description",
     );
-    expect(screen.getByText("Body").className).toContain("gap-3 py-4");
+    const body = screen.getByText("Body");
+    expect(body.className).toContain("kiki-dialog-body");
+    expect(body.dataset.spacing).toBe("base");
     expect(screen.getByText("Cancel").dataset.slot).toBe("dialog-close");
   });
 
@@ -174,7 +176,9 @@ describe("Dialog", () => {
       </Dialog>,
     );
     expect(screen.getByText("Large").className).toContain("text-xl");
-    expect(screen.getByText("Relaxed").className).toContain("gap-4 py-5");
+    const relaxed = screen.getByText("Relaxed");
+    expect(relaxed.className).toContain("kiki-dialog-body");
+    expect(relaxed.dataset.spacing).toBe("relaxed");
   });
 
   it("switches the overlay scrim", () => {

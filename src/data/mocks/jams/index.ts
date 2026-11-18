@@ -1,5 +1,5 @@
 import { DateTime, Effect, Ref } from "effect";
-import { JamNotFound } from "../../api/schemas/errors.ts";
+import { InvalidRequest, JamNotFound } from "../../api/schemas/errors.ts";
 import {
   JamId,
   ProjectId,
@@ -20,7 +20,13 @@ import {
   ThreadMembership,
 } from "../../api/schemas/thread.ts";
 import { captainCard } from "../captains/fixtures.ts";
-import { fields, MockDb, newId, notFound } from "../db/MockDb.ts";
+import {
+  fields,
+  MockDb,
+  newId,
+  notFound,
+  notFoundNamed,
+} from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { isoMinutesAgo, world } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
@@ -312,10 +318,7 @@ export const JamsMock = mockGroup("jams", (handlers) =>
     const currentAccess = (jamId: string) =>
       Effect.gen(function* () {
         const rows = yield* Ref.get(access);
-        const found = rows.find((row) => row.jamId === jamId);
-        if (!found)
-          return yield* Effect.die(new Error(`jams: no access for ${jamId}`));
-        return found;
+        return rows.find((row) => row.jamId === jamId) ?? accessTemplate(jamId);
       });
 
     const patchAccess = (
@@ -341,8 +344,11 @@ export const JamsMock = mockGroup("jams", (handlers) =>
       Effect.gen(function* () {
         const rows = yield* Ref.get(threads);
         const found = rows.find((row) => row.id === jamId);
-        if (!found)
-          return yield* Effect.die(new Error(`jams: no thread ${jamId}`));
+        if (!found) {
+          return yield* Effect.fail(
+            new JamNotFound({ jamId: JamId.make(jamId) }),
+          );
+        }
         return {
           id: found.id,
           number: found.threadNumber,
@@ -359,7 +365,9 @@ export const JamsMock = mockGroup("jams", (handlers) =>
       Effect.gen(function* () {
         const rows = yield* Ref.get(threads);
         if (!rows.some((row) => row.id === jamId)) {
-          return yield* Effect.die(new Error(`jams: no thread ${jamId}`));
+          return yield* Effect.fail(
+            new JamNotFound({ jamId: JamId.make(jamId) }),
+          );
         }
         const updated = rows.map((row) =>
           row.id === jamId
@@ -619,8 +627,10 @@ export const JamsMock = mockGroup("jams", (handlers) =>
           const input = fields(payload);
           const policy = stringValue(input, "policy", "invite");
           if (!["everyone", "invite", "org"].includes(policy)) {
-            return yield* Effect.die(
-              new Error(`jams: unknown access policy ${policy}`),
+            return yield* Effect.fail(
+              new InvalidRequest({
+                message: `Unknown access policy ${policy}`,
+              }),
             );
           }
           const memberIds = listValue(input, "memberIds");
@@ -668,10 +678,9 @@ export const JamsMock = mockGroup("jams", (handlers) =>
                 row.jamId === params.jamId && row.userId === params.userId,
             )
           ) {
-            return yield* Effect.die(
-              new Error(
-                `jams: no access request for ${params.jamId}/${params.userId}`,
-              ),
+            return yield* notFoundNamed(
+              "access request for",
+              `${params.jamId}/${params.userId}`,
             );
           }
           yield* Ref.set(
@@ -746,8 +755,8 @@ export const JamsMock = mockGroup("jams", (handlers) =>
         Effect.gen(function* () {
           const rows = yield* Ref.get(credits);
           if (!rows.some((row) => row.jamId === params.jamId)) {
-            return yield* Effect.die(
-              new Error(`jams: no credits for ${params.jamId}`),
+            return yield* Effect.fail(
+              new JamNotFound({ jamId: JamId.make(params.jamId) }),
             );
           }
           const revoked = rows.map((row) =>
@@ -761,9 +770,7 @@ export const JamsMock = mockGroup("jams", (handlers) =>
         Effect.gen(function* () {
           const rows = yield* Ref.get(desktopRequests);
           if (!rows.some((row) => row.toolCallId === params.toolCallId)) {
-            return yield* Effect.die(
-              new Error(`jams: no desktop request ${params.toolCallId}`),
-            );
+            return yield* notFoundNamed("desktop request", params.toolCallId);
           }
           const done = rows.map((row) =>
             row.toolCallId === params.toolCallId
@@ -811,8 +818,9 @@ export const JamsMock = mockGroup("jams", (handlers) =>
           const rows = yield* Ref.get(environment);
           const current = rows[params.jamId] ?? {};
           if (!(params.name in current)) {
-            return yield* Effect.die(
-              new Error(`jams: no variable ${params.name} in ${params.jamId}`),
+            return yield* notFoundNamed(
+              `environment variable ${params.name} in`,
+              params.jamId,
             );
           }
           const { [params.name]: _removed, ...remaining } = current;
@@ -1113,6 +1121,11 @@ export const JamsMock = mockGroup("jams", (handlers) =>
             updatedAt: activity(),
             lastActivityAt: activity(),
             sortActivityAt: activity(),
+            localIndex:
+              (yield* Ref.get(threads)).filter(
+                (row) =>
+                  row.localIndex !== null && row.localIndex !== undefined,
+              ).length + 1,
           });
           yield* Ref.update(threads, (rows) => [side, ...rows]);
           yield* Ref.update(access, (rows) => [
@@ -1172,9 +1185,7 @@ export const JamsMock = mockGroup("jams", (handlers) =>
         Effect.gen(function* () {
           const rows = yield* Ref.get(terminalRequests);
           if (!rows.some((row) => row.toolCallId === params.toolCallId)) {
-            return yield* Effect.die(
-              new Error(`jams: no terminal request ${params.toolCallId}`),
-            );
+            return yield* notFoundNamed("terminal request", params.toolCallId);
           }
           yield* Ref.set(
             terminalRequests,
@@ -1294,6 +1305,7 @@ export const JamsMock = mockGroup("jams", (handlers) =>
 
 const threadJSON = (thread: ThreadCard) => ({
   id: thread.id,
+  localIndex: thread.localIndex ?? null,
   number: thread.threadNumber,
   title: thread.title,
   status: thread.status,

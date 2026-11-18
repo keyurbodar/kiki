@@ -1,11 +1,11 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
-import { toast } from "sonner";
 import {
   SettingsLoadFailedRow,
   SettingsSection,
 } from "@/components/settings-page";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
+import { toast } from "@/primitives/toaster";
 import { DefaultModelsSection } from "./model-chooser";
 import {
   modelsCatalogAtom,

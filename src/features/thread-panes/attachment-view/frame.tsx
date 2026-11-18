@@ -1,12 +1,12 @@
 import { cx } from "class-variance-authority";
 import type { ReactNode } from "react";
-import { toast } from "sonner";
 import {
   DownloadGlyph,
   LinkGlyph,
   MediaSkeletonRow,
 } from "@/components/media-gallery";
 import { Button } from "@/primitives/button";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 
 const track = (owner: string) =>

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { Checkbox } from "@/primitives/checkbox";
@@ -16,6 +15,7 @@ import {
 import { Input } from "@/primitives/input";
 import { Label } from "@/primitives/label";
 import { OtpInput } from "@/primitives/otp-input";
+import { toast } from "@/primitives/toaster";
 import { generateBackupCodes } from "./security-model";
 
 const sampleEnrollment = {

@@ -2,7 +2,6 @@ import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import { memo, type ReactNode } from "react";
-import { toast } from "sonner";
 import {
   formatAgoMinified,
   overviewRow,
@@ -20,6 +19,7 @@ import {
   PreviewCardContent,
   PreviewCardTrigger,
 } from "@/primitives/preview-card";
+import { toast } from "@/primitives/toaster";
 import {
   type CrewThread,
   crewRemovedDescription,

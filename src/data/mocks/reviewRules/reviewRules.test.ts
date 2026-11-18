@@ -1,6 +1,7 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
+import { InvalidRequest } from "../../api/schemas/errors.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId } from "../fixtures/world.ts";
 
@@ -121,6 +122,53 @@ describe("reviewRules mock", () => {
         params: { orgId, id: created.rule.id },
         reactivityKeys: [key],
       });
+    }),
+  );
+
+  it.effect("answers an unknown rule with the declared 400", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const missing = "rrule_unknown";
+
+      const readMiss = yield* AtomRegistry.getResult(
+        registry,
+        getAtom(missing),
+      ).pipe(Effect.flip);
+      assert.instanceOf(readMiss, InvalidRequest);
+
+      registry.set(update, {
+        params: { orgId, id: missing },
+        payload: { status: "inactive" },
+        reactivityKeys: [key],
+      });
+      const updateMiss = yield* AtomRegistry.getResult(registry, update).pipe(
+        Effect.flip,
+      );
+      assert.instanceOf(updateMiss, InvalidRequest);
+
+      registry.set(remove, {
+        params: { orgId, id: missing },
+        reactivityKeys: [key],
+      });
+      const removeMiss = yield* AtomRegistry.getResult(registry, remove).pipe(
+        Effect.flip,
+      );
+      assert.instanceOf(removeMiss, InvalidRequest);
+    }),
+  );
+
+  it.effect("answers a rule with neither a body nor a file with a 400", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      registry.set(create, {
+        params: { orgId },
+        payload: { body: "", scopes: [{ repo: null, paths: [] }] },
+        reactivityKeys: [key],
+      });
+      const error = yield* AtomRegistry.getResult(registry, create).pipe(
+        Effect.flip,
+      );
+      assert.instanceOf(error, InvalidRequest);
     }),
   );
 });

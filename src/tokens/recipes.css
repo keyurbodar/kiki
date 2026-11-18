@@ -19,12 +19,6 @@
 @layer components {
   /* Shell ------------------------------------------------------------------ */
 
-  .kiki-shell {
-    display: flex;
-    height: var(--shell-h);
-    overflow: hidden;
-  }
-
   .kiki-sidebar {
     display: flex;
     flex-direction: column;
@@ -39,14 +33,6 @@
     flex-direction: column;
     min-width: 0;
     gap: var(--pane-gap);
-  }
-
-  .kiki-pane-header {
-    display: flex;
-    align-items: var(--row-align);
-    gap: var(--row-gap);
-    height: var(--pane-header-h);
-    padding-inline: var(--pane-header-px);
   }
 
   /* Rows and cells --------------------------------------------------------- */
@@ -166,6 +152,16 @@
     justify-content: center;
   }
 
+  /* A two-line cell: a name over its own age, both starting at the same edge. */
+  .kiki-cell[data-col="stack"] {
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    overflow: hidden;
+    text-align: start;
+  }
+
   .kiki-cell[data-col="avatar"] {
     flex: none;
     min-width: var(--col-avatar-w);
@@ -232,23 +228,120 @@
     --icon-box: var(--icon-lg);
   }
 
+  .kiki-icon[data-size="mark"] {
+    --icon-box: var(--icon-mark);
+  }
+
   /* Badges, dialogs, menu rows, palette rows ------------------------------- */
 
+  /** A run of chips under a tool result: Capy's flex flex-wrap row. */
+  .kiki-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--row-gap-tight);
+  }
+
+  /*
+   * A badge's box: the pill centres its content, so `data-size` picks the
+   * height, inset and leading-glyph size that Capy's four badge sizes use.
+   * The glyph rules are scoped to the sizes that had them, because a rule
+   * reading an unset custom property is dropped in silence.
+   */
   .kiki-badge {
     display: inline-flex;
     align-items: var(--row-align);
     justify-content: center;
+    width: fit-content;
     gap: var(--badge-gap);
     height: var(--badge-h);
     min-width: var(--badge-min-w);
     padding-inline: var(--badge-px);
   }
 
+  .kiki-badge svg:first-of-type {
+    margin-inline-start: var(--badge-icon-overlap);
+  }
+
+  .kiki-badge[data-size="base"] {
+    --badge-icon: var(--icon-sm);
+    --badge-icon-overlap: -2px;
+  }
+
+  .kiki-badge[data-size="sm"] {
+    --badge-h: var(--h-badge-sm);
+    --badge-px: var(--badge-px-sm);
+    --badge-icon: var(--icon-xs);
+    --badge-icon-overlap: -2px;
+  }
+
+  .kiki-badge[data-size="xs"] {
+    --badge-h: var(--h-badge-xs);
+    --badge-px: var(--badge-px-sm);
+    --badge-icon: var(--icon-xs);
+    --badge-icon-overlap: -2px;
+  }
+
+  .kiki-badge[data-size="count"] {
+    --badge-h: var(--h-badge-count);
+    --badge-min-w: 0;
+    --badge-px: 0;
+  }
+
+  .kiki-badge[data-size="auto"] {
+    --badge-h: auto;
+    --badge-px: var(--badge-px-tight);
+    --badge-icon: var(--icon-xs);
+  }
+
+  .kiki-badge[data-size="base"] svg:not([class*="size-"]),
+  .kiki-badge[data-size="sm"] svg:not([class*="size-"]),
+  .kiki-badge[data-size="xs"] svg:not([class*="size-"]),
+  .kiki-badge[data-size="auto"] svg:not([class*="size-"]) {
+    width: var(--badge-icon);
+    height: var(--badge-icon);
+  }
+
+  /*
+   * A dialog is a parts stack, not one padded box: the header and the footer
+   * carry their own inset and the body carries the rest, so a single padding
+   * on the content would double every gap Capy measures.
+   */
   .kiki-dialog {
     display: flex;
     flex-direction: column;
+    width: 100%;
+    max-width: var(--dialog-w);
+    overflow-y: auto;
+  }
+
+  .kiki-dialog-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--dialog-header-gap);
+    padding-inline: var(--dialog-px);
+    padding-top: var(--dialog-pt);
+  }
+
+  .kiki-dialog-body {
+    display: flex;
+    flex-direction: column;
     gap: var(--dialog-gap);
-    padding: var(--dialog-p);
+    padding-block: var(--dialog-py);
+    padding-inline: var(--dialog-px);
+  }
+
+  .kiki-dialog-body[data-spacing="relaxed"] {
+    --dialog-py: var(--dialog-py-relaxed);
+    gap: var(--dialog-gap-relaxed);
+  }
+
+  .kiki-dialog-footer {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: var(--dialog-footer-gap);
+    padding-inline: var(--dialog-px);
+    padding-bottom: var(--dialog-pb);
   }
 
   /* A sidebar section header: its own token, its own inset and gap. */
@@ -295,16 +388,44 @@
   .kiki-menu-row {
     display: flex;
     align-items: var(--row-align);
-    gap: var(--row-gap);
+    width: 100%;
+    min-width: 0;
+    gap: var(--menu-row-gap);
     height: var(--menu-row-h);
-    padding-inline: var(--row-px);
+    padding-inline: var(--menu-row-px);
+  }
+
+  /* A row with a description: content height over the menu row's own floor. */
+  .kiki-menu-row-rich {
+    display: flex;
+    align-items: var(--row-align);
+    width: 100%;
+    min-width: 0;
+    gap: var(--menu-row-gap);
+    min-height: var(--menu-row-h);
+    padding-block: var(--row-gap-tight);
+    padding-inline: var(--menu-row-px);
   }
 
   .kiki-palette-row {
     display: flex;
     align-items: var(--row-align);
+    width: 100%;
+    min-width: 0;
     gap: var(--palette-row-gap);
     height: var(--palette-row-h);
     padding-inline: var(--palette-row-px);
+  }
+
+  /* The leading glyph of a menu row, sized by the row it sits in. */
+  .kiki-menu-row svg:not([class*="size-"]),
+  .kiki-menu-row-rich svg:not([class*="size-"]) {
+    width: var(--menu-row-icon);
+    height: var(--menu-row-icon);
+  }
+
+  .kiki-palette-row svg:not([class*="size-"]) {
+    width: var(--palette-row-icon);
+    height: var(--palette-row-icon);
   }
 }

@@ -2,7 +2,6 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import {
   SettingsLoadingCard,
   SettingsPage,
@@ -22,6 +21,7 @@ import { Card } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import { SettingsRow } from "@/primitives/settings-row";
+import { toast } from "@/primitives/toaster";
 import { CheckIcon, ChevronRightIcon } from "../icons";
 import {
   BACKGROUND_EFFECT_LABELS,

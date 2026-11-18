@@ -111,6 +111,8 @@
   --icon-sm: var(--responsive-icon-sm);
   --icon-base: var(--responsive-icon-base);
   --icon-lg: var(--responsive-icon-lg);
+  /* A mark box: the 32px chip behind a repository or project glyph. */
+  --icon-mark: 32px;
 
   /* Control, row and badge heights */
   --h-control-xs: var(--responsive-h-control-xs);

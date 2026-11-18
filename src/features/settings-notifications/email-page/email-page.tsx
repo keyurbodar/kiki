@@ -3,7 +3,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { currentUserAtom } from "@/data/atoms/session";
 import {
@@ -25,6 +24,7 @@ import {
 import { Icon } from "@/primitives/icon";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import { SettingsSkeletonCard } from "../notification-filter-rows/settings-skeleton";
 import { activeOrganizationAtom } from "../notifications-page/atoms";
 import {

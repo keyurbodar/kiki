@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { toast } from "sonner";
 import {
   colorThemeKey,
   colorThemeLabel,
@@ -15,6 +14,7 @@ import {
   MenuSelectTrigger,
   MenuSelectValue,
 } from "@/primitives/menu-select";
+import { toast } from "@/primitives/toaster";
 import { ColorThemeSwatch } from "./color-theme-swatch";
 import { TrashCanIcon } from "./icons";
 import {

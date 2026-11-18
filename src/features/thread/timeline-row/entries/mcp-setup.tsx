@@ -1,14 +1,19 @@
-import { useAtomSet, useAtomValue } from "@effect/atom-react";
+import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
+import { useParams } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
 import {
   completeMcpSetupAtom,
   createMcpSetupAtom,
+  mcpSetupsAtom,
 } from "@/data/atoms/mcp-setup.ts";
 import { organizationsAtom } from "@/data/atoms/session.ts";
 import { McpSetupCard, McpSetupLine } from "@/features/thread/mcp-setup-card";
-import { proposalName } from "@/features/thread/mcp-setup-card/helpers";
-import { decodeProposal } from "@/features/thread/mcp-setup-card/proposal";
+import { listingState } from "@/features/thread/mcp-setup-card/helpers";
+import {
+  decodeProposal,
+  type McpSetupProposal,
+} from "@/features/thread/mcp-setup-card/proposal";
 import { defineTimelineRow, type TimelineRowOf } from "../registry";
 
 /**
@@ -23,58 +28,123 @@ function useOrg() {
     : undefined;
 }
 
-function McpSetupRowView({ row }: { row: TimelineRowOf<"mcp-setup"> }) {
-  const proposal = decodeProposal(row.proposal);
-  const org = useOrg();
+type BoundProps = {
+  row: TimelineRowOf<"mcp-setup">;
+  proposal: McpSetupProposal;
+  orgId: string;
+  orgName: string;
+  threadId: string;
+};
+
+/**
+ * The row's answer lives on the server: the setup the thread already carries
+ * for this tool call is what decides whether the proposal still waits on the
+ * person, so a reload or a second tab reads the same outcome.
+ */
+function BoundMcpSetupRow({
+  row,
+  proposal,
+  orgId,
+  orgName,
+  threadId,
+}: BoundProps) {
+  const setups = useAtomValue(mcpSetupsAtom(orgId, threadId));
+  const refresh = useAtomRefresh(mcpSetupsAtom(orgId, threadId));
   const create = useAtomSet(createMcpSetupAtom, { mode: "promise" });
   const complete = useAtomSet(completeMcpSetupAtom, { mode: "promise" });
   const [open, setOpen] = useState(false);
-  const [state, setState] = useState<"pending" | "declined" | "added">(
-    "pending",
-  );
-  if (proposal === undefined) return null;
+  const [answered, setAnswered] = useState<"declined" | "added">();
+  const setup = AsyncResult.isSuccess(setups)
+    ? setups.value.find(
+        (candidate) => String(candidate.toolCallId) === String(row.toolCallId),
+      )
+    : undefined;
+  const state =
+    answered ??
+    (setup === undefined
+      ? "pending"
+      : listingState({ current: setup.current, expired: setup.expired }));
   const availability = {
     owner: proposal.kind === "add" ? proposal.owner : undefined,
-    orgName: org?.name ?? "your workspace",
+    orgName,
     where: "this thread",
   };
+  const openSetup = async () =>
+    (await create({
+      params: { orgId },
+      payload: {
+        jamId: threadId,
+        assistantEventId: row.assistantEventId,
+        toolResultEventId: row.toolResultEventId,
+        toolCallId: row.toolCallId,
+      },
+    })) as { id?: string } | undefined;
   return (
     <>
       <McpSetupLine
         proposal={proposal}
         state={state}
-        actionable={org !== undefined && state === "pending" && !open}
+        actionable={state === "pending" && !open}
         onActivate={() => setOpen(true)}
       />
-      {open && org !== undefined && (
+      {open && state === "pending" && (
         <McpSetupCard
           proposal={row.proposal}
           availableTo={availability}
           onSubmit={async ({ values, owner }) => {
-            const setup = (await create({
-              params: { orgId: org.id },
+            const created = await openSetup();
+            if (created?.id === undefined) return;
+            await complete({
+              params: { orgId, setupId: created.id },
               payload: {
-                name: proposalName(proposal),
-                owner: owner ?? undefined,
-                secrets: values,
-                proposal: row.proposal,
+                decision: "approve",
+                owner: owner === "personal" ? "user" : "organization",
+                env: values.environment,
+                headers: values.credentialHeaders,
+                requestHeaders: values.requestHeaders,
+                ...(values.clientSecret === ""
+                  ? {}
+                  : { clientSecret: values.clientSecret }),
               },
-            })) as { id?: string } | undefined;
-            if (setup?.id !== undefined)
-              await complete({
-                params: { orgId: org.id, setupId: setup.id },
-                payload: {},
-              });
-            setState("added");
+            });
+            setAnswered("added");
             setOpen(false);
+            refresh();
           }}
-          onDecline={() => {
-            setState("declined");
+          onDecline={async () => {
+            const created = await openSetup();
+            if (created?.id !== undefined)
+              await complete({
+                params: { orgId, setupId: created.id },
+                payload: { decision: "decline" },
+              });
+            setAnswered("declined");
             setOpen(false);
+            refresh();
           }}
         />
       )}
     </>
+  );
+}
+
+function McpSetupRowView({ row }: { row: TimelineRowOf<"mcp-setup"> }) {
+  const proposal = decodeProposal(row.proposal);
+  const org = useOrg();
+  const { threadId } = useParams({ strict: false }) as { threadId?: string };
+  if (proposal === undefined) return null;
+  if (org === undefined || threadId === undefined)
+    return (
+      <McpSetupLine proposal={proposal} state="pending" actionable={false} />
+    );
+  return (
+    <BoundMcpSetupRow
+      row={row}
+      proposal={proposal}
+      orgId={org.id}
+      orgName={org.name}
+      threadId={threadId}
+    />
   );
 }
 

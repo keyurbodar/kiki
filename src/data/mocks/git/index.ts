@@ -1,5 +1,5 @@
 import { DateTime, Effect, Ref } from "effect";
-import { fields, MockDb, newId } from "../db/MockDb.ts";
+import { fields, MockDb, newId, notFoundNamed } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
@@ -41,14 +41,14 @@ const ensureThread = (
 ) => {
   const state = states.get(threadId);
   return state === undefined
-    ? Effect.die(new Error(`GitMock: no files for thread ${threadId}`))
+    ? notFoundNamed("git state for thread", threadId)
     : Effect.succeed(state);
 };
 
 const findFile = (state: GitThreadState, path: string) => {
   const file = state.files.find((entry) => entry.path === path);
   return file === undefined
-    ? Effect.die(new Error(`GitMock: no file ${path} in thread ${state.head}`))
+    ? notFoundNamed("file", path)
     : Effect.succeed(file);
 };
 

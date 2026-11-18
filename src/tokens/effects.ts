@@ -29,6 +29,16 @@ export const WALLPAPER_DITHER = {
   minPixelRatio: 1,
 } as const;
 
+/* The WebGL context Paper's image shader is mounted with. */
+export const DITHER_CONTEXT_ATTRIBUTES = {
+  alpha: true,
+  antialias: false,
+  depth: false,
+  stencil: false,
+  premultipliedAlpha: true,
+  preserveDrawingBuffer: false,
+} as const;
+
 /* Dither-fill sparkline: ordered 4x4 Bayer fill under a line chart. */
 export const DITHER_FILL = {
   bayer: [

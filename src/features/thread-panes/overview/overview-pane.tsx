@@ -1,7 +1,7 @@
 import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
+import { useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useMemo } from "react";
-import { toast } from "sonner";
 import { CAPY_ILLUSTRATIONS } from "@/assets/brand";
 import { FailedRead } from "@/components/failed-read";
 import {
@@ -18,14 +18,17 @@ import {
   overviewRemoveLocalPullAtom,
 } from "@/data/atoms/overview";
 import { useIssueOrgId } from "@/features/issues/issue-parts";
+import { usePaneSession } from "@/features/thread/thread-view/pane-session-context";
 import type { PaneProps } from "@/features/thread-panes/thread-pane/registry";
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
+import { toast } from "@/primitives/toaster";
 import { ConsoleGlyph, FilesGlyph, StudioDisplayGlyph } from "./glyphs";
 import {
   allocationLabel,
   childTasks,
   diffsSummary,
   type OverviewData,
+  type OverviewPort,
   type OverviewSurfaces,
   type OverviewTask,
   pullVia,
@@ -238,8 +241,14 @@ export function OverviewBody({
   );
 }
 
+/** The address a preview port answers on, which is what Copy URL copies. */
+const portUrl = (port: OverviewPort) =>
+  `${window.location.origin}/preview/${port.machineId}/${port.port}`;
+
 export function OverviewPane({ threadId }: OverviewPaneProps) {
   const orgId = useIssueOrgId();
+  const navigate = useNavigate();
+  const { openTab } = usePaneSession();
   const sort = useAtomValue(overviewPullSortAtom);
   const setSort = useAtomSet(overviewPullSortAtom);
   const removeLocalPull = useAtomSet(overviewRemoveLocalPullAtom, {
@@ -284,6 +293,22 @@ export function OverviewPane({ threadId }: OverviewPaneProps) {
     }),
     [children, localPullRows, pullRows, threadId],
   );
+  const openOverviewTab = (tab: unknown) => {
+    const kind = (tab as { kind?: string }).kind;
+    if (kind === "diffs" || kind === "files")
+      openTab({ kind, jamId: threadId });
+    else if (kind === "desktop")
+      openTab({ kind: "desktop", jamId: threadId, localIndex: null });
+    else if (kind === "preview") {
+      const port = tab as { machineId: string; port: number; title?: string };
+      openTab({
+        kind: "service_preview",
+        machineId: port.machineId,
+        port: port.port,
+        title: port.title ?? `Port ${port.port}`,
+      });
+    }
+  };
   const surfaces = useMemo<OverviewSurfaces>(
     () => ({ repos: [], turns: [], machine: null, sessions: undefined }),
     [],
@@ -310,14 +335,36 @@ export function OverviewPane({ threadId }: OverviewPaneProps) {
           <OverviewBody
             data={data}
             surfaces={surfaces}
-            onOpenTab={() => undefined}
-            onOpenTask={() => undefined}
-            onOpenSideThread={() => undefined}
+            onOpenTab={openOverviewTab}
+            onOpenTask={(task) =>
+              void navigate({
+                to: "/thread/$threadId",
+                params: { threadId: task.id },
+              })
+            }
+            onOpenSideThread={(task) =>
+              void navigate({
+                to: "/thread/$threadId",
+                params: { threadId: task.id },
+              })
+            }
             onOpenPr={(pull) =>
               void window.open(pull.url, "_blank", "noreferrer")
             }
-            onOpenNewTab={() => undefined}
-            onCopyUrl={() => undefined}
+            onOpenNewTab={(port) =>
+              openTab({
+                kind: "service_preview",
+                machineId: port.machineId,
+                port: port.port,
+                title: port.title,
+              })
+            }
+            onCopyUrl={(port) =>
+              void navigator.clipboard
+                ?.writeText(portUrl(port))
+                .then(() => toast.success("Copied the preview URL"))
+                .catch(() => toast.error("Could not copy the URL"))
+            }
             onRemoveLocalPull={(id) =>
               void (
                 orgId !== undefined &&

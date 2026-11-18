@@ -79,8 +79,8 @@ export function DeviceChip({
         <PopoverTrigger
           aria-label="Device workspace"
           data-slot="badge"
+          data-size="sm"
           className={badgeVariants({
-            size: "sm",
             interactive: true,
             className: "shrink-0",
           })}

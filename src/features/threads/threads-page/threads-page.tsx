@@ -3,7 +3,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { DateTime } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { type FormEvent, useEffect, useState } from "react";
-import { toast } from "sonner";
 import { AppTopBar } from "@/components/app-top-bar";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
@@ -73,6 +72,7 @@ import {
   MenuTrigger,
 } from "@/primitives/menu";
 import { RightPanel, RightPanelGroup } from "@/primitives/right-panel";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { ThreadsList } from "../threads-list";
 import {

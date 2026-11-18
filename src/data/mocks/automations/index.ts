@@ -1,5 +1,12 @@
 import { DateTime, Effect, Ref } from "effect";
-import { fields, MockDb, newId, notFound, type Row } from "../db/MockDb.ts";
+import {
+  fields,
+  MockDb,
+  newId,
+  notFound,
+  notFoundNamed,
+  type Row,
+} from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import {
   isoMinutesAgo,
@@ -136,11 +143,7 @@ export const AutomationsMock = mockGroup("automations", (handlers) =>
       Effect.gen(function* () {
         const rows = yield* Ref.get(batchesRef);
         const current = rows.find((row) => row.id === batchId);
-        if (!current) {
-          return yield* Effect.die(
-            new Error(`automations.batches: no row ${batchId}`),
-          );
-        }
+        if (!current) return yield* notFoundNamed("automation batch", batchId);
         const updated = {
           ...current,
           status,
@@ -192,9 +195,7 @@ export const AutomationsMock = mockGroup("automations", (handlers) =>
           if (
             !sampleProjectsArray.some((project) => project.id === projectId)
           ) {
-            return yield* Effect.die(
-              new Error(`automations.projects: no row ${projectId}`),
-            );
+            return yield* notFoundNamed("project", projectId);
           }
           const triggers = Array.isArray(input.triggers)
             ? (input.triggers.filter(
@@ -419,11 +420,7 @@ export const AutomationsMock = mockGroup("automations", (handlers) =>
           yield* find(params.automationId);
           const rows = yield* Ref.get(runsRef);
           const run = rows.find((candidate) => candidate.id === params.runId);
-          if (!run) {
-            return yield* Effect.die(
-              new Error(`automations.runs: no row ${params.runId}`),
-            );
-          }
+          if (!run) return yield* notFoundNamed("automation run", params.runId);
           const cancelled = { ...run, status: "cancelled" as const };
           yield* Ref.set(
             runsRef,

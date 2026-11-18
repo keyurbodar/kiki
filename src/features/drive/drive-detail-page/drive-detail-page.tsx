@@ -1,7 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { DateTime } from "effect";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import { AppTopBar } from "@/components/app-top-bar";
 import type { VolumeVersionRow } from "@/data/api/schemas/drive";
 import type { DriveScopeQuery } from "@/data/atoms/drive";
@@ -32,6 +31,8 @@ import {
 import { VolumeHistory } from "@/features/drive/volume-history";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
+import { Input } from "@/primitives/input";
+import { toast } from "@/primitives/toaster";
 import {
   cleanDraft,
   discardDraft,
@@ -85,7 +86,8 @@ export function DriveDetailPage({ mount, file }: DriveDetailPageProps) {
         ? undefined
         : toQuery(mountScope(mount, session.userId));
   const trail = mountTrail(mount, names, true);
-  const writable = mount.kind !== "captain";
+  /** A Captain's drive is writable too: Capy offers Add, New skill and drop on it. */
+  const writable = true;
   const { listing, failed } = useDriveListing(session.orgId, scope);
   const [reloads, setReloads] = useState(0);
   const entries = listing?.entries ?? [];
@@ -96,6 +98,7 @@ export function DriveDetailPage({ mount, file }: DriveDetailPageProps) {
 
   const [selected, setSelected] = useState<string | undefined>(file);
   const [browse, setBrowse] = useState("");
+  const [filter, setFilter] = useState("");
   const [draft, setDraft] = useState<FileDraft>(cleanDraft);
   const [saving, setSaving] = useState(false);
   const [newSkill, setNewSkill] = useState(false);
@@ -375,9 +378,14 @@ export function DriveDetailPage({ mount, file }: DriveDetailPageProps) {
         />
       );
     }
+    const needle = filter.trim().toLowerCase();
     const shown = entries
       .filter(
         (candidate) => browse === "" || candidate.path.startsWith(`${browse}/`),
+      )
+      .filter(
+        (candidate) =>
+          needle === "" || candidate.path.toLowerCase().includes(needle),
       )
       .sort((a, b) => a.path.localeCompare(b.path));
     return (
@@ -409,6 +417,21 @@ export function DriveDetailPage({ mount, file }: DriveDetailPageProps) {
             )}
           </div>
           <ul className="flex min-h-0 flex-1 flex-col overflow-y-auto p-1">
+            <li>
+              <Input
+                icon={<Icon name="magnifying-glass" />}
+                size="sm"
+                aria-label="Filter names and paths"
+                placeholder="Filter names and paths"
+                value={filter}
+                onChange={(event) => setFilter(event.target.value)}
+              />
+            </li>
+            {shown.length === 0 && needle !== "" && (
+              <li className="kiki-pane-empty text-xs font-normal text-muted-foreground-2">
+                No files match
+              </li>
+            )}
             {shown.map((candidate) => (
               <li key={candidate.path} className="group flex items-center">
                 <button

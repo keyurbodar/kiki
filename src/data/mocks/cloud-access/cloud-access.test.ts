@@ -2,6 +2,7 @@ import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
 import { CloudAccessTargetId } from "../../api/schemas/cloud-access.ts";
+import { InvalidRequest } from "../../api/schemas/errors.ts";
 import { OrgId, ProjectId } from "../../api/schemas/ids.ts";
 import {
   checkCloudAccessTargetAtom,
@@ -132,6 +133,69 @@ describe("cloud-access mock", () => {
       );
       assert.isNull(created.lastCheck);
       assert.strictEqual(created.vault?.authMount, "capy");
+    }),
+  );
+
+  it.effect("answers an unknown target or project with the declared 400", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const targetId = CloudAccessTargetId.make("cat_unknown");
+
+      registry.set(updateCloudAccessTargetAtom, {
+        params: { orgId, targetId },
+        payload: {
+          aws: {
+            roleArn: "arn:aws:iam::123456789012:role/capy-reader",
+            region: null,
+            audience: "sts.amazonaws.com",
+          },
+        },
+        reactivityKeys,
+      });
+      const updateMiss = yield* AtomRegistry.getResult(
+        registry,
+        updateCloudAccessTargetAtom,
+      ).pipe(Effect.flip);
+      assert.instanceOf(updateMiss, InvalidRequest);
+
+      registry.set(checkCloudAccessTargetAtom, {
+        params: { orgId, targetId },
+        reactivityKeys,
+      });
+      const checkMiss = yield* AtomRegistry.getResult(
+        registry,
+        checkCloudAccessTargetAtom,
+      ).pipe(Effect.flip);
+      assert.instanceOf(checkMiss, InvalidRequest);
+
+      registry.set(deleteCloudAccessTargetAtom, {
+        params: { orgId, targetId },
+        reactivityKeys,
+      });
+      const deleteMiss = yield* AtomRegistry.getResult(
+        registry,
+        deleteCloudAccessTargetAtom,
+      ).pipe(Effect.flip);
+      assert.instanceOf(deleteMiss, InvalidRequest);
+
+      registry.set(createCloudAccessTargetAtom, {
+        params: { orgId },
+        payload: {
+          projectId: ProjectId.make("prj_unknown"),
+          provider: "aws",
+          aws: {
+            roleArn: "arn:aws:iam::123456789012:role/capy-agent",
+            region: null,
+            audience: "sts.amazonaws.com",
+          },
+        },
+        reactivityKeys,
+      });
+      const createMiss = yield* AtomRegistry.getResult(
+        registry,
+        createCloudAccessTargetAtom,
+      ).pipe(Effect.flip);
+      assert.instanceOf(createMiss, InvalidRequest);
     }),
   );
 });

@@ -56,7 +56,8 @@ describe("DialogPages", () => {
     fireEvent.click(screen.getByLabelText("Back"));
     expect(onBack).toHaveBeenCalledOnce();
     const body = screen.getByText("Invite form");
-    expect(body.className).toContain("gap-4 py-5");
+    expect(body.className).toContain("kiki-dialog-body");
+    expect(body.dataset.spacing).toBe("relaxed");
     expect(body.className).toContain("items-center");
     const footer = screen.getByText("Send").parentElement;
     expect(footer?.dataset.slot).toBe("dialog-footer");

@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
-import { Toaster } from "@/primitives/toaster";
 import { ArrowLeftIcon } from "../shared";
 
 export function AuthLayout({ children }: { children: ReactNode }) {
@@ -37,7 +36,6 @@ export function AuthLayout({ children }: { children: ReactNode }) {
           />
         </Card>
       </aside>
-      <Toaster />
     </div>
   );
 }

@@ -1,4 +1,6 @@
 import { Effect, Ref } from "effect";
+import { JamNotFound } from "../../api/schemas/errors.ts";
+import { JamId } from "../../api/schemas/ids.ts";
 import { MockDb, notFound } from "../db/MockDb.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { childThreads, taskThreads } from "./fixtures.ts";
@@ -56,8 +58,8 @@ export const ChildrenMock = mockGroup("children", (handlers) =>
           const taskId = params.taskId;
           const task = taskThreads.find((row) => row.taskId === taskId);
           if (!task) {
-            return yield* Effect.die(
-              new Error(`children.tasks: no row ${taskId}`),
+            return yield* Effect.fail(
+              new JamNotFound({ jamId: JamId.make(taskId) }),
             );
           }
           return { ...task };

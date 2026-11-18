@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { toast } from "sonner";
 import {
   awsDefaultAudience,
   type CloudAccess,
@@ -14,6 +13,7 @@ import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { Input } from "@/primitives/input";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { SettingsRow, SettingsSection } from "../shared";
 import { ProjectCombobox, SetupLoader } from "./cloud-access-page";

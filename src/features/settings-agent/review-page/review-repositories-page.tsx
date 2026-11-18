@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { FailedRead } from "@/components/failed-read";
 import {
   SettingsLoadingCard,
@@ -20,6 +19,7 @@ import { Input } from "@/primitives/input";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import { CheckIcon, ChevronDownIcon, PlusIcon } from "./review-icons";
 import {
   type AutoReviewMode,

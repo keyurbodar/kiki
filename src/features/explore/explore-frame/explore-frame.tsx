@@ -5,7 +5,6 @@ import { Button, type ButtonVariants } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
 import { SidebarTriggerRail } from "@/primitives/sidebar";
-import { Toaster } from "@/primitives/toaster";
 import { useExploreSession } from "../theme-visibility";
 
 export type ExploreCrumb = { readonly label: string; readonly to?: string };
@@ -138,7 +137,6 @@ function SignedOutFrame({ children }: { children: ReactNode }) {
           {children}
         </main>
       </Card>
-      <Toaster position="bottom-right" />
     </div>
   );
 }

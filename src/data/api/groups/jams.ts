@@ -47,6 +47,7 @@ export class JamsGroup extends HttpApiGroup.make("jams").add(
   HttpApiEndpoint.get("organization", "/jams/:jamId/organization", {
     params: { jamId: Schema.String },
     success: Undecoded,
+    error: JamNotFound,
   }),
   HttpApiEndpoint.get("list", "/orgs/:orgId/jams", {
     params: { orgId: OrgId },
@@ -80,6 +81,7 @@ export class JamsGroup extends HttpApiGroup.make("jams").add(
     params: { orgId: Schema.String, jamId: Schema.String },
     payload: Undecoded,
     success: Undecoded,
+    error: [JamNotFound, InvalidRequest],
   }),
   HttpApiEndpoint.post(
     "requestThreadAccess",
@@ -107,6 +109,7 @@ export class JamsGroup extends HttpApiGroup.make("jams").add(
         userId: Schema.String,
       },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.get("ad", "/orgs/:orgId/jams/:jamId/ad", {
@@ -144,6 +147,7 @@ export class JamsGroup extends HttpApiGroup.make("jams").add(
   HttpApiEndpoint.delete("revokeCredits", "/orgs/:orgId/jams/:jamId/credits", {
     params: { orgId: Schema.String, jamId: Schema.String },
     success: Undecoded,
+    error: JamNotFound,
   }),
   HttpApiEndpoint.post(
     "desktopRequestDone",
@@ -155,6 +159,7 @@ export class JamsGroup extends HttpApiGroup.make("jams").add(
         toolCallId: Schema.String,
       },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.get(
@@ -184,6 +189,7 @@ export class JamsGroup extends HttpApiGroup.make("jams").add(
         name: Schema.String,
       },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.post(
@@ -222,6 +228,7 @@ export class JamsGroup extends HttpApiGroup.make("jams").add(
     params: { orgId: Schema.String, jamId: Schema.String },
     payload: Undecoded,
     success: Undecoded,
+    error: JamNotFound,
   }),
   HttpApiEndpoint.get("threadIssues", "/orgs/:orgId/jams/:jamId/issues", {
     params: { orgId: Schema.String, jamId: Schema.String },
@@ -280,6 +287,7 @@ export class JamsGroup extends HttpApiGroup.make("jams").add(
     {
       params: { orgId: Schema.String, jamId: Schema.String },
       success: Undecoded,
+      error: JamNotFound,
     },
   ),
   HttpApiEndpoint.post("settle", "/orgs/:orgId/jams/:jamId/settle", {
@@ -308,6 +316,7 @@ export class JamsGroup extends HttpApiGroup.make("jams").add(
   HttpApiEndpoint.post("takeover", "/orgs/:orgId/jams/:jamId/takeover", {
     params: { orgId: Schema.String, jamId: Schema.String },
     success: Undecoded,
+    error: JamNotFound,
   }),
   HttpApiEndpoint.post(
     "terminalRequestDone",
@@ -319,6 +328,7 @@ export class JamsGroup extends HttpApiGroup.make("jams").add(
         toolCallId: Schema.String,
       },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.put("unread", "/orgs/:orgId/jams/:jamId/unread", {

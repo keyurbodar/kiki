@@ -10,8 +10,11 @@ export type SidebarRowPopupsProps = Omit<ComponentProps<"div">, "children"> & {
   threads: ReadonlyMap<string, SidebarThread>;
   /** Captains, so a right-click on a Captain row opens the Captain's menu. */
   captains?: ReadonlyMap<string, SidebarCaptain>;
-  /** Capy's thread menu, mounted here and in each row's `…` cluster. */
-  renderMenu?: (thread: SidebarThread) => ReactNode;
+  /**
+   * Capy's thread menu, mounted here and in each row's `…` cluster. The row's
+   * section is passed along so a thread rendered in two sections edits one row.
+   */
+  renderMenu?: (thread: SidebarThread, rowKey?: string) => ReactNode;
   /** Capy's Captain menu for the Captain rows. */
   renderCaptainMenu?: (captain: SidebarCaptain) => ReactNode;
   mode?: string;
@@ -36,6 +39,7 @@ export function SidebarRowPopups({
   ...props
 }: SidebarRowPopupsProps) {
   const [thread, setThread] = useState<SidebarThread | null>(null);
+  const [rowKey, setRowKey] = useState<string | null>(null);
   const [captain, setCaptain] = useState<SidebarCaptain | null>(null);
   const row = useRef<Element | null>(null);
   const resolveFrom = (
@@ -64,6 +68,10 @@ export function SidebarRowPopups({
     }
     setCaptain(captainRow ? (match as SidebarCaptain) : null);
     setThread(captainRow ? null : (match as SidebarThread));
+    setRowKey(
+      found?.closest("[data-section-id]")?.getAttribute("data-section-id") ??
+        null,
+    );
     if (row.current !== found) {
       row.current?.removeAttribute("data-popup-open");
       row.current = found;
@@ -76,6 +84,7 @@ export function SidebarRowPopups({
         if (!open) {
           row.current = null;
           setThread(null);
+          setRowKey(null);
           setCaptain(null);
         }
       }}
@@ -96,7 +105,7 @@ export function SidebarRowPopups({
       <ContextMenuContent className="kiki-menu">
         {thread === null || renderMenu === undefined
           ? null
-          : renderMenu(thread)}
+          : renderMenu(thread, rowKey ?? undefined)}
         {captain === null || renderCaptainMenu === undefined
           ? null
           : renderCaptainMenu(captain)}

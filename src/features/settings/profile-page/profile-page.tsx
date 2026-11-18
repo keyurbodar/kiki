@@ -2,7 +2,6 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import { AvatarEditor } from "@/components/avatar-editor";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { reactivityKeys } from "@/data/atoms/conventions";
@@ -20,6 +19,7 @@ import { CopyField } from "@/primitives/copy-field";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import { SettingsRow } from "@/primitives/settings-row";
+import { toast } from "@/primitives/toaster";
 import {
   type AccountEmail,
   type DeletedOrganization,

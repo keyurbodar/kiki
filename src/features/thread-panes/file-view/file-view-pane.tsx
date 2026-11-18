@@ -2,7 +2,6 @@ import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import {
   FileBody,
   FileChrome,
@@ -18,6 +17,7 @@ import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Kbd } from "@/primitives/kbd";
 import { ResponsiveMenuItem } from "@/primitives/responsive-menu";
+import { toast } from "@/primitives/toaster";
 import {
   contentFromBlob,
   decodeMachineFile,

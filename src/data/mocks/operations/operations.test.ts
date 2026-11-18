@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId, threads } from "../fixtures/world.ts";
@@ -46,6 +47,30 @@ describe("operations mock", () => {
         )?.status,
         "canceled",
       );
+    }),
+  );
+
+  it.effect("answers the 404 each endpoint declares for an unknown id", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const missingList = ApiClient.query("operations", "list", {
+        params: { orgId, jamId: "jam_nobody" },
+        reactivityKeys: [key],
+      });
+      const listError = yield* AtomRegistry.getResult(
+        registry,
+        missingList,
+      ).pipe(Effect.flip);
+      assert.instanceOf(listError, HttpApiError.NotFound);
+
+      registry.set(cancelMutation, {
+        params: { orgId, jamId, operationId: "op_nobody" },
+      });
+      const cancelError = yield* AtomRegistry.getResult(
+        registry,
+        cancelMutation,
+      ).pipe(Effect.flip);
+      assert.instanceOf(cancelError, HttpApiError.NotFound);
     }),
   );
 });

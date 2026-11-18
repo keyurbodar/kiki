@@ -3,7 +3,6 @@ import { Link, Navigate } from "@tanstack/react-router";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { Fragment, type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import {
   type Device,
   type DeviceAccess,
@@ -43,6 +42,7 @@ import {
   MenuSelectValue,
 } from "@/primitives/menu-select";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
+import { toast } from "@/primitives/toaster";
 import {
   SettingsPage,
   SettingsRow,

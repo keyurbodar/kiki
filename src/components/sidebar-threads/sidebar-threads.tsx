@@ -494,8 +494,12 @@ export type SidebarThreadsProps = ComponentProps<"div"> & {
   onShowMore?: (sectionId: string) => void;
   onNewThread?: () => void;
   onNewCaptain?: () => void;
-  /** The thread menu shared by the rows' `…` clusters and the list's right-click. */
-  renderRowMenu?: (thread: SidebarThread) => ReactNode;
+  /**
+   * The thread menu shared by the rows' `…` clusters and the list's right-click.
+   * `rowKey` is the section of the row it was opened from, because one thread
+   * renders once per section it appears in.
+   */
+  renderRowMenu?: (thread: SidebarThread, rowKey?: string) => ReactNode;
   /** The Captain menu the Captain rows open on right-click. */
   renderCaptainMenu?: (captain: SidebarCaptain) => ReactNode;
 };
@@ -670,7 +674,11 @@ function ThreadSections({
       afterRows = true;
       items.push(
         // biome-ignore lint/a11y/useSemanticElements: rows sit in Capy's div role=list
-        <div key={`${section.id}:${thread.id}`} role="listitem">
+        <div
+          key={`${section.id}:${thread.id}`}
+          role="listitem"
+          data-section-id={section.id}
+        >
           {renderThread?.(thread, {
             section,
             density: view.density,

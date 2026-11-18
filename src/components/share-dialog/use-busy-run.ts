@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/primitives/toaster";
 
 export type BusyRunStep = {
   readonly work: () => Promise<unknown>;

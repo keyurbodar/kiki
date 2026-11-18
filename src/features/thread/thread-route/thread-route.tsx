@@ -14,10 +14,12 @@ import {
   selectedOrgIdAtom,
 } from "@/data/atoms/session";
 import { idleThreadPageAtom, threadsAtom } from "@/data/atoms/threads";
+import { useCaptainCrew } from "@/features/captains/overview/use-captain";
 import {
   MobileThreadScreen,
   useIsPhoneSurface,
 } from "@/features/mobile/thread";
+import { formatClarifyAnswers } from "@/features/thread/clarify-takeover";
 import { ThreadCostBadge } from "@/features/thread/cost-badge";
 import type { EditTarget } from "@/features/thread/message-footer";
 import {
@@ -40,6 +42,7 @@ import {
   threadKey,
   useThreadTimeline,
 } from "@/features/thread/timeline";
+import { useComposerSend } from "@/features/thread/use-composer-send";
 import { BrowserPane } from "@/features/thread-panes/browser-pane";
 import { parsePull, valueList } from "@/features/thread-panes/overview/parse";
 import { useSideThreads } from "@/features/thread-panes/side-threads";
@@ -130,15 +133,41 @@ export function ThreadRoute({
       ),
     ) ?? [];
   const captain = captains.find((card) => card.id === threadId);
+  const crew = useCaptainCrew(orgId, threadId, captain !== undefined).crew;
+  /** Capy numbers a crew by creation, oldest first, and draws that number as
+   * `Subagent N`; the API's own order is not that order, so it is derived. */
+  const subagentNumbers = new Map(
+    [...(crew ?? [])]
+      .sort(
+        (a, b) =>
+          (a.createdAt?.getTime() ?? 0) - (b.createdAt?.getTime() ?? 0) ||
+          a.id.localeCompare(b.id),
+      )
+      .map((row, index) => [row.id, index + 1]),
+  );
+  const menuCrew = crew?.map((row) => ({
+    id: row.id,
+    title: row.title,
+    code: row.code ?? undefined,
+    unread: row.unread,
+    subagentIndex: subagentNumbers.get(row.id),
+    active: row.status === "working" || row.status === "waiting",
+  }));
   const title = thread?.title ?? captain?.title ?? "Untitled thread";
   const working = (thread?.status ?? captain?.status) === "working";
+  const sendAnswer = useComposerSend(threadId);
   const handlers = useMemo<ThreadTakeoverHandlers>(
     () => ({
       orgId,
       parentJamId: null,
-      onClarifySubmit: () => undefined,
+      onClarifySubmit: (answers) =>
+        void sendAnswer({
+          text: formatClarifyAnswers(answers),
+          mentions: [],
+          files: [],
+        }),
     }),
-    [orgId],
+    [orgId, sendAnswer],
   );
   const [expanded, setExpanded] = useState(false);
   const sideThreads = useSideThreads(orgId ?? "", threadId);
@@ -229,7 +258,7 @@ export function ThreadRoute({
               tabs={openTabs.tabs}
               activeId={activeId}
               title={title}
-              menu={{ sideThreads, pulls: pullEntries }}
+              menu={{ sideThreads, pulls: pullEntries, crew: menuCrew }}
               expanded={expanded}
               onSelectTab={selectIn}
               onOpenTab={openTabIn}
@@ -259,7 +288,7 @@ export function ThreadRoute({
             activeId={headerActiveId}
             canExpand={dockOpen}
             onOpenPane={() => openInStrip("overview")}
-            menu={{ sideThreads, pulls: pullEntries }}
+            menu={{ sideThreads, pulls: pullEntries, crew: menuCrew }}
             cost={
               orgId === undefined ? undefined : (
                 <ThreadCostBadge orgId={orgId} jamId={threadId} />

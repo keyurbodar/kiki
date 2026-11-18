@@ -1,11 +1,15 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { toast } from "sonner";
 import { type ExploreCard, ExploreListing } from "@/data/api/schemas/explore";
 import { createThemeAtom, userThemeKey } from "@/data/atoms/appearance";
+import {
+  appearanceActions,
+  DEFAULT_BACKGROUND_ADJUSTMENTS,
+} from "@/features/settings-appearance/model/appearance-store";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
+import { toast } from "@/primitives/toaster";
 import { errorMessage } from "../dialogs/error-message";
 import {
   useExploreIndex,
@@ -16,6 +20,7 @@ import {
 import { CheckmarkGlyph, RotateGlyph } from "../listing-detail/glyphs";
 import { useSignInHref } from "../listing-detail/sign-in-link";
 import { SkillScopeDialog } from "../skill-scope-dialog";
+import { useThemeWallpaper } from "../theme-detail";
 import { addState, addTarget } from "./add-state";
 import { useRecordAdded } from "./recently-added";
 import { themeFromListing } from "./theme-from-listing";
@@ -41,6 +46,10 @@ export function ListingAddAction({
   const createTheme = useAtomSet(createThemeAtom, { mode: "promise" });
   const recordAdded = useRecordAdded(orgId);
   const [dialog, setDialog] = useState<ExploreCard["kind"] | null>(null);
+  const wallpaper = useThemeWallpaper(
+    card.kind === "theme" ? card.slug : null,
+    card.versionId,
+  );
   const { state, isAdded, hasUpdate } = addState({
     card,
     recent,
@@ -80,6 +89,17 @@ export function ListingAddAction({
     if (next === undefined) {
       toast.error(`Could not add ${card.displayName}`);
       return;
+    }
+    // Capy downloads a listing's wallpaper and puts it behind the dashboard as
+    // part of adding it, so the theme arrives the way its preview looks.
+    if (wallpaper !== undefined) {
+      appearanceActions.updatePreferences({
+        background: {
+          name: card.displayName,
+          url: wallpaper,
+          appearance: DEFAULT_BACKGROUND_ADJUSTMENTS,
+        },
+      });
     }
     createTheme({
       payload: {

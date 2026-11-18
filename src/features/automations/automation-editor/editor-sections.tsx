@@ -1,4 +1,3 @@
-import { toast } from "sonner";
 import {
   type MachineHourMeter,
   MachineUsageNote,
@@ -21,6 +20,7 @@ import {
 } from "@/primitives/menu";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import { Checkmark, ChevronDownSmall } from "./icons";
 import {
   type AddTriggerResult,

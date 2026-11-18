@@ -41,6 +41,15 @@ const timeline = (overrides: Partial<ThreadTimeline> = {}): ThreadTimeline => ({
   ...overrides,
 });
 
+const sends = vi.hoisted(() => [] as Array<{ text: string }>);
+
+vi.mock("@/features/thread/use-composer-send", () => ({
+  useComposerSend: () => (payload: { text: string }) => {
+    sends.push(payload);
+    return true;
+  },
+}));
+
 vi.mock("@/features/composer/context-meter", () => ({
   ContextMeter: ({ orgId, jamId }: { orgId: string; jamId: string }) => (
     <div data-slot="context-meter" data-org={orgId} data-jam={jamId} />
@@ -140,6 +149,17 @@ describe("thread view composer slot", () => {
     expect(getByText("Where should the toggle live?")).toBeDefined();
   });
 
+  it("sends the picked clarify option through the thread route", () => {
+    sends.length = 0;
+    const { getByText } = renderRoute(
+      timeline({ rows: messages, pendingAsk: clarify as never }),
+    );
+    fireEvent.click(getByText("Top bar"));
+    expect(sends).toHaveLength(1);
+    expect(sends[0]?.text).toContain("Where should the toggle live?");
+    expect(sends[0]?.text).toContain("Top bar");
+  });
+
   it("replaces the composer with the environment request takeover", () => {
     const { container, getByText } = renderRoute(
       timeline({
@@ -162,6 +182,26 @@ describe("thread view composer slot", () => {
     );
     expect(slot(container, "request-takeover")).not.toBeNull();
     expect(slot(container, "clarify-takeover")).toBeNull();
+  });
+
+  it("gives an edit draft the slot while a takeover is pending", async () => {
+    const { container } = renderRoute(
+      timeline({ rows: messages, pendingAsk: clarify as never }),
+    );
+    expect(slot(container, "clarify-takeover")).not.toBeNull();
+    const sent = rows.find(
+      (row) => row.type === "user-message" && row.state === "answered",
+    ) as Extract<(typeof rows)[number], { type: "user-message" }>;
+    await act(async () =>
+      startEdit.set({
+        rowId: sent.id,
+        eventId: sent.eventId as string,
+        text: sent.text,
+      } as never),
+    );
+    await waitFor(() => expect(slot(container, "composer")).not.toBeNull());
+    expect(slot(container, "clarify-takeover")).toBeNull();
+    expect(screen.getByText("Editing message")).toBeTruthy();
   });
 
   it("shows the skeleton while the thread loads", () => {

@@ -6,7 +6,7 @@ import {
   DeviceId,
   DeviceNotFound,
 } from "../../api/schemas/devices.ts";
-import { fields, MockDb, newId } from "../db/MockDb.ts";
+import { fields, MockDb, newId, notFoundNamed } from "../db/MockDb.ts";
 import { isoMinutesAgo, projects } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
@@ -68,10 +68,10 @@ export const DevicesMock = mockGroup("devices", (handlers) =>
       rows: ReadonlyArray<A>,
       id: string,
       table: string,
-    ): Effect.Effect<A> => {
+    ) => {
       const row = rows.find((candidate) => candidate.id === id);
       return row === undefined
-        ? Effect.die(new Error(`devices.${table}: no row ${id}`))
+        ? notFoundNamed(`devices.${table}`, id)
         : Effect.succeed(row);
     };
 
@@ -322,7 +322,7 @@ export const DevicesMock = mockGroup("devices", (handlers) =>
       )
       .handle("listAccess", ({ params }) =>
         Effect.gen(function* () {
-          yield* ensure(params.deviceId);
+          yield* read(params.deviceId);
           return (yield* Ref.get(access)).filter(
             (row) => row.deviceId === params.deviceId,
           );
@@ -350,7 +350,7 @@ export const DevicesMock = mockGroup("devices", (handlers) =>
       )
       .handle("activeThreads", ({ params }) =>
         Effect.gen(function* () {
-          yield* ensure(params.deviceId);
+          yield* read(params.deviceId);
           const granted = (yield* Ref.get(agent)).filter(
             (row) =>
               row.deviceId === params.deviceId && row.status === "granted",
@@ -364,7 +364,7 @@ export const DevicesMock = mockGroup("devices", (handlers) =>
       )
       .handle("listAgentAccess", ({ params }) =>
         Effect.gen(function* () {
-          yield* ensure(params.deviceId);
+          yield* read(params.deviceId);
           return (yield* Ref.get(agent)).filter(
             (row) => row.deviceId === params.deviceId,
           );
@@ -409,7 +409,7 @@ export const DevicesMock = mockGroup("devices", (handlers) =>
       )
       .handle("findCheckouts", ({ params, payload }) =>
         Effect.gen(function* () {
-          yield* ensure(params.deviceId);
+          yield* read(params.deviceId);
           const search = String(
             fields(payload).path ?? fields(payload).query ?? "",
           ).toLowerCase();
@@ -433,7 +433,7 @@ export const DevicesMock = mockGroup("devices", (handlers) =>
       )
       .handle("setProjectCheckout", ({ params, payload }) =>
         Effect.gen(function* () {
-          yield* ensure(params.deviceId);
+          yield* read(params.deviceId);
           const input = fields(payload);
           const projectId = String(input.projectId ?? projects.web.id);
           const project =
@@ -463,7 +463,7 @@ export const DevicesMock = mockGroup("devices", (handlers) =>
       )
       .handle("clearProjectCheckout", ({ params, payload }) =>
         Effect.gen(function* () {
-          yield* ensure(params.deviceId);
+          yield* read(params.deviceId);
           const projectId = String(
             fields(payload).projectId ?? projects.web.id,
           );
@@ -487,7 +487,7 @@ export const DevicesMock = mockGroup("devices", (handlers) =>
       )
       .handle("browseFolders", ({ params, query }) =>
         Effect.gen(function* () {
-          yield* ensure(params.deviceId);
+          yield* read(params.deviceId);
           const search = String(fields(query).path ?? "").toLowerCase();
           const linkedIds = (yield* Ref.get(linked))[params.deviceId] ?? [];
           return folders
@@ -505,7 +505,7 @@ export const DevicesMock = mockGroup("devices", (handlers) =>
       )
       .handle("linkFolder", ({ params, payload }) =>
         Effect.gen(function* () {
-          yield* ensure(params.deviceId);
+          yield* read(params.deviceId);
           const input = fields(payload);
           const folder = yield* findFolder(input);
           yield* Ref.update(linked, (all) => {
@@ -522,7 +522,7 @@ export const DevicesMock = mockGroup("devices", (handlers) =>
       )
       .handle("unlinkFolder", ({ params, payload }) =>
         Effect.gen(function* () {
-          yield* ensure(params.deviceId);
+          yield* read(params.deviceId);
           const folder = yield* findFolder(fields(payload));
           yield* Ref.update(linked, (all) => ({
             ...all,
@@ -565,13 +565,13 @@ export const DevicesMock = mockGroup("devices", (handlers) =>
       )
       .handle("workspaceIndex", ({ params }) =>
         Effect.gen(function* () {
-          yield* ensure(params.deviceId);
+          yield* read(params.deviceId);
           return { ...workspaceIndex, deviceId: params.deviceId };
         }),
       )
       .handle("worktrees", ({ params, query }) =>
         Effect.gen(function* () {
-          yield* ensure(params.deviceId);
+          yield* read(params.deviceId);
           const repo = String(fields(query).repo ?? "");
           return worktrees.filter(
             (row) =>
@@ -590,7 +590,7 @@ export const DevicesMock = mockGroup("devices", (handlers) =>
       )
       .handle("pullDetail", ({ params, query }) =>
         Effect.gen(function* () {
-          yield* ensure(params.deviceId);
+          yield* read(params.deviceId);
           const pull = yield* findRow(
             yield* Ref.get(localPullRef),
             `localpull_sample_${params.number}`,
@@ -608,13 +608,13 @@ export const DevicesMock = mockGroup("devices", (handlers) =>
       )
       .handle("pullDiff", ({ params }) =>
         Effect.gen(function* () {
-          yield* ensure(params.deviceId);
+          yield* read(params.deviceId);
           return localPullDiff;
         }),
       )
       .handle("pullRefresh", ({ params }) =>
         Effect.gen(function* () {
-          yield* ensure(params.deviceId);
+          yield* read(params.deviceId);
           const rows = yield* Ref.get(localPullRef);
           if (rows.length === 0) {
             return yield* Effect.die(
@@ -631,7 +631,7 @@ export const DevicesMock = mockGroup("devices", (handlers) =>
       )
       .handle("pullAct", ({ params, payload }) =>
         Effect.gen(function* () {
-          yield* ensure(params.deviceId);
+          yield* read(params.deviceId);
           const current = yield* findRow(
             yield* Ref.get(localPullRef),
             `localpull_sample_${params.number}`,

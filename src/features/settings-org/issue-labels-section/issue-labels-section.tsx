@@ -1,7 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
   IssueColorSwatchPicker,
@@ -40,6 +39,7 @@ import {
 } from "@/primitives/responsive-menu";
 import { SettingsRow } from "@/primitives/settings-row";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
+import { toast } from "@/primitives/toaster";
 import { decodeLabels, type IssueLabel } from "../issue-states-page/data";
 
 export type LabelEditorTarget =

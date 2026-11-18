@@ -1,7 +1,6 @@
 import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import type { CloudAccessTarget } from "@/data/api/schemas/cloud-access";
 import type { OrgId } from "@/data/api/schemas/ids";
 import {
@@ -11,6 +10,7 @@ import {
 } from "@/data/atoms/cloud-credentials";
 import { projectsAtom } from "@/data/atoms/projects";
 import { organizationsAtom } from "@/data/atoms/session";
+import { toast } from "@/primitives/toaster";
 
 export function useCloudAccess(orgId: OrgId) {
   const atom = cloudAccessAtom(orgId);

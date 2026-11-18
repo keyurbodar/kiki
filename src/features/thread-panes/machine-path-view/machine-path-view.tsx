@@ -1,7 +1,6 @@
 import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useCallback, useState } from "react";
-import { toast } from "sonner";
 import { FileView, Preview, PreviewSource } from "@/components/file-view";
 import { type OrgId, UserId } from "@/data/api/schemas/ids";
 import {
@@ -14,6 +13,7 @@ import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
 import { BreadcrumbItem } from "@/primitives/breadcrumb";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
+import { toast } from "@/primitives/toaster";
 import { CopyMachineFileDialog } from "./copy-machine-file-dialog";
 import {
   canCopyFile,

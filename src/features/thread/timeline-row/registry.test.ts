@@ -19,3 +19,10 @@ it("rejects two renderers for one row type", () => {
     ]),
   ).toThrow(/marker/);
 });
+
+it("has a renderer for every row type, so none renders by accident", async () => {
+  const { TIMELINE_ROW_TYPES } = await import("@/data/events");
+  const { timelineRows } = await import("./registry");
+  const missing = TIMELINE_ROW_TYPES.filter((type) => !timelineRows.has(type));
+  expect(missing).toEqual([]);
+});

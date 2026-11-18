@@ -263,10 +263,9 @@ export const McpMock = mockGroup("mcp", (handlers) =>
               row.name === params.name,
           );
           if (!secret) {
-            return yield* Effect.die(
-              new Error(
-                `mcp.secrets: no row ${params.serverId}/${params.position}/${params.name}`,
-              ),
+            return yield* notFoundNamed(
+              "mcp secret",
+              `${params.serverId}/${params.position}/${params.name}`,
             );
           }
           return { value: secret.value, name: secret.name };
@@ -335,7 +334,7 @@ export const McpMock = mockGroup("mcp", (handlers) =>
           };
         }),
       )
-      .handle("createSetup", ({ payload }) =>
+      .handle("createSetup", ({ params, payload }) =>
         Effect.gen(function* () {
           const input = fields(payload);
           // The server derives the proposal from the tool call; the mock has no
@@ -344,6 +343,7 @@ export const McpMock = mockGroup("mcp", (handlers) =>
           const setup: McpSetup = {
             ...sample,
             id: McpSetupId.make(newId("setup")),
+            orgId: params.orgId,
             jamId: text(input.jamId, sample.jamId),
             toolCallId: ToolCallId.make(
               text(input.toolCallId, "call_mock_setup"),

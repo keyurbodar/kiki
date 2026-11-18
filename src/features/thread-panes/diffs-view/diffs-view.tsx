@@ -2,7 +2,6 @@ import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import { cx } from "class-variance-authority";
 import { AsyncResult, Atom } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import { DiffStat } from "@/components/diff-stat";
 import {
   CollapseAllButton,
@@ -21,6 +20,7 @@ import {
   MenuTrigger,
 } from "@/primitives/menu";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   availableScopes,

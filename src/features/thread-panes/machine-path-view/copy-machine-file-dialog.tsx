@@ -1,6 +1,5 @@
 import { Field } from "@base-ui/react/field";
 import { useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/primitives/button";
 import {
   Dialog,
@@ -10,6 +9,7 @@ import {
   DialogTitle,
 } from "@/primitives/dialog";
 import { Input } from "@/primitives/input";
+import { toast } from "@/primitives/toaster";
 import {
   type CopyBody,
   type DriveEntry,

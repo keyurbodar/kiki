@@ -1,4 +1,5 @@
 import { Effect, Ref } from "effect";
+import { InvalidRequest } from "../../api/schemas/errors.ts";
 import { fields } from "../db/MockDb.ts";
 import { isoMinutesAgo, viewer } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
@@ -19,8 +20,10 @@ export const ExperimentsMock = mockGroup("experiments", (handlers) =>
           const rows = yield* Ref.get(experiments);
           const current = rows.find((row) => row.feature === params.feature);
           if (!current && !text(input, "name")) {
-            return yield* Effect.die(
-              `experiments.setExperiment: no row ${params.feature}`,
+            return yield* Effect.fail(
+              new InvalidRequest({
+                message: `No experiment ${params.feature}`,
+              }),
             );
           }
           const enabled =

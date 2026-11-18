@@ -245,6 +245,19 @@ describe("thread route header", () => {
     expect(screen.getByRole("button", { name: "Open a tab" })).toBeTruthy();
   });
 
+  it("lists a Captain's issues and crew in the menu, and a plain thread's panes", async () => {
+    await renderRoute("/thread/jam_sample_cap3");
+    fireEvent.click(await screen.findByLabelText("Open a tab"));
+    expect(await screen.findByText("Issues")).toBeTruthy();
+    expect(screen.getByText(/All threads/)).toBeTruthy();
+    cleanup();
+
+    await renderRoute("/thread/jam_sample_0001");
+    fireEvent.click(await screen.findByLabelText("Open a tab"));
+    expect(await screen.findByText("Diffs")).toBeTruthy();
+    expect(screen.queryByText("Issues")).toBeNull();
+  });
+
   it("opens a pane from the tab strip and keeps the URL in step", async () => {
     const router = await renderRoute("/thread/jam_sample_0001");
     fireEvent.click(await screen.findByLabelText("Open a tab"));
@@ -348,16 +361,16 @@ describe("thread route header", () => {
     expect(router.state.location.search).toEqual({});
   });
 
-  it("opens a browser pane from the strip's menu", async () => {
+  it("keeps the transcript when the browser row has no session to open", async () => {
     await renderRoute("/thread/jam_sample_0001");
     fireEvent.click(await screen.findByLabelText("Open a tab"));
     fireEvent.click(await screen.findByText("Browser"));
-    await waitFor(() =>
-      expect(
-        document.querySelector('[data-slot="browser-pane"]'),
-      ).not.toBeNull(),
-    );
-    expect(paneTab("chat")?.querySelector("[data-selected]")).toBeNull();
+    await waitFor(() => expect(paneTab("chat")).toBeDefined());
+    // Capy's browser opens as a dock tab named for a session it creates; we
+    // have no call that creates one (AMA-208), so the row must not pretend:
+    // the transcript keeps painting and the chat tab keeps its selection.
+    expect(document.querySelector('[data-slot="browser-pane"]')).toBeNull();
+    expect(paneTab("chat")?.querySelector("[data-selected]")).not.toBeNull();
   });
 
   it("renders one header bar, not a bar inside a bar", async () => {

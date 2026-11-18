@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import { toast } from "sonner";
+import { toast } from "@/primitives/toaster";
 import {
   GlobeIcon,
   LockIcon,

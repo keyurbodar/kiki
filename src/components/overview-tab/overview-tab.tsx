@@ -1,7 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
 import { type ReactNode, useRef, useState } from "react";
-import { toast } from "sonner";
 import { Activity } from "@/components/activity";
 import { Avatar, cx } from "@/components/activity-card";
 import { WriteBox } from "@/components/github-write";
@@ -68,6 +67,7 @@ import {
   MenuSearchRow,
   MenuTrigger,
 } from "@/primitives/menu";
+import { toast } from "@/primitives/toaster";
 
 const track = (owner: string) => `shared/pull-view/overview-tab.tsx#${owner}`;
 

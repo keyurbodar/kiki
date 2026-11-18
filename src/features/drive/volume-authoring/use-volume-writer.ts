@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import type { DriveStorage, VolumeWriteChange } from "@/data/api/schemas/drive";
 import type { DriveScopeQuery } from "@/data/atoms/drive";
 import {
@@ -8,6 +7,7 @@ import {
   driveRestore,
   driveWrite,
 } from "@/data/atoms/drive";
+import { toast } from "@/primitives/toaster";
 
 const tagged = (
   error: unknown,

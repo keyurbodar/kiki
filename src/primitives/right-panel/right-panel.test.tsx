@@ -56,6 +56,18 @@ describe("RightPanel", () => {
     expect(slot("right-panel-rail")?.tabIndex).toBe(0);
   });
 
+  it("caps the panel at 38% of the work area, as Capy's dock is capped", () => {
+    localStorage.setItem(RIGHT_PANEL_WIDTH_KEY, "520");
+    render(
+      <RightPanelGroup>
+        <RightPanel>pane</RightPanel>
+      </RightPanelGroup>,
+    );
+    const className = slot("right-panel")?.className ?? "";
+    expect(className).toContain("w-[min(var(--right-panel-width),38cqw)]");
+    expect(className).not.toContain("clamp(");
+  });
+
   it("closes to zero width with inert content and an inactive rail", () => {
     render(
       <RightPanelGroup>

@@ -153,7 +153,9 @@ function SidebarThreadsPanelBody({
       view={view}
       actions={actions}
       captainActions={captainActions}
-      renderRowMenu={(thread) => <ThreadRowMenu thread={thread} />}
+      renderRowMenu={(thread, rowKey) => (
+        <ThreadRowMenu thread={thread} renameKey={rowKey} />
+      )}
       renderCaptainMenu={(captain) => <CaptainRowMenu captain={captain} />}
       onSectionOpenChange={sidebar.setSectionOpen}
       onShowMore={sidebar.showMore}
@@ -164,7 +166,7 @@ function SidebarThreadsPanelBody({
           <CaptainPreviewCard captain={{ ...captain, card: captain.card }} />
         )
       }
-      renderThread={(thread, { density, active }) => {
+      renderThread={(thread, { density, active, section }) => {
         const project =
           thread.projectId === null
             ? undefined
@@ -186,9 +188,19 @@ function SidebarThreadsPanelBody({
                 ? () => threadActions.unsettle(thread)
                 : undefined,
               onArchive: () => threadActions.archive(thread),
-              menu: <ThreadRowMenu thread={thread} onClose={() => undefined} />,
-              renaming: threadActions.renamingId === thread.id,
-              onRenameStart: () => threadActions.startRename(thread.id),
+              menu: (
+                <ThreadRowMenu
+                  thread={thread}
+                  onClose={() => undefined}
+                  renameKey={section.id}
+                />
+              ),
+              renaming:
+                threadActions.renamingId === thread.id &&
+                (threadActions.renamingKey === null ||
+                  threadActions.renamingKey === section.id),
+              onRenameStart: () =>
+                threadActions.startRename(thread.id, section.id),
               onRename: (title) => threadActions.commitRename(thread.id, title),
               onRenameCancel: threadActions.cancelRename,
             }}

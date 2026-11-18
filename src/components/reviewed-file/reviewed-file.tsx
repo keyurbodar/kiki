@@ -2,7 +2,6 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import {
   pullReactivityKeys,
   pullViewedFilesAtom,
@@ -10,6 +9,7 @@ import {
 } from "@/components/diff-tab/atoms";
 import type { PullRef } from "@/components/diff-tab/model";
 import { Checkbox } from "@/primitives/checkbox";
+import { toast } from "@/primitives/toaster";
 import {
   normalizeViewedFiles,
   type PendingReview,

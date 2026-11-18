@@ -1,5 +1,4 @@
 import { useAtomSet } from "@effect/atom-react";
-import { toast } from "sonner";
 import { AutomationId } from "@/data/api/schemas/drive";
 import { JamId, ProjectId, UserId } from "@/data/api/schemas/ids";
 import {
@@ -7,6 +6,7 @@ import {
   driveReactivityKey,
   driveWriteAtom,
 } from "@/data/atoms/agent-context";
+import { toast } from "@/primitives/toaster";
 import { useAgentOrg } from "./use-agent-scopes";
 
 /** Brands a plain scope for the write payload. */

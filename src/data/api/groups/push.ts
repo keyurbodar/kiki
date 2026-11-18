@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { Undecoded } from "../undecoded.ts";
 
 export class PushGroup extends HttpApiGroup.make("push").add(
@@ -12,13 +12,16 @@ export class PushGroup extends HttpApiGroup.make("push").add(
     params: { id: Schema.String },
     payload: Undecoded,
     success: Undecoded,
+    error: HttpApiError.NotFoundNoContent,
   }),
   HttpApiEndpoint.delete("unsubscribe", "/me/push/subscriptions/:id", {
     params: { id: Schema.String },
     success: Undecoded,
+    error: HttpApiError.NotFoundNoContent,
   }),
   HttpApiEndpoint.post("test", "/me/push/subscriptions/:id/test", {
     params: { id: Schema.String },
     success: Undecoded,
+    error: HttpApiError.NotFoundNoContent,
   }),
 ) {}

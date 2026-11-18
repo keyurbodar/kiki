@@ -1,7 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
-import { toast } from "sonner";
 import type { ComposerDelivery, ComposerPayload } from "@/components/composer";
 import type { EventId, JamId, OrgId } from "@/data/api/schemas/ids";
 import { reactivityKeys } from "@/data/atoms/conventions";
@@ -18,6 +17,7 @@ import {
   removePendingAtom,
   threadKey,
 } from "@/features/thread/timeline";
+import { toast } from "@/primitives/toaster";
 
 /** The text a send could not submit, handed back so the composer can restore it. */
 export type ComposerSendFailure = (payload: ComposerPayload) => void;

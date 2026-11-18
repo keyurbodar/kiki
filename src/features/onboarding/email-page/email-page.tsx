@@ -2,12 +2,12 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
 import { AsyncResult, Atom } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import { CapyMark } from "@/components/capy-logo";
 import { queryTimeToLive } from "@/data/atoms/conventions";
 import { currentUserAtom } from "@/data/atoms/session";
 import { ApiClient } from "@/data/client/ApiClient";
 import { Button } from "@/primitives/button";
+import { toast } from "@/primitives/toaster";
 import { EmailLayout } from "./email-layout";
 import {
   type EmailProgram,

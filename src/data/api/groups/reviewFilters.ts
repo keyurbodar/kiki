@@ -1,5 +1,6 @@
 import { Schema } from "effect";
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { InvalidRequest } from "../schemas/errors.ts";
 import { Undecoded } from "../undecoded.ts";
 
 export class ReviewFiltersGroup extends HttpApiGroup.make("reviewFilters").add(
@@ -24,12 +25,17 @@ export class ReviewFiltersGroup extends HttpApiGroup.make("reviewFilters").add(
       params: { orgId: Schema.String, id: Schema.String },
       payload: Undecoded,
       success: Undecoded,
+      error: InvalidRequest,
     },
   ),
   HttpApiEndpoint.delete(
     "deleteIgnorePaths",
     "/orgs/:orgId/review-filters/ignore-paths/:id",
-    { params: { orgId: Schema.String, id: Schema.String }, success: Undecoded },
+    {
+      params: { orgId: Schema.String, id: Schema.String },
+      success: Undecoded,
+      error: InvalidRequest,
+    },
   ),
   HttpApiEndpoint.get("listRules", "/orgs/:orgId/review-filters/rules", {
     params: { orgId: Schema.String },
@@ -44,10 +50,15 @@ export class ReviewFiltersGroup extends HttpApiGroup.make("reviewFilters").add(
     params: { orgId: Schema.String, id: Schema.String },
     payload: Undecoded,
     success: Undecoded,
+    error: InvalidRequest,
   }),
   HttpApiEndpoint.delete(
     "deleteRule",
     "/orgs/:orgId/review-filters/rules/:id",
-    { params: { orgId: Schema.String, id: Schema.String }, success: Undecoded },
+    {
+      params: { orgId: Schema.String, id: Schema.String },
+      success: Undecoded,
+      error: InvalidRequest,
+    },
   ),
 ) {}

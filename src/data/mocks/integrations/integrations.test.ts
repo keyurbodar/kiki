@@ -1,6 +1,7 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
+import { InvalidRequest } from "../../api/schemas/errors.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId, threads, world } from "../fixtures/world.ts";
 
@@ -592,5 +593,83 @@ describe("integrations mock", () => {
         yield* AtomRegistry.getResult(registry, revokeSlackUserRead);
       });
     },
+  );
+
+  it.effect("answers an unknown id with the declared 400", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+
+      const deleteLinearLink = ApiClient.mutation(
+        "integrations",
+        "deleteLinearLink",
+      );
+      registry.set(deleteLinearLink, {
+        params: { ...org, linkId: "lin_link_unknown" },
+        reactivityKeys: [key],
+      });
+      const linearLink = yield* AtomRegistry.getResult(
+        registry,
+        deleteLinearLink,
+      ).pipe(Effect.flip);
+      assert.instanceOf(linearLink, InvalidRequest);
+
+      const deleteSlackLink = ApiClient.mutation(
+        "integrations",
+        "deleteSlackLink",
+      );
+      registry.set(deleteSlackLink, {
+        params: { ...org, linkId: "slack_link_unknown" },
+        reactivityKeys: [key],
+      });
+      const slackLink = yield* AtomRegistry.getResult(
+        registry,
+        deleteSlackLink,
+      ).pipe(Effect.flip);
+      assert.instanceOf(slackLink, InvalidRequest);
+
+      const grant = ApiClient.mutation("integrations", "grantSlackUserRead");
+      registry.set(grant, {
+        params: { ...org, accessId: "slack_access_unknown" },
+        payload: { scopes: ["channels:history"] },
+        reactivityKeys: [key],
+      });
+      const access = yield* AtomRegistry.getResult(registry, grant).pipe(
+        Effect.flip,
+      );
+      assert.instanceOf(access, InvalidRequest);
+
+      const deny = ApiClient.mutation("integrations", "denySlackUserRead");
+      registry.set(deny, {
+        params: { ...org, accessId: "slack_access_unknown" },
+        reactivityKeys: [key],
+      });
+      const denied = yield* AtomRegistry.getResult(registry, deny).pipe(
+        Effect.flip,
+      );
+      assert.instanceOf(denied, InvalidRequest);
+
+      const revoke = ApiClient.mutation("integrations", "revokeSlackUserRead");
+      registry.set(revoke, {
+        params: { ...org, accessId: "slack_access_unknown" },
+        reactivityKeys: [key],
+      });
+      const revoked = yield* AtomRegistry.getResult(registry, revoke).pipe(
+        Effect.flip,
+      );
+      assert.instanceOf(revoked, InvalidRequest);
+
+      const threadAccess = ApiClient.query(
+        "integrations",
+        "listThreadSlackUserReadAccess",
+        {
+          params: { ...org, threadId: "jam_unknown" },
+          reactivityKeys: [key],
+        },
+      );
+      const thread = yield* AtomRegistry.getResult(registry, threadAccess).pipe(
+        Effect.flip,
+      );
+      assert.instanceOf(thread, InvalidRequest);
+    }),
   );
 });
