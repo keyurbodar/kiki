@@ -4,6 +4,7 @@ import { DateTime } from "effect";
 import { type ReactNode, useState } from "react";
 import { toast } from "sonner";
 import { IssueDueChip } from "@/components/issue-due";
+import { IssueRowContextMenu } from "@/components/issue-menu/issue-row-context-menu";
 import {
   type ChipIssue,
   MarkdownChipsProvider,
@@ -659,18 +660,20 @@ export function IssuesList({
                 <ul className="flex flex-col pt-0.5">
                   {group.issues.map((issue) => (
                     <li key={issue.id} className="group/row">
-                      <IssueRow
-                        issue={issue}
-                        orgId={orgId}
-                        state={states.find(
-                          (state) => state.id === issue.stateId,
-                        )}
-                        display={display}
-                        now={now}
-                        checked={checked?.has(issue.id)}
-                        selectionMode={(checked?.size ?? 0) > 0}
-                        onCheck={onCheck}
-                      />
+                      <IssueRowContextMenu issue={issue}>
+                        <IssueRow
+                          issue={issue}
+                          orgId={orgId}
+                          state={states.find(
+                            (state) => state.id === issue.stateId,
+                          )}
+                          display={display}
+                          now={now}
+                          checked={checked?.has(issue.id)}
+                          selectionMode={(checked?.size ?? 0) > 0}
+                          onCheck={onCheck}
+                        />
+                      </IssueRowContextMenu>
                     </li>
                   ))}
                 </ul>

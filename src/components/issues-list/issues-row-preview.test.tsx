@@ -7,6 +7,7 @@ import {
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { Schema } from "effect";
 import { afterEach, describe, expect, it } from "vitest";
+import { IssueRowContextMenu } from "@/components/issue-menu/issue-row-context-menu";
 import { defaultIssueDisplay } from "@/components/issues-toolbar";
 import {
   type IssueState,
@@ -85,5 +86,36 @@ describe("issue row preview card", () => {
     expect(text).toContain("AMA-99");
     expect(text).toContain("Todo");
     expect(text).toContain("High");
+  });
+});
+
+describe("issue row context menu", () => {
+  it("opens the issue menu on right-click", async () => {
+    const rootRoute = createRootRoute({
+      component: () => (
+        <IssueRowContextMenu issue={issue}>
+          <IssueRow
+            issue={issue}
+            orgId={"org_1" as never}
+            state={state}
+            display={defaultIssueDisplay}
+            now={new Date(2026, 10, 17).getTime()}
+          />
+        </IssueRowContextMenu>
+      ),
+    });
+    const router = createRouter({
+      routeTree: rootRoute,
+      history: createMemoryHistory({ initialEntries: ["/issues"] }),
+    });
+    await router.load();
+    render(<RouterProvider router={router} />);
+    const row = document.querySelector("[data-issue-row]");
+    if (row === null) throw new Error("no row");
+    fireEvent.contextMenu(row);
+    await new Promise((resolve) => setTimeout(resolve, 120));
+    const menu = document.querySelector("[data-issue-menu]");
+    expect(menu).not.toBeNull();
+    expect(menu?.textContent ?? "").toContain("Open");
   });
 });
