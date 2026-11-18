@@ -281,6 +281,12 @@
     }
   }
 
+  /* A run of inline controls: one baseline, one gap. */
+  .kiki-inline {
+    display: flex;
+    align-items: var(--row-align);
+  }
+
   /* A menu's width, so a call site names the menu rather than a utility. */
   .kiki-menu {
     width: var(--menu-w);
