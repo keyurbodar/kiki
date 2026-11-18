@@ -5,6 +5,7 @@ import { mockGroup } from "../mockGroup.ts";
 import {
   captainAccess,
   captainCard,
+  captainFace,
   captainMembers,
   promoteProjects,
   sampleImages,
@@ -64,8 +65,12 @@ export const CaptainsMock = mockGroup("captains", (handlers) =>
         const owner = (yield* Ref.get(members)).find(
           (row) => row.id === captain.ownerId,
         );
+        const index = (yield* Ref.get(captains)).findIndex(
+          (row) => row.id === captain.id,
+        );
         return {
           ...captain,
+          face: captainFace(captain, Math.max(0, index)),
           imageUrl: image?.url ?? null,
           hidden: (yield* Ref.get(hidden))[captain.id] ?? false,
           access: (yield* Ref.get(access))[captain.id] ?? "org",

@@ -26,6 +26,14 @@ const names = (value: unknown) =>
     (captain) => captain.face?.name ?? captain.name,
   );
 
+interface FacedCaptain {
+  readonly id: string;
+  readonly face?: {
+    readonly name: string;
+    readonly avatar?: { value?: string; background?: string };
+  };
+}
+
 describe("captains mock", () => {
   it.effect("every read endpoint returns sensible data", () =>
     Effect.gen(function* () {
@@ -269,5 +277,29 @@ describe("captains payload spellings", () => {
         )) as { name: string };
         assert.strictEqual(fromFolder.name, "Research");
       }),
+  );
+});
+
+describe("a Captain's face", () => {
+  it.effect("reads the same on the list row and the detail endpoint", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const read = <A, E>(
+        atom: Atom.Atom<AsyncResult.AsyncResult<A, E>>,
+      ): Effect.Effect<A, E> => AtomRegistry.getResult(registry, atom);
+
+      const list = (yield* read(listQuery)) as ReadonlyArray<FacedCaptain>;
+      const captain = list[0];
+      assert.isDefined(captain);
+
+      const detail = (yield* read(
+        ApiClient.query("captains", "get", {
+          params: { orgId, jamId: captain?.id ?? "jam_sample_cap1" },
+        }),
+      )) as FacedCaptain;
+
+      assert.deepStrictEqual(detail.face?.avatar, captain?.face?.avatar);
+      assert.strictEqual(detail.face?.name, captain?.face?.name);
+    }),
   );
 });
