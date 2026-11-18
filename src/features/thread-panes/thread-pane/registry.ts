@@ -82,6 +82,7 @@ export const isRetiredPane = (id: string | undefined) =>
  * off the URL, so a reload lands back on the chat.
  */
 export const writtenPaneParams: ReadonlySet<string> = new Set([
+  "chat",
   "overview",
   "diffs",
   "captain_issues",
