@@ -39,6 +39,8 @@ export type SidebarThreadRowProps = ComponentProps<"div"> & {
   active?: boolean;
   actions?: SidebarThreadRowActions;
   preview?: ReactNode;
+  /** Draws the row without its thread link, for a specimen that is not navigable. */
+  decorative?: boolean;
 };
 
 const stopRowNavigation = (event: MouseEvent) => {
@@ -169,6 +171,7 @@ export function SidebarThreadRow({
   active = false,
   actions,
   preview,
+  decorative = false,
   className,
   ...props
 }: SidebarThreadRowProps) {
@@ -241,6 +244,51 @@ export function SidebarThreadRow({
     ) : (
       <span className={cx(rowTextClassName, "text-primary-ink")}>{ask}</span>
     );
+  const rowClassName = cx(
+    "group/row flex gap-2.5 rounded px-2 outline-none select-none [-webkit-touch-callout:none]",
+    slim ? "h-8 items-center" : "h-13 items-start py-1.5",
+    "transition-colors duration-100 focus-visible:outline-ring-inset",
+    active ? "bg-card shadow-row-open" : "group-hover/thread:bg-secondary",
+  );
+  const rowContent = slim ? (
+    <>
+      {title}
+      <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+        {needsYou ? <NeedsYouDot /> : statusMark}
+        {age}
+      </span>
+    </>
+  ) : (
+    <span className="flex min-w-0 flex-1 flex-col gap-1">
+      <span className="flex h-5 min-w-0 items-center gap-2">
+        {title}
+        {needsYou && ask === undefined ? <NeedsYouDot /> : statusMark}
+        {age}
+      </span>
+      <span className="@container flex h-4 min-w-0 items-center gap-1.5 text-xs text-muted-foreground-2">
+        {meta}
+      </span>
+    </span>
+  );
+  if (decorative) {
+    return (
+      <div
+        data-drag-row
+        data-row-menu=""
+        className={cx("group/thread relative block", className)}
+        {...props}
+      >
+        <span
+          data-slot="sidebar-thread-row"
+          data-sidebar-target={thread.id}
+          aria-current={active ? "page" : undefined}
+          className={rowClassName}
+        >
+          {rowContent}
+        </span>
+      </div>
+    );
+  }
   return (
     <div
       data-drag-row
@@ -257,35 +305,9 @@ export function SidebarThreadRow({
           data-thread-preview=""
           data-sidebar-target={thread.id}
           aria-current={active ? "page" : undefined}
-          className={cx(
-            "group/row flex gap-2.5 rounded px-2 outline-none select-none [-webkit-touch-callout:none]",
-            slim ? "h-8 items-center" : "h-13 items-start py-1.5",
-            "transition-colors duration-100 focus-visible:outline-ring-inset",
-            active
-              ? "bg-card shadow-row-open"
-              : "group-hover/thread:bg-secondary",
-          )}
+          className={rowClassName}
         >
-          {slim ? (
-            <>
-              {title}
-              <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
-                {needsYou ? <NeedsYouDot /> : statusMark}
-                {age}
-              </span>
-            </>
-          ) : (
-            <span className="flex min-w-0 flex-1 flex-col gap-1">
-              <span className="flex h-5 min-w-0 items-center gap-2">
-                {title}
-                {needsYou && ask === undefined ? <NeedsYouDot /> : statusMark}
-                {age}
-              </span>
-              <span className="@container flex h-4 min-w-0 items-center gap-1.5 text-xs text-muted-foreground-2">
-                {meta}
-              </span>
-            </span>
-          )}
+          {rowContent}
         </PreviewCardTrigger>
         {preview === undefined ? null : (
           <PreviewCardContent side="right" align="start">
