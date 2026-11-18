@@ -115,12 +115,7 @@ describe("TabStrip shortcuts", () => {
         tabs={tabs}
         activeId="overview"
         onOpenBrowser={onOpenBrowser}
-        menu={{
-          openIds: new Set(),
-          onOpen: vi.fn(),
-          onOpenBrowser,
-          onNewSideThread,
-        }}
+        menu={{ onNewSideThread }}
       />,
     );
     press("l", { shiftKey: true });
