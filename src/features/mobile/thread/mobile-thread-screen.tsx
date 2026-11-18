@@ -58,11 +58,19 @@ const text = (value: unknown) =>
 const success = (result: AsyncResult.AsyncResult<unknown, unknown>) =>
   AsyncResult.isSuccess(result) ? result.value : undefined;
 
-/** Models from the models endpoint, grouped by provider; empty until that mock is filled. */
+/**
+ * Models from the models endpoint, grouped by provider. The endpoint answers
+ * `{ models, credentials, services }`, so its `models` array is what carries the
+ * rows; an array is accepted too, for callers that already unwrapped it.
+ */
 export function modelSections(models: unknown): MobileModelSection[] {
-  if (!Array.isArray(models)) return [];
+  const rows = Array.isArray(models)
+    ? models
+    : Array.isArray(record(models).models)
+      ? (record(models).models as ReadonlyArray<unknown>)
+      : [];
   const sections = new Map<string, MobileModelSection>();
-  for (const entry of models) {
+  for (const entry of rows) {
     const model = record(entry);
     const id = text(model.id);
     const name = text(model.name) ?? id;

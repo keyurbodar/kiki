@@ -74,4 +74,14 @@ describe("modelSections", () => {
     ]);
     expect(modelSections(undefined)).toEqual([]);
   });
+
+  it("reads the models array out of the endpoint's payload", () => {
+    expect(
+      modelSections({
+        models: [{ id: "a", name: "A", provider: "P" }],
+        credentials: [],
+        services: [],
+      }),
+    ).toEqual([{ id: "P", label: "P", models: [{ id: "a", name: "A" }] }]);
+  });
 });
