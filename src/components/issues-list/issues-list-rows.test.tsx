@@ -130,9 +130,11 @@ describe("issue row sub-issues", () => {
     const badge = chip("Expand 2 sub-issues");
     expect(badge).not.toBeNull();
     expect(badge?.getAttribute("aria-expanded")).toBe("false");
-    expect(
-      badge?.querySelector("[role='progressbar']")?.getAttribute("aria-label"),
-    ).toBe("1 of 2 sub-issues closed");
+    const ring = badge?.querySelector("[role='progressbar']");
+    expect(ring?.getAttribute("aria-label")).toBe("1 of 2 sub-issues closed");
+    expect(ring?.getAttribute("aria-valuemin")).toBe("0");
+    expect(ring?.getAttribute("aria-valuemax")).toBe("2");
+    expect(ring?.getAttribute("aria-valuenow")).toBe("1");
   });
 
   it("reveals the sub-issue rows when the badge is pressed", async () => {

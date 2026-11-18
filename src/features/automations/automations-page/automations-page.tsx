@@ -15,7 +15,7 @@ import {
 } from "@/components/view-toolbar";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { projectsAtom } from "@/data/atoms/projects";
-import { threadsAtom } from "@/data/atoms/threads";
+import { useThreadsAtom } from "@/data/atoms/threads";
 import { Button } from "@/primitives/button";
 import {
   Dialog,
@@ -89,7 +89,9 @@ function useStandingThreads(
   orgId: string | undefined,
 ): ReadonlyMap<string, StandingThread> {
   const projectsResult = useAtomValue(projectsAtom((orgId ?? "") as OrgId));
-  const threadsResult = useAtomValue(threadsAtom((orgId ?? "") as OrgId));
+  const threadsResult = useAtomValue(
+    useThreadsAtom(orgId as OrgId | undefined),
+  );
   return useMemo(() => {
     const projects =
       Option.getOrUndefined(AsyncResult.value(projectsResult)) ?? [];

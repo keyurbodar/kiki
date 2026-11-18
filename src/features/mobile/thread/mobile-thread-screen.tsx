@@ -4,6 +4,12 @@ import { Exit } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useRef, useState } from "react";
 import type { ComposerHandle, ComposerPayload } from "@/components/composer";
+import {
+  groupingStorageKey,
+  isGrouping,
+  type ModelGrouping,
+} from "@/components/model-picker/grouping";
+import { useStoredState } from "@/components/model-picker/use-stored-state";
 import { copyText } from "@/components/pull-view";
 import type { JamId, OrgId } from "@/data/api/schemas/ids";
 import { organizationsAtom } from "@/data/atoms/session";
@@ -98,7 +104,7 @@ const success = (result: AsyncResult.AsyncResult<unknown, unknown>) =>
  * `{ models, credentials, services }`, so its `models` array is what carries the
  * rows; an array is accepted too, for callers that already unwrapped it.
  */
-export type ModelGrouping = "provider" | "route";
+export type { ModelGrouping };
 
 /** The section a model belongs to on Capy's two axes: its provider, or its route. */
 const sectionKeyOf = (
@@ -246,7 +252,11 @@ function MobileThreadBody({
   const [activeTab, setActiveTab] = useState(CHAT_TAB);
   const ActivePane = findPane(activeTab)?.component;
   const [modelId, setModelId] = useState<string>();
-  const [grouping, setGrouping] = useState<ModelGrouping>("provider");
+  const [grouping, setGrouping] = useStoredState(
+    groupingStorageKey,
+    "provider",
+    isGrouping,
+  );
   const sections = modelSections(models, grouping);
   const model = sections
     .flatMap((section) => section.models)
@@ -396,6 +406,9 @@ function MobileThreadBody({
               initialLoading={timeline.loading}
               onStartReached={
                 timeline.hasOlder ? timeline.loadOlder : undefined
+              }
+              onInsertQuote={(mention) =>
+                composerRef.current?.insertMention(mention, "")
               }
               className="flex min-h-0 flex-1 flex-col"
             />

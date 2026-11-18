@@ -3,6 +3,11 @@ import { useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useMemo, useRef, useState } from "react";
 import type { ComposerHandle, ComposerPayload } from "@/components/composer";
+import {
+  groupingStorageKey,
+  isGrouping,
+} from "@/components/model-picker/grouping";
+import { useStoredState } from "@/components/model-picker/use-stored-state";
 import { projectsAtom } from "@/data/atoms/projects";
 import { organizationsAtom } from "@/data/atoms/session";
 import { FabricBackdrop } from "@/features/home/home-page/fabric-backdrop";
@@ -18,7 +23,7 @@ import {
   mentionCategoryIds,
 } from "../composer";
 import { MobileAddDrawer, MobileModelDrawer } from "../drawers";
-import { type ModelGrouping, modelSections } from "../thread";
+import { modelSections } from "../thread";
 import { mobileModelsAtom } from "../thread/atoms";
 import { MobileHome } from "./mobile-home";
 
@@ -42,7 +47,11 @@ function MobileNewThreadForOrg({
   );
   const [selectedId, setSelectedId] = useState<string>();
   const [modelId, setModelId] = useState<string>();
-  const [grouping, setGrouping] = useState<ModelGrouping>("provider");
+  const [grouping, setGrouping] = useStoredState(
+    groupingStorageKey,
+    "provider",
+    isGrouping,
+  );
   const composerRef = useRef<ComposerHandle>(null);
   const navigate = useNavigate();
   const submit = useComposerSend();
@@ -81,6 +90,7 @@ function MobileNewThreadForOrg({
               image={background.url}
               effect={preferences.effect}
               appearance={background.appearance}
+              rotation={background.rotation}
             />
           )}
         </>

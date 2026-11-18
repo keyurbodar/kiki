@@ -10,6 +10,7 @@ import { idleAtom } from "@/data/atoms/idle";
 import { projectsAtom } from "@/data/atoms/projects";
 import { currentUserAtom } from "@/data/atoms/session";
 import { threadsAtom } from "@/data/atoms/threads";
+import { useOpenCreateProjectDialog } from "@/features/settings-projects/shared/create-project-dialog";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { MenuLabel, MenuSeparator } from "@/primitives/menu";
@@ -54,7 +55,6 @@ export type ProjectSelectProps = Omit<ComponentProps<"div">, "children"> & {
   chevron?: boolean;
   defaultOpen?: boolean;
   onManage?: () => void;
-  onCreateProject?: (name?: string) => void;
   deviceName?: string;
 };
 
@@ -101,12 +101,18 @@ export function ProjectSelect({
   chevron = true,
   defaultOpen,
   onManage,
-  onCreateProject,
   deviceName = "computer",
   className,
   ...props
 }: ProjectSelectProps) {
   const navigate = useNavigate();
+  const openCreateProject = useOpenCreateProjectDialog();
+  const createProject = () =>
+    openCreateProject?.({
+      open: true,
+      intent: "project",
+      mode: { kind: "create" },
+    });
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(defaultOpen ?? false);
   const { projects, threads, userId } = useProjectSources(orgId);
@@ -125,7 +131,7 @@ export function ProjectSelect({
           variant="bare"
           size="auto-sm"
           className={triggerClass}
-          onClick={() => onCreateProject?.()}
+          onClick={createProject}
         >
           <Icon name="plus-large" size="sm" className={selectorTriggerIcon} />
           <span className="min-w-0 truncate">New project</span>
@@ -235,7 +241,7 @@ export function ProjectSelect({
                 <MenuSeparator />
                 <ResponsiveMenuItem
                   data-track-owner="shared/new-thread/project-select.tsx#ProjectSelect:ResponsiveMenuItem.1"
-                  onClick={() => onCreateProject?.(createName)}
+                  onClick={createProject}
                 >
                   <SelectorItemIcon name="plus-large" />
                   <span className={selectorItemLabel}>

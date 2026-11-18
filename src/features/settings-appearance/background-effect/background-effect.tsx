@@ -1,5 +1,8 @@
+import type { PaperShaderElement } from "@paper-design/shaders";
 import { ImageDithering } from "@paper-design/shaders-react";
 import { type ComponentProps, useEffect, useRef, useState } from "react";
+import { useShaderClock } from "@/primitives/dither";
+import { useShaderEnvironment } from "@/primitives/dither/use-shader-environment";
 import {
   DITHER_CONTEXT_ATTRIBUTES,
   type BackgroundEffect as Effect,
@@ -7,6 +10,7 @@ import {
 } from "@/tokens/effects";
 import {
   type BackgroundAdjustments,
+  type BackgroundRotation,
   useResolvedMode,
 } from "../model/appearance-store";
 
@@ -58,14 +62,33 @@ export function DashboardBackdrop({
   image,
   effect,
   appearance,
+  rotation = 0,
 }: {
   image: string;
   effect: Effect;
   appearance: BackgroundAdjustments;
+  rotation?: BackgroundRotation;
 }) {
   const dark = useResolvedMode() === "dark";
   const [ref, maxPixelCount] = useMaxPixelCount();
-  const dither = effect === "dither" && !isGif(image) && maxPixelCount !== null;
+  // Capy turns the image layer and never the shader; a background it turns is a
+  // GIF, and a GIF is the one file it leaves undithered.
+  const turned = rotation === 90 || rotation === 270;
+  const dither =
+    effect === "dither" &&
+    rotation === 0 &&
+    !isGif(image) &&
+    maxPixelCount !== null;
+  const { ready, reducedMotion } = useShaderEnvironment();
+  const shader = useRef<PaperShaderElement>(null);
+  // The pattern advances on the same clock the rest of the app's shaders use,
+  // and holds still under reduced motion.
+  useShaderClock(shader, {
+    animate: ready && !reducedMotion && dither,
+    frame: 0,
+    speed: WALLPAPER_DITHER.speed,
+    fps: WALLPAPER_DITHER.fps,
+  });
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       <div
@@ -77,11 +100,20 @@ export function DashboardBackdrop({
         }}
       >
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url("${image}")` }}
+          className="kiki-backdrop-image"
+          data-rotated={turned}
+          style={{
+            backgroundImage: `url("${image}")`,
+            transform: turned
+              ? `translate(-50%, -50%) rotate(${rotation}deg)`
+              : rotation === 180
+                ? "rotate(180deg)"
+                : undefined,
+          }}
         />
         {dither ? (
           <ImageDithering
+            ref={shader}
             className="[&_canvas]:[image-rendering:pixelated] [&_canvas]:transition-opacity [&_canvas]:duration-slower [&_canvas]:starting:opacity-0"
             width="100%"
             height="100%"
@@ -94,7 +126,7 @@ export function DashboardBackdrop({
             size={WALLPAPER_DITHER.size}
             colorSteps={WALLPAPER_DITHER.colorSteps}
             originalColors={WALLPAPER_DITHER.originalColors}
-            speed={0}
+            speed={WALLPAPER_DITHER.speed}
             frame={0}
           />
         ) : null}

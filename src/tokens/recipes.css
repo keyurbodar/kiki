@@ -235,6 +235,13 @@
   /* Badges, dialogs, menu rows, palette rows ------------------------------- */
 
   /** A run of chips under a tool result: Capy's flex flex-wrap row. */
+  /* A tool body's prose: Capy's reading measure, clamped like its output card. */
+  .kiki-prose-body {
+    max-height: calc(var(--spacing) * 72);
+    padding-top: var(--spacing);
+    padding-bottom: calc(var(--spacing) * 2);
+  }
+
   .kiki-chip-row {
     display: flex;
     flex-wrap: wrap;
@@ -427,5 +434,38 @@
   .kiki-palette-row svg:not([class*="size-"]) {
     width: var(--palette-row-icon);
     height: var(--palette-row-icon);
+  }
+
+  /*
+   * The dashboard wallpaper layer. A rotated wallpaper is drawn at the
+   * container's transposed size and turned about its centre, so the image
+   * still covers the surface after a quarter turn.
+   */
+  .kiki-backdrop-image {
+    position: absolute;
+    inset: 0;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
+  .kiki-backdrop-image[data-rotated="true"] {
+    top: 50%;
+    left: 50%;
+    width: 100cqh;
+    height: 100cqw;
+  }
+
+  /* The quarter-turn choices in the background editor. */
+  .kiki-rotation-row {
+    display: flex;
+    gap: var(--row-gap);
+    padding-inline: var(--row-px);
+    padding-block-end: var(--row-px);
+  }
+
+  .kiki-rotation-option {
+    flex: 1;
+    padding-block: var(--row-px-tight);
   }
 }

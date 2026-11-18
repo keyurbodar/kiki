@@ -211,3 +211,93 @@ it("opens a panel for a write call that returned nothing else", () => {
     ),
   ).toBe(true);
 });
+
+it("shows what a prose tool said, not what it printed", () => {
+  const { container } = render(
+    <ToolBody
+      row={toolRow({
+        toolName: "message_agent",
+        args: { to: "2", text: "Re-run shard 3 before you push." },
+        result: {
+          blocks: [{ type: "text", text: "Delivered to Subagent 2." }],
+          isError: false,
+          settledAt: at(2_400),
+        },
+      })}
+    />,
+  );
+  expect(container.textContent).toContain("Re-run shard 3 before you push.");
+  expect(container.textContent).not.toContain("Delivered to Subagent 2.");
+});
+
+it("says No text when a prose tool carried none", () => {
+  const { container } = render(
+    <ToolBody
+      row={toolRow({ toolName: "end_turn", args: {}, result: undefined })}
+    />,
+  );
+  expect(container.textContent).toContain("No text");
+});
+
+it("shows a terminal call's command head and outcome without its output", () => {
+  const { container } = render(
+    <ToolBody
+      row={toolRow({
+        toolName: "request_terminal",
+        args: { command: "bun run seed" },
+        result: {
+          blocks: [{ type: "text", text: "seeded 40 rows" }],
+          data: { exit_code: 0 },
+          isError: false,
+          settledAt: at(2_400),
+        },
+      })}
+    />,
+  );
+  expect(container.textContent).toContain("bun run seed");
+  expect(container.textContent).toContain("exit 0");
+  expect(container.textContent).not.toContain("seeded 40 rows");
+});
+
+it("renders a coloured, carriage-returned output as the terminal would", () => {
+  const { container } = render(
+    <ToolBody
+      row={toolRow({
+        args: { command: "bun test" },
+        result: {
+          blocks: [
+            {
+              type: "text",
+              text: "\u001b[32mPASS\u001b[0m suite\n10%\r55%\r100%\n\ttabbed",
+            },
+          ],
+          isError: false,
+          settledAt: at(2_400),
+        },
+      })}
+    />,
+  );
+  const output = container.querySelector("pre")?.textContent ?? "";
+  expect(output).toBe("PASS suite\n100%\n        tabbed");
+  expect(output).not.toContain("\u001b");
+  expect(output).not.toContain("\r");
+});
+
+it("says how many earlier lines a long output dropped", () => {
+  const log = Array.from({ length: 450 }, (_, i) => `line ${i}`).join("\n");
+  const { container } = render(
+    <ToolBody
+      row={toolRow({
+        result: {
+          blocks: [{ type: "text", text: log }],
+          isError: false,
+          settledAt: at(2_400),
+        },
+      })}
+    />,
+  );
+  expect(container.textContent).toContain("50 earlier lines trimmed");
+  expect(
+    container.querySelector("pre")?.textContent?.startsWith("line 50"),
+  ).toBe(true);
+});

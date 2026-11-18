@@ -19,9 +19,11 @@ import { Route as Char91__mediaLightboxChar93RouteImport } from './routes/[__med
 import { Route as Char91__modelPickerChar93RouteImport } from './routes/[__model-picker]'
 import { Route as Char91__newThreadSelectsChar93RouteImport } from './routes/[__new-thread-selects]'
 import { Route as Char91__skeletonsChar93RouteImport } from './routes/[__skeletons]'
+import { Route as Char91__textMorphChar93RouteImport } from './routes/[__text-morph]'
 import { Route as Char91__threadDeviceChar93RouteImport } from './routes/[__thread-device]'
 import { Route as Char91__toastsChar93RouteImport } from './routes/[__toasts]'
 import { Route as Char91__tokensChar93RouteImport } from './routes/[__tokens]'
+import { Route as Char91__toolOutputChar93RouteImport } from './routes/[__tool-output]'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as DesktopRouteImport } from './routes/desktop'
@@ -237,6 +239,11 @@ const Char91__skeletonsChar93Route = Char91__skeletonsChar93RouteImport.update({
   path: '/__skeletons',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91__textMorphChar93Route = Char91__textMorphChar93RouteImport.update({
+  id: '/__text-morph',
+  path: '/__text-morph',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char91__threadDeviceChar93Route =
   Char91__threadDeviceChar93RouteImport.update({
     id: '/__thread-device',
@@ -253,6 +260,12 @@ const Char91__tokensChar93Route = Char91__tokensChar93RouteImport.update({
   path: '/__tokens',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91__toolOutputChar93Route =
+  Char91__toolOutputChar93RouteImport.update({
+    id: '/__tool-output',
+    path: '/__tool-output',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AppRouteRoute = AppRouteRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
@@ -1126,9 +1139,11 @@ export interface FileRoutesByFullPath {
   '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
   '/__skeletons': typeof Char91__skeletonsChar93Route
+  '/__text-morph': typeof Char91__textMorphChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__toasts': typeof Char91__toastsChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
+  '/__tool-output': typeof Char91__toolOutputChar93Route
   '/desktop': typeof DesktopRoute
   '/dither-cover': typeof DitherCoverRoute
   '/onboarding': typeof OnboardingRoute
@@ -1297,9 +1312,11 @@ export interface FileRoutesByTo {
   '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
   '/__skeletons': typeof Char91__skeletonsChar93Route
+  '/__text-morph': typeof Char91__textMorphChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__toasts': typeof Char91__toastsChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
+  '/__tool-output': typeof Char91__toolOutputChar93Route
   '/desktop': typeof DesktopRoute
   '/dither-cover': typeof DitherCoverRoute
   '/onboarding': typeof OnboardingRoute
@@ -1468,9 +1485,11 @@ export interface FileRoutesById {
   '/__model-picker': typeof Char91__modelPickerChar93Route
   '/__new-thread-selects': typeof Char91__newThreadSelectsChar93Route
   '/__skeletons': typeof Char91__skeletonsChar93Route
+  '/__text-morph': typeof Char91__textMorphChar93Route
   '/__thread-device': typeof Char91__threadDeviceChar93Route
   '/__toasts': typeof Char91__toastsChar93Route
   '/__tokens': typeof Char91__tokensChar93Route
+  '/__tool-output': typeof Char91__toolOutputChar93Route
   '/desktop': typeof DesktopRoute
   '/dither-cover': typeof DitherCoverRoute
   '/onboarding': typeof OnboardingRoute
@@ -1642,9 +1661,11 @@ export interface FileRouteTypes {
     | '/__model-picker'
     | '/__new-thread-selects'
     | '/__skeletons'
+    | '/__text-morph'
     | '/__thread-device'
     | '/__toasts'
     | '/__tokens'
+    | '/__tool-output'
     | '/desktop'
     | '/dither-cover'
     | '/onboarding'
@@ -1813,9 +1834,11 @@ export interface FileRouteTypes {
     | '/__model-picker'
     | '/__new-thread-selects'
     | '/__skeletons'
+    | '/__text-morph'
     | '/__thread-device'
     | '/__toasts'
     | '/__tokens'
+    | '/__tool-output'
     | '/desktop'
     | '/dither-cover'
     | '/onboarding'
@@ -1983,9 +2006,11 @@ export interface FileRouteTypes {
     | '/__model-picker'
     | '/__new-thread-selects'
     | '/__skeletons'
+    | '/__text-morph'
     | '/__thread-device'
     | '/__toasts'
     | '/__tokens'
+    | '/__tool-output'
     | '/desktop'
     | '/dither-cover'
     | '/onboarding'
@@ -2157,9 +2182,11 @@ export interface RootRouteChildren {
   Char91__modelPickerChar93Route: typeof Char91__modelPickerChar93Route
   Char91__newThreadSelectsChar93Route: typeof Char91__newThreadSelectsChar93Route
   Char91__skeletonsChar93Route: typeof Char91__skeletonsChar93Route
+  Char91__textMorphChar93Route: typeof Char91__textMorphChar93Route
   Char91__threadDeviceChar93Route: typeof Char91__threadDeviceChar93Route
   Char91__toastsChar93Route: typeof Char91__toastsChar93Route
   Char91__tokensChar93Route: typeof Char91__tokensChar93Route
+  Char91__toolOutputChar93Route: typeof Char91__toolOutputChar93Route
   DesktopRoute: typeof DesktopRoute
   DitherCoverRoute: typeof DitherCoverRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -2254,6 +2281,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91__skeletonsChar93RouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/__text-morph': {
+      id: '/__text-morph'
+      path: '/__text-morph'
+      fullPath: '/__text-morph'
+      preLoaderRoute: typeof Char91__textMorphChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/__thread-device': {
       id: '/__thread-device'
       path: '/__thread-device'
@@ -2273,6 +2307,13 @@ declare module '@tanstack/react-router' {
       path: '/__tokens'
       fullPath: '/__tokens'
       preLoaderRoute: typeof Char91__tokensChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__tool-output': {
+      id: '/__tool-output'
+      path: '/__tool-output'
+      fullPath: '/__tool-output'
+      preLoaderRoute: typeof Char91__toolOutputChar93RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app': {
@@ -3737,9 +3778,11 @@ const rootRouteChildren: RootRouteChildren = {
   Char91__modelPickerChar93Route: Char91__modelPickerChar93Route,
   Char91__newThreadSelectsChar93Route: Char91__newThreadSelectsChar93Route,
   Char91__skeletonsChar93Route: Char91__skeletonsChar93Route,
+  Char91__textMorphChar93Route: Char91__textMorphChar93Route,
   Char91__threadDeviceChar93Route: Char91__threadDeviceChar93Route,
   Char91__toastsChar93Route: Char91__toastsChar93Route,
   Char91__tokensChar93Route: Char91__tokensChar93Route,
+  Char91__toolOutputChar93Route: Char91__toolOutputChar93Route,
   DesktopRoute: DesktopRoute,
   DitherCoverRoute: DitherCoverRoute,
   OnboardingRoute: OnboardingRoute,

@@ -31,3 +31,24 @@ it("pluralizes update counts", () => {
   expect(clusterSummary([task(), task()])).toBe("2 subagent reports");
   expect(clusterSummary([task()])).toBe("subagent report");
 });
+
+it("opens its members when the folded line is clicked", async () => {
+  const { cleanup, fireEvent, render, screen } = await import(
+    "@testing-library/react"
+  );
+  const { ClusterRow } = await import("./cluster-row");
+  const cluster = {
+    ...base,
+    type: "cluster",
+    members: [task()],
+    expanded: false,
+  } as unknown as Parameters<typeof ClusterRow>[0]["row"];
+  render(<ClusterRow row={cluster} />);
+  const trigger = screen.getByRole("button");
+  expect(trigger.getAttribute("aria-expanded")).toBe("false");
+  expect(screen.queryByText("Subagent 1 finished")).toBeNull();
+  fireEvent.click(trigger);
+  expect(trigger.getAttribute("aria-expanded")).toBe("true");
+  expect(screen.queryByText("Subagent 1 finished")).not.toBeNull();
+  cleanup();
+});

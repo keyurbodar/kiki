@@ -13,7 +13,7 @@ import {
   resolveActiveOrgId,
   selectedOrgIdAtom,
 } from "@/data/atoms/session";
-import { idleThreadPageAtom, threadsAtom } from "@/data/atoms/threads";
+import { useThreadsAtom } from "@/data/atoms/threads";
 import { useCaptainCrew } from "@/features/captains/overview/use-captain";
 import {
   MobileThreadScreen,
@@ -51,6 +51,7 @@ import {
   type PaneTab,
   tabKey,
 } from "@/features/thread-panes/tab-strip";
+import { useThreadMachineEntries } from "@/features/thread-panes/tab-strip/thread-machines";
 import { TerminalPane } from "@/features/thread-panes/terminal-pane";
 import { ThreadDock } from "@/features/thread-panes/thread-dock";
 import {
@@ -110,11 +111,7 @@ export function ThreadRoute({
       setEditing(null);
   }, [editing, setEditing, timeline.rows]);
   const listed = Option.getOrUndefined(
-    AsyncResult.value(
-      useAtomValue(
-        orgId === undefined ? idleThreadPageAtom : threadsAtom(orgId as OrgId),
-      ),
-    ),
+    AsyncResult.value(useAtomValue(useThreadsAtom(orgId as OrgId | undefined))),
   );
   // The automated messages in this thread name their automation, so the list
   // starts loading with the route instead of when the first such row mounts.
@@ -144,6 +141,10 @@ export function ThreadRoute({
           a.id.localeCompare(b.id),
       )
       .map((row, index) => [row.id, index + 1]),
+  );
+  const machines = useThreadMachineEntries(
+    orgId as OrgId | undefined,
+    threadId as JamId,
   );
   const menuCrew = crew?.map((row) => ({
     id: row.id,
@@ -258,7 +259,12 @@ export function ThreadRoute({
               tabs={openTabs.tabs}
               activeId={activeId}
               title={title}
-              menu={{ sideThreads, pulls: pullEntries, crew: menuCrew }}
+              menu={{
+                sideThreads,
+                pulls: pullEntries,
+                crew: menuCrew,
+                machines,
+              }}
               expanded={expanded}
               onSelectTab={selectIn}
               onOpenTab={openTabIn}
@@ -288,7 +294,7 @@ export function ThreadRoute({
             activeId={headerActiveId}
             canExpand={dockOpen}
             onOpenPane={() => openInStrip("overview")}
-            menu={{ sideThreads, pulls: pullEntries, crew: menuCrew }}
+            menu={{ sideThreads, pulls: pullEntries, crew: menuCrew, machines }}
             cost={
               orgId === undefined ? undefined : (
                 <ThreadCostBadge orgId={orgId} jamId={threadId} />
