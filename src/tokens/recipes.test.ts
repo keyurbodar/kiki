@@ -29,4 +29,15 @@ describe("recipes.css", () => {
     for (const selector of declared)
       expect(selector).toMatch(/^\s*\.kiki-[\w-]+\s*\{$/);
   });
+
+  it("keeps to geometry, leaving paint and type to tsx", () => {
+    const paint = source
+      .split("\n")
+      .filter((line) =>
+        /^\s*(?:color|background|background-color|font-size|font-weight|font-family|line-height):/.test(
+          line,
+        ),
+      );
+    expect(paint).toEqual([]);
+  });
 });
