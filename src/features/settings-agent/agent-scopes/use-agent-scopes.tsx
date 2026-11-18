@@ -50,9 +50,7 @@ export const resultValue = <A, E>(result: AsyncResult.AsyncResult<A, E>) =>
 export function useAgentOrg() {
   const organizations = resultValue(useAtomValue(organizationsAtom));
   const activeOrgId = useActiveOrgId();
-  const org = organizations?.find(
-    (candidate) => candidate.id === activeOrgId,
-  );
+  const org = organizations?.find((candidate) => candidate.id === activeOrgId);
   return { org, orgId: org?.id };
 }
 

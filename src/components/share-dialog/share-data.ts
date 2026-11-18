@@ -4,7 +4,11 @@ import { AsyncResult, Atom } from "effect/reactivity";
 import { useMemo } from "react";
 import { JamId, OrgId } from "@/data/api/schemas/ids";
 import { queryTimeToLive, reactivityKeys } from "@/data/atoms/conventions";
-import { currentUserAtom, organizationsAtom, useActiveOrgId } from "@/data/atoms/session";
+import {
+  currentUserAtom,
+  organizationsAtom,
+  useActiveOrgId,
+} from "@/data/atoms/session";
 import { ApiClient } from "@/data/client/ApiClient";
 
 export type Visibility = "shared" | "private";

@@ -1,10 +1,7 @@
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import type { OrgId } from "@/data/api/schemas/ids";
-import {
-  currentUserAtom,
-  useActiveOrgId,
-} from "@/data/atoms/session";
+import { currentUserAtom, useActiveOrgId } from "@/data/atoms/session";
 
 /** The org the viewer is acting on. */
 export function useOrgId(): OrgId | undefined {

@@ -4,7 +4,6 @@ import { type ReactNode, useCallback, useState } from "react";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { githubInstallationReposAtom } from "@/data/atoms/project-settings";
 import { projectsAtom } from "@/data/atoms/projects";
-import { useActiveOrgId } from "@/data/atoms/session";
 import { Button } from "@/primitives/button";
 import {
   Dialog,
