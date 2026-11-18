@@ -173,7 +173,6 @@ function HomePageBody({
   ...props
 }: HomePageBodyProps) {
   const { open, isNarrow } = useSidebarState();
-  const shellRef = useRef<HTMLDivElement>(null);
   const { preferences } = useAppearance();
   const background = preferences.background;
   const [pickedProjectId, setPickedProjectId] = useState<string>();
@@ -228,14 +227,17 @@ function HomePageBody({
 
   return (
     <div
-      ref={shellRef}
       className={cn(
         "relative flex min-h-0 flex-1 flex-col overflow-clip",
         className,
       )}
       {...props}
     >
-      <FabricBackdrop panelRef={shellRef} />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 [background-image:var(--gradient-panel-air)]"
+      />
+      <FabricBackdrop effect={preferences.effect} />
       {isNarrow || !open ? (
         <div
           data-track-owner="features/home/home-page.tsx#HomePage:SidebarTrigger.1"
@@ -244,10 +246,6 @@ function HomePageBody({
           <SidebarTrigger className="transition-opacity delay-150 duration-100 starting:opacity-0" />
         </div>
       ) : null}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 [background-image:var(--gradient-panel-air)]"
-      />
       {background === null ? null : (
         <DashboardBackdrop
           image={background.url}
