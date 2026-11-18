@@ -127,6 +127,9 @@ export const pullDetails = pulls.map((pull) => ({
     .filter((issue) => issue.pullIds.includes(pull.id))
     .map((issue) => issue.id),
   authorLogin: authorLogin(pull.authorId),
+  authorAvatarUrl: `data:image/svg+xml;utf8,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#e8e8e8"/><circle cx="16" cy="12" r="5" fill="#b8b8b8"/><path d="M6 30c1.5-6 5.5-9 10-9s8.5 3 10 9z" fill="#b8b8b8"/></svg>`,
+  )}`,
   repoFullName: pull.repo,
   url: `https://github.com/${pull.repo}/pull/${pull.number}`,
   body:
@@ -134,6 +137,14 @@ export const pullDetails = pulls.map((pull) => ({
       ? "Working through the retry limit and the test for gateway timeouts."
       : `Updates ${pull.headRef} for the ${pull.baseRef} branch. Closes the linked issue.`,
   filesChanged: pullFiles.length,
+  diffBreakdown:
+    pull.number % 2 === 0
+      ? {
+          database: { files: 1, additions: 4, deletions: 1 },
+          tests: { files: 2, additions: 18, deletions: 3 },
+          generated: { files: 0, additions: 0, deletions: 0 },
+        }
+      : null,
   commentsCount: pull.number === 128 ? 2 : pull.number === 131 ? 1 : 0,
   commitsCount: 2,
   mergedAt: pull.state === "merged" ? isoMinutesAgo(9 * 24 * 60) : null,
@@ -634,7 +645,6 @@ export const pullDetail = (pullId: string) => {
   return {
     ...detail,
     authorName: `${author.firstName} ${author.lastName}`,
-    authorAvatarUrl: `https://example.com/avatars/${author.id}.png`,
   };
 };
 

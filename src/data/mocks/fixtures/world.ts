@@ -390,6 +390,7 @@ export const threads = {
     number: 609,
     title: "Weekly digest email, rendered from the org",
     projectId: projects.web.id,
+    archived: true,
   },
   listPreviewRetry: {
     id: "jam_sample_list_340",
@@ -408,12 +409,14 @@ export const threads = {
     number: 612,
     title: "Bump the runtime image to the new base",
     projectId: projects.web.id,
+    archived: true,
   },
   listSchemaAudit: {
     id: "jam_sample_list_343",
     number: 613,
     title: "Drop the unused schema columns",
     projectId: projects.web.id,
+    archived: true,
   },
   listDraftSearch: {
     id: "jam_sample_list_344",
@@ -426,6 +429,7 @@ export const threads = {
     number: 615,
     title: "Remove the legacy webhook queue",
     projectId: projects.web.id,
+    archived: true,
   },
   listMemo: {
     id: "jam_sample_list_346",
