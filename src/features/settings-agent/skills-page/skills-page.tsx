@@ -1,6 +1,7 @@
-import { useAtomValue } from "@effect/atom-react";
+import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
+import { FailedRead } from "@/components/failed-read";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import {
   type DriveScopeFiles,
@@ -183,8 +184,12 @@ export function SkillsPage() {
   const result = useAtomValue(
     driveScopesFilesAtom(scopes.map((scope) => scope.filtersKey).join("\n")),
   );
-  const files: ReadonlyArray<DriveScopeFiles | undefined> =
-    resultValue(result) ?? [];
+  const loaded = resultValue(result);
+  const files: ReadonlyArray<DriveScopeFiles | undefined> = loaded?.files ?? [];
+  const failedScopes = loaded?.failed ?? 0;
+  const retry = useAtomRefresh(
+    driveScopesFilesAtom(scopes.map((scope) => scope.filtersKey).join("\n")),
+  );
   const loading =
     !ready ||
     ((AsyncResult.isInitial(result) || AsyncResult.isWaiting(result)) &&
@@ -267,6 +272,18 @@ export function SkillsPage() {
               </ResponsiveMenu>
             }
           />
+          {failedScopes > 0 && !loading && (
+            <FailedRead
+              slot="skills-load-failed"
+              line="Couldn't load the skills in Drive"
+              sub={
+                failedScopes === 1
+                  ? "One scope did not load, so this list would be short"
+                  : `${failedScopes} scopes did not load, so this list would be short`
+              }
+              onRetry={retry}
+            />
+          )}
           {loading &&
             [0, 1].map((index) => (
               <SettingsRow
@@ -276,18 +293,22 @@ export function SkillsPage() {
                 description={<SkeletonPanel className="h-3 w-56" />}
               />
             ))}
-          {matches.slice(0, visible).map((skill) => (
-            <SkillRow
-              key={`${skill.scope.key}:${skill.name}`}
-              skill={skill}
-              highlighted={
-                open?.scopeKey === skill.scope.key && open.name === skill.name
-              }
-              onOpen={() =>
-                setOpen({ scopeKey: skill.scope.key, name: skill.name })
-              }
-            />
-          ))}
+          {failedScopes === 0 &&
+            matches
+              .slice(0, visible)
+              .map((skill) => (
+                <SkillRow
+                  key={`${skill.scope.key}:${skill.name}`}
+                  skill={skill}
+                  highlighted={
+                    open?.scopeKey === skill.scope.key &&
+                    open.name === skill.name
+                  }
+                  onOpen={() =>
+                    setOpen({ scopeKey: skill.scope.key, name: skill.name })
+                  }
+                />
+              ))}
           {matches.length > visible && (
             <div className="flex justify-center p-3">
               <Button

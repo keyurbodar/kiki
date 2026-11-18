@@ -1,4 +1,4 @@
-import { Effect, Schema } from "effect";
+import { Effect, Exit, Schema } from "effect";
 import { Atom } from "effect/reactivity";
 import { VolumeId, VolumeVersionId } from "../api/schemas/drive.ts";
 import { OrgId } from "../api/schemas/ids.ts";
@@ -243,17 +243,37 @@ export const driveScopeFilesAtom = Atom.family((key: string) =>
   ),
 );
 
-/** Several scopes' files at once, keyed by their keys joined with newlines; a scope that fails reads as undefined. */
+/** Several scopes' files, in the order the keys were given. */
+export type DriveScopesFiles = {
+  /** One entry per key; undefined where that scope's read failed. */
+  readonly files: ReadonlyArray<DriveScopeFiles | undefined>;
+  /** How many scopes failed, so a reader can say so instead of showing fewer. */
+  readonly failed: number;
+};
+
+/**
+ * Several scopes' files at once, keyed by their keys joined with newlines.
+ *
+ * A scope that fails is counted rather than swallowed: a reader that showed the
+ * scopes it did get would report an empty or short list as if that were the
+ * whole truth, which is the same collapse as an empty state standing in for a
+ * failed read.
+ */
 export const driveScopesFilesAtom = Atom.family((keys: string) =>
   Atom.make((get) =>
     Effect.forEach(
       keys === "" ? [] : keys.split("\n"),
-      (key) =>
-        get.result(driveScopeFilesAtom(key)).pipe(
-          Effect.map((files): DriveScopeFiles | undefined => files),
-          Effect.orElseSucceed(() => undefined),
-        ),
+      (key) => get.result(driveScopeFilesAtom(key)).pipe(Effect.exit),
       { concurrency: "unbounded" },
+    ).pipe(
+      Effect.map(
+        (exits): DriveScopesFiles => ({
+          files: exits.map((exit) =>
+            Exit.isSuccess(exit) ? exit.value : undefined,
+          ),
+          failed: exits.filter(Exit.isFailure).length,
+        }),
+      ),
     ),
   ),
 );
