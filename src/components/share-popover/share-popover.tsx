@@ -1,9 +1,8 @@
 import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
-import { AsyncResult } from "effect/reactivity";
+import { AsyncResult, type Atom } from "effect/reactivity";
 import { useEffect, useState } from "react";
-import type { VolumeId } from "@/data/api/schemas/drive";
-import type { OrgId } from "@/data/api/schemas/ids";
+import { idleAtom } from "@/data/atoms/idle";
 import { Button } from "@/primitives/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
@@ -25,13 +24,15 @@ export interface SharePopoverProps {
   readonly disabled?: boolean;
 }
 
+const idleShares = idleAtom();
+
 export function SharePopover({ volume, path, disabled }: SharePopoverProps) {
   const orgId = useActiveOrgId();
   const volumeId = volumeIdOf(volume.id);
-  const sharesAtom = volumeSharesAtom(
-    orgId ?? ("" as OrgId),
-    volumeId ?? ("" as VolumeId),
-  );
+  const sharesAtom: Atom.Atom<AsyncResult.AsyncResult<unknown, unknown>> =
+    orgId === undefined || volumeId === undefined
+      ? idleShares
+      : volumeSharesAtom(orgId, volumeId);
   const result = useAtomValue(sharesAtom);
   const refresh = useAtomRefresh(sharesAtom);
   const value = Option.getOrUndefined(AsyncResult.value(result));

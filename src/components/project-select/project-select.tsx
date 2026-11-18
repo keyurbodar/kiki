@@ -4,6 +4,8 @@ import { AsyncResult } from "effect/reactivity";
 import { type ComponentProps, useState } from "react";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { Project } from "@/data/api/schemas/project";
+import type { ThreadCardPage } from "@/data/api/schemas/thread";
+import { idleAtom } from "@/data/atoms/idle";
 import { projectsAtom } from "@/data/atoms/projects";
 import { currentUserAtom } from "@/data/atoms/session";
 import { threadsAtom } from "@/data/atoms/threads";
@@ -62,10 +64,16 @@ export type ProjectSelectProps = Omit<ComponentProps<"div">, "children"> & {
 const successValue = <A,>(result: AsyncResult.AsyncResult<A, unknown>) =>
   AsyncResult.isSuccess(result) ? result.value : undefined;
 
+const idleProjects = idleAtom<readonly Project[]>();
+const idleThreads = idleAtom<ThreadCardPage>();
+
 function useProjectSources(orgId: OrgId | undefined) {
-  const key = orgId ?? ("" as OrgId);
-  const projects = successValue(useAtomValue(projectsAtom(key)));
-  const threads = successValue(useAtomValue(threadsAtom(key)));
+  const projects = successValue(
+    useAtomValue(orgId === undefined ? idleProjects : projectsAtom(orgId)),
+  );
+  const threads = successValue(
+    useAtomValue(orgId === undefined ? idleThreads : threadsAtom(orgId)),
+  );
   const user = successValue(useAtomValue(currentUserAtom));
   if (orgId === undefined)
     return { projects: undefined, threads: [], userId: undefined };
