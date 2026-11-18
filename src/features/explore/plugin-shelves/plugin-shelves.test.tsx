@@ -203,7 +203,11 @@ it("mounts the shelves and the Categories control on the plugin kind view", asyn
     await screen.findByRole("heading", { name: "Recently added" }),
   ).toBeTruthy();
   expect(screen.getByRole("button", { name: "Categories" })).toBeTruthy();
-  const buttons = [...container.querySelectorAll('[data-slot="button"]')];
+  const buttons = [
+    ...container.querySelectorAll(
+      '[data-slot="button"], [data-slot="menu-trigger"]',
+    ),
+  ];
   const icons = [...container.querySelectorAll('[data-slot="button-icon"]')];
   expect(icons.length).toBeGreaterThan(0);
   for (const icon of icons)

@@ -15,6 +15,7 @@ import {
   SidebarPanel,
   SidebarProvider,
   SidebarTrigger,
+  SidebarTriggerRail,
   useSidebarActions,
   useSidebarState,
 } from "./sidebar";
@@ -142,5 +143,29 @@ describe("SidebarProvider", () => {
     expect(() => render(<Probe />)).toThrow(
       "useSidebarState must be inside SidebarProvider",
     );
+  });
+});
+
+describe("SidebarTriggerRail", () => {
+  it("renders the trigger inside a provider and nothing outside one", () => {
+    const { rerender } = render(
+      <SidebarProvider>
+        <SidebarTriggerRail />
+      </SidebarProvider>,
+    );
+    const toggleName = /sidebar$/i;
+    expect(screen.getByRole("button", { name: toggleName })).toBeTruthy();
+    rerender(<SidebarTriggerRail />);
+    expect(screen.queryByRole("button", { name: toggleName })).toBeNull();
+  });
+
+  it("keeps the next item's inset when the bar asks for the wider gap", () => {
+    const { container } = render(
+      <SidebarProvider>
+        <SidebarTriggerRail tight={false} />
+      </SidebarProvider>,
+    );
+    const rail = container.firstElementChild as HTMLElement;
+    expect(rail.className).not.toContain("-mr-1");
   });
 });

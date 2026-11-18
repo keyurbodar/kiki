@@ -1,7 +1,7 @@
 import { cx } from "class-variance-authority";
 import type { ComponentProps, ReactNode } from "react";
 import { desktopBridge } from "@/lib/desktop-bridge";
-import { SidebarTrigger, useSidebarStateOptional } from "@/primitives/sidebar";
+import { SidebarTriggerRail } from "@/primitives/sidebar";
 
 export type AppTopBarProps = Omit<ComponentProps<"header">, "title"> & {
   /** The page title, shown after the leading breadcrumb. */
@@ -48,22 +48,5 @@ export function AppTopBar({
         <div className="ml-auto flex items-center gap-1.5 pl-2">{trailing}</div>
       )}
     </header>
-  );
-}
-
-function SidebarTriggerRail() {
-  const sidebar = useSidebarStateOptional();
-  if (sidebar === null) return null;
-  const visible = sidebar.isNarrow || !sidebar.open;
-  return (
-    <span
-      inert={!visible || undefined}
-      className={cx(
-        "ease-out-quint flex shrink-0 items-center overflow-hidden transition-[width,margin,opacity] duration-base [[data-tab-strip]_&]:hidden motion-reduce:transition-none",
-        visible ? "w-(--h-control-sm) -mr-1 opacity-100" : "mr-0 w-0 opacity-0",
-      )}
-    >
-      <SidebarTrigger />
-    </span>
   );
 }

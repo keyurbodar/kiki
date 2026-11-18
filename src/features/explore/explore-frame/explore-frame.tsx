@@ -4,6 +4,7 @@ import { CapyLogo } from "@/components/capy-logo";
 import { Button, type ButtonVariants } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
+import { SidebarTriggerRail } from "@/primitives/sidebar";
 import { Toaster } from "@/primitives/toaster";
 import { useExploreSession } from "../theme-visibility";
 
@@ -55,7 +56,8 @@ export function ExploreFrame({ crumbs, trailing }: ExploreFrameProps) {
   if (!signedIn && crumbs.length < 2) return null;
   return (
     <header className="sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center border-b-(length:--border-width-hairline) border-border-1 bg-panel px-2">
-      <div className="flex min-w-0 flex-1 items-center">
+      <SidebarTriggerRail tight={false} />
+      <div className="flex min-w-0 flex-1 items-center pl-2">
         <ExploreCrumbs crumbs={crumbs} />
       </div>
       {trailing !== undefined && (
