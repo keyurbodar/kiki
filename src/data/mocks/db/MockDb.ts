@@ -1,4 +1,5 @@
 import { Context, Effect, Layer, Ref } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { world } from "../fixtures/world.ts";
 import { makeOrgState, type OrgState } from "../organizations/state.ts";
 
@@ -125,6 +126,16 @@ export const fields = (payload: unknown): Record<string, unknown> =>
  */
 export const missing = (table: TableName, id: string) =>
   Effect.die(new Error(`MockDb.${table}: no row ${id}`));
+
+/**
+ * An id that names no row, answered as the `404` the endpoint declares. A
+ * caller reads it as a typed not-found instead of decoding a status the
+ * contract never described.
+ */
+export const notFound = (table: TableName, id: string) =>
+  Effect.fail(
+    new HttpApiError.NotFound({ message: `No ${table} row ${id}` } as never),
+  );
 
 /** A fresh id for a row a mock creates, e.g. `newId("lbl")` → `lbl_mock_1`. */
 export const newId = (prefix: string) => `${prefix}_mock_${++sequence}`;
