@@ -20,6 +20,7 @@ import { JamChat } from "@/features/thread/jam-chat";
 import { ThreadMessageActions } from "@/features/thread/thread-view/message-actions";
 import { useThreadTimeline } from "@/features/thread/timeline";
 import { useComposerSend } from "@/features/thread/use-composer-send";
+import { useSideThreads } from "@/features/thread-panes/side-threads";
 import { type PaneTab, tabLink } from "@/features/thread-panes/tab-strip";
 import { findPane } from "@/features/thread-panes/thread-pane";
 import { Button } from "@/primitives/button";
@@ -208,6 +209,7 @@ function MobileThreadBody({
   const navigate = useNavigate();
   const composerRef = useRef<ComposerHandle>(null);
   const openHandoff = useAtomSet(openHandoffAtom, { mode: "promiseExit" });
+  const sideThreads = useSideThreads(orgId ?? "", threadId);
   const moveToCloud = async () => {
     if (orgId === undefined) return;
     const exit = await openHandoff({
@@ -287,13 +289,15 @@ function MobileThreadBody({
             ...pane,
             open: openTabs.includes(pane.id),
           }))}
-          sideThreads={0}
+          sideThreads={sideThreads}
           terminals={{
             status: machine?.live ? "Awake" : "Asleep",
             live: machine?.live ?? false,
           }}
           onOpenPane={openPane}
-          onOpenSideThreads={() => {}}
+          onOpenSideThread={(id) =>
+            void navigate({ to: "/thread/$threadId", params: { threadId: id } })
+          }
           onNewTerminal={() => openPane("terminal")}
         />
       }

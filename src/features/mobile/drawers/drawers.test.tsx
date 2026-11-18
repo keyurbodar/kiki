@@ -18,23 +18,29 @@ const panes = [
 describe("MobileTabDrawer", () => {
   it("lists panes, crew and terminals, and filters panes by search", () => {
     const onOpenPane = vi.fn();
+    const onOpenSideThread = vi.fn();
     render(
       <MobileTabDrawer
         open
         title="Sample thread"
         panes={panes}
         crew={{ threads: 2, pullRequests: 5 }}
-        sideThreads={1}
+        sideThreads={[
+          { id: "jam_side_isolation", title: "Isolate the slow shards" },
+        ]}
         terminals={{ status: "Awake", live: true }}
         onOpenPane={onOpenPane}
-        onOpenSideThreads={() => {}}
+        onOpenSideThread={onOpenSideThread}
         onNewTerminal={() => {}}
       />,
     );
     expect(screen.getByText("Sample thread")).toBeTruthy();
+    expect(screen.getByText("Isolate the slow shards")).toBeTruthy();
     expect(screen.getByText("Crew")).toBeTruthy();
     expect(screen.getByText("Pull requests")).toBeTruthy();
     expect(screen.getByText("Awake")).toBeTruthy();
+    fireEvent.click(screen.getByText("Isolate the slow shards"));
+    expect(onOpenSideThread).toHaveBeenCalledWith("jam_side_isolation");
     fireEvent.change(screen.getByLabelText("Search tabs"), {
       target: { value: "fil" },
     });
@@ -50,10 +56,10 @@ describe("MobileTabDrawer", () => {
         open
         title="Sample thread"
         panes={panes}
-        sideThreads={0}
+        sideThreads={[]}
         terminals={{ status: "Awake", live: true }}
         onOpenPane={() => {}}
-        onOpenSideThreads={() => {}}
+        onOpenSideThread={() => {}}
         onNewTerminal={() => {}}
       />,
     );

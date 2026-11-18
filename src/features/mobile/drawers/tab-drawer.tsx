@@ -23,7 +23,8 @@ export type MobileTabDrawerProps = {
   panes: ReadonlyArray<MobileTabPane>;
   /** Captain threads list their crew's threads and pull requests. */
   crew?: { threads: number; pullRequests: number };
-  sideThreads: number;
+  /** The thread's side threads, with the titles they carry. */
+  sideThreads: ReadonlyArray<{ id: string; title: string | null }>;
   terminals: { status: string; live: boolean };
   trigger?: ReactElement;
   open?: boolean;
@@ -31,7 +32,7 @@ export type MobileTabDrawerProps = {
   onOpenPane: (id: string) => void;
   onOpenCrewThreads?: () => void;
   onOpenPullRequests?: () => void;
-  onOpenSideThreads: () => void;
+  onOpenSideThread: (id: string) => void;
   onNewTerminal: () => void;
 };
 
@@ -60,7 +61,7 @@ export function MobileTabDrawer({
   onOpenPane,
   onOpenCrewThreads,
   onOpenPullRequests,
-  onOpenSideThreads,
+  onOpenSideThread,
   onNewTerminal,
 }: MobileTabDrawerProps) {
   const [query, setQuery] = useState("");
@@ -120,9 +121,15 @@ export function MobileTabDrawer({
           <MobileDrawerItem
             icon={<MobileIcon name="side-thread" />}
             label="Side threads"
-            trailing={<Count value={sideThreads} />}
-            onClick={onOpenSideThreads}
+            trailing={<Count value={sideThreads.length} />}
           />
+          {sideThreads.map((sideThread) => (
+            <MobileDrawerItem
+              key={sideThread.id}
+              label={sideThread.title ?? "Untitled side thread"}
+              onClick={() => onOpenSideThread(sideThread.id)}
+            />
+          ))}
           <MobileDrawerSeparator />
           <MobileDrawerLabel className="gap-2">
             <span className="min-w-0 flex-1 truncate">Terminals</span>
