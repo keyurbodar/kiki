@@ -30,6 +30,11 @@ import {
   menuTrailingClassName,
 } from "@/primitives/menu";
 import {
+  PreviewCard,
+  PreviewCardContent,
+  PreviewCardTrigger,
+} from "@/primitives/preview-card";
+import {
   ResponsiveMenu,
   ResponsiveMenuContent,
   ResponsiveMenuItem,
@@ -40,6 +45,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { useSetupRestore } from "./use-setup-restore";
 import { UserAvatar } from "./user-avatar";
+import { UserPreview } from "./user-preview";
 
 export const createOrganizationDialogOpenAtom = Atom.make(false);
 
@@ -158,130 +164,139 @@ export function UserMenu({ compact = false, ...props }: UserMenuProps) {
 
   return (
     <div {...props}>
-      <ResponsiveMenu>
-        {compact ? (
-          <Tooltip>
-            <TooltipTrigger render={trigger} />
-            <TooltipContent side="top">{name}</TooltipContent>
-          </Tooltip>
-        ) : (
-          trigger
-        )}
-        <ResponsiveMenuContent align="start" side="top" className="w-56">
-          {setup.restorable ? (
-            <ResponsiveMenuItem onClick={setup.restore}>
+      <PreviewCard>
+        <ResponsiveMenu>
+          {compact ? (
+            <Tooltip>
+              <TooltipTrigger render={trigger} />
+              <TooltipContent side="top">{name}</TooltipContent>
+            </Tooltip>
+          ) : (
+            <PreviewCardTrigger render={trigger} />
+          )}
+          <ResponsiveMenuContent align="start" side="top" className="w-56">
+            {setup.restorable ? (
+              <ResponsiveMenuItem onClick={setup.restore}>
+                <span className={menuIconClassName}>
+                  <Icon name="checklist" size="sm" />
+                </span>
+                Finish setting up
+              </ResponsiveMenuItem>
+            ) : null}
+            <ResponsiveMenuItem onClick={open("/settings/general")}>
               <span className={menuIconClassName}>
-                <Icon name="checklist" size="sm" />
+                <SettingsGearIcon />
               </span>
-              Finish setting up
+              Settings
+              <span className={menuTrailingClassName}>
+                {settingsShortcutLabel(isMac())}
+              </span>
             </ResponsiveMenuItem>
-          ) : null}
-          <ResponsiveMenuItem onClick={open("/settings/general")}>
-            <span className={menuIconClassName}>
-              <SettingsGearIcon />
-            </span>
-            Settings
-            <span className={menuTrailingClassName}>
-              {settingsShortcutLabel(isMac())}
-            </span>
-          </ResponsiveMenuItem>
-          <ResponsiveMenuItem onClick={open("/settings/org/usage")}>
-            <span className={menuIconClassName}>
-              <Icon name="gauge" size="sm" />
-            </span>
-            Usage
-          </ResponsiveMenuItem>
-          <SidebarReferralMenu />
-          <ResponsiveMenuSub
-            icon={<ContrastIcon />}
-            label="Appearance"
-            contentClassName="w-60"
-          >
-            <AppearanceMenuItems />
-          </ResponsiveMenuSub>
-          <ResponsiveMenuSub icon={<BubbleQuestionIcon />} label="Support">
-            <ResponsiveMenuItem
-              onClick={() =>
-                window.open(
-                  "https://docs.capy.ai",
-                  "_blank",
-                  "noopener,noreferrer",
-                )
-              }
+            <ResponsiveMenuItem onClick={open("/settings/org/usage")}>
+              <span className={menuIconClassName}>
+                <Icon name="gauge" size="sm" />
+              </span>
+              Usage
+            </ResponsiveMenuItem>
+            <SidebarReferralMenu />
+            <ResponsiveMenuSub
+              icon={<ContrastIcon />}
+              label="Appearance"
+              contentClassName="w-60"
             >
-              <span className={menuIconClassName}>
-                <Icon name="book" size="sm" />
-              </span>
-              Documentation
-            </ResponsiveMenuItem>
-            <ResponsiveMenuItem
-              onClick={() =>
-                window.open(
-                  supportMailto(
-                    user?.id,
-                    window.location.origin + window.location.pathname,
-                  ),
-                  "_blank",
-                  "noopener,noreferrer",
-                )
-              }
-            >
-              <span className={menuIconClassName}>
-                <Icon name="mailbox" size="sm" />
-              </span>
-              Contact us
-            </ResponsiveMenuItem>
-            <ResponsiveMenuItem>
-              <span className={menuIconClassName}>
-                <Icon name="megaphone" size="sm" />
-              </span>
-              Send feedback
-            </ResponsiveMenuItem>
-          </ResponsiveMenuSub>
-          <ResponsiveMenuSeparator />
-          <ResponsiveMenuSub
-            icon={<ArrowsRepeatRightLeftIcon />}
-            label="Switch organization"
-          >
-            {organizations.map((org) => (
+              <AppearanceMenuItems />
+            </ResponsiveMenuSub>
+            <ResponsiveMenuSub icon={<BubbleQuestionIcon />} label="Support">
               <ResponsiveMenuItem
-                key={org.id}
-                onClick={() => selectOrg(org.id)}
+                onClick={() =>
+                  window.open(
+                    "https://docs.capy.ai",
+                    "_blank",
+                    "noopener,noreferrer",
+                  )
+                }
               >
                 <span className={menuIconClassName}>
-                  <UserAvatar src={org.avatarUrl} name={org.name} size="xs" />
+                  <Icon name="book" size="sm" />
                 </span>
-                {org.name}
-                {org.id === activeOrgId ? (
-                  <CheckmarkIcon className={`ml-auto ${menuCheckClassName}`} />
-                ) : null}
+                Documentation
               </ResponsiveMenuItem>
-            ))}
+              <ResponsiveMenuItem
+                onClick={() =>
+                  window.open(
+                    supportMailto(
+                      user?.id,
+                      window.location.origin + window.location.pathname,
+                    ),
+                    "_blank",
+                    "noopener,noreferrer",
+                  )
+                }
+              >
+                <span className={menuIconClassName}>
+                  <Icon name="mailbox" size="sm" />
+                </span>
+                Contact us
+              </ResponsiveMenuItem>
+              <ResponsiveMenuItem>
+                <span className={menuIconClassName}>
+                  <Icon name="megaphone" size="sm" />
+                </span>
+                Send feedback
+              </ResponsiveMenuItem>
+            </ResponsiveMenuSub>
             <ResponsiveMenuSeparator />
-            <ResponsiveMenuItem onClick={() => openCreateOrganization(true)}>
+            <ResponsiveMenuSub
+              icon={<ArrowsRepeatRightLeftIcon />}
+              label="Switch organization"
+            >
+              {organizations.map((org) => (
+                <ResponsiveMenuItem
+                  key={org.id}
+                  onClick={() => selectOrg(org.id)}
+                >
+                  <span className={menuIconClassName}>
+                    <UserAvatar src={org.avatarUrl} name={org.name} size="xs" />
+                  </span>
+                  {org.name}
+                  {org.id === activeOrgId ? (
+                    <CheckmarkIcon
+                      className={`ml-auto ${menuCheckClassName}`}
+                    />
+                  ) : null}
+                </ResponsiveMenuItem>
+              ))}
+              <ResponsiveMenuSeparator />
+              <ResponsiveMenuItem onClick={() => openCreateOrganization(true)}>
+                <span className={menuIconClassName}>
+                  <PlusLargeIcon />
+                </span>
+                Create or join organization
+              </ResponsiveMenuItem>
+            </ResponsiveMenuSub>
+            <ResponsiveMenuItem
+              intent="danger"
+              onClick={() =>
+                logOut({
+                  signOut: () => signOut(),
+                  clearOrganization: () => selectOrg(null),
+                  goToSignIn: () => navigate({ to: "/sign-in" }),
+                })
+              }
+            >
               <span className={menuIconClassName}>
-                <PlusLargeIcon />
+                <DoorIcon />
               </span>
-              Create or join organization
+              Log out
             </ResponsiveMenuItem>
-          </ResponsiveMenuSub>
-          <ResponsiveMenuItem
-            intent="danger"
-            onClick={() =>
-              logOut({
-                signOut: () => signOut(),
-                clearOrganization: () => selectOrg(null),
-                goToSignIn: () => navigate({ to: "/sign-in" }),
-              })
-            }
-          >
-            <span className={menuIconClassName}>
-              <DoorIcon />
-            </span>
-            Log out
-          </ResponsiveMenuItem>
-        </ResponsiveMenuContent>
-      </ResponsiveMenu>
+          </ResponsiveMenuContent>
+        </ResponsiveMenu>
+        {compact ? null : (
+          <PreviewCardContent side="top" align="start">
+            <UserPreview user={user} name={name} orgName={activeOrg?.name} />
+          </PreviewCardContent>
+        )}
+      </PreviewCard>
     </div>
   );
 }

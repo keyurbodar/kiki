@@ -3,14 +3,17 @@ import type { SidebarThread } from "@/components/sidebar-threads";
 import type { FileId } from "@/data/api/schemas/files";
 import type { FileRef, UserId } from "@/data/events";
 import { SidebarThreadRow } from "@/features/sidebar/sidebar-thread-row";
+import { RowLabel, rowStatic } from "@/features/thread/activity-row";
 import type { AgentMessageRow } from "@/features/thread/agent-message";
 import { AgentMessage } from "@/features/thread/agent-message";
+import { formatDuration } from "@/features/thread/live-status";
 import { MessageActionsProvider } from "@/features/thread/message-footer";
 import {
   UserMessage,
   type UserMessageRow,
 } from "@/features/thread/user-message";
 import { Card } from "@/primitives/card";
+import { Collapsible } from "@/primitives/collapsible";
 import { Icon, type IconId } from "@/primitives/icon";
 
 /** The app drawn in a theme's palette, at the size the real shell would have it. */
@@ -104,7 +107,6 @@ const ownRow = (text: string, files: ReadonlyArray<FileRef>): UserMessageRow =>
   }) as unknown as UserMessageRow;
 
 const agentText = [
-  "Read **3 retries**  \nBailed **4 retries** +2 -1  \nRetries down",
   "The delay kept doubling because the attempt count never reset after a reconnect, so it sat capped at 30 seconds with no jitter.",
   [
     "```ts",
@@ -145,14 +147,79 @@ function NavRow({ label, icon }: { label: string; icon: IconId }) {
   );
 }
 
+/**
+ * The composer's surface at the specimen's own scale: the real card, hairline
+ * overlay, editor box and action row, without the live editor behind them.
+ */
 function ComposerStub() {
   return (
-    <span className="relative flex h-14 items-center rounded-(--radius-card) border-hairline border-border-2 bg-card px-3">
-      <span className="text-sm text-muted-foreground-3">
-        Ask for follow-up changes…
-      </span>
-      <span className="absolute right-2 bottom-2 size-4 rounded-(--radius-inner) bg-primary" />
-    </span>
+    <div
+      data-slot="composer"
+      className="relative @container/composer rounded-(--radius-card) bg-[color:var(--composer-surface,var(--card))] p-3 shadow-composer"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-(--radius-card) border-(length:--border-width-hairline) border-transparent [background:linear-gradient(180deg,var(--border-2),var(--border-1))] [mask:linear-gradient(black,black)_padding-box_exclude,linear-gradient(black,black)_border-box]"
+      />
+      <div className="relative min-h-16 w-full">
+        <span className="pointer-events-none absolute top-1 left-1 text-base font-normal text-muted-foreground-3">
+          Ask for follow-up changes
+        </span>
+      </div>
+      <div className="-mx-1 -mb-1 flex items-center gap-2 pt-1">
+        <span className="ml-auto flex size-7 shrink-0 items-center justify-center rounded-(--radius-inner) bg-primary text-primary-foreground">
+          <Icon name="arrow-up" className="size-3.5" />
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function SummaryRow({
+  label,
+  file,
+  added,
+  removed,
+  note,
+}: {
+  label: string;
+  file?: string;
+  added?: number;
+  removed?: number;
+  note?: string;
+}) {
+  return (
+    <Collapsible data-closed="">
+      <div className={rowStatic}>
+        <RowLabel text={label} live={false} />
+        {file === undefined ? null : (
+          <span className="min-w-0 truncate text-(--text-link)">{file}</span>
+        )}
+        {added === undefined ? null : (
+          <span className="shrink-0 tabular-nums">
+            <span className="text-diff-add">+ {added}</span>{" "}
+            <span className="text-diff-del">- {removed}</span>
+          </span>
+        )}
+        {note === undefined ? null : (
+          <span className="shrink-0 text-muted-foreground-2 tabular-nums">
+            {note}
+          </span>
+        )}
+        <Icon name="chevron-down-small" className="size-3 -rotate-90" />
+      </div>
+    </Collapsible>
+  );
+}
+
+/** The turn's tool activity, as the thread shows it: closed rows, one per call. */
+function TurnSummary() {
+  return (
+    <div className="flex flex-col">
+      <SummaryRow label="Read" file="retry.ts" />
+      <SummaryRow label="Edited" file="retry.ts" added={2} removed={1} />
+      <SummaryRow label="Ran test" note={formatDuration(4_000)} />
+    </div>
   );
 }
 
@@ -192,19 +259,19 @@ export function SpecimenApp() {
           />
         </div>
         <MessageActionsProvider value={ACTIONS}>
-          <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col overflow-hidden px-4 pt-3">
+          <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col gap-3 overflow-hidden px-4 pt-6">
             <UserMessage
               row={ownRow(
-                "Rotates: backoff the API right after a deploy, can you cap the backoff and add jitter?",
-                [],
+                "Retries hammer the API right after a deploy, so the backoff never settles.",
+                [LOG],
               )}
               footer={false}
             />
-            <UserMessage row={ownRow("", [LOG])} footer={false} />
+            <TurnSummary />
             <AgentMessage row={agentRow} />
           </div>
         </MessageActionsProvider>
-        <div className="mx-auto w-full max-w-4xl shrink-0 px-4 pb-3">
+        <div className="mx-auto w-full max-w-4xl shrink-0 px-4 pb-4">
           <ComposerStub />
         </div>
       </Card>

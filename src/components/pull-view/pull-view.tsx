@@ -892,7 +892,7 @@ export function PullView({
               onSelectFile={setSelectedFile}
             />
           ) : (
-            <PullGuideTab pullId={pull.id} />
+            <PullGuideTab pull={pullRef} />
           )}
         </div>
         {host === "page" && current !== "guide" && (

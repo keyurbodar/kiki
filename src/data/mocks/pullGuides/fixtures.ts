@@ -1,4 +1,5 @@
 import { isoMinutesAgo, pulls } from "../fixtures/world.ts";
+import { pullFiles } from "../pulls/fixtures.ts";
 
 export type GuideGroup = {
   readonly id: string;
@@ -16,6 +17,9 @@ export type PullGuideDocument = {
   readonly groups: ReadonlyArray<GuideGroup>;
   readonly generatedAt: string | null;
 };
+
+/** The files the pull's diff carries, so a chapter can mount a real card. */
+const [logicFile, testFile, surfaceFile] = pullFiles;
 
 const chapter = (
   id: string,
@@ -37,21 +41,21 @@ const completed = (pullId: string, title: string): PullGuideDocument => ({
       "surface",
       "The surface",
       "The visible change: what the reader sees first and which files carry it.",
-      ["src/app.tsx"],
+      [surfaceFile!.path],
       ["ui"],
     ),
     chapter(
       "logic",
       "The logic",
       "The behaviour behind the surface, where the interesting decisions live.",
-      ["src/lib/retry.ts"],
+      [logicFile!.path],
       ["data"],
     ),
     chapter(
       "tests",
       "The tests",
       "What proves it: the cases that would fail if the change were wrong.",
-      ["test/retry.test.ts", "test/app.test.tsx"],
+      [testFile!.path],
       ["tests"],
     ),
   ],

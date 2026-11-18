@@ -1191,6 +1191,35 @@ export const xinPullFindings = [
     file: "src/retry/policy.ts",
     observingHeadSha: "d0f27a5be913",
   },
+  {
+    id: "find_xin_118_3",
+    pullId: xinPull.id,
+    requestId: "req_xin_118_1",
+    title: "Keep the old ceiling for callers that pass nothing",
+    body: "Three attempts inside a 30 second window was the old ceiling; say so where the fallback is defined.",
+    severity: "low",
+    status: "open",
+    path: "src/retry/budget.ts",
+    line: 3,
+    startLine: null,
+    githubAnchor: {
+      file: "src/retry/budget.ts",
+      line: 3,
+      startLine: null,
+      side: "LEFT",
+      headSha: "d0f27a5be913",
+      outdated: false,
+    },
+    createdAt: isoMinutesAgo(2380),
+    kind: "note",
+    confidence: null,
+    summary: "Keep the old ceiling for callers that pass nothing",
+    detail:
+      "Three attempts inside a 30 second window was the old ceiling, and the fallback no longer says it.",
+    suggestion: null,
+    file: "src/retry/budget.ts",
+    observingHeadSha: "d0f27a5be913",
+  },
 ];
 
 export const xinPullReview = {

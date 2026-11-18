@@ -4,6 +4,11 @@ import { DateTime } from "effect";
 import { type ReactNode, useState } from "react";
 import { toast } from "sonner";
 import { IssueDueChip } from "@/components/issue-due";
+import {
+  type ChipIssue,
+  MarkdownChipsProvider,
+} from "@/components/markdown-chips";
+import { IssuePreview } from "@/components/markdown-chips/previews";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type {
   IssuePriority,
@@ -26,6 +31,11 @@ import {
   CollapsibleTrigger,
 } from "@/primitives/collapsible";
 import { Menu, MenuContent, MenuTrigger } from "@/primitives/menu";
+import {
+  PreviewCard,
+  PreviewCardContent,
+  PreviewCardTrigger,
+} from "@/primitives/preview-card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { ActorAvatar } from "../actor-filter";
 import { type IssueFilters, localDate, stateVisible } from "../issues-filters";
@@ -326,7 +336,22 @@ export function IssueRow({
     display.hidden.includes(property);
   const labels = hidden("labels") ? [] : (issue.labels ?? []);
   const unread = issue.viewer.unread || issue.viewer.mentions > 0;
-  return (
+  const chipIssue: ChipIssue = {
+    code: issue.code,
+    title: issue.title,
+    status: issue.status,
+    stateName: state?.name,
+    priority: issue.priority,
+    visibility: issue.visibility === "private" ? "private" : "shared",
+    assignee:
+      issue.assignee === null
+        ? null
+        : {
+            name: issue.assignee.name,
+            avatarUrl: issue.assignee.avatarUrl ?? undefined,
+          },
+  };
+  const row = (
     <Link
       to="/issues/$code"
       params={{ code: issue.code }}
@@ -442,6 +467,33 @@ export function IssueRow({
         )}
       </span>
     </Link>
+  );
+  return (
+    <PreviewCard>
+      <PreviewCardTrigger render={row} />
+      <PreviewCardContent side="right" align="start">
+        <MarkdownChipsProvider
+          value={{
+            renderIssueState: (_issue, className) =>
+              state === undefined ? null : (
+                <IssueStateIcon
+                  icon={state.icon}
+                  color={state.color}
+                  className={className}
+                />
+              ),
+            renderIssuePriority: (chipIssue, className) => (
+              <IssuePriorityIcon
+                priority={chipIssue.priority}
+                className={className}
+              />
+            ),
+          }}
+        >
+          <IssuePreview issue={chipIssue} />
+        </MarkdownChipsProvider>
+      </PreviewCardContent>
+    </PreviewCard>
   );
 }
 

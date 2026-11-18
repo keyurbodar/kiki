@@ -23,7 +23,8 @@ export type MessageActions = {
   viewerUserId?: string;
   /** Name replies to this thread's agent quote, e.g. a Captain's name. */
   agentName?: string;
-  resolveActor?: (actor: Actor) => MessageActor;
+  /** Absent or undefined falls back to the actor's own id, as `actorName` does. */
+  resolveActor?: (actor: Actor) => MessageActor | undefined;
   rowActors?: ReadonlyMap<string, Actor>;
   automationName?: (automationId: string) => string | undefined;
   reply?: (target: ReplyTarget) => void;
