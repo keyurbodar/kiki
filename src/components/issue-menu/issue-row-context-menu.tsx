@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { ActorSources } from "@/components/actor-filter";
 import type { IssueSummary } from "@/data/api/schemas/issue";
 import { IssueMenuItems } from "@/features/issues/issue-menu";
 import {
@@ -16,6 +17,8 @@ export type IssueRowContextMenuProps = {
   issue: IssueSummary;
   /** Opens the issue in place (the list's side panel); without it, Open navigates to the issue page. */
   onOpenIssue?: (code: string) => void;
+  /** The people, Captains and threads the Assignee row offers. */
+  actors?: ActorSources;
   /** The issue row the menu opens on. */
   children: ReactNode;
 };
@@ -27,6 +30,7 @@ export type IssueRowContextMenuProps = {
 export function IssueRowContextMenu({
   issue,
   onOpenIssue,
+  actors,
   children,
 }: IssueRowContextMenuProps) {
   return (
@@ -42,7 +46,11 @@ export function IssueRowContextMenu({
         className={`${menuPopupClassName} ${menuPartsClassName} w-56`}
       >
         <div role="presentation" data-menu-list className={menuListClassName}>
-          <IssueMenuItems issue={issue} onOpenIssue={onOpenIssue} />
+          <IssueMenuItems
+            issue={issue}
+            onOpenIssue={onOpenIssue}
+            actors={actors}
+          />
         </div>
       </ContextMenuContent>
     </ContextMenu>

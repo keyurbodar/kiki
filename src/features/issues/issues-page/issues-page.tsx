@@ -336,6 +336,7 @@ export function IssuesPage() {
                   }}
                   checked={checked}
                   onCheckedChange={setChecked}
+                  actors={sources.actors}
                 />
               )}
             </div>
