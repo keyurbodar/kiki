@@ -355,6 +355,13 @@ export type SidebarThreadsProps = ComponentProps<"div"> & {
   view?: SidebarThreadsView;
   leading?: ReactNode;
   actions?: ReactNode;
+  /** The Captains section's own header actions, separate from the threads' ones. */
+  captainActions?: ReactNode;
+  /**
+   * The Captains section's rows. Defaults to the view's rows; swapping the sample
+   * source for the org's Captains is this one prop at one call site.
+   */
+  captainsSource?: ReadonlyArray<SidebarCaptain>;
   renderThread?: (
     thread: SidebarThread,
     context: SidebarThreadRenderContext,
@@ -370,6 +377,8 @@ export function SidebarThreads({
   view,
   leading,
   actions,
+  captainActions,
+  captainsSource,
   renderThread,
   onSectionOpenChange,
   onShowMore,
@@ -389,6 +398,20 @@ export function SidebarThreads({
   }
   const captains = view.mode === "captains";
   const slim = view.density === "compact";
+  const captainList = captainsSource ?? view.captains;
+  const captainRows =
+    captainList.length === 0 ? (
+      <NewCaptainRow compact={slim} onClick={onNewCaptain} />
+    ) : (
+      captainList.map((captain) => (
+        <CaptainRow
+          key={captain.id}
+          captain={captain}
+          compact={slim}
+          active={view.activeId === captain.id}
+        />
+      ))
+    );
   const rowMenuThreads = new Map(
     view.sections.flatMap((section) =>
       section.threads.map((thread) => [
@@ -419,34 +442,30 @@ export function SidebarThreads({
         <div className="sticky top-0 z-1 flex h-8 shrink-0 items-center gap-1 bg-panel px-2 pb-1">
           {leading}
           <span className="px-2 text-sm font-medium text-foreground select-none">
-            {captains ? "Captains" : "Threads"}
+            Captains
           </span>
-          <div className="ml-auto flex items-center">{actions}</div>
+          <div className="ml-auto flex items-center">{captainActions}</div>
         </div>
         <div className="flex min-h-full flex-col px-2">
           {/* biome-ignore lint/a11y/useSemanticElements: Capy's sidebar list is a div with role=list */}
           <div role="list" className="flex flex-col">
-            {captains ? (
-              view.captains.length === 0 ? (
-                <NewCaptainRow compact={slim} onClick={onNewCaptain} />
-              ) : (
-                view.captains.map((captain) => (
-                  <CaptainRow
-                    key={captain.id}
-                    captain={captain}
-                    compact={slim}
-                    active={view.activeId === captain.id}
-                  />
-                ))
-              )
-            ) : (
-              <ThreadSections
-                view={view}
-                renderThread={renderThread}
-                onSectionOpenChange={onSectionOpenChange}
-                onShowMore={onShowMore}
-                onNewThread={onNewThread}
-              />
+            {captainRows}
+            {captains ? null : (
+              <>
+                <div className="mt-(--sidebar-section-gap) flex h-8 shrink-0 items-center gap-1 pb-1">
+                  <span className="px-2 text-sm font-medium text-foreground select-none">
+                    Threads
+                  </span>
+                  <div className="ml-auto flex items-center">{actions}</div>
+                </div>
+                <ThreadSections
+                  view={view}
+                  renderThread={renderThread}
+                  onSectionOpenChange={onSectionOpenChange}
+                  onShowMore={onShowMore}
+                  onNewThread={onNewThread}
+                />
+              </>
             )}
           </div>
         </div>
