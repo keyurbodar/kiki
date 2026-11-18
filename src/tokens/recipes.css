@@ -366,16 +366,44 @@
   .kiki-menu-row {
     display: flex;
     align-items: var(--row-align);
-    gap: var(--row-gap);
+    width: 100%;
+    min-width: 0;
+    gap: var(--menu-row-gap);
     height: var(--menu-row-h);
-    padding-inline: var(--row-px);
+    padding-inline: var(--menu-row-px);
+  }
+
+  /* A row with a description: content height over the menu row's own floor. */
+  .kiki-menu-row-rich {
+    display: flex;
+    align-items: var(--row-align);
+    width: 100%;
+    min-width: 0;
+    gap: var(--menu-row-gap);
+    min-height: var(--menu-row-h);
+    padding-block: var(--row-gap-tight);
+    padding-inline: var(--menu-row-px);
   }
 
   .kiki-palette-row {
     display: flex;
     align-items: var(--row-align);
+    width: 100%;
+    min-width: 0;
     gap: var(--palette-row-gap);
     height: var(--palette-row-h);
     padding-inline: var(--palette-row-px);
+  }
+
+  /* The leading glyph of a menu row, sized by the row it sits in. */
+  .kiki-menu-row svg:not([class*="size-"]),
+  .kiki-menu-row-rich svg:not([class*="size-"]) {
+    width: var(--menu-row-icon);
+    height: var(--menu-row-icon);
+  }
+
+  .kiki-palette-row svg:not([class*="size-"]) {
+    width: var(--palette-row-icon);
+    height: var(--palette-row-icon);
   }
 }
