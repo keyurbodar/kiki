@@ -707,6 +707,10 @@ export const issues = [
     pullIds: ["pr_sample_119"],
     updatedMinutesAgo: 9 * day,
   }),
+  issue(9, "Retire the legacy site", "ist_sample_canceled", {
+    projectId: projects.old.id,
+    updatedMinutesAgo: 30 * day,
+  }),
 ];
 
 export type PullState = "draft" | "ready" | "merged" | "closed";
