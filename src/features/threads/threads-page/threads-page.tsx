@@ -30,7 +30,12 @@ import {
   ViewToolbarIconButton,
   viewToolbarIconButtonClassName,
 } from "@/components/view-toolbar";
-import type { JamId, OrgId, ThreadFolderId } from "@/data/api/schemas/ids";
+import type {
+  JamId,
+  OrgId,
+  ThreadFolderId,
+  ThreadTagId,
+} from "@/data/api/schemas/ids";
 import type { ThreadCard } from "@/data/api/schemas/thread";
 import { captainsAtom } from "@/data/atoms/captains";
 import { reactivityKeys } from "@/data/atoms/conventions";
@@ -45,10 +50,14 @@ import { projectsAtom } from "@/data/atoms/projects";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
 import {
   addToFolderAtom,
+  assignTagAtom,
   createFolderAtom,
+  createTagAtom,
   folderBoardAtom,
   pinThreadsAtom,
+  tagsAtom,
   threadOrganizationKeys,
+  unassignTagAtom,
   unpinThreadsAtom,
 } from "@/data/atoms/threadOrganization";
 import { allThreadsAtom } from "@/data/atoms/threads";
@@ -75,7 +84,7 @@ import {
 import { RightPanel, RightPanelGroup } from "@/primitives/right-panel";
 import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
-import { ThreadsList } from "../threads-list";
+import { type ThreadRowMenuSources, ThreadsList } from "../threads-list";
 import {
   activeViewKey,
   buildSections,
@@ -239,6 +248,7 @@ export type ThreadsPageViewProps = {
   onMoveThreads?: (ids: ReadonlyArray<string>, folderId: string) => void;
   onArchive?: (ids: ReadonlyArray<string>, archived: boolean) => void;
   onPin?: (ids: ReadonlyArray<string>, pinned: boolean) => void;
+  menu?: ThreadRowMenuSources;
   onDelete?: (ids: ReadonlyArray<string>) => void;
   onRename?: (id: string, title: string) => void;
   state: ThreadsPageState;
@@ -262,6 +272,7 @@ export function ThreadsPageView({
   onMoveThreads,
   onArchive,
   onPin,
+  menu,
   onDelete,
   onRename,
   state,
@@ -594,6 +605,7 @@ export function ThreadsPageView({
           onArchive={(id) => onArchive?.([id], true)}
           onRename={onRename}
           onPin={(id, pinned) => onPin?.([id], pinned)}
+          menu={menu}
           icons={listIcons}
           footer={
             failed && onRetry !== undefined ? (
@@ -933,6 +945,10 @@ function ThreadsPageLoaded({
   const createFolder = useAtomSet(createFolderAtom, { mode: "promise" });
   const pinThreads = useAtomSet(pinThreadsAtom, { mode: "promise" });
   const unpinThreads = useAtomSet(unpinThreadsAtom, { mode: "promise" });
+  const tags = useAtomValue(tagsAtom(orgId));
+  const assignTag = useAtomSet(assignTagAtom, { mode: "promise" });
+  const unassignTag = useAtomSet(unassignTagAtom, { mode: "promise" });
+  const createTag = useAtomSet(createTagAtom, { mode: "promise" });
   const deleteThreads = useAtomSet(deleteThreadsAtom, { mode: "promise" });
   const moveToFolder = useAtomSet(addToFolderAtom, { mode: "promise" });
   const archive = useAtomSet(archiveThreadsAtom, { mode: "promise" });
@@ -996,6 +1012,59 @@ function ThreadsPageLoaded({
       onRetry={retry}
       folders={filed}
       folderSections={folderSections}
+      menu={{
+        orgId,
+        folders: filed.map((folder) => ({
+          id: folder.id,
+          name: folder.name,
+        })),
+        moveTo: (id, folderId) =>
+          moveToFolder({
+            params: {
+              orgId,
+              folderId: folderId as unknown as ThreadFolderId,
+            },
+            payload: { jamIds: [id as unknown as JamId] },
+            reactivityKeys: threadOrganizationKeys(orgId),
+          }).then(
+            () => toast.success("Moved to folder"),
+            () => toast.error("Couldn't move the thread"),
+          ),
+        tags: AsyncResult.isSuccess(tags)
+          ? (tags.value as ReadonlyArray<{ id: string; name: string }>).map(
+              (tag) => ({ id: tag.id, name: tag.name }),
+            )
+          : [],
+        toggleTag: (id: string, tagId: string, tagged: boolean) =>
+          (tagged ? assignTag : unassignTag)({
+            params: { orgId, tagId: tagId as ThreadTagId },
+            payload: { jamIds: [id as unknown as JamId] },
+            reactivityKeys: threadOrganizationKeys(orgId),
+          }).then(
+            () => undefined,
+            () => toast.error("Couldn't update the tag"),
+          ),
+        createTag: (id: string, name: string) =>
+          createTag({
+            params: { orgId },
+            payload: { name, color: "default" },
+            reactivityKeys: threadOrganizationKeys(orgId),
+          })
+            .then((tag) =>
+              assignTag({
+                params: {
+                  orgId,
+                  tagId: (tag as { id: ThreadTagId }).id,
+                },
+                payload: { jamIds: [id as unknown as JamId] },
+                reactivityKeys: threadOrganizationKeys(orgId),
+              }),
+            )
+            .then(
+              () => toast.success("Tag created"),
+              () => toast.error("Couldn't create the tag"),
+            ),
+      }}
       onPin={(ids, pinned) =>
         (pinned ? pinThreads : unpinThreads)({
           params: { orgId },

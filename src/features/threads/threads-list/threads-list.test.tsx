@@ -135,6 +135,45 @@ describe("thread row preview card", () => {
     expect(presses).toEqual([["row-c", true]]);
   });
 
+  it("offers Move to and Tags only when the caller can fill them", async () => {
+    const moved: Array<[string, string]> = [];
+    await mount(
+      <ThreadRow
+        thread={thread("row-e")}
+        projects={new Map()}
+        modelName={() => undefined}
+        groupedByProject={false}
+        now={new Date(2026, 10, 17).getTime()}
+        checked={false}
+        selectionMode={false}
+        onCheck={() => {}}
+        menu={{
+          orgId: "org_sample_acme",
+          folders: [{ id: "folder_1", name: "Release" }],
+          moveTo: (id, folderId) => moved.push([id, folderId]),
+          tags: [{ id: "tag_1", name: "frontend" }],
+          toggleTag: () => {},
+          createTag: () => {},
+        }}
+      />,
+    );
+    const link = document.querySelector("[data-thread-row='row-e']");
+    if (link === null) throw new Error("no row");
+    fireEvent.contextMenu(link);
+    expect(await screen.findByText("Move to")).toBeTruthy();
+    expect(screen.getByText("Tags")).toBeTruthy();
+  });
+
+  it("leaves the folder and tag rows out when it has no sources", async () => {
+    await mount(row("row-f"));
+    const link = document.querySelector("[data-thread-row='row-f']");
+    if (link === null) throw new Error("no row");
+    fireEvent.contextMenu(link);
+    await screen.findByText("Rename");
+    expect(screen.queryByText("Move to")).toBeNull();
+    expect(screen.queryByText("Tags")).toBeNull();
+  });
+
   it("reads Unpin on a row that is already pinned", async () => {
     await mount(
       <ThreadRow
