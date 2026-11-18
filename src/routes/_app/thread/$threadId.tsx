@@ -1,4 +1,5 @@
 import { createFileRoute, lazyRouteComponent } from "@tanstack/react-router";
+import { pageTitle } from "@/lib/page-title";
 import { searchParams } from "@/lib/search-params";
 
 const ThreadScreenRoute = lazyRouteComponent(
@@ -7,6 +8,7 @@ const ThreadScreenRoute = lazyRouteComponent(
 );
 
 export const Route = createFileRoute("/_app/thread/$threadId")({
+  head: () => ({ meta: [{ title: pageTitle("Threads") }] }),
   validateSearch: searchParams(["pane"]),
   component: RouteComponent,
 });
