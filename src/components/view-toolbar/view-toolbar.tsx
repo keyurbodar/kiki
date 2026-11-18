@@ -516,16 +516,18 @@ export function FilterChipBar({
         ))}
         {after}
       </div>
-      <div className="flex shrink-0 items-center gap-1.5">
-        <Button variant="ghost" size="xs" disabled={!dirty} onClick={onClear}>
-          Clear
-        </Button>
-        {onSave === undefined ? null : (
-          <Button variant="solid" size="xs" onClick={onSave}>
-            Save
+      {dirty ? (
+        <div className="flex shrink-0 items-center gap-1.5">
+          <Button variant="ghost" size="xs" onClick={onClear}>
+            Clear
           </Button>
-        )}
-      </div>
+          {onSave === undefined ? null : (
+            <Button variant="solid" size="xs" onClick={onSave}>
+              Save
+            </Button>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

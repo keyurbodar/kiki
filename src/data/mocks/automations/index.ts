@@ -109,6 +109,7 @@ export const AutomationsMock = mockGroup("automations", (handlers) =>
             (yield* Ref.get(runsRef)).find(
               (run) => run.automationId === row.id,
             ) ?? null,
+          lastTriggeredAt: row.lastRunAt,
         };
       });
 
