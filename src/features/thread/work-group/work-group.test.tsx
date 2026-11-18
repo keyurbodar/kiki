@@ -67,3 +67,71 @@ it("shows the live tail and a working shimmer while live", () => {
   ).toBe("live");
   expect(container.textContent).toContain("Looking at the settings page.");
 });
+
+const notice = (index: number, notificationKey: string, summary: string) =>
+  ({
+    id: `u${index}`,
+    eventId: "01JAAAAAAAAAAAAAAAAAAAAAAA",
+    createdAt: at(index),
+    type: "update",
+    kind: "notice",
+    notificationKey,
+    summary,
+  }) as unknown as NonNullable<
+    Parameters<typeof WorkGroup>[0]["row"]["entries"][number]
+  >;
+
+const withEntries = (
+  entries: ReadonlyArray<ReturnType<typeof notice>>,
+  failures = 0,
+) =>
+  ({
+    ...row(false),
+    failures,
+    entries: [...row(false).entries, ...entries],
+  }) as unknown as Parameters<typeof WorkGroup>[0]["row"];
+
+it("aggregates a run of issue activity into one phrase", () => {
+  render(
+    <WorkGroup
+      row={withEntries([
+        notice(1, "issue_activity", "KIKI-4 updated AMA-146"),
+        notice(2, "issue_activity", "KIKI-4 updated AMA-147"),
+        notice(3, "issue_activity", "KIKI-4 updated AMA-148"),
+        notice(4, "issue_activity", "KIKI-4 updated AMA-149"),
+      ])}
+    />,
+  );
+  const text = screen.getByRole("button").textContent ?? "";
+  expect(text).toContain("4 issue updates,Worked");
+  expect(text).not.toContain("AMA-146");
+});
+
+it("keeps a notice's own phrase and the failure tail in order", () => {
+  render(
+    <WorkGroup
+      row={withEntries(
+        [
+          notice(1, "issue_activity", "KIKI-4 updated AMA-146"),
+          notice(2, "issue_activity", "KIKI-4 updated AMA-147"),
+          notice(3, "ci_result", "review of PR #446 failed"),
+        ],
+        1,
+      )}
+    />,
+  );
+  const text = screen.getByRole("button").textContent ?? "";
+  expect(text).toContain(
+    "2 issue updates, review of PR #446 failed,Worked for 4m 7s, 1 failed",
+  );
+});
+
+it("says one issue update for a single row", () => {
+  render(<WorkGroup row={withEntries([notice(1, "issue_activity", "a")])} />);
+  expect(screen.getByRole("button").textContent).toContain("1 issue update,");
+});
+
+it("leaves a group with no notices on its plain label", () => {
+  render(<WorkGroup row={row(false)} />);
+  expect(screen.getByRole("button").textContent).toContain("Worked for 4m 7s");
+});

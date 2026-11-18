@@ -167,6 +167,7 @@ const at = {
   reasoning: isoMinutesAgo(1),
   delivered: isoMinutesAgo(74),
   cancelledTurn: isoMinutesAgo(4),
+  updateLine: isoMinutesAgo(1.99),
 };
 
 /** The ids the outline and the message versions below point at. */
@@ -1147,6 +1148,30 @@ export const seedEvents: ReadonlyArray<EventRowEncoded> = [
     ],
   }),
   ...captureHistory,
+  row(checkoutJam, at.updateLine, 40, "notification", {
+    actor: { type: "system", service: "github" },
+    origin: sys,
+    key: "ci_result",
+    summary: "CI green on kiki#442 at a4d317c",
+    ciResult: {
+      pull: "kiki#442",
+      outcome: "passed",
+      headSha: "a4d317c537ed8ee44cc4b83f188b32dd6fd8b87b",
+    },
+    ref: { kind: "pr", id: "442" },
+  }),
+  row(checkoutJam, at.updateLine, 41, "notification", {
+    actor: { type: "system", service: "github" },
+    origin: sys,
+    key: "issue_activity",
+    summary: "Yuzu updated AMA-183",
+    issueActivity: {
+      code: "AMA-183",
+      title: "Work group line ignores the update lines inside the group",
+      actorName: "Yuzu",
+      change: "status",
+    },
+  }),
   row(
     checkoutJam,
     at.cancelledTurn,
