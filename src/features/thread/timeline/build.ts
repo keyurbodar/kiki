@@ -337,7 +337,42 @@ export const rowGaps = (
     }),
   );
 
+/**
+ * Capy's edit truncation: an edit replaces its message and everything after it,
+ * so the timeline shows only what survives. The boundaries are the composer's
+ * pending edit plus any message already sent as an edit that hasn't settled;
+ * the replacement itself outlives its own boundary because its `editOf` names
+ * one.
+ */
+export const truncateForEdit = (
+  rows: ReadonlyArray<Row>,
+  editOf: EventId | undefined,
+): ReadonlyArray<Row> => {
+  const boundaries = new Set<EventId>();
+  for (const row of rows)
+    if (
+      row.type === "user-message" &&
+      (row.state === "pending" || row.state === "promoted") &&
+      row.editOf !== undefined
+    )
+      boundaries.add(row.editOf);
+  if (editOf !== undefined) boundaries.add(editOf);
+  let smallest: EventId | undefined;
+  for (const id of boundaries)
+    if (smallest === undefined || id < smallest) smallest = id;
+  if (smallest === undefined) return rows;
+  return rows.filter(
+    (row) =>
+      row.eventId < smallest ||
+      (row.type === "user-message" &&
+        row.editOf !== undefined &&
+        boundaries.has(row.editOf)),
+  );
+};
+
 export interface BuildOptions {
+  /** The message the composer is editing; its reply and everything after it are held back. */
+  readonly editOf?: EventId | undefined;
   readonly liveEntries?: ReadonlyArray<Row> | undefined;
   readonly liveSettled?: boolean | undefined;
   readonly truncatedHistory?: boolean | undefined;
@@ -440,13 +475,9 @@ export const buildTimeline = (
             ? { ...row, liveCalls: live }
             : row;
         });
+  const visible = truncateForEdit(withCalls, options.editOf);
   const rows = groupRows(
-    markNew(
-      withCalls,
-      options.newSince,
-      options.newUntil,
-      options.viewerUserId,
-    ),
+    markNew(visible, options.newSince, options.newUntil, options.viewerUserId),
     {
       expandedGroupIds: options.expandedGroupIds ?? new Map(),
       pendingExchange: options.pendingExchange,
@@ -455,8 +486,8 @@ export const buildTimeline = (
   return {
     rows,
     gaps: rowGaps(rows),
-    pendingAsk: pendingAskOf(withCalls),
-    pendingEnvironment: pendingEnvironmentOf(withCalls),
+    pendingAsk: pendingAskOf(visible),
+    pendingEnvironment: pendingEnvironmentOf(visible),
     queued: queuedMessages(pass.ordered),
     turnOpen: rows.some(
       (row) =>

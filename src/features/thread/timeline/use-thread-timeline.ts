@@ -2,7 +2,7 @@ import { useAtomMount, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Effect, Layer, Result, Stream } from "effect";
 import { Atom } from "effect/reactivity";
 import { useCallback, useMemo } from "react";
-import type { JamId, OrgId } from "@/data/api/schemas/ids.ts";
+import type { EventId, JamId, OrgId } from "@/data/api/schemas/ids.ts";
 import { ApiClient, makeApiClientLayer } from "@/data/client/ApiClient.ts";
 import { ApiTransport } from "@/data/client/transport.ts";
 import {
@@ -62,6 +62,18 @@ export const threadFeedAtom = Atom.family((_key: string) =>
 /** Expanded state of work groups, clusters, batches and long messages, by row id. */
 export const expandedIdsAtom = Atom.family((_key: string) =>
   Atom.make<ReadonlyMap<string, boolean>>(new Map()).pipe(Atom.keepAlive),
+);
+
+/** The sent message the composer is editing: the row, the event it replaces and its text. */
+export type EditDraft = {
+  readonly rowId: string;
+  readonly eventId: EventId;
+  readonly text: string;
+};
+
+/** The thread's pending edit, null when the composer is composing a new message. */
+export const editDraftAtom = Atom.family((_key: string) =>
+  Atom.make<EditDraft | null>(null).pipe(Atom.keepAlive),
 );
 
 /**
@@ -142,12 +154,14 @@ export interface ThreadTimeline extends Timeline {
 export const timelineOf = (
   feed: ThreadFeed,
   expanded: ReadonlyMap<string, boolean>,
+  editOf?: EventId,
 ): Timeline =>
   buildTimeline(feed.events, {
     liveEntries: liveEntries(feed.live),
     liveSettled: feed.live.phase === "settled",
     truncatedHistory: feed.olderCursor !== null,
     expandedGroupIds: expanded,
+    editOf,
   });
 
 /** The thread view's rows, gaps and live turn, kept current by realtime. */
@@ -159,9 +173,13 @@ export const useThreadTimeline = (
   useAtomMount(threadSyncAtom(key));
   const feed = useAtomValue(threadFeedAtom(key));
   const expanded = useAtomValue(expandedIdsAtom(key));
+  const editOf = useAtomValue(editDraftAtom(key))?.eventId;
   const requestOlder = useAtomSet(loadOlderAtom(key));
   const loadOlder = useCallback(() => requestOlder(), [requestOlder]);
-  const timeline = useMemo(() => timelineOf(feed, expanded), [feed, expanded]);
+  const timeline = useMemo(
+    () => timelineOf(feed, expanded, editOf),
+    [feed, expanded, editOf],
+  );
   return {
     ...timeline,
     live: feed.live,

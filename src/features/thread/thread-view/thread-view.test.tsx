@@ -1,10 +1,22 @@
-import { RegistryProvider } from "@effect/atom-react";
-import { cleanup, render, waitFor } from "@testing-library/react";
+import { RegistryProvider, useAtomSet } from "@effect/atom-react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { Schema } from "effect";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeThreadFixtures, TimelineRow } from "@/data/events";
-import type { ThreadTimeline } from "@/features/thread/timeline";
+import { orgId } from "@/data/mocks/fixtures/world";
+import {
+  type EditDraft,
+  editDraftAtom,
+  type ThreadTimeline,
+} from "@/features/thread/timeline";
 import { ThreadRoute } from "@/routes/_app/thread/$threadId";
 import { ThreadView } from "./thread-view";
 
@@ -37,17 +49,32 @@ const current = vi.hoisted(() => ({
   timeline: undefined as unknown as ThreadTimeline,
 }));
 
-vi.mock("@/features/thread/timeline", () => ({
-  useThreadTimeline: () => current.timeline,
-}));
+vi.mock("@/features/thread/timeline", async () => {
+  const { Atom } = await import("effect/reactivity");
+  return {
+    useThreadTimeline: () => current.timeline,
+    threadKey: (orgId: string, jamId: string) => `${orgId}/${jamId}`,
+    editDraftAtom: Atom.family((_key: string) => Atom.make(null)),
+  };
+});
 
 afterEach(cleanup);
+
+const startEdit = vi.hoisted(() => ({
+  set: (_draft: EditDraft | null): void => undefined,
+}));
+
+const DraftSetter = () => {
+  startEdit.set = useAtomSet(editDraftAtom(`${orgId}/jam_sample`));
+  return null;
+};
 
 const renderRoute = (next: ThreadTimeline) => {
   current.timeline = next;
   return render(
     <RegistryProvider>
       <ThreadRoute threadId="jam_sample" pane={undefined} />
+      <DraftSetter />
     </RegistryProvider>,
   );
 };
@@ -155,10 +182,10 @@ describe("thread composer footer", () => {
   it("renders the footer inside the composer host", () => {
     const { container } = renderRoute(timeline({ rows: messages }));
     const footer = slot(container, "composer-footer");
-    const host = slot(container, "composer")?.parentElement;
+    const host = footer?.parentElement;
     expect(host).not.toBeNull();
-    expect(footer).not.toBeNull();
-    expect(host?.contains(footer)).toBe(true);
+    expect(slot(container, "composer")).not.toBeNull();
+    expect(host?.contains(slot(container, "composer"))).toBe(true);
     expect(host?.lastElementChild).toBe(footer);
   });
 
@@ -218,5 +245,84 @@ describe("thread chat column", () => {
   it("fills the container when no pane is open", () => {
     const { container } = renderView(undefined);
     expect(chatColumn(container).className).toContain("w-full");
+  });
+});
+
+describe("editing a sent message", () => {
+  const handlers = {
+    orgId: "org_sample",
+    parentJamId: null,
+    onClarifySubmit: () => undefined,
+  };
+  const sent = rows.find(
+    (row) => row.type === "user-message" && row.state === "answered",
+  ) as Extract<(typeof rows)[number], { type: "user-message" }>;
+  const target = {
+    rowId: sent.id,
+    eventId: sent.eventId as string,
+    text: sent.text,
+  };
+
+  const field = (container: HTMLElement) =>
+    container.querySelector("[contenteditable]") as HTMLElement | null;
+
+  const renderEditing = (onCancelEdit = () => undefined) =>
+    render(
+      <RegistryProvider>
+        <ThreadView
+          threadId="jam_sample"
+          rows={messages}
+          handlers={handlers}
+          editing={target as never}
+          onCancelEdit={onCancelEdit}
+        />
+      </RegistryProvider>,
+    );
+
+  it("holds the edited text in the composer and shows the editing bar", async () => {
+    const { container } = renderEditing();
+    await waitFor(() => expect(field(container)).not.toBeNull());
+    await waitFor(() =>
+      expect(field(container)?.textContent ?? "").toContain(sent.text),
+    );
+    expect(screen.getByText("Editing message")).toBeTruthy();
+    expect(screen.getByLabelText("Cancel editing")).toBeTruthy();
+  });
+
+  it("leaves edit mode from the cancel button and restores the draft", async () => {
+    const onCancelEdit = vi.fn();
+    const { container } = renderEditing(onCancelEdit);
+    await waitFor(() =>
+      expect(field(container)?.textContent ?? "").not.toBe(""),
+    );
+    fireEvent.click(screen.getByLabelText("Cancel editing"));
+    expect(onCancelEdit).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(field(container)?.textContent ?? "").toBe(""));
+  });
+
+  it("leaves edit mode on Escape", async () => {
+    const onCancelEdit = vi.fn();
+    const { container } = renderEditing(onCancelEdit);
+    await waitFor(() => expect(field(container)).not.toBeNull());
+    fireEvent.keyDown(field(container) as HTMLElement, { key: "Escape" });
+    expect(onCancelEdit).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens from the thread screen's edit draft and closes it again", async () => {
+    const { container } = renderRoute(timeline({ rows: messages }));
+    await waitFor(() => expect(field(container)).not.toBeNull());
+    await act(async () =>
+      startEdit.set({ ...target, eventId: target.eventId } as never),
+    );
+    await waitFor(() =>
+      expect(screen.getByText("Editing message")).toBeTruthy(),
+    );
+    await waitFor(() =>
+      expect(field(container)?.textContent ?? "").toContain(sent.text),
+    );
+    fireEvent.keyDown(field(container) as HTMLElement, { key: "Escape" });
+    await waitFor(() =>
+      expect(screen.queryByText("Editing message")).toBeNull(),
+    );
   });
 });

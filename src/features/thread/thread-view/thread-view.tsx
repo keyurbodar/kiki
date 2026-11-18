@@ -1,9 +1,20 @@
 import { useAtomValue } from "@effect/atom-react";
 import { cx } from "class-variance-authority";
 import { AsyncResult } from "effect/reactivity";
-import { type ReactNode, useMemo, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { AppTopBar } from "@/components/app-top-bar";
-import { Composer, type ComposerPayload } from "@/components/composer";
+import {
+  Composer,
+  type ComposerHandle,
+  type ComposerPayload,
+} from "@/components/composer";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { threadMachinesAtom } from "@/data/atoms/setup";
 import type { TimelineRow } from "@/data/events";
@@ -21,6 +32,11 @@ import {
 } from "@/features/composer/composer-footer";
 import { ContextMeter } from "@/features/composer/context-meter";
 import {
+  MessageQueue,
+  type MessageQueueProps,
+  type QueueRowData,
+} from "@/features/composer/message-queue";
+import {
   AttachmentSourceProvider,
   apiAttachmentSource,
   pendingAttachmentSource,
@@ -32,6 +48,8 @@ import {
   takeoverKey,
 } from "@/features/thread/composer-takeover";
 import { JamChat } from "@/features/thread/jam-chat";
+import type { EditTarget } from "@/features/thread/message-footer";
+import type { EditDraft } from "@/features/thread/timeline";
 import { useComposerSend } from "@/features/thread/use-composer-send";
 import { RightPanelGroup } from "@/primitives/right-panel";
 import { ChatSkeleton } from "./chat-skeleton";
@@ -70,6 +88,12 @@ export type ThreadViewProps = {
   paneExpanded?: boolean;
   /** Replaces the composer when no request is waiting on an answer. */
   composer?: ReactNode;
+  /** The sent message the composer is editing, from the thread's edit draft. */
+  editing?: EditDraft | null;
+  /** Opens the composer on a sent message. */
+  onEditMessage?: (target: EditTarget) => void;
+  /** Leaves edit mode without sending, restoring the draft the edit replaced. */
+  onCancelEdit?: () => void;
   /** A takeover that needs shell context (desktop, terminal, feedback, MCP setup); wins over the ones derived from rows. */
   takeover?: ComposerTakeoverProps;
 };
@@ -81,6 +105,13 @@ const chatColumnWithPane =
 type PendingRequest =
   | { kind: "clarify"; row: ClarifyRow }
   | { kind: "environment"; row: EnvironmentRequestRow };
+
+/** The composer shows no queue of its own here: queued sends live in the timeline. */
+const noQueuedMessages: ReadonlyArray<QueueRowData> = [];
+const noQueueActions: MessageQueueProps["actions"] = {
+  departing: new Map(),
+  act: () => Promise.resolve(false),
+};
 
 /** Capy answers one request at a time: the newest one still waiting. */
 function pendingRequest(
@@ -222,9 +253,37 @@ export function ThreadView({
   dock,
   paneExpanded = false,
   composer,
+  editing,
+  onEditMessage,
+  onCancelEdit,
   takeover,
 }: ThreadViewProps) {
-  const send = useComposerSend(threadId);
+  const send = useComposerSend(threadId, editing?.eventId);
+  const draft = editing ?? undefined;
+  const composerHandle = useRef<ComposerHandle | null>(null);
+
+  useEffect(() => {
+    if (draft === undefined) return;
+    composerHandle.current?.reset({
+      text: draft.text,
+      mentions: [],
+      files: [],
+    });
+    composerHandle.current?.focus();
+  }, [draft]);
+
+  const cancelEdit = useCallback(() => {
+    composerHandle.current?.reset(null);
+    onCancelEdit?.();
+  }, [onCancelEdit]);
+
+  const editedRowIds = useMemo(() => {
+    const edited = new Set<string>();
+    for (const row of rows)
+      if (row.type === "user-message" && row.editOf !== undefined)
+        edited.add(row.id);
+    return edited;
+  }, [rows]);
   const orgId = handlers.orgId;
   const attachments = useComposerAttachments(
     useFileUploader(orgId as OrgId | undefined),
@@ -270,7 +329,11 @@ export function ThreadView({
   const header = topBar ?? <AppTopBar className={threadHeaderClassName} />;
 
   return (
-    <ThreadMessageActions orgId={handlers.orgId}>
+    <ThreadMessageActions
+      orgId={handlers.orgId}
+      editMessage={onEditMessage}
+      editedRowIds={editedRowIds}
+    >
       <RightPanelGroup className="@container min-w-0 flex-1">
         {!paneExpanded && (
           <div
@@ -314,15 +377,32 @@ export function ThreadView({
                 <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col justify-end">
                   {active === undefined ? (
                     (composer ?? (
-                      <Composer
-                        onSubmit={submit}
-                        onFilesAdded={attachments.add}
-                        attachments={
-                          <ComposerAttachments attachments={attachments} />
+                      <MessageQueue
+                        rows={noQueuedMessages}
+                        actions={noQueueActions}
+                        editing={
+                          draft === undefined
+                            ? undefined
+                            : { onCancel: cancelEdit }
                         }
-                        hasAttachments={attachments.entries.length > 0}
-                        uploading={attachments.uploading}
-                      />
+                      >
+                        <Composer
+                          ref={composerHandle}
+                          onSubmit={submit}
+                          onFilesAdded={attachments.add}
+                          attachments={
+                            <ComposerAttachments attachments={attachments} />
+                          }
+                          hasAttachments={attachments.entries.length > 0}
+                          uploading={attachments.uploading}
+                          defaultValue={
+                            draft === undefined
+                              ? undefined
+                              : { text: draft.text, mentions: [], files: [] }
+                          }
+                          autoFocus={draft !== undefined}
+                        />
+                      </MessageQueue>
                     ))
                   ) : (
                     <ComposerTakeover {...active} />
