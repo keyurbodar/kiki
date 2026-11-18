@@ -12,12 +12,12 @@ import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeThreadFixtures, TimelineRow } from "@/data/events";
 import { orgId } from "@/data/mocks/fixtures/world";
+import { ThreadRoute } from "@/features/thread/thread-route/thread-route";
 import {
   type EditDraft,
   editDraftAtom,
   type ThreadTimeline,
 } from "@/features/thread/timeline";
-import { ThreadRoute } from "@/routes/_app/thread/$threadId";
 import { ThreadView } from "./thread-view";
 
 const decodeRow = Schema.decodeUnknownSync(TimelineRow);

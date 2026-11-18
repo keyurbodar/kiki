@@ -13,6 +13,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiClient, makeApiClientLayer } from "@/data/client/ApiClient";
 import { orgId } from "@/data/mocks/fixtures/world";
 import { MockTransport } from "@/data/mocks/MockServices";
+import { ThreadScreen } from "@/features/thread/thread-route/thread-route";
 import { buildTimeline } from "@/features/thread/timeline/build";
 import {
   decodeEventPage,
@@ -20,7 +21,6 @@ import {
   historyLoaded,
 } from "@/features/thread/timeline/feed";
 import { searchParams } from "@/lib/search-params";
-import { ThreadScreen } from "@/routes/_app/thread/$threadId";
 
 /** The jam id our parity captures open for a full transcript. */
 const transcriptThread = "jam_01M7FSZ5JHHYSDA2WM61W88WEG";
