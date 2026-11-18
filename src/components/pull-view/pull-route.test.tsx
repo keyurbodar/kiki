@@ -51,11 +51,11 @@ describe("/pull/keyurbodar/xin/118", () => {
 
   it("renders the sidebar from the org's fixtures, not the sample data", async () => {
     await renderPull();
-    // Each Captain draws twice now, as Capy's sidebar does: once in the pinned
-    // tiles and once in the row under them.
-    expect((await screen.findAllByText("Release captain")).length).toBe(2);
-    expect(screen.getAllByText("Docs captain").length).toBe(2);
-    expect(screen.getAllByText("Platform captain").length).toBe(2);
+    // The fixtures pin threads, not Captains, so each Captain draws once, as
+    // the row under the Captains heading; a pinned one also gets a tile.
+    expect((await screen.findAllByText("Release captain")).length).toBe(1);
+    expect(screen.getAllByText("Docs captain").length).toBe(1);
+    expect(screen.getAllByText("Platform captain").length).toBe(1);
   });
 
   it("opens one file body at a time on the page host", async () => {
