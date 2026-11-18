@@ -1,9 +1,4 @@
 import { useAtomValue } from "@effect/atom-react";
-import {
-  LegendList,
-  type LegendListRef,
-  type ViewToken,
-} from "@legendapp/list/react";
 import { cx } from "class-variance-authority";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
@@ -14,6 +9,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -32,9 +28,10 @@ import {
 import { QuoteSelectionLayer } from "@/features/thread/quote-selection";
 import type { ExcerptMention } from "@/features/thread/reply-quote";
 import { TimelineRow } from "@/features/thread/timeline-row";
+import { anchorShift, type ChatAnchor, positionOf } from "./anchor";
 import { ChatScrollPill } from "./chat-scroll-pill";
 import { ChatStamp } from "./chat-stamp";
-import { type ChatJump, jumpToRow } from "./jump-to-row";
+import { type ChatJump, type JumpList, jumpToRow } from "./jump-to-row";
 import {
   computeRowGaps,
   countMessagesBelow,
@@ -46,12 +43,15 @@ import {
 
 export { ChatScrollPill, type ChatScrollPillProps } from "./chat-scroll-pill";
 
-const ESTIMATED_ROW_SIZE = 76;
-const DRAW_DISTANCE = 1500;
+/** How close to the bottom still counts as reading the end, so new rows keep pinning there. */
 const END_TOLERANCE = 8;
+/** How close to the top asks for the page before it. */
+const START_TOLERANCE = 24;
+/** Scrolling back past this re-arms the older-page request. */
+const START_REARM = 240;
 
 const chatScroller =
-  "chat-scroller md:scroll-fade-y h-full min-h-0 overflow-x-hidden overscroll-y-contain [overflow-anchor:none] [&>div>div>div:has(>[data-chat-row-id]):focus-within]:z-(--z-chat-row-lift) [&>div>div>div:has(>[data-chat-row-id]):focus-within]:[contain:layout_style]! [&>div>div>div:has(>[data-chat-row-id]):hover]:z-(--z-chat-row-lift) [&>div>div>div:has(>[data-chat-row-id]):hover]:[contain:layout_style]! [&>div>div>div:has(>[data-chat-row-id]):has([data-popup-open])]:z-(--z-chat-row-lift) [&>div>div>div:has(>[data-chat-row-id]):has([data-popup-open])]:[contain:layout_style]! md:pointer-coarse:[&>div>div>div:has(>[data-chat-row-id]):has([data-slot=user-message])]:[contain:layout_style]!";
+  "chat-scroller md:scroll-fade-y h-full min-h-0 overflow-x-hidden overflow-y-auto overscroll-y-contain [overflow-anchor:none] [&>div>div:has(>[data-chat-row-id]):focus-within]:z-(--z-chat-row-lift) [&>div>div:has(>[data-chat-row-id]):focus-within]:[contain:layout_style]! [&>div>div:has(>[data-chat-row-id]):hover]:z-(--z-chat-row-lift) [&>div>div:has(>[data-chat-row-id]):hover]:[contain:layout_style]! [&>div>div:has(>[data-chat-row-id]):has([data-popup-open])]:z-(--z-chat-row-lift) [&>div>div:has(>[data-chat-row-id]):has([data-popup-open])]:[contain:layout_style]! md:pointer-coarse:[&>div>div:has(>[data-chat-row-id]):has([data-slot=user-message])]:[contain:layout_style]!";
 
 type ChatRowContext = { gaps: ReadonlyMap<string, RowGap>; now?: number };
 const RowContext = createContext<ChatRowContext>({ gaps: new Map() });
@@ -72,13 +72,6 @@ function ChatRow({ row }: { row: TimelineRowData }) {
   );
 }
 
-const renderRow = ({ item }: { item: TimelineRowData }) => (
-  <ChatRow row={item} />
-);
-
-const itemType = (row: TimelineRowData) =>
-  row.type === "update" ? `update:${row.kind}` : row.type;
-
 export type JamChatProps = ComponentProps<"div"> & {
   jamId?: string;
   rows?: readonly TimelineRowData[];
@@ -93,7 +86,22 @@ export type JamChatProps = ComponentProps<"div"> & {
   jump?: ChatJump;
 };
 
-/** The thread's chat timeline: a virtualised list of rows with stamps, row gaps and the scroll-to-end pill. */
+const scrollAdapter = (node: HTMLElement): JumpList => ({
+  scrollToOffset: ({ offset, animated }) => {
+    node.scrollTo({
+      top: offset,
+      behavior: animated === true ? "smooth" : "auto",
+    });
+  },
+});
+
+/**
+ * The thread's chat timeline: rows with stamps and row gaps, held in place by
+ * the row at the top edge rather than by `overflow-anchor`, plus the
+ * scroll-to-end pill. Every row is mounted, as Capy's own transcript does —
+ * the anchoring is what keeps a page of older history or a growing row from
+ * moving what is being read.
+ */
 export function JamChat({
   jamId,
   rows = [],
@@ -108,7 +116,6 @@ export function JamChat({
   children,
   ...props
 }: JamChatProps) {
-  const listRef = useRef<LegendListRef>(null);
   const selectedOrgId = useAtomValue(selectedOrgIdAtom);
   const organizations = useAtomValue(organizationsAtom);
   const attachmentSource = useMemo(() => {
@@ -125,30 +132,120 @@ export function JamChat({
   const context = useMemo(() => ({ gaps, now }), [gaps, now]);
   const [atEnd, setAtEnd] = useState(true);
   const [lastVisibleKey, setLastVisibleKey] = useState<string | null>(null);
+  const rowList = useMemo(
+    () =>
+      rows.map((row) => (
+        <div key={rowKey(row)} data-chat-row-slot="">
+          <ChatRow row={row} />
+        </div>
+      )),
+    [rows],
+  );
 
-  const handleScroll = useCallback(() => {
-    const node = listRef.current?.getScrollableNode();
-    if (!node) return;
-    setAtEnd(
-      node.scrollHeight - node.scrollTop - node.clientHeight <= END_TOLERANCE,
-    );
+  const scroller = useRef<HTMLDivElement | null>(null);
+  const slots = useRef<readonly HTMLElement[]>([]);
+  const anchor = useRef<ChatAnchor | null>(null);
+  const pinned = useRef(true);
+  const armed = useRef(true);
+  const jam = useRef(jamId);
+  const rowsRef = useRef(rows);
+  const startReached = useRef(onStartReached);
+  startReached.current = onStartReached;
+
+  /** Row tops in content coordinates, as of the current layout. */
+  const topOf = useCallback((node: HTMLElement) => {
+    const origin = node.getBoundingClientRect().top - node.scrollTop;
+    return (index: number) => {
+      const slot = slots.current[index];
+      return slot === undefined ? 0 : slot.getBoundingClientRect().top - origin;
+    };
   }, []);
 
-  const handleViewable = useCallback(
-    ({ viewableItems }: { viewableItems: ViewToken<TimelineRowData>[] }) => {
-      const last = viewableItems.at(-1);
-      setLastVisibleKey(last === undefined ? null : rowKey(last.item));
+  /** Reads the visible position and keeps the pill and the older-page request honest. */
+  const sync = useCallback(
+    (node: HTMLElement) => {
+      const position = positionOf(
+        rowsRef.current,
+        node.scrollTop,
+        node.clientHeight,
+        topOf(node),
+      );
+      anchor.current = position.anchor;
+      setLastVisibleKey(position.lastVisibleKey);
+      pinned.current =
+        node.scrollHeight - node.scrollTop - node.clientHeight <= END_TOLERANCE;
+      setAtEnd(pinned.current);
+      if (node.scrollTop <= START_TOLERANCE) {
+        if (armed.current) {
+          armed.current = false;
+          startReached.current?.();
+        }
+      } else if (node.scrollTop > START_REARM) {
+        armed.current = true;
+      }
     },
-    [],
+    [topOf],
   );
+
+  const handleScroll = useCallback(() => {
+    const node = scroller.current;
+    if (node !== null) sync(node);
+  }, [sync]);
+
+  /** Holds the reader's place: the end while reading it, else the anchored row. */
+  const hold = useCallback(
+    (node: HTMLElement) => {
+      if (pinned.current) {
+        node.scrollTop = node.scrollHeight;
+        return;
+      }
+      if (anchor.current === null) return;
+      const shift = anchorShift(
+        anchor.current,
+        rowsRef.current,
+        node.scrollTop,
+        topOf(node),
+      );
+      if (shift !== null && Math.abs(shift) >= 1) node.scrollTop += shift;
+    },
+    [topOf],
+  );
+
+  useLayoutEffect(() => {
+    const node = scroller.current;
+    if (node === null) return;
+    rowsRef.current = rows;
+    slots.current = Array.from(
+      node.querySelectorAll<HTMLElement>("[data-chat-row-slot]"),
+    );
+    if (jam.current !== jamId) {
+      jam.current = jamId;
+      pinned.current = true;
+      anchor.current = null;
+      armed.current = true;
+    }
+    hold(node);
+    sync(node);
+  }, [jamId, rows, hold, sync]);
+
+  useLayoutEffect(() => {
+    const node = scroller.current;
+    const content = node?.firstElementChild;
+    if (node === null || !(content instanceof HTMLElement)) return;
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => hold(node));
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, [hold]);
 
   useEffect(() => {
     if (jump === undefined) return;
-    const scroll = listRef.current?.getScrollableNode() ?? null;
+    const scroll = scroller.current;
     if (scroll === null) return;
-    if (jumpToRow(listRef.current, scroll, jump) !== null) return;
+    const adapter = scrollAdapter(scroll);
+    if (jumpToRow(adapter, scroll, jump) !== null) return;
     const frame = requestAnimationFrame(() => {
-      jumpToRow(listRef.current, scroll, jump);
+      jumpToRow(adapter, scroll, jump);
     });
     return () => cancelAnimationFrame(frame);
   }, [jump]);
@@ -166,30 +263,23 @@ export function JamChat({
     >
       <AttachmentSourceProvider source={attachmentSource}>
         <RowContext.Provider value={context}>
-          <LegendList
-            ref={listRef}
-            data={rows as TimelineRowData[]}
-            dataKey={jamId}
-            keyExtractor={rowKey}
-            getItemType={itemType}
-            renderItem={renderRow}
-            estimatedItemSize={ESTIMATED_ROW_SIZE}
-            drawDistance={DRAW_DISTANCE}
-            initialScrollAtEnd
-            maintainScrollAtEnd
-            maintainVisibleContentPosition
+          <div
+            ref={scroller}
+            data-slot="chat-scroller"
             onScroll={handleScroll}
-            onViewableItemsChanged={handleViewable}
-            onStartReached={onStartReached}
             className={chatScroller}
-            ListHeaderComponent={
-              <div>
-                {header}
-                <div className="h-3" />
-              </div>
-            }
-            ListFooterComponent={<div className="pb-8 max-md:pb-7" />}
-          />
+          >
+            <div>
+              {header !== undefined && (
+                <div>
+                  {header}
+                  <div className="h-3" />
+                </div>
+              )}
+              {rowList}
+              <div className="pb-8 max-md:pb-7" />
+            </div>
+          </div>
         </RowContext.Provider>
       </AttachmentSourceProvider>
       {children}
@@ -205,7 +295,12 @@ export function JamChat({
           rows,
           showPill ? lastVisibleKey : null,
         )}
-        onClick={() => listRef.current?.scrollToEnd({ animated: true })}
+        onClick={() =>
+          scroller.current?.scrollTo({
+            top: scroller.current.scrollHeight,
+            behavior: "smooth",
+          })
+        }
       />
     </div>
   );
