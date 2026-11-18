@@ -235,6 +235,13 @@
   /* Badges, dialogs, menu rows, palette rows ------------------------------- */
 
   /** A run of chips under a tool result: Capy's flex flex-wrap row. */
+  /* A tool body's prose: Capy's reading measure, clamped like its output card. */
+  .kiki-prose-body {
+    max-height: calc(var(--spacing) * 72);
+    padding-top: var(--spacing);
+    padding-bottom: calc(var(--spacing) * 2);
+  }
+
   .kiki-chip-row {
     display: flex;
     flex-wrap: wrap;
