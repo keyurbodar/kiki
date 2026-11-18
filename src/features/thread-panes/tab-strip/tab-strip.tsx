@@ -257,7 +257,10 @@ export function TabStrip({
   className,
   ...props
 }: TabStripProps) {
-  const ids = tabs.map(tabKey);
+  // The chat tab is the header's, never the strip's: Capy's summary pane is
+  // named by the same id, and its button sits in the chat column's header.
+  const shown = tabs.filter((tab) => tab.kind !== "chat");
+  const ids = shown.map(tabKey);
   const scroller = useOverflowFades(ids.join(","));
   const [menuTarget, setMenuTarget] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -266,7 +269,7 @@ export function TabStrip({
   );
   const railTabs: RailTab[] = [
     ...(chatTab === undefined ? [] : [{ id: CHAT_TAB_ID, tab: undefined }]),
-    ...tabs.map((tab) => ({ id: tabKey(tab), tab })),
+    ...shown.map((tab) => ({ id: tabKey(tab), tab })),
   ];
   const options: ThreadOptionsProps = {
     ...menu,
@@ -275,7 +278,7 @@ export function TabStrip({
     onOpenBrowser,
   };
   const labelOf = (tab: PaneTab) => labelFor?.(tab) ?? tabLabel(tab);
-  const dragged = tabs.find((tab) => tabKey(tab) === draggingId);
+  const dragged = shown.find((tab) => tabKey(tab) === draggingId);
 
   const tabButtonProps = (tab: PaneTab) => ({
     tab,
@@ -358,7 +361,7 @@ export function TabStrip({
                 items={ids}
                 strategy={horizontalListSortingStrategy}
               >
-                {tabs.map((tab) => (
+                {shown.map((tab) => (
                   <SortableTab key={tabKey(tab)} {...tabButtonProps(tab)} />
                 ))}
               </SortableContext>

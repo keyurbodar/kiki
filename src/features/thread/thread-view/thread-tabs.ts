@@ -17,6 +17,7 @@ import {
  */
 export const tabForPane = (pane: PaneEntry): PaneTab | undefined => {
   switch (pane.id) {
+    case "chat":
     case "overview":
     case "diffs":
     case "files":

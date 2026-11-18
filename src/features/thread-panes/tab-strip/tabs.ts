@@ -3,6 +3,7 @@
  * Capy's pane tab union; the strip only needs the identity and display fields.
  */
 export type PaneTab =
+  | { kind: "chat" }
   | { kind: "overview" }
   | { kind: "diffs"; jamId?: string }
   | { kind: "files"; jamId?: string }
@@ -82,6 +83,7 @@ export function tabKey(tab: PaneTab): string {
       return `attachment:${tab.id}`;
     case "paper":
       return `paper:${tab.fileId}`;
+    case "chat":
     case "overview":
     case "captain_issues":
       return tab.kind;
@@ -99,6 +101,8 @@ const hostOf = (url: string) => {
 /** Capy's default label for a tab, before thread titles are known. */
 export function tabLabel(tab: PaneTab): string {
   switch (tab.kind) {
+    case "chat":
+      return "Thread";
     case "overview":
       return "Overview";
     case "diffs":
@@ -228,6 +232,7 @@ export function reorderBefore(
  * stripped on load and open on the chat instead of the tab.
  */
 export const routablePaneKinds: ReadonlyArray<PaneTabKind> = [
+  "chat",
   "overview",
   "diffs",
   "files",

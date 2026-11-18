@@ -18,6 +18,8 @@ import type { PaneTab } from "./tabs";
 /** Capy's icon for a tab kind, as the strip and the open-a-tab menu show it. */
 export function tabIcon(tab: PaneTab): ReactNode {
   switch (tab.kind) {
+    case "chat":
+      return <ChatBubbleGlyph />;
     case "overview":
       return <ListBulletsGlyph />;
     case "diffs":

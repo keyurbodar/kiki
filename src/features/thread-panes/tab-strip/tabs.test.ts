@@ -41,6 +41,7 @@ describe("tabKey", () => {
 
 describe("tabLabel", () => {
   it("uses Capy's default labels", () => {
+    expect(tabLabel({ kind: "chat" })).toBe("Thread");
     expect(tabLabel(overview)).toBe("Overview");
     expect(tabLabel({ kind: "captain_issues" })).toBe("Issues");
     expect(tabLabel(browser)).toBe("New tab");
@@ -158,12 +159,14 @@ describe("tabLink", () => {
 
   it("only emits pane params the thread route can resolve", () => {
     expect(routablePaneKinds).toEqual([
+      "chat",
       "overview",
       "diffs",
       "files",
       "captain_issues",
     ]);
     const samples: ReadonlyArray<[PaneTabKind, PaneTab]> = [
+      ["chat", { kind: "chat" }],
       ["overview", { kind: "overview" }],
       ["diffs", { kind: "diffs", jamId: "jam_2" }],
       ["files", { kind: "files", jamId: "jam_2" }],
