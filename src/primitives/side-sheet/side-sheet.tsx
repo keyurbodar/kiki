@@ -164,7 +164,7 @@ export function SideSheetDescription({
     <BaseDialog.Description
       data-slot="side-sheet-description"
       className={withClass(
-        "col-span-full row-start-2 mt-1 text-pretty text-sm text-muted-foreground-2",
+        "col-span-full row-start-2 mt-1 text-pretty text-sm text-muted-foreground-2 flex flex-col",
         className,
       )}
       {...props}
@@ -179,7 +179,7 @@ export function SideSheetBody({ className, ...props }: SideSheetBodyProps) {
     <div
       data-slot="side-sheet-body"
       className={join(
-        "flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-5 py-4",
+        "flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-5 py-4",
         className,
       )}
       {...props}
@@ -195,7 +195,7 @@ export function SideSheetFooter({ className, ...props }: SideSheetFooterProps) {
     <div
       data-slot="side-sheet-footer"
       className={join(
-        "flex shrink-0 flex-row justify-end gap-2 px-5 py-4",
+        "flex shrink-0 flex-row flex-wrap items-center justify-between gap-2 px-5 py-4",
         phone ? undefined : "border-t-hairline border-border-1",
         className,
       )}
