@@ -137,14 +137,8 @@ export const ModelsMock = mockGroup("models", (handlers) =>
 
     return handlers
       .handle("list", () =>
-        Effect.gen(function* () {
-          const rows = yield* Ref.get(credentials);
-          return {
-            models: sampleCatalogModels.map((model) => ({ ...model })),
-            credentials: rows.map(summary),
-            services: [...new Set(rows.map((row) => row.service))],
-          };
-        }),
+        // Capy serves the catalog as a bare array; connections come from `connections`.
+        Effect.succeed(sampleCatalogModels.map((model) => ({ ...model }))),
       )
       .handle("disconnect", ({ params }) =>
         Effect.gen(function* () {

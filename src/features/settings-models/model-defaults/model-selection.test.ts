@@ -57,14 +57,18 @@ describe("model selection", () => {
 
   it("reads the catalog out of the endpoint payload", () => {
     expect(
-      extractCatalog({ entries: [{ id: "x/y", name: "Y", provider: "x" }] }),
-    ).toEqual([{ id: "x/y", name: "Y", provider: "x", efforts: [] }]);
-    expect(
-      extractCatalog([{ id: "a/b", name: "B", limits: { context: 9000 } }]),
+      extractCatalog([
+        { id: "x/y", name: "Y", provider: "x" },
+        { id: "a/b", name: "B", limits: { context: 9000 } },
+      ]),
     ).toEqual([
+      { id: "x/y", name: "Y", provider: "x", efforts: [] },
       { id: "a/b", name: "B", provider: "capy", efforts: [], context: 9000 },
     ]);
     expect(extractCatalog(null)).toEqual([]);
+    expect(
+      extractCatalog({ models: [{ id: "x/y", name: "Y", provider: "x" }] }),
+    ).toEqual([]);
   });
 
   it("names a selection, its provider and its effort", () => {
