@@ -12,9 +12,9 @@ import {
   skipOnboardingStepAtom,
   startLinearOAuthAtom,
   startSlackOAuthAtom,
-  updateAccountNameAtom,
 } from "@/data/atoms/onboarding";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
+import { updateAccountNameAtom } from "@/data/atoms/users";
 import { toast } from "@/primitives/toaster";
 import {
   displayName,

@@ -34,6 +34,7 @@ import {
   threadOrganizationKeys,
   unpinThreadsAtom,
 } from "@/data/atoms/threadOrganization";
+import { CaptainProfileDialog } from "@/features/captains/dialogs/captain-profile-dialog";
 import { toast } from "@/primitives/toaster";
 import { useSidebarOrgId } from "../sidebar-threads-data/live-source";
 import { NewFolderDialog } from "./new-folder-dialog";
@@ -67,6 +68,8 @@ export type ThreadActions = {
   demoteCaptain: (captain: { id: string; name: string }) => void;
   /** Asks for confirmation before deleting a Captain. */
   removeCaptain: (captain: { id: string; name: string }) => void;
+  /** Opens Capy's Captain dialog on the Captain's own profile page. */
+  profileCaptain: (captain: { id: string; name: string }) => void;
   startRename: (threadId: string, rowKey?: string) => void;
   commitRename: (threadId: string, title: string) => void;
   cancelRename: () => void;
@@ -111,6 +114,7 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
   const openShare = useOpenShareDialog();
   const orgId = useSidebarOrgId();
   const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [profileJamId, setProfileJamId] = useState<JamId | null>(null);
   const [renamingKey, setRenamingKey] = useState<string | null>(null);
   const [captainAction, setCaptainAction] = useState<{
     kind: "demote" | "delete";
@@ -330,6 +334,7 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
       setCaptainAction({ kind: "demote", ...captain }),
     removeCaptain: (captain) =>
       setCaptainAction({ kind: "delete", ...captain }),
+    profileCaptain: (captain) => setProfileJamId(captain.id as JamId),
     cancelRename: () => {
       setRenamingId(null);
       setRenamingKey(null);
@@ -406,6 +411,12 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
           );
         }}
       />
+      {profileJamId === null ? null : (
+        <CaptainProfileDialog
+          jamId={profileJamId}
+          onClose={() => setProfileJamId(null)}
+        />
+      )}
       <ConfirmDialog
         open={deleting !== null}
         onOpenChange={(open) => {

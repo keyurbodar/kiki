@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   fullName,
   keptEmailNote,
+  readAccount,
   restoreDescription,
   sampleAccount,
   splitName,
@@ -84,5 +85,67 @@ describe("copy that depends on account state", () => {
     ).toBe(
       "Restorable until Dec 1, 2026; subscriptions stay canceled and auto-reload stays off",
     );
+  });
+});
+
+describe("the account endpoint's undecoded row", () => {
+  it("reads the fields the page renders", () => {
+    expect(
+      readAccount({
+        id: "user_sample_alex",
+        firstName: "Alex",
+        lastName: null,
+        imageUrl: "https://static.example.com/avatars/alex.png",
+        emails: [
+          {
+            id: "e1",
+            email: "alex@example.com",
+            primary: true,
+            verified: true,
+          },
+          { email: "work@example.com", primary: false, verified: false },
+          { nope: true },
+        ],
+      }),
+    ).toEqual({
+      id: "user_sample_alex",
+      firstName: "Alex",
+      lastName: null,
+      imageUrl: "https://static.example.com/avatars/alex.png",
+      emails: [
+        {
+          id: "e1",
+          email: "alex@example.com",
+          primary: true,
+          verified: true,
+        },
+        {
+          id: "work@example.com",
+          email: "work@example.com",
+          primary: false,
+          verified: false,
+        },
+      ],
+    });
+  });
+
+  it("reads nothing from a row that is not an account", () => {
+    expect(readAccount(undefined)).toBe(undefined);
+    expect(readAccount({})).toBe(undefined);
+    expect(readAccount("user_sample_alex")).toBe(undefined);
+  });
+
+  it("keeps a sign-in link only when it names one", () => {
+    const account = readAccount({
+      id: "u",
+      emails: [
+        { id: "e", email: "a@example.com", linkedSignIn: "github" },
+        { id: "f", email: "b@example.com", linkedSignIn: "magic-link" },
+      ],
+    });
+    expect(account?.emails.map((email) => email.linkedSignIn)).toEqual([
+      "github",
+      undefined,
+    ]);
   });
 });

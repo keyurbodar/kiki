@@ -1,4 +1,3 @@
-import { useNavigate } from "@tanstack/react-router";
 import type {
   SidebarCaptain,
   SidebarThread,
@@ -69,7 +68,6 @@ export function CaptainRowMenu({
 }) {
   const actions = useThreadActions();
   const row = asThread(captain);
-  const navigate = useNavigate();
   const act = (run: () => void) => () => {
     onClose?.();
     run();
@@ -104,14 +102,7 @@ export function CaptainRowMenu({
       <MenuRow
         icon="user"
         label="Profile"
-        onClick={act(
-          () =>
-            void navigate({
-              to: "/thread/$threadId",
-              params: { threadId: captain.id },
-              search: { pane: "overview" },
-            }),
-        )}
+        onClick={act(() => actions.profileCaptain(captain))}
       />
       <MenuRow
         icon="folder-shared"

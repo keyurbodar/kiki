@@ -210,6 +210,25 @@ describe("users mock", () => {
     }),
   );
 
+  it.effect("hands back the picture a profile write stored", () =>
+    Effect.gen(function* () {
+      globalThis.localStorage.clear();
+      const registry = AtomRegistry.make();
+      const imageUrl = "data:image/png;base64,iVBORw0KGgo=";
+
+      yield* run(registry, updateImage, { payload: { imageUrl } });
+
+      const account = yield* AtomRegistry.getResult(registry, accountAtom, {
+        suspendOnWaiting: true,
+      });
+      assert.strictEqual((account as Row).imageUrl, imageUrl);
+      const user = yield* AtomRegistry.getResult(registry, currentUserAtom, {
+        suspendOnWaiting: true,
+      });
+      assert.strictEqual((user as { imageUrl: string }).imageUrl, imageUrl);
+    }),
+  );
+
   it.effect(
     "answers the 404 the appearance file URL declares for an unknown file",
     () =>

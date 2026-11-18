@@ -63,6 +63,7 @@ import {
 } from "@/data/atoms/setup";
 import { foldersAtom } from "@/data/atoms/threadOrganization";
 import { threadsAtom } from "@/data/atoms/threads";
+import { accountAtom } from "@/data/atoms/users";
 import {
   captains,
   driveFiles,
@@ -419,6 +420,10 @@ const readers: ReadonlyArray<{
         atom: memberShareAtom(shareId("spec") as never),
       },
     ],
+  },
+  {
+    endpoint: "users.getAccount",
+    consumers: [{ name: "accountAtom", atom: accountAtom }],
   },
   {
     endpoint: "pulls.localPullsForThread",

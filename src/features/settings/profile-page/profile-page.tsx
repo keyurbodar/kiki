@@ -1,5 +1,17 @@
-import { useRef, useState } from "react";
+import { useAtomSet, useAtomValue } from "@effect/atom-react";
+import { Option } from "effect";
+import { AsyncResult } from "effect/reactivity";
+import { useState } from "react";
+import { AvatarEditor } from "@/components/avatar-editor";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
+import { reactivityKeys } from "@/data/atoms/conventions";
+import { currentUserAtom } from "@/data/atoms/session";
+import {
+  accountAtom,
+  deleteAccountAtom,
+  updateAccountImageAtom,
+  updateAccountNameAtom,
+} from "@/data/atoms/users";
 import { SettingsConfirmDialog } from "@/features/settings/confirm-dialog";
 import { Button, ButtonIcon } from "@/primitives/button";
 import { Card } from "@/primitives/card";
@@ -9,12 +21,11 @@ import { Input } from "@/primitives/input";
 import { SettingsRow } from "@/primitives/settings-row";
 import { toast } from "@/primitives/toaster";
 import {
-  type Account,
   type AccountEmail,
   type DeletedOrganization,
   fullName,
+  readAccount,
   restoreDescription,
-  sampleAccount,
   splitName,
   validateNewEmail,
 } from "./account";
@@ -24,47 +35,77 @@ import {
   type ChangeEmailStep,
 } from "./change-email-dialog";
 
-const initials = (name: string) =>
-  name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
+/** The picked file as the URL the account stores, so a reload paints it again. */
+const fileUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
 
 export type ProfilePageProps = {
-  initialAccount?: Account;
   deletedOrganizations?: DeletedOrganization[];
 };
 
-export function ProfilePage({
-  initialAccount = sampleAccount,
-  deletedOrganizations = [],
-}: ProfilePageProps) {
-  const [account, setAccount] = useState(initialAccount);
+export function ProfilePage({ deletedOrganizations = [] }: ProfilePageProps) {
+  const account = readAccount(
+    Option.getOrUndefined(AsyncResult.value(useAtomValue(accountAtom))),
+  );
+  const user = Option.getOrUndefined(
+    AsyncResult.value(useAtomValue(currentUserAtom)),
+  );
+  const saveNameAtom = useAtomSet(updateAccountNameAtom, { mode: "promise" });
+  const saveImage = useAtomSet(updateAccountImageAtom, { mode: "promise" });
+  const removeAccount = useAtomSet(deleteAccountAtom, { mode: "promise" });
   const [draftName, setDraftName] = useState<string | null>(null);
-  const [imageUrl, setImageUrl] = useState(account.imageUrl);
+  const [draftEmails, setDraftEmails] =
+    useState<ReadonlyArray<AccountEmail> | null>(null);
+  const [nameBusy, setNameBusy] = useState(false);
+  const [imageBusy, setImageBusy] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [restoring, setRestoring] = useState<string | null>(null);
   const [deleted, setDeleted] = useState(deletedOrganizations);
-  const fileInput = useRef<HTMLInputElement>(null);
 
-  const name = draftName ?? fullName(account);
-  const primary = account.emails.find((email) => email.primary);
+  const userName = [user?.firstName, user?.lastName]
+    .filter((part) => part !== null && part !== undefined && part !== "")
+    .join(" ");
+  const savedName = fullName(account) || userName;
+  const name = draftName ?? savedName;
+  const emails = draftEmails ?? account?.emails ?? [];
+  const primary = emails.find((email) => email.primary);
+  const keys = [reactivityKeys.currentUser];
 
-  const saveName = () => {
+  const save = () => {
     const trimmed = name.trim();
-    if (trimmed === "" || trimmed === fullName(account)) {
+    if (account === undefined || trimmed === "" || trimmed === savedName) {
       setDraftName(null);
       return;
     }
-    setAccount({ ...account, ...splitName(trimmed) });
-    setDraftName(null);
-    toast.success("Name updated");
+    const { firstName, lastName } = splitName(trimmed);
+    setNameBusy(true);
+    saveNameAtom({ payload: { firstName, lastName }, reactivityKeys: keys })
+      .then(() => {
+        setDraftName(null);
+        toast.success("Name updated");
+      })
+      .catch(() => toast.error("Could not update your name"))
+      .finally(() => setNameBusy(false));
   };
 
-  const email = useChangeEmail(account, setAccount);
+  const upload = (file: File) => {
+    setImageBusy(true);
+    fileUrl(file)
+      .then((imageUrl) =>
+        saveImage({ payload: { imageUrl }, reactivityKeys: keys }),
+      )
+      .then(() => toast.success("Profile picture updated"))
+      .catch(() => toast.error("Could not update your profile picture"))
+      .finally(() => setImageBusy(false));
+  };
+
+  const email = useChangeEmail(emails, setDraftEmails);
 
   return (
     <>
@@ -76,41 +117,14 @@ export function ProfilePage({
               label="Profile picture"
               description="Shown across your account"
             >
-              <span className="contents">
-                <span className="relative flex shrink-0 items-center justify-center overflow-hidden rounded bg-secondary size-8 text-xs">
-                  {imageUrl === undefined ? (
-                    initials(name)
-                  ) : (
-                    <img
-                      alt={name}
-                      className="absolute inset-0 size-full object-cover"
-                      src={imageUrl}
-                    />
-                  )}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label="Change profile picture"
-                  title="Adjust profile picture"
-                  onClick={() => fileInput.current?.click()}
-                >
-                  <ButtonIcon>
-                    <Icon name="pencil" size="sm" />
-                  </ButtonIcon>
-                </Button>
-              </span>
-              <input
-                ref={fileInput}
-                accept="image/gif,image/jpeg,image/png,image/webp"
-                className="hidden"
-                type="file"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file === undefined) return;
-                  setImageUrl(URL.createObjectURL(file));
-                  toast.success("Profile picture updated");
-                }}
+              <AvatarEditor
+                src={account?.imageUrl ?? user?.imageUrl ?? null}
+                name={name}
+                label="Change profile picture"
+                title="Adjust profile picture"
+                busy={imageBusy}
+                disabled={account === undefined}
+                onImage={upload}
               />
             </SettingsRow>
             <SettingsRow
@@ -123,8 +137,9 @@ export function ProfilePage({
                 value={name}
                 aria-label="Full name"
                 className="w-56"
+                disabled={account === undefined || nameBusy}
                 onChange={(e) => setDraftName(e.target.value)}
-                onBlur={saveName}
+                onBlur={save}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") e.currentTarget.blur();
                   if (e.key === "Escape") setDraftName(null);
@@ -143,6 +158,7 @@ export function ProfilePage({
                 variant="ghost"
                 size="icon-sm"
                 aria-label="Change email"
+                disabled={account === undefined}
                 onClick={() => email.setOpen(true)}
               >
                 <ButtonIcon>
@@ -155,12 +171,14 @@ export function ProfilePage({
               label="User ID"
               description="For support and API requests"
             >
-              <CopyField
-                size="sm"
-                value={account.id}
-                label="user ID"
-                className="relative flex min-w-0 w-56"
-              />
+              {account === undefined ? null : (
+                <CopyField
+                  size="sm"
+                  value={account.id}
+                  label="user ID"
+                  className="relative flex min-w-0 w-56"
+                />
+              )}
             </SettingsRow>
           </Card>
         </SettingsSection>
@@ -174,6 +192,7 @@ export function ProfilePage({
               <Button
                 variant="ghost"
                 intent="danger"
+                disabled={account === undefined}
                 onClick={() => setDeleteOpen(true)}
               >
                 Delete account
@@ -248,9 +267,13 @@ export function ProfilePage({
         closeOnConfirm={false}
         onConfirm={() => {
           setDeleting(true);
-          setDeleting(false);
-          setDeleteOpen(false);
-          toast.success("Account deleted");
+          removeAccount({ reactivityKeys: keys })
+            .then(() => {
+              setDeleteOpen(false);
+              toast.success("Account deleted");
+            })
+            .catch(() => toast.error("Could not delete your account"))
+            .finally(() => setDeleting(false));
         }}
       />
     </>
@@ -258,8 +281,8 @@ export function ProfilePage({
 }
 
 export function useChangeEmail(
-  account: Account,
-  setAccount: (account: Account) => void,
+  emails: ReadonlyArray<AccountEmail>,
+  setEmails: (emails: ReadonlyArray<AccountEmail>) => void,
 ) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<ChangeEmailStep>("address");
@@ -269,7 +292,7 @@ export function useChangeEmail(
   const [code, setCode] = useState("");
   const [busy] = useState<ChangeEmailBusy>(null);
   const [error, setError] = useState<string | null>(null);
-  const primary = account.emails.find((email) => email.primary);
+  const primary = emails.find((email) => email.primary);
 
   const reset = () => {
     setStep("address");
@@ -281,22 +304,19 @@ export function useChangeEmail(
   };
 
   const finish = (email: AccountEmail) => {
-    const others = account.emails.filter(
+    const others = emails.filter(
       (e) => !e.primary && e.id !== email.id && e.linkedSignIn !== undefined,
     );
-    const previous = account.emails.find((e) => e.primary);
+    const previous = emails.find((e) => e.primary);
     const stays =
       previous?.linkedSignIn !== undefined
         ? [{ ...previous, primary: false }]
         : [];
-    setAccount({
-      ...account,
-      emails: [
-        { ...email, primary: true, verified: true },
-        ...others,
-        ...stays,
-      ],
-    });
+    setEmails([
+      { ...email, primary: true, verified: true },
+      ...others,
+      ...stays,
+    ]);
     if (stays.length === 0) {
       setOpen(false);
       reset();
