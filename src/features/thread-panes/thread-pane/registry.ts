@@ -3,9 +3,14 @@ import type { ComponentType } from "react";
 export type PaneProps = { threadId: string };
 
 /**
- * Which of the thread's two strips offers a pane. Capy has both: the chat
- * column's strip replaces the transcript (`setup`, a browser tab, a terminal),
- * and the right dock's strip opens the document panes beside it.
+ * Which of the thread's two strips offers a pane. Measured on live Capy: every
+ * pane the tab menu offers — the overview, the files, setup, the issues, a
+ * browser session and a terminal — opens in the **right dock**, beside a
+ * transcript that keeps painting. The chat column's strip holds the thread's
+ * own chat tab, and nothing it opens replaces the transcript. An earlier note
+ * here claimed setup, a browser and a terminal belonged to the chat column;
+ * that was wrong about Capy, and it made picking one of them paint the pane in
+ * both columns at once.
  */
 export type PaneSurface = "main" | "dock";
 
