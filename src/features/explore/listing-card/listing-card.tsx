@@ -127,6 +127,8 @@ const rowClassName =
 
 export function ListingRow({ card, metadata = "full" }: ListingRowProps) {
   const byline = listingByline(card);
+  const hasMetadata =
+    card.stars !== null || card.adds !== null || byline !== undefined;
   const content = (
     <>
       <ListingIcon card={card} />
@@ -138,7 +140,7 @@ export function ListingRow({ card, metadata = "full" }: ListingRowProps) {
           {trimDescription(card.description)}
         </span>
       </span>
-      {metadata === "full" && (
+      {metadata === "full" && hasMetadata && (
         <span className="flex shrink-0 flex-col items-end gap-0.5 text-sm">
           {card.stars !== null && (
             <span

@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { ProviderIcon, providerOfModelId } from "@/components/model-picker";
 import {
   Glyph,
   ProjectChip,
@@ -15,6 +16,7 @@ import {
   type SidebarProject,
   type SidebarThread,
 } from "@/components/sidebar-threads";
+import { MachineIcon } from "@/components/thread-preview";
 import { NeedsYouDot, ThreadStatusIcon } from "@/components/thread-status";
 import { Button } from "@/primitives/button";
 import {
@@ -305,6 +307,24 @@ export function SidebarThreadRow({
     </span>
   );
   const machine = thread.machine;
+  const modelId = thread.card?.lastModelId ?? null;
+  const provider = modelId === null ? null : providerOfModelId(modelId);
+  const trailing =
+    provider === null && machine === null ? null : (
+      <span className="flex max-w-3/5 min-w-0 shrink-0 items-center gap-1.5 opacity-80">
+        {provider === null ? null : (
+          <ProviderIcon provider={provider} className="size-3 shrink-0" />
+        )}
+        {machine === null ? null : (
+          <>
+            <MachineIcon machine={machine} />
+            <span className="mask-fade-r min-w-0 overflow-hidden whitespace-nowrap">
+              {machine.name}
+            </span>
+          </>
+        )}
+      </span>
+    );
   const meta =
     ask === undefined ? (
       <>
@@ -318,15 +338,7 @@ export function SidebarThreadRow({
         ) : (
           <span className={rowTextClassName}>{project.name}</span>
         )}
-        {machine === null ? null : (
-          <span className="flex max-w-3/5 min-w-0 shrink-0 items-center gap-1.5 opacity-80">
-            {machine.kind === "device" ? (
-              <span className="mask-fade-r min-w-0 overflow-hidden whitespace-nowrap">
-                {machine.name}
-              </span>
-            ) : null}
-          </span>
-        )}
+        {trailing}
       </>
     ) : (
       <span className={cx(rowTextClassName, "text-primary-ink")}>{ask}</span>

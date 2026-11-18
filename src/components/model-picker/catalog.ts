@@ -184,8 +184,12 @@ export const isKeyEntry = (entry: ModelEntry) =>
 const groupKey = (entry: ModelEntry) =>
   `${labOf(entry)}/${modelSlug(entry.id)}`;
 
+/** The lab a model id belongs to, keyed as `ProviderIcon` and `labOf` key it. */
+export const providerOfModelId = (id: string) =>
+  id.startsWith(`${claudeCode}/`) ? "anthropic" : id.slice(0, id.indexOf("/"));
+
 export const groupKeyOfId = (id: string) =>
-  `${id.startsWith(`${claudeCode}/`) ? "anthropic" : id.slice(0, id.indexOf("/"))}/${modelSlug(id)}`;
+  `${providerOfModelId(id)}/${modelSlug(id)}`;
 
 export function groupModels(
   entries: ReadonlyArray<ModelEntry>,
