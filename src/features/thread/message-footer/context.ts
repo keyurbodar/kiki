@@ -40,7 +40,11 @@ export type MessageActions = {
   automationName?: (automationId: string) => string | undefined;
   reply?: (target: ReplyTarget) => void;
   editMessage?: (target: EditTarget) => void;
-  /** Rows a later message replaces; the stamp line marks them Edited. */
+  /**
+   * The rows that *are* edits: a row whose id is here replaces an earlier
+   * message, so its stamp line reads Edited. A replaced row is superseded and
+   * never reaches the chat, so it is not the one to mark.
+   */
   editedRowIds?: ReadonlySet<string>;
   jumpToSection?: (rowId: string, section: number) => void;
   forkQuote?: (kind: "copy" | "summary", quote: QuoteSource) => void;

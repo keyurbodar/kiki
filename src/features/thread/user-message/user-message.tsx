@@ -2,6 +2,7 @@ import { type ComponentProps, useState } from "react";
 import { ClampedBody } from "@/components/clamped-body";
 import { Markdown } from "@/components/markdown";
 import type { UserMessageRow as UserMessageRowSchema } from "@/data/events";
+import { useIsPhoneSurface } from "@/features/mobile";
 import { MessageHeader } from "@/features/thread/agent-message";
 import {
   type AttachmentEntry,
@@ -90,7 +91,8 @@ export function UserMessage({
   const clamps =
     onToggleExpanded !== undefined || needsClamp(body, clampHeight);
 
-  const footerEl = footer && (
+  const phone = useIsPhoneSurface();
+  const footerEl = footer && !phone && (
     <MessageFooter touch align={mine ? "end" : "start"}>
       <MessageStamp
         date={row.createdAt}

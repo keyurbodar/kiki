@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AgentMessage } from "@/features/thread/agent-message";
 import {
   type EditTarget,
@@ -8,7 +8,21 @@ import {
 import { buildReply } from "@/features/thread/reply-quote";
 import { UserMessage, type UserMessageRow } from "./user-message";
 
-afterEach(cleanup);
+let phoneSurface = false;
+
+vi.mock("@/features/mobile", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/features/mobile")>()),
+  useIsPhoneSurface: () => phoneSurface,
+}));
+
+afterEach(() => {
+  cleanup();
+  phoneSurface = false;
+});
+
+beforeEach(() => {
+  phoneSurface = false;
+});
 
 const shotFile = {
   fileId: "file_shot",
@@ -59,6 +73,34 @@ describe("UserMessage", () => {
     expect(screen.getByText("Can you check the build?")).toBeTruthy();
     expect(document.querySelector("[data-slot=message-header]")).toBeNull();
     expect(screen.getByLabelText("Edit message")).toBeTruthy();
+  });
+
+  it("keeps Reply, Copy and Edit on the desktop surface", () => {
+    render(
+      <MessageActionsProvider
+        value={{ viewerUserId: "user_sample", editMessage: () => {} }}
+      >
+        <UserMessage row={userRow} />
+      </MessageActionsProvider>,
+    );
+    expect(screen.getByLabelText("Edit message")).toBeTruthy();
+    expect(screen.getByLabelText("Reply")).toBeTruthy();
+    expect(screen.getByLabelText("Copy message")).toBeTruthy();
+  });
+
+  it("suppresses the action footer on the phone surface", () => {
+    phoneSurface = true;
+    render(
+      <MessageActionsProvider
+        value={{ viewerUserId: "user_sample", editMessage: () => {} }}
+      >
+        <UserMessage row={userRow} />
+      </MessageActionsProvider>,
+    );
+    expect(screen.queryByLabelText("Edit message")).toBeNull();
+    expect(screen.queryByLabelText("Reply")).toBeNull();
+    expect(screen.queryByLabelText("Copy message")).toBeNull();
+    expect(screen.getByText("Can you check the build?")).toBeTruthy();
   });
 
   it("clamps a long message and leaves a short one alone", () => {
