@@ -1,5 +1,13 @@
+import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import type { ReactNode } from "react";
 import type { SidebarThread } from "@/components/sidebar-threads";
+import type { JamId, ThreadTagId } from "@/data/api/schemas/ids";
+import {
+  assignTagAtom,
+  tagsAtom,
+  threadTagsAtom,
+  unassignTagAtom,
+} from "@/data/atoms/threadOrganization";
 import { Icon } from "@/primitives/icon";
 import type { IconId } from "@/primitives/icon/icon-ids";
 import {
@@ -8,6 +16,7 @@ import {
   ResponsiveMenuSeparator,
   ResponsiveMenuSub,
 } from "@/primitives/responsive-menu";
+import { useSidebarOrgId } from "../sidebar-threads-data/live-source";
 import { useThreadActions } from "./thread-actions-context";
 
 const menuIconClassName =
@@ -52,6 +61,54 @@ function MenuRow({
  * Capy's thread context menu, in Capy's order. The sidebar's `…` cluster and the
  * list's right-click menu render the same component, so the two can never drift.
  */
+/** Capy's Tags row: every tag, checked on the thread's own assignment. */
+function TagRows({ threadId }: { threadId: string }) {
+  const orgId = useSidebarOrgId();
+  const tags = useAtomValue(tagsAtom(orgId ?? ("" as never)));
+  const assigned = useAtomValue(threadTagsAtom(`${orgId ?? ""}/${threadId}`));
+  const assign = useAtomSet(assignTagAtom, { mode: "promise" });
+  const unassign = useAtomSet(unassignTagAtom, { mode: "promise" });
+  const list = Array.isArray(tags) ? (tags as ReadonlyArray<TagRow>) : [];
+  const on = new Set(
+    Array.isArray(assigned)
+      ? (assigned as ReadonlyArray<{ id?: string }>).map((tag) => tag.id)
+      : [],
+  );
+  if (list.length === 0)
+    return (
+      <ResponsiveMenuLabel className={menuLabelClassName}>
+        No tags yet
+      </ResponsiveMenuLabel>
+    );
+  return (
+    <>
+      {list.map((tag) => {
+        const tagged = on.has(tag.id);
+        return (
+          <ResponsiveMenuItem
+            key={tag.id}
+            onClick={() => {
+              if (orgId === undefined) return;
+              const call = tagged ? unassign : assign;
+              void call({
+                params: { orgId, tagId: tag.id as ThreadTagId },
+                payload: { jamIds: [threadId as JamId] },
+              }).catch(() => undefined);
+            }}
+          >
+            <span className={menuIconClassName}>
+              <Icon name={tagged ? "checkmark-1" : "tag"} size="sm" />
+            </span>
+            {tag.name}
+          </ResponsiveMenuItem>
+        );
+      })}
+    </>
+  );
+}
+
+type TagRow = { id: string; name: string };
+
 export function ThreadRowMenu({
   thread,
   onClose,
@@ -117,6 +174,17 @@ export function ThreadRowMenu({
         contentClassName="w-52"
       >
         {folders}
+      </ResponsiveMenuSub>
+      <ResponsiveMenuSub
+        icon={
+          <span className={menuIconClassName}>
+            <Icon name="tag" size="sm" />
+          </span>
+        }
+        label="Tags"
+        contentClassName="w-52"
+      >
+        <TagRows threadId={thread.id} />
       </ResponsiveMenuSub>
       {thread.owner && !thread.archived ? (
         <MenuRow
