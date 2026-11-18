@@ -1,5 +1,6 @@
 import { Duration, Option } from "effect";
 import { type AsyncResult, Atom } from "effect/reactivity";
+import { useMemo } from "react";
 
 /**
  * A read that refreshes itself when a surface mounts again, so coming back to a
@@ -57,3 +58,20 @@ const isStale = (
   if (success?._tag !== "Success") return result._tag === "Failure";
   return Date.now() - success.timestamp >= Duration.toMillis(staleTime);
 };
+
+/**
+ * Revalidation belongs to the surface that mounts, not to the shared atom.
+ *
+ * Wrapping the atom itself puts the trigger on a node the whole shell reads:
+ * `CommandPaletteHost` and the project select live for the app's lifetime, so a
+ * wrapper they share never idles, never rebuilds, and never fires — the screen
+ * it was supposed to refresh is the one thing it cannot reach. This holds one
+ * wrapper per surface instead, so the node idles when that surface unmounts and
+ * rebuilds when the reader comes back. The cached value stays shared, because
+ * every wrapper reads the same underlying atom.
+ */
+export const useRevalidatedAtom = <A, E>(
+  atom: Atom.Atom<AsyncResult.AsyncResult<A, E>>,
+  staleTime: Duration.Input,
+): Atom.Atom<AsyncResult.AsyncResult<A, E>> =>
+  useMemo(() => revalidateOnMount(staleTime)(atom), [atom, staleTime]);
