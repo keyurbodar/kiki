@@ -1,4 +1,4 @@
-import { assert, describe, it, layer } from "@effect/vitest";
+import { assert, describe, layer } from "@effect/vitest";
 import { Effect } from "effect";
 import { ApiClient, makeApiClientLayer } from "@/data/client/ApiClient.ts";
 import { orgId, threads } from "../fixtures/world.ts";
