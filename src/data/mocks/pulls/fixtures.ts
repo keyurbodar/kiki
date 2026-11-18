@@ -395,18 +395,6 @@ export const pullActivity = [
   },
 ];
 
-export const orgPullActivity = [
-  ...pullActivity,
-  {
-    id: "act_sample_4",
-    pullId: pulls[2]!.id,
-    type: "merge",
-    actorId: people.casey.id,
-    body: "merged the pull request",
-    createdAt: isoMinutesAgo(9 * 24 * 60),
-  },
-];
-
 export const pullHourlyActivity = [
   {
     hour: isoMinutesAgo(5 * 60).slice(0, 13),

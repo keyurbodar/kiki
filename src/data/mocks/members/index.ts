@@ -55,6 +55,14 @@ const recordActivity = (
     ...rows,
   ]);
 
+/** Capy's dialog trims and splits on whitespace, commas and semicolons. */
+const trimAddress = (value: string) =>
+  value.trim().replace(/^[<"']|[>"']$/g, "");
+
+const emailPattern = /^[^\s@]+@[^\s@.]+\.[^\s@.]+$/u;
+
+const isEmailAddress = (value: string) => emailPattern.test(value);
+
 export const MembersMock = mockGroup("members", (handlers) =>
   Effect.gen(function* () {
     const { members, pendingInvitations } = yield* MockDb;
@@ -260,22 +268,54 @@ export const MembersMock = mockGroup("members", (handlers) =>
       .handle("invite", ({ payload }) =>
         Effect.gen(function* () {
           const input = fields(payload);
-          const email =
-            string(input.email) ??
-            (Array.isArray(input.emails)
-              ? string(input.emails[0])
-              : undefined) ??
-            "new-member@example.com";
-          const invite = {
-            id: `inv_mock_${(yield* Ref.get(pendingInvitations)).length + 1}`,
-            email,
-            role: role(input.role) ?? "member",
-            invitedBy: people.alex.id,
-            createdAt: isoMinutesAgo(0),
-            expiresAt: isoMinutesAgo(-7 * 24 * 60),
+          const requested = Array.isArray(input.emails)
+            ? input.emails.flatMap((entry) => {
+                const value = string(entry);
+                return value === undefined ? [] : [value];
+              })
+            : [string(input.email)].flatMap((value) =>
+                value === undefined ? [] : [value],
+              );
+          const addresses = [...new Set(requested.map(trimAddress))].filter(
+            (email) => email !== "",
+          );
+          const currentMembers = yield* Ref.get(members);
+          const taken = new Set(
+            currentMembers.map((row) => trimAddress(row.email).toLowerCase()),
+          );
+          const outcomes: Array<{ email: string; status: string }> = [];
+          for (const email of addresses) {
+            const key = email.toLowerCase();
+            if (!isEmailAddress(email) || taken.has(key)) {
+              outcomes.push({
+                email,
+                status: taken.has(key) ? "already_member" : "invalid",
+              });
+              continue;
+            }
+            taken.add(key);
+            const invite = {
+              id: `inv_mock_${(yield* Ref.get(pendingInvitations)).length + 1}`,
+              email,
+              role: role(input.role) ?? "member",
+              invitedBy: people.alex.id,
+              createdAt: isoMinutesAgo(0),
+              expiresAt: isoMinutesAgo(-7 * 24 * 60),
+            };
+            yield* Ref.update(pendingInvitations, (rows) => [...rows, invite]);
+            outcomes.push({ email, status: "invited" });
+          }
+          const invited = outcomes.filter(
+            (outcome) => outcome.status === "invited",
+          );
+          return {
+            ok: true,
+            invitations: outcomes,
+            sent: invited.length,
+            skipped: outcomes
+              .filter((outcome) => outcome.status !== "invited")
+              .map((outcome) => outcome.email),
           };
-          yield* Ref.update(pendingInvitations, (rows) => [...rows, invite]);
-          return { ok: true, invitation: invite, invitations: [invite] };
         }),
       );
   }),
