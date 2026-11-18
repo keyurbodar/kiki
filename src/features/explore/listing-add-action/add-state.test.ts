@@ -4,7 +4,7 @@ import { addState, addTarget } from "./add-state";
 import { recordAdded, unversionedKey, versionedKey } from "./recently-added";
 
 const skill = findSampleListing("skill", "debugging-playbook")?.card;
-const plugin = findSampleListing("plugin", "edge-platform")?.card;
+const plugin = findSampleListing("plugin", "cloudflare")?.card;
 if (skill === undefined || plugin === undefined)
   throw new Error("missing fixtures");
 
@@ -37,8 +37,8 @@ describe("addState", () => {
       addState({
         ...input,
         card: plugin,
-        indexAdded: ["plugin:edge-platform"],
-        indexUpdates: ["plugin:edge-platform"],
+        indexAdded: ["plugin:cloudflare"],
+        indexUpdates: ["plugin:cloudflare"],
       }).state,
     ).toBe("added");
   });
@@ -47,7 +47,7 @@ describe("addState", () => {
     expect(addTarget(skill, false, false, false)).toEqual({ kind: "sign-in" });
     expect(addTarget(plugin, true, false, false)).toEqual({
       kind: "marketplace",
-      name: "edge-platform",
+      name: "cloudflare",
     });
     expect(addTarget(plugin, true, true, false)).toEqual({
       kind: "settings-mcp",

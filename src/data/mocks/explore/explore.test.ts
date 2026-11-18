@@ -11,7 +11,7 @@ layer(makeApiClientLayer(MockTransport))("explore mocks", (it) => {
     Effect.gen(function* () {
       const client = yield* ApiClient;
       const listing = yield* client.explorePublic.listing({
-        params: { kind: "plugin", slug: "edge-platform" },
+        params: { kind: "plugin", slug: "cloudflare" },
       });
       assert.instanceOf(listing, ExploreListing);
       assert.strictEqual(listing.content.kind, "plugin");

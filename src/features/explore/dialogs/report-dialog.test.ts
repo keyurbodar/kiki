@@ -3,14 +3,14 @@ import { findSampleListing } from "@/data/mocks/explorePublic/fixtures";
 import { errorMessage } from "./error-message";
 import { reportPayload, reportReasons } from "./report-dialog";
 
-const card = findSampleListing("plugin", "edge-platform")?.card;
+const card = findSampleListing("plugin", "cloudflare")?.card;
 if (card === undefined) throw new Error("missing fixture");
 
 describe("report dialog", () => {
   it("drops empty details from the payload", () => {
     expect(reportPayload(card, "broken", "  ")).toEqual({
       kind: "plugin",
-      slug: "edge-platform",
+      slug: "cloudflare",
       reason: "broken",
       text: undefined,
     });

@@ -10,7 +10,7 @@ interface Icon {
 }
 
 const iconAtom = ApiClient.query("explorePublic", "icon", {
-  params: { kind: "plugin", slug: "edge-platform" },
+  params: { kind: "plugin", slug: "cloudflare" },
 });
 const listingsAtom = ApiClient.query("explorePublic", "listings", {
   query: {},
@@ -31,7 +31,7 @@ describe("explorePublic mock", () => {
     Effect.gen(function* () {
       const registry = AtomRegistry.make();
       const icon = (yield* AtomRegistry.getResult(registry, iconAtom)) as Icon;
-      assert.include(icon.url, "/plugin/edge-platform.png");
+      assert.include(icon.url, "/plugin/cloudflare.png");
       assert.strictEqual(icon.mimeType, "image/png");
     }),
   );
