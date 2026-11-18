@@ -178,7 +178,11 @@ const row = (
  * The history the parity captures read. `jam_01M7FSZ5JHHYSDA2WM61W88WEG` is the
  * long one: markdown, a fenced block, tool calls (one still running), a retryable
  * error, a failed call and task reports, so the thread route draws a real
- * transcript. The other three are short. Every word below is invented.
+ * transcript. `jam_01M7FP6GKY49R183VW3NBE3Y2Z` carries a twelve-turn
+ * conversation — six user turns, six agent turns with sections and a clamp, tool
+ * activity and an MCP proposal — because the thread routes are scored against it
+ * and a one-turn fixture renders nothing for a component to be measured in. The
+ * other two are short. Every word below is invented.
  */
 const capturePipelineJam = threads.capturePipeline.id;
 const captureFilesJam = threads.captureFiles.id;
@@ -725,7 +729,7 @@ const captureHistory: ReadonlyArray<EventRowEncoded> = [
   ),
 
   captureProbe.message(
-    "Trace the flaky shard timeout from last night's release.",
+    "Trace the flaky shard timeout from last night's release and tell me whether the retry budget hid it.",
   ),
   captureProbe.call("toolu_capture_probe_log", "bash", {
     command: "gh run view --log-failed",
@@ -736,8 +740,120 @@ const captureHistory: ReadonlyArray<EventRowEncoded> = [
     "The log ends in a checkout timeout, not a crash.",
     { shard: 3, timedOut: true },
   ),
-  captureProbe.reply(
-    "The failed shard timed out in the checkout spec after 30s, which matches the flake the retry thread is chasing.",
+  ...captureProbe.deliver(
+    "toolu_capture_probe_say_log",
+    [
+      "## What the log says",
+      "",
+      "The failed shard ends in a **checkout timeout** after thirty seconds, and the wait is a fixed one in the spec rather than the gateway being slow. The retry budget did not hide the fault: both attempts spent the same thirty seconds on the same step, so the run failed twice in the same place.",
+      "",
+      "Three things follow from that:",
+      "",
+      "- the timeout is not a scheduling problem, because a warm shard fails at the same second",
+      "- the retry doubled the wall clock without changing the outcome",
+      "- the deploy step never ran, so nothing was published",
+      "",
+      "The spec waits on a clock where it should wait on the gateway stub to answer. I want the stub's own timing before I touch the spec, because if the stub is what is slow the fix belongs there instead.",
+    ].join("\n"),
+  ),
+  captureProbe.message(
+    "Does the budget cover a cold shard or only a warm one?",
+    people.sam.id,
+  ),
+  ...captureProbe.deliver(
+    "toolu_capture_probe_say_budget",
+    [
+      "Only a warm one today. The budget is a count, not a deadline:",
+      "",
+      "```sh",
+      "attempts=0",
+      'while [ "$attempts" -lt 2 ]; do',
+      '  ./shard.sh "$SHARD" && break',
+      "  attempts=$((attempts + 1))",
+      "done",
+      "```",
+      "",
+      "A cold shard spends its thirty seconds on the first attempt and has nothing left for the second, which is why the run showed a timeout instead of a retry that worked.",
+    ].join("\n"),
+  ),
+  captureProbe.call("toolu_capture_probe_spec", "read", {
+    path: "tests/checkout/checkout.spec.ts",
+  }),
+  captureProbe.result(
+    "toolu_capture_probe_spec",
+    "Read tests/checkout/checkout.spec.ts.",
+    { path: "tests/checkout/checkout.spec.ts", lines: 120 },
+  ),
+  ...captureProbe.deliver(
+    "toolu_capture_probe_say_spec",
+    [
+      "## The wait is the fault",
+      "",
+      "Two waits in the checkout spec are hard-coded at thirty seconds and both cover the same gateway stub. The stub answers in about two seconds on a warm runner and just over thirty on a cold one, so the fixed wait is fine until the machine is cold and then it is exactly one second short.",
+      "",
+      "## What I would change",
+      "",
+      "Wait for the stub's ready signal instead of the clock. That fails fast when the stub never comes up and passes immediately when it does, and the gateway keeps its own timeout so nothing can hang forever.",
+      "",
+      "## What stays",
+      "",
+      "The retry budget stays at two attempts. It is the right shape for a genuinely flaky step; it is just not a substitute for waiting on the right thing.",
+    ].join("\n"),
+  ),
+  captureProbe.message(
+    "Link the failed run in the thread so I can read it later.",
+  ),
+  captureProbe.call("toolu_capture_probe_mcp", "mcp_add", {
+    name: "Release runs",
+    url: "https://mcp.example.com/release-runs",
+  }),
+  captureProbe.result(
+    "toolu_capture_probe_mcp",
+    "Release runs is ready to authenticate.",
+    { setup: { name: "Release runs", status: "needs_auth" } },
+  ),
+  ...captureProbe.deliver(
+    "toolu_capture_probe_say_mcp",
+    "Release runs is proposed and needs your sign-in before I can quote a run link from it. The log I read is last night's failed release, shard three.",
+  ),
+  captureProbe.message(
+    "Cap it at two attempts and stop there. A release that hangs for five minutes is worse than a rerun.",
+    people.sam.id,
+  ),
+  captureProbe.call(
+    "toolu_capture_probe_test",
+    "bash",
+    {
+      command: "bun run test:checkout --shard 1",
+      description: "Run the checkout spec against the new wait",
+    },
+    "The budget stays at two. The plan is to replace the fixed wait with the stub's ready signal, re-run the checkout spec on a cold shard, and leave the deploy step untouched.",
+  ),
+  captureProbe.result(
+    "toolu_capture_probe_test",
+    "The checkout spec passes on a cold shard in 41s.",
+    { shard: 1, passed: 12, failed: 0, durationMs: 41_200 },
+  ),
+  captureProbe.message("Good, send the pull request when it is up."),
+  ...captureProbe.deliver(
+    "toolu_capture_probe_say_pr",
+    [
+      "The pull request is up and the shard that failed last night is green on it.",
+      "",
+      "It replaces the fixed wait with the stub's ready signal in the two places the spec used a clock, and it changes nothing else: the retry budget, the runner and the deploy step are as they were.",
+    ].join("\n"),
+  ),
+  captureProbe.message(
+    "Does this touch the deploy step at all?",
+    people.priya.id,
+  ),
+  ...captureProbe.deliver(
+    "toolu_capture_probe_say_deploy",
+    [
+      "No. The wait is in the checkout spec, which runs before the deploy step reads its result, so a green shard publishes exactly as it did before and a red one still stops the release.",
+      "",
+      "The only behaviour that changes is *how long* a cold shard waits before it decides the stub is late: two seconds instead of thirty when the stub is down, and the stub's own answer when it is up. If you want the deploy step to see the retry count in its summary I can add that, but I would keep it out of this change.",
+    ].join("\n"),
   ),
 ];
 
