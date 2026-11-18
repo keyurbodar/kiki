@@ -51,9 +51,11 @@ describe("/pull/keyurbodar/xin/118", () => {
 
   it("renders the sidebar from the org's fixtures, not the sample data", async () => {
     await renderPull();
-    expect(await screen.findByText("Release captain")).toBeTruthy();
-    expect(screen.getByText("Docs captain")).toBeTruthy();
-    expect(screen.getByText("Platform captain")).toBeTruthy();
+    // Each Captain draws twice now, as Capy's sidebar does: once in the pinned
+    // tiles and once in the row under them.
+    expect((await screen.findAllByText("Release captain")).length).toBe(2);
+    expect(screen.getAllByText("Docs captain").length).toBe(2);
+    expect(screen.getAllByText("Platform captain").length).toBe(2);
   });
 
   it("opens one file body at a time on the page host", async () => {
