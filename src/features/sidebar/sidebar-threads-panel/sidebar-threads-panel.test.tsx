@@ -255,7 +255,7 @@ describe("sidebar row menu mutations", () => {
   });
 });
 
-describe("sidebar row menu", () => {
+describe("sidebar row menu opens on right-click", () => {
   it("opens Capy's row menu on right-click and opens the thread in a new tab", async () => {
     const openSpy = vi.spyOn(window, "open").mockReturnValue(null);
     await renderAt(<Harness sidebarSource={source([thread()])} />);
