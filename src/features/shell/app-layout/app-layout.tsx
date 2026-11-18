@@ -83,9 +83,8 @@ function AppShellBody({ children, banner }: AppLayoutProps) {
   const { setOpenMobile, toggle } = useSidebarActions();
   const pathname = useRouterState({ select: selectPathname });
   const navigate = useNavigate();
-  const [captainDialog, setCaptainDialog] = useState<CaptainDialogRequest | null>(
-    null,
-  );
+  const [captainDialog, setCaptainDialog] =
+    useState<CaptainDialogRequest | null>(null);
   const threads = useSidebarThreads();
 
   useSidebarShortcut(toggle);
