@@ -31,7 +31,6 @@ export const McpMock = mockGroup("mcp", (handlers) =>
     const favicons = yield* Ref.make<Readonly<Record<string, string>>>({});
     const oauthStates = yield* Ref.make<Readonly<Record<string, string>>>({});
     const oauthSessions = yield* Ref.make<Readonly<Record<string, string>>>({});
-    const tests = yield* Ref.make<Readonly<Record<string, string>>>({});
 
     const requireServer = (id: string) =>
       Effect.gen(function* () {
@@ -226,11 +225,16 @@ export const McpMock = mockGroup("mcp", (handlers) =>
       .handle("refreshServer", ({ params }) =>
         Effect.gen(function* () {
           const server = yield* requireServer(params.serverId);
-          return {
+          const refreshedAt = DateTime.formatIso(minutesAgo(0));
+          const next = {
             ...server,
             status: "connected",
-            refreshedAt: DateTime.formatIso(minutesAgo(0)),
+            lastCheckedAt: refreshedAt,
           };
+          yield* Ref.update(mcpServers, (rows) =>
+            rows.map((row) => (row.id === server.id ? next : row)),
+          );
+          return { ...next, refreshedAt };
         }),
       )
       .handle("getSecretValue", ({ params }) =>
@@ -259,19 +263,34 @@ export const McpMock = mockGroup("mcp", (handlers) =>
           const input = fields(payload);
           const verbose = flag(input.verbose, false);
           const disabled = server.status === "disabled";
+          const needsAuth = server.status === "needs_auth";
           const tools = sampleToolsByServer[server.id] ?? [];
-          const status = disabled ? "skipped" : "ok";
-          yield* Ref.update(tests, (rows) => ({
-            ...rows,
-            [server.id]: status,
-          }));
+          // A test that ran is a check, and the row the page reads has to carry
+          // that: the header shows the row's check time, so a result kept
+          // anywhere else leaves the page reporting the last one forever.
+          if (!disabled) {
+            const checkedAt = DateTime.formatIso(minutesAgo(0));
+            // Only the check time moves: the server page keys its body on
+            // updatedAt, and a check is not an edit of the configuration.
+            yield* Ref.update(mcpServers, (rows) =>
+              rows.map((row) =>
+                row.id === server.id
+                  ? { ...row, lastCheckedAt: checkedAt }
+                  : row,
+              ),
+            );
+          }
           return {
             version: disabled ? null : "2025-06-18",
-            auth: server.status === "needs_auth" ? "oauth" : "none",
+            auth: needsAuth ? "oauth" : "none",
             requestedScopes: [],
             grantedScopes: [],
             requiredScopes: null,
-            passed: disabled ? [] : ["connect", "protocol", "list"],
+            passed: disabled
+              ? []
+              : needsAuth
+                ? ["connect", "auth", "permissions", "protocol", "list"]
+                : ["connect", "protocol", "list"],
             failure: disabled
               ? { stage: "connect", code: "disabled", detail: "Server is off" }
               : null,

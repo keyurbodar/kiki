@@ -42,6 +42,20 @@ describe("MCP server status line", () => {
     ).toBe("Connected · no tools");
   });
 
+  it("keeps the check time for a server that needs auth", () => {
+    const server = toServer({
+      ...row,
+      status: "needs_auth",
+      toolCount: 2,
+      lastCheckedAt: "2026-11-18T05:00:00.000Z",
+    });
+    expect(server.health).toMatchObject({ state: "ready", toolCount: 2 });
+    // The badge still reports the connection, not the check.
+    expect(
+      serverStatus({ ...server, credential: server.credential ?? undefined }),
+    ).toBe("Needs connection");
+  });
+
   it("treats a checked server with tools as ready, not empty", () => {
     const server = toServer({
       ...row,
