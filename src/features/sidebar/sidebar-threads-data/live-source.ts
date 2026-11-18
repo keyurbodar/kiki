@@ -149,6 +149,7 @@ export function mapProject(project: Project): SidebarProject {
     id: project.id,
     name: project.name,
     logoUrl: project.logoUrl ?? null,
+    icon: project.icon,
   };
 }
 
