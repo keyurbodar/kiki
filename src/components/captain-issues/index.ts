@@ -1,7 +1,9 @@
 export {
   type CaptainIssueSearch,
+  captainIssueDisplayAtom,
   captainIssueFiltersAtom,
   captainIssueSearchAtom,
+  defaultCaptainIssueDisplay,
 } from "./atoms";
 export {
   CaptainIssuesListFallback,
@@ -11,6 +13,8 @@ export {
   CaptainIssuesView,
   type CaptainIssuesViewProps,
 } from "./captain-issues";
+export { CaptainIssuesList } from "./captain-issues-list";
+export { CaptainIssuesToolbar } from "./captain-issues-toolbar";
 export {
   type CaptainIssueFilters,
   type CaptainIssueView,
@@ -21,5 +25,7 @@ export {
   captainIssueViews,
   defaultCaptainIssueFilters,
   filtersForView,
+  fromIssueFilters,
+  toIssueFilters,
   viewForFilters,
 } from "./filters";

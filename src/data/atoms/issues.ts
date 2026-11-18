@@ -54,6 +54,22 @@ const issueListQuery = Atom.family((orgId: OrgId) =>
 /** Every issue in the org, unfiltered; pickers search it client-side. */
 export const allIssuesAtom = (orgId: OrgId) => issueListQuery(orgId);
 
+const captainActivityQuery = Atom.family((key: string) => {
+  const [orgId, jamId] = splitKey(key);
+  return ApiClient.query("issues", "captainActivity", {
+    params: { orgId, jamId },
+    reactivityKeys: [
+      reactivityKeys.issueActivity(orgId, jamId),
+      reactivityKeys.issues(orgId),
+    ],
+    timeToLive: queryTimeToLive,
+  });
+});
+
+/** The issues a Captain's crew is working on, with the crew's activity on them. */
+export const captainIssueActivityAtom = (orgId: OrgId, jamId: string) =>
+  captainActivityQuery(`${orgId}/${jamId}`);
+
 export const createIssueAtom = ApiClient.mutation("issues", "create");
 export const updateIssueAtom = ApiClient.mutation("issues", "update");
 export const linkIssueAtom = ApiClient.mutation("issues", "link");

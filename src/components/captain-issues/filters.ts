@@ -1,3 +1,9 @@
+import {
+  emptyActorFilter,
+  emptyIssueFilters,
+  type IssueFilters,
+} from "../issues-filters/filters";
+
 export const captainIssueViews = ["all", "assigned", "mentioned"] as const;
 
 export type CaptainIssueView = (typeof captainIssueViews)[number];
@@ -41,6 +47,30 @@ export const filtersForView = (
   ...defaultCaptainIssueFilters,
   assigneeMe: view === "assigned",
   mentioned: view === "mentioned",
+});
+
+/**
+ * The pane's filters as the shared issue filter model, for the menus the
+ * issues package ships. Only the fields the pane reads cross over.
+ */
+export const toIssueFilters = (filters: CaptainIssueFilters): IssueFilters => ({
+  ...emptyIssueFilters,
+  assignee: { ...emptyActorFilter, me: filters.assigneeMe },
+  mentioned: filters.mentioned,
+  stateIds: filters.stateIds,
+  stateNot: filters.stateNot,
+  hideClosedSubIssues: filters.hideClosedSubIssues,
+});
+
+/** The part of the shared issue filters the crew issues pane reads. */
+export const fromIssueFilters = (
+  filters: IssueFilters,
+): CaptainIssueFilters => ({
+  assigneeMe: filters.assignee.me,
+  mentioned: filters.mentioned,
+  stateIds: filters.stateIds,
+  stateNot: filters.stateNot && filters.stateIds.length > 0,
+  hideClosedSubIssues: filters.hideClosedSubIssues,
 });
 
 const encode = (filters: CaptainIssueFilters) =>

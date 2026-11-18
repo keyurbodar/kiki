@@ -42,6 +42,12 @@ export type CaptainIssuesListProps = {
   stateIds: ReadonlyArray<string>;
   stateNot: boolean;
   hideClosedSubIssues: boolean;
+  /** Whether the "Assigned to me" view is on. */
+  assigneeMe?: boolean;
+  /** Whether the "Mentioned" view is on. */
+  mentioned?: boolean;
+  /** The debounced search text. */
+  search?: string;
   now: number;
   emptyText: string;
   onOpenIssue?: (code: string) => void;
@@ -190,6 +196,9 @@ export function CaptainIssuesView({
               stateIds: filters.stateIds,
               stateNot: filters.stateNot,
               hideClosedSubIssues: filters.hideClosedSubIssues,
+              assigneeMe: filters.assigneeMe,
+              mentioned: filters.mentioned,
+              search: query,
               now,
               emptyText: captainIssuesEmptyText(query, view),
               onOpenIssue,

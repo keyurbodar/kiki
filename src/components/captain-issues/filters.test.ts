@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
+import { emptyIssueFilters } from "../issues-filters/filters";
 import {
   captainIssuesEmptyText,
   captainIssuesFiltersKey,
   captainIssueViews,
   defaultCaptainIssueFilters,
   filtersForView,
+  fromIssueFilters,
+  toIssueFilters,
   viewForFilters,
 } from "./filters";
 
@@ -61,5 +64,41 @@ describe("captainIssuesFiltersKey", () => {
     expect(a).not.toBe("");
     expect(captainIssuesFiltersKey(filtersForView("assigned"), "ci")).toBe(a);
     expect(captainIssuesFiltersKey(filtersForView("assigned"), "")).not.toBe(a);
+  });
+});
+
+describe("the shared issue filters", () => {
+  it("carries the pane's filters into the shared model and back", () => {
+    const filters = {
+      assigneeMe: true,
+      mentioned: true,
+      stateIds: ["state_review"],
+      stateNot: true,
+      hideClosedSubIssues: true,
+    };
+    const shared = toIssueFilters(filters);
+    expect(shared.assignee.me).toBe(true);
+    expect(shared.mentioned).toBe(true);
+    expect(shared.stateIds).toEqual(["state_review"]);
+    expect(shared.stateNot).toBe(true);
+    expect(shared.hideClosedSubIssues).toBe(true);
+    expect(fromIssueFilters(shared)).toEqual(filters);
+  });
+
+  it("drops the fields the pane does not read", () => {
+    expect(
+      fromIssueFilters({
+        ...emptyIssueFilters,
+        priorities: ["urgent"],
+        due: ["today"],
+        labelIds: ["lbl_bug"],
+      }),
+    ).toEqual(defaultCaptainIssueFilters);
+  });
+
+  it("keeps stateNot only while states are selected", () => {
+    expect(
+      fromIssueFilters({ ...emptyIssueFilters, stateNot: true }).stateNot,
+    ).toBe(false);
   });
 });
