@@ -18,11 +18,6 @@ import {
   IssueRelationChip,
   issueRelationSides,
 } from "@/components/issue-relations";
-import {
-  type ChipIssue,
-  MarkdownChipsProvider,
-} from "@/components/markdown-chips";
-import { IssuePreview } from "@/components/markdown-chips/previews";
 import { UserAvatar } from "@/components/user-menu/user-avatar";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type {
@@ -47,11 +42,6 @@ import {
 } from "@/primitives/collapsible";
 import { Icon } from "@/primitives/icon";
 import { Menu, MenuContent, MenuTrigger } from "@/primitives/menu";
-import {
-  PreviewCard,
-  PreviewCardContent,
-  PreviewCardTrigger,
-} from "@/primitives/preview-card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { type IssueFilters, localDate, stateVisible } from "../issues-filters";
 import {
@@ -556,21 +546,6 @@ export function IssueRow({
     <IssueRelations issue={issue} />
   );
   const unread = issue.viewer.unread || issue.viewer.mentions > 0;
-  const chipIssue: ChipIssue = {
-    code: issue.code,
-    title: issue.title,
-    status: issue.status,
-    stateName: state?.name,
-    priority: issue.priority,
-    visibility: issue.visibility === "private" ? "private" : "shared",
-    assignee:
-      issue.assignee === null
-        ? null
-        : {
-            name: issue.assignee.name,
-            avatarUrl: issue.assignee.avatarUrl ?? undefined,
-          },
-  };
   const row = (
     <Link
       to="/issues/$code"
@@ -750,33 +725,7 @@ export function IssueRow({
       </span>
     </Link>
   );
-  return (
-    <PreviewCard>
-      <PreviewCardTrigger render={row} />
-      <PreviewCardContent side="right" align="start">
-        <MarkdownChipsProvider
-          value={{
-            renderIssueState: (_issue, className) =>
-              state === undefined ? null : (
-                <IssueStateIcon
-                  icon={state.icon}
-                  color={state.color}
-                  className={className}
-                />
-              ),
-            renderIssuePriority: (chipIssue, className) => (
-              <IssuePriorityIcon
-                priority={chipIssue.priority}
-                className={className}
-              />
-            ),
-          }}
-        >
-          <IssuePreview issue={chipIssue} />
-        </MarkdownChipsProvider>
-      </PreviewCardContent>
-    </PreviewCard>
-  );
+  return row;
 }
 
 export type IssueDensity = "page" | "pane";
