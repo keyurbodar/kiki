@@ -1,6 +1,7 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { ActorAvatar, type ActorSources } from "@/components/actor-filter";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type {
   IssueSummary,
@@ -21,6 +22,7 @@ import {
   MenuSub,
   MenuSubTrigger,
 } from "@/primitives/menu";
+import { CheckmarkGlyph } from "@/primitives/responsive-menu/glyphs";
 import {
   IssueLabelDot,
   IssuePriorityIcon,
@@ -90,9 +92,12 @@ function Submenu({
 export function IssueMenuItems({
   issue,
   onOpenIssue,
+  actors,
 }: {
   issue: IssueSummary;
   onOpenIssue?: (code: string) => void;
+  /** The people, Captains and threads the Assignee row offers. */
+  actors?: ActorSources;
 }) {
   const navigate = useNavigate();
   const orgId = useIssueOrgId();
@@ -168,6 +173,59 @@ export function IssueMenuItems({
           }
         />
       </Submenu>
+      {actors === undefined ? null : (
+        <Submenu
+          icon={
+            issue.assignee === null ? (
+              <Icon name="user" />
+            ) : (
+              <ActorAvatar
+                name={issue.assignee.name}
+                avatarUrl={issue.assignee.avatarUrl}
+              />
+            )
+          }
+          label="Assignee"
+          value={issue.assignee?.name}
+          contentClassName="w-56"
+        >
+          <MenuItem
+            onClick={() =>
+              patch({ assignee: null }, "Could not change the assignee")
+            }
+          >
+            <span className={menuIconSlot}>
+              <Icon name="user" />
+            </span>
+            No assignee
+          </MenuItem>
+          {[
+            ...actors.people.map((actor) => ({ actor, kind: "user" as const })),
+            ...actors.captains.map((actor) => ({
+              actor,
+              kind: "jam" as const,
+            })),
+          ].map(({ actor, kind }) => (
+            <MenuItem
+              key={actor.id}
+              onClick={() =>
+                patch(
+                  { assignee: { kind, id: actor.id } },
+                  "Could not change the assignee",
+                )
+              }
+            >
+              <span className={menuIconSlot}>{actor.icon}</span>
+              <span className="min-w-0 truncate">{actor.label}</span>
+              {issue.assignee?.id === actor.id ? (
+                <span className={menuValue}>
+                  <CheckmarkGlyph className="size-(--icon-sm) shrink-0" />
+                </span>
+              ) : null}
+            </MenuItem>
+          ))}
+        </Submenu>
+      )}
       <Submenu
         icon={<Icon name="ticket" />}
         label="Labels"

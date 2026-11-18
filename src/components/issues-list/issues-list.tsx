@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { DateTime } from "effect";
 import { type ReactNode, useState } from "react";
 import { toast } from "sonner";
+import type { ActorSources } from "@/components/actor-filter";
 import { IssueDueChip } from "@/components/issue-due";
 import { IssueRowContextMenu } from "@/components/issue-menu/issue-row-context-menu";
 import {
@@ -548,6 +549,8 @@ export type IssuesListProps = {
   onRetry?: () => void;
   checked?: ReadonlyMap<string, IssueSummary>;
   onCheckedChange?: (checked: ReadonlyMap<string, IssueSummary>) => void;
+  /** The people, Captains and threads a row menu's Assignee row offers. */
+  actors?: ActorSources;
 };
 
 /** Capy's IssuesList: state sections of issue rows, with loading and empty states. */
@@ -564,6 +567,7 @@ export function IssuesList({
   onRetry,
   checked,
   onCheckedChange,
+  actors,
 }: IssuesListProps) {
   const [openSections, setOpenSections] = useState<
     Readonly<Record<string, boolean>>
@@ -660,7 +664,7 @@ export function IssuesList({
                 <ul className="flex flex-col pt-0.5">
                   {group.issues.map((issue) => (
                     <li key={issue.id} className="group/row">
-                      <IssueRowContextMenu issue={issue}>
+                      <IssueRowContextMenu issue={issue} actors={actors}>
                         <IssueRow
                           issue={issue}
                           orgId={orgId}
