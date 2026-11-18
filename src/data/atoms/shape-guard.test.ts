@@ -1,7 +1,8 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import type { Atom } from "effect/reactivity";
 import { AtomRegistry } from "effect/reactivity";
-import type { Atom } from "effect/unstable/reactivity";
+import type { OrgId } from "@/data/api/schemas/ids";
 import { agentModelsAtom } from "@/data/atoms/agent-context";
 import { apiKeysAtom, serviceUsersAtom } from "@/data/atoms/api-keys";
 import { automationsAtom } from "@/data/atoms/automations";
@@ -26,8 +27,14 @@ import {
   snapshotConfigAtom,
 } from "@/data/atoms/setup";
 import { threadsAtom } from "@/data/atoms/threads";
-import { orgId, projects, threads } from "@/data/mocks/fixtures/world";
+import {
+  projects,
+  threads,
+  orgId as worldOrgId,
+} from "@/data/mocks/fixtures/world";
 import { decodeCatalog } from "@/features/settings-models/model-routing/decode";
+
+const orgId = worldOrgId as OrgId;
 
 /**
  * One endpoint, one shape, many readers.
@@ -149,7 +156,7 @@ const readers: ReadonlyArray<{
     consumers: [
       {
         name: "driveVolumesAtom",
-        atom: driveVolumesAtom(orgId, { scope: "mine" }),
+        atom: driveVolumesAtom(orgId, {}),
       },
     ],
   },
