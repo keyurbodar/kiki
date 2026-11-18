@@ -129,8 +129,15 @@ describe("expanding the pane", () => {
       { timeout: 3000 },
     );
 
+    // Capy's header offers `Open pane` while no pane is up, never `Expand pane`.
+    expect(screen.queryByRole("button", { name: "Expand pane" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Open pane" }));
+    await waitFor(() =>
+      expect(document.querySelector("[data-slot=right-panel]")).not.toBeNull(),
+    );
     for (const expand of screen.getAllByRole("button", { name: "Expand pane" }))
       fireEvent.click(expand);
+    fireEvent.click(screen.getByRole("button", { name: "Close pane" }));
 
     // Capy expands only beside a second pane; with the chat alone nothing may
     // go away, because there would be nothing left to paint.

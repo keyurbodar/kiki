@@ -168,6 +168,16 @@ describe("ThreadHeader", () => {
     expect(onSelectTab).toHaveBeenCalledWith("captain_issues");
   });
 
+  it("opens the dock from the header while no pane is up", () => {
+    const onOpenPane = vi.fn();
+    renderHeader({ canExpand: false, onOpenPane });
+    const open = screen.getByRole("button", { name: "Open pane" });
+    expect(open.className).toContain("size-(--h-control-sm)");
+    expect(screen.queryByRole("button", { name: "Expand pane" })).toBeNull();
+    fireEvent.click(open);
+    expect(onOpenPane).toHaveBeenCalledOnce();
+  });
+
   it("toggles the pane expansion from the trailing action", () => {
     const onToggleExpand = vi.fn();
     renderHeader({ onToggleExpand });

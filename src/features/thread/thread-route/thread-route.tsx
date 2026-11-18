@@ -264,6 +264,8 @@ export function ThreadRoute({
                 : []
             }
             activeId={headerActiveId}
+            canExpand={dockOpen}
+            onOpenPane={() => openInStrip("overview")}
             menu={{ sideThreads, pulls: pullEntries }}
             cost={
               orgId === undefined ? undefined : (

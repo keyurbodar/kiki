@@ -123,6 +123,8 @@ export type ThreadHeaderProps = {
   expanded?: boolean;
   /** A dock pane is open, so expanding has something to fill the panel with. */
   canExpand?: boolean;
+  /** Opens the dock on its overview pane; the control reads `Open pane`. */
+  onOpenPane?: () => void;
   menu?: TabMenuOptions;
   onSelectChat: () => void;
   onSelectTab: (id: string) => void;
@@ -148,6 +150,7 @@ export function ThreadHeader({
   cost,
   expanded = false,
   canExpand = true,
+  onOpenPane,
   menu,
   onSelectChat,
   onSelectTab,
@@ -193,7 +196,7 @@ export function ThreadHeader({
               </MenuItem>
             </MenuContent>
           </Menu>
-          {canExpand && (
+          {canExpand ? (
             <Tooltip>
               <TooltipTrigger
                 render={
@@ -211,6 +214,22 @@ export function ThreadHeader({
               <TooltipContent side="bottom">
                 {expanded ? "Collapse pane" : "Expand pane"}
               </TooltipContent>
+            </Tooltip>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="Open pane"
+                    onClick={onOpenPane}
+                  >
+                    <Icon name="sidebar-simple-right-wide" size="sm" />
+                  </Button>
+                }
+              />
+              <TooltipContent side="bottom">Open pane</TooltipContent>
             </Tooltip>
           )}
         </>
