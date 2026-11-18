@@ -3,6 +3,7 @@ import { useParams } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
 import { toast } from "sonner";
+import { ReadGate } from "@/components/read-gate";
 import {
   SettingsLoadingCard,
   SettingsPage,
@@ -19,34 +20,43 @@ import {
   projectSettingsKeys,
   projectSetupAtom,
 } from "@/data/atoms/project-settings";
+import { organizationsAtom } from "@/data/atoms/session";
 import { Button } from "@/primitives/button";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Textarea } from "@/primitives/textarea";
 import { CardEmpty, CardList } from "../shared/card-list";
 import { Glyph } from "../shared/glyphs";
-import { useActiveOrgId } from "../shared/use-org";
+import { useActiveOrgId, useActiveOrgRead } from "../shared/use-org";
 
 export function ProjectSetupRepositoryPage() {
   const { projectId, owner, repo } = useParams({
     from: "/_app/settings/projects_/$projectId_/dev-environment_/repositories/$owner/$repo",
   });
   const orgId = useActiveOrgId();
+  const orgRead = useActiveOrgRead();
   const repoFullName = `${owner}/${repo}`;
   return (
     <SettingsPage
       title={repoFullName}
       description="Setup scripts and commands for this repository"
     >
-      {orgId === undefined ? (
-        <SettingsLoadingCard />
-      ) : (
-        <SetupRepositoryEditor
-          orgId={orgId}
-          projectId={projectId}
-          repoFullName={repoFullName}
-        />
-      )}
+      <ReadGate
+        result={orgRead}
+        atom={organizationsAtom}
+        slot="setup-repository-failed"
+        line="Couldn't load your organization"
+        sub="Check your connection and try again"
+        pending={<SettingsLoadingCard />}
+      >
+        {(orgs) => (
+          <SetupRepositoryEditor
+            orgId={orgs[0]?.id ?? (orgId as OrgId)}
+            projectId={projectId}
+            repoFullName={repoFullName}
+          />
+        )}
+      </ReadGate>
     </SettingsPage>
   );
 }

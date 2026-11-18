@@ -119,6 +119,42 @@ describe("plugins mock", () => {
     }),
   );
 
+  it.effect("clears the update once the newer version is installed", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      registry.mount(getInstallation as never);
+      const before = one<{
+        updateAvailable: boolean;
+        availableVersion: { id: string } | null;
+        version: string;
+      }>(yield* AtomRegistry.getResult(registry, getInstallation));
+      assert.strictEqual(before.updateAvailable, true);
+      assert.strictEqual(before.availableVersion?.id, versionId);
+
+      registry.set(updateInstallation, {
+        params: { orgId, installationId },
+        payload: { versionId },
+        reactivityKeys: [key],
+      });
+      yield* AtomRegistry.getResult(registry, updateInstallation as never);
+
+      const after = one<{
+        updateAvailable: boolean;
+        availableVersion: { id: string } | null;
+        version: string;
+      }>(
+        yield* AtomRegistry.getResult(registry, getInstallation as never, {
+          suspendOnWaiting: true,
+        }),
+      );
+      assert.strictEqual(after.version, "1.4.0");
+      // Nothing newer is published, so nothing is offered — least of all the
+      // older version the review page used to present as an update.
+      assert.strictEqual(after.updateAvailable, false);
+      assert.strictEqual(after.availableVersion, null);
+    }),
+  );
+
   it.effect("exposes marketplace and GitHub version metadata", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();

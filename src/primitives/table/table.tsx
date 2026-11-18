@@ -18,9 +18,9 @@ export const tableVariants = cva(
   {
     variants: {
       density: {
-        directory: "[--table-row-h:3.125rem]",
-        pick: "[--table-row-h:2.75rem]",
-        compact: "[--table-row-h:2rem]",
+        directory: "[--table-row-h:var(--row-h-directory)]",
+        pick: "[--table-row-h:var(--row-h-page)]",
+        compact: "[--table-row-h:var(--row-h-compact)]",
       },
       flush: {
         true: "scrollbar-hide scroll-fade-x [overflow-wrap:normal] [--scroll-fade-ramp:1.5rem] [&_[role=cell]:last-child]:pr-0 [&_[role=columnheader]]:whitespace-normal [&_[role=columnheader]:last-child]:pr-0",
@@ -338,7 +338,7 @@ export function TableCell({
     <div
       role="cell"
       className={cx(
-        "relative flex min-h-[var(--table-row-h,3.125rem)] min-w-0 items-center pr-4 text-xs font-normal text-muted-foreground-1",
+        "kiki-table-row relative min-w-0 text-xs font-normal text-muted-foreground-1",
         lead && "whitespace-nowrap text-foreground",
         numeric && "justify-end tabular-nums whitespace-nowrap",
         stickyLead,

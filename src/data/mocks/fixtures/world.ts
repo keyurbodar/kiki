@@ -390,6 +390,7 @@ export const threads = {
     number: 609,
     title: "Weekly digest email, rendered from the org",
     projectId: projects.web.id,
+    archived: true,
   },
   listPreviewRetry: {
     id: "jam_sample_list_340",
@@ -408,12 +409,14 @@ export const threads = {
     number: 612,
     title: "Bump the runtime image to the new base",
     projectId: projects.web.id,
+    archived: true,
   },
   listSchemaAudit: {
     id: "jam_sample_list_343",
     number: 613,
     title: "Drop the unused schema columns",
     projectId: projects.web.id,
+    archived: true,
   },
   listDraftSearch: {
     id: "jam_sample_list_344",
@@ -426,6 +429,7 @@ export const threads = {
     number: 615,
     title: "Remove the legacy webhook queue",
     projectId: projects.web.id,
+    archived: true,
   },
   listMemo: {
     id: "jam_sample_list_346",
@@ -542,14 +546,6 @@ export type IssueStateCategory =
 
 export const issueStates = [
   {
-    id: "ist_sample_needs_you",
-    name: "Needs you",
-    category: "started",
-    color: "warning",
-    position: 0,
-    isDefault: false,
-  },
-  {
     id: "ist_sample_in_review",
     name: "In review",
     category: "started",
@@ -563,14 +559,6 @@ export const issueStates = [
     category: "started",
     color: "primary",
     position: 2,
-    isDefault: false,
-  },
-  {
-    id: "ist_sample_waiting",
-    name: "Waiting",
-    category: "started",
-    color: "default",
-    position: 3,
     isDefault: false,
   },
   {
@@ -676,13 +664,13 @@ export const issues = [
     parentNumber: 1,
     updatedMinutesAgo: 25,
   }),
-  issue(4, "Pick a default page size for orders", "ist_sample_needs_you", {
+  issue(4, "Pick a default page size for orders", "ist_sample_todo", {
     projectId: projects.api.id,
     assigneeId: people.alex.id,
     threadIds: [threads.paginate.id],
     updatedMinutesAgo: 90,
   }),
-  issue(5, "Search API rate limit", "ist_sample_waiting", {
+  issue(5, "Search API rate limit", "ist_sample_in_progress", {
     projectId: projects.api.id,
     assigneeId: people.jordan.id,
     labelIds: ["lbl_sample_perf"],
@@ -721,7 +709,7 @@ export const issues = [
     parentNumber: 6,
     updatedMinutesAgo: 4 * hour,
   }),
-  issue(12, "Rate limit: 429 body", "ist_sample_waiting", {
+  issue(12, "Rate limit: 429 body", "ist_sample_in_progress", {
     projectId: projects.api.id,
     parentNumber: 5,
     updatedMinutesAgo: 2 * hour,
@@ -735,6 +723,126 @@ export const issues = [
     projectId: projects.api.id,
     pullIds: ["pr_sample_119", "pr_sample_128"],
     updatedMinutesAgo: 90,
+  }),
+  issue(20, "Release: changelog entry", "ist_sample_done", {
+    projectId: projects.web.id,
+    parentNumber: 1,
+    updatedMinutesAgo: 80,
+  }),
+  issue(21, "Release: bump the version", "ist_sample_done", {
+    projectId: projects.web.id,
+    parentNumber: 1,
+    updatedMinutesAgo: 81,
+  }),
+  issue(22, "Release: tag the build", "ist_sample_done", {
+    projectId: projects.web.id,
+    parentNumber: 1,
+    updatedMinutesAgo: 82,
+  }),
+  issue(23, "Release: verify the rollback", "ist_sample_done", {
+    projectId: projects.web.id,
+    parentNumber: 1,
+    updatedMinutesAgo: 83,
+  }),
+  issue(24, "Release: update the deploy notes", "ist_sample_done", {
+    projectId: projects.web.id,
+    parentNumber: 1,
+    updatedMinutesAgo: 84,
+  }),
+  issue(25, "Release: screenshot the release", "ist_sample_done", {
+    projectId: projects.web.id,
+    parentNumber: 1,
+    updatedMinutesAgo: 85,
+  }),
+  issue(26, "Release: archive the old assets", "ist_sample_done", {
+    projectId: projects.web.id,
+    parentNumber: 1,
+    updatedMinutesAgo: 86,
+  }),
+  issue(27, "Release: draft the announcement", "ist_sample_todo", {
+    projectId: projects.web.id,
+    parentNumber: 1,
+    updatedMinutesAgo: 87,
+  }),
+  issue(28, "Release: localise the copy", "ist_sample_todo", {
+    projectId: projects.web.id,
+    parentNumber: 1,
+    updatedMinutesAgo: 88,
+  }),
+  issue(29, "Release: audit the bundle", "ist_sample_todo", {
+    projectId: projects.web.id,
+    parentNumber: 1,
+    updatedMinutesAgo: 89,
+  }),
+  issue(30, "Retry the gateway call", "ist_sample_done", {
+    projectId: projects.web.id,
+    parentNumber: 2,
+    updatedMinutesAgo: 90,
+  }),
+  issue(31, "Raise the sandbox timeout", "ist_sample_done", {
+    projectId: projects.web.id,
+    parentNumber: 2,
+    updatedMinutesAgo: 91,
+  }),
+  issue(32, "Capture the failing trace", "ist_sample_done", {
+    projectId: projects.web.id,
+    parentNumber: 2,
+    updatedMinutesAgo: 92,
+  }),
+  issue(33, "Split the payment fixture", "ist_sample_done", {
+    projectId: projects.web.id,
+    parentNumber: 2,
+    updatedMinutesAgo: 93,
+  }),
+  issue(34, "Log the retry count", "ist_sample_done", {
+    projectId: projects.web.id,
+    parentNumber: 2,
+    updatedMinutesAgo: 94,
+  }),
+  issue(35, "Assert the retry budget", "ist_sample_done", {
+    projectId: projects.web.id,
+    parentNumber: 2,
+    updatedMinutesAgo: 95,
+  }),
+  issue(36, "Shard the payment suite", "ist_sample_done", {
+    projectId: projects.web.id,
+    parentNumber: 2,
+    updatedMinutesAgo: 96,
+  }),
+  issue(37, "Record the p95 latency", "ist_sample_done", {
+    projectId: projects.web.id,
+    parentNumber: 2,
+    updatedMinutesAgo: 97,
+  }),
+  issue(38, "Drop the flaky sleep", "ist_sample_done", {
+    projectId: projects.web.id,
+    parentNumber: 2,
+    updatedMinutesAgo: 98,
+  }),
+  issue(39, "Pin the sandbox image", "ist_sample_done", {
+    projectId: projects.web.id,
+    parentNumber: 2,
+    updatedMinutesAgo: 99,
+  }),
+  issue(40, "Trace the slow fixture", "ist_sample_todo", {
+    projectId: projects.web.id,
+    parentNumber: 2,
+    updatedMinutesAgo: 100,
+  }),
+  issue(41, "Compare the local run", "ist_sample_todo", {
+    projectId: projects.web.id,
+    parentNumber: 2,
+    updatedMinutesAgo: 101,
+  }),
+  issue(42, "Measure the parallel load", "ist_sample_todo", {
+    projectId: projects.web.id,
+    parentNumber: 2,
+    updatedMinutesAgo: 102,
+  }),
+  issue(43, "Document the timeout", "ist_sample_todo", {
+    projectId: projects.web.id,
+    parentNumber: 2,
+    updatedMinutesAgo: 103,
   }),
 ];
 

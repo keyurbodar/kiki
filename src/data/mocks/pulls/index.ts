@@ -75,6 +75,7 @@ const threadChip = (threadId: string | null) => {
     number: thread.number,
     title: thread.title,
     projectCode: project?.code ?? null,
+    archived: "archived" in thread && thread.archived === true,
   };
 };
 
