@@ -63,19 +63,8 @@ async function open() {
 }
 
 describe("phone composer commands", () => {
-  it("lists every command after /, with skills last", () => {
-    expect(commandNames("")).toEqual([
-      "plan",
-      "model",
-      "reasoning",
-      "fast",
-      "new",
-      "subscriber",
-      "compact",
-      "side",
-      "fork",
-      "fork-summary",
-    ]);
+  it("lists the commands that run, with skills last", () => {
+    expect(commandNames("")).toEqual(["new"]);
     expect(commandRows("").at(-1)).toEqual({
       type: "skills",
       source: expect.objectContaining({ label: "Skills" }),
@@ -83,16 +72,16 @@ describe("phone composer commands", () => {
   });
 
   it("filters on the typed word", () => {
-    expect(commandNames("fork")).toEqual(["fork", "fork-summary"]);
-    expect(commandNames("new")).toEqual(["new", "side"]);
+    expect(commandNames("new")).toEqual(["new"]);
+    expect(commandNames("fork")).toEqual([]);
   });
 
   it("opens the command menu on /", async () => {
     const { type } = await open();
     await type("/");
     const menu = document.querySelector('[data-slot="composer-command-menu"]');
-    expect(menu?.textContent).toContain("Plan mode");
-    expect(menu?.textContent).toContain("/fork-summary");
+    expect(menu?.textContent).toContain("New thread");
+    expect(menu?.textContent).toContain("/new");
     expect(menu?.textContent).toContain("Skills");
   });
 });
@@ -154,10 +143,9 @@ describe("MobileComposer", () => {
     const editor = await screen.findByLabelText("Message");
     act(() => ref.current?.typeCharacter("/"));
     await settle();
-    fireEvent.keyDown(editor, { key: "ArrowDown" });
     fireEvent.keyDown(editor, { key: "Enter" });
     expect(onCommand).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "model" }),
+      expect.objectContaining({ id: "new" }),
     );
     expect(
       document.querySelector('[data-slot="composer-command-menu"]'),

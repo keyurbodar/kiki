@@ -14,27 +14,12 @@ export type MobileComposerCommand = {
   slash?: string;
 };
 
+/**
+ * The phone's `/` menu. Capy lists ten commands here; a row appears once kiki can
+ * run it, so this list grows one implementation at a time and never ships a no-op.
+ */
 export const mobileComposerCommands: ReadonlyArray<MobileComposerCommand> = [
-  { id: "plan", label: "Plan mode", icon: "plan", slash: "/plan" },
-  { id: "model", label: "Model", icon: "agent" },
-  { id: "reasoning", label: "Reasoning", icon: "brain" },
-  { id: "fast", label: "Fast", icon: "speed-middle", slash: "/fast" },
   { id: "new", label: "New thread", icon: "plus", slash: "/new" },
-  { id: "subscriber", label: "Add subscriber", icon: "bell" },
-  { id: "compact", label: "Compact", icon: "minimize-45", slash: "/compact" },
-  { id: "side", label: "New side thread", icon: "side-thread", slash: "/side" },
-  {
-    id: "fork",
-    label: "Fork with full context",
-    icon: "branch-simple",
-    slash: "/fork",
-  },
-  {
-    id: "fork-summary",
-    label: "Fork with summary",
-    icon: "branch-simple",
-    slash: "/fork-summary",
-  },
 ];
 
 /** What @ can reference, from Capy's mention menu. */
