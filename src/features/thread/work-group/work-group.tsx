@@ -52,6 +52,28 @@ export function workGroupState(row: WorkGroup) {
   return row.live ? "Working" : "Worked";
 }
 
+/** The phrases a settled or live group lists before its clock. */
+export function groupPhrases(entries: ReadonlyArray<Entry>): string[] {
+  const phrases: string[] = [];
+  let issues = 0;
+  const flushIssues = () => {
+    if (issues > 0)
+      phrases.push(`${issues} issue update${issues === 1 ? "" : "s"}`);
+    issues = 0;
+  };
+  for (const entry of entries) {
+    if (entry.type !== "update" || entry.kind !== "notice") continue;
+    if (entry.notificationKey === "issue_activity") {
+      issues += 1;
+      continue;
+    }
+    flushIssues();
+    if (entry.summary !== "") phrases.push(entry.summary);
+  }
+  flushIssues();
+  return phrases;
+}
+
 function GroupEntry({ entry }: { entry: Entry }) {
   return (
     <div className="min-w-0">
@@ -82,8 +104,12 @@ export type WorkGroupProps = { row: WorkGroup };
 export function WorkGroup({ row }: WorkGroupProps) {
   const [expanded, setExpanded] = useState(row.expanded);
   const state = workGroupState(row);
+  const phrases = groupPhrases(row.entries);
   const label = (
     <span className="flex min-w-0 items-baseline tabular-nums">
+      {phrases.length > 0 && (
+        <span className="min-w-0 flex-1 truncate">{`${phrases.join(", ")},`}</span>
+      )}
       <span className="min-w-0 truncate">
         <ShimmerText
           data-state={row.live ? "live" : "rest"}
