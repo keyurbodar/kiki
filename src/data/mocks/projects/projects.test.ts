@@ -524,11 +524,16 @@ describe("projects mock", () => {
         );
       }
 
-      const unhandled = yield* AtomRegistry.getResult(
+      const ownOrg = yield* AtomRegistry.getResult(
+        registry,
+        query("list", { params: { orgId }, query: {} }),
+      );
+      assert.isTrue(rows(ownOrg).length > 0);
+      const otherOrg = yield* AtomRegistry.getResult(
         registry,
         query("list", { params: { orgId: otherOrgId }, query: {} }),
       );
-      assert.isTrue(rows(unhandled).length > 0);
+      assert.strictEqual(rows(otherOrg).length, 0);
     }),
   );
 

@@ -19,7 +19,7 @@ import { usePhone } from "@/primitives/responsive-menu";
 import { type InstallationRepo, readInstallation } from "../installation-repos";
 import { formatRelative } from "../relative-time";
 import { useCreateProject } from "../use-create-project";
-import { useActiveOrgRead } from "../use-org";
+import { useActiveOrgId, useActiveOrgRead } from "../use-org";
 import {
   type CreateProjectDialogState,
   OpenCreateProjectDialogContext,
@@ -41,9 +41,7 @@ export function CreateProjectDialog({
 }: CreateProjectDialogProps) {
   const phone = usePhone();
   const organizations = useActiveOrgRead();
-  const orgId = AsyncResult.isSuccess(organizations)
-    ? organizations.value[0]?.id
-    : undefined;
+  const orgId = useActiveOrgId();
   const body =
     orgId === undefined ? (
       <p className="kiki-list text-sm text-muted-foreground-2">
