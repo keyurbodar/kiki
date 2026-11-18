@@ -222,9 +222,32 @@ export function reorderBefore(
   return landed[to + 1];
 }
 
-/** Path the "Copy link" item copies for a tab of thread `threadId`. */
+/**
+ * Tab kinds whose pane the thread route can restore from `?pane=`. A kind
+ * missing here has no registry pane, so a link carrying its pane param would be
+ * stripped on load and open on the chat instead of the tab.
+ */
+export const routablePaneKinds: ReadonlyArray<PaneTabKind> = [
+  "overview",
+  "diffs",
+  "files",
+  "captain_issues",
+];
+
+/**
+ * Path the "Copy link" item copies for a tab of thread `threadId`. Parameterised
+ * tab keys (`task:`, `side-thread:`, `desktop:`, …) carry the tab's own id, which
+ * no registry pane answers to, so those tabs link to the thread rather than to a
+ * param the route drops. A tab that names another thread — a subagent task or a
+ * side thread — links to that thread, which the route does resolve.
+ */
 export function tabLink(threadId: string, tab: PaneTab | undefined): string {
-  return tab === undefined
-    ? `/thread/${threadId}`
-    : `/thread/${threadId}?pane=${encodeURIComponent(tabKey(tab))}`;
+  if (tab === undefined) return `/thread/${threadId}`;
+  if (routablePaneKinds.includes(tab.kind)) {
+    return `/thread/${threadId}?pane=${encodeURIComponent(tab.kind)}`;
+  }
+  if (tab.kind === "task" || tab.kind === "side_thread") {
+    return `/thread/${tab.jamId}`;
+  }
+  return `/thread/${threadId}`;
 }

@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
+import { findPane, keepsPaneParam } from "@/features/thread-panes/thread-pane";
 import { formatShortcut } from "./shortcut";
 import {
   closeTargets,
   cycleTabId,
   matchesQuery,
   type PaneTab,
+  type PaneTabKind,
   type RailTab,
   reorderBefore,
+  routablePaneKinds,
   tabKey,
   tabLabel,
   tabLink,
@@ -115,11 +118,68 @@ describe("reorderBefore", () => {
 });
 
 describe("tabLink", () => {
-  it("links the chat tab to the thread and other tabs by pane", () => {
+  it("links a routable pane by its bare id and the chat tab to the thread", () => {
     expect(tabLink("jam_1", undefined)).toBe("/thread/jam_1");
     expect(tabLink("jam_1", { kind: "diffs", jamId: "jam_2" })).toBe(
-      "/thread/jam_1?pane=diffs%3Ajam_2",
+      "/thread/jam_1?pane=diffs",
     );
+    expect(tabLink("jam_1", { kind: "overview" })).toBe(
+      "/thread/jam_1?pane=overview",
+    );
+  });
+
+  it("links a tab that names another thread to that thread", () => {
+    expect(
+      tabLink("jam_1", { kind: "task", jamId: "jam_2", localIndex: null }),
+    ).toBe("/thread/jam_2");
+    expect(tabLink("jam_1", { kind: "side_thread", jamId: "jam_3" })).toBe(
+      "/thread/jam_3",
+    );
+  });
+
+  it("links a parameterised tab with no pane and no thread to the thread", () => {
+    expect(
+      tabLink("jam_1", {
+        kind: "browser",
+        id: "b1",
+        url: "https://example.test",
+        title: "Example",
+      }),
+    ).toBe("/thread/jam_1");
+    expect(
+      tabLink("jam_1", {
+        kind: "shell",
+        machineId: "m1",
+        clientId: "c1",
+        label: "zsh",
+      }),
+    ).toBe("/thread/jam_1");
+  });
+
+  it("only emits pane params the thread route can resolve", () => {
+    expect(routablePaneKinds).toEqual([
+      "overview",
+      "diffs",
+      "files",
+      "captain_issues",
+    ]);
+    const samples: ReadonlyArray<[PaneTabKind, PaneTab]> = [
+      ["overview", { kind: "overview" }],
+      ["diffs", { kind: "diffs", jamId: "jam_2" }],
+      ["files", { kind: "files", jamId: "jam_2" }],
+      ["captain_issues", { kind: "captain_issues" }],
+    ];
+    for (const [kind, tab] of samples) {
+      const link = tabLink("jam_1", tab);
+      const param = new URL(link, "https://capy.test").searchParams.get("pane");
+      expect(param).toBe(kind);
+      expect(findPane(param ?? undefined)?.id).toBe(kind);
+      // `files` is readable but not written: Capy opens the pane and rewrites the
+      // param off the URL, so the route keeps the pane and drops the param.
+      if (kind !== "files") {
+        expect(keepsPaneParam(param ?? undefined)).toBe(true);
+      }
+    }
   });
 });
 
