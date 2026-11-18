@@ -1,7 +1,18 @@
-import { type ComponentProps, useState } from "react";
+import { type ComponentProps, useMemo, useState } from "react";
 import { ClampedBody } from "@/components/clamped-body";
-import { Markdown } from "@/components/markdown";
-import type { UserMessageRow as UserMessageRowSchema } from "@/data/events";
+import {
+  defaultMarkdownComponents,
+  Markdown,
+  MarkdownComponentsProvider,
+} from "@/components/markdown";
+import {
+  MarkdownChipsProvider,
+  useMarkdownChips,
+} from "@/components/markdown-chips";
+import type {
+  Mention,
+  UserMessageRow as UserMessageRowSchema,
+} from "@/data/events";
 import { useIsPhoneSurface } from "@/features/mobile";
 import { MessageHeader } from "@/features/thread/agent-message";
 import {
@@ -22,8 +33,40 @@ import { VersionSwitcher } from "@/features/thread/version-switcher";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
+import { mentionChips, mentionTransform } from "./mention-chips";
 
 export type UserMessageRow = typeof UserMessageRowSchema.Type;
+
+/** The body with its composer mentions painted as chips, markdown intact. */
+function MentionBody({
+  text,
+  mentions,
+}: {
+  text: string;
+  mentions: ReadonlyArray<Mention>;
+}) {
+  const outer = useMarkdownChips();
+  const chips = useMemo(() => mentionChips(text, mentions), [text, mentions]);
+  const components = useMemo(
+    () => ({
+      ...defaultMarkdownComponents,
+      transforms: [
+        ...defaultMarkdownComponents.transforms,
+        mentionTransform(chips),
+      ],
+    }),
+    [chips],
+  );
+  if (chips.labels.length === 0)
+    return <Markdown text={text} breaks literalHtml />;
+  return (
+    <MarkdownChipsProvider value={{ ...outer, mentions: chips.mentions }}>
+      <MarkdownComponentsProvider value={components}>
+        <Markdown text={chips.text} breaks literalHtml />
+      </MarkdownComponentsProvider>
+    </MarkdownChipsProvider>
+  );
+}
 
 const BUBBLE =
   "max-w-full min-w-0 rounded-(--radius-card) bg-secondary px-3 py-2 wrap-anywhere";
@@ -160,7 +203,9 @@ export function UserMessage({
     </MessageFooter>
   );
 
-  const text = <Markdown text={body} breaks literalHtml />;
+  const text = (
+    <MentionBody text={body} mentions={reply?.mentions ?? row.mentions} />
+  );
 
   return (
     <div

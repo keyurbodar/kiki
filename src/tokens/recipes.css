@@ -234,6 +234,13 @@
 
   /* Badges, dialogs, menu rows, palette rows ------------------------------- */
 
+  /** A run of chips under a tool result: Capy's flex flex-wrap row. */
+  .kiki-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--row-gap-tight);
+  }
+
   .kiki-badge {
     display: inline-flex;
     align-items: var(--row-align);

@@ -8,6 +8,7 @@ import {
   ReferenceLinkChip,
   StructuredMentionChip,
   TaskChip,
+  ThreadChip,
 } from "./chips";
 import { chipTransform } from "./references";
 
@@ -63,7 +64,7 @@ export function MarkdownChipRenderer({
     case "task":
       return <TaskChip value={value} />;
     case "thread":
-      return <IssueChip value={value} />;
+      return <ThreadChip value={value} />;
     case "issue":
       return <IssueChip value={value} />;
     case "mention":
