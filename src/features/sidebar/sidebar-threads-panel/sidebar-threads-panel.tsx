@@ -2,6 +2,7 @@ import { Glyph, SidebarThreads } from "@/components/sidebar-threads";
 import { ThreadPreview } from "@/components/thread-preview";
 import { Button } from "@/primitives/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
+import { CaptainPreviewCard } from "../sidebar-captain-preview";
 import { SidebarThreadRow } from "../sidebar-thread-row";
 import {
   type SidebarThreadsController,
@@ -100,7 +101,7 @@ export function SidebarThreadsPanel({
       onNewCaptain={onNewCaptain}
       renderCaptain={(captain) =>
         captain.card === undefined ? undefined : (
-          <ThreadPreview thread={captain.card} description={captain.preview} />
+          <CaptainPreviewCard captain={{ ...captain, card: captain.card }} />
         )
       }
       renderThread={(thread, { density, active }) => {
