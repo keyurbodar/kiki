@@ -17,10 +17,43 @@ import { toFolder, toFolderItem, toTag } from "./fixtures.ts";
 
 const maxTagsPerThread = 10;
 
+/** A Captain is a jam, so a pin may name one; the pin table holds both. */
 const knownThread = (jamId: string) =>
-  Object.values(world.threads).some((thread) => thread.id === jamId);
+  Object.values(world.threads).some((thread) => thread.id === jamId) ||
+  world.captains.some((captain) => captain.id === jamId);
 
 const now = () => DateTime.formatIso(fixtureNow);
+
+/**
+ * The pins a write leaves behind, so a reload reads them back: the mock's refs
+ * are rebuilt on every page load, and a pin the sidebar forgets on reload reads
+ * as a pin that never happened.
+ */
+const STORED_PINS_KEY = "kiki.mock.threadPins";
+
+const storedPins = (): ReadonlyArray<string> => {
+  const store = globalThis.localStorage;
+  if (store === undefined) return [];
+  try {
+    const raw = store.getItem(STORED_PINS_KEY);
+    const parsed: unknown = raw === null ? [] : JSON.parse(raw);
+    return Array.isArray(parsed)
+      ? parsed.filter((value): value is string => typeof value === "string")
+      : [];
+  } catch {
+    return [];
+  }
+};
+
+const rememberPins = (jamIds: ReadonlyArray<string>) => {
+  const store = globalThis.localStorage;
+  if (store === undefined) return;
+  try {
+    store.setItem(STORED_PINS_KEY, JSON.stringify(jamIds));
+  } catch {
+    // A full or blocked store only costs the reload, never the pin.
+  }
+};
 
 export const ThreadOrganizationMock = mockGroup(
   "threadOrganization",
@@ -33,6 +66,16 @@ export const ThreadOrganizationMock = mockGroup(
         threadTagAssignments,
         threadPins,
       } = yield* MockDb;
+
+      const kept = storedPins();
+      if (kept.length > 0) {
+        yield* Ref.update(threadPins, (rows) => [
+          ...rows,
+          ...kept
+            .filter((jamId) => !rows.some((row) => row.jamId === jamId))
+            .map((jamId) => ({ jamId })),
+        ]);
+      }
 
       const folderRow = (id: string) =>
         Effect.gen(function* () {
@@ -301,6 +344,7 @@ export const ThreadOrganizationMock = mockGroup(
                 )
                 .map((result) => ({ jamId: result.jamId as string })),
             ]);
+            rememberPins((yield* Ref.get(threadPins)).map((row) => row.jamId));
             return new JamBatchResult({ outcomes: results });
           }),
         )
@@ -310,6 +354,7 @@ export const ThreadOrganizationMock = mockGroup(
             yield* Ref.update(threadPins, (rows) =>
               rows.filter((row) => !removed.includes(row.jamId)),
             );
+            rememberPins((yield* Ref.get(threadPins)).map((row) => row.jamId));
             return new JamBatchResult({ outcomes: outcomes(payload.jamIds) });
           }),
         )

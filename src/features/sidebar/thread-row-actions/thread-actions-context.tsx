@@ -6,7 +6,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ShareDialogProvider } from "@/components/share-dialog";
 import { useOpenShareDialog } from "@/components/share-dialog/share-dialog-context";
 import type { SidebarThread } from "@/components/sidebar-threads";
-import type { JamId, ThreadFolderId } from "@/data/api/schemas/ids";
+import type { JamId, OrgId, ThreadFolderId } from "@/data/api/schemas/ids";
 import type { ThreadFolder } from "@/data/api/schemas/threadOrganization";
 import {
   deleteCaptainAtom,
@@ -79,6 +79,16 @@ export type ThreadActions = {
 };
 
 const ThreadActionsContext = createContext<ThreadActions | null>(null);
+
+/**
+ * A pin is a row on the shared pin table, and a Captain is a jam like any
+ * thread, so a pin or an unpin has to refresh the Captain list beside the
+ * sidebar's threads or the pinned tiles never move.
+ */
+const pinKeys = (orgId: OrgId) => [
+  ...threadOrganizationKeys(orgId),
+  reactivityKeys.captains(orgId),
+];
 
 export function useThreadActions(): ThreadActions {
   const value = useContext(ThreadActionsContext);
@@ -255,7 +265,7 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
         pin({
           params: { orgId },
           payload: { jamIds: jamIds(thread) },
-          reactivityKeys: threadOrganizationKeys(orgId),
+          reactivityKeys: pinKeys(orgId),
         }),
         "Pinned",
         "Couldn't pin the thread",
@@ -267,7 +277,7 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
         unpin({
           params: { orgId },
           payload: { jamIds: jamIds(thread) },
-          reactivityKeys: threadOrganizationKeys(orgId),
+          reactivityKeys: pinKeys(orgId),
         }),
         "Unpinned",
         "Couldn't unpin the thread",
