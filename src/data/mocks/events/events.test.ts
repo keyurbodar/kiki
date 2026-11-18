@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect, Schema } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { AtomRegistry } from "effect/reactivity";
 import { EventId } from "@/data/events";
 import { ApiClient } from "../../client/ApiClient.ts";
@@ -31,6 +32,8 @@ const listAtom = ApiClient.query("events", "list", {
 const message = ApiClient.mutation("events", "message");
 const cancelMessage = ApiClient.mutation("events", "cancelMessage");
 const sendNowMessage = ApiClient.mutation("events", "sendNowMessage");
+const compact = ApiClient.mutation("events", "compact");
+const interrupt = ApiClient.mutation("events", "interrupt");
 
 const eventsOf = (result: unknown) => (result as EventList).items;
 
@@ -306,5 +309,89 @@ describe("events mock answer", () => {
       assert.isString(reply?.text);
       assert.match(reply?.text ?? "", /retry budget count attempts/);
     }),
+  );
+});
+
+describe("events mock misses", () => {
+  it.effect("answers the 404 every endpoint declares for an unknown jam", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const unknown = { orgId, jamId: "jam_nobody" };
+      const reads = [
+        ApiClient.query("events", "list", { params: unknown, query: {} }),
+        ApiClient.query("events", "contextUsage", { params: unknown }),
+        ApiClient.query("events", "outline", { params: unknown }),
+      ];
+      for (const atom of reads) {
+        const error = yield* AtomRegistry.getResult(
+          registry,
+          atom as never,
+        ).pipe(Effect.flip);
+        assert.instanceOf(error, HttpApiError.NotFound);
+      }
+
+      registry.set(compact, { params: unknown, reactivityKeys: [key] });
+      const compactError = yield* AtomRegistry.getResult(
+        registry,
+        compact,
+      ).pipe(Effect.flip);
+      assert.instanceOf(compactError, HttpApiError.NotFound);
+
+      registry.set(interrupt, { params: unknown, reactivityKeys: [key] });
+      const interruptError = yield* AtomRegistry.getResult(
+        registry,
+        interrupt,
+      ).pipe(Effect.flip);
+      assert.instanceOf(interruptError, HttpApiError.NotFound);
+
+      registry.set(message, {
+        params: unknown,
+        payload: { text: "hello" },
+        reactivityKeys: [key],
+      });
+      const messageError = yield* AtomRegistry.getResult(
+        registry,
+        message,
+      ).pipe(Effect.flip);
+      assert.instanceOf(messageError, HttpApiError.NotFound);
+    }),
+  );
+
+  it.effect(
+    "answers the 404 every endpoint declares for an unknown event",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        const unknown = { orgId, jamId, eventId: "evt_nobody" };
+
+        const versions = ApiClient.query("events", "messageVersions", {
+          params: unknown,
+        });
+        const versionsError = yield* AtomRegistry.getResult(
+          registry,
+          versions as never,
+        ).pipe(Effect.flip);
+        assert.instanceOf(versionsError, HttpApiError.NotFound);
+
+        registry.set(cancelMessage, {
+          params: unknown,
+          reactivityKeys: [key],
+        });
+        const cancelError = yield* AtomRegistry.getResult(
+          registry,
+          cancelMessage,
+        ).pipe(Effect.flip);
+        assert.instanceOf(cancelError, HttpApiError.NotFound);
+
+        registry.set(sendNowMessage, {
+          params: unknown,
+          reactivityKeys: [key],
+        });
+        const sendNowError = yield* AtomRegistry.getResult(
+          registry,
+          sendNowMessage,
+        ).pipe(Effect.flip);
+        assert.instanceOf(sendNowError, HttpApiError.NotFound);
+      }),
   );
 });

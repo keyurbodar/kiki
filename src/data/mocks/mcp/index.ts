@@ -263,10 +263,9 @@ export const McpMock = mockGroup("mcp", (handlers) =>
               row.name === params.name,
           );
           if (!secret) {
-            return yield* Effect.die(
-              new Error(
-                `mcp.secrets: no row ${params.serverId}/${params.position}/${params.name}`,
-              ),
+            return yield* notFoundNamed(
+              "mcp secret",
+              `${params.serverId}/${params.position}/${params.name}`,
             );
           }
           return { value: secret.value, name: secret.name };

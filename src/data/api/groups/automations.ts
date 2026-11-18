@@ -10,6 +10,7 @@ export class AutomationsGroup extends HttpApiGroup.make("automations").add(
     success: Undecoded,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.post("create", "/orgs/:orgId/automations", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String },
     payload: Undecoded,
     success: Undecoded,

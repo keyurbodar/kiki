@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId, threads, world } from "../fixtures/world.ts";
@@ -174,6 +175,57 @@ describe("git mock", () => {
         }
       ).files.find((row) => row.path === filePath);
       assert.equal(entry?.size, (written as GitFile).size);
+    }),
+  );
+});
+
+describe("git mock misses", () => {
+  it.effect(
+    "answers the 404 every endpoint declares for an unknown thread",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        // A thread the app opens, which the mock carries no git record for.
+        const unknownParams = { orgId, jamId: threads.listTheme.id };
+        const reads = [
+          ApiClient.query("git", "status", { params: unknownParams }),
+          ApiClient.query("git", "patch", {
+            params: unknownParams,
+            query: {},
+          }),
+          ApiClient.query("git", "turns", { params: unknownParams }),
+        ];
+        for (const atom of reads) {
+          const error = yield* AtomRegistry.getResult(
+            registry,
+            atom as never,
+          ).pipe(Effect.flip);
+          assert.instanceOf(error, HttpApiError.NotFound);
+        }
+      }),
+  );
+
+  it.effect("answers the 404 the file routes declare for an unknown path", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const stalePath = "src/checkout/gone.ts";
+      const reads = [
+        ApiClient.query("git", "blob", {
+          params,
+          query: { path: stalePath },
+        }),
+        ApiClient.query("git", "storedFile", {
+          params,
+          query: { path: stalePath },
+        }),
+      ];
+      for (const atom of reads) {
+        const error = yield* AtomRegistry.getResult(
+          registry,
+          atom as never,
+        ).pipe(Effect.flip);
+        assert.instanceOf(error, HttpApiError.NotFound);
+      }
     }),
   );
 });

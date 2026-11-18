@@ -326,6 +326,23 @@ describe("mcp mock", () => {
     }),
   );
 
+  it.effect(
+    "answers the 404 the secret route declares for an unknown secret",
+    () =>
+      Effect.gen(function* () {
+        const registry = Registry.make();
+        const missing = ApiClient.query("mcp", "getSecretValue", {
+          params: { orgId, serverId, position: "0", name: "nobody" },
+          reactivityKeys: [key],
+        });
+        const error = yield* Registry.getResult(
+          registry,
+          missing as never,
+        ).pipe(Effect.flip);
+        assert.instanceOf(error, HttpApiError.NotFound);
+      }),
+  );
+
   it.effect("answers the remaining mutations with plain JSON", () =>
     Effect.gen(function* () {
       const registry = Registry.make();
