@@ -1,6 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
-import { DateTime, Schema } from "effect";
+import { DateTime } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useDeferredValue, useState } from "react";
 import { toast } from "sonner";
@@ -49,19 +49,75 @@ const snapshotLabels: Record<
 const columns =
   "minmax(var(--table-lead-min,0),2.4fr) minmax(var(--table-fluid-min,0),2.6fr) minmax(var(--table-fluid-min,0),1.3fr) minmax(var(--table-fluid-min,0),1.2fr) minmax(var(--table-auto-min,5.5rem),auto) auto";
 
-const InstallationRepos = Schema.Struct({
-  state: Schema.Literals(["ok", "connect_required"]),
-  repos: Schema.Array(
-    Schema.Struct({
-      githubRepoId: Schema.Number,
-      repoFullName: Schema.String,
-      defaultBranch: Schema.NullOr(Schema.String),
-      pushedAt: Schema.NullOr(Schema.DateFromString),
-      archived: Schema.Boolean,
+type InstallationRepoRow = {
+  readonly githubRepoId: number;
+  readonly repoFullName: string;
+  readonly defaultBranch: string | null;
+  readonly pushedAt: Date | null;
+  readonly archived: boolean;
+};
+
+const fields = (value: unknown) =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
+
+const installationRepoRow = (
+  value: unknown,
+): InstallationRepoRow | undefined => {
+  const row = fields(value);
+  const fullName =
+    typeof row?.repoFullName === "string"
+      ? row.repoFullName
+      : typeof row?.fullName === "string"
+        ? row.fullName
+        : undefined;
+  const id =
+    typeof row?.githubRepoId === "number" ? row.githubRepoId : undefined;
+  if (row === undefined || fullName === undefined || id === undefined) {
+    return undefined;
+  }
+  const pushedAt =
+    typeof row.pushedAt === "string" ? new Date(row.pushedAt) : undefined;
+  return {
+    githubRepoId: id,
+    repoFullName: fullName,
+    defaultBranch:
+      typeof row.defaultBranch === "string" ? row.defaultBranch : null,
+    pushedAt:
+      pushedAt === undefined || Number.isNaN(pushedAt.getTime())
+        ? null
+        : pushedAt,
+    archived: row.archived === true,
+  };
+};
+
+/**
+ * `listGitHubInstallationRepos` is undecoded, so accept either a bare list of
+ * repositories or a `{ state, repos }` envelope. A list means an installation
+ * exists; a `connect_required` envelope means it does not.
+ */
+const readInstallation = (
+  value: unknown,
+): {
+  readonly installed: boolean;
+  readonly repos: ReadonlyArray<InstallationRepoRow>;
+} => {
+  const envelope = fields(value);
+  const unpacked = Array.isArray(value)
+    ? { installed: true, rows: value }
+    : {
+        installed: envelope?.state !== "connect_required",
+        rows: Array.isArray(envelope?.repos) ? envelope.repos : [],
+      };
+  return {
+    installed: unpacked.installed,
+    repos: unpacked.rows.flatMap((row) => {
+      const decoded = installationRepoRow(row);
+      return decoded === undefined ? [] : [decoded];
     }),
-  ),
-});
-const decodeInstallationRepos = Schema.decodeUnknownOption(InstallationRepos);
+  };
+};
 
 const pageSize = 50;
 
@@ -110,11 +166,11 @@ function ProjectsDirectory({ orgId }: { readonly orgId: OrgId }) {
   );
   const reposResult = useAtomValue(githubInstallationReposAtom(orgId));
   const installation = AsyncResult.isSuccess(reposResult)
-    ? decodeInstallationRepos(reposResult.value)
+    ? readInstallation(reposResult.value)
     : undefined;
-  const installed = installation?._tag === "Some";
+  const installed = installation?.installed === true;
   const suggestions = suggestedRepos({
-    repos: installation?._tag === "Some" ? installation.value.repos : [],
+    repos: installation?.repos ?? [],
     taken: (directory?.items ?? []).flatMap((entry) => entry.repos),
     search: query,
     now,

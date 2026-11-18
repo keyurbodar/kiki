@@ -49,13 +49,29 @@ export const sampleGitHubReachableInstallations = [
   },
 ];
 
-export const sampleGitHubInstallationRepos = repos.map((repo) => ({
+const day = 24 * 60;
+
+/** Minutes since the last push, per repository in `repos`, in the same order. */
+const repoPushedMinutesAgo = [
+  1 * day,
+  2 * day,
+  2 * day,
+  9 * day,
+  20 * day,
+  2 * day,
+];
+
+export const sampleGitHubInstallationRepos = repos.map((repo, index) => ({
   id: repo.id.replace("repo_sample_", "gh_repo_sample_"),
+  githubRepoId: 42_100 + index,
   name: repo.fullName.split("/")[1],
   fullName: repo.fullName,
+  repoFullName: repo.fullName,
   private: repo.private,
   defaultBranch: repo.defaultBranch,
   selected: repo.fullName !== "acme/legacy-site",
+  archived: false,
+  pushedAt: isoMinutesAgo(repoPushedMinutesAgo[index] ?? 2 * day),
 }));
 
 export const sampleGitHubWorkspace = {
