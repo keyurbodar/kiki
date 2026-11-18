@@ -604,4 +604,40 @@ export const themeListings: ReadonlyArray<ThemeListingFixture> = [
     featuredRank: null,
     theme: theme12,
   },
+  {
+    slug: "ember-fade",
+    displayName: "Ember Fade",
+    description:
+      "Light and dark theme with the zenitsu-agatsuma-5120x2880-26520.jpg wallpaper.",
+    maker: { name: "Nils Berg" },
+    source: "user",
+    version: "2",
+    adds: 2,
+    featuredRank: null,
+    theme: theme12,
+  },
+  {
+    slug: "paper-lantern",
+    displayName: "Paper Lantern",
+    description:
+      "Light and dark theme with the zenitsu-agatsuma-5120x2880-26520.jpg wallpaper.",
+    maker: { name: "Mira Sato" },
+    source: "user",
+    version: "2",
+    adds: 2,
+    featuredRank: null,
+    theme: theme12,
+  },
+  {
+    slug: "cold-porcelain",
+    displayName: "Cold Porcelain",
+    description:
+      "Light and dark theme with the zenitsu-agatsuma-5120x2880-26520.jpg wallpaper.",
+    maker: { name: "Owen Renner" },
+    source: "user",
+    version: "2",
+    adds: 2,
+    featuredRank: null,
+    theme: theme12,
+  },
 ];
