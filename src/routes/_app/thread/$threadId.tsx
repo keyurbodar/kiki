@@ -1,10 +1,10 @@
-import { useAtomValue } from "@effect/atom-react";
+import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useEffect, useMemo, useState } from "react";
 import { copyText } from "@/components/file-view/copy";
-import type { JamId, OrgId } from "@/data/api/schemas/ids";
+import type { EventId, JamId, OrgId } from "@/data/api/schemas/ids";
 import {
   organizationsAtom,
   resolveActiveOrgId,
@@ -16,6 +16,7 @@ import {
   useIsPhoneSurface,
 } from "@/features/mobile/thread";
 import { ThreadCostBadge } from "@/features/thread/cost-badge";
+import type { EditTarget } from "@/features/thread/message-footer";
 import {
   activeTabId,
   paneTabs,
@@ -23,7 +24,11 @@ import {
   type ThreadTakeoverHandlers,
   ThreadView,
 } from "@/features/thread/thread-view";
-import { useThreadTimeline } from "@/features/thread/timeline";
+import {
+  editDraftAtom,
+  threadKey,
+  useThreadTimeline,
+} from "@/features/thread/timeline";
 import { useSideThreads } from "@/features/thread-panes/side-threads";
 import { tabKey } from "@/features/thread-panes/tab-strip";
 import { ThreadDock } from "@/features/thread-panes/thread-dock";
@@ -55,6 +60,21 @@ export function ThreadRoute({
     useAtomValue(selectedOrgIdAtom),
   );
   const timeline = useThreadTimeline((orgId ?? "") as OrgId, threadId as JamId);
+  const editKey = threadKey((orgId ?? "") as OrgId, threadId as JamId);
+  const editing = useAtomValue(editDraftAtom(editKey));
+  const setEditing = useAtomSet(editDraftAtom(editKey));
+  const startEdit = (target: EditTarget) =>
+    setEditing({ ...target, eventId: target.eventId as EventId });
+  const stopEdit = () => setEditing(null);
+  useEffect(() => {
+    if (editing === null) return;
+    if (
+      timeline.rows.some(
+        (row) => row.type === "user-message" && row.editOf === editing.eventId,
+      )
+    )
+      setEditing(null);
+  }, [editing, setEditing, timeline.rows]);
   const listed = Option.getOrUndefined(
     AsyncResult.value(useAtomValue(threadsAtom((orgId ?? "") as OrgId))),
   );
@@ -83,6 +103,9 @@ export function ThreadRoute({
       pendingEnvironment={timeline.pendingEnvironment}
       handlers={handlers}
       paneExpanded={expanded}
+      editing={editing}
+      onEditMessage={startEdit}
+      onCancelEdit={stopEdit}
       dock={
         entry && (
           <ThreadDock

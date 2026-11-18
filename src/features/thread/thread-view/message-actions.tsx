@@ -5,6 +5,7 @@ import { orgMembersAtom } from "@/data/atoms/activity";
 import { currentUserAtom } from "@/data/atoms/session";
 import type { Actor } from "@/data/events";
 import {
+  type EditTarget,
   type MessageActions,
   MessageActionsProvider,
   type MessageActor,
@@ -47,12 +48,20 @@ const toMembers = (response: unknown): ReadonlyMap<string, MemberRecord> => {
  * align and can offer edit), the member names and avatars behind each actor, and
  * the clock the relative stamps read. Without it a message row renders read-only
  * and a user message shows its raw id instead of the sender's name.
+ *
+ * `editMessage` and `editedRowIds` come from the thread screen and its timeline:
+ * the first opens the composer on a sent message, the second names the messages
+ * that replaced an earlier version.
  */
 export function ThreadMessageActions({
   orgId,
+  editMessage,
+  editedRowIds,
   children,
 }: {
   orgId: string | undefined;
+  editMessage?: (target: EditTarget) => void;
+  editedRowIds?: ReadonlySet<string>;
   children: ReactNode;
 }) {
   const user = useAtomValue(currentUserAtom);
@@ -69,6 +78,8 @@ export function ThreadMessageActions({
     () => ({
       now: Date.now(),
       viewerUserId,
+      editMessage,
+      editedRowIds,
       resolveActor: (actor: Actor): MessageActor | undefined => {
         if (actor.type !== "user") return undefined;
         const member = byId.get(actor.userId);
@@ -77,7 +88,7 @@ export function ThreadMessageActions({
           : { name: member.name, imageUrl: member.imageUrl };
       },
     }),
-    [byId, viewerUserId],
+    [byId, editedRowIds, editMessage, viewerUserId],
   );
   return (
     <MessageActionsProvider value={actions}>{children}</MessageActionsProvider>

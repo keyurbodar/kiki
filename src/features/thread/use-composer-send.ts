@@ -9,13 +9,15 @@ import {
   resolveActiveOrgId,
   selectedOrgIdAtom,
 } from "@/data/atoms/session";
+import type { EventId } from "@/data/events";
 
 /**
  * The composer's submit for a thread screen: sends the typed text to `jamId`
- * and answers whether it was accepted. Without a thread to send to, the
- * composer keeps its text.
+ * and answers whether it was accepted. `editOf` names the sent message the text
+ * replaces, so the send is an edit rather than a new message. Without a thread
+ * to send to, the composer keeps its text.
  */
-export function useComposerSend(jamId?: string) {
+export function useComposerSend(jamId?: string, editOf?: EventId) {
   const organizations =
     Option.getOrUndefined(AsyncResult.value(useAtomValue(organizationsAtom))) ??
     [];
@@ -31,6 +33,7 @@ export function useComposerSend(jamId?: string) {
       payload: {
         text: payload.text,
         ...(payload.files.length === 0 ? {} : { files: payload.files }),
+        ...(editOf === undefined ? {} : { editOf }),
       },
       reactivityKeys: [jamEventKey(jamId)],
     }).catch(() => toast.error("Could not send the message"));
