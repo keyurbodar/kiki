@@ -52,7 +52,10 @@ import {
   type PaneTab,
   tabKey,
 } from "@/features/thread-panes/tab-strip";
-import { useThreadMachineEntries } from "@/features/thread-panes/tab-strip/thread-machines";
+import {
+  useMachineBrowserSession,
+  useThreadMachineEntries,
+} from "@/features/thread-panes/tab-strip/thread-machines";
 import { TerminalPane } from "@/features/thread-panes/terminal-pane";
 import { ThreadDock } from "@/features/thread-panes/thread-dock";
 import {
@@ -147,6 +150,22 @@ export function ThreadRoute({
     orgId as OrgId | undefined,
     threadId as JamId,
   );
+  const browserSession = useMachineBrowserSession(
+    orgId as OrgId | undefined,
+    threadId as JamId,
+  );
+  const openBrowser = () => {
+    if (browserSession === undefined) {
+      onSelectPane?.("browser");
+      return;
+    }
+    openTabIn({
+      kind: "browser",
+      id: browserSession.id,
+      url: browserSession.url,
+      title: browserSession.title,
+    });
+  };
   const wakeMachine = useAtomSet(wakeMachineAtom);
   const onWake = (machineId: string) => {
     if (orgId === undefined) return;
@@ -276,6 +295,7 @@ export function ThreadRoute({
               expanded={expanded}
               onSelectTab={selectIn}
               onOpenTab={openTabIn}
+              onOpenBrowser={openBrowser}
               onCloseTab={closeIn}
               onClose={() => closeIn(openTabs.active)}
               onToggleExpand={() => setExpanded((current) => !current)}
@@ -317,7 +337,7 @@ export function ThreadRoute({
             expanded={expanded}
             onSelectChat={() => onSelectPane?.(undefined)}
             onSelectTab={openInStrip}
-            onOpenBrowser={() => onSelectPane?.("browser")}
+            onOpenBrowser={openBrowser}
             onCloseTab={() => onSelectPane?.(undefined)}
             onCopyLink={(path) =>
               void copyText(

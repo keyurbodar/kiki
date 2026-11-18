@@ -42,15 +42,17 @@ export type BrowserPaneProps = {
   threadId: string;
   /** The session this tab was opened for, when the route names one. */
   sessionId?: string | undefined;
+  /** The address that session holds, shown in the omnibox. */
+  url?: string | undefined;
 };
 
 /**
  * The browser surface Capy opens from the chat column's strip: a 32 px bar with
- * history controls and the omnibox, then the page. There is no browser session
- * behind it yet — no endpoint opens one — so the page area shows Capy's own
- * new-tab state rather than a fabricated view.
+ * history controls and the omnibox, then the page. A machine's `sessions` record
+ * names the address a session holds, so the omnibox shows it; the page itself is
+ * not rendered in this build, and the page area says so instead of faking one.
  */
-export function BrowserPane({ threadId, sessionId }: BrowserPaneProps) {
+export function BrowserPane({ threadId, sessionId, url }: BrowserPaneProps) {
   return (
     <div
       data-slot="browser-pane"
@@ -67,7 +69,7 @@ export function BrowserPane({ threadId, sessionId }: BrowserPaneProps) {
             size="xs"
             className="shrink-0 text-muted-foreground-2"
           />
-          <BrowserOmniboxInput readOnly />
+          <BrowserOmniboxInput readOnly defaultValue={url} />
         </BrowserOmnibox>
         <BarButton label="Open externally" icon="arrow-up-right" />
         <BarButton label="Browser options" icon="dot-grid-1x3-horizontal" />
