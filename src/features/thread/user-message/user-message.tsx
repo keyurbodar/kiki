@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react";
+import { type ComponentProps, useState } from "react";
 import { ClampedBody } from "@/components/clamped-body";
 import { Markdown } from "@/components/markdown";
 import type { UserMessageRow as UserMessageRowSchema } from "@/data/events";
@@ -26,7 +26,8 @@ export type UserMessageRow = typeof UserMessageRowSchema.Type;
 const BUBBLE =
   "max-w-full min-w-0 rounded-(--radius-card) bg-secondary px-3 py-2 wrap-anywhere";
 const CLAMP_HEIGHT = 288;
-const CLAMP_FADE = { rest: "1.5rem", hover: "2rem" };
+/** Capy's message body fades the last 56 px and does not deepen it on hover. */
+const CLAMP_FADE = { rest: "3.5rem", hover: "3.5rem" };
 const CLAMP_MIN_CHARS = 420;
 const CLAMP_MIN_LINES = 9;
 
@@ -65,6 +66,7 @@ export function UserMessage({
   ...props
 }: UserMessageProps) {
   const actions = useMessageActions();
+  const [localExpanded, setLocalExpanded] = useState(false);
   const mine =
     actions.viewerUserId !== undefined &&
     row.actor.type === "user" &&
@@ -81,6 +83,12 @@ export function UserMessage({
   const attachments: ReadonlyArray<AttachmentEntry> = row.files.map((file) => ({
     file,
   }));
+  const clampExpanded =
+    onToggleExpanded === undefined ? localExpanded : expanded;
+  const clampToggle =
+    onToggleExpanded ?? (() => setLocalExpanded((open) => !open));
+  const clamps =
+    onToggleExpanded !== undefined || needsClamp(body, clampHeight);
 
   const footerEl = footer && (
     <MessageFooter touch align={mine ? "end" : "start"}>
@@ -199,19 +207,19 @@ export function UserMessage({
               />
             )}
             {body !== "" &&
-              (onToggleExpanded === undefined ||
-              !needsClamp(body, clampHeight) ? (
-                <div className={BUBBLE}>{text}</div>
-              ) : (
+              (clamps ? (
                 <ClampedBody
                   maxHeight={clampHeight ?? CLAMP_HEIGHT}
-                  expanded={expanded}
-                  onToggle={onToggleExpanded}
-                  fade={clampHeight === undefined ? undefined : CLAMP_FADE}
+                  expanded={clampExpanded}
+                  onToggle={clampToggle}
+                  fade={CLAMP_FADE}
+                  showToggle
                   className={BUBBLE}
                 >
                   {text}
                 </ClampedBody>
+              ) : (
+                <div className={BUBBLE}>{text}</div>
               ))}
             {footerEl}
           </div>

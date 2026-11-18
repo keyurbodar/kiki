@@ -61,6 +61,20 @@ describe("UserMessage", () => {
     expect(screen.getByLabelText("Edit message")).toBeTruthy();
   });
 
+  it("clamps a long message and leaves a short one alone", () => {
+    const long = Array.from(
+      { length: 12 },
+      (_, i) => `Line ${i} of a long message.`,
+    ).join("\n");
+    const { unmount } = render(
+      <UserMessage row={{ ...userRow, text: long } as never} />,
+    );
+    expect(document.querySelector("[data-slot=clamped-body]")).not.toBeNull();
+    unmount();
+    render(<UserMessage row={userRow} />);
+    expect(document.querySelector("[data-slot=clamped-body]")).toBeNull();
+  });
+
   it("hands the composer the row, the event and the text to edit", () => {
     const seen: EditTarget[] = [];
     render(

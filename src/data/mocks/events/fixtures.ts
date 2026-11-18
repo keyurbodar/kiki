@@ -729,7 +729,22 @@ const captureHistory: ReadonlyArray<EventRowEncoded> = [
   ),
 
   captureProbe.message(
-    "Trace the flaky shard timeout from last night's release and tell me whether the retry budget hid it.",
+    [
+      "Trace the flaky shard timeout from last night's release and tell me whether the retry budget hid it.",
+      "",
+      "A few things I already know, so you do not spend a turn on them:",
+      "",
+      "- it was shard three, and only ever shard three",
+      "- the run before it passed on a warm runner",
+      "- the deploy step never ran, because the release stopped at the test step",
+      "- nobody touched the retry helper in that window",
+      "",
+      "What I want to know is whether the budget made the failure slower without making it rarer, and if the spec is waiting on a clock I want the number and the line it waits on. If the fix belongs in the stub rather than the spec, say so and leave the spec alone — I would rather fix the thing that is actually late.",
+      "",
+      "One more thing on the budget itself: I do not want it raised. Two attempts is the number we agreed on and a release that hangs for five minutes is worse than a rerun, so if the fix is the wait, keep the budget as it is and let the shard fail fast when the stub is late. If the fix turns out to be the stub, then the budget is doing real work and I want to know that too, because it would mean we have been retrying a wait that never had a chance of succeeding.",
+      "",
+      "Do not change the deploy step in this pass.",
+    ].join("\n"),
   ),
   captureProbe.call("toolu_capture_probe_log", "bash", {
     command: "gh run view --log-failed",
