@@ -25,10 +25,18 @@ export const checkClass = "size-(--icon-sm) shrink-0 text-foreground";
 /** The current organization and whether the viewer may change its settings. */
 export function useReviewOrg() {
   const organizations = useAtomValue(organizationsAtom);
+  const refreshOrganizations = useAtomRefresh(organizationsAtom);
   const org = AsyncResult.isSuccess(organizations)
     ? organizations.value[0]
     : undefined;
-  return { org, orgId: org?.id, ...adminAccess(org?.accessLevel) };
+  return {
+    org,
+    orgId: org?.id,
+    // A failed organizations read is not an org that is still loading.
+    orgFailed: AsyncResult.isFailure(organizations),
+    refreshOrganizations,
+    ...adminAccess(org?.accessLevel),
+  };
 }
 
 /** A query's value (current or previous), whether it failed with none, and a retry. */

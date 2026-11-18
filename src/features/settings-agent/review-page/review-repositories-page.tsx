@@ -1,6 +1,7 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { FailedRead } from "@/components/failed-read";
 import {
   SettingsLoadingCard,
   SettingsPage,
@@ -57,14 +58,21 @@ const heldElsewhereReason =
   "Another organization holds this repository's review billing";
 
 export function ReviewRepositoriesPage() {
-  const { orgId } = useReviewOrg();
+  const { orgId, orgFailed, refreshOrganizations } = useReviewOrg();
   return (
     <SettingsPage
       title="Repositories"
       description="Where Capy reviews pull requests"
       headerContent={<ReviewAdminNotice scope="repositories" />}
     >
-      {orgId === undefined ? (
+      {orgFailed ? (
+        <FailedRead
+          slot="review-repositories-failed"
+          line="Couldn't load your organization"
+          sub="Check your connection and try again"
+          onRetry={refreshOrganizations}
+        />
+      ) : orgId === undefined ? (
         <>
           <SettingsSection
             id="review-repositories"
