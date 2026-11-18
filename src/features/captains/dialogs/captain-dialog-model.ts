@@ -118,16 +118,18 @@ export function profileChanges(profile: CaptainProfile, draft: ProfileDraft) {
     !sameAvatar(draft.avatar, profile.avatar) ||
     deviceChanged;
   if (!changed) return undefined;
+  /**
+   * Only the fields that changed, and no key holding `undefined`: the payload
+   * is undecoded JSON, and the encoder rejects a body it cannot serialise.
+   */
   return {
     name: draft.name.trim() || defaultCaptainName,
     avatar: draft.avatar,
-    alias: aliasChanged ? (alias === "" ? null : alias) : undefined,
-    description: descriptionChanged
-      ? description === ""
-        ? null
-        : description
-      : undefined,
-    crewDeviceId: deviceChanged ? draft.crewDeviceId : undefined,
+    ...(aliasChanged ? { alias: alias === "" ? null : alias } : {}),
+    ...(descriptionChanged
+      ? { description: description === "" ? null : description }
+      : {}),
+    ...(deviceChanged ? { crewDeviceId: draft.crewDeviceId } : {}),
   };
 }
 

@@ -76,8 +76,6 @@ describe("captain dialog model", () => {
       name: "Release captain",
       avatar: profile.avatar,
       alias: null,
-      description: undefined,
-      crewDeviceId: undefined,
     });
     expect(
       profileChanges(profile, {
@@ -85,10 +83,11 @@ describe("captain dialog model", () => {
         description: "Ships it",
         crewDeviceId: "dev_1",
       }),
-    ).toMatchObject({
+    ).toEqual({
+      name: "Release captain",
+      avatar: profile.avatar,
       description: "Ships it",
       crewDeviceId: "dev_1",
-      alias: undefined,
     });
   });
 
