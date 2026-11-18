@@ -242,7 +242,7 @@ export function SpecimenApp() {
           Today
         </span>
         {THREADS.map((thread) => (
-          <SidebarThreadRow key={thread.id} thread={thread} />
+          <SidebarThreadRow key={thread.id} thread={thread} decorative />
         ))}
       </div>
       <Card
