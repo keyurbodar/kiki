@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { fields, newId } from "../db/MockDb.ts";
+import { fields, newId, notFoundNamed } from "../db/MockDb.ts";
 import { isoMinutesAgo, world } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
@@ -18,9 +18,7 @@ export const PaperMock = mockGroup("paper", (handlers) =>
         const thread = Object.values(world.threads).find(
           (row) => row.id === params.jamId,
         );
-        if (!thread) {
-          return Effect.die(new Error(`paper.threads: no row ${params.jamId}`));
-        }
+        if (!thread) return notFoundNamed("thread", params.jamId);
         return Effect.gen(function* () {
           const rows = yield* Ref.get(embeds);
           const embed = {
@@ -45,9 +43,7 @@ export const PaperMock = mockGroup("paper", (handlers) =>
         const thread = Object.values(world.threads).find(
           (row) => row.id === params.jamId,
         );
-        if (!thread) {
-          return Effect.die(new Error(`paper.threads: no row ${params.jamId}`));
-        }
+        if (!thread) return notFoundNamed("thread", params.jamId);
         return Effect.succeed(samplePaperFiles);
       });
   }),

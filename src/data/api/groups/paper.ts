@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { InferredMethod } from "../annotations.ts";
 import { Undecoded } from "../undecoded.ts";
 
@@ -8,6 +8,7 @@ export class PaperGroup extends HttpApiGroup.make("paper").add(
     "mintPaperEmbed",
     "/orgs/:orgId/jams/:jamId/paper/embed",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, jamId: Schema.String },
       payload: Undecoded,
       success: Undecoded,
@@ -17,6 +18,7 @@ export class PaperGroup extends HttpApiGroup.make("paper").add(
     "listPaperFiles",
     "/orgs/:orgId/jams/:jamId/paper/files",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, jamId: Schema.String },
       success: Undecoded,
     },

@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { MockDb, notFound } from "../db/MockDb.ts";
+import { MockDb, notFound, notFoundNamed } from "../db/MockDb.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { sampleOperations } from "./fixtures.ts";
 
@@ -24,13 +24,7 @@ export const OperationsMock = mockGroup("operations", (handlers) =>
             const known = (yield* Ref.get(machines)).some(
               (machine) => machine.threadId === params.jamId,
             );
-            if (!known) {
-              return yield* Effect.die(
-                new Error(
-                  `operations: no operations for thread ${params.jamId}`,
-                ),
-              );
-            }
+            if (!known) return yield* notFoundNamed("thread", params.jamId);
           }
           return matching;
         }),
@@ -39,11 +33,8 @@ export const OperationsMock = mockGroup("operations", (handlers) =>
         Effect.gen(function* () {
           const rows = yield* Ref.get(operations);
           const operation = rows.find((row) => row.id === params.operationId);
-          if (!operation) {
-            return yield* Effect.die(
-              new Error(`operations: no row ${params.operationId}`),
-            );
-          }
+          if (!operation)
+            return yield* notFoundNamed("operation", params.operationId);
           if (operation.threadId !== params.jamId) {
             return yield* notFound("machines", params.jamId);
           }

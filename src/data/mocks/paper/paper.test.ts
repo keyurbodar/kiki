@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId, threads, world } from "../fixtures/world.ts";
@@ -54,5 +55,33 @@ describe("paper mock", () => {
       });
       assert.isTrue(rows(files).length > 0);
     }),
+  );
+
+  it.effect(
+    "answers the 404 both endpoints declare for an unknown thread",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        const missingParams = { orgId, jamId: "jam_nobody" };
+        const missingFiles = ApiClient.query("paper", "listPaperFiles", {
+          params: missingParams,
+          reactivityKeys: [key],
+        });
+        const filesError = yield* AtomRegistry.getResult(
+          registry,
+          missingFiles,
+        ).pipe(Effect.flip);
+        assert.instanceOf(filesError, HttpApiError.NotFound);
+
+        registry.set(mintEmbed, {
+          params: missingParams,
+          payload: { fileId: world.driveFiles[2].id },
+        });
+        const mintError = yield* AtomRegistry.getResult(
+          registry,
+          mintEmbed,
+        ).pipe(Effect.flip);
+        assert.instanceOf(mintError, HttpApiError.NotFound);
+      }),
   );
 });

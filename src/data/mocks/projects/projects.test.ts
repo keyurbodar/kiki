@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
 import {
@@ -529,5 +530,74 @@ describe("projects mock", () => {
       );
       assert.isTrue(rows(unhandled).length > 0);
     }),
+  );
+
+  it.effect(
+    "answers the 404 every project endpoint declares for an unknown id",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        const nobody = { orgId, projectId: "proj_nobody" };
+        const misses = [
+          ["get", { params: nobody }],
+          ["update", { params: nobody, payload: { name: "Nobody" } }],
+          ["delete", { params: nobody }],
+          ["restore", { params: nobody }],
+          [
+            "setRepoMode",
+            {
+              params: { ...nobody, owner: "acme", repo: "api" },
+              payload: { mode: "primary" },
+            },
+          ],
+          [
+            "addRepos",
+            {
+              params: nobody,
+              payload: { repos: [{ repoFullName: "acme/ghost" }] },
+            },
+          ],
+          [
+            "replaceRepos",
+            {
+              params: nobody,
+              payload: {
+                repos: [{ repoFullName: "acme/ghost", baseBranch: "main" }],
+              },
+            },
+          ],
+          [
+            "uploadLogo",
+            {
+              params: nobody,
+              payload: { url: "https://example.com/ghost.png" },
+            },
+          ],
+          ["removeLogo", { params: nobody }],
+          [
+            "removeMembers",
+            { params: nobody, query: { memberIds: [memberId] } },
+          ],
+          ["setAccess", { params: nobody, payload: { access: "org" } }],
+          [
+            "getSnapshotBuild",
+            { params: { ...nobody, buildId: "snapbuild_nobody" } },
+          ],
+          [
+            "getSnapshotBuildLog",
+            { params: { ...nobody, buildId: "snapbuild_nobody" }, query: {} },
+          ],
+          ["rollbackSetup", { params: { ...nobody, versionId: "ver_nobody" } }],
+        ] as const;
+
+        for (const [endpoint, request] of misses) {
+          const error = yield* runMutation(
+            registry,
+            endpoint,
+            request as unknown as Record<string, unknown>,
+          ).pipe(Effect.flip);
+          assert.instanceOf(error, HttpApiError.NotFound, endpoint);
+        }
+      }),
   );
 });

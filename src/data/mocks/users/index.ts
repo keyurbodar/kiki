@@ -1,6 +1,6 @@
 import { Effect, Ref } from "effect";
 import { UserProfile } from "../../api/schemas/user.ts";
-import { fields, newId } from "../db/MockDb.ts";
+import { fields, newId, notFoundNamed } from "../db/MockDb.ts";
 import { isoMinutesAgo } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
@@ -261,14 +261,14 @@ export const UsersMock = mockGroup("users", (handlers) =>
         return Ref.update(files, (rows) => [...rows, row]).pipe(Effect.as(row));
       })
       .handle("appearanceFileUrl", ({ params }) =>
-        Effect.flatMap(Ref.get(files), (rows) =>
-          findRow(rows, params.fileId, "appearance file").pipe(
-            Effect.map((file) => ({
-              url: file.url,
-              expiresAt: isoMinutesAgo(-60),
-            })),
-          ),
-        ),
+        Effect.flatMap(Ref.get(files), (rows) => {
+          const file = rows.find((row) => row.id === params.fileId);
+          if (!file) return notFoundNamed("appearance file", params.fileId);
+          return Effect.succeed({
+            url: file.url,
+            expiresAt: isoMinutesAgo(-60),
+          });
+        }),
       )
       .handle("getGitSigning", () => Ref.get(signing))
       .handle("ensureGitSigning", () =>

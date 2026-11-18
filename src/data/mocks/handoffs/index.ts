@@ -1,5 +1,11 @@
 import { Effect, Ref } from "effect";
-import { fields, MockDb, newId, notFound } from "../db/MockDb.ts";
+import {
+  fields,
+  MockDb,
+  newId,
+  notFound,
+  notFoundNamed,
+} from "../db/MockDb.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { sampleHandoff } from "./fixtures.ts";
 
@@ -51,8 +57,9 @@ export const HandoffsMock = mockGroup("handoffs", (handlers) =>
           const rows = yield* Ref.get(handoffs);
           const handoff = rows.find((row) => row.threadId === params.jamId);
           if (!handoff) {
-            return yield* Effect.die(
-              new Error(`handoffs: no open handoff for thread ${params.jamId}`),
+            return yield* notFoundNamed(
+              "open handoff for thread",
+              params.jamId,
             );
           }
           return handoff;
@@ -63,9 +70,7 @@ export const HandoffsMock = mockGroup("handoffs", (handlers) =>
           const rows = yield* Ref.get(handoffs);
           const handoff = rows.find((row) => row.id === params.handoffId);
           if (!handoff) {
-            return yield* Effect.die(
-              new Error(`handoffs: no row ${params.handoffId}`),
-            );
+            return yield* notFoundNamed("handoff", params.handoffId);
           }
           const canceled = {
             ...handoff,

@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { type AsyncResult, type Atom, AtomRegistry } from "effect/reactivity";
 import { OrgId } from "../../api/schemas/ids.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
@@ -244,6 +245,37 @@ describe("captains mock", () => {
       });
       assert.equal(demoted.captainId, promotedFolder.id);
     }),
+  );
+});
+
+describe("captains misses", () => {
+  it.effect(
+    "answers the 404 the crew mutations declare for an unknown thread",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        const joinCrew = ApiClient.mutation("captains", "joinCrew");
+        registry.set(joinCrew, {
+          params: { orgId, jamId: "jam_sample_cap1" },
+          payload: { threadId: "jam_nobody" },
+        });
+        const joinError = yield* AtomRegistry.getResult(
+          registry,
+          joinCrew,
+        ).pipe(Effect.flip);
+        assert.instanceOf(joinError, HttpApiError.NotFound);
+
+        const promoteThread = ApiClient.mutation("captains", "promoteThread");
+        registry.set(promoteThread, {
+          params: { orgId },
+          payload: { threadId: "jam_nobody" },
+        });
+        const promoteError = yield* AtomRegistry.getResult(
+          registry,
+          promoteThread,
+        ).pipe(Effect.flip);
+        assert.instanceOf(promoteError, HttpApiError.NotFound);
+      }),
   );
 });
 

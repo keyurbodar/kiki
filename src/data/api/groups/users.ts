@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { Unauthorized } from "../schemas/errors.ts";
 import { UserProfile } from "../schemas/user.ts";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
@@ -59,6 +59,7 @@ export class UsersGroup extends HttpApiGroup.make("users").add(
     success: Undecoded,
   }),
   HttpApiEndpoint.get("appearanceFileUrl", "/me/appearance/files/:fileId/url", {
+    error: HttpApiError.NotFoundNoContent,
     params: { fileId: Schema.String },
     success: Undecoded,
   }),

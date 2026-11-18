@@ -47,10 +47,12 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     success: Undecoded,
   }),
   HttpApiEndpoint.get("get", "/orgs/:orgId/projects/:projectId", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, projectId: Schema.String },
     success: Project,
   }),
   HttpApiEndpoint.patch("update", "/orgs/:orgId/projects/:projectId", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, projectId: Schema.String },
     payload: Schema.Struct({
       name: Schema.optional(Schema.NullOr(Schema.String)),
@@ -64,6 +66,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     success: Project,
   }),
   HttpApiEndpoint.delete("delete", "/orgs/:orgId/projects/:projectId", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, projectId: Schema.String },
     success: Project,
   }),
@@ -202,6 +205,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     },
   ),
   HttpApiEndpoint.post("uploadLogo", "/orgs/:orgId/projects/:projectId/logo", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, projectId: Schema.String },
     payload: Undecoded,
     success: Undecoded,
@@ -210,6 +214,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "removeLogo",
     "/orgs/:orgId/projects/:projectId/logo",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, projectId: Schema.String },
       success: Undecoded,
     },
@@ -228,6 +233,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "removeMembers",
     "/orgs/:orgId/projects/:projectId/members",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, projectId: Schema.String },
       query: UndecodedQuery,
       success: Undecoded,
@@ -243,6 +249,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "replaceRepos",
     "/orgs/:orgId/projects/:projectId/repos",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, projectId: Schema.String },
       payload: Schema.Struct({
         repos: Schema.Array(
@@ -257,6 +264,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     },
   ),
   HttpApiEndpoint.post("addRepos", "/orgs/:orgId/projects/:projectId/repos", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, projectId: Schema.String },
     payload: Schema.Struct({
       repos: Schema.Array(
@@ -273,6 +281,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "setRepoMode",
     "/orgs/:orgId/projects/:projectId/repos/:owner/:repo",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         projectId: Schema.String,
@@ -284,6 +293,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     },
   ),
   HttpApiEndpoint.post("restore", "/orgs/:orgId/projects/:projectId/restore", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, projectId: Schema.String },
     success: Project,
   }),
@@ -321,6 +331,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "rollbackSetup",
     "/orgs/:orgId/projects/:projectId/setup/versions/:versionId/rollback",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         projectId: Schema.String,
@@ -358,6 +369,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "getSnapshotBuild",
     "/orgs/:orgId/projects/:projectId/snapshot/builds/:buildId",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         projectId: Schema.String,
@@ -370,6 +382,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "getSnapshotBuildLog",
     "/orgs/:orgId/projects/:projectId/snapshot/builds/:buildId/log",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         projectId: Schema.String,
@@ -410,6 +423,7 @@ export class ProjectsGroup extends HttpApiGroup.make("projects").add(
     "setAccess",
     "/orgs/:orgId/projects/:projectId/visibility",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, projectId: Schema.String },
       payload: Undecoded,
       success: Undecoded,

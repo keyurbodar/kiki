@@ -162,6 +162,7 @@ export class CaptainsGroup extends HttpApiGroup.make("captains").add(
     "promoteThread",
     "/orgs/:orgId/captains/promote-thread",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String },
       payload: Undecoded,
       success: Undecoded,

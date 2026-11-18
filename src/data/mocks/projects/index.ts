@@ -17,7 +17,13 @@ import {
   SnapshotBuild,
   SnapshotBuildSummary,
 } from "../../api/schemas/project-settings.ts";
-import { fields, MockDb, newId, notFound } from "../db/MockDb.ts";
+import {
+  fields,
+  MockDb,
+  newId,
+  notFound,
+  notFoundNamed,
+} from "../db/MockDb.ts";
 import { fixtureNow } from "../fixtures/time.ts";
 import { isoMinutesAgo, people, viewer } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
@@ -125,7 +131,7 @@ export const ProjectsMock = mockGroup("projects", (handlers) =>
           const project = list.find((candidate) => candidate.id === projectId);
           return project
             ? Effect.succeed(project)
-            : Effect.die(new Error(`Unknown project ${projectId}`));
+            : notFoundNamed("project", projectId);
         }),
       );
 
@@ -339,7 +345,7 @@ export const ProjectsMock = mockGroup("projects", (handlers) =>
           );
           return build
             ? Effect.succeed(build)
-            : Effect.die(new Error(`Unknown build ${buildId}`));
+            : notFoundNamed("snapshot build", buildId);
         }),
       );
 
@@ -588,9 +594,7 @@ export const ProjectsMock = mockGroup("projects", (handlers) =>
             (yield* Ref.get(setupVersions))[params.projectId] ?? []
           ).find((candidate) => candidate.id === params.versionId);
           if (version === undefined)
-            return yield* Effect.die(
-              new Error(`Unknown setup version ${params.versionId}`),
-            );
+            return yield* notFoundNamed("setup version", params.versionId);
           return Schema.encodeSync(ProjectSetup)(
             yield* replaceSetupWith(params.projectId, {
               machineSize: asString(version.machineSize, "large"),

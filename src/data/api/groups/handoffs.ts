@@ -10,6 +10,7 @@ export class HandoffsGroup extends HttpApiGroup.make("handoffs").add(
     success: Undecoded,
   }),
   HttpApiEndpoint.get("get", "/orgs/:orgId/jams/:jamId/handoff", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, jamId: Schema.String },
     success: Undecoded,
   }),
@@ -17,6 +18,7 @@ export class HandoffsGroup extends HttpApiGroup.make("handoffs").add(
     "cancel",
     "/orgs/:orgId/jams/:jamId/handoff/:handoffId/cancel",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,
