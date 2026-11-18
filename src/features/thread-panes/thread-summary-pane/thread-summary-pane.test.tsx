@@ -33,6 +33,7 @@ const crewThread = (overrides: Partial<CrewThread> = {}): CrewThread => ({
   modelName: null,
   pulls: [{ number: 12, state: "ready" }],
   pullCount: 2,
+  createdAt: new Date("2026-11-18T09:00:00Z"),
   lastActivityAt: new Date("2026-11-18T11:59:41Z"),
   updatedAt: new Date("2026-11-18T11:59:41Z"),
   ...overrides,

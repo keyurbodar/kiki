@@ -1,13 +1,10 @@
 import { type KeyboardEvent, type ReactNode, useState } from "react";
 import { toast } from "sonner";
 import {
-  MenuContent,
   MenuGroup,
   MenuLabel,
   MenuSearchRow,
   MenuSeparator,
-  MenuSub,
-  MenuSubTrigger,
 } from "@/primitives/menu";
 import {
   ResponsiveMenuItem,
@@ -57,6 +54,8 @@ export type CrewThread = {
   /** Working or waiting, so it shows in the menu before any search. */
   active?: boolean;
   unread?: boolean;
+  /** Capy's `Subagent N`: the thread's place in the crew's creation order. */
+  subagentIndex?: number;
   icon?: ReactNode;
   diffStat?: DiffStat;
 };
@@ -330,68 +329,41 @@ type CrewRowProps = {
   onOpen: (tab: PaneTab) => void;
 };
 
-/** A crew thread: hover opens the thread's own chat and diffs. */
+/**
+ * A crew thread, as Capy draws it: `Subagent N` over the thread's own title in
+ * one plain row that opens its chat. Capy has no submenu here, and the number
+ * is the thread's place in the crew's creation order, counted from the oldest.
+ */
 function CrewRow({ thread, openCheck, onOpen }: CrewRowProps) {
   const title = thread.title ?? "Untitled thread";
   const chat: PaneTab = { kind: "side_thread", jamId: thread.id };
-  const diffs: PaneTab = { kind: "diffs", jamId: thread.id };
+  const numbered = thread.subagentIndex !== undefined;
+  const label = numbered ? `Subagent ${thread.subagentIndex}` : title;
+  const second = numbered ? title : thread.code;
   return (
-    <MenuSub>
-      <MenuSubTrigger data-track-owner="features/thread/pane/tab-strip.tsx#CrewRow:ResponsiveMenuSub.1">
-        <span className="flex min-w-0 flex-1 items-center gap-2 text-left">
-          <span
-            className={`${menuIcon} h-5 self-start ${thread.unread ? "text-foreground" : ""}`}
-          >
-            {thread.icon ?? <ChatBubbleGlyph />}
-          </span>
-          <span className="flex min-w-0 flex-1 flex-col justify-center">
-            <span
-              className={`line-clamp-1 min-w-0 text-sm font-normal text-foreground ${thread.unread ? "font-semibold" : ""}`}
-            >
-              {title}
-            </span>
-            {thread.code !== undefined && (
-              <span className="line-clamp-1 min-w-0 text-xs font-normal text-muted-foreground-2">
-                {thread.code}
-              </span>
-            )}
-          </span>
-          <ChevronRightGlyph className={menuChevron} />
-        </span>
-      </MenuSubTrigger>
-      <MenuContent>
-        <ResponsiveMenuItem
-          data-track-owner="features/thread/pane/tab-strip.tsx#ChatRow:ResponsiveMenuItem.1"
-          onClick={() => onOpen(chat)}
+    <ResponsiveMenuItem
+      data-track-owner="features/thread/pane/tab-strip.tsx#CrewRow:ResponsiveMenuItem.1"
+      onClick={() => onOpen(chat)}
+    >
+      <span
+        className={`${menuIcon} h-5 self-start ${thread.unread ? "text-foreground" : ""}`}
+      >
+        {thread.icon ?? <ChatBubbleGlyph />}
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col justify-center">
+        <span
+          className={`line-clamp-1 min-w-0 text-sm font-normal text-foreground ${thread.unread ? "font-semibold" : ""}`}
         >
-          <span className={menuIcon}>
-            <ChatBubbleGlyph />
+          {label}
+        </span>
+        {second !== undefined && (
+          <span className="line-clamp-1 min-w-0 text-xs font-normal text-muted-foreground-2">
+            {second}
           </span>
-          <span className="shrink-0">Chat</span>
-          <span className="min-w-0 flex-1 truncate text-right text-muted-foreground-2">
-            {thread.code}
-          </span>
-          {openCheck(chat)}
-        </ResponsiveMenuItem>
-        {thread.diffStat !== undefined && (
-          <ResponsiveMenuItem
-            data-track-owner="features/thread/pane/tab-strip.tsx#ScopedDiffsRow:ResponsiveMenuItem.1"
-            onClick={() => onOpen(diffs)}
-          >
-            <span className={menuIcon}>
-              <BranchGlyph />
-            </span>
-            <span className={menuText}>Diffs</span>
-            <span className={menuTrailing}>
-              <span className="text-xs">
-                <DiffStatText {...thread.diffStat} />
-              </span>
-              {openCheck(diffs)}
-            </span>
-          </ResponsiveMenuItem>
         )}
-      </MenuContent>
-    </MenuSub>
+      </span>
+      {openCheck(chat)}
+    </ResponsiveMenuItem>
   );
 }
 
