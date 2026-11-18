@@ -30,6 +30,7 @@
   --delay-fast: 0.15s;
   --delay-ripple: 0.2s;
   --delay-preview: 0.25s;
+  --delay-status: 0.4s;
 
   /* Extra curves used by single effects */
   --ease-pulse: cubic-bezier(0.4, 0, 0.6, 1);

@@ -1,5 +1,6 @@
 import type { ComponentProps, MouseEvent, ReactNode } from "react";
 import { DiffStat, PullRequestStateIcon } from "@/components/diff-cards/cards";
+import { useDelayedStatus } from "@/lib/use-delayed-status";
 import { Card } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
 import {
@@ -228,6 +229,18 @@ export type BuildRowProps = {
 };
 
 export function BuildRow({ reference, build, now, onOpen }: BuildRowProps) {
+  // The record is absent for as long as the read takes, and a read that beats
+  // the delay must not print "Starting" on its way past.
+  const starting = useDelayedStatus(
+    reference.test ? "test-build" : "snapshot-build",
+    build === undefined ? "starting" : null,
+  );
+  const label =
+    build === undefined
+      ? starting === "starting"
+        ? "Starting"
+        : ""
+      : buildStatusLabel(build);
   const elapsed =
     build === undefined ? undefined : buildElapsedMs(build, now ?? Date.now());
   const content = (
@@ -241,7 +254,7 @@ export function BuildRow({ reference, build, now, onOpen }: BuildRowProps) {
         {reference.test ? "Test build" : "Snapshot build"}
       </span>
       <span className="mask-fade-r min-w-0 flex-1 overflow-hidden font-medium whitespace-nowrap text-foreground">
-        {buildStatusLabel(build)}
+        {label}
       </span>
       {elapsed !== undefined && (
         <span className="shrink-0 text-xs text-muted-foreground-2 tabular-nums">
