@@ -11,6 +11,17 @@ export type ReplyTarget = {
 
 export type QuoteSource = { text: string; source: string };
 
+/**
+ * What the Edit action hands the composer: the text to prefill, the event id
+ * the eventual send carries as `editOf`, and the row the timeline truncates
+ * from.
+ */
+export type EditTarget = {
+  rowId: string;
+  eventId: string;
+  text: string;
+};
+
 export type MessageActor = { name: string; imageUrl?: string | null };
 
 /**
@@ -28,7 +39,9 @@ export type MessageActions = {
   rowActors?: ReadonlyMap<string, Actor>;
   automationName?: (automationId: string) => string | undefined;
   reply?: (target: ReplyTarget) => void;
-  editMessage?: (rowId: string) => void;
+  editMessage?: (target: EditTarget) => void;
+  /** Rows a later message replaces; the stamp line marks them Edited. */
+  editedRowIds?: ReadonlySet<string>;
   jumpToSection?: (rowId: string, section: number) => void;
   forkQuote?: (kind: "copy" | "summary", quote: QuoteSource) => void;
   sideChatQuote?: (quote: QuoteSource) => void;

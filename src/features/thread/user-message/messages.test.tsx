@@ -1,7 +1,10 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { AgentMessage } from "@/features/thread/agent-message";
-import { MessageActionsProvider } from "@/features/thread/message-footer";
+import {
+  type EditTarget,
+  MessageActionsProvider,
+} from "@/features/thread/message-footer";
 import { buildReply } from "@/features/thread/reply-quote";
 import { UserMessage, type UserMessageRow } from "./user-message";
 
@@ -56,6 +59,50 @@ describe("UserMessage", () => {
     expect(screen.getByText("Can you check the build?")).toBeTruthy();
     expect(document.querySelector("[data-slot=message-header]")).toBeNull();
     expect(screen.getByLabelText("Edit message")).toBeTruthy();
+  });
+
+  it("hands the composer the row, the event and the text to edit", () => {
+    const seen: EditTarget[] = [];
+    render(
+      <MessageActionsProvider
+        value={{
+          viewerUserId: "user_sample",
+          editMessage: (target) => seen.push(target),
+        }}
+      >
+        <UserMessage row={userRow} />
+      </MessageActionsProvider>,
+    );
+    fireEvent.click(screen.getByLabelText("Edit message"));
+    expect(seen).toEqual([
+      {
+        rowId: "row_user",
+        eventId: "01JAAAAAAAAAAAAAAAAAAAAAAA",
+        text: "Can you check the build?",
+      },
+    ]);
+  });
+
+  it("marks a row a later message replaces", () => {
+    const { rerender } = render(
+      <MessageActionsProvider
+        value={{ viewerUserId: "user_sample", editedRowIds: new Set() }}
+      >
+        <UserMessage row={userRow} />
+      </MessageActionsProvider>,
+    );
+    expect(screen.queryByText("Edited")).toBeNull();
+    rerender(
+      <MessageActionsProvider
+        value={{
+          viewerUserId: "user_sample",
+          editedRowIds: new Set(["row_user"]),
+        }}
+      >
+        <UserMessage row={userRow} />
+      </MessageActionsProvider>,
+    );
+    expect(screen.getByText("Edited")).toBeTruthy();
   });
 
   it("shows the sender for someone else's message and no edit", () => {
