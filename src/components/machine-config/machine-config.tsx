@@ -11,8 +11,12 @@ import {
   formatMachine,
   type MachineSize,
   machineSizes,
+  type PlanTier,
+  tierLabels,
+  tierLimits,
 } from "@/components/plan-picker/plan-catalog";
 import { desktopBridge } from "@/lib/desktop-bridge";
+import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import {
@@ -60,11 +64,13 @@ export const toMachineSize = (
     ? (value as MachineSize)
     : null;
 
-/** Sizes above the largest the org may pick are not offered at all. */
-const permitted = (size: MachineSize, maxSize: MachineSize | null) =>
-  maxSize === null ||
-  sizeIndex(maxSize) < 0 ||
-  sizeIndex(size) <= sizeIndex(maxSize);
+const planOrder: readonly PlanTier[] = ["lite", "pro", "max"];
+
+/** The cheapest plan whose limit reaches a size; its name rides on the lock chip. */
+const unlockingTier = (size: MachineSize): PlanTier =>
+  planOrder.find(
+    (tier) => sizeIndex(tierLimits[tier].maxMachineSize) >= sizeIndex(size),
+  ) ?? "max";
 
 /** A project default the org may no longer pick falls back to the largest it may. */
 const clampSize = (
@@ -74,6 +80,17 @@ const clampSize = (
   if (maxSize === null || sizeIndex(maxSize) < 0) return size;
   return sizeIndex(size) <= sizeIndex(maxSize) ? size : maxSize;
 };
+
+/** Sizes above the plan's largest stay listed as locked rows that sell the plan. */
+const lockOf = (
+  size: MachineSize,
+  maxSize: MachineSize | null,
+): PlanTier | undefined =>
+  maxSize === null ||
+  sizeIndex(maxSize) < 0 ||
+  sizeIndex(size) <= sizeIndex(maxSize)
+    ? undefined
+    : unlockingTier(size);
 
 export type MachineConfigWorktree = {
   fromOrigin: boolean;
@@ -92,10 +109,12 @@ export type MachineConfigMenuProps = {
   size?: MachineSize | null;
   /** The project's default size, which the thread inherits until it picks its own. */
   defaultSize?: MachineSize | null;
-  /** The largest size the org may pick; larger ones are hidden and the default clamps. */
+  /** The largest size the org may pick; larger ones are locked and the default clamps. */
   maxSize?: MachineSize | null;
   /** Whether the org has the Big Guy machine; the row is hidden without it. */
   bigGuyAvailable?: boolean;
+  /** Opens the upgrade flow for the plan a locked size needs. */
+  onUpgrade?: (tier: PlanTier) => void;
   /** The project whose setup and environment variables the menu links to. */
   projectId?: string;
   onSizeChange?: (size: MachineSize | null) => void;
@@ -120,6 +139,7 @@ export function MachineConfigMenu({
   defaultSize,
   maxSize = null,
   bigGuyAvailable = false,
+  onUpgrade,
   projectId,
   onSizeChange,
   worktree,
@@ -143,9 +163,7 @@ export function MachineConfigMenu({
     worktree?.fromOrigin === false ||
     (promptVariant !== undefined && promptVariant.variant !== "default");
   const shownSizes = machineSizes.filter(
-    (candidate) =>
-      (candidate !== "bigguy" || bigGuyAvailable) &&
-      permitted(candidate, maxSize),
+    (candidate) => candidate !== "bigguy" || bigGuyAvailable,
   );
   const openProject = (
     to:
@@ -181,24 +199,39 @@ export function MachineConfigMenu({
             </span>
           </ResponsiveMenuItem>
           <ResponsiveMenuSeparator />
-          {shownSizes.map((candidate) => (
-            <ResponsiveMenuItem
-              key={candidate}
-              onClick={() => onSizeChange?.(candidate)}
-            >
-              <span className={`${MENU_LABEL} tabular-nums`}>
-                {formatMachine(candidate)}
-              </span>
-              <span className={MENU_TRAILING}>
-                <span className="tabular-nums">
-                  {priceLabel(pricePerHour[candidate])}
+          {shownSizes.map((candidate) => {
+            const lock = lockOf(candidate, maxSize);
+            return (
+              <ResponsiveMenuItem
+                key={candidate}
+                disabled={lock !== undefined && onUpgrade === undefined}
+                onClick={() =>
+                  lock === undefined
+                    ? onSizeChange?.(candidate)
+                    : onUpgrade?.(lock)
+                }
+              >
+                <span className={`${MENU_LABEL} tabular-nums`}>
+                  {formatMachine(candidate)}
                 </span>
-                {candidate === chosen ? (
-                  <Icon name="checkmark-1" className={MENU_CHECK} />
-                ) : null}
-              </span>
-            </ResponsiveMenuItem>
-          ))}
+                <span className={MENU_TRAILING}>
+                  <span className="tabular-nums">
+                    {priceLabel(pricePerHour[candidate])}
+                  </span>
+                  {lock === undefined ? null : (
+                    <Badge size="xs" className="shrink-0">
+                      <Icon name="lock" />
+                      <span className="sr-only">Needs </span>
+                      {tierLabels[lock]}
+                    </Badge>
+                  )}
+                  {candidate === chosen ? (
+                    <Icon name="checkmark-1" className={MENU_CHECK} />
+                  ) : null}
+                </span>
+              </ResponsiveMenuItem>
+            );
+          })}
         </ResponsiveMenuSub>
         <ResponsiveMenuSeparator />
         <ResponsiveMenuItem

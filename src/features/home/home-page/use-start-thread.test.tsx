@@ -10,6 +10,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { ComposerPayload } from "@/components/composer";
 import { OrgId } from "@/data/api/schemas/ids";
 import { org, projects } from "@/data/mocks/fixtures/world";
+import type { OrganizeDraft } from "./organize-menu";
 import { draftTitle, jamIdOf, useStartThread } from "./use-start-thread";
 
 afterEach(cleanup);
@@ -22,7 +23,7 @@ const payload = (text: string): ComposerPayload => ({
   files: [],
 });
 
-const target: { projectId?: string } = {};
+const target: { projectId?: string; organize?: OrganizeDraft } = {};
 
 function StartRoute() {
   const start = useStartThread();
@@ -34,6 +35,7 @@ function StartRoute() {
           orgId,
           projectId: target.projectId,
           payload: payload("Ship the retry fix"),
+          organize: target.organize,
         });
       }}
     >
@@ -42,8 +44,9 @@ function StartRoute() {
   );
 }
 
-async function renderStart(projectId?: string) {
+async function renderStart(projectId?: string, organize?: OrganizeDraft) {
   target.projectId = projectId;
+  target.organize = organize;
   const root = createRootRoute();
   const router = createRouter({
     routeTree: root.addChildren([
@@ -105,6 +108,18 @@ describe("useStartThread", () => {
 
   it("creates a projectless thread when no project is chosen", async () => {
     const router = await renderStart();
+    fireEvent.click(document.querySelector("button") as HTMLButtonElement);
+    await waitFor(() =>
+      expect(router.state.location.pathname).toMatch(/^\/thread\/jam_/),
+    );
+  });
+
+  it("opens the thread it also filed into a folder, tagged and pinned", async () => {
+    const router = await renderStart(projects.web.id, {
+      pinned: true,
+      folderIds: ["fld_sample_release"],
+      tagIds: ["tag_sample_frontend"],
+    });
     fireEvent.click(document.querySelector("button") as HTMLButtonElement);
     await waitFor(() =>
       expect(router.state.location.pathname).toMatch(/^\/thread\/jam_/),
