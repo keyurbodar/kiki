@@ -3,7 +3,7 @@ import { Effect, Schema } from "effect";
 import { AtomRegistry } from "effect/reactivity";
 import { EventId } from "@/data/events";
 import { ApiClient } from "../../client/ApiClient.ts";
-import { orgId, threads } from "../fixtures/world.ts";
+import { captains, orgId, threads } from "../fixtures/world.ts";
 import { messageVersions } from "./fixtures.ts";
 
 interface StoredEvent {
@@ -65,6 +65,30 @@ describe("events mock", () => {
       assert.isAbove(outline.length, 0);
       assert.equal(versions.root, messageEventId);
       assert.isAbove(versions.versions.length, 0);
+    }),
+  );
+
+  it.effect("serves a Captain's thread, which the sidebar links to", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const read = <A>(atom: Parameters<typeof AtomRegistry.getResult>[1]) =>
+        AtomRegistry.getResult(registry, atom as never) as Effect.Effect<A>;
+
+      // Every Captain is a thread: its jam id opens in the thread view with a
+      // conversation, so the events group has to know the id the sidebar links.
+      for (const captain of captains) {
+        const list = yield* read<EventList>(
+          ApiClient.query("events", "list", {
+            params: { orgId, jamId: captain.id },
+            query: {},
+          }),
+        );
+        assert.isAbove(
+          list.items.length,
+          0,
+          `${captain.id} has no conversation`,
+        );
+      }
     }),
   );
 

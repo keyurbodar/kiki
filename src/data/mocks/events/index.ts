@@ -6,9 +6,9 @@ import {
   ContextUsage,
   SendNowOutcome,
 } from "../../events/events.ts";
-import { fields, missing } from "../db/MockDb.ts";
+import { fields, MockDb } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
-import { people, threads } from "../fixtures/world.ts";
+import { people } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { eventId } from "./event-ids.ts";
 import {
@@ -38,10 +38,22 @@ export const EventsMock = mockGroup("events", (handlers) =>
         Readonly<Record<string, ReadonlyArray<MessageVersionRow>>>
       >(messageVersions);
 
+    const { jams } = yield* MockDb;
+
+    /**
+     * Whether the jam is one the rest of the app can open: the fixture threads,
+     * a Captain's thread, or a jam another group created this session. Reading
+     * the shared store keeps this group and the threads group from disagreeing
+     * about an id the sidebar happily links.
+     */
     const threadExists = (jamId: string) =>
-      Object.values(threads).some((thread) => thread.id === jamId)
-        ? Effect.void
-        : missing("captains", jamId);
+      Ref.get(jams).pipe(
+        Effect.flatMap((rows) =>
+          rows.some((row) => row.id === jamId)
+            ? Effect.void
+            : Effect.die(new Error(`events: no jam ${jamId}`)),
+        ),
+      );
 
     const findEvent = (eventId: string) =>
       Effect.gen(function* () {

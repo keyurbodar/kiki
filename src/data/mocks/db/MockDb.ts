@@ -82,14 +82,22 @@ export class MockDb extends Context.Service<MockDb, MockTables>()(
           Effect.map((ref) => [name, ref] as const),
         ),
       );
-      const jams = yield* Ref.make<ReadonlyArray<JamRow>>(
-        Object.values(world.threads).map((thread) => ({
+      const jams = yield* Ref.make<ReadonlyArray<JamRow>>([
+        ...Object.values(world.threads).map((thread) => ({
           id: thread.id,
           number: thread.number,
           title: thread.title,
           projectId: thread.projectId,
         })),
-      );
+        // A Captain is a thread: the threads surface links its jam id, so the
+        // Captain ids belong in the same store the other groups resolve against.
+        ...world.captains.map((captain) => ({
+          id: captain.id,
+          number: 0,
+          title: captain.name,
+          projectId: captain.projectId,
+        })),
+      ]);
       const orgState = yield* makeOrgState;
       const hiddenThemes = yield* Ref.make<ReadonlyArray<string>>([]);
       return MockDb.of({

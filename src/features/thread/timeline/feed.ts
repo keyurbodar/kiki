@@ -14,6 +14,8 @@ export interface ThreadFeed {
   readonly olderCursor: EventId | null;
   readonly live: LiveTurn;
   readonly loading: boolean;
+  /** The newest page failed, so the transcript has no history to draw. */
+  readonly failed: boolean;
   readonly loadingOlder: boolean;
   readonly serverNow: Date | undefined;
 }
@@ -23,6 +25,7 @@ export const emptyFeed: ThreadFeed = {
   olderCursor: null,
   live: idleLive,
   loading: true,
+  failed: false,
   loadingOlder: false,
   serverNow: undefined,
 };
@@ -131,6 +134,23 @@ export const hintScope = (hint: {
   ),
 });
 
+/** The newest page is in flight: a retry puts the transcript back on its skeleton. */
+export const historyPending = (feed: ThreadFeed): ThreadFeed => ({
+  ...feed,
+  loading: true,
+  failed: false,
+});
+
+/**
+ * The newest page failed. The feed stops loading: a failed read is finished,
+ * and drawing its skeleton forever is what made a missing thread look stuck.
+ */
+export const historyFailed = (feed: ThreadFeed): ThreadFeed => ({
+  ...feed,
+  loading: false,
+  failed: true,
+});
+
 export const historyLoaded = (
   feed: ThreadFeed,
   page: EventPage,
@@ -141,6 +161,7 @@ export const historyLoaded = (
     events,
     olderCursor: page.cursor,
     loading: false,
+    failed: false,
     serverNow: page.serverNow ?? feed.serverNow,
     live: handOff(feed.live, events),
   };

@@ -94,7 +94,7 @@ export const emptyContextUsage = {
 } as const;
 
 import type { EventRowEncoded } from "@/data/events";
-import { isoMinutesAgo, people, threads } from "../fixtures/world.ts";
+import { captains, isoMinutesAgo, people, threads } from "../fixtures/world.ts";
 import { eventId } from "./event-ids.ts";
 
 export interface EventOutlineSection {
@@ -113,6 +113,16 @@ export interface MessageVersionRow {
 
 const checkoutJam = threads.checkoutTest.id;
 const docsJam = threads.gettingStarted.id;
+
+/** A Captain is a thread: its jam id opens in the thread view, with a conversation of its own. */
+const captainJam = (alias: string): string => {
+  const found = captains.find((captain) => captain.alias === alias);
+  if (found === undefined) throw new Error(`events: no captain ${alias}`);
+  return found.id;
+};
+const releaseCaptainJam = captainJam("release");
+const docsCaptainJam = captainJam("docs");
+const platformCaptainJam = captainJam("platform");
 
 const user = (userId: string) => ({ type: "user" as const, userId });
 const agent = (jamId: string) => ({ type: "agent" as const, jamId });
@@ -142,6 +152,12 @@ const at = {
   queued: isoMinutesAgo(3),
   docs: isoMinutesAgo(24 * 60),
   command: isoMinutesAgo(20 * 60),
+  releaseAsk: isoMinutesAgo(58),
+  releaseTurn: isoMinutesAgo(55),
+  docsCaptainAsk: isoMinutesAgo(41),
+  docsCaptainTurn: isoMinutesAgo(38),
+  platformAsk: isoMinutesAgo(23),
+  platformTurn: isoMinutesAgo(20),
 };
 
 /** The ids the outline and the message versions below point at. */
@@ -988,6 +1004,93 @@ export const seedEvents: ReadonlyArray<EventRowEncoded> = [
     actor: systemActor,
     origin: sys,
     command: { type: "compact" },
+  }),
+  row(
+    releaseCaptainJam,
+    at.releaseAsk,
+    8,
+    "message",
+    {
+      actor: user(people.alex.id),
+      origin: web(people.alex.id),
+      text: "Cut the weekly web release and tell me what still needs a fix.",
+      files: [],
+      delivery: "queue",
+    },
+    "answered",
+  ),
+  row(releaseCaptainJam, at.releaseTurn, 9, "assistant", {
+    actor: agent(releaseCaptainJam),
+    origin: sys,
+    model: sampleModel,
+    route: { source: "capy" },
+    usage: sampleUsage,
+    stopReason: "end_turn",
+    blocks: [
+      {
+        id: "blk_sample_release_captain",
+        type: "text",
+        text: "The release branch is cut and its checks are running.",
+      },
+    ],
+  }),
+  row(
+    docsCaptainJam,
+    at.docsCaptainAsk,
+    10,
+    "message",
+    {
+      actor: user(people.priya.id),
+      origin: web(people.priya.id),
+      text: "Regenerate the API reference for the retry endpoint.",
+      files: [],
+      delivery: "queue",
+    },
+    "answered",
+  ),
+  row(docsCaptainJam, at.docsCaptainTurn, 11, "assistant", {
+    actor: agent(docsCaptainJam),
+    origin: sys,
+    model: sampleModel,
+    route: { source: "capy" },
+    usage: sampleUsage,
+    stopReason: "end_turn",
+    blocks: [
+      {
+        id: "blk_sample_docs_captain",
+        type: "text",
+        text: "The API reference is regenerated and published.",
+      },
+    ],
+  }),
+  row(
+    platformCaptainJam,
+    at.platformAsk,
+    12,
+    "message",
+    {
+      actor: user(people.sam.id),
+      origin: web(people.sam.id),
+      text: "Someone is asking which branch the checkout retry fix went to.",
+      files: [],
+      delivery: "queue",
+    },
+    "answered",
+  ),
+  row(platformCaptainJam, at.platformTurn, 13, "assistant", {
+    actor: agent(platformCaptainJam),
+    origin: sys,
+    model: sampleModel,
+    route: { source: "capy" },
+    usage: sampleUsage,
+    stopReason: "end_turn",
+    blocks: [
+      {
+        id: "blk_sample_platform_captain",
+        type: "text",
+        text: "It went to `release/2026-11-17` in acme/web. The checks are green and the merge queue has it.",
+      },
+    ],
   }),
   ...captureHistory,
 ];

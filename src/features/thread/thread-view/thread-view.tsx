@@ -20,7 +20,7 @@ import {
 } from "@/components/composer";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { threadMachinesAtom } from "@/data/atoms/setup";
-import { threadsAtom } from "@/data/atoms/threads";
+import { idleThreadPageAtom, threadsAtom } from "@/data/atoms/threads";
 import type { TimelineRow } from "@/data/events";
 import {
   ComposerAttachments,
@@ -62,6 +62,7 @@ import type { EditTarget, ReplyTarget } from "@/features/thread/message-footer";
 import { type ExcerptMention, replyDraft } from "@/features/thread/reply-quote";
 import type { EditDraft } from "@/features/thread/timeline";
 import { useComposerSend } from "@/features/thread/use-composer-send";
+import { Button } from "@/primitives/button";
 import { RightPanelGroup } from "@/primitives/right-panel";
 import { ChatSkeleton } from "./chat-skeleton";
 import { ThreadMessageActions } from "./message-actions";
@@ -86,6 +87,9 @@ export type ThreadViewProps = {
   /** Where answers and dismissals go; the view owns the local dismissal state. */
   handlers: ThreadTakeoverHandlers;
   loading?: boolean;
+  /** The history read failed: the transcript shows Capy's failure state instead of a skeleton. */
+  failed?: boolean;
+  onRetry?: () => void;
   loadingOlder?: boolean;
   hasOlder?: boolean;
   onLoadOlder?: () => void;
@@ -261,6 +265,8 @@ export function ThreadView({
   rows,
   handlers,
   loading = false,
+  failed = false,
+  onRetry,
   loadingOlder = false,
   hasOlder = false,
   onLoadOlder,
@@ -352,7 +358,9 @@ export function ThreadView({
     return edited;
   }, [rows]);
   const orgId = handlers.orgId;
-  const orgThreads = useAtomValue(threadsAtom((orgId ?? "") as OrgId));
+  const orgThreads = useAtomValue(
+    orgId === undefined ? idleThreadPageAtom : threadsAtom(orgId as OrgId),
+  );
   const mentionSources = useMemo(
     () =>
       threadMentionSources(
@@ -402,7 +410,7 @@ export function ThreadView({
     }
   }
 
-  const empty = !loading && rows.length === 0;
+  const empty = !loading && !failed && rows.length === 0;
   const attachmentSource = useMemo(
     () => attachmentSourceFor(handlers.orgId, threadId),
     [handlers.orgId, threadId],
@@ -419,7 +427,9 @@ export function ThreadView({
       jumpToSection={jumpToSection}
     >
       <RightPanelGroup className="@container min-w-0 flex-1">
-        {!paneExpanded && (
+        {/* Capy expands only when a second pane is open: with the chat alone the
+            expanded branch has nothing to fill and would empty the panel. */}
+        {(dock === undefined || !paneExpanded) && (
           <div
             className={cx(
               "flex h-full min-h-0 shrink-0 flex-col",
@@ -451,6 +461,17 @@ export function ThreadView({
                     }
                   />
                   {loading && rows.length === 0 && <ChatSkeleton />}
+                  {failed && rows.length === 0 && (
+                    <div
+                      data-slot="thread-load-failed"
+                      className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-4 text-center"
+                    >
+                      <span className="text-sm text-muted-foreground-1">
+                        Couldn't load this conversation
+                      </span>
+                      <Button onClick={onRetry}>Retry</Button>
+                    </div>
+                  )}
                   {empty && (
                     <div
                       data-slot="thread-empty"

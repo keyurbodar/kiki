@@ -1,7 +1,9 @@
 import { Atom } from "effect/reactivity";
+import type { CaptainCard } from "../api/schemas/captain.ts";
 import type { OrgId } from "../api/schemas/ids.ts";
 import { ApiClient } from "../client/ApiClient.ts";
 import { queryTimeToLive, reactivityKeys } from "./conventions.ts";
+import { idleAtom } from "./idle.ts";
 
 export const captainsAtom = Atom.family((orgId: OrgId) =>
   ApiClient.query("captains", "list", {
@@ -11,6 +13,9 @@ export const captainsAtom = Atom.family((orgId: OrgId) =>
     timeToLive: queryTimeToLive,
   }),
 );
+
+/** The Captain list while the org is unknown, so nothing requests a placeholder org. */
+export const idleCaptainsAtom = idleAtom<ReadonlyArray<CaptainCard>>();
 
 /** Capy's reactivity keys for Captain rows, the library images and their folders. */
 export const captainReactivityKeys = {

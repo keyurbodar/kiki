@@ -11,7 +11,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { Effect } from "effect";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiClient, makeApiClientLayer } from "@/data/client/ApiClient";
-import { orgId } from "@/data/mocks/fixtures/world";
+import { captains, orgId } from "@/data/mocks/fixtures/world";
 import { MockTransport } from "@/data/mocks/MockServices";
 import { ThreadScreen } from "@/features/thread/thread-route/thread-route";
 import { buildTimeline } from "@/features/thread/timeline/build";
@@ -135,6 +135,26 @@ describe("thread route transcript for the capture ids", () => {
       document.querySelector('[data-slot="composer-footer"]'),
     ).not.toBeNull();
   });
+});
+
+describe("a Captain's thread", () => {
+  const captain = captains.find((seed) => seed.name === "Platform captain");
+
+  // A Captain is a thread the sidebar links to: it opens with its own name and
+  // conversation, not as an untitled shell over a skeleton.
+  it("renders its name and history instead of an untitled skeleton", async () => {
+    await renderRoute(`/thread/${captain?.id}`);
+    expect(
+      await screen.findByText("Platform captain", undefined, {
+        timeout: 4000,
+      }),
+    ).toBeTruthy();
+    expect(screen.queryByText("Untitled thread")).toBeNull();
+    expect(
+      await screen.findByText(/which branch the checkout retry fix went to/),
+    ).toBeTruthy();
+    expect(screen.queryByText("Couldn't load this conversation")).toBeNull();
+  }, 15_000);
 });
 
 const otherCaptureThreads = [

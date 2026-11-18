@@ -1,8 +1,14 @@
-import { useAtomMount, useAtomSet, useAtomValue } from "@effect/atom-react";
+import {
+  useAtomMount,
+  useAtomRefresh,
+  useAtomSet,
+  useAtomValue,
+} from "@effect/atom-react";
 import { Effect, Layer, Result, Stream } from "effect";
 import { Atom } from "effect/reactivity";
 import { useCallback, useMemo } from "react";
 import type { EventId, JamId, OrgId } from "@/data/api/schemas/ids.ts";
+import { idleAtom } from "@/data/atoms/idle.ts";
 import { ApiClient, makeApiClientLayer } from "@/data/client/ApiClient.ts";
 import { ApiTransport } from "@/data/client/transport.ts";
 import {
@@ -16,7 +22,9 @@ import {
   decodeRealtimeFrame,
   emptyFeed,
   hintScope,
+  historyFailed,
   historyLoaded,
+  historyPending,
   newerLoaded,
   newestEventId,
   olderLoaded,
@@ -26,6 +34,13 @@ import { liveEntries } from "./live";
 
 /** Events per history page, as Capy's thread view requests them. */
 export const HISTORY_PAGE_SIZE = 100;
+
+/**
+ * How long the first history page may stay in flight. A read that never
+ * answers is a failure, not a transcript that is still on its way: past this
+ * bound the view says so and offers a retry instead of shimmering.
+ */
+export const HISTORY_TIMEOUT_MS = 20_000;
 
 /** API client plus the realtime socket (the fake one until the host is decoded). */
 export const timelineLayer = Layer.mergeAll(
@@ -53,6 +68,12 @@ const fetchPage = (
     });
     return yield* decodeEventPage(body);
   });
+
+/**
+ * Nothing to follow while the org is unknown: the same idle rule the list reads
+ * follow, so a placeholder org never issues a request that cannot succeed.
+ */
+const idleSyncAtom = idleAtom<void>();
 
 /** The thread's feed: stored events, cursor and live turn. */
 export const threadFeedAtom = Atom.family((_key: string) =>
@@ -89,8 +110,20 @@ export const threadSyncAtom = Atom.family((key: string) =>
     Effect.gen(function* () {
       const feedAtom = threadFeedAtom(key);
       const { jamId } = splitKey(key);
-      const first = yield* fetchPage(key, {});
-      get.set(feedAtom, historyLoaded(get.once(feedAtom), first));
+      get.set(feedAtom, historyPending(get.once(feedAtom)));
+      const first = yield* fetchPage(key, {}).pipe(
+        Effect.timeout(HISTORY_TIMEOUT_MS),
+        Effect.result,
+      );
+      if (Result.isFailure(first)) {
+        yield* Effect.logWarning("thread history: the first page failed", {
+          jamId,
+          detail: String(first.failure),
+        });
+        get.set(feedAtom, historyFailed(get.once(feedAtom)));
+        return;
+      }
+      get.set(feedAtom, historyLoaded(get.once(feedAtom), first.success));
       const socket = yield* RealtimeSocket;
       yield* socket.send(
         JSON.stringify({ type: "subscribe", scopes: [`jam:${jamId}`] }),
@@ -113,8 +146,12 @@ export const threadSyncAtom = Atom.family((key: string) =>
                 ? newestEventId(current)
                 : undefined;
             const query = after === undefined ? {} : { after };
-            const page = yield* fetchPage(key, query);
-            get.set(feedAtom, newerLoaded(get.once(feedAtom), page));
+            const page = yield* fetchPage(key, query).pipe(
+              Effect.timeout(HISTORY_TIMEOUT_MS),
+              Effect.result,
+            );
+            if (Result.isFailure(page)) return;
+            get.set(feedAtom, newerLoaded(get.once(feedAtom), page.success));
           }),
         ),
       );
@@ -145,6 +182,9 @@ export const loadOlderAtom = Atom.family((key: string) =>
 export interface ThreadTimeline extends Timeline {
   readonly live: ThreadFeed["live"];
   readonly loading: boolean;
+  /** The history page failed: the view offers a retry instead of a skeleton. */
+  readonly failed: boolean;
+  readonly retry: () => void;
   readonly loadingOlder: boolean;
   readonly hasOlder: boolean;
   readonly loadOlder: () => void;
@@ -166,16 +206,17 @@ export const timelineOf = (
 
 /** The thread view's rows, gaps and live turn, kept current by realtime. */
 export const useThreadTimeline = (
-  orgId: OrgId,
+  orgId: OrgId | undefined,
   threadId: JamId,
 ): ThreadTimeline => {
-  const key = threadKey(orgId, threadId);
-  useAtomMount(threadSyncAtom(key));
+  const key = threadKey(orgId ?? ("" as OrgId), threadId);
+  useAtomMount(orgId === undefined ? idleSyncAtom : threadSyncAtom(key));
   const feed = useAtomValue(threadFeedAtom(key));
   const expanded = useAtomValue(expandedIdsAtom(key));
   const editOf = useAtomValue(editDraftAtom(key))?.eventId;
   const requestOlder = useAtomSet(loadOlderAtom(key));
   const loadOlder = useCallback(() => requestOlder(), [requestOlder]);
+  const retry = useAtomRefresh(threadSyncAtom(key));
   const timeline = useMemo(
     () => timelineOf(feed, expanded, editOf),
     [feed, expanded, editOf],
@@ -184,6 +225,8 @@ export const useThreadTimeline = (
     ...timeline,
     live: feed.live,
     loading: feed.loading,
+    failed: feed.failed,
+    retry,
     loadingOlder: feed.loadingOlder,
     hasOlder: feed.olderCursor !== null,
     loadOlder,

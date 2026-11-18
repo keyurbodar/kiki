@@ -105,6 +105,63 @@ describe("thread route with a pane", () => {
   });
 });
 
+describe("expanding the pane", () => {
+  it("keeps the chat painted when the chat is the only pane", async () => {
+    await renderThread();
+    await screen.findByRole(
+      "button",
+      { name: "Open a tab" },
+      { timeout: 3000 },
+    );
+
+    for (const expand of screen.getAllByRole("button", { name: "Expand pane" }))
+      fireEvent.click(expand);
+
+    // Capy expands only beside a second pane; with the chat alone nothing may
+    // go away, because there would be nothing left to paint.
+    expect(
+      document.querySelector("[data-slot=composer-footer]"),
+    ).not.toBeNull();
+    expect(document.querySelector("[data-slot=right-panel]")).toBeNull();
+    expect(document.body.textContent?.trim().length ?? 0).toBeGreaterThan(0);
+  });
+
+  it("fills the panel with the open pane instead of emptying it", async () => {
+    await renderThread("pane=overview");
+    const dock = await waitFor(() => {
+      const found = document.querySelector("[data-slot=right-panel]");
+      expect(found).not.toBeNull();
+      return found as HTMLElement;
+    });
+    const before = dock.textContent ?? "";
+    expect(before.trim().length).toBeGreaterThan(0);
+
+    const [expand] = await screen.findAllByRole(
+      "button",
+      { name: "Expand pane" },
+      { timeout: 3000 },
+    );
+    fireEvent.click(expand as HTMLElement);
+
+    // The chat column goes, the pane stays and still paints its content.
+    expect(document.querySelector("[data-slot=composer-footer]")).toBeNull();
+    const expanded = document.querySelector("[data-slot=right-panel]");
+    expect(expanded).not.toBeNull();
+    expect(expanded?.textContent?.trim().length ?? 0).toBeGreaterThan(0);
+    expect(expanded?.textContent).toContain(before.trim().slice(0, 20));
+
+    const [collapse] = await screen.findAllByRole(
+      "button",
+      { name: "Collapse pane" },
+      { timeout: 3000 },
+    );
+    fireEvent.click(collapse as HTMLElement);
+    expect(
+      document.querySelector("[data-slot=composer-footer]"),
+    ).not.toBeNull();
+  });
+});
+
 describe("side threads in the open-a-tab menu", () => {
   it("lists them in place of the menu's items, not in the right pane", async () => {
     await renderThread();
