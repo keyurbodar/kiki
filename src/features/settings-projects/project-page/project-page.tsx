@@ -3,6 +3,7 @@ import { useParams } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
 import { toast } from "sonner";
+import { MachineUsageNote, useMachineUsage } from "@/components/machine-usage";
 import { formatMachine } from "@/components/plan-picker/plan-catalog";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import type { OrgId } from "@/data/api/schemas/ids";
@@ -78,6 +79,7 @@ function ProjectSettings({
   readonly orgId: OrgId;
   readonly projectId: string;
 }) {
+  const machineUsage = useMachineUsage(orgId);
   const key = projectKey(orgId, projectId);
   const projectResult = useAtomValue(projectAtom(key));
   const setupResult = useAtomValue(projectSetupAtom(key));
@@ -330,7 +332,17 @@ function ProjectSettings({
           <SettingsRow
             icon={<Glyph name="chip" className="size-4" />}
             label="Machine size"
-            description="Every new machine in this project, snapshot bakes included"
+            description={
+              <>
+                Every new machine in this project, snapshot bakes included
+                {machineUsage === undefined ? null : (
+                  <MachineUsageNote
+                    meter={machineUsage}
+                    size={machineSizeFor(setup?.machineSize ?? "large")}
+                  />
+                )}
+              </>
+            }
           >
             <MenuSelect
               value={machineSizeFor(setup?.machineSize ?? "large")}

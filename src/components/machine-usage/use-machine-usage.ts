@@ -1,11 +1,15 @@
 import { useAtomValue } from "@effect/atom-react";
+import { Option } from "effect";
+import { AsyncResult } from "effect/reactivity";
 import {
   decodeUsageSummary,
   usageQueryKey,
   usageSummaryAtom,
 } from "@/features/settings-org/org-usage-page/data";
 import type { MachineHourMeter } from "./machine-usage";
-import { resultValue } from "./use-org";
+
+const resultValue = <A, E>(result: AsyncResult.AsyncResult<A, E>) =>
+  Option.getOrUndefined(AsyncResult.value(result));
 
 /**
  * The org's machine-hour allowance, from the billing usage payload. The two

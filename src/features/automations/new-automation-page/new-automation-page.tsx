@@ -4,6 +4,7 @@ import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
 import { toast } from "sonner";
 import { AppTopBar } from "@/components/app-top-bar";
+import { useMachineUsage } from "@/components/machine-usage";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { Project } from "@/data/api/schemas/project";
 import { projectKey, projectSetupAtom } from "@/data/atoms/project-settings";
@@ -37,7 +38,6 @@ import {
   withRunAs,
 } from "../automation-editor/model";
 import { chevronClass } from "../automation-editor/parts";
-import { useMachineUsage } from "../automation-editor/use-machine-usage";
 import { resultValue, useOrgId } from "../automation-editor/use-org";
 import { useViewer, type Viewer } from "../automations-list";
 import { OwnerSelect } from "../owner-select";

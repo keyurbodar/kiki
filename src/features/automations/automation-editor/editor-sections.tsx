@@ -1,4 +1,8 @@
 import { toast } from "sonner";
+import {
+  type MachineHourMeter,
+  MachineUsageNote,
+} from "@/components/machine-usage";
 import { ModelPicker } from "@/components/model-picker";
 import {
   formatMachine,
@@ -18,7 +22,6 @@ import {
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
 import { Checkmark, ChevronDownSmall } from "./icons";
-import { type MachineHourMeter, MachineUsageNote } from "./machine-usage";
 import {
   type AddTriggerResult,
   addScheduleTime,
