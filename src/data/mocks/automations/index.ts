@@ -1,5 +1,5 @@
 import { DateTime, Effect, Ref } from "effect";
-import { fields, MockDb, missing, newId, type Row } from "../db/MockDb.ts";
+import { fields, MockDb, newId, notFound, type Row } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import {
   isoMinutesAgo,
@@ -84,7 +84,7 @@ export const AutomationsMock = mockGroup("automations", (handlers) =>
       Effect.gen(function* () {
         const rows = yield* Ref.get(automations);
         const row = rows.find((candidate) => candidate.id === automationId);
-        if (!row) return yield* missing("automations", automationId);
+        if (!row) return yield* notFound("automations", automationId);
         return row;
       });
 
@@ -118,7 +118,7 @@ export const AutomationsMock = mockGroup("automations", (handlers) =>
         yield* find(automationId);
         const rows = yield* Ref.get(automations);
         const current = rows.find((row) => row.id === automationId);
-        if (!current) return yield* missing("automations", automationId);
+        if (!current) return yield* notFound("automations", automationId);
         const updated: AutomationRow = { ...current, enabled: next };
         yield* Ref.set(
           automations,

@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { fields, MockDb, missing, newId } from "../db/MockDb.ts";
+import { fields, MockDb, newId, notFound } from "../db/MockDb.ts";
 import { isoMinutesAgo } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
@@ -50,7 +50,7 @@ export const MachinesMock = mockGroup("machines", (handlers) =>
     const machine = (machineId: string) =>
       Effect.flatMap(Ref.get(machines), (rows) => {
         const row = rows.find((candidate) => candidate.id === machineId);
-        return row ? Effect.succeed(row) : missing("machines", machineId);
+        return row ? Effect.succeed(row) : notFound("machines", machineId);
       });
 
     return handlers

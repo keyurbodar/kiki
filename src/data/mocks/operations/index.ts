@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { MockDb, missing } from "../db/MockDb.ts";
+import { MockDb, notFound } from "../db/MockDb.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { sampleOperations } from "./fixtures.ts";
 
@@ -45,7 +45,7 @@ export const OperationsMock = mockGroup("operations", (handlers) =>
             );
           }
           if (operation.threadId !== params.jamId) {
-            return yield* missing("machines", params.jamId);
+            return yield* notFound("machines", params.jamId);
           }
           const canceled = {
             ...operation,

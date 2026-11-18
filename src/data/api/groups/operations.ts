@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { Undecoded } from "../undecoded.ts";
 
 export class OperationsGroup extends HttpApiGroup.make("operations").add(
@@ -11,6 +11,7 @@ export class OperationsGroup extends HttpApiGroup.make("operations").add(
     "cancelSubscription",
     "/orgs/:orgId/jams/:jamId/operations/:operationId/cancel",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: {
         orgId: Schema.String,
         jamId: Schema.String,

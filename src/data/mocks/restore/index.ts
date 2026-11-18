@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { MockDb, missing } from "../db/MockDb.ts";
+import { MockDb, notFound } from "../db/MockDb.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { sampleRestore } from "./fixtures.ts";
 
@@ -15,7 +15,7 @@ export const RestoreMock = mockGroup("restore", (handlers) =>
         const ids = sampleRestore.items.map((item) => item.id);
         const rows = yield* Ref.get(restores);
         const snapshot = rows.find((row) => row.orgId === params.orgId);
-        if (!snapshot) return yield* missing("issues", params.orgId);
+        if (!snapshot) return yield* notFound("issues", params.orgId);
         const items = Array.isArray(snapshot.items)
           ? (snapshot.items as ReadonlyArray<Record<string, unknown>>)
           : [];

@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { fields, MockDb, missing, newId, type Row } from "../db/MockDb.ts";
+import { fields, MockDb, newId, notFound, type Row } from "../db/MockDb.ts";
 import { isoMinutesAgo, people, projects, threads } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
@@ -43,7 +43,7 @@ export const CaptainsMock = mockGroup("captains", (handlers) =>
     const findCaptain = (id: string) =>
       Effect.gen(function* () {
         const captain = (yield* Ref.get(captains)).find((row) => row.id === id);
-        if (!captain) return yield* missing("captains", id);
+        if (!captain) return yield* notFound("captains", id);
         return captain;
       });
 
