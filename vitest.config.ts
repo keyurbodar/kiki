@@ -19,6 +19,9 @@ export default defineConfig({
   server: { fs: { allow: [root, nodeModules] } },
   test: {
     environment: "happy-dom",
+    setupFiles: ["vitest.setup.ts"],
+    /** A loaded machine ran a 1s `waitFor` and a 5s test past their limits. */
+    testTimeout: 20_000,
     include: [
       "src/**/*.test.{ts,tsx}",
       "scripts/**/*.test.ts",
