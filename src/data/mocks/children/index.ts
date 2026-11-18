@@ -1,7 +1,8 @@
 import { Effect, Ref } from "effect";
 import { JamNotFound } from "../../api/schemas/errors.ts";
 import { JamId } from "../../api/schemas/ids.ts";
-import { MockDb, notFound } from "../db/MockDb.ts";
+import { MockDb, notFoundNamed } from "../db/MockDb.ts";
+import { threads } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import { childThreads, taskThreads } from "./fixtures.ts";
 
@@ -20,11 +21,16 @@ export const ChildrenMock = mockGroup("children", (handlers) =>
           const rows = yield* Ref.get(children);
           const allMachines = yield* Ref.get(machines);
           const matching = rows.filter((row) => row.parentId === params.jamId);
+          // A 404 is Capy's `JamNotFound`: the jam does not exist. A thread
+          // that exists and has no sub-threads answers an empty list, which is
+          // not the same fact — the overview pane draws "nothing here" for the
+          // first and an unretryable error for the second.
           if (
             matching.length === 0 &&
-            !allMachines.some((machine) => machine.threadId === params.jamId)
+            !allMachines.some((machine) => machine.threadId === params.jamId) &&
+            !Object.values(threads).some((thread) => thread.id === params.jamId)
           ) {
-            return yield* notFound("machines", params.jamId);
+            return yield* notFoundNamed("jam", params.jamId);
           }
           return matching.map((row) => ({
             ...row,

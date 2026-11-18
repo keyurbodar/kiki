@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { AtomRegistry } from "effect/reactivity";
 import { JamNotFound } from "../../api/schemas/errors.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
@@ -21,7 +22,35 @@ const taskAtom = ApiClient.query("children", "taskThread", {
   reactivityKeys: [key],
 });
 
+const emptyListAtom = ApiClient.query("children", "list", {
+  params: { orgId, jamId: threads.rateLimit.id },
+  reactivityKeys: [key],
+});
+const missingListAtom = ApiClient.query("children", "list", {
+  params: { orgId, jamId: "jam_mock_missing" },
+  reactivityKeys: [key],
+});
+
 describe("children mock", () => {
+  it.effect("answers an empty list for a thread with no sub-threads", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const list = yield* AtomRegistry.getResult(registry, emptyListAtom);
+      assert.deepStrictEqual(list, []);
+    }),
+  );
+
+  it.effect("still 404s a jam that does not exist", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const error = yield* AtomRegistry.getResult(
+        registry,
+        missingListAtom as never,
+      ).pipe(Effect.flip);
+      assert.instanceOf(error, HttpApiError.NotFound);
+    }),
+  );
+
   it.effect("returns all GET endpoints", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();

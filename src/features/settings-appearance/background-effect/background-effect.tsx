@@ -1,5 +1,8 @@
+import type { PaperShaderElement } from "@paper-design/shaders";
 import { ImageDithering } from "@paper-design/shaders-react";
 import { type ComponentProps, useEffect, useRef, useState } from "react";
+import { useShaderClock } from "@/primitives/dither";
+import { useShaderEnvironment } from "@/primitives/dither/use-shader-environment";
 import {
   DITHER_CONTEXT_ATTRIBUTES,
   type BackgroundEffect as Effect,
@@ -76,6 +79,16 @@ export function DashboardBackdrop({
     rotation === 0 &&
     !isGif(image) &&
     maxPixelCount !== null;
+  const { ready, reducedMotion } = useShaderEnvironment();
+  const shader = useRef<PaperShaderElement>(null);
+  // The pattern advances on the same clock the rest of the app's shaders use,
+  // and holds still under reduced motion.
+  useShaderClock(shader, {
+    animate: ready && !reducedMotion && dither,
+    frame: 0,
+    speed: WALLPAPER_DITHER.speed,
+    fps: WALLPAPER_DITHER.fps,
+  });
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       <div
@@ -100,6 +113,7 @@ export function DashboardBackdrop({
         />
         {dither ? (
           <ImageDithering
+            ref={shader}
             className="[&_canvas]:[image-rendering:pixelated] [&_canvas]:transition-opacity [&_canvas]:duration-slower [&_canvas]:starting:opacity-0"
             width="100%"
             height="100%"
@@ -112,7 +126,7 @@ export function DashboardBackdrop({
             size={WALLPAPER_DITHER.size}
             colorSteps={WALLPAPER_DITHER.colorSteps}
             originalColors={WALLPAPER_DITHER.originalColors}
-            speed={0}
+            speed={WALLPAPER_DITHER.speed}
             frame={0}
           />
         ) : null}
