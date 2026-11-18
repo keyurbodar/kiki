@@ -4,6 +4,7 @@ import { DateTime } from "effect";
 import { useState } from "react";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { Button } from "@/primitives/button";
+import { CaptainAvatar } from "@/primitives/captain-avatar";
 import { useIsNarrow } from "@/primitives/sidebar";
 import { BuildingIcon, InboxIcon, ShareIcon, UserIcon } from "../icons";
 import { formatBytes, formatRelativeTime } from "../lib/format";
@@ -274,7 +275,7 @@ function ScopeIcon({ row }: { row: DriveScopeRow }) {
   const iconClass = "size-(--icon-base) shrink-0 text-muted-foreground-1";
   const target = row.target;
   if (target.kind === "captain") {
-    return (
+    return row.avatar === null ? (
       <span
         role="img"
         aria-label={row.label}
@@ -282,6 +283,8 @@ function ScopeIcon({ row }: { row: DriveScopeRow }) {
       >
         {row.label.slice(0, 1)}
       </span>
+    ) : (
+      <CaptainAvatar avatar={row.avatar} name={row.label} size="xs" />
     );
   }
   if (target.kind === "organization")

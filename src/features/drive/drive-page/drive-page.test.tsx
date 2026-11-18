@@ -153,6 +153,7 @@ describe("usage segments", () => {
           scopeLabel: "",
           personal: false,
           target: { kind: "organization" },
+          avatar: null,
           summary: {
             projectId: null,
             userId: null,
