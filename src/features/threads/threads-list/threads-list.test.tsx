@@ -112,4 +112,47 @@ describe("thread row preview card", () => {
     fireEvent.contextMenu(link);
     expect(await screen.findByText("Rename")).toBeTruthy();
   });
+
+  it("offers Pin on a row and reports the direction the press asked for", async () => {
+    const presses: Array<[string, boolean]> = [];
+    await mount(
+      <ThreadRow
+        thread={thread("row-c")}
+        projects={new Map()}
+        modelName={() => undefined}
+        groupedByProject={false}
+        now={new Date(2026, 10, 17).getTime()}
+        checked={false}
+        selectionMode={false}
+        onCheck={() => {}}
+        onPin={(id, pinned) => presses.push([id, pinned])}
+      />,
+    );
+    const link = document.querySelector("[data-thread-row='row-c']");
+    if (link === null) throw new Error("no row");
+    fireEvent.contextMenu(link);
+    fireEvent.click(await screen.findByText("Pin"));
+    expect(presses).toEqual([["row-c", true]]);
+  });
+
+  it("reads Unpin on a row that is already pinned", async () => {
+    await mount(
+      <ThreadRow
+        thread={{ ...thread("row-d"), pinned: true }}
+        projects={new Map()}
+        modelName={() => undefined}
+        groupedByProject={false}
+        now={new Date(2026, 10, 17).getTime()}
+        checked={false}
+        selectionMode={false}
+        onCheck={() => {}}
+        onPin={() => {}}
+      />,
+    );
+    const link = document.querySelector("[data-thread-row='row-d']");
+    if (link === null) throw new Error("no row");
+    fireEvent.contextMenu(link);
+    expect(await screen.findByText("Unpin")).toBeTruthy();
+    expect(screen.queryByText("Pin")).toBeNull();
+  });
 });
