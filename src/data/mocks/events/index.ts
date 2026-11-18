@@ -6,7 +6,7 @@ import {
   ContextUsage,
   SendNowOutcome,
 } from "../../events/events.ts";
-import { fields, MockDb } from "../db/MockDb.ts";
+import { fields, MockDb, notFoundNamed } from "../db/MockDb.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { people } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
@@ -100,7 +100,7 @@ export const EventsMock = mockGroup("events", (handlers) =>
         Effect.flatMap((rows) =>
           rows.some((row) => row.id === jamId)
             ? Effect.void
-            : Effect.die(new Error(`events: no jam ${jamId}`)),
+            : notFoundNamed("jam", jamId),
         ),
       );
 
@@ -108,11 +108,7 @@ export const EventsMock = mockGroup("events", (handlers) =>
       Effect.gen(function* () {
         const rows = yield* Ref.get(eventsRef);
         const row = rows.find((candidate) => candidate.id === eventId);
-        if (!row) {
-          return yield* Effect.die(
-            new Error(`events.messages: no row ${eventId}`),
-          );
-        }
+        if (!row) return yield* notFoundNamed("event", eventId);
         return row;
       });
 
