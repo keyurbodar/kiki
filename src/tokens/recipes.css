@@ -19,12 +19,6 @@
 @layer components {
   /* Shell ------------------------------------------------------------------ */
 
-  .kiki-shell {
-    display: flex;
-    height: var(--shell-h);
-    overflow: hidden;
-  }
-
   .kiki-sidebar {
     display: flex;
     flex-direction: column;
@@ -39,14 +33,6 @@
     flex-direction: column;
     min-width: 0;
     gap: var(--pane-gap);
-  }
-
-  .kiki-pane-header {
-    display: flex;
-    align-items: var(--row-align);
-    gap: var(--row-gap);
-    height: var(--pane-header-h);
-    padding-inline: var(--pane-header-px);
   }
 
   /* Rows and cells --------------------------------------------------------- */
