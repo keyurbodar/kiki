@@ -964,6 +964,8 @@ function ThreadsPageLoaded({
               id: project.id,
               name: project.name,
               code: project.code,
+              logoUrl: project.logoUrl,
+              icon: project.icon,
             }))
           : []
       }

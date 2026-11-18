@@ -45,6 +45,10 @@ export type ProjectSummary = {
   readonly id: string;
   readonly name: string;
   readonly code: string;
+  /** The project's uploaded logo, when it has one; the row's badge draws it instead of the icon. */
+  readonly logoUrl?: string | null;
+  /** Capy's project icon name; "folder" is the unchosen default. */
+  readonly icon?: string;
 };
 
 export type ThreadFilters = {
