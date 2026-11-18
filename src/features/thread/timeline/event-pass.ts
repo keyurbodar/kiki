@@ -1846,7 +1846,11 @@ export const eventPass = (
               turnOpen: event.id === openTurnId,
               turnCloses: closed.has(event.id),
               replyBlockId,
-              turnCancelled: payload.stopReason === "cancelled",
+              // Either signal means the person cancelled the turn: the payload's
+              // stop reason, and the stored row's own state.
+              turnCancelled:
+                payload.stopReason === "cancelled" ||
+                event.state === "cancelled",
               settlements,
               waitResolutions,
               setupNotificationEventId:
