@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { OverviewSection } from "@/components/captain-overview";
+import { FailedRead } from "@/components/failed-read";
 import type { CrewThread } from "./captain-data";
 import { CrewThreadRow } from "./crew-thread-row";
 import { useCaptain, useCaptainCrew, useCaptainOrgId } from "./use-captain";
@@ -28,7 +29,17 @@ export function CaptainCrewSection({
 }: CaptainCrewSectionProps) {
   const orgId = useCaptainOrgId(orgIdProp);
   const captain = useCaptain(orgId, jamId);
-  const crew = useCaptainCrew(orgId, jamId);
+  const { crew, failed, retry } = useCaptainCrew(orgId, jamId);
+  // A crew that could not load must not look like a Captain with no threads.
+  if (failed)
+    return (
+      <FailedRead
+        slot="captain-crew-load-failed"
+        line="Couldn't load this Captain's threads"
+        sub="Its crew did not load"
+        onRetry={retry}
+      />
+    );
   if (crew === undefined || crew.length === 0) return null;
   return (
     <OverviewSection
