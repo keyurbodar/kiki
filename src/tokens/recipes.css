@@ -125,6 +125,11 @@
     align-items: var(--row-align);
     height: var(--row-h);
     padding-inline: var(--row-px-tight);
+  /* The previous/next pair around a message's version. */
+  .kiki-version-switcher {
+    display: flex;
+    align-items: center;
+    gap: var(--row-gap-tight);
   }
 
   .kiki-cell {

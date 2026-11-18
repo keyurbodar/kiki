@@ -260,7 +260,7 @@ function MobileThreadBody({
               </Button>
             }
           />
-          <ResponsiveMenuContent align="end" className="w-52">
+          <ResponsiveMenuContent align="end">
             <ResponsiveMenuItem
               onClick={() =>
                 void copyText(
