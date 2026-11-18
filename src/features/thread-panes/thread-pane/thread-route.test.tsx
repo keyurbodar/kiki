@@ -50,6 +50,29 @@ async function renderThread(search?: string) {
   return router;
 }
 
+describe("the two strips", () => {
+  it("mounts a main-surface pane in the chat column, with no dock", async () => {
+    await renderThread("pane=setup");
+    await waitFor(() =>
+      expect(
+        document.querySelector("[data-slot=setup-view]") ??
+          document.querySelector("[data-slot=no-project-setup]") ??
+          document.querySelector("[data-slot=setup-skeleton]"),
+      ).not.toBeNull(),
+    );
+    expect(document.querySelector("[data-slot=right-panel]")).toBeNull();
+    expect(document.querySelector("[data-slot=thread-dock-header]")).toBeNull();
+  });
+
+  it("mounts a dock-surface pane beside the transcript, keeping the chat", async () => {
+    await renderThread("pane=overview");
+    await waitFor(() =>
+      expect(document.querySelector("[data-slot=right-panel]")).not.toBeNull(),
+    );
+    expect(document.querySelector("[data-slot=setup-view]")).toBeNull();
+  });
+});
+
 describe("thread route with a pane", () => {
   for (const pane of ["overview", "files", "setup"]) {
     it(`mounts the ${pane} pane without the error boundary`, async () => {

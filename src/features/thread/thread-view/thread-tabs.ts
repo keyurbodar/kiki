@@ -3,7 +3,12 @@ import {
   type PaneTab,
   tabKey,
 } from "@/features/thread-panes/tab-strip";
-import { type PaneEntry, panes } from "@/features/thread-panes/thread-pane";
+import {
+  dockPanes,
+  mainPanes,
+  type PaneEntry,
+  panes,
+} from "@/features/thread-panes/thread-pane";
 
 /**
  * The tab a registered pane opens as. Panes outside Capy's tab union have no
@@ -25,6 +30,12 @@ const tabForPane = (pane: PaneEntry): PaneTab | undefined => {
 /** Every registered pane that has a tab, in the registry's order. */
 export const paneTabs = (entries: readonly PaneEntry[] = panes): PaneTab[] =>
   entries.flatMap((entry) => tabForPane(entry) ?? []);
+
+/** The chat column's strip: the panes that replace the transcript. */
+export const mainTabs = (): PaneTab[] => paneTabs(mainPanes);
+
+/** The right dock's strip: the panes that sit beside the transcript. */
+export const dockTabs = (): PaneTab[] => paneTabs(dockPanes);
 
 /** The strip's selected tab: the pane's, or the chat tab when no pane shows. */
 export function activeTabId(pane: PaneEntry | undefined): string {
