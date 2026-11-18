@@ -2,6 +2,9 @@ import type { ThemeListingCard } from "../theme-detail";
 
 export const THEME_PAGE_SIZE = 12;
 
+/** How many cards Capy's Popular section draws. */
+export const POPULAR_SIZE = 4;
+
 export type ThemeBrowseSearch = { readonly q?: string; readonly page?: number };
 
 export const pageWindow = (total: number, page: number) => {
@@ -19,6 +22,10 @@ const byFeaturedRank = (a: ThemeListingCard, b: ThemeListingCard) =>
 const byAddsDescending = (a: ThemeListingCard, b: ThemeListingCard) =>
   (b.adds ?? 0) - (a.adds ?? 0);
 
+const byPopularRank = (a: ThemeListingCard, b: ThemeListingCard) =>
+  (a.popularRank ?? Number.MAX_SAFE_INTEGER) -
+  (b.popularRank ?? Number.MAX_SAFE_INTEGER);
+
 export type ThemeBrowseLayout =
   | {
       readonly kind: "search";
@@ -29,6 +36,8 @@ export type ThemeBrowseLayout =
   | {
       readonly kind: "browse";
       readonly featured: ThemeListingCard | undefined;
+      /** Capy's Popular pass: the server's ranking, drawn above By Capy and repeating those cards. */
+      readonly popular: ReadonlyArray<ThemeListingCard>;
       readonly byCapy: ReadonlyArray<ThemeListingCard>;
       readonly community: ReadonlyArray<ThemeListingCard>;
       readonly showCommunity: boolean;
@@ -60,6 +69,10 @@ export function arrangeThemes(
     community
       .filter((card) => card.theme?.wallpaper !== undefined)
       .toSorted(byAddsDescending)[0];
+  const popular = themes
+    .filter((card) => card.popularRank !== null && card !== featured)
+    .toSorted(byPopularRank)
+    .slice(0, POPULAR_SIZE);
   const rest = [...capy, ...community].filter((card) => card !== featured);
   const { pages, current } = pageWindow(rest.length, search.page ?? 1);
   const page = pageSlice(rest, current);
@@ -67,6 +80,7 @@ export function arrangeThemes(
   return {
     kind: "browse",
     featured: current === 1 ? featured : undefined,
+    popular: current === 1 ? popular : [],
     byCapy: page.filter((card) => card.source !== "user"),
     community: communityPage,
     showCommunity: current === 1 || communityPage.length > 0,

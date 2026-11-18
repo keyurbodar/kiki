@@ -88,6 +88,7 @@ export function themeDetail(
         version: card.version,
         updatedAt: DateTime.toDate(card.updatedAt),
         featuredRank: card.featuredRank,
+        popularRank: card.popularRank,
         theme: preview(theme),
       },
       versions: listing.versions.map((version) => ({

@@ -219,6 +219,7 @@ const toThemeListingCard = (card: ExploreCard): ThemeListingCard => ({
   version: card.version,
   updatedAt: toDate(card.updatedAt) ?? new Date(0),
   featuredRank: card.featuredRank,
+  popularRank: card.popularRank,
   theme: readTheme(card.theme),
 });
 

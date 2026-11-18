@@ -40,6 +40,8 @@ export type ThemeListingCard = {
   readonly version: string | null;
   readonly updatedAt: ListingDate;
   readonly featuredRank: number | null;
+  /** The server's Popular ordering: ascending, and only the top few are drawn. */
+  readonly popularRank: number | null;
   readonly theme: ThemeCardPreview | null;
 };
 

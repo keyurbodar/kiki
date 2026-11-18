@@ -276,6 +276,12 @@ export function ThemeBrowse({
       {layout.featured !== undefined && (
         <Featured card={layout.featured} addAction={addAction} />
       )}
+      {layout.popular.length > 0 && (
+        <section className="flex flex-col gap-4">
+          <h2 className="text-base font-medium text-foreground">Popular</h2>
+          <ThemeGrid cards={layout.popular} icon={icon} />
+        </section>
+      )}
       {layout.byCapy.length > 0 && (
         <section className="flex flex-col gap-4">
           <h2 className="text-base font-medium text-foreground">By Capy</h2>

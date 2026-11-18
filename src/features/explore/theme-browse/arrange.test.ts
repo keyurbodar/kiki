@@ -18,6 +18,7 @@ const theme = (
   version: null,
   updatedAt: 0,
   featuredRank: null,
+  popularRank: null,
   theme: { light: {}, dark: {} },
   ...overrides,
 });
@@ -112,5 +113,69 @@ describe("themeByline", () => {
     expect(themeByline("Capy", 0, format)).toBe("By Capy");
     expect(themeByline("Capy", 1, format)).toBe("By Capy, added 1 time");
     expect(themeByline("Capy", 4, format)).toBe("By Capy, added 4 times");
+  });
+});
+
+describe("the Popular pass", () => {
+  const ranked = (slug: string, popularRank: number | null, extra = {}) =>
+    theme(slug, { popularRank, ...extra });
+
+  it("draws the ranked themes in the server's order, not by adds", () => {
+    const layout = arrangeThemes(
+      [
+        ranked("loud", null, { adds: 24 }),
+        ranked("fuji", 1, { source: "capy" }),
+        ranked("classic", 2),
+        ranked("akane", 3, { source: "capy" }),
+        ranked("kiki", 4, { adds: 0 }),
+      ],
+      {},
+    );
+    expect(layout.kind).toBe("browse");
+    if (layout.kind !== "browse") return;
+    expect(slugs(layout.popular)).toEqual(["fuji", "classic", "akane", "kiki"]);
+  });
+
+  it("draws at most four, even when the server ranks more", () => {
+    const layout = arrangeThemes(
+      [1, 2, 3, 4, 5, 6].map((rank) => ranked(`theme-${rank}`, rank)),
+      {},
+    );
+    if (layout.kind !== "browse") throw new Error("expected a browse layout");
+    expect(layout.popular).toHaveLength(4);
+    expect(slugs(layout.popular)).toEqual([
+      "theme-1",
+      "theme-2",
+      "theme-3",
+      "theme-4",
+    ]);
+  });
+
+  it("leaves the featured card out, so the section does not repeat it", () => {
+    const layout = arrangeThemes(
+      [
+        ranked("holy-night", 1, { source: "capy", featuredRank: 1 }),
+        ranked("fuji", 2, { source: "capy" }),
+      ],
+      {},
+    );
+    if (layout.kind !== "browse") throw new Error("expected a browse layout");
+    expect(layout.featured?.slug).toBe("holy-night");
+    expect(slugs(layout.popular)).toEqual(["fuji"]);
+  });
+
+  it("draws nothing when no card carries a rank", () => {
+    const layout = arrangeThemes([theme("plain"), theme("other")], {});
+    if (layout.kind !== "browse") throw new Error("expected a browse layout");
+    expect(layout.popular).toEqual([]);
+  });
+
+  it("keeps the ranked cards in the page below it, as Capy repeats them", () => {
+    const layout = arrangeThemes(
+      [ranked("fuji", 1, { source: "capy" }), theme("kiki")],
+      {},
+    );
+    if (layout.kind !== "browse") throw new Error("expected a browse layout");
+    expect(slugs(layout.byCapy)).toContain("fuji");
   });
 });

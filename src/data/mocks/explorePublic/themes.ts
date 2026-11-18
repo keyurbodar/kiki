@@ -444,6 +444,8 @@ export type ThemeListingFixture = {
   readonly version: string;
   readonly adds: number | null;
   readonly featuredRank: number | null;
+  /** Capy's Popular ordering, read off its live section: fuji, classic-1pdtkp, akane, kiki. */
+  readonly popularRank: number | null;
   readonly theme: {
     readonly light: Readonly<Record<string, string>>;
     readonly dark: Readonly<Record<string, string>>;
@@ -463,6 +465,7 @@ export const themeListings: ReadonlyArray<ThemeListingFixture> = [
     version: "1.0.0",
     adds: null,
     featuredRank: 1,
+    popularRank: null,
     theme: theme0,
   },
   {
@@ -475,6 +478,7 @@ export const themeListings: ReadonlyArray<ThemeListingFixture> = [
     version: "1.0.0",
     adds: null,
     featuredRank: null,
+    popularRank: 3,
     theme: theme1,
   },
   {
@@ -487,6 +491,7 @@ export const themeListings: ReadonlyArray<ThemeListingFixture> = [
     version: "1.1.0",
     adds: null,
     featuredRank: null,
+    popularRank: 1,
     theme: theme2,
   },
   {
@@ -498,6 +503,7 @@ export const themeListings: ReadonlyArray<ThemeListingFixture> = [
     version: "1.0.0",
     adds: 0,
     featuredRank: null,
+    popularRank: 4,
     theme: theme3,
   },
   {
@@ -509,6 +515,7 @@ export const themeListings: ReadonlyArray<ThemeListingFixture> = [
     version: "1.0.0",
     adds: 0,
     featuredRank: null,
+    popularRank: null,
     theme: theme4,
   },
   {
@@ -521,6 +528,7 @@ export const themeListings: ReadonlyArray<ThemeListingFixture> = [
     version: "1",
     adds: 24,
     featuredRank: null,
+    popularRank: 2,
     theme: theme5,
   },
   {
@@ -532,6 +540,7 @@ export const themeListings: ReadonlyArray<ThemeListingFixture> = [
     version: "1",
     adds: 16,
     featuredRank: null,
+    popularRank: null,
     theme: theme6,
   },
   {
@@ -544,6 +553,7 @@ export const themeListings: ReadonlyArray<ThemeListingFixture> = [
     version: "1",
     adds: 14,
     featuredRank: null,
+    popularRank: null,
     theme: theme7,
   },
   {
@@ -555,6 +565,7 @@ export const themeListings: ReadonlyArray<ThemeListingFixture> = [
     version: "1",
     adds: 14,
     featuredRank: null,
+    popularRank: null,
     theme: theme8,
   },
   {
@@ -566,6 +577,7 @@ export const themeListings: ReadonlyArray<ThemeListingFixture> = [
     version: "1",
     adds: 8,
     featuredRank: null,
+    popularRank: null,
     theme: theme9,
   },
   {
@@ -578,6 +590,7 @@ export const themeListings: ReadonlyArray<ThemeListingFixture> = [
     version: "1",
     adds: 5,
     featuredRank: null,
+    popularRank: null,
     theme: theme10,
   },
   {
@@ -590,6 +603,7 @@ export const themeListings: ReadonlyArray<ThemeListingFixture> = [
     version: "1",
     adds: 5,
     featuredRank: null,
+    popularRank: null,
     theme: theme11,
   },
   {
@@ -602,6 +616,7 @@ export const themeListings: ReadonlyArray<ThemeListingFixture> = [
     version: "2",
     adds: 2,
     featuredRank: null,
+    popularRank: null,
     theme: theme12,
   },
   {
@@ -614,6 +629,7 @@ export const themeListings: ReadonlyArray<ThemeListingFixture> = [
     version: "2",
     adds: 2,
     featuredRank: null,
+    popularRank: null,
     theme: theme12,
   },
   {
@@ -626,6 +642,7 @@ export const themeListings: ReadonlyArray<ThemeListingFixture> = [
     version: "2",
     adds: 2,
     featuredRank: null,
+    popularRank: null,
     theme: theme12,
   },
   {
@@ -638,6 +655,7 @@ export const themeListings: ReadonlyArray<ThemeListingFixture> = [
     version: "2",
     adds: 2,
     featuredRank: null,
+    popularRank: null,
     theme: theme12,
   },
 ];
