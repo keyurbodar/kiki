@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import {
   FileUploadDeclaration,
   FileUploadTargets,
@@ -34,6 +34,7 @@ export class FilesGroup extends HttpApiGroup.make("files").add(
     },
     query: UndecodedQuery,
     success: Undecoded,
+    error: HttpApiError.NotFoundNoContent,
   }),
   HttpApiEndpoint.get(
     "versions",
@@ -45,6 +46,7 @@ export class FilesGroup extends HttpApiGroup.make("files").add(
         fileId: Schema.String,
       },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ),
   HttpApiEndpoint.get("read", "/orgs/:orgId/jams/:jamId/machine-file", {
