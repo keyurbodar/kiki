@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { type DragEvent, type ReactNode, useState } from "react";
 import type { ChipThread } from "@/components/markdown-chips";
 import { ThreadChipPreview } from "@/components/markdown-chips/previews";
+import { ProviderIcon, providerOfModelId } from "@/components/model-picker";
+import { ProjectChip } from "@/components/sidebar-threads";
 import { ChatIdentity } from "@/features/captains/chat-identity";
 import { Badge } from "@/primitives/badge";
 import {
@@ -235,11 +237,24 @@ export function ThreadRow({
         ) : null}
         {project !== undefined && !groupedByProject ? (
           <Badge size="base" className="@max-4xl/list:hidden">
+            <ProjectChip
+              project={{
+                id: project.id,
+                name: project.name,
+                logoUrl: project.logoUrl ?? null,
+                icon: project.icon,
+              }}
+              className="size-3"
+            />
             {project.name}
           </Badge>
         ) : null}
         {model === undefined ? null : (
           <Badge size="base" className="@max-2xl/list:hidden">
+            <ProviderIcon
+              provider={providerOfModelId(thread.lastModelId ?? "")}
+              className="size-3 shrink-0"
+            />
             {model}
           </Badge>
         )}
