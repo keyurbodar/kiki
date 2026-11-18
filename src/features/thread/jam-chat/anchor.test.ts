@@ -83,7 +83,8 @@ describe("anchorShift", () => {
     );
     expect(shift).toBe(100);
     // The anchored row sits exactly at the top edge once scrollTop takes the shift.
-    expect(compacted[3] - (200 + (shift ?? 0)) + anchor.offset).toBe(0);
+    const anchoredTop = compacted[3] ?? 0;
+    expect(anchoredTop - (200 + (shift ?? 0)) + anchor.offset).toBe(0);
   });
 
   it("returns null once the anchored row is gone", () => {
