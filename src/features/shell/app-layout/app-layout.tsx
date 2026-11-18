@@ -8,7 +8,10 @@ import {
 } from "@/features/captains/dialogs";
 import { CommandPaletteHost } from "@/features/command-palette";
 import { SettingsSidebarPanel } from "@/features/settings/shell";
-import { useSidebarThreads } from "@/features/sidebar/sidebar-threads-data";
+import {
+  useLiveSidebarSource,
+  useSidebarThreads,
+} from "@/features/sidebar/sidebar-threads-data";
 import { SidebarThreadsPanel } from "@/features/sidebar/sidebar-threads-panel";
 import { openCommandPalette } from "@/lib/command-palette-events";
 import { Button } from "@/primitives/button";
@@ -85,7 +88,11 @@ function AppShellBody({ children, banner }: AppLayoutProps) {
   const navigate = useNavigate();
   const [captainDialog, setCaptainDialog] =
     useState<CaptainDialogRequest | null>(null);
-  const threads = useSidebarThreads();
+  const [now] = useState(() => new Date());
+  const liveSource = useLiveSidebarSource(now);
+  const threads = useSidebarThreads(
+    liveSource === null ? {} : { source: liveSource },
+  );
 
   useSidebarShortcut(toggle);
   useEffect(() => {

@@ -1,6 +1,6 @@
 import { useAtomValue } from "@effect/atom-react";
 import { DateTime, Option } from "effect";
-import { AsyncResult } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import type { SidebarProject } from "@/components/sidebar-threads";
 import type { CaptainCard } from "@/data/api/schemas/captain";
 import type { OrgId } from "@/data/api/schemas/ids";
@@ -26,6 +26,16 @@ type LiveData = {
   captains: readonly CaptainCard[];
   projects: readonly Project[];
 };
+
+const idle = <A>(empty: A) => Atom.make(AsyncResult.success<A>(empty));
+
+const idleThreadsAtom = idle<ThreadCard[]>([]);
+const idleFoldersAtom = idle<ReadonlyArray<ThreadFolder>>([]);
+const idleBoardAtom = idle<
+  ReadonlyArray<{ folder: ThreadFolder; items: ReadonlyArray<ThreadCard> }>
+>([]);
+const idleCaptainsAtom = idle<ReadonlyArray<CaptainCard>>([]);
+const idleProjectsAtom = idle<ReadonlyArray<Project>>([]);
 
 const resultValue = <A, E>(result: AsyncResult.AsyncResult<A, E>) =>
   Option.getOrUndefined(AsyncResult.value(result));
@@ -154,26 +164,52 @@ export function toSidebarSource(data: LiveData, now: Date): SidebarSource {
   };
 }
 
+/**
+ * The five list atoms the sidebar reads. Until the org is known every one of
+ * them is an idle atom holding an empty result, because subscribing with an
+ * empty org id issues five requests that are guaranteed to fail and Effect's
+ * HttpApiClient deduplicates each failure by structurally hashing its whole
+ * error graph — seconds of CPU per mount in a route tree.
+ */
+export const sidebarAtoms = (orgId: OrgId | undefined) => {
+  const threads: Atom.Atom<AsyncResult.AsyncResult<ThreadCard[], unknown>> =
+    orgId === undefined
+      ? idleThreadsAtom
+      : allThreadsAtom(orgId, { archived: false, excludeFiled: false });
+  const folders: Atom.Atom<
+    AsyncResult.AsyncResult<ReadonlyArray<ThreadFolder>, unknown>
+  > = orgId === undefined ? idleFoldersAtom : foldersAtom(orgId);
+  const board: Atom.Atom<
+    AsyncResult.AsyncResult<
+      ReadonlyArray<{
+        folder: ThreadFolder;
+        items: ReadonlyArray<ThreadCard>;
+      }>,
+      unknown
+    >
+  > = orgId === undefined ? idleBoardAtom : folderBoardAtom(orgId);
+  const captains: Atom.Atom<
+    AsyncResult.AsyncResult<ReadonlyArray<CaptainCard>, unknown>
+  > = orgId === undefined ? idleCaptainsAtom : captainsAtom(orgId);
+  const projects: Atom.Atom<
+    AsyncResult.AsyncResult<ReadonlyArray<Project>, unknown>
+  > = orgId === undefined ? idleProjectsAtom : projectsAtom(orgId);
+  return { threads, folders, board, captains, projects };
+};
+
 export function useLiveSidebarSource(now: Date): SidebarSource | null {
   const organizations = resultValue(useAtomValue(organizationsAtom));
   const selectedOrgId = useAtomValue(selectedOrgIdAtom);
   const orgId: OrgId | undefined =
     organizations?.find((organization) => organization.id === selectedOrgId)
       ?.id ?? organizations?.[0]?.id;
-  const emptyId = "" as OrgId;
 
-  const threads = resultValue(
-    useAtomValue(
-      allThreadsAtom(orgId ?? emptyId, {
-        archived: false,
-        excludeFiled: false,
-      }),
-    ),
-  );
-  const folders = resultValue(useAtomValue(foldersAtom(orgId ?? emptyId)));
-  const board = resultValue(useAtomValue(folderBoardAtom(orgId ?? emptyId)));
-  const captains = resultValue(useAtomValue(captainsAtom(orgId ?? emptyId)));
-  const projects = resultValue(useAtomValue(projectsAtom(orgId ?? emptyId)));
+  const atoms = sidebarAtoms(orgId);
+  const threads = resultValue(useAtomValue(atoms.threads));
+  const folders = resultValue(useAtomValue(atoms.folders));
+  const board = resultValue(useAtomValue(atoms.board));
+  const captains = resultValue(useAtomValue(atoms.captains));
+  const projects = resultValue(useAtomValue(atoms.projects));
 
   if (
     orgId === undefined ||

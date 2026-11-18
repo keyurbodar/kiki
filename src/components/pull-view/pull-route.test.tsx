@@ -49,6 +49,13 @@ describe("/pull/keyurbodar/xin/118", () => {
     ).toBeTruthy();
   });
 
+  it("renders the sidebar from the org's fixtures, not the sample data", async () => {
+    await renderPull();
+    expect(await screen.findByText("Release captain")).toBeTruthy();
+    expect(screen.getByText("Docs captain")).toBeTruthy();
+    expect(screen.getByText("Platform captain")).toBeTruthy();
+  });
+
   it("opens one file body at a time on the page host", async () => {
     await renderPull(`${pullPath}?tab=diff`);
     const first = await waitFor(() => {
