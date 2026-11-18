@@ -3,6 +3,7 @@ import { useLayoutEffect, useState } from "react";
 import { SharePanel } from "@/components/share-popover/share-panel";
 import { exploreGridClassName } from "@/features/explore/explore-page";
 import { type ListingCard, ListingRow } from "@/features/explore/listing-card";
+import { CycleHeader } from "@/features/settings-org/org-usage-page/cycle-header";
 import { Button } from "@/primitives/button";
 import { Skeleton } from "@/primitives/skeleton";
 import { applyColorMode, type ColorMode } from "@/tokens/theme";
@@ -88,6 +89,14 @@ const sampleCards: ReadonlyArray<ListingCard> = [
   ),
 ];
 
+const cycleSummary = {
+  period: { start: "2026-11-01T00:00:00Z", end: "2026-12-01T00:00:00Z" },
+  balance: { unlimited: false, remainingCredits: 12_500 },
+  included: [],
+  machineHourAllowance: null,
+  machineHoursConsumed: null,
+};
+
 function SkeletonsHarness() {
   const { mode } = Route.useSearch();
   useLayoutEffect(() => applyColorMode(mode), [mode]);
@@ -129,6 +138,15 @@ function SkeletonsHarness() {
             </div>
           )}
         </Skeleton>
+      </div>
+      <div
+        data-specimen="cycle-header"
+        style={{ maxWidth: 800, margin: "0 auto" }}
+      >
+        <CycleHeader
+          now={new Date(Date.UTC(2026, 10, 18))}
+          summary={loaded ? cycleSummary : undefined}
+        />
       </div>
       <div
         data-specimen="share-panel"
