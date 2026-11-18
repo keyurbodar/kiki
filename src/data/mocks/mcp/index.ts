@@ -230,7 +230,6 @@ export const McpMock = mockGroup("mcp", (handlers) =>
             ...server,
             status: "connected",
             lastCheckedAt: refreshedAt,
-            updatedAt: refreshedAt,
           };
           yield* Ref.update(mcpServers, (rows) =>
             rows.map((row) => (row.id === server.id ? next : row)),
@@ -271,10 +270,12 @@ export const McpMock = mockGroup("mcp", (handlers) =>
           // anywhere else leaves the page reporting the last one forever.
           if (!disabled) {
             const checkedAt = DateTime.formatIso(minutesAgo(0));
+            // Only the check time moves: the server page keys its body on
+            // updatedAt, and a check is not an edit of the configuration.
             yield* Ref.update(mcpServers, (rows) =>
               rows.map((row) =>
                 row.id === server.id
-                  ? { ...row, lastCheckedAt: checkedAt, updatedAt: checkedAt }
+                  ? { ...row, lastCheckedAt: checkedAt }
                   : row,
               ),
             );

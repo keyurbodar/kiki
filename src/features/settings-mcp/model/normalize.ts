@@ -64,8 +64,12 @@ export const toServer = (raw: unknown): McpServer => {
     enabled: status !== "disabled",
     credential: null,
     toolCount,
+    // Health is the last check, and the connection state is the badge beside
+    // it. A server that needs auth can still have been tested — its test
+    // reports the auth stages it went through — so the check time is its own
+    // fact rather than a property of the connection.
     health:
-      status === "connected" && checkedAt !== null
+      checkedAt !== null
         ? (toolCount ?? 0) > 0
           ? {
               state: "ready",
