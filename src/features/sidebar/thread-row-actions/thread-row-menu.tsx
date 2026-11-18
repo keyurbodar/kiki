@@ -112,9 +112,12 @@ type TagRow = { id: string; name: string };
 export function ThreadRowMenu({
   thread,
   onClose,
+  renameKey,
 }: {
   thread: SidebarThread;
   onClose?: () => void;
+  /** The section this menu was opened from, so Rename edits that row alone. */
+  renameKey?: string;
 }) {
   const actions = useThreadActions();
   const act = (run: () => void) => () => {
@@ -198,7 +201,7 @@ export function ThreadRowMenu({
         label="Rename"
         disabled={!thread.owner}
         reason="Only the thread's owner can rename it"
-        onClick={act(() => actions.startRename(thread.id))}
+        onClick={act(() => actions.startRename(thread.id, renameKey))}
       />
       <MenuRow
         icon="arrow-rotate-clockwise"

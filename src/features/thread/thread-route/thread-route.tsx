@@ -19,6 +19,7 @@ import {
   MobileThreadScreen,
   useIsPhoneSurface,
 } from "@/features/mobile/thread";
+import { formatClarifyAnswers } from "@/features/thread/clarify-takeover";
 import { ThreadCostBadge } from "@/features/thread/cost-badge";
 import type { EditTarget } from "@/features/thread/message-footer";
 import {
@@ -41,6 +42,7 @@ import {
   threadKey,
   useThreadTimeline,
 } from "@/features/thread/timeline";
+import { useComposerSend } from "@/features/thread/use-composer-send";
 import { BrowserPane } from "@/features/thread-panes/browser-pane";
 import { parsePull, valueList } from "@/features/thread-panes/overview/parse";
 import { useSideThreads } from "@/features/thread-panes/side-threads";
@@ -141,13 +143,19 @@ export function ThreadRoute({
   }));
   const title = thread?.title ?? captain?.title ?? "Untitled thread";
   const working = (thread?.status ?? captain?.status) === "working";
+  const sendAnswer = useComposerSend(threadId);
   const handlers = useMemo<ThreadTakeoverHandlers>(
     () => ({
       orgId,
       parentJamId: null,
-      onClarifySubmit: () => undefined,
+      onClarifySubmit: (answers) =>
+        void sendAnswer({
+          text: formatClarifyAnswers(answers),
+          mentions: [],
+          files: [],
+        }),
     }),
-    [orgId],
+    [orgId, sendAnswer],
   );
   const [expanded, setExpanded] = useState(false);
   const sideThreads = useSideThreads(orgId ?? "", threadId);

@@ -255,7 +255,7 @@ describe("sidebar row menu mutations", () => {
   });
 });
 
-describe("sidebar row menu", () => {
+describe("sidebar row menu opens on right-click", () => {
   it("opens Capy's row menu on right-click and opens the thread in a new tab", async () => {
     const openSpy = vi.spyOn(window, "open").mockReturnValue(null);
     await renderAt(<Harness sidebarSource={source([thread()])} />);
@@ -360,6 +360,42 @@ describe("sidebar row menu", () => {
       "Archive",
       "Delete",
     ]);
+  });
+
+  it("renames one row when the thread renders in two sections", async () => {
+    // A pinned thread renders in the Pinned folder and again in its project
+    // folder. Rename used to mount an input in both copies, and the second
+    // copy's focus blurred the first, whose unchanged draft cancelled the
+    // rename before anything could be typed: the menu row looked dead.
+    await renderAt(
+      <Harness
+        sidebarSource={{
+          ...source([thread({ owner: true })]),
+          folders: [
+            {
+              id: "pin",
+              name: "Pinned",
+              systemKind: "pinned",
+              threadIds: ["jam_sample_2"],
+            },
+            {
+              id: "release",
+              name: "Release",
+              systemKind: null,
+              threadIds: ["jam_sample_2"],
+            },
+          ],
+        }}
+      />,
+    );
+    expect(screen.getAllByRole("link", { name: /Add dark mode/ })).toHaveLength(
+      2,
+    );
+    fireEvent.click(screen.getAllByLabelText("Thread actions")[0] as Element);
+    fireEvent.click(await screen.findByText("Rename"));
+    await waitFor(() => {
+      expect(screen.getAllByLabelText("Thread title")).toHaveLength(1);
+    });
   });
 
   it("keeps owner-only items but disables them on a thread the viewer does not own", async () => {

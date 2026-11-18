@@ -42,6 +42,12 @@ export type ThreadFolderChoice = { id: string; name: string };
 
 export type ThreadActions = {
   renamingId: string | null;
+  /**
+   * The section whose row started the rename. A thread renders once per section
+   * it appears in (Pinned and its project, for instance), so the id alone would
+   * mount one input per copy and the second copy's focus would cancel the first.
+   */
+  renamingKey: string | null;
   folders: ReadonlyArray<ThreadFolderChoice>;
   share: (thread: SidebarThread) => void;
   markRead: (thread: SidebarThread) => void;
@@ -61,7 +67,7 @@ export type ThreadActions = {
   demoteCaptain: (captain: { id: string; name: string }) => void;
   /** Asks for confirmation before deleting a Captain. */
   removeCaptain: (captain: { id: string; name: string }) => void;
-  startRename: (threadId: string) => void;
+  startRename: (threadId: string, rowKey?: string) => void;
   commitRename: (threadId: string, title: string) => void;
   cancelRename: () => void;
   markAllRead: () => void;
@@ -105,6 +111,7 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
   const openShare = useOpenShareDialog();
   const orgId = useSidebarOrgId();
   const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renamingKey, setRenamingKey] = useState<string | null>(null);
   const [captainAction, setCaptainAction] = useState<{
     kind: "demote" | "delete";
     id: string;
@@ -161,6 +168,7 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
 
   const actions: ThreadActions = {
     renamingId,
+    renamingKey,
     folders: folderChoices(Option.getOrUndefined(AsyncResult.value(folders))),
     share: (thread) =>
       openShare?.({
@@ -300,9 +308,13 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
       );
     },
     remove: (thread) => setDeleting(thread),
-    startRename: (threadId) => setRenamingId(threadId),
+    startRename: (threadId, rowKey) => {
+      setRenamingId(threadId);
+      setRenamingKey(rowKey ?? null);
+    },
     commitRename: (threadId, title) => {
       setRenamingId(null);
+      setRenamingKey(null);
       if (orgId === undefined) return;
       run(
         rename({
@@ -318,7 +330,10 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
       setCaptainAction({ kind: "demote", ...captain }),
     removeCaptain: (captain) =>
       setCaptainAction({ kind: "delete", ...captain }),
-    cancelRename: () => setRenamingId(null),
+    cancelRename: () => {
+      setRenamingId(null);
+      setRenamingKey(null);
+    },
     startNewFolder: (section = "threads") => setNewFolder({ section }),
     markAllRead: () => {
       if (orgId === undefined) return;
