@@ -34,7 +34,7 @@ const pull = (overrides: Partial<PullCard>): PullCard => ({
   ...overrides,
 });
 
-const renderRow = (card: PullCard) => {
+const renderRow = (card: PullCard, pinned = false, onTogglePin = () => {}) => {
   const root = createRootRoute();
   const rowRoute = createRoute({
     getParentRoute: () => root,
@@ -47,6 +47,8 @@ const renderRow = (card: PullCard) => {
         checked={false}
         selectionMode={false}
         onCheck={() => {}}
+        pinned={pinned}
+        onTogglePin={onTogglePin}
       />
     ),
   });
@@ -58,6 +60,14 @@ const renderRow = (card: PullCard) => {
 };
 
 describe("PullRow", () => {
+  it("wraps the row in the context menu Capy opens on it", async () => {
+    const { container } = renderRow(pull({}));
+    await screen.findByText("Add dark mode to settings");
+    expect(
+      container.querySelector("[data-slot=context-menu-trigger]"),
+    ).not.toBeNull();
+  });
+
   it("prints the repository owner's avatar between the code and title", async () => {
     const { container } = renderRow(pull({}));
     await screen.findByText("Add dark mode to settings");

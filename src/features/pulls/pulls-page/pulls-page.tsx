@@ -386,6 +386,13 @@ function PullsPageFor({ orgId }: { orgId: string }) {
               <PullsList
                 sections={AsyncResult.isInitial(result) ? [] : sections}
                 now={now}
+                pinned={prefs.pinned}
+                onTogglePin={(id) =>
+                  setPrefs((current) => ({
+                    ...current,
+                    pinned: toggle(current.pinned, id),
+                  }))
+                }
                 collapsed={prefs.collapsedSections}
                 onToggleSection={(id) =>
                   setPrefs((current) => ({
