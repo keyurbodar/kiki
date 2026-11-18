@@ -9,6 +9,7 @@ import {
   type MessageActions,
   MessageActionsProvider,
   type MessageActor,
+  type ReplyTarget,
 } from "@/features/thread/message-footer";
 
 type MemberRecord = { name: string; imageUrl: string | null };
@@ -49,18 +50,21 @@ const toMembers = (response: unknown): ReadonlyMap<string, MemberRecord> => {
  * the clock the relative stamps read. Without it a message row renders read-only
  * and a user message shows its raw id instead of the sender's name.
  *
- * `editMessage` and `editedRowIds` come from the thread screen and its timeline:
- * the first opens the composer on a sent message, the second names the messages
- * that replaced an earlier version.
+ * `reply`, `editMessage` and `editedRowIds` come from the thread screen and its
+ * timeline: the first quotes a sent message into the composer, the second opens
+ * the composer on one, and the third names the messages that replaced an
+ * earlier version.
  */
 export function ThreadMessageActions({
   orgId,
+  reply,
   editMessage,
   editedRowIds,
   jumpToSection,
   children,
 }: {
   orgId: string | undefined;
+  reply?: (target: ReplyTarget) => void;
   editMessage?: (target: EditTarget) => void;
   editedRowIds?: ReadonlySet<string>;
   /** Scrolls the timeline to the row and section a quote points at. */
@@ -81,6 +85,7 @@ export function ThreadMessageActions({
     () => ({
       now: Date.now(),
       viewerUserId,
+      reply,
       editMessage,
       editedRowIds,
       jumpToSection,
@@ -92,7 +97,7 @@ export function ThreadMessageActions({
           : { name: member.name, imageUrl: member.imageUrl };
       },
     }),
-    [byId, editedRowIds, editMessage, jumpToSection, viewerUserId],
+    [byId, editedRowIds, editMessage, jumpToSection, reply, viewerUserId],
   );
   return (
     <MessageActionsProvider value={actions}>{children}</MessageActionsProvider>

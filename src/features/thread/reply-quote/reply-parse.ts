@@ -1,3 +1,4 @@
+import type { ComposerPayload } from "@/components/composer";
 import type { Mention } from "@/data/events";
 
 /** Mention id prefix Capy gives the excerpt a reply carries. */
@@ -212,30 +213,64 @@ export function excerptMention(
   };
 }
 
-/** Prepends a reply excerpt to an outgoing message, the inverse of parseReply. */
-export function buildReply<
-  T extends { text: string; mentions: readonly Mention[] },
->(
-  message: T,
-  target: { eventId: string; rowId: string; section: number; text: string },
-): T & { mentions: Mention[] } {
+type ReplySource = {
+  eventId: string;
+  rowId: string;
+  section: number;
+  text: string;
+};
+
+/** A row and a draft both locate their mentions by offsets, so both builders shift them alike. */
+const shiftMentions = <M extends { start: number; end: number }>(
+  mentions: readonly M[],
+  by: number,
+): M[] =>
+  mentions.map((mention) => ({
+    ...mention,
+    start: mention.start + by,
+    end: mention.end + by,
+  }));
+
+/** The excerpt a reply leads with: Capy's `Reply to message` source over the quoted text. */
+function replyLead(target: ReplySource) {
   const excerpt = excerptMention({
     rowId: target.rowId,
     section: target.section,
     text: target.text,
     source: `Reply to message ${target.eventId}, section ${target.section + 1}`,
   });
-  const lead = `${excerpt.text}\n\n`;
+  return { excerpt, lead: `${excerpt.text}\n\n` };
+}
+
+/** Prepends a reply excerpt to an outgoing message, the inverse of parseReply. */
+export function buildReply<
+  T extends { text: string; mentions: readonly Mention[] },
+>(message: T, target: ReplySource): T & { mentions: Mention[] } {
+  const { excerpt, lead } = replyLead(target);
   return {
     ...message,
     text: `${lead}${message.text}`,
-    mentions: [
-      excerpt,
-      ...message.mentions.map((m) => ({
-        ...m,
-        start: m.start + lead.length,
-        end: m.end + lead.length,
-      })),
-    ],
+    mentions: [excerpt, ...shiftMentions(message.mentions, lead.length)],
+  };
+}
+
+/**
+ * The draft a Reply opens, and the excerpt it leads with: the quote chip and its
+ * wire text go in front of whatever the composer already holds, so the next
+ * keystrokes land after the quote and the send carries it.
+ */
+export function replyDraft(
+  draft: ComposerPayload,
+  target: ReplySource,
+): { draft: ComposerPayload; excerpt: ExcerptMention } {
+  const { excerpt, lead } = replyLead(target);
+  return {
+    draft: {
+      ...draft,
+      text: `${lead}${draft.text}`,
+      mentions: [excerpt, ...shiftMentions(draft.mentions, lead.length)],
+      caret: null,
+    },
+    excerpt,
   };
 }

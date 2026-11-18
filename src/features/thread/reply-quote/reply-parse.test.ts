@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildReply, parseReply, quotePlainText } from "./reply-parse";
+import {
+  buildReply,
+  parseReply,
+  quotePlainText,
+  replyDraft,
+} from "./reply-parse";
 
 describe("quotePlainText", () => {
   it("flattens markdown to one plain line", () => {
@@ -61,5 +66,55 @@ describe("reply round trip", () => {
 
   it("ignores messages without a leading reply excerpt", () => {
     expect(parseReply("hello", [])).toBeUndefined();
+  });
+});
+
+describe("replyDraft", () => {
+  const target = {
+    eventId: "evt_1",
+    rowId: "row_1",
+    section: 2,
+    text: "The **fix** is in.",
+  };
+
+  it("puts the excerpt in front of the draft the composer already holds", () => {
+    const { draft, excerpt } = replyDraft(
+      {
+        text: "Why?",
+        mentions: [
+          {
+            kind: "user",
+            id: "user_1",
+            label: "Alex",
+            start: 0,
+            end: 4,
+            text: "@Alex",
+          },
+        ],
+        files: [],
+      },
+      target,
+    );
+    expect(excerpt.id).toBe("reply:row_1:2");
+    expect(excerpt.end).toBe(excerpt.text.length);
+    expect(draft.text.startsWith(excerpt.text)).toBe(true);
+    expect(draft.text.slice(excerpt.end).replace(/^\n+/, "")).toBe("Why?");
+    expect(draft.mentions[0]).toBe(excerpt);
+    expect(draft.mentions[1]).toMatchObject({
+      id: "user_1",
+      start: excerpt.end + 2,
+      end: excerpt.end + 6,
+    });
+  });
+
+  it("leads with the source line Capy replies carry", () => {
+    const { excerpt } = replyDraft(
+      { text: "", mentions: [], files: [] },
+      target,
+    );
+    expect(excerpt.text).toContain(
+      'source="Reply to message evt_1, section 3"',
+    );
+    expect(parseReply(excerpt.text, [excerpt])?.quote).toBe("The fix is in.");
   });
 });
