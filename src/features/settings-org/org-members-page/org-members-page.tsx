@@ -229,7 +229,7 @@ const MemberRow = memo(function MemberRow({
           <MenuContent align="end" className="w-48">
             <MenuSub>
               <MenuSubTrigger>Set role</MenuSubTrigger>
-              <MenuContent className="w-36">
+              <MenuContent className="w-[8.375rem]">
                 {assignableRoles.map((role) => (
                   <MenuItem
                     key={role}
@@ -424,7 +424,7 @@ function InactiveMemberRows({
                 <MenuContent align="end" className="w-44">
                   <MenuSub>
                     <MenuSubTrigger>Restore as</MenuSubTrigger>
-                    <MenuContent className="w-36">
+                    <MenuContent className="w-[8.375rem]">
                       {assignableRoles.map((accessLevel) => (
                         <MenuItem
                           key={accessLevel}
@@ -906,7 +906,7 @@ function OrgMembersContent({
               value={role}
               onValueChange={(value) => setRoleFilter(value as RoleFilter)}
             >
-              <MenuSelectTrigger className="w-28 shrink-0">
+              <MenuSelectTrigger size="base" className="w-28 shrink-0">
                 <MenuSelectValue />
               </MenuSelectTrigger>
               <MenuSelectContent>
