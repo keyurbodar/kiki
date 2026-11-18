@@ -1,9 +1,18 @@
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
-import { SkeletonPanel } from "@/primitives/skeleton-panel";
+import { Skeleton } from "@/primitives/skeleton";
 import { daysUntil, formatCredits, formatRangeLabel } from "./model";
 import type { UsageSummary } from "./types";
+
+/** The cycle the skeleton is drawn from: a real month, a real balance. */
+const sampleSummary: UsageSummary = {
+  period: { start: "2026-11-01T00:00:00Z", end: "2026-12-01T00:00:00Z" },
+  balance: { unlimited: false, remainingCredits: 12_500 },
+  included: [],
+  machineHourAllowance: null,
+  machineHoursConsumed: null,
+};
 
 export function CycleHeader({
   now,
@@ -12,13 +21,25 @@ export function CycleHeader({
   now: Date;
   summary: UsageSummary | undefined;
 }) {
-  if (summary === undefined) {
-    return (
-      <Card className="flex-row items-center justify-between gap-3 p-4">
-        <SkeletonPanel className="h-4 w-40" />
-      </Card>
-    );
-  }
+  return (
+    <Skeleton
+      data={summary}
+      sample={sampleSummary}
+      id="usage-cycle-header"
+      label="Loading usage"
+    >
+      {(value) => <CycleHeaderBody now={now} summary={value} />}
+    </Skeleton>
+  );
+}
+
+function CycleHeaderBody({
+  now,
+  summary,
+}: {
+  now: Date;
+  summary: UsageSummary;
+}) {
   const period =
     summary.period === null
       ? null
