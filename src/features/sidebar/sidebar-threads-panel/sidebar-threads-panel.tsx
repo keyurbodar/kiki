@@ -58,41 +58,42 @@ export function SidebarThreadsPanel({
   const fallback = useSidebarThreads();
   const sidebar = controller ?? fallback;
   const { view } = sidebar;
-  const actions =
-    view.mode === "captains" ? (
-      <>
-        <HeaderButton label="New Captain" onClick={onNewCaptain} />
-        <CaptainOptionsMenu
-          order={view.captainSort}
-          onOrderChange={sidebar.setCaptainSort}
-          density={view.density}
-          onDensityChange={sidebar.setDensity}
-          onNewFolder={onNewFolder}
-        />
-      </>
-    ) : (
-      <>
-        <HeaderButton label="New thread" onClick={onNewThread} />
-        <ThreadOptionsMenu
-          sort={view.sort}
-          onSortChange={sidebar.setSort}
-          grouping={view.grouping}
-          onGroupingChange={sidebar.setGrouping}
-          density={view.density}
-          onDensityChange={sidebar.setDensity}
-          collapse={view.collapse}
-          onCollapseChange={sidebar.setCollapse}
-          onNewFolder={onNewFolder}
-          onMarkAllRead={onMarkAllRead}
-          onSearch={onSearch}
-          onViewAll={onViewAll}
-        />
-      </>
-    );
+  const captainActions = (
+    <>
+      <HeaderButton label="New Captain" onClick={onNewCaptain} />
+      <CaptainOptionsMenu
+        order={view.captainSort}
+        onOrderChange={sidebar.setCaptainSort}
+        density={view.density}
+        onDensityChange={sidebar.setDensity}
+        onNewFolder={onNewFolder}
+      />
+    </>
+  );
+  const actions = (
+    <>
+      <HeaderButton label="New thread" onClick={onNewThread} />
+      <ThreadOptionsMenu
+        sort={view.sort}
+        onSortChange={sidebar.setSort}
+        grouping={view.grouping}
+        onGroupingChange={sidebar.setGrouping}
+        density={view.density}
+        onDensityChange={sidebar.setDensity}
+        collapse={view.collapse}
+        onCollapseChange={sidebar.setCollapse}
+        onNewFolder={onNewFolder}
+        onMarkAllRead={onMarkAllRead}
+        onSearch={onSearch}
+        onViewAll={onViewAll}
+      />
+    </>
+  );
   return (
     <SidebarThreads
       view={view}
       actions={actions}
+      captainActions={captainActions}
       onSectionOpenChange={sidebar.setSectionOpen}
       onShowMore={sidebar.showMore}
       onNewThread={onNewThread}
