@@ -3,6 +3,7 @@ import { useParams } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
 import { toast } from "sonner";
+import { formatMachine } from "@/components/plan-picker/plan-catalog";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { Project, ProjectRepo } from "@/data/api/schemas/project";
@@ -24,6 +25,7 @@ import { Input } from "@/primitives/input";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import {
   MenuSelect,
+  MenuSelectContent,
   MenuSelectItem,
   MenuSelectTrigger,
   MenuSelectValue,
@@ -39,18 +41,14 @@ import { ProjectGlyph } from "../shared/project-glyph";
 import { formatRelative } from "../shared/relative-time";
 import { useActiveOrgId } from "../shared/use-org";
 
-const machineSizes = {
-  small: "1 CPU / 4 GB",
-  medium: "2 CPU / 8 GB",
-  large: "4 CPU / 16 GB",
-  ultra: "8 CPU / 32 GB",
-  hyper: "16 CPU / 64 GB",
-} as const;
+const machineSizeKeys = ["small", "medium", "large", "ultra", "hyper"] as const;
 
-type MachineSize = keyof typeof machineSizes;
+type MachineSize = (typeof machineSizeKeys)[number];
 
 const machineSizeFor = (value: string): MachineSize =>
-  value in machineSizes ? (value as MachineSize) : "large";
+  (machineSizeKeys as ReadonlyArray<string>).includes(value)
+    ? (value as MachineSize)
+    : "large";
 
 const snapshotLabels = {
   off: "off",
@@ -342,22 +340,21 @@ function ProjectSettings({
             >
               <MenuSelectTrigger
                 aria-label="Machine size"
+                size="base"
                 className="w-40 shrink-0"
                 disabled={setup === undefined}
               >
                 <MenuSelectValue>
-                  {machineSizes[machineSizeFor(setup?.machineSize ?? "large")]}
+                  {formatMachine(machineSizeFor(setup?.machineSize ?? "large"))}
                 </MenuSelectValue>
-                <Glyph
-                  name="chevron-down"
-                  className="size-(--icon-sm) shrink-0 text-muted-foreground-3"
-                />
               </MenuSelectTrigger>
-              {(Object.keys(machineSizes) as Array<MachineSize>).map((size) => (
-                <MenuSelectItem key={size} value={size}>
-                  {machineSizes[size]}
-                </MenuSelectItem>
-              ))}
+              <MenuSelectContent align="end" className="w-72">
+                {machineSizeKeys.map((size) => (
+                  <MenuSelectItem key={size} value={size}>
+                    {formatMachine(size)}
+                  </MenuSelectItem>
+                ))}
+              </MenuSelectContent>
             </MenuSelect>
           </SettingsRow>
           <SettingsRowLink
