@@ -1,13 +1,10 @@
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
-import { type ReactNode, Suspense, useEffect, useState } from "react";
+import { type ReactNode, useEffect } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { CommandPaletteHost } from "@/features/command-palette";
 import { SettingsSidebarPanel } from "@/features/settings/shell";
-import {
-  useLiveSidebarSource,
-  useSidebarThreads,
-} from "@/features/sidebar/sidebar-threads-data";
+import { useSidebarThreads } from "@/features/sidebar/sidebar-threads-data";
 import { SidebarThreadsPanel } from "@/features/sidebar/sidebar-threads-panel";
 import { openCommandPalette } from "@/lib/command-palette-events";
 import { Button } from "@/primitives/button";
@@ -76,65 +73,13 @@ export function MobileNavTrigger({ className }: { className?: string }) {
   );
 }
 
-/**
- * The thread sidebar reads the org's threads, folders and Captains, so it waits
- * on that query. It sits behind its own Suspense boundary: a slow or failing
- * API must not hold back the page body or the settings pane, and the sample
- * panel it falls back to keeps the shell's measurements in the same place.
- */
-function LiveAppNav({ onSidebarToggle }: { onSidebarToggle: () => void }) {
-  const navigate = useNavigate();
-  const [now] = useState(() => new Date());
-  const source = useLiveSidebarSource(now);
-  const threads = useSidebarThreads(source === null ? {} : { source });
-  return (
-    <AppSidebar
-      mode={threads.view.mode}
-      onModeChange={threads.setMode}
-      onSidebarToggle={onSidebarToggle}
-      threadsSlot={
-        <SidebarThreadsPanel
-          controller={threads}
-          onNewThread={() => navigate({ to: "/new" })}
-          onSearch={() => openCommandPalette("thread")}
-        />
-      }
-    />
-  );
-}
-
-/**
- * The live sidebar replaces the sample one a tick after mount rather than during
- * the first render: the shell's first paint must not wait on the org's threads,
- * whatever the API does.
- */
-function AppNav({ onSidebarToggle }: { onSidebarToggle: () => void }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return <AppNavFallback onSidebarToggle={onSidebarToggle} />;
-  return <LiveAppNav onSidebarToggle={onSidebarToggle} />;
-}
-
-function AppNavFallback({ onSidebarToggle }: { onSidebarToggle: () => void }) {
-  const navigate = useNavigate();
-  return (
-    <AppSidebar
-      onSidebarToggle={onSidebarToggle}
-      threadsSlot={
-        <SidebarThreadsPanel
-          onNewThread={() => navigate({ to: "/new" })}
-          onSearch={() => openCommandPalette("thread")}
-        />
-      }
-    />
-  );
-}
-
 function AppShellBody({ children, banner }: AppLayoutProps) {
   const { open, isNarrow } = useSidebarState();
   const openMobile = useSidebarOpenMobile();
   const { setOpenMobile, toggle } = useSidebarActions();
   const pathname = useRouterState({ select: selectPathname });
+  const navigate = useNavigate();
+  const threads = useSidebarThreads();
 
   useSidebarShortcut(toggle);
   useEffect(() => {
@@ -150,9 +95,18 @@ function AppShellBody({ children, banner }: AppLayoutProps) {
     />
   );
   const appNav = (onToggle: () => void) => (
-    <Suspense fallback={<AppNavFallback onSidebarToggle={onToggle} />}>
-      <AppNav onSidebarToggle={onToggle} />
-    </Suspense>
+    <AppSidebar
+      mode={threads.view.mode}
+      onModeChange={threads.setMode}
+      onSidebarToggle={onToggle}
+      threadsSlot={
+        <SidebarThreadsPanel
+          controller={threads}
+          onNewThread={() => navigate({ to: "/new" })}
+          onSearch={() => openCommandPalette("thread")}
+        />
+      }
+    />
   );
   const desktopNav = settings ? settingsNav(toggle) : appNav(toggle);
   const mobileNav = settings ? settingsNav(closeMobile) : appNav(closeMobile);
