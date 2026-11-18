@@ -10,7 +10,8 @@ describe("Badge", () => {
     const badge = screen.getByText("Beta");
     expect(badge.tagName).toBe("DIV");
     expect(badge.dataset.slot).toBe("badge");
-    expect(badge.className).toContain("h-(--h-badge-base)");
+    expect(badge.className).toContain("kiki-badge");
+    expect(badge.dataset.size).toBe("base");
     expect(badge.className).toContain("select-none");
   });
 
@@ -47,12 +48,23 @@ describe("Badge", () => {
     expect(onClick).toHaveBeenCalledOnce();
   });
 
-  it("maps every variant and size key", () => {
-    expect(badgeVariants({ variant: "filled", size: "xs" })).toContain(
-      "h-(--h-badge-xs)",
+  it("carries its size as data-size, since the recipe owns the box", () => {
+    const { container } = render(
+      <>
+        <Badge size="xs">Extra small</Badge>
+        <Badge size="auto">Auto</Badge>
+      </>,
     );
-    expect(badgeVariants({ variant: "ghost", size: "auto" })).toContain(
-      "bg-transparent",
+    const sizes = [...container.querySelectorAll("[data-slot=badge]")].map(
+      (badge) => (badge as HTMLElement).dataset.size,
+    );
+    expect(sizes).toEqual(["xs", "auto"]);
+  });
+
+  it("maps every variant and colour key", () => {
+    expect(badgeVariants({ variant: "ghost" })).toContain("bg-transparent");
+    expect(badgeVariants({ variant: "filled", color: "accent" })).toContain(
+      "--intent-bg",
     );
   });
 });

@@ -3,8 +3,13 @@ import { Children, type ComponentProps, type ReactNode } from "react";
 import { Icon } from "@/primitives/icon";
 import { type Intent, intentVariants } from "@/primitives/intent";
 
+/**
+ * Geometry lives in `.kiki-badge`, so a size is a `data-size` attribute rather
+ * than a cluster of height, inset and glyph utilities. Colour and state stay
+ * here: the recipe layer owns boxes, not paint.
+ */
 export const badgeVariants = cva(
-  "inline-flex items-center justify-center w-fit rounded-full text-xs font-normal [text-box-trim:trim-both] [&_svg]:shrink-0",
+  "kiki-badge rounded-full text-xs font-normal [text-box-trim:trim-both] [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -17,12 +22,12 @@ export const badgeVariants = cva(
       },
       color: intentVariants,
       size: {
-        base: "min-w-8 h-(--h-badge-base) px-2 gap-1 [&_svg:not([class*='size-'])]:size-(--icon-sm) [&_svg:first-of-type]:-ml-0.5",
-        sm: "min-w-8 h-(--h-badge-sm) px-1.5 gap-1 [&_svg:not([class*='size-'])]:size-(--icon-xs) [&_svg:first-of-type]:-ml-0.5",
-        xs: "min-w-8 h-(--h-badge-xs) px-1.5 gap-1 [&_svg:not([class*='size-'])]:size-(--icon-xs) [&_svg:first-of-type]:-ml-0.5",
+        base: "",
+        sm: "",
+        xs: "",
         count:
-          "h-(--h-badge-count) min-w-0 px-0 text-count-chip font-bold proportional-nums [text-box-trim:none]",
-        auto: "h-auto px-0.5 gap-1 [&_svg:not([class*='size-'])]:size-(--icon-xs)",
+          "text-count-chip font-bold proportional-nums [text-box-trim:none]",
+        auto: "",
       },
       interactive: {
         true: "relative cursor-pointer outline-none transition-colors duration-hover focus-visible:outline-ring-inset hover:text-[var(--intent-text-hover,var(--fg))] data-[popup-open]:text-[var(--intent-text-hover,var(--fg))] pointer-coarse:after:absolute pointer-coarse:after:top-1/2 pointer-coarse:after:left-1/2 pointer-coarse:after:size-full pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11 pointer-coarse:after:-translate-x-1/2 pointer-coarse:after:-translate-y-1/2",
@@ -45,9 +50,12 @@ const glyphs = {
   info: "circle-info",
 } as const satisfies Partial<Record<Intent, string>>;
 
+export type BadgeSize = NonNullable<VariantProps<typeof badgeVariants>["size"]>;
+
 export type BadgeProps = Omit<ComponentProps<"div">, "color"> &
   VariantProps<typeof badgeVariants> & {
     glyph?: boolean;
+    size?: BadgeSize;
   };
 
 export function Badge({
@@ -61,6 +69,7 @@ export function Badge({
   ...props
 }: BadgeProps) {
   const isInteractive = interactive ?? props.onClick !== undefined;
+  const badgeSize: BadgeSize = size ?? "base";
   const glyphName =
     glyph &&
     color != null &&
@@ -99,6 +108,7 @@ export function Badge({
       <button
         type="button"
         data-slot="badge"
+        data-size={badgeSize}
         className={classes}
         {...(props as ComponentProps<"button">)}
       >
@@ -107,7 +117,7 @@ export function Badge({
     );
   }
   return (
-    <div data-slot="badge" className={classes} {...props}>
+    <div data-slot="badge" data-size={badgeSize} className={classes} {...props}>
       {content}
     </div>
   );
