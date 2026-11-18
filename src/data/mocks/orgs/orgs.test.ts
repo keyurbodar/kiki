@@ -1,6 +1,7 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
+import { Forbidden } from "../../api/schemas/errors.ts";
 import { OrgId } from "../../api/schemas/ids.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { org } from "../fixtures/world.ts";
@@ -50,6 +51,25 @@ describe("orgs mock", () => {
       };
       assert.isTrue(deleted.ok);
       assert.isString(deleted.deletedAt);
+    }),
+  );
+
+  it.effect("answers the 403 the routes declare for a foreign org id", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const foreign = { orgId: OrgId.make("org_nobody") };
+      for (const atom of [update, remove]) {
+        registry.set(atom as never, {
+          params: foreign,
+          payload: { name: "Nope" },
+          reactivityKeys: [key],
+        });
+        const error = yield* AtomRegistry.getResult(
+          registry,
+          atom as never,
+        ).pipe(Effect.flip);
+        assert.instanceOf(error, Forbidden);
+      }
     }),
   );
 });

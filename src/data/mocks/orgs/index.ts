@@ -17,7 +17,7 @@ export const OrgsMock = mockGroup("orgs", (handlers) =>
       .handle("update", ({ params, payload }) =>
         Effect.gen(function* () {
           if (params.orgId !== org.id)
-            return yield* Effect.die(new Forbidden({}));
+            return yield* Effect.fail(new Forbidden({}));
           const input = fields(payload);
           const next = typeof input.name === "string" ? input.name : org.name;
           yield* Ref.set(name, next);
@@ -54,7 +54,7 @@ export const OrgsMock = mockGroup("orgs", (handlers) =>
       .handle("delete", ({ params }) =>
         Effect.gen(function* () {
           if (params.orgId !== org.id)
-            return yield* Effect.die(new Forbidden({}));
+            return yield* Effect.fail(new Forbidden({}));
           const row = {
             ...sampleOrgDeleted,
             deletedAt: DateTime.formatIso(fixtureNow),

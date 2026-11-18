@@ -249,6 +249,7 @@ export class MachinesGroup extends HttpApiGroup.make("machines").add(
     "resolvePreviewToken",
     "/orgs/:orgId/jams/:jamId/service-previews/resolve",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, jamId: Schema.String },
       query: UndecodedQuery,
       success: Undecoded,

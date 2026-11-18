@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { Undecoded } from "../undecoded.ts";
 
 export class MobileSessionsGroup extends HttpApiGroup.make(
@@ -12,9 +12,11 @@ export class MobileSessionsGroup extends HttpApiGroup.make(
   HttpApiEndpoint.get("get", "/orgs/:orgId/mobile-sessions/:sessionId", {
     params: { orgId: Schema.String, sessionId: Schema.String },
     success: Undecoded,
+    error: HttpApiError.NotFoundNoContent,
   }),
   HttpApiEndpoint.post("stop", "/orgs/:orgId/mobile-sessions/:sessionId/stop", {
     params: { orgId: Schema.String, sessionId: Schema.String },
     success: Undecoded,
+    error: HttpApiError.NotFoundNoContent,
   }),
 ) {}

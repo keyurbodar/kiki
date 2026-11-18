@@ -49,15 +49,13 @@ export const ExplorePublicMock = mockGroup("explorePublic", (handlers) =>
       .handle("icon", ({ params }) =>
         Effect.gen(function* () {
           if (!isListingKind(params.kind)) {
-            return yield* Effect.die(
-              new Error(`explorePublic.icon: unknown kind ${params.kind}`),
+            return yield* Effect.fail(
+              new ExploreNotFound({ kind: params.kind, slug: params.slug }),
             );
           }
           if (findSampleListing(params.kind, params.slug) === undefined) {
-            return yield* Effect.die(
-              new Error(
-                `explorePublic.icon: no ${params.kind} listing ${params.slug}`,
-              ),
+            return yield* Effect.fail(
+              new ExploreNotFound({ kind: params.kind, slug: params.slug }),
             );
           }
           return iconFor(params.kind, params.slug);

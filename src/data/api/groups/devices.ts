@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { InferredMethod } from "../annotations.ts";
 import {
   ApproveDeviceCodeRequest,
@@ -59,6 +59,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
   HttpApiEndpoint.get("listAccess", "/orgs/:orgId/devices/:deviceId/access", {
     params: { orgId: Schema.String, deviceId: Schema.String },
     success: Undecoded,
+    error: DeviceNotFound,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
     "denyAccess",
@@ -70,6 +71,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
         accessId: Schema.String,
       },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -82,6 +84,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
         accessId: Schema.String,
       },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -94,6 +97,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
         accessId: Schema.String,
       },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -106,6 +110,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
         accessId: Schema.String,
       },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.get(
@@ -117,6 +122,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
         deviceId: Schema.String,
       },
       success: Undecoded,
+      error: DeviceNotFound,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -141,6 +147,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
         deviceId: Schema.String,
       },
       success: Undecoded,
+      error: DeviceNotFound,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -153,6 +160,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
         accessId: Schema.String,
       },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -166,6 +174,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
       },
       payload: Undecoded,
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -178,6 +187,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
         accessId: Schema.String,
       },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -190,6 +200,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
       },
       payload: Undecoded,
       success: Undecoded,
+      error: DeviceNotFound,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -215,6 +226,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
         accessId: Schema.String,
       },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -228,6 +240,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
       },
       payload: Undecoded,
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -240,6 +253,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
         accessId: Schema.String,
       },
       success: Undecoded,
+      error: HttpApiError.NotFoundNoContent,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -265,6 +279,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
       },
       query: UndecodedQuery,
       success: Undecoded,
+      error: DeviceNotFound,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -277,6 +292,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
       },
       payload: Undecoded,
       success: Undecoded,
+      error: DeviceNotFound,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -289,6 +305,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
       },
       payload: Undecoded,
       success: Undecoded,
+      error: DeviceNotFound,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -301,6 +318,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
       },
       payload: Undecoded,
       success: Undecoded,
+      error: DeviceNotFound,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -313,6 +331,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
       },
       payload: Undecoded,
       success: Undecoded,
+      error: DeviceNotFound,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.get("pullList", "/orgs/:orgId/devices/:deviceId/pulls", {
@@ -331,6 +350,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
       },
       query: UndecodedQuery,
       success: Undecoded,
+      error: [DeviceNotFound, HttpApiError.NotFoundNoContent],
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -345,6 +365,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
       query: UndecodedQuery,
       payload: Undecoded,
       success: Undecoded,
+      error: [DeviceNotFound, HttpApiError.NotFoundNoContent],
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.get(
@@ -358,6 +379,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
       },
       query: UndecodedQuery,
       success: Undecoded,
+      error: DeviceNotFound,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post(
@@ -370,6 +392,7 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
       },
       query: UndecodedQuery,
       success: Undecoded,
+      error: DeviceNotFound,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.post("revoke", "/orgs/:orgId/devices/:deviceId/revoke", {
@@ -387,12 +410,14 @@ export class DevicesGroup extends HttpApiGroup.make("devices").add(
       },
       query: UndecodedQuery,
       success: Undecoded,
+      error: DeviceNotFound,
     },
   ).annotate(InferredMethod, true),
   HttpApiEndpoint.get("worktrees", "/orgs/:orgId/devices/:deviceId/worktrees", {
     params: { orgId: Schema.String, deviceId: Schema.String },
     query: UndecodedQuery,
     success: Undecoded,
+    error: DeviceNotFound,
   }).annotate(InferredMethod, true),
   HttpApiEndpoint.post("codeApprove", "/orgs/:orgId/devices/code/approve", {
     params: { orgId: Schema.String },

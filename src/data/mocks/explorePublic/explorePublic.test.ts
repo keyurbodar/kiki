@@ -2,7 +2,11 @@ import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
 import { vi } from "vitest";
-import { type ExploreCard, ExploreListing } from "../../api/schemas/explore.ts";
+import {
+  type ExploreCard,
+  ExploreListing,
+  ExploreNotFound,
+} from "../../api/schemas/explore.ts";
 import { ApiClient } from "../../client/ApiClient.ts";
 
 interface Icon {
@@ -105,5 +109,26 @@ describe("explorePublic mock", () => {
       assert.instanceOf(image, Uint8Array);
       assert.deepEqual(Array.from(image.slice(0, 4)), [82, 73, 70, 70]);
     }),
+  );
+
+  it.effect(
+    "answers ExploreNotFound for an icon the catalog does not carry",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        const calls = [
+          { kind: "plugin", slug: "no_such_plugin" },
+          { kind: "skill", slug: "no_such_skill" },
+          { kind: "bogus", slug: "cloudflare" },
+        ];
+        for (const params of calls) {
+          const atom = ApiClient.query("explorePublic", "icon", { params });
+          const error = yield* AtomRegistry.getResult(
+            registry,
+            atom as never,
+          ).pipe(Effect.flip);
+          assert.instanceOf(error, ExploreNotFound);
+        }
+      }),
   );
 });

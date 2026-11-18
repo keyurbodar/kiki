@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { machines, orgId, threads } from "../fixtures/world.ts";
@@ -192,5 +193,43 @@ describe("machines mock", () => {
         machineId,
       );
     }),
+  );
+
+  it.effect(
+    "answers the 404 each machine route declares for an unknown id",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        const call = (endpoint: string, input: object) =>
+          AtomRegistry.getResult(
+            registry,
+            ApiClient.query("machines", endpoint as never, input as never),
+          ) as unknown as Effect.Effect<unknown>;
+        const phoneFree = { orgId, jamId, machineId: machines[1].id };
+        const cases = [
+          ["removePhone", { params: phoneFree }],
+          ["sleepPhone", { params: phoneFree }],
+          ["pressPhone", { params: phoneFree, payload: { action: "done" } }],
+          ["removeServicePreview", { params: { ...phoneFree, port: "9999" } }],
+          [
+            "resolvePreviewToken",
+            { params: { orgId, jamId }, query: { token: "no_such_token" } },
+          ],
+          [
+            "attachPhone",
+            {
+              params: { orgId, jamId },
+              payload: {
+                deviceId: "machine_nobody",
+                machineId: machines[1].id,
+              },
+            },
+          ],
+        ] as const;
+        for (const [endpoint, input] of cases) {
+          const error = yield* call(endpoint, input).pipe(Effect.flip);
+          assert.instanceOf(error, HttpApiError.NotFound);
+        }
+      }),
   );
 });
