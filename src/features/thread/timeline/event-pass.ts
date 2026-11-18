@@ -327,6 +327,8 @@ interface BlockContext {
   readonly turnCloses: boolean;
   /** The block that carries a closed turn's reply, if this one is it. */
   readonly replyBlockId: string | undefined;
+  /** A turn the person cancelled: its text is partial, not a finished reply. */
+  readonly turnCancelled: boolean;
   readonly settlements: ReadonlyMap<string, Settlement>;
   readonly waitResolutions: ReadonlyMap<string, Date>;
   readonly setupNotificationEventId: EventId | undefined;
@@ -477,8 +479,8 @@ const blockRows = (block: Block, context: BlockContext): Row[] => {
             eventId: context.eventId,
             createdAt: context.createdAt,
             startedAt: context.startedAt,
-            settled: true,
-            interrupted: false,
+            settled: !context.turnCancelled,
+            interrupted: context.turnCancelled,
             turnCloses: context.turnCloses,
             exchangeEventId: context.exchangeEventId,
             text: block.text,
@@ -1844,6 +1846,7 @@ export const eventPass = (
               turnOpen: event.id === openTurnId,
               turnCloses: closed.has(event.id),
               replyBlockId,
+              turnCancelled: payload.stopReason === "cancelled",
               settlements,
               waitResolutions,
               setupNotificationEventId:
