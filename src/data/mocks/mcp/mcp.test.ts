@@ -83,6 +83,7 @@ describe("mcp mock", () => {
       assert.deepStrictEqual(ids(yield* read(registry, serversAtom)), [
         "mcp_sample_errors",
         "mcp_sample_docs",
+        "mcp_sample_untested",
       ]);
       assert.include(
         names(yield* read(registry, setupsAtom)),
