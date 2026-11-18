@@ -41,7 +41,13 @@ describe("diffRows", () => {
       "@@ -4,2 +4,2 @@ ctx\n same\n-old\n+new\n@@ -20 +20 @@\n tail",
     );
     expect(
-      rows.map((row) => (row.type === "hunk" ? row.header : rowKey(row.row))),
+      rows.map((row) =>
+        row.type === "hunk"
+          ? row.header
+          : row.type === "run"
+            ? `run:${row.rows.length}`
+            : rowKey(row.row),
+      ),
     ).toEqual([
       "@@ -4,2 +4,2 @@ ctx",
       "RIGHT:4",

@@ -825,7 +825,9 @@ export function PullView({
     () => (opened === null ? null : { file: opened.file, nonce: opened.seq }),
     [opened],
   );
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const openFile = (file: string) => {
+    setSelectedFile(file);
     setOpened((previous) => ({ file, seq: (previous?.seq ?? 0) + 1 }));
     select("diff");
   };
@@ -882,7 +884,13 @@ export function PullView({
               </ScrollAreaViewport>
             </ScrollArea>
           ) : current === "diff" ? (
-            <DiffTab pull={pullRef} anchor={anchor} />
+            <DiffTab
+              pull={pullRef}
+              anchor={anchor}
+              railHosted={host === "page"}
+              selectedPath={selectedFile}
+              onSelectFile={setSelectedFile}
+            />
           ) : (
             <PullGuideTab pullId={pull.id} />
           )}

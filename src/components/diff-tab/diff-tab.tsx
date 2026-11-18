@@ -40,6 +40,8 @@ export type DiffTabProps = {
   anchor?: DiffTabAnchor | null;
   railHosted?: boolean;
   diffStyle?: "unified" | "split";
+  selectedPath?: string | null;
+  onSelectFile?: (path: string) => void;
 };
 
 const scrollToFile = (path: string) => {
@@ -56,6 +58,8 @@ export function DiffTab({
   anchor = null,
   railHosted = false,
   diffStyle = "unified",
+  selectedPath = null,
+  onSelectFile,
 }: DiffTabProps) {
   const diffState = usePullDiff(pull);
   const reviewResult = useAtomValue(pullReviewAtom(pull.orgId, pull.id));
@@ -73,6 +77,10 @@ export function DiffTab({
     const finding = findings.find((item) => item.id === anchor.discussionId);
     const file = finding?.githubAnchor?.file ?? finding?.file ?? anchor.file;
     if (file === undefined || file === null) return;
+    if (railHosted) {
+      if (selectedPath !== file) onSelectFile?.(file);
+      if (selectedPath !== file) return;
+    }
     setCollapse((state) => setCollapsed(state, file, false));
     const frame = requestAnimationFrame(() => {
       const discussion = document.getElementById(
@@ -85,9 +93,10 @@ export function DiffTab({
   });
 
   const diffLoaded = diffState.status !== "loading";
+  // biome-ignore lint/correctness/useExhaustiveDependencies: an anchor that names another file only lands once the rail selection has switched to it.
   useEffect(() => {
     if (anchor !== null && diffLoaded) return focusAnchor(anchor);
-  }, [anchor, diffLoaded]);
+  }, [anchor, diffLoaded, selectedPath]);
 
   if (diffState.status === "loading") return null;
   if (diffState.status === "failed")
@@ -109,8 +118,18 @@ export function DiffTab({
   const discussions = groupFindings(findings, head);
   const unchanged = findingsOnUnchangedFiles(findings, new Set(paths));
   const everyCollapsed = allCollapsed(collapse, paths, generated);
+  const singleFile = railHosted || selectedPath !== null;
+  const focused = singleFile
+    ? (files.find((file) => file.path === selectedPath) ?? files[0])
+    : undefined;
+  const shown = focused === undefined ? files : [focused];
 
   const openFile = (path: string) => {
+    if (singleFile) {
+      onSelectFile?.(path);
+      if (path === selectedPath) scrollToFile(path);
+      return;
+    }
     if (isCollapsed(collapse, path, generated))
       setCollapse((state) => setCollapsed(state, path, false));
     requestAnimationFrame(() => scrollToFile(path));
@@ -137,11 +156,12 @@ export function DiffTab({
           onOpenFile={openFile}
           allCollapsed={everyCollapsed}
           onToggleAll={() => setCollapse(toggleAll(everyCollapsed))}
+          showCollapseAll={focused === undefined}
         />
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className={cx(columnClass, "gap-3 p-3")}>
-          {files.map((file) => {
+          {shown.map((file) => {
             const fileDiscussions = discussions.get(file.path);
             return (
               <DiffFileCard
@@ -152,6 +172,7 @@ export function DiffTab({
                 onCollapsedChange={(path, collapsed) =>
                   setCollapse((state) => setCollapsed(state, path, collapsed))
                 }
+                collapsible={focused === undefined}
                 trailing={
                   <>
                     <ReviewedCheckbox

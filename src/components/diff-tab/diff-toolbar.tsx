@@ -96,6 +96,7 @@ export type DiffToolbarProps = {
   onOpenFile: (path: string) => void;
   allCollapsed: boolean;
   onToggleAll: () => void;
+  showCollapseAll?: boolean;
 };
 
 export function DiffToolbar({
@@ -105,6 +106,7 @@ export function DiffToolbar({
   onOpenFile,
   allCollapsed,
   onToggleAll,
+  showCollapseAll = true,
 }: DiffToolbarProps) {
   return (
     <div data-slot="diff-toolbar">
@@ -120,7 +122,12 @@ export function DiffToolbar({
             {notes.join(", ")}
           </span>
         )}
-        <CollapseAllButton allCollapsed={allCollapsed} onToggle={onToggleAll} />
+        {showCollapseAll && (
+          <CollapseAllButton
+            allCollapsed={allCollapsed}
+            onToggle={onToggleAll}
+          />
+        )}
       </div>
     </div>
   );
