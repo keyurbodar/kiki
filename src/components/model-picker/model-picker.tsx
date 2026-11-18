@@ -101,7 +101,7 @@ const keepFocus = (event: { preventDefault: () => void }) =>
 
 const storageKey = (name: string) => `capy-web:model-picker-lab:${name}`;
 
-const isGrouping = (value: unknown): value is "provider" | "route" =>
+const isGroupingValue = (value: unknown): value is "provider" | "route" =>
   value === "provider" || value === "route";
 
 const isSlots = (value: unknown): value is ReadonlyArray<FavoriteSlot> =>
@@ -311,7 +311,7 @@ export function ModelPicker({
   const [grouping, setGrouping] = useStoredState(
     storageKey("grouping"),
     "provider",
-    isGrouping,
+    isGroupingValue,
   );
   const [storedSlots, setSlots] = useStoredState<ReadonlyArray<FavoriteSlot>>(
     storageKey("slots"),
