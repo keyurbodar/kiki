@@ -40,6 +40,8 @@ export type CrewThread = {
   modelName: string | null;
   pulls: { number: number; state: string }[];
   pullCount: number;
+  /** When the Captain spawned this thread: Capy numbers a crew by it. */
+  createdAt: Date | null;
   lastActivityAt: Date | null;
   updatedAt: Date;
 };
@@ -116,6 +118,7 @@ export function toCrewThread(value: unknown): CrewThread | undefined {
     pulls,
     pullCount:
       typeof json.pullCount === "number" ? json.pullCount : pulls.length,
+    createdAt: date(json.createdAt) ?? null,
     lastActivityAt: date(json.lastActivityAt),
     updatedAt: date(json.updatedAt) ?? date(json.createdAt) ?? new Date(0),
   };

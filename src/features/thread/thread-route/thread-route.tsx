@@ -134,11 +134,23 @@ export function ThreadRoute({
     ) ?? [];
   const captain = captains.find((card) => card.id === threadId);
   const crew = useCaptainCrew(orgId, threadId, captain !== undefined).crew;
+  /** Capy numbers a crew by creation, oldest first, and draws that number as
+   * `Subagent N`; the API's own order is not that order, so it is derived. */
+  const subagentNumbers = new Map(
+    [...(crew ?? [])]
+      .sort(
+        (a, b) =>
+          (a.createdAt?.getTime() ?? 0) - (b.createdAt?.getTime() ?? 0) ||
+          a.id.localeCompare(b.id),
+      )
+      .map((row, index) => [row.id, index + 1]),
+  );
   const menuCrew = crew?.map((row) => ({
     id: row.id,
     title: row.title,
     code: row.code ?? undefined,
     unread: row.unread,
+    subagentIndex: subagentNumbers.get(row.id),
     active: row.status === "working" || row.status === "waiting",
   }));
   const title = thread?.title ?? captain?.title ?? "Untitled thread";
