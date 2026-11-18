@@ -2,6 +2,8 @@ import type {
   InstalledPlugin,
   InstalledPluginDetail,
   MarketplacePlugin,
+  McpDiagnosis,
+  McpDiagnosisStage,
   McpServer,
   McpServerTools,
   McpTransport,
@@ -15,12 +17,17 @@ const str = (value: unknown, fallback = "") =>
 const strOrNull = (value: unknown) =>
   typeof value === "string" ? value : null;
 const num = (value: unknown) => (typeof value === "number" ? value : null);
+const strings = (value: unknown): ReadonlyArray<string> =>
+  Array.isArray(value)
+    ? value.filter((entry): entry is string => typeof entry === "string")
+    : [];
 
 export const toServer = (raw: unknown): McpServer => {
   const row = raw as Loose;
   if ("serverKey" in row) return row as unknown as McpServer;
   const status = str(row.status);
-  const createdAt = str(row.createdAt, new Date(0).toISOString());
+  const createdAt = strOrNull(row.createdAt);
+  const checkedAt = strOrNull(row.lastCheckedAt) ?? createdAt;
   return {
     id: str(row.id),
     owner: { kind: "organization" },
@@ -55,11 +62,71 @@ export const toServer = (raw: unknown): McpServer => {
     credential: null,
     toolCount: num(row.toolCount),
     health:
-      status === "connected"
-        ? { state: "empty", checkedAt: createdAt }
+      status === "connected" && checkedAt !== null
+        ? { state: "empty", checkedAt }
         : { state: "unchecked" },
-    createdAt,
-    updatedAt: str(row.updatedAt, createdAt),
+    createdAt: createdAt ?? "",
+    updatedAt: strOrNull(row.updatedAt) ?? createdAt ?? "",
+  };
+};
+
+const healthStages = new Set([
+  "connect",
+  "auth",
+  "permissions",
+  "protocol",
+  "list",
+]);
+
+const toStage = (value: unknown, fallback: McpDiagnosisStage) =>
+  typeof value === "string" && healthStages.has(value)
+    ? (value as McpDiagnosisStage)
+    : fallback;
+
+const stages = (value: unknown): ReadonlyArray<McpDiagnosisStage> =>
+  Array.isArray(value)
+    ? value.flatMap((entry) =>
+        typeof entry === "string" && healthStages.has(entry)
+          ? [entry as McpDiagnosisStage]
+          : [],
+      )
+    : [];
+
+/**
+ * A test result, or null when the payload is not one. The page renders passed
+ * stages or a failure, so a payload shaped like neither has to fail here rather
+ * than reach the render as an `undefined` failure.
+ */
+export const toDiagnosis = (raw: unknown): McpDiagnosis | null => {
+  if (typeof raw !== "object" || raw === null) return null;
+  const row = raw as Loose;
+  if (!("passed" in row) && !("failure" in row)) return null;
+  const failure = row.failure as Loose | null | undefined;
+  return {
+    version: strOrNull(row.version),
+    auth: (str(row.auth, "none") as McpDiagnosis["auth"]) ?? "none",
+    requestedScopes: strings(row.requestedScopes),
+    grantedScopes: strings(row.grantedScopes),
+    requiredScopes: Array.isArray(row.requiredScopes)
+      ? strings(row.requiredScopes)
+      : null,
+    passed: stages(row.passed),
+    failure:
+      typeof failure === "object" && failure !== null
+        ? {
+            stage: toStage(failure.stage, "connect"),
+            code: str(failure.code, "unknown"),
+            detail: str(failure.detail),
+          }
+        : null,
+    toolCount: num(row.toolCount),
+    machines: Array.isArray(row.machines)
+      ? row.machines.flatMap((machine) => {
+          const entry = machine as Loose;
+          const id = strOrNull(entry.id);
+          return id === null ? [] : [{ id, label: str(entry.label, id) }];
+        })
+      : [],
   };
 };
 
@@ -135,6 +202,21 @@ export const toInstallation = (raw: unknown): InstalledPlugin => {
   };
 };
 
+/**
+ * The update the detail row is offering. One derivation feeds both the status
+ * badge and the Review control, so the badge cannot claim an update the review
+ * page will deny.
+ */
+const pendingVersionOf = (
+  row: Loose,
+  installation: InstalledPlugin,
+): PluginVersion | null => {
+  const candidate = row.pending ?? row.availableVersion ?? row.pendingVersion;
+  if (typeof candidate !== "object" || candidate === null) return null;
+  const pending = toVersion(candidate);
+  return pending.version === installation.version ? null : pending;
+};
+
 export const toInstallationDetail = (raw: unknown): InstalledPluginDetail => {
   const row = raw as Loose;
   if ("installation" in row) return row as unknown as InstalledPluginDetail;
@@ -142,16 +224,19 @@ export const toInstallationDetail = (raw: unknown): InstalledPluginDetail => {
   const servers = Array.isArray(row.servers) ? (row.servers as Loose[]) : [];
   return {
     installation,
-    version: toVersion({
-      id: installation.versionId,
-      pluginKey: installation.pluginName,
-      displayName: installation.displayName,
-      version: installation.version,
-      publishedAt: installation.createdAt,
-    }),
-    pending: null,
-    canRollBack: false,
-    pendingIsRollback: false,
+    version:
+      typeof row.runningVersion === "object" && row.runningVersion !== null
+        ? toVersion(row.runningVersion)
+        : toVersion({
+            id: installation.versionId,
+            pluginKey: installation.pluginName,
+            displayName: installation.displayName,
+            version: installation.version,
+            publishedAt: installation.createdAt,
+          }),
+    pending: pendingVersionOf(row, installation),
+    canRollBack: row.canRollBack === true,
+    pendingIsRollback: row.pendingIsRollback === true,
     held: false,
     removedFromMarketplace: false,
     sourceRef: null,

@@ -41,6 +41,7 @@ import {
   validateDraft,
 } from "../model/draft.ts";
 import { listPath } from "../model/mount.ts";
+import { toDiagnosis } from "../model/normalize.ts";
 import { serverStatusParts } from "../model/status.ts";
 import { timeAgo } from "../model/time.ts";
 import type { McpDiagnosis, McpMount, McpServer } from "../model/types.ts";
@@ -191,7 +192,14 @@ function ServerDetail({
   const runTest = () => {
     setTesting(true);
     test({ params, payload: {}, reactivityKeys: keys })
-      .then((diagnosis) => setLastTest(diagnosis as McpDiagnosis))
+      .then((result) => {
+        const diagnosis = toDiagnosis(result);
+        if (diagnosis === null) {
+          toast.error("The server returned no diagnosis");
+          return;
+        }
+        setLastTest(diagnosis);
+      })
       .catch(() => toast.error("Could not test the server"))
       .finally(() => setTesting(false));
   };

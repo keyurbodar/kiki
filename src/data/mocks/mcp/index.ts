@@ -118,7 +118,17 @@ export const McpMock = mockGroup("mcp", (handlers) =>
           );
         }),
       )
-      .handle("listServers", () => Ref.get(mcpServers))
+      .handle("listServers", () =>
+        Effect.gen(function* () {
+          const rows = yield* Ref.get(mcpServers);
+          // The row's tool count is what the Tools section lists, so the two
+          // can never disagree on screen.
+          return rows.map((row) => ({
+            ...row,
+            toolCount: (sampleToolsByServer[row.id] ?? []).length,
+          }));
+        }),
+      )
       .handle("createServer", ({ payload }) =>
         Effect.gen(function* () {
           const input = fields(payload);
@@ -129,6 +139,9 @@ export const McpMock = mockGroup("mcp", (handlers) =>
             url: text(input.url, "https://mcp.example.com/custom"),
             transport: text(input.transport, "http"),
             status: "needs_auth",
+            createdAt: DateTime.formatIso(minutesAgo(0)),
+            updatedAt: DateTime.formatIso(minutesAgo(0)),
+            lastCheckedAt: DateTime.formatIso(minutesAgo(0)),
           };
           yield* Ref.update(mcpServers, (rows) => [...rows, server]);
           return server;
@@ -203,7 +216,7 @@ export const McpMock = mockGroup("mcp", (handlers) =>
           }));
           return {
             state,
-            authorizationUrl: `https://mcp.example.com/oauth/authorize?state=${state}`,
+            authorizeUrl: `https://mcp.example.com/oauth/authorize?state=${state}`,
             redirectUri,
           };
         }),
@@ -242,23 +255,27 @@ export const McpMock = mockGroup("mcp", (handlers) =>
         Effect.gen(function* () {
           const server = yield* requireServer(params.serverId);
           const input = fields(payload);
-          const status =
-            server.status === "disabled"
-              ? "skipped"
-              : flag(input.verbose, false)
-                ? "ok"
-                : "ok";
-          const result = {
-            serverId: server.id,
-            status,
-            detail: `Reached ${server.url}`,
-            testedAt: DateTime.formatIso(minutesAgo(0)),
-          };
+          const verbose = flag(input.verbose, true);
+          const disabled = server.status === "disabled";
+          const tools = sampleToolsByServer[server.id] ?? [];
+          const status = disabled ? "skipped" : "ok";
           yield* Ref.update(tests, (rows) => ({
             ...rows,
             [server.id]: status,
           }));
-          return result;
+          return {
+            version: disabled ? null : "2025-06-18",
+            auth: server.status === "needs_auth" ? "oauth" : "none",
+            requestedScopes: [],
+            grantedScopes: [],
+            requiredScopes: null,
+            passed: disabled ? [] : ["connect", "protocol", "list"],
+            failure: disabled
+              ? { stage: "connect", code: "disabled", detail: "Server is off" }
+              : null,
+            toolCount: disabled ? null : tools.length,
+            machines: verbose ? [{ id: "machine_build", label: "build" }] : [],
+          };
         }),
       )
       .handle("serverTools", ({ params }) =>

@@ -163,7 +163,31 @@ export const PluginsMock = mockGroup("plugins", (handlers) =>
       .handle("getInstallation", ({ params }) =>
         Effect.gen(function* () {
           const rows = yield* Ref.get(installations);
-          return yield* lookupInstallation(rows, params.installationId);
+          const installation = yield* lookupInstallation(
+            rows,
+            params.installationId,
+          );
+          const published = yield* Ref.get(versions);
+          const ofPlugin = published.filter(
+            (version) => version.pluginKey === installation.pluginKey,
+          );
+          const running = ofPlugin.find(
+            (version) => version.id === installation.versionId,
+          );
+          // The badge and the Review page read one fact: when a newer version
+          // exists, the detail carries it, so they cannot disagree.
+          const available = installation.updateAvailable
+            ? ofPlugin
+                .filter((version) => version.id !== installation.versionId)
+                .toSorted((a, b) =>
+                  b.publishedAt.localeCompare(a.publishedAt),
+                )[0]
+            : undefined;
+          return {
+            ...installation,
+            runningVersion: running ?? null,
+            availableVersion: available ?? null,
+          };
         }),
       )
       .handle("patchInstallation", ({ params, payload }) =>

@@ -192,7 +192,7 @@ function PluginDetail({
                 status={plugin.enabled ? (status ?? "Not checked") : "Disabled"}
               />
             )}
-            {plugin.updateNeedsYou && (
+            {detail.pending !== null && (
               <Button
                 variant="soft"
                 size="sm"
