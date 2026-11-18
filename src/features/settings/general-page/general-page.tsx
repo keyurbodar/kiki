@@ -1,10 +1,20 @@
 import { useEffect, useState } from "react";
+import {
+  usePagesAtTop,
+  useSidebarLayout,
+} from "@/components/app-sidebar/preferences";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
-import { SidebarNavEditor } from "@/components/sidebar-nav-editor";
+import {
+  SIDEBAR_NAV_CONFIG,
+  sidebarNavPages,
+  toggleSidebarNavItem,
+  useSidebarNavPreference,
+} from "@/components/sidebar-nav-editor";
+import type { SidebarLayout } from "@/components/sidebar-threads";
 import { desktopBridge } from "@/lib/desktop-bridge";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
-import { Menu, MenuContent, MenuTrigger } from "@/primitives/menu";
+import { Icon } from "@/primitives/icon";
 import {
   MenuSelect,
   MenuSelectContent,
@@ -19,12 +29,10 @@ import {
   type Delivery,
   defaultInputPrefs,
   deliveryLabels,
-  desktopHandoffKey,
   type EnterAction,
   enterLabels,
   inputPrefsKey,
   isBoolean,
-  isDesktopHandoff,
   isInputPrefs,
   isLinkTarget,
   isPreviewLinkTarget,
@@ -37,6 +45,7 @@ import {
   scrollNewMessagesKey,
   searchEngineKey,
   searchEngines,
+  sidebarLayoutLabels,
 } from "./preferences";
 
 const isDesktop = () => desktopBridge() !== undefined;
@@ -79,11 +88,6 @@ function SelectControl<T extends string>({
 
 export function GeneralPage() {
   const desktop = isDesktop();
-  const [handoff, setHandoff] = useLocalPreference(
-    desktopHandoffKey,
-    "never",
-    isDesktopHandoff,
-  );
   const [input, setInput] = useLocalPreference(
     inputPrefsKey,
     defaultInputPrefs,
@@ -94,36 +98,9 @@ export function GeneralPage() {
     <SettingsPage title="General">
       <SettingsSection title="Interface">
         <Card rows>
-          <SettingsRow
-            id="sidebar"
-            label="Sidebar"
-            description="Choose which pages show on the sidebar's bottom bar"
-          >
-            <Menu>
-              <MenuTrigger render={<Button variant="ghost" size="sm" />}>
-                Pages
-              </MenuTrigger>
-              <MenuContent align="end" className="w-52">
-                <SidebarNavEditor />
-              </MenuContent>
-            </Menu>
-          </SettingsRow>
-          {!desktop && (
-            <SettingsRow
-              id="desktop-handoff"
-              label="Open links in desktop app"
-              description="Open Capy links in the installed desktop app"
-              className="max-md:hidden"
-            >
-              <Switch
-                checked={handoff === "always"}
-                onCheckedChange={(checked) =>
-                  setHandoff(checked ? "always" : "never")
-                }
-                aria-label="Open Capy links in the desktop app"
-              />
-            </SettingsRow>
-          )}
+          <SidebarPagesRow />
+          <SidebarLayoutRow />
+          <PagesAtTopRow />
           <ScrollNewMessagesRow />
         </Card>
       </SettingsSection>
@@ -173,6 +150,92 @@ export function GeneralPage() {
   );
 }
 
+function SidebarPagesRow() {
+  const [open, setOpen] = useState(false);
+  const [entries, save] = useSidebarNavPreference();
+  return (
+    <>
+      <SettingsRow
+        id="sidebar-pages"
+        label="Sidebar pages"
+        description="Choose which pages show in the sidebar"
+      >
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Edit sidebar pages"
+          aria-expanded={open}
+          aria-controls="sidebar-pages-editor"
+          onClick={() => setOpen(!open)}
+        >
+          <Icon name="pencil" size="sm" />
+        </Button>
+      </SettingsRow>
+      {open ? (
+        <div
+          id="sidebar-pages-editor"
+          className="flex flex-col gap-1 px-4 py-2"
+        >
+          {sidebarNavPages(entries).map((page) => {
+            const { label, icon: PageIcon } = SIDEBAR_NAV_CONFIG[page.item];
+            return (
+              <div key={page.item} className="flex items-center gap-2 py-1">
+                <span className="flex size-4 shrink-0 items-center justify-center text-icon-muted">
+                  <PageIcon />
+                </span>
+                <span className="text-sm text-foreground">{label}</span>
+                <Switch
+                  className="ml-auto"
+                  checked={page.hidden !== true}
+                  onCheckedChange={() =>
+                    save(toggleSidebarNavItem(entries, page.item))
+                  }
+                  aria-label={label}
+                />
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+function SidebarLayoutRow() {
+  const [layout, setLayout] = useSidebarLayout();
+  return (
+    <SettingsRow
+      id="sidebar-layout"
+      label="Sidebar layout"
+      description="Hybrid shows Captains above threads, Split shows one at a time"
+    >
+      <SelectControl<SidebarLayout>
+        items={sidebarLayoutLabels}
+        value={layout}
+        onValueChange={setLayout}
+        className="w-32"
+      />
+    </SettingsRow>
+  );
+}
+
+function PagesAtTopRow() {
+  const [pagesAtTop, setPagesAtTop] = usePagesAtTop();
+  return (
+    <SettingsRow
+      id="pages-at-top"
+      label="Pages at top"
+      description="List pages like Issues and Pull requests above Captains and threads"
+    >
+      <Switch
+        checked={pagesAtTop}
+        onCheckedChange={setPagesAtTop}
+        aria-label="Pages at top"
+      />
+    </SettingsRow>
+  );
+}
+
 function ScrollNewMessagesRow() {
   const [enabled, setEnabled] = useLocalPreference(
     scrollNewMessagesKey,
@@ -183,6 +246,7 @@ function ScrollNewMessagesRow() {
     <SettingsRow
       id="scroll-new-messages-to-top"
       label="Scroll new messages to top"
+      description="Keep your latest message at the top of the chat as the reply streams in below it"
     >
       <Switch
         checked={enabled}

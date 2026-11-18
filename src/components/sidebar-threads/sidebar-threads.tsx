@@ -515,7 +515,10 @@ export function SidebarThreads({
       />
     );
   }
-  const captains = view.mode === "captains";
+  const split = view.layout === "split";
+  const captainsMode = view.mode === "captains";
+  const showCaptains = split ? captainsMode : true;
+  const showThreads = split ? !captainsMode : true;
   const slim = view.density === "compact";
   const captainList = captainsSource ?? view.captains;
   const captainRows =
@@ -562,25 +565,36 @@ export function SidebarThreads({
         className="min-h-0 flex-1"
         viewportClassName="[scroll-timeline:--threads-scroll]"
       >
-        <div className="sticky top-0 z-1 flex h-8 shrink-0 items-center gap-1 bg-panel px-2 pb-1">
-          {leading}
-          <span className="px-2 text-sm font-medium text-foreground select-none">
-            Captains
-          </span>
-          <div className="ml-auto flex items-center">{captainActions}</div>
-        </div>
+        {showCaptains ? (
+          <div className="sticky top-0 z-1 flex h-8 shrink-0 items-center gap-1 bg-panel px-2 pb-1">
+            {leading}
+            <span className="px-2 text-sm font-medium text-foreground select-none">
+              Captains
+            </span>
+            <div className="ml-auto flex items-center">{captainActions}</div>
+          </div>
+        ) : null}
         <div className="flex min-h-full flex-col px-2">
           {/* biome-ignore lint/a11y/useSemanticElements: Capy's sidebar list is a div with role=list */}
           <div role="list" className="flex flex-col">
-            <PinnedCaptains
-              captains={captainList}
-              activeId={view.activeId}
-              renderPreview={renderCaptain}
-            />
-            {captainRows}
-            {captains ? null : (
+            {showCaptains ? (
               <>
-                <div className="mt-(--sidebar-section-gap) flex h-8 shrink-0 items-center gap-1 pb-1">
+                <PinnedCaptains
+                  captains={captainList}
+                  activeId={view.activeId}
+                  renderPreview={renderCaptain}
+                />
+                {captainRows}
+              </>
+            ) : null}
+            {showThreads ? (
+              <>
+                <div
+                  className={cx(
+                    "flex h-8 shrink-0 items-center gap-1 pb-1",
+                    showCaptains && "mt-(--sidebar-section-gap)",
+                  )}
+                >
                   <span className="px-2 text-sm font-medium text-foreground select-none">
                     Threads
                   </span>
@@ -594,7 +608,7 @@ export function SidebarThreads({
                   onNewThread={onNewThread}
                 />
               </>
-            )}
+            ) : null}
           </div>
         </div>
       </ScrollArea>
