@@ -10,6 +10,7 @@ import {
   type Row,
   readString,
   THINKING_STANDIN_ID,
+  toolNamespace,
   unwrapToolCall,
 } from "./shared";
 
@@ -487,6 +488,7 @@ const streamingRows = (live: LiveTurn): ReadonlyArray<Row> => {
           kind: "tool",
           id: block.toolCallId,
           toolName,
+          namespace: toolNamespace(toolName),
           args,
           phase: "running",
           result: undefined,
@@ -520,6 +522,7 @@ const streamingRows = (live: LiveTurn): ReadonlyArray<Row> => {
           kind: "tool",
           id: block.toolCallId,
           toolName: block.toolName,
+          namespace: toolNamespace(block.toolName),
           args: live.formingArgs.get(block.toolCallId) ?? {},
           phase: "forming",
           result: undefined,
