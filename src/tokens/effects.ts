@@ -19,7 +19,13 @@ export const DEFAULT_BACKGROUND_EFFECT: BackgroundEffect = "dither";
 export const SHADER_INK_FALLBACK = "#778abd";
 export const SHADER_MONO_FALLBACK = "#8c8c8c";
 
-/* Dashboard wallpaper dither (image shader). */
+/*
+ * Dashboard wallpaper dither (image shader).
+ *
+ * Capy mounts its wallpaper dither with `speed: 0, frame: 0`, so its pattern
+ * holds still. Keyur asked for ours to move, so `speed` and `fps` advance the
+ * frame here: this is a deliberate divergence, not a parity gap to "fix" back.
+ */
 export const WALLPAPER_DITHER = {
   type: "8x8",
   size: 2,
@@ -27,6 +33,8 @@ export const WALLPAPER_DITHER = {
   originalColors: true,
   fit: "cover",
   minPixelRatio: 1,
+  speed: 0.4,
+  fps: 30,
 } as const;
 
 /* The WebGL context Paper's image shader is mounted with. */

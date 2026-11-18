@@ -56,7 +56,7 @@ function watchVisibility(element: Element, listener: VisibilityListener) {
 }
 
 /** Drive the shader's frame ourselves at a capped fps, only while it is on screen. */
-function useShaderClock(
+export function useShaderClock(
   ref: RefObject<PaperShaderElement | null>,
   {
     animate,
