@@ -117,8 +117,7 @@ export function ThreadRoute({
         ) : undefined
       }
       dock={
-        entry !== undefined &&
-        surfaceOf(entry) === "dock" && (
+        entry !== undefined && surfaceOf(entry) === "dock" ? (
           <ThreadDock
             threadId={threadId}
             tabs={dockTabs()}
@@ -145,7 +144,7 @@ export function ThreadRoute({
           >
             <entry.component threadId={threadId} />
           </ThreadDock>
-        )
+        ) : undefined
       }
       topBar={
         <ThreadHeader
