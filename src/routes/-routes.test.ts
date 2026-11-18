@@ -21,6 +21,7 @@ const DEV_ONLY_ROUTES = new Set([
   "/__markdown",
   "/__toasts",
   "/__skeletons",
+  "/__tool-output",
 ]);
 
 // Capy ships /design as an internal render page; we deliberately do not implement it,
