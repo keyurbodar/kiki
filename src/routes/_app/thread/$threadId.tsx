@@ -19,8 +19,7 @@ import { ThreadCostBadge } from "@/features/thread/cost-badge";
 import type { EditTarget } from "@/features/thread/message-footer";
 import {
   activeTabId,
-  dockTabs,
-  mainTabs,
+  openTabs,
   ThreadHeader,
   type ThreadTakeoverHandlers,
   ThreadView,
@@ -131,18 +130,14 @@ export function ThreadRoute({
         entry !== undefined && surfaceOf(entry) === "dock" ? (
           <ThreadDock
             threadId={threadId}
-            tabs={dockTabs()}
-            activeId={
-              entry !== undefined && surfaceOf(entry) === "dock" ? activeId : ""
-            }
+            tabs={openTabs(entry)}
+            activeId={activeId}
             title={thread?.title ?? "Untitled thread"}
             menu={{ sideThreads }}
             expanded={expanded}
             onSelectTab={(id) => onSelectPane?.(id)}
             onOpenTab={(tab) => onSelectPane?.(tabKey(tab))}
-            onCloseTab={(id) => {
-              if (id === activeId) onSelectPane?.(undefined);
-            }}
+            onCloseTab={() => onSelectPane?.(undefined)}
             onClose={() => onSelectPane?.(undefined)}
             onToggleExpand={() => setExpanded((current) => !current)}
             onCopyLink={(path) =>
@@ -164,7 +159,11 @@ export function ThreadRoute({
           threadId={threadId}
           title={thread?.title ?? "Untitled thread"}
           working={thread?.status === "working"}
-          tabs={mainTabs()}
+          tabs={
+            entry !== undefined && surfaceOf(entry) === "main"
+              ? openTabs(entry)
+              : []
+          }
           activeId={activeId}
           menu={{ sideThreads }}
           cost={
@@ -175,9 +174,8 @@ export function ThreadRoute({
           expanded={expanded}
           onSelectChat={() => onSelectPane?.(undefined)}
           onSelectTab={(id) => onSelectPane?.(id)}
-          onCloseTab={(id) => {
-            if (id === activeId) onSelectPane?.(undefined);
-          }}
+          onOpenBrowser={() => onSelectPane?.("browser")}
+          onCloseTab={() => onSelectPane?.(undefined)}
           onCopyLink={(path) =>
             void copyText(
               `${window.location.origin}${path}`,

@@ -4,7 +4,13 @@ export {
   type ThreadHeaderProps,
   threadHeaderClassName,
 } from "./thread-header";
-export { activeTabId, dockTabs, mainTabs, paneTabs } from "./thread-tabs";
+export {
+  activeTabId,
+  dockTabs,
+  mainTabs,
+  openTabs,
+  paneTabs,
+} from "./thread-tabs";
 export {
   type ThreadTakeoverHandlers,
   ThreadView,

@@ -223,7 +223,10 @@ describe("thread route header", () => {
       ).not.toBeNull();
     });
     expect(router.state.location.search).toEqual({});
-    fireEvent.click(screen.getByText("Diffs"));
+    const [openTab] = screen.getAllByLabelText("Open a tab");
+    if (openTab === undefined) throw new Error("No open-a-tab control");
+    fireEvent.click(openTab);
+    fireEvent.click(await screen.findByText("Diffs"));
     await waitFor(() => {
       expect(
         document
@@ -279,6 +282,48 @@ describe("thread route header", () => {
       expect(paneTab(param)?.querySelector("[data-selected]")).not.toBeNull();
       cleanup();
     }
+  });
+
+  it("lists the open pane, not the registry's catalogue", async () => {
+    await renderRoute("/thread/jam_sample_0001");
+    await waitForStrip();
+    for (const id of ["setup", "files", "issues", "overview", "diffs"])
+      expect(paneTab(id)).toBeUndefined();
+  });
+
+  it("adds exactly the tab a pane opens", async () => {
+    await renderRoute("/thread/jam_sample_0001");
+    fireEvent.click(await screen.findByLabelText("Open a tab"));
+    fireEvent.click(await screen.findByText("Files"));
+    await waitFor(() => expect(paneTab("files")).toBeDefined());
+    const tabs = [...document.querySelectorAll("[data-pane-tab]")].map((el) =>
+      el.getAttribute("data-pane-tab"),
+    );
+    expect(tabs).toEqual(["chat", "files"]);
+  });
+
+  it("drops the pane the strip closes", async () => {
+    const router = await renderRoute("/thread/jam_sample_0001?pane=overview");
+    await waitFor(() => {
+      expect(
+        paneTab("overview")?.querySelector("[data-selected]"),
+      ).not.toBeNull();
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Close Overview" }));
+    await waitFor(() => expect(paneTab("overview")).toBeUndefined());
+    expect(router.state.location.search).toEqual({});
+  });
+
+  it("opens a browser pane from the strip's menu", async () => {
+    await renderRoute("/thread/jam_sample_0001");
+    fireEvent.click(await screen.findByLabelText("Open a tab"));
+    fireEvent.click(await screen.findByText("Browser"));
+    await waitFor(() =>
+      expect(
+        document.querySelector('[data-slot="browser-pane"]'),
+      ).not.toBeNull(),
+    );
+    expect(paneTab("chat")?.querySelector("[data-selected]")).toBeNull();
   });
 
   it("renders one header bar, not a bar inside a bar", async () => {
