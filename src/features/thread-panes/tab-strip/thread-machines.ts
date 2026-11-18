@@ -2,9 +2,11 @@ import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { useMemo } from "react";
 import type { JamId, OrgId } from "@/data/api/schemas/ids";
+import { idleAtom } from "@/data/atoms/idle";
 import {
   machinePreviewsAtom,
   machineSessionsAtom,
+  projectSetupAtom,
   threadMachinesAtom,
 } from "@/data/atoms/setup";
 import type {
@@ -90,11 +92,12 @@ const servicesOf = (
   });
 
 /**
- * The project's launchable commands, which the machine carries with its setup:
- * one row per repository command, named as the setup names it.
+ * The project's launchable commands, from the setup the project carries: one
+ * row per repository command, named as the setup names it. `machines.list`
+ * carries no setup, so the project's own setup read is the producer.
  */
-const commandsOf = (machine: JsonRecord): ReadonlyArray<CommandEntry> =>
-  rows(machine.setup, "repositories").flatMap((value) => {
+const commandsOf = (setup: unknown): ReadonlyArray<CommandEntry> =>
+  rows(setup, "repositories").flatMap((value) => {
     const repo = record(value);
     const repository = text(repo.repository) ?? text(repo.repoFullName);
     if (repository === null) return [];
@@ -106,6 +109,8 @@ const commandsOf = (machine: JsonRecord): ReadonlyArray<CommandEntry> =>
       return [{ name, command: line, repository }];
     });
   });
+
+const noSetupAtom = idleAtom<unknown>();
 
 export type MachineBrowserSession = {
   readonly id: string;
@@ -160,6 +165,7 @@ export function useMachineBrowserSession(
 export function useThreadMachineEntries(
   orgId: OrgId | undefined,
   threadId: JamId,
+  projectId?: string | undefined,
 ): ReadonlyArray<MachineEntry> {
   // The route resolves the org from the session read, so a missing one is the
   // pre-resolution frame; the same empty key the timeline and edit draft use.
@@ -176,6 +182,11 @@ export function useThreadMachineEntries(
   const sessions = useAtomValue(
     machineSessionsAtom(org, threadId, firstMachineId),
   );
+  // A thread with no project has no setup to read, and a setup read keyed on an
+  // empty project id would subscribe to a key nothing fills.
+  const setup = useAtomValue(
+    projectId === undefined ? noSetupAtom : projectSetupAtom(org, projectId),
+  );
   return useMemo(() => {
     if (orgId === undefined) return [];
     const machineRows = AsyncResult.isSuccess(machines)
@@ -187,6 +198,7 @@ export function useThreadMachineEntries(
     const sessionValue = AsyncResult.isSuccess(sessions)
       ? sessions.value
       : undefined;
+    const setupValue = AsyncResult.isSuccess(setup) ? setup.value : undefined;
     return machineRows.flatMap((value) => {
       const machine = record(value);
       const machineId = text(machine.id);
@@ -197,7 +209,7 @@ export function useThreadMachineEntries(
       const terminals =
         machineId === firstMachineId ? terminalsOf(sessionValue) : [];
       const services = servicesOf(previewValue, machineId, repository);
-      const commands = commandsOf(machine);
+      const commands = commandsOf(setupValue);
       return [
         {
           machineId,
@@ -211,5 +223,5 @@ export function useThreadMachineEntries(
         },
       ];
     });
-  }, [orgId, machines, previews, sessions, firstMachineId]);
+  }, [orgId, machines, previews, sessions, setup, firstMachineId]);
 }
