@@ -112,10 +112,26 @@ export function ListingAddAction({
       },
       reactivityKeys: [userThemeKey()],
     }).then(
-      () =>
+      (created) => {
+        // Capy picks the theme as part of adding it, and picks it through the
+        // same writer the appearance page uses — a second writer is how the two
+        // surfaces drift apart.
+        const saved = created as { id?: unknown; name?: unknown };
+        appearanceActions.selectColorTheme({
+          kind: "custom",
+          id: typeof saved.id === "string" ? saved.id : card.slug,
+          name:
+            typeof saved.name === "string"
+              ? saved.name
+              : card.displayName.slice(0, 40),
+          light: next.light,
+          dark: next.dark,
+        });
+        appearanceActions.updatePreferences({ effect: next.effect });
         recordAdded([
           { kind: "theme", slug: card.slug, versionId: card.versionId },
-        ]),
+        ]);
+      },
       (error: unknown) =>
         toast.error(errorMessage(error, `Could not add ${card.displayName}`)),
     );
