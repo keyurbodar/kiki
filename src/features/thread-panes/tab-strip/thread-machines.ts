@@ -2,11 +2,15 @@ import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { useMemo } from "react";
 import type { JamId, OrgId } from "@/data/api/schemas/ids";
-import { threadSessionsAtom } from "@/data/atoms/sessions";
-import { threadMachinesAtom } from "@/data/atoms/setup";
+import {
+  machinePreviewsAtom,
+  machineSessionsAtom,
+  threadMachinesAtom,
+} from "@/data/atoms/setup";
 import type {
   CommandEntry,
   MachineEntry,
+  ServiceEntry,
   TerminalEntry,
 } from "./thread-options";
 
@@ -55,22 +59,34 @@ const statusOf = (
   }
 };
 
-/** The shells the thread opened on this machine, each of which opens as a tab. */
-const terminalsOf = (
-  sessions: unknown,
-  machineId: string,
-): ReadonlyArray<TerminalEntry> =>
+/** The shells open on this machine, each of which opens as a tab. */
+const terminalsOf = (sessions: unknown): ReadonlyArray<TerminalEntry> =>
   rows(sessions, "sessions").flatMap((value) => {
     const session = record(value);
-    const clientId = text(session.clientId);
-    if (
-      clientId === null ||
-      text(session.kind) !== "terminal" ||
-      text(session.machineId) !== machineId
-    ) {
-      return [];
-    }
-    return [{ id: clientId, label: text(session.label) ?? "Shell" }];
+    const id = text(session.id);
+    if (id === null || text(session.kind) !== "shell") return [];
+    return [{ id, label: text(session.label) ?? "Shell" }];
+  });
+
+/** The previews running on this machine, each of which opens as a tab. */
+const servicesOf = (
+  previews: unknown,
+  machineId: string,
+  repository: string,
+): ReadonlyArray<ServiceEntry> =>
+  rows(previews, "previews").flatMap((value) => {
+    const preview = record(value);
+    const label = text(preview.label);
+    if (label === null || text(preview.machineId) !== machineId) return [];
+    const running = text(preview.status) === "running";
+    return [
+      {
+        name: label,
+        repository,
+        statusLabel: running ? "Running" : "Stopped",
+        statusColor: running ? "success" : "neutral",
+      },
+    ];
   });
 
 /**
@@ -104,12 +120,25 @@ export function useThreadMachineEntries(
   // pre-resolution frame; the same empty key the timeline and edit draft use.
   const org = (orgId ?? "") as OrgId;
   const machines = useAtomValue(threadMachinesAtom(org, threadId));
-  const sessions = useAtomValue(threadSessionsAtom(org, threadId));
+  const previews = useAtomValue(machinePreviewsAtom(org, threadId));
+  // A thread holds one machine in practice, and a hook cannot run per row, so
+  // the first machine's shells are the ones the menu lists.
+  const firstMachineId =
+    AsyncResult.isSuccess(machines) &&
+    rows(machines.value, "machines").length > 0
+      ? (text(record(rows(machines.value, "machines")[0]).id) ?? "")
+      : "";
+  const sessions = useAtomValue(
+    machineSessionsAtom(org, threadId, firstMachineId),
+  );
   return useMemo(() => {
     if (orgId === undefined) return [];
     const machineRows = AsyncResult.isSuccess(machines)
       ? rows(machines.value, "machines")
       : [];
+    const previewValue = AsyncResult.isSuccess(previews)
+      ? previews.value
+      : undefined;
     const sessionValue = AsyncResult.isSuccess(sessions)
       ? sessions.value
       : undefined;
@@ -119,7 +148,10 @@ export function useThreadMachineEntries(
       if (machineId === null) return [];
       const state = stateOf(text(machine.status) ?? text(machine.state));
       const status = statusOf(state);
-      const terminals = terminalsOf(sessionValue, machineId);
+      const repository = text(machine.repoFullName) ?? "";
+      const terminals =
+        machineId === firstMachineId ? terminalsOf(sessionValue) : [];
+      const services = servicesOf(previewValue, machineId, repository);
       const commands = commandsOf(machine);
       return [
         {
@@ -129,9 +161,10 @@ export function useThreadMachineEntries(
           statusColor: status.color,
           device: machine.kind === "device",
           ...(terminals.length === 0 ? {} : { terminals }),
+          ...(services.length === 0 ? {} : { services }),
           ...(commands.length === 0 ? {} : { commands }),
         },
       ];
     });
-  }, [orgId, machines, sessions]);
+  }, [orgId, machines, previews, sessions, firstMachineId]);
 }

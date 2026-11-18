@@ -13,6 +13,7 @@ import {
   resolveActiveOrgId,
   selectedOrgIdAtom,
 } from "@/data/atoms/session";
+import { wakeMachineAtom } from "@/data/atoms/thread-devices";
 import { useThreadsAtom } from "@/data/atoms/threads";
 import { useCaptainCrew } from "@/features/captains/overview/use-captain";
 import {
@@ -146,6 +147,13 @@ export function ThreadRoute({
     orgId as OrgId | undefined,
     threadId as JamId,
   );
+  const wakeMachine = useAtomSet(wakeMachineAtom);
+  const onWake = (machineId: string) => {
+    if (orgId === undefined) return;
+    void wakeMachine({
+      params: { orgId: orgId as OrgId, jamId: threadId as JamId, machineId },
+    });
+  };
   const menuCrew = crew?.map((row) => ({
     id: row.id,
     title: row.title,
@@ -294,7 +302,13 @@ export function ThreadRoute({
             activeId={headerActiveId}
             canExpand={dockOpen}
             onOpenPane={() => openInStrip("overview")}
-            menu={{ sideThreads, pulls: pullEntries, crew: menuCrew, machines }}
+            menu={{
+              sideThreads,
+              pulls: pullEntries,
+              crew: menuCrew,
+              machines,
+              onWake,
+            }}
             cost={
               orgId === undefined ? undefined : (
                 <ThreadCostBadge orgId={orgId} jamId={threadId} />
