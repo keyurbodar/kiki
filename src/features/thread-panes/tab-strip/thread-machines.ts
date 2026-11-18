@@ -107,6 +107,51 @@ const commandsOf = (machine: JsonRecord): ReadonlyArray<CommandEntry> =>
     });
   });
 
+export type MachineBrowserSession = {
+  readonly id: string;
+  readonly url: string;
+  readonly title: string;
+};
+
+/**
+ * The browser session open on the thread's machine. Capy's `Browser` row opens
+ * a tab for the session the machine already has rather than creating one, and
+ * `machines.sessions` is the read that carries it.
+ */
+export function useMachineBrowserSession(
+  orgId: OrgId | undefined,
+  threadId: JamId,
+): MachineBrowserSession | undefined {
+  const org = (orgId ?? "") as OrgId;
+  const machines = useAtomValue(threadMachinesAtom(org, threadId));
+  const firstMachineId =
+    AsyncResult.isSuccess(machines) &&
+    rows(machines.value, "machines").length > 0
+      ? (text(record(rows(machines.value, "machines")[0]).id) ?? "")
+      : "";
+  const sessions = useAtomValue(
+    machineSessionsAtom(org, threadId, firstMachineId),
+  );
+  return useMemo(() => {
+    if (orgId === undefined || !AsyncResult.isSuccess(sessions))
+      return undefined;
+    for (const value of rows(sessions.value, "sessions")) {
+      const session = record(value);
+      const id = text(session.id);
+      const url = text(session.url);
+      if (id === null || url === null || text(session.kind) !== "browser") {
+        continue;
+      }
+      return {
+        id,
+        url,
+        title: text(session.title) ?? text(session.label) ?? url,
+      };
+    }
+    return undefined;
+  }, [orgId, sessions]);
+}
+
 /**
  * The machine section of the tab menu, from `machines.list` and the thread's
  * sessions. One entry per machine the thread holds; a thread with no machine

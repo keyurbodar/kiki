@@ -3,6 +3,7 @@ import { AsyncResult } from "effect/reactivity";
 import { lazy, Suspense } from "react";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { overviewPullsAtom } from "@/data/atoms/overview";
+import { BrowserPane } from "@/features/thread-panes/browser-pane";
 import { MachinePathView } from "@/features/thread-panes/machine-path-view";
 import { parsePull, valueList } from "@/features/thread-panes/overview/parse";
 import type { PaneTab } from "@/features/thread-panes/tab-strip";
@@ -77,6 +78,12 @@ export function PaneContent({
           jamId={tab.jamId ?? threadId}
           path={tab.path}
         />
+      );
+    case "browser":
+      return (
+        <Suspense fallback={null}>
+          <BrowserPane threadId={threadId} sessionId={tab.id} url={tab.url} />
+        </Suspense>
       );
     default: {
       const entry = findPane(tab.kind);

@@ -26,6 +26,8 @@ export type ThreadDockProps = {
   onSelectTab: (id: string) => void;
   onCloseTab?: (id: string) => void;
   onOpenTab?: (tab: PaneTab) => void;
+  /** Opens the thread machine's browser session as a dock tab. */
+  onOpenBrowser?: () => void;
   /** Receives the path of the selected tab's link. */
   onToggleExpand?: () => void;
   onClose?: () => void;
@@ -49,6 +51,7 @@ export function ThreadDock({
   onSelectTab,
   onCloseTab,
   onOpenTab,
+  onOpenBrowser,
   onToggleExpand,
   onClose,
   children,
@@ -70,6 +73,7 @@ export function ThreadDock({
           onSelectTab={onSelectTab}
           onCloseTab={onCloseTab}
           onOpenTab={onOpenTab}
+          onOpenBrowser={onOpenBrowser}
         />
         {onToggleExpand && (
           <Tooltip>

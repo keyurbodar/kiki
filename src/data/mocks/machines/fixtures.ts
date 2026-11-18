@@ -142,7 +142,19 @@ export const sessions: ReadonlyArray<{
   readonly kind: string;
   readonly label: string;
   readonly startedAt: string;
+  /** A browser session's address and page title; absent for a shell. */
+  readonly url?: string;
+  readonly title?: string;
 }> = [
+  {
+    id: "sess_sample_browser",
+    machineId: machines[0].id,
+    kind: "browser",
+    label: "Browser",
+    startedAt: isoMinutesAgo(90),
+    url: "https://example.com/acme/web",
+    title: "acme/web",
+  },
   {
     id: "sess_sample_shell",
     machineId: machines[0].id,
