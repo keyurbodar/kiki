@@ -4,9 +4,10 @@ import { themesAtom } from "@/data/atoms/appearance";
 import {
   COLOR_THEME_IDS,
   COLOR_THEME_LABELS,
+  CUSTOM_THEME_ATTR,
   type PresetColorTheme,
 } from "@/tokens/theme";
-import type { ThemeColors } from "./palette";
+import { type ThemeColors, themeCss } from "./palette";
 
 export interface UserTheme extends ThemeColors {
   readonly id: string;
@@ -42,11 +43,23 @@ export const userThemesFrom = (value: unknown): ReadonlyArray<UserTheme> => {
     ? value
     : (value as { themes?: unknown } | null)?.themes;
   return Array.isArray(themes)
-    ? (themes as ReadonlyArray<UserTheme>).filter(
-        (theme) => theme.light !== undefined && theme.dark !== undefined,
+    ? (themes as ReadonlyArray<UserTheme | null | undefined>).filter(
+        (theme): theme is UserTheme =>
+          typeof theme === "object" &&
+          theme !== null &&
+          theme.light !== undefined &&
+          theme.dark !== undefined,
       )
     : [];
 };
+
+/** The custom-theme choice the storage and boot paths need: palette pre-rendered. */
+export const customColorThemeChoice = (theme: UserTheme) => ({
+  kind: "custom" as const,
+  id: theme.id,
+  name: theme.name,
+  css: themeCss(CUSTOM_THEME_ATTR, theme),
+});
 
 export function useUserThemes(): ReadonlyArray<UserTheme> | undefined {
   const result = useAtomValue(themesAtom);

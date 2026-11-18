@@ -1,8 +1,12 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
-import { queryTimeToLive } from "@/data/atoms/conventions";
+import { themesAtom, userThemeKey } from "@/data/atoms/appearance";
 import { ApiClient } from "@/data/client/ApiClient";
+import {
+  customColorThemeChoice,
+  userThemesFrom,
+} from "@/features/settings-appearance/model/theme-options";
 import {
   type ColorThemeChoice,
   colorThemeKey,
@@ -15,33 +19,15 @@ import {
 
 export type CustomColorTheme = Extract<ColorThemeChoice, { kind: "custom" }>;
 
-const userThemesKey = "user_theme";
-
-export const userThemesAtom = ApiClient.query("themes", "list", {
-  reactivityKeys: [userThemesKey],
-  timeToLive: queryTimeToLive,
-});
-
 export const removeUserThemeAtom = ApiClient.mutation("themes", "remove");
 
 export const toCustomColorThemes = (value: unknown): CustomColorTheme[] =>
-  Array.isArray(value)
-    ? value.flatMap((theme: unknown) =>
-        typeof theme === "object" &&
-        theme !== null &&
-        "id" in theme &&
-        "name" in theme &&
-        typeof theme.id === "string" &&
-        typeof theme.name === "string"
-          ? [{ kind: "custom" as const, id: theme.id, name: theme.name }]
-          : [],
-      )
-    : [];
+  userThemesFrom(value).map(customColorThemeChoice);
 
 export function useColorThemeOptions() {
   const { displayedColorTheme } = useAppearance();
   const custom = toCustomColorThemes(
-    Option.getOrUndefined(AsyncResult.value(useAtomValue(userThemesAtom))),
+    Option.getOrUndefined(AsyncResult.value(useAtomValue(themesAtom))),
   );
   const options = [...PRESET_COLOR_THEME_CHOICES, ...custom];
   return {
@@ -60,7 +46,7 @@ export function useDeleteColorTheme() {
   return (theme: CustomColorTheme) =>
     remove({
       params: { themeId: theme.id },
-      reactivityKeys: [userThemesKey],
+      reactivityKeys: [userThemeKey()],
     }).then(() => {
       if (sameColorTheme(readColorTheme(), theme)) {
         setColorTheme({ kind: "default" });
