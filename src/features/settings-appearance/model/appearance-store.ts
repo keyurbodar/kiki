@@ -38,10 +38,20 @@ export const DEFAULT_BACKGROUND_ADJUSTMENTS: BackgroundAdjustments = {
   inputOpacity: 100,
 };
 
+/** A quarter turn is what Capy's background editor offers, and all it stores. */
+export const BACKGROUND_ROTATIONS = [0, 90, 180, 270] as const;
+export type BackgroundRotation = (typeof BACKGROUND_ROTATIONS)[number];
+
+export const isBackgroundRotation = (
+  value: unknown,
+): value is BackgroundRotation =>
+  BACKGROUND_ROTATIONS.some((rotation) => rotation === value);
+
 export interface DashboardBackground {
   readonly name: string;
   readonly url: string;
   readonly appearance: BackgroundAdjustments;
+  readonly rotation: BackgroundRotation;
 }
 
 export type CodeFontSize = "default" | "11" | "12" | "13" | "14" | "15" | "16";
@@ -141,7 +151,11 @@ const readState = (): AppearanceState => {
 const persistedBackground = (background: DashboardBackground | null) =>
   background === null
     ? null
-    : { name: background.name, appearance: background.appearance };
+    : {
+        name: background.name,
+        appearance: background.appearance,
+        rotation: background.rotation,
+      };
 
 export function applyAppearance(
   state: AppearanceState,
@@ -185,6 +199,7 @@ const persistBackground = (background: DashboardBackground | null) => {
             name: background.name,
             blob,
             appearance: background.appearance,
+            rotation: background.rotation,
           }));
   void saved
     .then((file) => saveBackgroundFile(file))
@@ -279,6 +294,7 @@ const legacyBackground = async (
         name: background.name,
         blob,
         appearance: background.appearance,
+        rotation: background.rotation,
       };
 };
 
@@ -301,20 +317,28 @@ export const hydrateBackground = () => {
       (await readBackgroundFile().catch(() => null)) ??
       (await legacyBackground(legacy));
     if (stored === null) return;
+    // IndexedDB holds the bytes; localStorage holds how they are drawn, so a
+    // slider or a quarter turn does not rewrite megabytes to storage.
     const appearance =
-      stored.appearance ?? legacy?.appearance ?? DEFAULT_BACKGROUND_ADJUSTMENTS;
+      legacy?.appearance ?? stored.appearance ?? DEFAULT_BACKGROUND_ADJUSTMENTS;
+    const rotation = isBackgroundRotation(legacy?.rotation)
+      ? legacy.rotation
+      : isBackgroundRotation(stored.rotation)
+        ? stored.rotation
+        : 0;
     const url = URL.createObjectURL(stored.blob);
     savedUrl = url;
     await saveBackgroundFile({
       name: stored.name,
       blob: stored.blob,
       appearance,
+      rotation,
     }).catch(() => {});
     commit({
       ...getAppearance(),
       preferences: {
         ...getAppearance().preferences,
-        background: { name: stored.name, url, appearance },
+        background: { name: stored.name, url, appearance, rotation },
       },
     });
   })().catch(() => {});

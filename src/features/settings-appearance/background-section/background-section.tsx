@@ -10,6 +10,15 @@ import {
 } from "@/data/atoms/appearance";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/primitives/dialog";
 import { Icon } from "@/primitives/icon";
 import { SettingsRow } from "@/primitives/settings-row";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
@@ -25,8 +34,10 @@ import {
 import {
   appearanceActions,
   BACKGROUND_EFFECT_LABELS,
+  BACKGROUND_ROTATIONS,
   type BackgroundAdjustments,
   type BackgroundEffect,
+  type BackgroundRotation,
   DEFAULT_BACKGROUND_ADJUSTMENTS,
   useAppearance,
 } from "../model/appearance-store";
@@ -61,10 +72,79 @@ interface Wallpaper {
 const errorMessage = (error: unknown, fallback: string) =>
   error instanceof Error && error.message !== "" ? error.message : fallback;
 
+/**
+ * Capy's background editor turns the image a quarter at a time; the editor
+ * applies on Apply, not on every press.
+ */
+function BackgroundAdjustDialog({
+  open,
+  rotation,
+  onOpenChange,
+  onApply,
+}: {
+  open: boolean;
+  rotation: BackgroundRotation;
+  onOpenChange: (open: boolean) => void;
+  onApply: (rotation: BackgroundRotation) => void;
+}) {
+  const [draft, setDraft] = useState(rotation);
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (next) setDraft(rotation);
+        onOpenChange(next);
+      }}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Adjust dashboard background</DialogTitle>
+          <DialogDescription>
+            Turn the image a quarter turn at a time
+          </DialogDescription>
+        </DialogHeader>
+        {/* biome-ignore lint/a11y/useSemanticElements: Capy offers the rotation as a radio group of buttons */}
+        <div
+          role="radiogroup"
+          aria-label="Background rotation"
+          className="kiki-rotation-row"
+        >
+          {BACKGROUND_ROTATIONS.map((degrees) => (
+            // biome-ignore lint/a11y/useSemanticElements: a radio input cannot carry the quarter-turn label
+            <button
+              key={degrees}
+              type="button"
+              role="radio"
+              aria-checked={draft === degrees}
+              aria-label={`Rotate ${degrees} degrees`}
+              onClick={() => setDraft(degrees)}
+              className="kiki-rotation-option cursor-pointer rounded-md border-[length:--spacing(0.125)] border-border-2 bg-muted text-sm text-muted-foreground-1 outline-none hover:bg-card-hover focus-visible:outline-ring-inset aria-checked:border-primary aria-checked:text-foreground"
+            >
+              {degrees}°
+            </button>
+          ))}
+        </div>
+        <DialogFooter>
+          <DialogClose render={<Button variant="ghost" />}>Cancel</DialogClose>
+          <Button
+            onClick={() => {
+              onApply(draft);
+              onOpenChange(false);
+            }}
+          >
+            Apply
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function HomeBackgroundControl() {
   const { preferences } = useAppearance();
   const background = preferences.background;
   const input = useRef<HTMLInputElement>(null);
+  const [adjusting, setAdjusting] = useState(false);
   return (
     <div className="flex items-center gap-2">
       <input
@@ -85,6 +165,7 @@ function HomeBackgroundControl() {
                   url: URL.createObjectURL(prepared.blob),
                   appearance:
                     background?.appearance ?? DEFAULT_BACKGROUND_ADJUSTMENTS,
+                  rotation: background?.rotation ?? 0,
                 },
               }),
             (error: unknown) =>
@@ -108,9 +189,20 @@ function HomeBackgroundControl() {
             variant="ghost"
             size="icon-sm"
             aria-label="Adjust dashboard background"
+            onClick={() => setAdjusting(true)}
           >
             <Icon name="auto-crop" size="sm" />
           </Button>
+          <BackgroundAdjustDialog
+            open={adjusting}
+            rotation={background.rotation}
+            onOpenChange={setAdjusting}
+            onApply={(rotation) =>
+              appearanceActions.updatePreferences({
+                background: { ...background, rotation },
+              })
+            }
+          />
         </>
       )}
       <Button
@@ -165,6 +257,7 @@ function BackgroundControls() {
             image={background.url}
             effect={preferences.effect}
             appearance={appearance}
+            rotation={background.rotation}
           />
           <div
             className="relative w-full max-w-sm rounded-(--radius-card) p-3 shadow-composer"
@@ -249,6 +342,7 @@ function WallpaperTile({
               appearance:
                 preferences.background?.appearance ??
                 DEFAULT_BACKGROUND_ADJUSTMENTS,
+              rotation: preferences.background?.rotation ?? 0,
             },
           });
         }}

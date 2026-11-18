@@ -90,6 +90,7 @@ function MobileNewThreadForOrg({
               image={background.url}
               effect={preferences.effect}
               appearance={background.appearance}
+              rotation={background.rotation}
             />
           )}
         </>

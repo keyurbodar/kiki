@@ -98,6 +98,7 @@ export function ListingAddAction({
           name: card.displayName,
           url: wallpaper,
           appearance: DEFAULT_BACKGROUND_ADJUSTMENTS,
+          rotation: 0,
         },
       });
     }

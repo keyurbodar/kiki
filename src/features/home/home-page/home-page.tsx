@@ -337,6 +337,7 @@ function HomePageBody({
           image={background.url}
           effect={preferences.effect}
           appearance={background.appearance}
+          rotation={background.rotation}
         />
       )}
       <div className="relative flex flex-1 items-center justify-center px-6">
