@@ -82,6 +82,8 @@ export function mapThread(card: ThreadCard): SourceThread {
     settled: card.settledAt != null,
     createdAt: toDate(card.createdAt),
     updatedAt: toDate(card.updatedAt),
+    card,
+    description: card.preview,
   };
 }
 
