@@ -13,6 +13,7 @@ afterEach(cleanup);
 
 const card: ListingCard = {
   kind: "skill",
+  source: "catalog",
   slug: "plan-review",
   displayName: "Plan Review",
   description: "Stress-test a plan.",
@@ -67,4 +68,22 @@ it("drops the metadata column in identity mode", async () => {
   renderInRouter(() => <ListingRow card={card} metadata="identity" />);
   await screen.findByTestId("ready");
   expect(screen.queryByText("3 adds")).toBeNull();
+});
+
+it("marks a catalog listing as verified by Capy and leaves a user listing unmarked", async () => {
+  const { container, unmount } = renderInRouter(() => (
+    <ListingRow card={card} />
+  ));
+  await screen.findByTestId("ready");
+  expect(
+    container.querySelector('[aria-label="Verified by Capy"]'),
+  ).not.toBeNull();
+  unmount();
+  const { container: userContainer } = renderInRouter(() => (
+    <ListingRow card={{ ...card, source: "user" }} />
+  ));
+  await screen.findByTestId("ready");
+  expect(
+    userContainer.querySelector('[aria-label="Verified by Capy"]'),
+  ).toBeNull();
 });

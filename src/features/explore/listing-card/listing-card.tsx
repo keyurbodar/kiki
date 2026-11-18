@@ -1,6 +1,7 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Icon } from "@/primitives/icon";
+import { VerifiedBadge } from "../listing-detail/listing-icon";
 import {
   formatListingCount,
   listingAdds,
@@ -12,8 +13,11 @@ import {
 
 export type ListingKind = "plugin" | "skill" | "theme";
 
+export type ListingCardSource = "catalog" | "user" | "sync" | "admin";
+
 export type ListingCard = {
   readonly kind: ListingKind;
+  readonly source: ListingCardSource;
   readonly slug: string;
   readonly displayName: string;
   readonly description: string;
@@ -45,7 +49,7 @@ const kindIconName = {
 } as const;
 
 export type ListingIconProps = {
-  card: Pick<ListingCard, "kind" | "repository" | "theme">;
+  card: Pick<ListingCard, "kind" | "repository" | "theme" | "source">;
   size?: ListingIconSize;
   className?: string;
 };
@@ -90,7 +94,7 @@ export function ListingIcon({
   className,
 }: ListingIconProps) {
   const glyph = <Icon name={kindIconName[card.kind]} />;
-  return (
+  const tile = (
     <span
       aria-hidden
       className={`flex shrink-0 items-center justify-center overflow-hidden border-(length:--border-width-hairline) border-border-2 bg-secondary text-foreground ${iconSizeClassName[size]} ${className ?? ""}`}
@@ -102,6 +106,13 @@ export function ListingIcon({
       ) : (
         glyph
       )}
+    </span>
+  );
+  if (card.source === "user" || size === "xs") return tile;
+  return (
+    <span className="relative flex w-fit shrink-0">
+      {tile}
+      <VerifiedBadge size={size} />
     </span>
   );
 }
