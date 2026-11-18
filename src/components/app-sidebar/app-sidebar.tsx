@@ -24,6 +24,7 @@ import {
   splitSidebarBar,
   type UseSidebarNavOptions,
   useSidebarNav,
+  useSidebarNavPreference,
 } from "@/components/sidebar-nav-editor";
 import { SidebarSetupCard } from "@/components/sidebar-setup-card";
 import { SidebarThreads } from "@/components/sidebar-threads";
@@ -130,7 +131,10 @@ export function AppSidebar({
   className,
   ...props
 }: AppSidebarProps) {
-  const nav = useSidebarNav(navOptions);
+  const [storedNav, saveStoredNav] = useSidebarNavPreference();
+  const nav = useSidebarNav(
+    navOptions ?? { value: storedNav, onChange: saveStoredNav },
+  );
   const pages = sidebarNavPages(nav.entries, { memory });
   const pathname = useRouterState({
     select: (state) => state.location.pathname,

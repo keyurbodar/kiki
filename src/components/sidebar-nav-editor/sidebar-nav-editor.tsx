@@ -13,11 +13,22 @@ import {
   toggleSidebarNavItem,
 } from "./sidebar-nav";
 import { SIDEBAR_NAV_CONFIG } from "./sidebar-nav-items";
+import { useSidebarNavPreference } from "./sidebar-nav-preference";
 
-export type SidebarNavEditorProps = ComponentProps<"div">;
+export type SidebarNavEditorProps = ComponentProps<"div"> & {
+  memory?: boolean;
+};
 
-export function SidebarNavEditor(props: SidebarNavEditorProps) {
-  return <div {...props} />;
+export function SidebarNavEditor({ memory, ...props }: SidebarNavEditorProps) {
+  const [entries, save] = useSidebarNavPreference();
+  return (
+    <div {...props}>
+      <SidebarPagesMenuItems
+        nav={{ entries, editable: true, save }}
+        memory={memory}
+      />
+    </div>
+  );
 }
 
 export type SidebarNavState = {
