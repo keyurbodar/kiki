@@ -40,8 +40,9 @@ it("lists Capy's user menu items in order", async () => {
 
 it("names the compact trigger after the user", async () => {
   renderMenu(true);
-  const trigger = await screen.findByRole("button", { name: /\S/ });
-  expect(trigger.textContent).toMatch(/^[A-Z]{1,2}$/);
+  expect(
+    await screen.findByRole("button", { name: "Alex Morgan" }),
+  ).toBeTruthy();
 });
 
 it("opens the account preview card on hover, which the compact trigger does not have", async () => {

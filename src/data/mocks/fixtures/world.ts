@@ -27,12 +27,36 @@ export const org = {
 
 export type Role = "owner" | "admin" | "member";
 
+/** Capy's Captain avatar presets, which double as the demo org's faces. */
+const personAvatars = Object.values(
+  import.meta.glob<string>("../../../assets/brand/avatars/capy-avatar-*.png", {
+    eager: true,
+    query: "?url",
+    import: "default",
+  }),
+).sort();
+
+let personAvatarIndex = 0;
+const nextAvatar = () => {
+  const url = personAvatars[personAvatarIndex % personAvatars.length];
+  personAvatarIndex += 1;
+  return url ?? null;
+};
+
+/**
+ * The members who signed in with a photo. Everyone else keeps Capy's initials
+ * tile, which is the state a real org is mostly in.
+ */
+const facedFirstNames = new Set(["Alex", "Sam", "Priya", "Jordan"]);
+
 export interface Person {
   readonly id: string;
   readonly firstName: string;
   readonly lastName: string;
   readonly email: string;
   readonly githubLogin: string;
+  /** The face the member directory resolves an id to; Capy's member rows carry it as `imageUrl`. */
+  readonly imageUrl: string | null;
   readonly role: Role;
   readonly joinedAt: string;
 }
@@ -48,6 +72,7 @@ const person = (
   lastName,
   email: `${firstName.toLowerCase()}@example.com`,
   githubLogin: `${firstName.toLowerCase()}-sample`,
+  imageUrl: facedFirstNames.has(firstName) ? nextAvatar() : null,
   role,
   joinedAt: isoMinutesAgo(joinedDaysAgo * day),
 });
@@ -58,6 +83,7 @@ const capturedAuthor = (displayName: string): Person => ({
   lastName: "",
   email: "",
   githubLogin: "",
+  imageUrl: null,
   role: "member",
   joinedAt: isoMinutesAgo(90 * day),
 });

@@ -1,14 +1,18 @@
+import { CAPY_ILLUSTRATIONS } from "@/assets/brand";
 import { UserId } from "../../api/schemas/ids.ts";
 import { UserProfile } from "../../api/schemas/user.ts";
 import { minutesAgo } from "../fixtures/time.ts";
 import { isoMinutesAgo, people } from "../fixtures/world.ts";
+
+/** Capy's own art as the signed-in user's avatar; the footer chip renders it. */
+const signedInAvatar = CAPY_ILLUSTRATIONS.captain;
 
 export const sampleUser = new UserProfile({
   id: UserId.make(people.alex.id),
   email: people.alex.email,
   firstName: people.alex.firstName,
   lastName: people.alex.lastName,
-  imageUrl: null,
+  imageUrl: signedInAvatar,
   superadmin: false,
   preferences: {
     theme: "system",
@@ -25,7 +29,7 @@ export const sampleAccount = {
   id: people.alex.id,
   firstName: people.alex.firstName,
   lastName: people.alex.lastName,
-  imageUrl: null,
+  imageUrl: signedInAvatar,
   primaryEmailId: "email_sample_alex",
   emails: [
     {

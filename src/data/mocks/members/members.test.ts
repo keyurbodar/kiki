@@ -6,6 +6,7 @@ import { orgId, people } from "../fixtures/world.ts";
 
 interface Member {
   readonly id: string;
+  readonly imageUrl: string | null;
   readonly role: string;
   readonly removedAt: string | null;
   readonly mfaExtension: string | null;
@@ -48,6 +49,24 @@ describe("members mock", () => {
       assert.isAbove(rows.length, 0);
       assert.isTrue(
         rows.some((row) => row.id === people.alex.id && row.role === "owner"),
+      );
+      const faces = rows.flatMap((row) =>
+        row.imageUrl === null ? [] : [row.imageUrl],
+      );
+      assert.isTrue(
+        faces.every((face) => face.startsWith("/")),
+        "every face the directory reports is a src the page can paint",
+      );
+      assert.strictEqual(
+        rows
+          .find((row) => row.id === people.alex.id)
+          ?.imageUrl?.startsWith("/"),
+        true,
+        "the viewer has a face",
+      );
+      assert.isTrue(
+        rows.some((row) => row.imageUrl === null),
+        "members without a photo keep Capy's initials tile",
       );
       assert.strictEqual(
         rows.find((row) => row.id === people.sam.id)?.mfaExtension,
