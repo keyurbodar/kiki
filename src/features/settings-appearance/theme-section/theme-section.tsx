@@ -15,6 +15,7 @@ import {
   CollapsiblePanel,
   CollapsibleTrigger,
 } from "@/primitives/collapsible";
+import { ColorPicker } from "@/primitives/color-picker";
 import { Input } from "@/primitives/input";
 import { SettingsRow, SettingsRowLink } from "@/primitives/settings-row";
 import { ChevronDownIcon, PlusIcon } from "../icons";
@@ -38,7 +39,7 @@ import {
   selfReferences,
   type ThemeColors,
 } from "../model/palette";
-import { readPresetPalette, toHex } from "../model/preset-palette";
+import { readPresetPalette } from "../model/preset-palette";
 import { useThemeOptions, useUserThemes } from "../model/theme-options";
 import { ThemeGrid } from "../theme-grid";
 
@@ -110,26 +111,33 @@ function ColorRow({
         </Button>
       )}
       <div className="flex items-center gap-2">
-        <label
-          data-slot="popover-trigger"
-          aria-label={`Pick ${label.toLowerCase()} color`}
-          className="relative inline-flex cursor-pointer items-center justify-center"
-        >
-          <span
-            className="color-picker__swatch"
-            style={{
-              backgroundColor:
-                hex ?? (value === undefined ? undefined : colorValueCss(value)),
-            }}
-          />
-          <input
-            type="color"
-            className="sr-only"
-            value={hex ?? toHex("black") ?? ""}
-            disabled={disabled}
-            onChange={(event) => onFieldChange(event.currentTarget.value)}
-          />
-        </label>
+        <ColorPicker
+          label={label}
+          value={hex}
+          previewColor={
+            hex ?? (value === undefined ? undefined : colorValueCss(value))
+          }
+          disabled={disabled}
+          onValueChange={onFieldChange}
+          trigger={
+            <Button
+              variant="outline"
+              size="icon-sm"
+              disabled={disabled}
+              aria-label={`Pick ${label.toLowerCase()} color`}
+            >
+              <span
+                aria-hidden
+                className="color-picker__swatch"
+                style={{
+                  backgroundColor:
+                    hex ??
+                    (value === undefined ? undefined : colorValueCss(value)),
+                }}
+              />
+            </Button>
+          }
+        />
         <Input
           id={id}
           size="sm"
