@@ -3,6 +3,7 @@ import { FetchHttpClient, HttpRouter, HttpServer } from "effect/http";
 import { HttpApiBuilder } from "effect/http-api";
 import { KikiApi } from "../api/Api.ts";
 import { MockDb } from "./db/MockDb.ts";
+import { failsMockRequest } from "./failure.ts";
 import { MockGroups } from "./groups.ts";
 
 export { AuthServiceMock } from "../auth/mock.ts";
@@ -25,8 +26,15 @@ const MockFetch = Layer.effect(
   ).pipe(
     Effect.map(
       ({ handler }) =>
-        ((input: RequestInfo | URL, init?: RequestInit) =>
-          handler(new Request(input, init))) as typeof globalThis.fetch,
+        ((input: RequestInfo | URL, init?: RequestInit) => {
+          const request = new Request(input, init);
+          // A test can force this read to fail; see `failure.ts`.
+          if (failsMockRequest(request.url))
+            return Promise.resolve(
+              new Response("forced failure", { status: 500 }),
+            );
+          return handler(request);
+        }) as typeof globalThis.fetch,
     ),
   ),
 );
