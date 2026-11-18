@@ -1121,6 +1121,11 @@ export const JamsMock = mockGroup("jams", (handlers) =>
             updatedAt: activity(),
             lastActivityAt: activity(),
             sortActivityAt: activity(),
+            localIndex:
+              (yield* Ref.get(threads)).filter(
+                (row) =>
+                  row.localIndex !== null && row.localIndex !== undefined,
+              ).length + 1,
           });
           yield* Ref.update(threads, (rows) => [side, ...rows]);
           yield* Ref.update(access, (rows) => [
@@ -1300,6 +1305,7 @@ export const JamsMock = mockGroup("jams", (handlers) =>
 
 const threadJSON = (thread: ThreadCard) => ({
   id: thread.id,
+  localIndex: thread.localIndex ?? null,
   number: thread.threadNumber,
   title: thread.title,
   status: thread.status,

@@ -95,6 +95,8 @@ export class ThreadCard extends Schema.Class<ThreadCard>("ThreadCard")({
   subscribed: Schema.Boolean.pipe(withDefault(false)),
   personal: Schema.Boolean.pipe(withDefault(false)),
   tagIds: Schema.Array(ThreadTagId),
+  /** The crew index Capy paints as "Subagent 2.1"; a root thread has none. */
+  localIndex: Schema.optional(Schema.NullOr(Schema.Int)),
   importing: Schema.Boolean,
   lastModelId: Schema.NullOr(Schema.String),
   pulls: Schema.Array(PullRequestChip),

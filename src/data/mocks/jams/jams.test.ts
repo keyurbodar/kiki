@@ -601,4 +601,22 @@ describe("jams mock", () => {
       assert.instanceOf(error, InvalidRequest);
     }),
   );
+
+  it.effect("gives a side thread the crew index Capy paints it with", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      const createSide = ApiClient.mutation("jams", "createSideThread");
+      registry.set(createSide as never, {
+        params: { orgId: org, jamId: JamId.make(jamId) },
+        payload: { title: "Crew index probe" },
+      });
+      const side = (yield* AtomRegistry.getResult(
+        registry,
+        createSide as never,
+        { suspendOnWaiting: true },
+      )) as { readonly localIndex?: number | null };
+      assert.isNumber(side.localIndex);
+      assert.isAtLeast(side.localIndex as number, 1);
+    }),
+  );
 });
