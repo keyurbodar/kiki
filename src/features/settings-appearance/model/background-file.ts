@@ -1,4 +1,7 @@
-import type { BackgroundAdjustments } from "./appearance-store";
+import type {
+  BackgroundAdjustments,
+  BackgroundRotation,
+} from "./appearance-store";
 
 /**
  * Capy's upload path for a dashboard background: the file is checked, shrunk to
@@ -32,6 +35,7 @@ export type PreparedBackgroundFile = {
 /** What is kept for the current wallpaper: the bytes and how they are drawn. */
 export type StoredBackground = PreparedBackgroundFile & {
   readonly appearance: BackgroundAdjustments;
+  readonly rotation: BackgroundRotation;
 };
 
 /** Capy refuses a GIF that needs shrinking rather than flatten it to a still. */
@@ -129,7 +133,12 @@ export const saveBackgroundFile = async (file: StoredBackground | null) => {
       if (file === null) store.delete(KEY);
       else
         store.put(
-          { name: file.name, blob: file.blob, appearance: file.appearance },
+          {
+            name: file.name,
+            blob: file.blob,
+            appearance: file.appearance,
+            rotation: file.rotation,
+          },
           KEY,
         );
       transaction.oncomplete = () => resolve();
@@ -157,16 +166,18 @@ export const readBackgroundFile =
           reject(request.error ?? new Error("Could not read storage"));
       });
       if (typeof record !== "object" || record === null) return null;
-      const { name, blob, appearance } = record as {
+      const { name, blob, appearance, rotation } = record as {
         name?: unknown;
         blob?: unknown;
         appearance?: unknown;
+        rotation?: unknown;
       };
       if (typeof name !== "string" || !(blob instanceof Blob)) return null;
       return {
         name,
         blob,
         appearance: appearance as BackgroundAdjustments,
+        rotation: rotation as BackgroundRotation,
       };
     } finally {
       database.close();

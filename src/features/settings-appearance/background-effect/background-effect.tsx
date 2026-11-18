@@ -7,6 +7,7 @@ import {
 } from "@/tokens/effects";
 import {
   type BackgroundAdjustments,
+  type BackgroundRotation,
   useResolvedMode,
 } from "../model/appearance-store";
 
@@ -58,14 +59,23 @@ export function DashboardBackdrop({
   image,
   effect,
   appearance,
+  rotation = 0,
 }: {
   image: string;
   effect: Effect;
   appearance: BackgroundAdjustments;
+  rotation?: BackgroundRotation;
 }) {
   const dark = useResolvedMode() === "dark";
   const [ref, maxPixelCount] = useMaxPixelCount();
-  const dither = effect === "dither" && !isGif(image) && maxPixelCount !== null;
+  // Capy turns the image layer and never the shader; a background it turns is a
+  // GIF, and a GIF is the one file it leaves undithered.
+  const turned = rotation === 90 || rotation === 270;
+  const dither =
+    effect === "dither" &&
+    rotation === 0 &&
+    !isGif(image) &&
+    maxPixelCount !== null;
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       <div
@@ -77,8 +87,16 @@ export function DashboardBackdrop({
         }}
       >
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url("${image}")` }}
+          className="kiki-backdrop-image"
+          data-rotated={turned}
+          style={{
+            backgroundImage: `url("${image}")`,
+            transform: turned
+              ? `translate(-50%, -50%) rotate(${rotation}deg)`
+              : rotation === 180
+                ? "rotate(180deg)"
+                : undefined,
+          }}
         />
         {dither ? (
           <ImageDithering
