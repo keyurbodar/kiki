@@ -493,35 +493,37 @@ export function DriveDetailPage({ mount, file }: DriveDetailPageProps) {
   return (
     <>
       <div className="flex h-full min-h-0 flex-col">
-        <AppTopBar>
-          <span className="flex min-w-0 items-center gap-1.5">
-            {trail.crumbs.map((crumb) => (
-              <span key={crumb.label} className="contents">
-                {crumb.route === undefined ? (
-                  <Link
-                    to="/drive"
-                    className="focus-gutter min-w-0 truncate rounded font-medium text-muted-foreground-2 transition-colors duration-100 outline-none hover:text-foreground focus-visible:outline-ring-inset"
-                  >
-                    {crumb.label}
-                  </Link>
-                ) : (
-                  <Link
-                    {...crumb.route}
-                    className="focus-gutter min-w-0 truncate rounded font-medium text-muted-foreground-2 transition-colors duration-100 outline-none hover:text-foreground focus-visible:outline-ring-inset"
-                  >
-                    {crumb.label}
-                  </Link>
-                )}
-                <Icon
-                  name="chevron-right-small"
-                  aria-hidden
-                  className="size-(--icon-sm) shrink-0 text-muted-foreground-3"
-                />
-              </span>
-            ))}
-            <span className="min-w-0 truncate">{trail.title}</span>
-          </span>
-        </AppTopBar>
+        <AppTopBar
+          title={
+            <span className="flex min-w-0 items-center gap-1.5">
+              {trail.crumbs.map((crumb) => (
+                <span key={crumb.label} className="contents">
+                  {crumb.route === undefined ? (
+                    <Link
+                      to="/drive"
+                      className="focus-gutter min-w-0 truncate rounded font-medium text-muted-foreground-2 transition-colors duration-100 outline-none hover:text-foreground focus-visible:outline-ring-inset"
+                    >
+                      {crumb.label}
+                    </Link>
+                  ) : (
+                    <Link
+                      {...crumb.route}
+                      className="focus-gutter min-w-0 truncate rounded font-medium text-muted-foreground-2 transition-colors duration-100 outline-none hover:text-foreground focus-visible:outline-ring-inset"
+                    >
+                      {crumb.label}
+                    </Link>
+                  )}
+                  <Icon
+                    name="chevron-right-small"
+                    aria-hidden
+                    className="size-(--icon-sm) shrink-0 text-muted-foreground-3"
+                  />
+                </span>
+              ))}
+              <span className="min-w-0 truncate">{trail.title}</span>
+            </span>
+          }
+        />
         {writer.driveFull !== undefined && (
           <div className="px-4 pt-3">
             <div className="rounded-(--radius-card) border-hairline border-border-2 bg-card p-3 text-sm text-foreground">

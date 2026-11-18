@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useState } from "react";
+import peer from "@/components/file-view/art/peer.svg?url";
 
 export interface PaneMessageProps {
   readonly line: ReactNode;
@@ -10,6 +11,11 @@ export interface PaneMessageProps {
 export function PaneMessage({ line, sub, action }: PaneMessageProps) {
   return (
     <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 p-6 text-center">
+      <img
+        src={peer}
+        alt=""
+        className="mb-2 h-20 opacity-30 grayscale mix-blend-luminosity"
+      />
       <span className="max-w-xs text-sm text-balance text-muted-foreground-1">
         {line}
       </span>
