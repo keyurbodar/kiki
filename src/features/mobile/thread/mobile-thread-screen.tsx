@@ -407,6 +407,9 @@ function MobileThreadBody({
               onStartReached={
                 timeline.hasOlder ? timeline.loadOlder : undefined
               }
+              onInsertQuote={(mention) =>
+                composerRef.current?.insertMention(mention, "")
+              }
               className="flex min-h-0 flex-1 flex-col"
             />
           </ThreadMessageActions>
