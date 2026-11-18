@@ -38,6 +38,8 @@ export type ThreadListItem = {
   readonly captain: {
     readonly name: string;
     readonly avatarUrl: string | null;
+    /** The avatar's tile colour, as Capy's row tile draws it behind the image. */
+    readonly background?: string;
   } | null;
 };
 

@@ -1,0 +1,40 @@
+import { Atom } from "effect/reactivity";
+import { ApiClient } from "../client/ApiClient.ts";
+import { queryTimeToLive } from "./conventions.ts";
+import { idleAtom } from "./idle.ts";
+
+/**
+ * The org's member directory, read only for the face each thread row paints:
+ * Capy's rows resolve a thread's author to their image from this list.
+ */
+export const membersAtom = Atom.family((orgId: string) =>
+  ApiClient.query("members", "listMembers", {
+    params: { orgId },
+    query: {},
+    reactivityKeys: [`member:${orgId}`],
+    timeToLive: queryTimeToLive,
+  }),
+);
+
+/** userId → image URL, from the undecoded member list Capy serves. */
+export const memberAvatars = (value: unknown): ReadonlyMap<string, string> => {
+  const rows = Array.isArray(value)
+    ? value
+    : typeof value === "object" && value !== null
+      ? ((value as { members?: unknown }).members ?? [])
+      : [];
+  const avatars = new Map<string, string>();
+  if (!Array.isArray(rows)) return avatars;
+  for (const row of rows) {
+    if (typeof row !== "object" || row === null) continue;
+    const entry = row as { id?: unknown; userId?: unknown; imageUrl?: unknown };
+    const id = typeof entry.userId === "string" ? entry.userId : entry.id;
+    if (typeof id !== "string" || typeof entry.imageUrl !== "string") continue;
+    if (entry.imageUrl === "") continue;
+    avatars.set(id, entry.imageUrl);
+  }
+  return avatars;
+};
+
+/** The member avatars while the org is unknown, so nothing requests a placeholder org. */
+export const idleMemberAvatars = idleAtom<ReadonlyMap<string, string>>();

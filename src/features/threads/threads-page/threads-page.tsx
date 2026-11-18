@@ -41,6 +41,7 @@ import {
   renameThreadAtom,
   unarchiveThreadsAtom,
 } from "@/data/atoms/jams";
+import { memberAvatars, membersAtom } from "@/data/atoms/members";
 import { projectsAtom } from "@/data/atoms/projects";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
 import {
@@ -146,7 +147,12 @@ type CaptainRow = {
   createdAt: unknown;
   face: {
     name: string;
-    avatar: { kind: "preset" | "emoji"; value: string; image?: string };
+    avatar: {
+      kind: "preset" | "emoji";
+      value: string;
+      background: string;
+      image?: string;
+    };
   };
 };
 
@@ -198,6 +204,7 @@ export const captainItems = (
       captain: {
         name: captain.face.name,
         avatarUrl: captainRowAvatar(captain.face.avatar),
+        background: captain.face.avatar.background,
       },
     };
   });
@@ -213,6 +220,8 @@ const modelName = (id: string) => modelLabels[id];
 export type ThreadsPageViewProps = {
   threads: ReadonlyArray<ThreadListItem>;
   captains: ReadonlyArray<ThreadListItem>;
+  /** Thread author id → their avatar, from the org's member directory. */
+  authorAvatars?: ReadonlyMap<string, string>;
   projects: ReadonlyArray<ProjectSummary>;
   viewerId: string | undefined;
   loading: boolean;
@@ -240,6 +249,7 @@ export type ThreadsPageViewProps = {
 export function ThreadsPageView({
   threads,
   captains,
+  authorAvatars,
   projects,
   viewerId,
   loading,
@@ -567,6 +577,7 @@ export function ThreadsPageView({
         <ThreadsList
           sections={sections}
           projects={projectMap}
+          authorAvatars={authorAvatars}
           modelName={modelName}
           groupedByProject={state.grouping === "project"}
           now={now}
@@ -912,6 +923,7 @@ function ThreadsPageLoaded({
   const list = useAtomValue(listAtom);
   const retry = useAtomRefresh(listAtom);
   const captains = useAtomValue(captainsAtom(orgId));
+  const members = useAtomValue(membersAtom(orgId));
   const projects = useAtomValue(projectsAtom(orgId));
   const foldersResult = useAtomValue(folderBoardAtom(orgId));
   const user = useAtomValue(currentUserAtom);
@@ -953,6 +965,11 @@ function ThreadsPageLoaded({
   return (
     <ThreadsPageView
       threads={unfiled}
+      authorAvatars={
+        AsyncResult.isSuccess(members)
+          ? memberAvatars(members.value)
+          : undefined
+      }
       captains={
         archivedView || !AsyncResult.isSuccess(captains)
           ? []
