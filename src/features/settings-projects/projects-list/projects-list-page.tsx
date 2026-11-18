@@ -4,11 +4,6 @@ import { DateTime } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useDeferredValue, useState } from "react";
 import { toast } from "sonner";
-import {
-  type createPayload,
-  NewProjectDialog,
-  type NewProjectRepo,
-} from "@/components/new-project-dialog";
 import { SettingsPage } from "@/components/settings-page";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { ProjectSettingsDirectoryEntry } from "@/data/api/schemas/project-settings";
@@ -25,9 +20,12 @@ import { Icon } from "@/primitives/icon";
 import { Input, InputGroup } from "@/primitives/input";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import { StatusDot, type StatusDotColor } from "../shared/card-list";
+import { useOpenCreateProjectDialog } from "../shared/create-project-dialog";
 import { Glyph } from "../shared/glyphs";
+import { readInstallation } from "../shared/installation-repos";
 import { ProjectGlyph } from "../shared/project-glyph";
 import { formatRelative } from "../shared/relative-time";
+import { useCreateProject } from "../shared/use-create-project";
 import { useActiveOrgId } from "../shared/use-org";
 import {
   DirectoryActionRow,
@@ -54,83 +52,7 @@ const snapshotLabels: Record<
 const columns =
   "minmax(var(--table-lead-min,0),2.4fr) minmax(var(--table-fluid-min,0),2.6fr) minmax(var(--table-fluid-min,0),1.3fr) minmax(var(--table-fluid-min,0),1.2fr) minmax(var(--table-auto-min,5.5rem),auto) auto";
 
-type InstallationRepoRow = {
-  readonly githubRepoId: number;
-  readonly repoFullName: string;
-  readonly defaultBranch: string | null;
-  readonly pushedAt: Date | null;
-  readonly archived: boolean;
-};
-
-const fields = (value: unknown) =>
-  typeof value === "object" && value !== null && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : undefined;
-
-const installationRepoRow = (
-  value: unknown,
-): InstallationRepoRow | undefined => {
-  const row = fields(value);
-  const fullName =
-    typeof row?.repoFullName === "string"
-      ? row.repoFullName
-      : typeof row?.fullName === "string"
-        ? row.fullName
-        : undefined;
-  const id =
-    typeof row?.githubRepoId === "number" ? row.githubRepoId : undefined;
-  if (row === undefined || fullName === undefined || id === undefined) {
-    return undefined;
-  }
-  const pushedAt =
-    typeof row.pushedAt === "string" ? new Date(row.pushedAt) : undefined;
-  return {
-    githubRepoId: id,
-    repoFullName: fullName,
-    defaultBranch:
-      typeof row.defaultBranch === "string" ? row.defaultBranch : null,
-    pushedAt:
-      pushedAt === undefined || Number.isNaN(pushedAt.getTime())
-        ? null
-        : pushedAt,
-    archived: row.archived === true,
-  };
-};
-
-/**
- * `listGitHubInstallationRepos` is undecoded, so accept either a bare list of
- * repositories or a `{ state, repos }` envelope. A list means an installation
- * exists; a `connect_required` envelope means it does not.
- */
-const readInstallation = (
-  value: unknown,
-): {
-  readonly installed: boolean;
-  readonly repos: ReadonlyArray<InstallationRepoRow>;
-} => {
-  const envelope = fields(value);
-  const unpacked = Array.isArray(value)
-    ? { installed: true, rows: value }
-    : {
-        installed: envelope?.state !== "connect_required",
-        rows: Array.isArray(envelope?.repos) ? envelope.repos : [],
-      };
-  return {
-    installed: unpacked.installed,
-    repos: unpacked.rows.flatMap((row) => {
-      const decoded = installationRepoRow(row);
-      return decoded === undefined ? [] : [decoded];
-    }),
-  };
-};
-
 const pageSize = 50;
-
-/** Capy derives a thread code from the repository name: letters only, four at most. */
-export const deriveProjectCode = (name: string) => {
-  const letters = name.toUpperCase().replace(/[^A-Z]/g, "");
-  return letters.length >= 3 ? letters.slice(0, 4) : "CAPY";
-};
 
 export function ProjectsListPage() {
   const orgId = useActiveOrgId();
@@ -181,60 +103,13 @@ function ProjectsDirectory({ orgId }: { readonly orgId: OrgId }) {
     now,
   });
 
-  const create = useAtomSet(projectMutations.create, { mode: "promise" });
+  const openCreateProject = useOpenCreateProjectDialog();
   const restore = useAtomSet(projectMutations.restore, { mode: "promise" });
-  const [creating, setCreating] = useState<string | null>(null);
-  const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const { creating, createProject } = useCreateProject(orgId);
   const [renaming, setRenaming] =
     useState<ProjectSettingsDirectoryEntry | null>(null);
   const [deleting, setDeleting] =
     useState<ProjectSettingsDirectoryEntry | null>(null);
-
-  const dialogRepos: ReadonlyArray<NewProjectRepo> = (
-    installation?.repos ?? []
-  ).map((repo) => ({
-    repoFullName: repo.repoFullName,
-    defaultBranch: repo.defaultBranch,
-  }));
-
-  const createProject = (
-    payload: ReturnType<typeof createPayload>,
-  ): Promise<unknown> =>
-    create({
-      params: { orgId },
-      payload,
-      reactivityKeys: projectWriteKeys(orgId, ""),
-    })
-      .then((result) => {
-        toast.success("Project created");
-        return result;
-      })
-      .catch((error: unknown) => {
-        toast.error("Could not create the project");
-        throw error;
-      });
-
-  const createFromRepo = (repo: (typeof suggestions)[number]) => {
-    setCreating(repo.repoFullName);
-    create({
-      params: { orgId },
-      payload: {
-        code: deriveProjectCode(
-          repo.repoFullName.slice(repo.repoFullName.indexOf("/") + 1),
-        ),
-        repos: [
-          {
-            repoFullName: repo.repoFullName,
-            baseBranch: repo.defaultBranch ?? "main",
-          },
-        ],
-      },
-      reactivityKeys: projectWriteKeys(orgId, ""),
-    })
-      .then(() => toast.success("Project created"))
-      .catch(() => toast.error("Could not create the project"))
-      .finally(() => setCreating(null));
-  };
 
   const offset = directory === undefined ? 0 : (directory.page - 1) * pageSize;
 
@@ -265,7 +140,13 @@ function ProjectsDirectory({ orgId }: { readonly orgId: OrgId }) {
           variant="solid"
           size="base"
           intent="neutral"
-          onClick={() => setNewProjectOpen(true)}
+          onClick={() =>
+            openCreateProject?.({
+              open: true,
+              intent: "project",
+              mode: { kind: "create" },
+            })
+          }
         >
           <Glyph name="plus" className="size-(--icon-base)" />
           New project
@@ -340,7 +221,7 @@ function ProjectsDirectory({ orgId }: { readonly orgId: OrgId }) {
                   size="sm"
                   className="-mr-2"
                   disabled={creating !== null}
-                  onClick={() => createFromRepo(repo)}
+                  onClick={() => createProject(repo)}
                 >
                   {creating === repo.repoFullName
                     ? "Creating"
@@ -440,12 +321,6 @@ function ProjectsDirectory({ orgId }: { readonly orgId: OrgId }) {
         orgId={orgId}
         project={deleting}
         onClose={() => setDeleting(null)}
-      />
-      <NewProjectDialog
-        open={newProjectOpen}
-        onOpenChange={setNewProjectOpen}
-        repos={dialogRepos}
-        onCreate={createProject}
       />
     </section>
   );
