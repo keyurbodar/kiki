@@ -1421,7 +1421,20 @@ export const threadPins = [
   { jamId: threads.checkoutTest.id },
 ] as const;
 
-export const mcpServers = [
+export interface McpServerRow {
+  readonly id: string;
+  readonly key: string;
+  readonly name: string;
+  readonly url: string;
+  readonly transport: string;
+  readonly status: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+  /** Null until the server has actually been tested. */
+  readonly lastCheckedAt: string | null;
+}
+
+export const mcpServers: ReadonlyArray<McpServerRow> = [
   {
     id: "mcp_sample_errors",
     key: "errors",
@@ -1444,7 +1457,18 @@ export const mcpServers = [
     updatedAt: isoMinutesAgo(60),
     lastCheckedAt: isoMinutesAgo(60),
   },
-] as const;
+  {
+    id: "mcp_sample_untested",
+    key: "untested",
+    name: "Untested server",
+    url: "https://mcp.example.com/untested",
+    transport: "http",
+    status: "connected",
+    createdAt: isoMinutesAgo(30),
+    updatedAt: isoMinutesAgo(30),
+    lastCheckedAt: null,
+  },
+];
 
 export const apiKeys = [
   {
