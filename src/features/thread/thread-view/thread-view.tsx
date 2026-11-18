@@ -420,6 +420,7 @@ export function ThreadView({
                             autoFocus={draft !== undefined}
                             sources={mentionSources}
                             submitLabel="Send"
+                            submitPersistent
                             leftControls={
                               <PlusMenu
                                 sources={mentionSources}

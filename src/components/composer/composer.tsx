@@ -287,8 +287,6 @@ export function Composer({
   const blockedByUpload = uploading && !submitWhileUploading;
   const showSend = !empty || hasAttachments || submitPersistent;
   const sendOrStop = showSend || stop !== undefined;
-  /** Capy keeps Send on screen before the first character; it is the stop control that replaces it, and only while a run is live. */
-  const sendVisible = showSend || stop === undefined;
   const raised = surface !== "field" && surface !== "plain";
 
   const hold = useRef<{
@@ -434,7 +432,7 @@ export function Composer({
                     ready={voiceReady}
                     voice={voice}
                   />
-                  {raised && sendVisible ? sendButton : stopButton}
+                  {raised && showSend ? sendButton : stopButton}
                 </>
               )}
             </div>
