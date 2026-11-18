@@ -62,6 +62,8 @@ export type ScrollAreaProps = Omit<
   onViewport?: Ref<HTMLDivElement>;
   /** Mount the overlay scrollbar. Capy's list panes hide it and have no scrollbar. */
   scrollbar?: boolean;
+  /** Attributes for the scrolling viewport itself, such as a list role. */
+  viewportProps?: ComponentProps<"div">;
   children?: ReactNode;
 };
 
@@ -73,9 +75,11 @@ export function ScrollArea({
   scrollRestorationId,
   onViewport,
   scrollbar = true,
+  viewportProps,
   children,
   ...props
 }: ScrollAreaProps) {
+  const { className: viewportClass, ...viewportRest } = viewportProps ?? {};
   const narrow = useNarrowViewport();
   const root = useRef<HTMLDivElement>(null);
   const viewport = useRef<HTMLDivElement | null>(null);
@@ -165,10 +169,16 @@ export function ScrollArea({
           className={cx("relative min-h-0", className)}
         >
           <div
+            {...viewportRest}
             ref={bindViewport}
             data-slot="scroll-area-viewport"
             data-scroll-restoration-id={scrollRestorationId}
-            className={cx(viewportBase, "overflow-auto", viewportClassName)}
+            className={cx(
+              viewportBase,
+              "overflow-auto",
+              viewportClassName,
+              viewportClass,
+            )}
           >
             {children}
           </div>
@@ -185,9 +195,10 @@ export function ScrollArea({
       {...props}
     >
       <ScrollAreaViewport
+        {...(viewportRest as ScrollAreaViewportProps)}
         ref={bindViewport}
         data-scroll-restoration-id={scrollRestorationId}
-        className={viewportClassName}
+        className={cx(viewportClassName, viewportClass)}
       >
         <NestedViewport.Provider value>{children}</NestedViewport.Provider>
       </ScrollAreaViewport>
