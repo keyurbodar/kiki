@@ -54,3 +54,26 @@ export function formatShortcut(binding: string, mac: boolean): string {
 
 export const shortcutFor = (action: ShortcutAction) =>
   formatShortcut(SHORTCUTS[action], isMacPlatform());
+
+/** Whether a keydown is the binding we print, so the label and the handler cannot drift. */
+export function matchesShortcut(
+  binding: string,
+  event: Pick<
+    KeyboardEvent,
+    "key" | "metaKey" | "ctrlKey" | "altKey" | "shiftKey"
+  >,
+  mac = isMacPlatform(),
+): boolean {
+  const parts = binding.split("+");
+  const key = (parts.at(-1) ?? "").toLowerCase();
+  const has = (modifier: string) => parts.slice(0, -1).includes(modifier);
+  const meta = has("meta") || (has("mod") && mac);
+  const ctrl = has("ctrl") || (has("mod") && !mac);
+  return (
+    event.metaKey === meta &&
+    event.ctrlKey === ctrl &&
+    event.altKey === has("alt") &&
+    event.shiftKey === has("shift") &&
+    event.key.toLowerCase() === key
+  );
+}
