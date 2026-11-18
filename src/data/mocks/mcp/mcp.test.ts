@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import type { Atom } from "effect/reactivity";
 import { AtomRegistry as Registry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
@@ -201,6 +202,20 @@ describe("mcp mock", () => {
         "protocol",
         "list",
       ]);
+    }),
+  );
+
+  it.effect("answers the 404 the endpoint declares for an unknown server", () =>
+    Effect.gen(function* () {
+      const registry = Registry.make();
+      const missing = ApiClient.query("mcp", "serverTools", {
+        params: { orgId, serverId: "mcp_nobody" },
+        reactivityKeys: [key],
+      });
+      const error = yield* Registry.getResult(registry, missing as never).pipe(
+        Effect.flip,
+      );
+      assert.instanceOf(error, HttpApiError.NotFound);
     }),
   );
 

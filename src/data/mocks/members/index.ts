@@ -1,5 +1,5 @@
 import { Effect, Ref } from "effect";
-import { fields, MockDb, missing } from "../db/MockDb.ts";
+import { fields, MockDb, notFound } from "../db/MockDb.ts";
 import { isoMinutesAgo, people } from "../fixtures/world.ts";
 import { mockGroup } from "../mockGroup.ts";
 import {
@@ -24,7 +24,7 @@ const findMember = (userId: string) =>
     const { members } = yield* MockDb;
     const rows = yield* Ref.get(members);
     const member = rows.find((row) => row.id === userId);
-    if (!member) return yield* missing("members", userId);
+    if (!member) return yield* notFound("members", userId);
     return member;
   });
 
@@ -33,7 +33,7 @@ const replaceMember = (userId: string, change: (member: Row) => Row) =>
     const { members } = yield* MockDb;
     const rows = yield* Ref.get(members);
     if (!rows.some((row) => row.id === userId)) {
-      return yield* missing("members", userId);
+      return yield* notFound("members", userId);
     }
     const updated = rows.map((row) => (row.id === userId ? change(row) : row));
     yield* Ref.set(members, updated as typeof rows);

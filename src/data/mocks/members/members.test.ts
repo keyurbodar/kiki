@@ -1,5 +1,6 @@
 import { assert, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { HttpApiError } from "effect/http-api";
 import { AtomRegistry } from "effect/reactivity";
 import { ApiClient } from "../../client/ApiClient.ts";
 import { orgId, people } from "../fixtures/world.ts";
@@ -22,7 +23,7 @@ const listAtom = ApiClient.query("members", "listMembers", {
   reactivityKeys: [key],
 });
 const run = <A, I extends object>(
-  atom: import("effect/reactivity/Atom").AtomResultFn<I, A>,
+  atom: import("effect/reactivity/Atom").AtomResultFn<I, A, unknown>,
   input: I,
 ) => {
   const registry = AtomRegistry.make();
@@ -182,6 +183,23 @@ describe("members mock", () => {
         ).invitations[0]?.status,
         "already_member",
       );
+    }),
+  );
+
+  it.effect("answers the 404 the endpoint declares for an unknown member", () =>
+    Effect.gen(function* () {
+      const registry = AtomRegistry.make();
+      registry.mount(listAtom);
+      const atom = ApiClient.mutation("members", "setMemberRole");
+      registry.set(atom, {
+        params: { orgId, userId: "user_nobody" },
+        payload: { role: "member" },
+        reactivityKeys: [key],
+      });
+      const error = yield* AtomRegistry.getResult(registry, atom).pipe(
+        Effect.flip,
+      );
+      assert.instanceOf(error, HttpApiError.NotFound);
     }),
   );
 });

@@ -1,9 +1,10 @@
 import { Schema } from "effect";
-import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
 import { Undecoded, UndecodedQuery } from "../undecoded.ts";
 
 export class IssueStatesGroup extends HttpApiGroup.make("issue-states").add(
   HttpApiEndpoint.delete("deleteState", "/orgs/:orgId/issue-states/:stateId", {
+    error: HttpApiError.NotFoundNoContent,
     params: { orgId: Schema.String, stateId: Schema.String },
     query: UndecodedQuery,
     success: Undecoded,
@@ -12,6 +13,7 @@ export class IssueStatesGroup extends HttpApiGroup.make("issue-states").add(
     "setDefaultState",
     "/orgs/:orgId/issue-states/:stateId/default",
     {
+      error: HttpApiError.NotFoundNoContent,
       params: { orgId: Schema.String, stateId: Schema.String },
       success: Undecoded,
     },
