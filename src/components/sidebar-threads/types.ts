@@ -1,6 +1,7 @@
 import type { ThreadPreviewProps } from "@/components/thread-preview";
 import type { ThreadRunStatus } from "@/components/thread-status";
 import type { ThreadCard } from "@/data/api/schemas/thread";
+import type { CaptainAvatarValue } from "@/primitives/captain-avatar";
 
 export type SidebarMode = "threads" | "captains";
 export type SidebarDensity = "compact" | "detailed";
@@ -71,7 +72,7 @@ export type SidebarSection = {
 export type SidebarCaptain = {
   id: string;
   name: string;
-  avatarUrl: string | null;
+  avatar: CaptainAvatarValue;
   status: ThreadRunStatus;
   needsYou: boolean;
   ask: string | null;

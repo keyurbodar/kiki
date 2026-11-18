@@ -6,6 +6,7 @@ import {
   UserId,
 } from "@/data/api/schemas/ids";
 import { PullRequestChip, ThreadCard } from "@/data/api/schemas/thread";
+import { CAPTAIN_AVATAR_BACKGROUNDS } from "@/primitives/captain-avatar";
 import type { SidebarSource } from "./build-view";
 
 const at = (now: Date, hoursAgo: number) =>
@@ -74,6 +75,18 @@ const previewCard = (now: Date) => {
   });
 };
 
+const harborAvatar = {
+  kind: "preset",
+  value: "capy-avatar-2",
+  background: CAPTAIN_AVATAR_BACKGROUNDS[1]?.value ?? "",
+} as const;
+
+const juniperAvatar = {
+  kind: "preset",
+  value: "capy-avatar-6",
+  background: CAPTAIN_AVATAR_BACKGROUNDS[3]?.value ?? "",
+} as const;
+
 export function sampleSidebarSource(now: Date): SidebarSource {
   const card = previewCard(now);
   return {
@@ -119,7 +132,7 @@ export function sampleSidebarSource(now: Date): SidebarSource {
       {
         id: "jam_sample_captain_1",
         name: "Harbor",
-        avatarUrl: null,
+        avatar: harborAvatar,
         status: "idle",
         needsYou: false,
         ask: null,
@@ -133,7 +146,7 @@ export function sampleSidebarSource(now: Date): SidebarSource {
       {
         id: "jam_sample_captain_2",
         name: "Juniper",
-        avatarUrl: null,
+        avatar: juniperAvatar,
         status: "idle",
         needsYou: false,
         ask: null,

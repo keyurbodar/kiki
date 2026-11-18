@@ -156,7 +156,11 @@ describe("buildSidebarThreadsView", () => {
     ) => ({
       id,
       name: id,
-      avatarUrl: null,
+      avatar: {
+        kind: "preset" as const,
+        value: "capy-avatar-1",
+        background: "#ffffff",
+      },
       status: "idle" as const,
       needsYou: false,
       ask: null,

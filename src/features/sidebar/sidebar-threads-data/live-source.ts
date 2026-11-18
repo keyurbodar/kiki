@@ -130,7 +130,7 @@ export function mapCaptain(card: CaptainCard, position: number): SourceCaptain {
   return {
     id: card.id,
     name: card.face.name,
-    avatarUrl: card.face.avatar.image ?? null,
+    avatar: card.face.avatar,
     status: card.status,
     needsYou: card.needsYou,
     ask: askText(card.ask),
