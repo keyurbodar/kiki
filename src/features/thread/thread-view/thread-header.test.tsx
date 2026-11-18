@@ -103,10 +103,15 @@ describe("ThreadHeader", () => {
     expect(container.querySelector("header")?.className).toContain("min-h-11");
   });
 
-  it("draws the chat tab as the title alone, as Capy does", () => {
+  it("puts the thread's face before its title in the chat tab", () => {
     const { container } = renderHeader({});
     const chat = container.querySelector('[data-pane-tab="chat"]');
-    expect(chat?.querySelector('[data-slot="chat-identity"]')).toBeNull();
+    const face = chat?.querySelector("span")?.firstElementChild;
+    expect(
+      face?.matches(
+        '[data-slot="chat-identity"], [data-slot="captain-avatar"]',
+      ),
+    ).toBe(true);
     expect(chat?.querySelector("[data-pane-tab-label]")?.textContent).toBe(
       "Fix flaky checkout test",
     );
