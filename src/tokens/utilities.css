@@ -30,10 +30,31 @@
   outline-offset: -1px;
 }
 
+/*
+ * Capy's scrollbars, from its production stylesheet: a thin native bar with a
+ * muted thumb over a transparent track, set on every element rather than on the
+ * handful of scroll containers we remembered. `.scrollbar-mini` is Capy's escape
+ * hatch — where the engine still has ::-webkit-scrollbar, the platform's own
+ * bar is drawn at its own width instead of the thin one.
+ */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--muted) transparent;
+  }
+}
+
 @utility scrollbar-hide {
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+@supports selector(::-webkit-scrollbar) {
+  .scrollbar-mini {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
   }
 }
 
