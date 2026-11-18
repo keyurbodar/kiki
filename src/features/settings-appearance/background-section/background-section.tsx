@@ -30,6 +30,7 @@ import {
   DEFAULT_BACKGROUND_ADJUSTMENTS,
   useAppearance,
 } from "../model/appearance-store";
+import { prepareBackgroundFile } from "../model/background-file";
 import { RangeField } from "../range-field";
 import { SelectField } from "../select-field";
 
@@ -76,18 +77,19 @@ function HomeBackgroundControl() {
           const file = event.currentTarget.files?.[0];
           event.currentTarget.value = "";
           if (file === undefined) return;
-          const reader = new FileReader();
-          reader.onload = () =>
-            appearanceActions.updatePreferences({
-              background: {
-                name: file.name,
-                url: String(reader.result),
-                appearance:
-                  background?.appearance ?? DEFAULT_BACKGROUND_ADJUSTMENTS,
-              },
-            });
-          reader.onerror = () => toast.error("Could not read the file");
-          reader.readAsDataURL(file);
+          prepareBackgroundFile(file).then(
+            (prepared) =>
+              appearanceActions.updatePreferences({
+                background: {
+                  name: prepared.name,
+                  url: URL.createObjectURL(prepared.blob),
+                  appearance:
+                    background?.appearance ?? DEFAULT_BACKGROUND_ADJUSTMENTS,
+                },
+              }),
+            (error: unknown) =>
+              toast.error(errorMessage(error, "Could not read the file")),
+          );
         }}
       />
       {background === null ? (

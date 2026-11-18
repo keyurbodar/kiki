@@ -9,11 +9,21 @@ const imageType = (bytes: Uint8Array) => {
   return "image/svg+xml";
 };
 
-export const imageDataUrl = (bytes: Uint8Array) =>
-  `data:${imageType(bytes)};base64,${btoa(Array.from(bytes, (byte) => String.fromCharCode(byte)).join(""))}`;
+/** One object URL per response, so a re-render does not mint another. */
+const objectUrls = new WeakMap<Uint8Array, string>();
+
+export const imageObjectUrl = (bytes: Uint8Array) => {
+  const cached = objectUrls.get(bytes);
+  if (cached !== undefined) return cached;
+  const url = URL.createObjectURL(
+    new Blob([new Uint8Array(bytes)], { type: imageType(bytes) }),
+  );
+  objectUrls.set(bytes, url);
+  return url;
+};
 
 export const wallpaperSource = (body: unknown): string | undefined => {
-  if (body instanceof Uint8Array) return imageDataUrl(body);
+  if (body instanceof Uint8Array) return imageObjectUrl(body);
   if (typeof body === "string" && body !== "") return body;
   if (typeof body === "object" && body !== null && "url" in body) {
     const { url } = body as { url?: unknown };
@@ -25,6 +35,9 @@ export const wallpaperSource = (body: unknown): string | undefined => {
 export const wallpaperKey = (slug: string, versionId: string | null) =>
   `${slug}@${versionId ?? ""}`;
 
+/** A listing without a wallpaper has nothing to read, so it gets an empty atom. */
+const NO_WALLPAPER = Atom.make(undefined);
+
 export const themeWallpaperAtom = Atom.family((key: string) => {
   const at = key.lastIndexOf("@");
   const slug = key.slice(0, at);
@@ -35,3 +48,11 @@ export const themeWallpaperAtom = Atom.family((key: string) => {
     timeToLive: "1 hour",
   });
 });
+
+export const wallpaperAtomFor = (
+  slug: string | null,
+  versionId: string | null,
+) =>
+  slug === null
+    ? NO_WALLPAPER
+    : themeWallpaperAtom(wallpaperKey(slug, versionId));
