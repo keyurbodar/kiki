@@ -1,5 +1,5 @@
-import { toast } from "sonner";
 import { Button } from "@/primitives/button";
+import { toast } from "@/primitives/toaster";
 import { LinkIcon } from "./icons";
 
 export type CopyLinkButtonProps = {

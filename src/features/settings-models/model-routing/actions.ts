@@ -1,7 +1,7 @@
 import { useAtomSet } from "@effect/atom-react";
 import { Cause, Exit } from "effect";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/primitives/toaster";
 import { routingKeys, setConnectionModelsAtom, useOrgId } from "./atoms.ts";
 import type { ModelSetting } from "./types.ts";
 

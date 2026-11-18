@@ -1,7 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import { StripeCardForm } from "@/components/stripe-card-form";
 import {
   billingCatalogAtom,
@@ -17,6 +16,7 @@ import { Icon } from "@/primitives/icon";
 import type { IconId } from "@/primitives/icon/icon-ids";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
+import { toast } from "@/primitives/toaster";
 import {
   type CatalogTier,
   type CheckoutTerms,

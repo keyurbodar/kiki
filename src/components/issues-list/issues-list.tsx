@@ -8,7 +8,6 @@ import {
   useId,
   useState,
 } from "react";
-import { toast } from "sonner";
 import type { ActorSources } from "@/components/actor-filter";
 import { IssueDueChip } from "@/components/issue-due";
 import { IssueRowContextMenu } from "@/components/issue-menu/issue-row-context-menu";
@@ -42,6 +41,7 @@ import {
 } from "@/primitives/collapsible";
 import { Icon } from "@/primitives/icon";
 import { Menu, MenuContent, MenuTrigger } from "@/primitives/menu";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { type IssueFilters, localDate, stateVisible } from "../issues-filters";
 import {

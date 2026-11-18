@@ -2,7 +2,6 @@ import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useMemo } from "react";
-import { toast } from "sonner";
 import { CAPY_ILLUSTRATIONS } from "@/assets/brand";
 import { FailedRead } from "@/components/failed-read";
 import {
@@ -22,6 +21,7 @@ import { useIssueOrgId } from "@/features/issues/issue-parts";
 import { usePaneSession } from "@/features/thread/thread-view/pane-session-context";
 import type { PaneProps } from "@/features/thread-panes/thread-pane/registry";
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
+import { toast } from "@/primitives/toaster";
 import { ConsoleGlyph, FilesGlyph, StudioDisplayGlyph } from "./glyphs";
 import {
   allocationLabel,

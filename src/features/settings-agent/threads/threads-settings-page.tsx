@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import {
   SettingsLoadingCard,
   SettingsSection,
@@ -29,6 +28,7 @@ import {
 } from "@/primitives/dialog";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Textarea } from "@/primitives/textarea";
+import { toast } from "@/primitives/toaster";
 import {
   archiveIdleOptions,
   archiveIdleValue,

@@ -1,12 +1,12 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Exit } from "effect";
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 import { queryTimeToLive } from "@/data/atoms/conventions.ts";
 import { ApiClient } from "@/data/client/ApiClient.ts";
 import { ServicePreviewSurface } from "@/features/thread/service-preview-surface";
 import { previewArt } from "@/features/thread/service-preview-surface/art.ts";
 import { PreviewEmptyState } from "@/features/thread/service-preview-surface/empty-state.tsx";
+import { toast } from "@/primitives/toaster";
 import { previewDetail } from "./service-preview-logic.ts";
 
 const usePreviews = (orgId: string, jamId: string) => {

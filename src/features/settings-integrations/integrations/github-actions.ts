@@ -1,11 +1,11 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import {
   integrationKeys,
   startGitHubInstallationAtom,
 } from "@/data/atoms/integrations";
 import { ApiClient } from "@/data/client/ApiClient";
+import { toast } from "@/primitives/toaster";
 import { authorizeUrlOf } from "./oauth";
 
 const startGitHubUserOAuth = ApiClient.mutation(

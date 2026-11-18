@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { toast } from "sonner";
 import {
   ConnectFooter,
   ConnectFrame,
@@ -20,6 +19,7 @@ import {
 } from "@/components/claude-connect-dialog/glyphs";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
+import { toast } from "@/primitives/toaster";
 import { pollDeviceAtom, startDeviceAtom } from "../model-routing/atoms.ts";
 import { serviceTitle } from "../model-routing/routing.ts";
 import {

@@ -6,7 +6,12 @@ const toastError = vi.hoisted(() => vi.fn());
 const refresh = vi.hoisted(() => vi.fn());
 const setStatus = vi.hoisted(() => vi.fn());
 
-vi.mock("sonner", () => ({ toast: { error: toastError, success: vi.fn() } }));
+vi.mock("@/primitives/toaster", async () => ({
+  ...(await vi.importActual<typeof import("@/primitives/toaster")>(
+    "@/primitives/toaster",
+  )),
+  toast: { error: toastError, success: vi.fn() },
+}));
 vi.mock("@effect/atom-react", () => ({
   useAtomSet: () => setStatus,
   useAtomRefresh: () => refresh,

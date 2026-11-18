@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { type ComponentProps, useState } from "react";
-import { toast } from "sonner";
 import { FailedRead } from "@/components/failed-read";
 import {
   SettingsLoadingCard,
@@ -21,6 +20,7 @@ import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import { SettingsRow } from "@/primitives/settings-row";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import { ReviewFiltersSections } from "../review-filters-page/review-filters-sections";
 import { ReviewRulesSection } from "../review-rules/review-rules-section";
 import { CheckIcon, ChevronDownIcon } from "./review-icons";

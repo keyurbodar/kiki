@@ -57,7 +57,12 @@ vi.mock("@/features/thread/timeline", () => ({
   refreshNewestAtom: () => ({ kind: "refresh" }),
 }));
 
-vi.mock("sonner", () => ({ toast: { error: vi.fn() } }));
+vi.mock("@/primitives/toaster", async () => ({
+  ...(await vi.importActual<typeof import("@/primitives/toaster")>(
+    "@/primitives/toaster",
+  )),
+  toast: { error: vi.fn() },
+}));
 
 const { useComposerSend } = await import("./use-composer-send");
 

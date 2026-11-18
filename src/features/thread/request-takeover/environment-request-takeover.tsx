@@ -1,12 +1,12 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import type { EnvironmentRequestRow } from "@/data/events";
 import {
   useVariableEditor,
   VariableRows,
 } from "@/features/thread/variable-row";
 import { Button } from "@/primitives/button";
+import { toast } from "@/primitives/toaster";
 import { RequestTakeoverView } from "./request-takeover";
 import {
   jamEventKey,

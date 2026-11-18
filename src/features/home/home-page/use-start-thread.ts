@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
-import { toast } from "sonner";
 import type { ComposerPayload } from "@/components/composer";
 import type { MachineSize } from "@/components/plan-picker/plan-catalog";
 import type {
@@ -17,6 +16,7 @@ import {
   threadOrganizationKeys,
 } from "@/data/atoms/threadOrganization";
 import { ApiClient } from "@/data/client/ApiClient";
+import { toast } from "@/primitives/toaster";
 import type { OrganizeDraft } from "./organize-menu";
 
 const createJam = ApiClient.mutation("jams", "create");

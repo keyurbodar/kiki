@@ -1,9 +1,13 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
-import { toast } from "sonner";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { toast } from "@/primitives/toaster";
 import { useBusyRun } from "./use-busy-run";
 
-vi.mock("sonner", () => ({
+vi.mock("@/primitives/toaster", async () => ({
+  ...(await vi.importActual<typeof import("@/primitives/toaster")>(
+    "@/primitives/toaster",
+  )),
+
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 

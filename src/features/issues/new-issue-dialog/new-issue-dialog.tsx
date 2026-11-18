@@ -2,7 +2,6 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { cx } from "class-variance-authority";
 import { AsyncResult } from "effect/reactivity";
 import { useRef, useState } from "react";
-import { toast } from "sonner";
 import { PlusLargeGlyph } from "@/components/issue-pickers";
 import type { ProjectId } from "@/data/api/schemas/ids";
 import type { IssueDetail } from "@/data/api/schemas/issue";
@@ -20,6 +19,7 @@ import {
 } from "@/primitives/dialog";
 import { Icon } from "@/primitives/icon";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import { useIssueOrgId } from "../issue-parts";
 import { useIssueStates } from "../issue-pickers";
 import { AccessButton } from "./access-button";

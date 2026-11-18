@@ -3,13 +3,12 @@ import { Link } from "@tanstack/react-router";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import { CapyMark } from "@/components/capy-logo";
 import { NotFoundPage } from "@/components/not-found-page";
 import { currentUserAtom } from "@/data/atoms/session";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
-import { Toaster } from "@/primitives/toaster";
+import { toast } from "@/primitives/toaster";
 import {
   emailPreferencesAtom,
   emailPreferencesKey,
@@ -182,7 +181,6 @@ export function EmailLandingPage({ program }: EmailLandingPageProps) {
           />
         )}
       </EmailLandingLayout>
-      <Toaster position="bottom-right" />
     </>
   );
 }

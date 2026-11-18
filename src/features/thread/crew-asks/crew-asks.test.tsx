@@ -5,7 +5,12 @@ import type { CrewAsk } from "./crew-asks-model";
 
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
 
-vi.mock("sonner", () => ({ toast }));
+vi.mock("@/primitives/toaster", async () => ({
+  ...(await vi.importActual<typeof import("@/primitives/toaster")>(
+    "@/primitives/toaster",
+  )),
+  toast,
+}));
 
 afterEach(() => {
   cleanup();

@@ -1,7 +1,6 @@
 import { useAtomSet } from "@effect/atom-react";
 import { cx } from "class-variance-authority";
 import { type ComponentProps, type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import {
   captainReactivityKeys,
   updateCaptainAtom,
@@ -16,6 +15,7 @@ import {
 } from "@/primitives/captain-avatar";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
+import { toast } from "@/primitives/toaster";
 
 const compactSizeClass = {
   xs: "size-4 text-2xs",

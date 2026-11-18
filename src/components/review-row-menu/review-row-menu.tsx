@@ -1,6 +1,5 @@
 import { useAtomRefresh, useAtomSet } from "@effect/atom-react";
 import { type KeyboardEvent, useState } from "react";
-import { toast } from "sonner";
 import { pullReviewersAtom } from "@/components/pull-view/atoms";
 import { goneOr } from "@/components/pull-view/gone";
 import {
@@ -20,7 +19,6 @@ import {
   DialogTitle,
 } from "@/primitives/dialog";
 import { Icon } from "@/primitives/icon";
-
 import {
   ResponsiveMenu,
   ResponsiveMenuContent,
@@ -28,6 +26,7 @@ import {
   ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { Textarea } from "@/primitives/textarea";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 
 export interface SubmittedReview {

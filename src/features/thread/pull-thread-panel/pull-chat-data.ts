@@ -2,12 +2,12 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import { AsyncResult, Atom } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import { JamId, OrgId } from "@/data/api/schemas/ids";
 import { queryTimeToLive } from "@/data/atoms/conventions";
 import { projectsAtom } from "@/data/atoms/projects";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
 import { ApiClient } from "@/data/client/ApiClient";
+import { toast } from "@/primitives/toaster";
 import {
   linkedThreadIds,
   newestOwnThread,

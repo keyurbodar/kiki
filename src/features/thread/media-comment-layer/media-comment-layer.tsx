@@ -13,7 +13,6 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { toast } from "sonner";
 import {
   AnnotateToggle,
   AnnotationComposer,
@@ -25,6 +24,7 @@ import {
   AnnotationRow,
   AnnotationSend,
 } from "@/components/annotation";
+import { toast } from "@/primitives/toaster";
 import {
   blobFromThumb,
   boxFrom,

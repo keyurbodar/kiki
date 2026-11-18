@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { SettingsSection } from "@/components/settings-page";
 import type { Organization, Visibility } from "@/data/api/schemas/organization";
 import {
@@ -17,6 +16,7 @@ import {
 } from "@/primitives/menu-select";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import {
   catalogRow,
   type MyDefaultVisibility,

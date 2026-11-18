@@ -1,6 +1,5 @@
 import { useAtomRefresh, useAtomSet } from "@effect/atom-react";
 import { useId, useState } from "react";
-import { toast } from "sonner";
 import { contextUsageAtom, jamEventKey } from "@/data/atoms/events";
 import {
   setThreadCompactAtAtom,
@@ -18,6 +17,7 @@ import {
   DialogTitle,
 } from "@/primitives/dialog";
 import { Input } from "@/primitives/input";
+import { toast } from "@/primitives/toaster";
 import {
   compactAtHint,
   compactAtRangeError,

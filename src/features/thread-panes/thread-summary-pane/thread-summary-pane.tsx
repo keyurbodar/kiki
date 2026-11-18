@@ -3,7 +3,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useMemo, useState } from "react";
-import { toast } from "sonner";
 import {
   overviewPullSortAtom,
   type PullSort,
@@ -53,6 +52,7 @@ import { Icon } from "@/primitives/icon";
 import { MenuItem } from "@/primitives/menu";
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
 import { Textarea } from "@/primitives/textarea";
+import { toast } from "@/primitives/toaster";
 import {
   captainIssueActivityAtom,
   crewMeta,

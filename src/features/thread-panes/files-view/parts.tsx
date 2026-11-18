@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { toast } from "sonner";
 import {
   ChatGlyph,
   CopyGlyph,
@@ -8,6 +7,7 @@ import {
 import { cn } from "@/lib/cn";
 import { Button } from "@/primitives/button";
 import { ResponsiveMenuItem } from "@/primitives/responsive-menu";
+import { toast } from "@/primitives/toaster";
 
 export const menuIconClass =
   "flex size-(--icon-sm) shrink-0 items-center justify-center text-icon-muted in-data-[intent=danger]:text-destructive";

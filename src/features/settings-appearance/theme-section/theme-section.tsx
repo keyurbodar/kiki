@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
 import { SettingsSection } from "@/components/settings-page";
 import {
   createThemeAtom,
@@ -18,6 +17,7 @@ import {
 import { ColorPicker } from "@/primitives/color-picker";
 import { Input } from "@/primitives/input";
 import { SettingsRow, SettingsRowLink } from "@/primitives/settings-row";
+import { toast } from "@/primitives/toaster";
 import { ChevronDownIcon, PlusIcon } from "../icons";
 import {
   appearanceActions,

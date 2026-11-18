@@ -1,7 +1,6 @@
 import { useAtomSet } from "@effect/atom-react";
 import { Exit } from "effect";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import { openHandoffAtom, threadDeviceKeys } from "@/data/atoms/thread-devices";
 import {
   type MachineLifetime,
@@ -9,6 +8,7 @@ import {
   type ThreadDevice,
 } from "@/features/thread/device-chip";
 import { LoadingButton } from "@/lib/loading-button";
+import { toast } from "@/primitives/toaster";
 import sleepArt from "./assets/sleep.svg";
 
 export type EmptyArtStateProps = {

@@ -3,7 +3,6 @@ import { Link } from "@tanstack/react-router";
 import { DateTime } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import type {
   ServiceUserDetail,
   ServiceUserRole,
@@ -43,6 +42,7 @@ import {
   MenuSelectValue,
 } from "@/primitives/menu-select";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
+import { toast } from "@/primitives/toaster";
 import {
   SettingsPage,
   SettingsRow,

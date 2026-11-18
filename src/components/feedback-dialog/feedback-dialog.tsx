@@ -1,5 +1,4 @@
 import { type FormEvent, useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/primitives/button";
 import {
   Dialog,
@@ -11,6 +10,7 @@ import {
   DialogTitle,
 } from "@/primitives/dialog";
 import { Textarea } from "@/primitives/textarea";
+import { toast } from "@/primitives/toaster";
 
 export type FeedbackPayload = {
   message: string;

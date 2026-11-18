@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { type FormEvent, useState } from "react";
-import { toast } from "sonner";
 import {
   type ExploreCard,
   type ReportReason,
@@ -25,6 +24,7 @@ import {
   MenuSelectValue,
 } from "@/primitives/menu-select";
 import { Textarea } from "@/primitives/textarea";
+import { toast } from "@/primitives/toaster";
 import { useOrgId, useSignedIn } from "../listing-detail/explore-session";
 import { FlagGlyph } from "../listing-detail/glyphs";
 import { SignInLink } from "../listing-detail/sign-in-link";

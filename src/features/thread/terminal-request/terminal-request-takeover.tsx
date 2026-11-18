@@ -1,12 +1,12 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import type { TerminalRequestRow } from "@/data/events";
 import {
   isAdmitted,
   jamEventKey,
   terminalRequestDoneMutation,
 } from "@/features/thread/request-takeover";
+import { toast } from "@/primitives/toaster";
 import {
   TerminalRequestTakeoverView,
   type TerminalRequestTakeoverViewProps,

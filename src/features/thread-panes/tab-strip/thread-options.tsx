@@ -1,5 +1,4 @@
 import { type KeyboardEvent, type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import {
   MenuContent,
   MenuGroup,
@@ -13,6 +12,7 @@ import {
   ResponsiveMenuItem,
   ResponsiveMenuPage,
 } from "@/primitives/responsive-menu";
+import { toast } from "@/primitives/toaster";
 import {
   menuCheck,
   menuChevron,

@@ -1,6 +1,5 @@
 import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { ActivityCard, CardAction, cx } from "@/components/activity-card";
 import { WriteBox } from "@/components/github-write";
 import {
@@ -26,6 +25,7 @@ import { resultValue } from "@/components/pull-view/result";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   type ActivityFilter,

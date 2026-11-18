@@ -1,7 +1,6 @@
 import { useAtomSet } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
 import { type ReactNode, useRef, useState } from "react";
-import { toast } from "sonner";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import {
@@ -39,6 +38,7 @@ import {
 } from "@/primitives/sheet";
 import { SkeletonPanel } from "@/primitives/skeleton-panel";
 import { Textarea } from "@/primitives/textarea";
+import { toast } from "@/primitives/toaster";
 import { GoogleIcon } from "./brand-icons";
 import {
   type AllowedDomain,

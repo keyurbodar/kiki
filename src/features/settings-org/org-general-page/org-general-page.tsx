@@ -2,7 +2,6 @@ import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import { AvatarEditor } from "@/components/avatar-editor";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
@@ -23,6 +22,7 @@ import { Card } from "@/primitives/card";
 import { CopyField } from "@/primitives/copy-field";
 import { Input } from "@/primitives/input";
 import { SettingsRow } from "@/primitives/settings-row";
+import { toast } from "@/primitives/toaster";
 import { IssuePrefixRow } from "./issue-prefix-row";
 import {
   catalogRow,

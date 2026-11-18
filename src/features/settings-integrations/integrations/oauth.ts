@@ -1,7 +1,7 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { ApiClient } from "@/data/client/ApiClient";
+import { toast } from "@/primitives/toaster";
 
 const startSlackOAuth = ApiClient.mutation("integrations", "startSlackOAuth");
 const startLinearOAuth = ApiClient.mutation("integrations", "startLinearOAuth");

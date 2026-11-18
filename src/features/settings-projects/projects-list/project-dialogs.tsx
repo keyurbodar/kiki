@@ -1,5 +1,4 @@
 import { useAtomSet } from "@effect/atom-react";
-import { toast } from "sonner";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { ProjectSettingsDirectoryEntry } from "@/data/api/schemas/project-settings";
 import {
@@ -17,6 +16,7 @@ import {
   DialogTitle,
 } from "@/primitives/dialog";
 import { Input } from "@/primitives/input";
+import { toast } from "@/primitives/toaster";
 
 type Target = Pick<
   ProjectSettingsDirectoryEntry,

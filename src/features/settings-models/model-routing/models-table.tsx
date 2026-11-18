@@ -1,7 +1,6 @@
 import { useAtomSet } from "@effect/atom-react";
 import { Exit } from "effect";
 import { type ReactNode, useEffect, useState } from "react";
-import { toast } from "sonner";
 import { BulkBar } from "@/primitives/bulk-bar";
 import { Button } from "@/primitives/button";
 import { Checkbox } from "@/primitives/checkbox";
@@ -13,6 +12,7 @@ import {
   ResponsiveMenuItem,
   ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { toastFailure } from "./actions.ts";
 import { routingKeys, setModelSettingAtom, useOrgId } from "./atoms.ts";

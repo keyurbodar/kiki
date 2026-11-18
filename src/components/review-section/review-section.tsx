@@ -1,5 +1,4 @@
 import { type ReactNode, useCallback, useState } from "react";
-import { toast } from "sonner";
 import {
   BubbleGlyph,
   ChevronDownSmallGlyph,
@@ -21,6 +20,7 @@ import {
 } from "@/primitives/responsive-menu";
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
 import { ShimmerText } from "@/primitives/shimmer-text";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   type CapyReview,

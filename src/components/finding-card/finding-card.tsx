@@ -1,7 +1,6 @@
 import { useAtomRefresh, useAtomSet } from "@effect/atom-react";
 import { cx } from "class-variance-authority";
 import { type ReactNode, useState } from "react";
-import { toast } from "sonner";
 import { CapyMark } from "@/components/capy-logo";
 import {
   pullReactivityKeys,
@@ -16,6 +15,7 @@ import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import { Icon, type IconId } from "@/primitives/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   type FindingMemory,

@@ -1,6 +1,5 @@
 import { useAtomSet } from "@effect/atom-react";
 import { type KeyboardEvent, type ReactNode, useEffect, useState } from "react";
-import { toast } from "sonner";
 import {
   SettingsLoadFailedRow,
   SettingsLoadingCard,
@@ -45,6 +44,7 @@ import {
   MenuSelectTrigger,
   MenuSelectValue,
 } from "@/primitives/menu-select";
+import { toast } from "@/primitives/toaster";
 import {
   CheckIcon,
   ChevronDownIcon,

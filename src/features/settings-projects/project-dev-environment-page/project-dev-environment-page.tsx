@@ -3,7 +3,6 @@ import { useParams } from "@tanstack/react-router";
 import { DateTime } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
-import { toast } from "sonner";
 import { formatBytes } from "@/components/directory-view/format-bytes";
 import { ReadGate } from "@/components/read-gate";
 import {
@@ -27,6 +26,7 @@ import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { SettingsRow, SettingsRowLink } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
+import { toast } from "@/primitives/toaster";
 import { CardEmpty, CardList, StatusDot } from "../shared/card-list";
 import { formatDuration, formatRelative } from "../shared/relative-time";
 import { useActiveOrgId, useActiveOrgRead } from "../shared/use-org";

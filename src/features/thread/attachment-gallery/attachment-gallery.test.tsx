@@ -203,7 +203,12 @@ const toast = vi.hoisted(() => ({
   error: vi.fn(),
 }));
 
-vi.mock("sonner", () => ({ toast }));
+vi.mock("@/primitives/toaster", async () => ({
+  ...(await vi.importActual<typeof import("@/primitives/toaster")>(
+    "@/primitives/toaster",
+  )),
+  toast,
+}));
 
 describe("copyAudioAddress", () => {
   beforeEach(() => {

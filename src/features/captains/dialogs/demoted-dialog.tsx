@@ -1,6 +1,5 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
-import { toast } from "sonner";
 import type { CaptainCard } from "@/data/api/schemas/captain";
 import type { JamId, OrgId } from "@/data/api/schemas/ids";
 import {
@@ -20,6 +19,7 @@ import {
   ResponsiveMenuItem,
   ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
+import { toast } from "@/primitives/toaster";
 import { demotedReleased, demotedTitle } from "./captain-dialog-model";
 import { useOrgId } from "./session";
 

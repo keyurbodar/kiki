@@ -1,7 +1,6 @@
 /** biome-ignore-all lint/a11y/useSemanticElements: Capy renders the shortcuts table as an ARIA grid of divs with CSS subgrid */
 /** biome-ignore-all lint/a11y/useFocusableInteractive: rows and cells are static; the buttons inside them take focus */
 import { type KeyboardEvent, useState } from "react";
-import { toast } from "sonner";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { SettingsConfirmDialog } from "@/features/settings/confirm-dialog";
 import { useLocalPreference } from "@/features/settings/general-page/local-preference";
@@ -19,6 +18,7 @@ import {
   MenuSelectValue,
 } from "@/primitives/menu-select";
 import { SettingsRow } from "@/primitives/settings-row";
+import { toast } from "@/primitives/toaster";
 import {
   bindingGlyphs,
   captureBinding,

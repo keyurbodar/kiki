@@ -1,5 +1,4 @@
 import { type ComponentProps, useState } from "react";
-import { toast } from "sonner";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import {
@@ -14,6 +13,7 @@ import {
 } from "@/primitives/dialog";
 import { Icon } from "@/primitives/icon";
 import { Label } from "@/primitives/label";
+import { toast } from "@/primitives/toaster";
 import {
   addEmails,
   inviteDailyLimit,

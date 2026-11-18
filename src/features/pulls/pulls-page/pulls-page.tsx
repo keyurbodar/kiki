@@ -2,7 +2,6 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 import { AppTopBar } from "@/components/app-top-bar";
 import {
   FilterChipBar,
@@ -27,6 +26,7 @@ import { PullsList } from "@/features/pulls/pulls-list/pulls-list";
 import { Button } from "@/primitives/button";
 import { RightPanel, RightPanelGroup } from "@/primitives/right-panel";
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   createPullAtom,

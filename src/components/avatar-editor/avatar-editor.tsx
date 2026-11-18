@@ -1,6 +1,5 @@
 import { cx } from "class-variance-authority";
 import { useRef, useState } from "react";
-import { toast } from "sonner";
 import {
   type EditableImage,
   ImageCropEditor,
@@ -8,6 +7,7 @@ import {
 } from "@/components/image-crop-editor";
 import { Button, ButtonIcon } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
+import { toast } from "@/primitives/toaster";
 
 export type AvatarEditorProps = {
   src: string | null;

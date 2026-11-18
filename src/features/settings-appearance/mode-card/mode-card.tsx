@@ -1,7 +1,7 @@
-import { toast } from "sonner";
 import { SettingsSection } from "@/components/settings-page";
 import { Card } from "@/primitives/card";
 import { SettingsRow } from "@/primitives/settings-row";
+import { toast } from "@/primitives/toaster";
 import type { ColorMode } from "@/tokens/theme";
 import {
   appearanceActions,

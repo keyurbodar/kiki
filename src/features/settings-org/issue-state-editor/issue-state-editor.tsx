@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { toast } from "sonner";
 import {
   IssueColorSwatchPicker,
   isIssueColorKey,
@@ -15,6 +14,7 @@ import {
 import { Drawer, DrawerContent } from "@/primitives/drawer";
 import { Input } from "@/primitives/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
+import { toast } from "@/primitives/toaster";
 import type { IssueState } from "../issue-states-page/data";
 import { stateIconGlyph, stateIcons } from "./state-icons";
 

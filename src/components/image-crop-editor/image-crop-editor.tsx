@@ -6,7 +6,6 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { toast } from "sonner";
 import { Button } from "@/primitives/button";
 import {
   Dialog,
@@ -18,6 +17,7 @@ import {
 } from "@/primitives/dialog";
 import { Drawer, DrawerContent, DrawerTitle } from "@/primitives/drawer";
 import { Icon } from "@/primitives/icon";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   applyEdit,

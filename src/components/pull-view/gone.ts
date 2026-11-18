@@ -1,6 +1,6 @@
 import { HttpClientError } from "effect/http";
 import { HttpApiError } from "effect/http-api";
-import { toast } from "sonner";
+import { toast } from "@/primitives/toaster";
 
 /**
  * A mutation that named a row the server no longer has. The `pulls` routes

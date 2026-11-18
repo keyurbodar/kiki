@@ -1,8 +1,8 @@
 import type { ComponentProps, ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { toast } from "sonner";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
+import { toast } from "@/primitives/toaster";
 import { ShortcutTooltip } from "./shortcut-tooltip";
 
 const TOOLBAR_BASE_WIDTH = 72;

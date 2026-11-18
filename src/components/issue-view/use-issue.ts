@@ -1,6 +1,5 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult, type Atom } from "effect/reactivity";
-import { toast } from "sonner";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type {
   IssueDetail,
@@ -19,6 +18,7 @@ import {
 } from "@/data/atoms/issues";
 import { issueMenuKeys } from "@/features/issues/issue-menu";
 import { useIssueOrgId } from "@/features/issues/issue-parts";
+import { toast } from "@/primitives/toaster";
 import { commentIssueAtom } from "./atoms";
 
 const idleIssue = idleAtom<IssueDetail>();

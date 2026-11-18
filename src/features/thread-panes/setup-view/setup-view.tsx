@@ -1,7 +1,6 @@
 import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { FailedRead } from "@/components/failed-read";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { organizationsAtom } from "@/data/atoms/session";
@@ -16,6 +15,7 @@ import {
   threadDetailAtom,
   threadMachinesAtom,
 } from "@/data/atoms/setup";
+import { toast } from "@/primitives/toaster";
 import { BuildFocusView } from "./build-focus";
 import {
   type ScriptTarget,

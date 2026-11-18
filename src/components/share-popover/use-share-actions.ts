@@ -1,7 +1,7 @@
 import { useAtomSet } from "@effect/atom-react";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import type { OrgId } from "@/data/api/schemas/ids";
+import { toast } from "@/primitives/toaster";
 import { driveShareIdOf } from "./drive-ids";
 import { revokeShareAtom, updateShareAtom } from "./share-data";
 import {
