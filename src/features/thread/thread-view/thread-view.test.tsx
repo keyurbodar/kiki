@@ -184,6 +184,26 @@ describe("thread view composer slot", () => {
     expect(slot(container, "clarify-takeover")).toBeNull();
   });
 
+  it("gives an edit draft the slot while a takeover is pending", async () => {
+    const { container } = renderRoute(
+      timeline({ rows: messages, pendingAsk: clarify as never }),
+    );
+    expect(slot(container, "clarify-takeover")).not.toBeNull();
+    const sent = rows.find(
+      (row) => row.type === "user-message" && row.state === "answered",
+    ) as Extract<(typeof rows)[number], { type: "user-message" }>;
+    await act(async () =>
+      startEdit.set({
+        rowId: sent.id,
+        eventId: sent.eventId as string,
+        text: sent.text,
+      } as never),
+    );
+    await waitFor(() => expect(slot(container, "composer")).not.toBeNull());
+    expect(slot(container, "clarify-takeover")).toBeNull();
+    expect(screen.getByText("Editing message")).toBeTruthy();
+  });
+
   it("shows the skeleton while the thread loads", () => {
     const { container } = renderRoute(timeline({ loading: true }));
     expect(slot(container, "skeleton-panel")).not.toBeNull();
