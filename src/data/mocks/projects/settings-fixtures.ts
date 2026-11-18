@@ -58,8 +58,8 @@ export const sampleSetups: Record<string, ProjectSetup> = {
         ],
       }),
     ],
-    activeVersionId: "setupver_sample_web_3",
-    versionNumber: 3,
+    activeVersionId: null,
+    versionNumber: null,
   }),
   proj_sample_api: new ProjectSetup({
     machineSize: "medium",
@@ -98,13 +98,13 @@ export const sampleSnapshotConfigs: Record<string, ProjectSnapshotConfig> = {
     buildSmallerTiers: false,
     repos: ["acme/web"],
     estimate: estimate([["acme/web", 1_843_200]]),
-    hasArtifact: true,
+    hasArtifact: false,
     tiers: [
       new SnapshotTierState({
         tier: "64g",
         sizes: ["large"],
         current: true,
-        artifactCreatedAt: minutesAgo(3 * hour),
+        artifactCreatedAt: null,
       }),
     ],
     freezeFailure: null,
@@ -119,13 +119,13 @@ export const sampleSnapshotConfigs: Record<string, ProjectSnapshotConfig> = {
       ["acme/api", 512_000],
       ["acme/shared", 96_000],
     ]),
-    hasArtifact: false,
+    hasArtifact: true,
     tiers: [
       new SnapshotTierState({
         tier: "64g",
         sizes: ["medium"],
         current: false,
-        artifactCreatedAt: null,
+        artifactCreatedAt: minutesAgo(6 * hour),
       }),
     ],
     freezeFailure: null,
