@@ -1,7 +1,7 @@
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import { type ReactNode, useEffect, useState } from "react";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar, useSidebarLayout } from "@/components/app-sidebar";
 import {
   CaptainDialog,
   type CaptainDialogRequest,
@@ -89,10 +89,12 @@ function AppShellBody({ children, banner }: AppLayoutProps) {
   const [captainDialog, setCaptainDialog] =
     useState<CaptainDialogRequest | null>(null);
   const [now] = useState(() => new Date());
+  const [sidebarLayout] = useSidebarLayout();
   const liveSource = useLiveSidebarSource(now);
-  const threads = useSidebarThreads(
-    liveSource === null ? {} : { source: liveSource },
-  );
+  const threads = useSidebarThreads({
+    ...(liveSource === null ? {} : { source: liveSource }),
+    layout: sidebarLayout,
+  });
 
   useSidebarShortcut(toggle);
   useEffect(() => {

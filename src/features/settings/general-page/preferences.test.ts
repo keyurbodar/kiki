@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   defaultInputPrefs,
   isBoolean,
-  isDesktopHandoff,
   isInputPrefs,
   isLinkTarget,
   isPreviewLinkTarget,
@@ -24,9 +23,7 @@ describe("input preferences", () => {
 });
 
 describe("stored value guards", () => {
-  it("keeps desktop-handoff, link target, preview target and search engine values", () => {
-    expect(isDesktopHandoff("ask")).toBe(true);
-    expect(isDesktopHandoff("sometimes")).toBe(false);
+  it("keeps link target, preview target and search engine values", () => {
     expect(isLinkTarget("capy")).toBe(true);
     expect(isLinkTarget("Capy")).toBe(false);
     expect(isPreviewLinkTarget("pane")).toBe(true);

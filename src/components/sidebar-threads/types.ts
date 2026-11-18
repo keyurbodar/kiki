@@ -5,6 +5,8 @@ import type { ThreadCard, ThreadOrigin } from "@/data/api/schemas/thread";
 import type { CaptainAvatarValue } from "@/primitives/captain-avatar";
 
 export type SidebarMode = "threads" | "captains";
+/** Hybrid lists Captains above threads; Split shows one list at a time. */
+export type SidebarLayout = "hybrid" | "split";
 export type SidebarDensity = "compact" | "detailed";
 export type SidebarGrouping = "folders" | "projects";
 export type SidebarThreadSort = "lastActive" | "createdAt";
@@ -96,6 +98,7 @@ export type SidebarCaptain = {
 
 export type SidebarThreadsView = {
   mode: SidebarMode;
+  layout: SidebarLayout;
   density: SidebarDensity;
   grouping: SidebarGrouping;
   sort: SidebarThreadSort;

@@ -59,6 +59,7 @@ import {
   MagnifyingGlassIcon,
   SettingsSliderThreeIcon,
 } from "./icons";
+import { usePagesAtTop, useSidebarLayout } from "./preferences";
 
 export const SIDEBAR_BAR_ITEM_WIDTH = 28;
 
@@ -128,6 +129,8 @@ export function AppSidebar({
   ...props
 }: AppSidebarProps) {
   const [storedNav, saveStoredNav] = useSidebarNavPreference();
+  const [layout] = useSidebarLayout();
+  const [pagesAtTop] = usePagesAtTop();
   const nav = useSidebarNav(
     navOptions ?? { value: storedNav, onChange: saveStoredNav },
   );
@@ -214,9 +217,8 @@ export function AppSidebar({
     );
   };
 
-  const footer = (
-    <footer className="flex shrink-0 items-center gap-1 border-t-hairline border-border-1 p-2">
-      <UserMenu compact />
+  const pageBar = (
+    <>
       <nav
         ref={barRef}
         aria-label="Main"
@@ -299,8 +301,21 @@ export function AppSidebar({
           </ResponsiveMenu>
         ) : null}
       </nav>
+    </>
+  );
+
+  const footer = (
+    <footer className="flex shrink-0 items-center gap-1 border-t-hairline border-border-1 p-2">
+      <UserMenu compact />
+      {pagesAtTop ? null : pageBar}
     </footer>
   );
+
+  const pagesBar = pagesAtTop ? (
+    <div className="flex shrink-0 items-center gap-1 border-b-hairline border-border-1 px-2 pb-2">
+      {pageBar}
+    </div>
+  ) : null;
 
   return (
     <div
@@ -311,7 +326,7 @@ export function AppSidebar({
       {...props}
     >
       <header className="flex h-11 shrink-0 items-center gap-1 px-2 pl-4">
-        {showModeToggle ? (
+        {showModeToggle && layout === "split" ? (
           <div className="flex">
             <SidebarModeToggle
               data-track-owner="shared/app-sidebar.tsx#AppSidebar:SidebarModeToggle.1"
@@ -413,6 +428,7 @@ export function AppSidebar({
           </Tooltip>
         </div>
       </header>
+      {pagesBar}
       {threadsSlot ?? <SidebarThreads />}
       <SidebarAnnouncements />
       <SidebarSetupCard />

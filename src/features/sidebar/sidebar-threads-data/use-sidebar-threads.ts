@@ -3,6 +3,7 @@ import type {
   SidebarCaptainSort,
   SidebarDensity,
   SidebarGrouping,
+  SidebarLayout,
   SidebarMode,
   SidebarShelf,
   SidebarThreadSort,
@@ -33,6 +34,7 @@ export type SidebarThreadsController = {
 export function useSidebarThreads(
   options: {
     source?: SidebarSource;
+    layout?: SidebarLayout;
     initialPrefs?: Partial<SidebarPrefs>;
   } = {},
 ): SidebarThreadsController {
@@ -41,10 +43,16 @@ export function useSidebarThreads(
     ...defaultSidebarPrefs,
     ...options.initialPrefs,
   }));
+  // The layout is a stored preference the settings page writes, not view state,
+  // so it is read on every render instead of being copied into prefs.
+  const view = buildSidebarThreadsView(options.source ?? fallbackSource, {
+    ...prefs,
+    layout: options.layout ?? defaultSidebarPrefs.layout,
+  });
   const update = (patch: Partial<SidebarPrefs>) =>
     setPrefs((current) => ({ ...current, ...patch }));
   return {
-    view: buildSidebarThreadsView(options.source ?? fallbackSource, prefs),
+    view,
     setMode: (mode) => update({ mode }),
     setDensity: (density) => update({ density }),
     setGrouping: (grouping) => update({ grouping }),

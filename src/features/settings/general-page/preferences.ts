@@ -1,3 +1,4 @@
+import type { SidebarLayout } from "@/components/sidebar-threads";
 import { isBoolean, oneOf } from "./local-preference";
 
 export const deliveries = ["steer", "interrupt", "queue"] as const;
@@ -39,9 +40,10 @@ export const deliveryLabels: Record<Delivery, string> = {
   queue: "Queue",
 };
 
-export const desktopHandoffKey = "capy-web:desktop-handoff";
-export const desktopHandoffModes = ["ask", "always", "never"] as const;
-export const isDesktopHandoff = oneOf(desktopHandoffModes);
+export const sidebarLayoutLabels: Record<SidebarLayout, string> = {
+  hybrid: "Hybrid",
+  split: "Split",
+};
 
 export const scrollNewMessagesKey = "kiki:scroll-new-messages-to-top";
 export { isBoolean };

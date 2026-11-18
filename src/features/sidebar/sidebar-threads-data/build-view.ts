@@ -4,6 +4,7 @@ import type {
   SidebarCollapse,
   SidebarDensity,
   SidebarGrouping,
+  SidebarLayout,
   SidebarMachine,
   SidebarMode,
   SidebarProject,
@@ -79,6 +80,7 @@ export type SidebarSource = {
 
 export type SidebarPrefs = {
   mode: SidebarMode;
+  layout: SidebarLayout;
   density: SidebarDensity;
   grouping: SidebarGrouping;
   sort: SidebarThreadSort;
@@ -92,6 +94,7 @@ export type SidebarPrefs = {
 
 export const defaultSidebarPrefs: SidebarPrefs = {
   mode: "threads",
+  layout: "hybrid",
   density: "detailed",
   grouping: "folders",
   sort: "lastActive",
@@ -240,6 +243,7 @@ export function buildSidebarThreadsView(
 
   return {
     mode: prefs.mode,
+    layout: prefs.layout,
     density: prefs.density,
     grouping: prefs.grouping,
     sort: prefs.sort,

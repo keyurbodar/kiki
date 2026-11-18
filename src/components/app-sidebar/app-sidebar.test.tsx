@@ -24,11 +24,10 @@ async function renderSidebar(props: AppSidebarProps = {}, path = "/new") {
 }
 
 describe("AppSidebar", () => {
-  it("renders the mode toggle, header actions and the footer page bar", async () => {
-    const { container } = await renderSidebar();
-    expect(
-      container.querySelector('[data-slot="sidebar-mode"]'),
-    ).not.toBeNull();
+  afterEach(() => window.localStorage.clear());
+
+  it("renders header actions and the footer page bar", async () => {
+    await renderSidebar();
     expect(screen.getByRole("button", { name: "Search" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Close sidebar" })).toBeTruthy();
     expect(
@@ -47,6 +46,34 @@ describe("AppSidebar", () => {
       "explore",
       "volumes",
     ]);
+  });
+
+  it("offers the mode toggle only in the split layout", async () => {
+    const hybrid = await renderSidebar();
+    expect(
+      hybrid.container.querySelector('[data-slot="sidebar-mode"]'),
+    ).toBeNull();
+    cleanup();
+    window.localStorage.setItem("capy-web:sidebar-layout", '"split"');
+    const split = await renderSidebar();
+    expect(
+      split.container.querySelector('[data-slot="sidebar-mode"]'),
+    ).not.toBeNull();
+  });
+
+  it("moves the page bar above the lists when Pages at top is on", async () => {
+    const slot = <div data-testid="threads" />;
+    const bottom = await renderSidebar({ threadsSlot: slot });
+    expect(bottom.container.querySelector("footer nav")).not.toBeNull();
+    cleanup();
+    window.localStorage.setItem("capy-web:pages-at-top", "true");
+    const top = await renderSidebar({ threadsSlot: slot });
+    expect(top.container.querySelector("footer nav")).toBeNull();
+    const bar = screen.getByRole("navigation", { name: "Main" });
+    const threads = screen.getByTestId("threads");
+    expect(
+      bar.compareDocumentPosition(threads) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).not.toBe(0);
   });
 
   it("shows the Capy mark as Home without the mode toggle", async () => {
