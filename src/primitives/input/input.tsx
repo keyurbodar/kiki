@@ -4,7 +4,7 @@ import type { ComponentProps, ReactNode } from "react";
 
 export const inputVariants = cva(
   [
-    "w-full min-w-0 rounded text-sm font-normal text-foreground",
+    "min-w-0 rounded text-sm font-normal text-foreground",
     "placeholder:text-muted-foreground-3 selection:bg-primary-20",
     "outline-none",
     "disabled:cursor-not-allowed disabled:opacity-55",
@@ -17,7 +17,7 @@ export const inputVariants = cva(
           "bg-input border-hairline border-border-2 focus-visible:outline-ring-inset",
         blank: "bg-transparent border-0",
         ghost:
-          "w-auto field-sizing-content text-ellipsis bg-transparent border-hairline border-transparent font-medium placeholder:text-foreground transition-[border-color,background-color] duration-fast hover:border-border-2 hover:bg-input focus-visible:border-border-2 focus-visible:bg-input focus-visible:outline-ring-inset",
+          "field-sizing-content text-ellipsis bg-transparent border-hairline border-transparent font-medium placeholder:text-foreground transition-[border-color,background-color] duration-fast hover:border-border-2 hover:bg-input focus-visible:border-border-2 focus-visible:bg-input focus-visible:outline-ring-inset",
       },
       size: {
         xs: "h-(--h-control-xs) px-1.5 text-xs",
@@ -67,7 +67,9 @@ export function Input({
   );
   if (!icon) return input;
   return (
-    <InputGroup className={wrapperClassName}>
+    <InputGroup
+      className={["w-full", wrapperClassName].filter(Boolean).join(" ")}
+    >
       <span
         aria-hidden
         className={[
@@ -88,7 +90,10 @@ export function InputGroup({ className, ...props }: InputGroupProps) {
   return (
     <div
       data-slot="input-group"
-      className={["relative inline-flex w-full", className]
+      className={[
+        "relative inline-flex [&>[data-slot=input]]:w-full",
+        className,
+      ]
         .filter(Boolean)
         .join(" ")}
       {...props}

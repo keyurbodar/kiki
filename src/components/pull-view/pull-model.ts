@@ -42,6 +42,9 @@ export type Pull = {
   readonly closedAt: Date | null;
   readonly labels: ReadonlyArray<PullLabel>;
   readonly issues: ReadonlyArray<PullIssueRef>;
+  readonly mergeableState: PullMergeableState;
+  readonly autoMerge: boolean;
+  readonly autoMergeMethod: PullMergeMethod | null;
 };
 
 export type CheckRow = {
@@ -53,6 +56,15 @@ export type CheckRow = {
 };
 
 export type CheckVerdict = "failure" | "pending" | "neutral" | "success";
+
+export type PullMergeableState =
+  | "clean"
+  | "behind"
+  | "dirty"
+  | "blocked"
+  | "unstable";
+
+export type PullMergeMethod = "squash" | "merge" | "rebase";
 
 export type PullThreadRef = {
   readonly id: string;
@@ -84,6 +96,24 @@ export const toDate = (value: unknown): Date | null => {
   if (typeof value !== "string" && typeof value !== "number") return null;
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+export const toMergeMethod = (value: unknown): PullMergeMethod | null =>
+  value === "squash" || value === "merge" || value === "rebase" ? value : null;
+
+const mergeableStates: ReadonlyArray<PullMergeableState> = [
+  "clean",
+  "behind",
+  "dirty",
+  "blocked",
+  "unstable",
+];
+
+const pullMergeableState = (raw: Json): PullMergeableState => {
+  const value = str(raw.mergeableState);
+  return mergeableStates.includes(value as PullMergeableState)
+    ? (value as PullMergeableState)
+    : "clean";
 };
 
 const pullState = (raw: Json): PullState => {
@@ -163,6 +193,9 @@ export const toPull = (value: unknown): Pull | undefined => {
     closedAt: toDate(raw.closedAt),
     labels: toLabels(raw.labels),
     issues: toIssueRefs(raw.issues),
+    mergeableState: pullMergeableState(raw),
+    autoMerge: raw.autoMerge === true,
+    autoMergeMethod: toMergeMethod(raw.autoMergeMethod),
   };
 };
 

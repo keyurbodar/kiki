@@ -750,7 +750,7 @@ export function MemoryPage({ search }: { search: MemoryLocation }) {
                 value={whereLabel(search.where, projects)}
                 items={whereItems}
               >
-                <InputGroup>
+                <InputGroup className="w-full">
                   <Input
                     aria-label="Search projects"
                     placeholder="Search projects"

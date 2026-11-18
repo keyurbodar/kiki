@@ -125,7 +125,9 @@ export const McpMock = mockGroup("mcp", (handlers) =>
           // can never disagree on screen.
           return rows.map((row) => ({
             ...row,
-            toolCount: (sampleToolsByServer[row.id] ?? []).length,
+            // An untested server has no known tool count; only a server whose
+            // tools have actually been listed can report zero.
+            toolCount: sampleToolsByServer[row.id]?.length ?? null,
           }));
         }),
       )
@@ -141,7 +143,7 @@ export const McpMock = mockGroup("mcp", (handlers) =>
             status: "needs_auth",
             createdAt: DateTime.formatIso(minutesAgo(0)),
             updatedAt: DateTime.formatIso(minutesAgo(0)),
-            lastCheckedAt: DateTime.formatIso(minutesAgo(0)),
+            lastCheckedAt: null,
           };
           yield* Ref.update(mcpServers, (rows) => [...rows, server]);
           return server;
@@ -255,7 +257,7 @@ export const McpMock = mockGroup("mcp", (handlers) =>
         Effect.gen(function* () {
           const server = yield* requireServer(params.serverId);
           const input = fields(payload);
-          const verbose = flag(input.verbose, true);
+          const verbose = flag(input.verbose, false);
           const disabled = server.status === "disabled";
           const tools = sampleToolsByServer[server.id] ?? [];
           const status = disabled ? "skipped" : "ok";

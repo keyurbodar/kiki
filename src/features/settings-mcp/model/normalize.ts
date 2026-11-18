@@ -27,7 +27,10 @@ export const toServer = (raw: unknown): McpServer => {
   if ("serverKey" in row) return row as unknown as McpServer;
   const status = str(row.status);
   const createdAt = strOrNull(row.createdAt);
-  const checkedAt = strOrNull(row.lastCheckedAt) ?? createdAt;
+  // Only a real test is a check. A server that has never been tested reports
+  // no check time, rather than passing its creation time off as one.
+  const checkedAt = strOrNull(row.lastCheckedAt);
+  const toolCount = num(row.toolCount);
   return {
     id: str(row.id),
     owner: { kind: "organization" },
@@ -60,10 +63,17 @@ export const toServer = (raw: unknown): McpServer => {
     hint: null,
     enabled: status !== "disabled",
     credential: null,
-    toolCount: num(row.toolCount),
+    toolCount,
     health:
       status === "connected" && checkedAt !== null
-        ? { state: "empty", checkedAt }
+        ? (toolCount ?? 0) > 0
+          ? {
+              state: "ready",
+              toolCount: toolCount ?? 0,
+              excluded: 0,
+              checkedAt,
+            }
+          : { state: "empty", checkedAt }
         : { state: "unchecked" },
     createdAt: createdAt ?? "",
     updatedAt: strOrNull(row.updatedAt) ?? createdAt ?? "",

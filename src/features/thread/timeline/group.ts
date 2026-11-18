@@ -14,8 +14,8 @@ import {
   type Settlement,
   settledAt,
   startOf,
-  toolNamespace,
   type ToolRow,
+  toolNamespace,
   type UpdateRow,
 } from "./shared";
 

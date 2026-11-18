@@ -166,6 +166,7 @@ const at = {
   toolDetached: isoMinutesAgo(2),
   reasoning: isoMinutesAgo(1),
   delivered: isoMinutesAgo(74),
+  cancelledTurn: isoMinutesAgo(4),
 };
 
 /** The ids the outline and the message versions below point at. */
@@ -1146,6 +1147,36 @@ export const seedEvents: ReadonlyArray<EventRowEncoded> = [
     ],
   }),
   ...captureHistory,
+  row(
+    checkoutJam,
+    at.cancelledTurn,
+    43,
+    "message",
+    {
+      actor: user(people.alex.id),
+      origin: web(people.alex.id),
+      text: "Summarise the whole checkout suite while I read the logs.",
+      files: [],
+      delivery: "interrupt",
+    },
+    "answered",
+  ),
+  row(checkoutJam, at.cancelledTurn, 44, "assistant", {
+    actor: agent(checkoutJam),
+    origin: sys,
+    model: sampleModel,
+    route: { source: "capy" },
+    usage: sampleUsage,
+    stopReason: "cancelled",
+    startedAt: isoMinutesAgo(4),
+    blocks: [
+      {
+        id: "blk_sample_cancelled",
+        type: "text",
+        text: "The suite has four groups: retry, gateway, payouts and the shared fixtures. The retry group is the one that flaked, and the gateway group has",
+      },
+    ],
+  }),
   row(
     checkoutJam,
     at.reasoning,

@@ -314,7 +314,7 @@ export function FileBrowser<F extends BrowserFile>({
       </div>
       {onFilterChange !== undefined && (
         <div className="flex items-center gap-1 pb-1">
-          <InputGroup>
+          <InputGroup className="w-full">
             <Icon name="search-menu" size="sm" />
             <Input
               ref={filterRef}

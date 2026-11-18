@@ -11,7 +11,6 @@ import {
   type ThreadListItem,
   threadCode,
   threadFilterChips,
-  threadShelf,
 } from "./model";
 
 const now = new Date(2026, 10, 17, 12).getTime();
@@ -111,22 +110,25 @@ describe("threads page model", () => {
     expect(filterThreads(threads, notWeb, "user_me", now)).toEqual([]);
   });
 
-  it("puts threads on Capy's shelves", () => {
-    expect(threadShelf(thread({ needsYou: true }), now)).toBe("asks");
-    expect(threadShelf(thread({ status: "working" }), now)).toBe("working");
+  it("keeps Captains whatever the Participants filter says", () => {
+    const threads = [
+      thread({
+        id: "cap",
+        userId: "user_other",
+        participated: false,
+        captain: { name: "Release captain", avatarUrl: null },
+      }),
+      thread({ id: "mine" }),
+      thread({ id: "theirs", userId: "user_other", participated: false }),
+    ];
     expect(
-      threadShelf(
-        thread({
-          sortActivityAt: minutesAgo(60 * 24 * 8),
-          lastActivityAt: null,
-        }),
-        now,
+      filterThreads(threads, defaultThreadFilters, "user_me", now).map(
+        (t) => t.id,
       ),
-    ).toBe("settled");
-    expect(threadShelf(thread(), now)).toBe("returned");
+    ).toEqual(["cap", "mine"]);
   });
 
-  it("builds captain and shelf sections; working starts collapsed", () => {
+  it("builds a Captains section, then one Threads section", () => {
     const sections = buildSections({
       threads: [
         thread({
@@ -140,14 +142,12 @@ describe("threads page model", () => {
       grouping: "none",
       ordering: "updated",
       searching: false,
-      now,
       projectName: () => "",
       authorName: () => "",
     });
-    expect(sections.map((s) => [s.id, s.members.length])).toEqual([
-      ["captains", 1],
-      ["all", 1],
-      ["closed:shelf:working", 1],
+    expect(sections.map((s) => [s.id, s.label, s.members.length])).toEqual([
+      ["captains", "Captains", 1],
+      ["all", "Threads", 2],
     ]);
   });
 
