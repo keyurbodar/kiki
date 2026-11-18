@@ -26,7 +26,7 @@ export type ListingIconSize = keyof typeof tileSizes;
 export const repositoryOwner = (repository: string | null) =>
   repository === null ? undefined : repository.split("/")[0];
 
-function VerifiedBadge({ size }: { size: "sm" | "lg" }) {
+export function VerifiedBadge({ size }: { size: "sm" | "lg" }) {
   const placement = badgePlacement[size];
   return (
     <span

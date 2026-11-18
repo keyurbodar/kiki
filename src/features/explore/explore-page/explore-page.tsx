@@ -187,6 +187,7 @@ const readTheme = (value: unknown): ThemeCardPreview | null => {
 
 const toListingCard = (card: ExploreCard | ThemeListingCard): ListingCard => ({
   kind: card.kind,
+  source: card.source === "user" ? "user" : "catalog",
   slug: card.slug,
   displayName: card.displayName,
   description: card.description,
