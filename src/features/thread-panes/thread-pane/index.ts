@@ -16,3 +16,7 @@ export {
   writesPaneParam,
   writtenPaneParams,
 } from "./registry";
+export {
+  parseSessionPane,
+  type SessionPane,
+} from "./session-pane";

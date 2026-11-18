@@ -38,7 +38,11 @@ function BarButton({
   );
 }
 
-export type BrowserPaneProps = { threadId: string };
+export type BrowserPaneProps = {
+  threadId: string;
+  /** The session this tab was opened for, when the route names one. */
+  sessionId?: string | undefined;
+};
 
 /**
  * The browser surface Capy opens from the chat column's strip: a 32 px bar with
@@ -46,7 +50,7 @@ export type BrowserPaneProps = { threadId: string };
  * behind it yet — no endpoint opens one — so the page area shows Capy's own
  * new-tab state rather than a fabricated view.
  */
-export function BrowserPane({ threadId }: BrowserPaneProps) {
+export function BrowserPane({ threadId, sessionId }: BrowserPaneProps) {
   return (
     <div
       data-slot="browser-pane"
@@ -70,12 +74,17 @@ export function BrowserPane({ threadId }: BrowserPaneProps) {
       </BrowserBar>
       <div
         data-slot="browser-new-tab"
+        data-session={sessionId}
         className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-6 text-center"
       >
         <CapyMark className="size-12 opacity-80" />
-        <p className="text-sm font-medium">New tab</p>
+        <p className="text-sm font-medium">
+          {sessionId === undefined ? "New tab" : "No page loaded"}
+        </p>
         <p className="text-xs text-muted-foreground-2">
-          Type a URL, pick a port, or search
+          {sessionId === undefined
+            ? "Type a URL, pick a port, or search"
+            : `Session ${sessionId} has no loaded page in this build.`}
         </p>
       </div>
     </div>
