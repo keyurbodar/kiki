@@ -6,7 +6,7 @@ export type Crumb = { label: string; to?: string };
 
 export function ExploreCrumbs({ crumbs }: { crumbs: ReadonlyArray<Crumb> }) {
   return (
-    <AppTopBar className="sticky top-0 z-(--z-top-bar) flex min-h-13 shrink-0 items-center border-b-hairline border-border-1 px-2">
+    <AppTopBar className="sticky top-0 z-(--z-top-bar) flex min-h-11 shrink-0 items-center border-b-hairline border-border-1 px-2">
       <nav
         aria-label="Breadcrumb"
         className="flex min-w-0 items-center gap-1 pl-2.5"
