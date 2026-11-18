@@ -7,6 +7,16 @@ import { toast } from "sonner";
 import { ModelPicker } from "@/components/model-picker";
 import { ProjectSelect } from "@/components/project-select";
 import { RunOnSelect } from "@/components/run-on-select";
+import {
+  AccessRows,
+  PeopleField,
+  type Visibility,
+} from "@/components/share-dialog";
+import { PersonAvatar } from "@/components/share-dialog/person-avatar";
+import {
+  displayName as personName,
+  usePeople,
+} from "@/components/share-dialog/share-data";
 import type { JamId, OrgId } from "@/data/api/schemas/ids";
 import {
   archiveJamsAtom,
@@ -124,7 +134,10 @@ function CaptainDialogForm({
     profile?.crewDevice?.id ?? null,
   );
   const [busy, setBusy] = useState(false);
-  const visibility = initialVisibility(request);
+  const [visibility, setVisibility] = useState<Visibility>(() =>
+    initialVisibility(request),
+  );
+  const { members } = usePeople();
   const project =
     request.kind === "promote-thread"
       ? projects.find((row) => row.id === request.thread.projectId)
@@ -136,7 +149,24 @@ function CaptainDialogForm({
         ? (request.folder.memberIds ?? [])
         : [];
   const userIds = invitees.filter((id) => id !== ownerUserId);
-  const tooMany = userIds.length > captainInviteLimit;
+  const [subscribers, setSubscribers] = useState<ReadonlyArray<string>>(
+    () => userIds,
+  );
+  const tooMany = subscribers.length > captainInviteLimit;
+  const memberById = new Map(members.map((member) => [member.userId, member]));
+  const ownerId = ownerUserId ?? "";
+  const subscriberRows = [
+    ...(ownerId === "" ? [] : [ownerId]),
+    ...subscribers,
+  ].map((id) => {
+    const member = memberById.get(id);
+    return {
+      userId: id,
+      name: member === undefined ? id : (personName(member) ?? id),
+      imageUrl: member?.imageUrl ?? null,
+      role: id === ownerId ? "Owner" : "Subscriber",
+    };
+  });
   const changes =
     profile === undefined
       ? undefined
@@ -196,7 +226,7 @@ function CaptainDialogForm({
               name: finalName,
               avatar,
               visibility,
-              userIds: userIds.length === 0 ? undefined : userIds,
+              userIds: subscribers.length === 0 ? undefined : subscribers,
             },
             reactivityKeys: [
               ...keys,
@@ -215,7 +245,7 @@ function CaptainDialogForm({
                   avatar,
                   projectId: project.id,
                   visibility,
-                  userIds,
+                  userIds: subscribers,
                 },
                 reactivityKeys: [
                   ...keys,
@@ -230,7 +260,7 @@ function CaptainDialogForm({
                   avatar,
                   projectId: project.id,
                   visibility,
-                  userIds,
+                  userIds: subscribers,
                 },
                 reactivityKeys: keys,
               });
@@ -440,19 +470,49 @@ function CaptainDialogForm({
       </>
     ) : request.kind === "promote-thread" ? null : (
       <>
-        <div className={rowClass}>
-          <span className={rowLabelClass}>Project</span>
-          <ProjectSelect />
-        </div>
-        {request.kind === "create" ? (
+        <div className="flex w-full flex-col divide-y-(length:--border-width-hairline) divide-border-1">
           <div className={rowClass}>
-            <span className={rowLabelClass}>Machine</span>
-            <RunOnSelect />
+            <span className={rowLabelClass}>Project</span>
+            <ProjectSelect orgId={orgId} />
           </div>
-        ) : null}
-        <div className={rowClass}>
-          <span className={rowLabelClass}>Model</span>
-          <ModelPicker />
+          {request.kind === "create" ? (
+            <div className={rowClass}>
+              <span className={rowLabelClass}>Machine</span>
+              <RunOnSelect />
+            </div>
+          ) : null}
+          <div className={rowClass}>
+            <span className={rowLabelClass}>Model</span>
+            <ModelPicker />
+          </div>
+        </div>
+        <div className="flex flex-col gap-2 pb-2">
+          <AccessRows visibility={visibility} onChange={setVisibility} />
+          <PeopleField
+            excluded={new Set(subscriberRows.map((row) => row.userId))}
+            batchLimit={captainInviteLimit}
+            disabled={subscribers.length >= captainInviteLimit}
+            placeholder="Add subscriber"
+            description="Subscribers see this in their sidebar and get its notifications"
+            onPick={(userId) =>
+              setSubscribers((current) => [...current, userId])
+            }
+          >
+            <ul className="flex flex-col divide-y-(length:--border-width-hairline) divide-border-1">
+              {subscriberRows.map((row) => (
+                <li
+                  key={row.userId}
+                  className="flex min-h-9 items-center gap-2.5 text-sm"
+                >
+                  <PersonAvatar src={row.imageUrl} name={row.name} size="xs" />
+                  <span className="min-w-0 flex-1 truncate">{row.name}</span>
+                  <span className="text-sm text-muted-foreground-1">
+                    {row.role}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </PeopleField>
         </div>
       </>
     );

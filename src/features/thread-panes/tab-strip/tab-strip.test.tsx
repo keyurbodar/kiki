@@ -430,4 +430,21 @@ describe("TabStrip", () => {
       Array.from(strip).map((tab) => tab.getAttribute("data-pane-tab")),
     ).toEqual(["chat", "overview", "captain_issues"]);
   });
+
+  it("carries the tab label in data-pane-tab-label, as Capy's strip does", () => {
+    render(
+      <TabStrip
+        threadId="jam_1"
+        tabs={tabs}
+        activeId="overview"
+        chatTab={{ title: "Acme", content: "Acme", onSelect: () => {} }}
+      />,
+    );
+    const labels = ["overview", "captain_issues"].map((id) =>
+      document
+        .querySelector(`[data-pane-tab="${id}"] [data-pane-tab-label]`)
+        ?.getAttribute("data-pane-tab-label"),
+    );
+    expect(labels).toEqual(["Overview", "Issues"]);
+  });
 });

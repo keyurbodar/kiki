@@ -127,7 +127,9 @@ export function ThreadHeader({
           content: (
             <span className="flex min-w-0 items-center gap-1.5">
               <ChatIdentity name={title} size="xs" />
-              <span className="min-w-0 truncate">{title}</span>
+              <span data-pane-tab-label={title} className="min-w-0 truncate">
+                {title}
+              </span>
             </span>
           ),
           onSelect: onSelectChat,

@@ -93,3 +93,41 @@ describe("threads list sections", () => {
     expect(rows()).toBe(3);
   });
 });
+
+describe("thread row preview card", () => {
+  it("opens Capy's preview card when the row takes focus", async () => {
+    await mount([
+      {
+        id: "all",
+        label: "Active",
+        members: [thread("row-a")],
+        showCount: true,
+      },
+    ]);
+    const link = document.querySelector("[data-thread-row='row-a']");
+    if (link === null) throw new Error("no row");
+    expect(
+      document.querySelector("[data-slot='preview-card-content']"),
+    ).toBeNull();
+    fireEvent.focus(link);
+    await new Promise((resolve) => setTimeout(resolve, 420));
+    expect(
+      document.querySelector("[data-slot='preview-card-content']"),
+    ).not.toBeNull();
+  });
+
+  it("keeps the row's context menu wired", async () => {
+    await mount([
+      {
+        id: "all",
+        label: "Active",
+        members: [thread("row-b")],
+        showCount: true,
+      },
+    ]);
+    const link = document.querySelector("[data-thread-row='row-b']");
+    if (link === null) throw new Error("no row");
+    fireEvent.contextMenu(link);
+    expect(await screen.findByText("Rename")).toBeTruthy();
+  });
+});

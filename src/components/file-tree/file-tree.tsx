@@ -1,7 +1,9 @@
 import { Menu as BaseMenu } from "@base-ui/react/menu";
 import type {
   ContextMenuItem,
+  FileTreeDirectoryHandle,
   FileTreeInitialExpansion,
+  FileTreeItemHandle,
   GitStatusEntry,
 } from "@pierre/trees";
 import {
@@ -55,6 +57,8 @@ export type FileTreeProps = Omit<
   openPaths?: ReadonlySet<string>;
   previewPaths?: ReadonlySet<string>;
   currentPath?: string;
+  /** Marks the row Capy's rail shows as the file you are looking at. */
+  selectedPath?: string;
   truncated?: boolean;
   gitStatus?: readonly GitStatusEntry[];
   stats?: ReadonlyMap<string, FileStat>;
@@ -74,11 +78,16 @@ export type FileTreeProps = Omit<
 
 const quote = (path: string) => `[data-item-path=${JSON.stringify(path)}]`;
 
+const isDirectoryHandle = (
+  item: FileTreeItemHandle,
+): item is FileTreeDirectoryHandle => item.isDirectory();
+
 export function FileTree({
   paths = noPaths,
   openPaths = noSet,
   previewPaths = noSet,
   currentPath,
+  selectedPath,
   truncated,
   gitStatus = noStatus,
   stats = noStats,
@@ -104,8 +113,22 @@ export function FileTree({
     .replaceAll("\\", "/")
     .toLowerCase();
   const known = new Set(paths);
-  const latest = useRef({ known, onOpen, onOpenDirectory, stats, decorations });
-  latest.current = { known, onOpen, onOpenDirectory, stats, decorations };
+  const latest = useRef({
+    known,
+    onOpen,
+    onOpenDirectory,
+    stats,
+    decorations,
+    controlledSelection: selectedPath !== undefined,
+  });
+  latest.current = {
+    known,
+    onOpen,
+    onOpenDirectory,
+    stats,
+    decorations,
+    controlledSelection: selectedPath !== undefined,
+  };
 
   const collapsed = new Set(collapsedPaths ?? noPaths);
   const { model } = useFileTree({
@@ -152,6 +175,7 @@ export function FileTree({
         latest.current.onOpenDirectory?.(
           path.endsWith("/") ? path.slice(0, -1) : path,
         );
+      if (latest.current.controlledSelection) return;
       queueMicrotask(() => model.getItem(path)?.deselect());
     },
   });
@@ -171,6 +195,20 @@ export function FileTree({
   useEffect(() => {
     model.setGitStatus([...gitStatus]);
   }, [model, gitStatus]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: resetting the paths clears the mark
+  useEffect(() => {
+    if (selectedPath === undefined) return;
+    const segments = selectedPath.split("/");
+    for (let depth = 1; depth < segments.length; depth += 1) {
+      const parent = model.getItem(segments.slice(0, depth).join("/"));
+      if (parent !== null && isDirectoryHandle(parent)) parent.expand();
+    }
+    for (const path of model.getSelectedPaths()) {
+      if (path !== selectedPath) model.getItem(path)?.deselect();
+    }
+    model.getItem(selectedPath)?.select();
+  }, [model, selectedPath, pathsKey]);
 
   useEffect(() => {
     if (stats.size === 0 && decorations.size === 0) return;

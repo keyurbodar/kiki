@@ -43,3 +43,24 @@ it("names the compact trigger after the user", async () => {
   const trigger = await screen.findByRole("button", { name: /\S/ });
   expect(trigger.textContent).toMatch(/^[A-Z]{1,2}$/);
 });
+
+it("opens the account preview card on hover, which the compact trigger does not have", async () => {
+  renderMenu(false);
+  const trigger = await screen.findByRole("button", { name: /\S/ });
+  fireEvent.pointerEnter(trigger);
+  fireEvent.mouseEnter(trigger);
+  fireEvent.focus(trigger);
+  await new Promise((resolve) => setTimeout(resolve, 420));
+  const card = document.querySelector("[data-slot='preview-card-content']");
+  expect(card).not.toBeNull();
+  cleanup();
+
+  renderMenu(true);
+  const compact = await screen.findByRole("button", { name: /\S/ });
+  fireEvent.mouseEnter(compact);
+  fireEvent.focus(compact);
+  await new Promise((resolve) => setTimeout(resolve, 420));
+  expect(
+    document.querySelector("[data-slot='preview-card-content']"),
+  ).toBeNull();
+});

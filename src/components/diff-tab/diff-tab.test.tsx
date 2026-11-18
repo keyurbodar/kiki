@@ -21,6 +21,16 @@ const pull = {
   diffPair: { base: "a10f42e8c933", head: "c2f8a10d9b47" },
 };
 
+const xinPullRef = {
+  ...pull,
+  id: "pr_sample_118",
+  repo: "keyurbodar/xin",
+  number: 118,
+  url: "https://github.com/keyurbodar/xin/pull/118",
+  headSha: "d0f27a5be913",
+  diffPair: { base: "main", head: "d0f27a5be913" },
+};
+
 describe("DiffTab", () => {
   it("renders files, markers and discussions from the mock", async () => {
     render(
@@ -80,5 +90,22 @@ describe("DiffTab", () => {
     expect(
       document.querySelectorAll("[data-diff-file]").length,
     ).toBeGreaterThan(1);
+  });
+
+  it("renders a LEFT-anchored comment inside its file", async () => {
+    render(
+      <RegistryProvider>
+        <DiffTab pull={xinPullRef} />
+      </RegistryProvider>,
+    );
+    await screen.findByText("budget.ts");
+    const runs = document.querySelectorAll('[data-slot="diff-unchanged-run"]');
+    expect(runs.length).toBeGreaterThan(0);
+    expect(
+      await screen.findByRole("button", {
+        name: /Keep the old ceiling for callers that pass nothing/,
+      }),
+    ).toBeTruthy();
+    expect(document.body.textContent).not.toContain("Comments on unchanged");
   });
 });
