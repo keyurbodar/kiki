@@ -18,6 +18,7 @@ import {
   reorderFolderItemsAtom,
   threadOrganizationKeys,
 } from "@/data/atoms/threadOrganization";
+import { ShortcutTooltip } from "@/features/shell/keyboard";
 import { Button } from "@/primitives/button";
 import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
@@ -57,28 +58,27 @@ export type SidebarThreadsPanelProps = {
 function HeaderButton({
   label,
   onClick,
+  command,
 }: {
   label: string;
   onClick?: () => void;
+  /** The command the button runs, so its tooltip prints the chord that runs it. */
+  command?: string;
 }) {
   if (onClick === undefined) return null;
-  return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={label}
-            onClick={onClick}
-          >
-            <Glyph name="plus-large" className="size-(--icon-base)" />
-          </Button>
-        }
-      />
-      <TooltipContent side="bottom">{label}</TooltipContent>
-    </Tooltip>
+  const button = (
+    <Button variant="ghost" size="icon-sm" aria-label={label} onClick={onClick}>
+      <Glyph name="plus-large" className="size-(--icon-base)" />
+    </Button>
   );
+  if (command === undefined)
+    return (
+      <Tooltip>
+        <TooltipTrigger render={button} />
+        <TooltipContent side="bottom">{label}</TooltipContent>
+      </Tooltip>
+    );
+  return <ShortcutTooltip command={command} label={label} render={button} />;
 }
 
 export function SidebarThreadsPanel({
@@ -216,7 +216,11 @@ function SidebarThreadsPanelBody({
   );
   const actions = (
     <>
-      <HeaderButton label="New thread" onClick={onNewThread} />
+      <HeaderButton
+        label="New thread"
+        onClick={onNewThread}
+        command="thread.new"
+      />
       <ThreadOptionsMenu
         sort={view.sort}
         onSortChange={sidebar.setSort}
