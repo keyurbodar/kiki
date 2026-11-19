@@ -37,6 +37,13 @@ describe("ThreadDock", () => {
     expect(panel?.getAttribute("data-state")).toBe("open");
   });
 
+  it("stays the desktop dock, never the phone's over-the-transcript host", () => {
+    renderDock(<div data-slot="pane-stub" />);
+    const panel = document.querySelector("[data-slot=right-panel]");
+    expect(panel?.className ?? "").not.toContain("max-md:absolute");
+    expect(panel?.className ?? "").not.toContain("max-md:top-");
+  });
+
   it("carries the open pane tabs in its own bar", () => {
     renderDock(<div data-slot="pane-stub" />);
     const bar = document.querySelector("[data-slot=thread-dock-header]");

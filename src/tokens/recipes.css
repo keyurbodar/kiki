@@ -409,6 +409,23 @@
   }
 
   /*
+   * The phone pane host: below the breakpoint the dock's panel stops being a
+   * column beside the transcript and becomes an overlay pinned under the tab
+   * strip — Capy's `max-md:absolute inset-x-0 top-(--thread-pane-top)` on the
+   * thread pane. The top is measured into the variable because the header
+   * above it is sticky and carries the safe area. Position stays a utility at
+   * the call site: `relative` in the base class is a utility too, and a
+   * component-layer rule loses to it.
+   */
+  @media not all and (width >= 48rem) {
+    .kiki-narrow-panel {
+      inset-inline: 0;
+      top: var(--thread-pane-top, 0);
+      bottom: 0;
+    }
+  }
+
+  /*
    * A message's action row: Copy and More in flow under the body, which is how
    * Capy's phone shows the actions instead of the hover rail.
    */

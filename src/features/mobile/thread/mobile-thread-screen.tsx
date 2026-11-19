@@ -335,6 +335,11 @@ function MobileThreadBody({
       activeTab={activeTab}
       onSelectTab={setActiveTab}
       onCloseTab={closeTab}
+      pane={
+        activeTab === CHAT_TAB || ActivePane === undefined ? undefined : (
+          <ActivePane threadId={threadId} />
+        )
+      }
       tabMenu={
         <MobileTabDrawer
           title={threadTitle}
@@ -426,26 +431,20 @@ function MobileThreadBody({
         </>
       }
     >
-      {activeTab === CHAT_TAB ? (
-        (chat ?? (
-          <ThreadMessageActions orgId={orgId} jamId={threadId}>
-            <JamChat
-              data-thread-id={threadId}
-              jamId={threadId}
-              rows={timeline.rows}
-              initialLoading={timeline.loading}
-              onStartReached={
-                timeline.hasOlder ? timeline.loadOlder : undefined
-              }
-              onInsertQuote={(mention) =>
-                composerRef.current?.insertMention(mention, "")
-              }
-              className="flex min-h-0 flex-1 flex-col"
-            />
-          </ThreadMessageActions>
-        ))
-      ) : ActivePane === undefined ? null : (
-        <ActivePane threadId={threadId} />
+      {chat ?? (
+        <ThreadMessageActions orgId={orgId} jamId={threadId}>
+          <JamChat
+            data-thread-id={threadId}
+            jamId={threadId}
+            rows={timeline.rows}
+            initialLoading={timeline.loading}
+            onStartReached={timeline.hasOlder ? timeline.loadOlder : undefined}
+            onInsertQuote={(mention) =>
+              composerRef.current?.insertMention(mention, "")
+            }
+            className="flex min-h-0 flex-1 flex-col"
+          />
+        </ThreadMessageActions>
       )}
     </MobileThreadView>
   );
