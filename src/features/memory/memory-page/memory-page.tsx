@@ -14,6 +14,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   editMemoryAtom,
   forgetMemoryAtom,
+  idleMemoryListAtom,
+  idleMemoryReadAtom,
   memoryListAtom,
   memoryListKey,
   memoryReadAtom,
@@ -425,18 +427,24 @@ export function MemoryPage({ search }: { search: MemoryLocation }) {
     return () => clearTimeout(timer);
   }, [query]);
 
-  const listAtom = memoryListAtom(
-    memoryListKey(orgId ?? "", search, debouncedQuery, cursors.at(-1)),
-  );
+  const listAtom =
+    orgId === undefined
+      ? idleMemoryListAtom
+      : memoryListAtom(
+          memoryListKey(orgId, search, debouncedQuery, cursors.at(-1)),
+        );
   const listResult = useAtomValue(listAtom);
   const list = AsyncResult.isSuccess(listResult)
     ? memoryPageRow(listResult.value)
     : undefined;
   const listError = AsyncResult.isFailure(listResult);
   const refreshList = useAtomRefresh(listAtom);
-  const readAtom = memoryReadAtom(
-    memoryReadKey(orgId ?? "", selected?.volumeId ?? "", selected?.path ?? ""),
-  );
+  const readAtom =
+    orgId === undefined
+      ? idleMemoryReadAtom
+      : memoryReadAtom(
+          memoryReadKey(orgId, selected?.volumeId ?? "", selected?.path ?? ""),
+        );
   const readResult = useAtomValue(readAtom);
   const refreshRead = useAtomRefresh(readAtom);
   const edit = useAtomSet(editMemoryAtom, { mode: "promise" });

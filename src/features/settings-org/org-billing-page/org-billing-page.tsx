@@ -10,6 +10,9 @@ import {
   billingReactivityKeys,
   cancelPlanAtom,
   cancelSsoAddOnAtom,
+  idleBillingAtom,
+  idleBillingInvoicesAtom,
+  idleOrgMembersAtom,
   keepPlanAtom,
   keepSsoAddOnAtom,
   openAutoReloadPaymentAtom,
@@ -722,12 +725,19 @@ const DESCRIPTION = "Plan, balance, and invoices for this organization";
 
 export function OrgBillingPage() {
   const orgId = useBillingOrgId();
-  const key = orgId ?? "";
   const { billing, failed: billingFailed } = useBillingView(orgId);
-  const invoicesResult = useAtomValue(billingInvoicesAtom(key));
-  const membersResult = useAtomValue(orgMembersAtom(key));
-  const refreshBilling = useAtomRefresh(billingAtom(key));
-  const refreshInvoices = useAtomRefresh(billingInvoicesAtom(key));
+  const invoicesResult = useAtomValue(
+    orgId === undefined ? idleBillingInvoicesAtom : billingInvoicesAtom(orgId),
+  );
+  const membersResult = useAtomValue(
+    orgId === undefined ? idleOrgMembersAtom : orgMembersAtom(orgId),
+  );
+  const refreshBilling = useAtomRefresh(
+    orgId === undefined ? idleBillingAtom : billingAtom(orgId),
+  );
+  const refreshInvoices = useAtomRefresh(
+    orgId === undefined ? idleBillingInvoicesAtom : billingInvoicesAtom(orgId),
+  );
   const { isAdmin, adminReason } = useBillingAdmin();
   const cancelPlan = useAtomSet(cancelPlanAtom, { mode: "promise" });
   const keepPlan = useAtomSet(keepPlanAtom, { mode: "promise" });
@@ -774,6 +784,8 @@ export function OrgBillingPage() {
       </SettingsPage>
     );
 
+  if (orgId === undefined) return null;
+
   const invoiceValue = AsyncResult.getOrElse(invoicesResult, () => undefined);
   const invoiceItems =
     invoiceValue === undefined ? undefined : toBillingInvoices(invoiceValue);
@@ -785,7 +797,7 @@ export function OrgBillingPage() {
   const plan = currentPlan(plans);
   const scheduled = scheduledPlan(plans);
   const receiptEmail = billing.receipts.email;
-  const keys = billingReactivityKeys(key);
+  const keys = billingReactivityKeys(orgId);
   const planName = (entry: BillingPlan) =>
     planDisplayName(entry.planId, entry.name);
   const ssoEndsOn =

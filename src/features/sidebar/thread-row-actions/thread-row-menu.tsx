@@ -5,8 +5,11 @@ import type { SidebarThread } from "@/components/sidebar-threads";
 import type { JamId, ThreadTagId } from "@/data/api/schemas/ids";
 import {
   assignTagAtom,
+  idleTagsAtom,
+  idleThreadTagsAtom,
   tagsAtom,
   threadTagsAtom,
+  threadTagsKey,
   unassignTagAtom,
 } from "@/data/atoms/threadOrganization";
 import { useShortcutChord } from "@/features/shell/keyboard";
@@ -77,8 +80,14 @@ function MenuRow({
 /** Capy's Tags row: every tag, checked on the thread's own assignment. */
 function TagRows({ threadId }: { threadId: string }) {
   const orgId = useSidebarOrgId();
-  const tags = useAtomValue(tagsAtom(orgId ?? ("" as never)));
-  const assigned = useAtomValue(threadTagsAtom(`${orgId ?? ""}/${threadId}`));
+  const tags = useAtomValue(
+    orgId === undefined ? idleTagsAtom : tagsAtom(orgId),
+  );
+  const assigned = useAtomValue(
+    orgId === undefined
+      ? idleThreadTagsAtom
+      : threadTagsAtom(threadTagsKey(orgId, threadId as JamId)),
+  );
   const assign = useAtomSet(assignTagAtom, { mode: "promise" });
   const unassign = useAtomSet(unassignTagAtom, { mode: "promise" });
   const list = AsyncResult.isSuccess(tags)

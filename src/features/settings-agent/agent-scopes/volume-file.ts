@@ -1,11 +1,16 @@
 import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
-import { AsyncResult } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import {
   type DriveEntry,
   driveFileAtom,
   driveFileKey,
 } from "@/data/atoms/agent-context";
 import { resultValue, useAgentOrg } from "./use-agent-scopes";
+
+/** The file body while the org is still resolving. */
+const idleDriveFile = Atom.make(AsyncResult.initial(false)) as ReturnType<
+  typeof driveFileAtom
+>;
 
 export type VolumeFileContent =
   | { kind: "text"; text: string }
@@ -14,7 +19,10 @@ export type VolumeFileContent =
 /** Capy's volume-file hook: one drive file's body, loading and failure state. */
 export function useVolumeFile(entry: DriveEntry) {
   const { orgId } = useAgentOrg();
-  const atom = driveFileAtom(driveFileKey(orgId ?? "", entry));
+  const atom =
+    orgId === undefined
+      ? idleDriveFile
+      : driveFileAtom(driveFileKey(orgId, entry));
   const result = useAtomValue(atom);
   const retry = useAtomRefresh(atom);
   const file = resultValue(result);
