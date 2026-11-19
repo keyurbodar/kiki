@@ -48,6 +48,9 @@ import { NewFolderDialog, RenameFolderDialog } from "./new-folder-dialog";
 
 export type ThreadFolderChoice = { id: string; name: string };
 
+/** Capy holds an undoable toast for five seconds. */
+const undoToastDuration = 5_000;
+
 export type ThreadActions = {
   renamingId: string | null;
   /**
@@ -232,26 +235,48 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
         "Couldn't mark the thread as unread",
       );
     },
+    /* Capy's settle toast carries Undo, and its undo is the same mutation in
+       the other direction, so the pair is one helper called twice. */
     settle: (thread) => {
       if (orgId === undefined) return;
-      run(
-        settle({
-          params: { orgId, jamId: thread.id as unknown as JamId },
-          reactivityKeys: threadOrganizationKeys(orgId),
-        }),
-        "Settled",
-        "Couldn't settle the thread",
+      const params = { orgId, jamId: thread.id as unknown as JamId };
+      const reactivityKeys = threadOrganizationKeys(orgId);
+      const title = thread.title ?? "Thread";
+      settle({ params, reactivityKeys }).then(
+        () =>
+          toast.success("Settled", {
+            description: title,
+            duration: undoToastDuration,
+            action: {
+              label: "Undo",
+              onClick: () =>
+                unsettle({ params, reactivityKeys }).catch(() =>
+                  toast.error("Could not un-settle", { description: title }),
+                ),
+            },
+          }),
+        () => toast.error("Could not settle", { description: title }),
       );
     },
     unsettle: (thread) => {
       if (orgId === undefined) return;
-      run(
-        unsettle({
-          params: { orgId, jamId: thread.id as unknown as JamId },
-          reactivityKeys: threadOrganizationKeys(orgId),
-        }),
-        "Un-settled",
-        "Couldn't un-settle the thread",
+      const params = { orgId, jamId: thread.id as unknown as JamId };
+      const reactivityKeys = threadOrganizationKeys(orgId);
+      const title = thread.title ?? "Thread";
+      unsettle({ params, reactivityKeys }).then(
+        () =>
+          toast.success("Un-settled", {
+            description: title,
+            duration: undoToastDuration,
+            action: {
+              label: "Undo",
+              onClick: () =>
+                settle({ params, reactivityKeys }).catch(() =>
+                  toast.error("Could not settle", { description: title }),
+                ),
+            },
+          }),
+        () => toast.error("Could not un-settle", { description: title }),
       );
     },
     archive: (thread) => {

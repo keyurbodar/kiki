@@ -22,6 +22,7 @@ import type { ThreadCard } from "@/data/api/schemas/thread";
 import { threadAtom } from "@/data/atoms/jams";
 import { organizationsAtom } from "@/data/atoms/session";
 import { foldersAtom } from "@/data/atoms/threadOrganization";
+import { Toaster } from "@/primitives/toaster";
 import {
   buildSidebarThreadsView,
   defaultSidebarPrefs,
@@ -240,6 +241,28 @@ describe("sidebar row menu mutations", () => {
         AsyncResult.value(registry.get(threadAtom(`${org}/jam_sample_2`))),
       );
       expect(card?.settledAt).not.toBeNull();
+    });
+  });
+
+  it("offers Undo on the settle toast, and takes it back", async () => {
+    const registry = await renderWithRegistry(
+      <>
+        <Harness sidebarSource={source([thread()])} />
+        <Toaster />
+      </>,
+    );
+    fireEvent.contextMenu(rowLink());
+    fireEvent.click(await screen.findByText("Settle"));
+    const undo = await screen.findByText("Undo");
+    expect(screen.getByText("Settled")).toBeTruthy();
+    fireEvent.click(undo);
+    await waitFor(() => {
+      const org = orgId(registry);
+      if (org === undefined) throw new Error("no org yet");
+      const card = Option.getOrUndefined(
+        AsyncResult.value(registry.get(threadAtom(`${org}/jam_sample_2`))),
+      );
+      expect(card?.settledAt ?? null).toBeNull();
     });
   });
 
