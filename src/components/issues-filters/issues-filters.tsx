@@ -6,6 +6,7 @@ import {
   type ActorSources,
   MenuSearchInput,
 } from "@/components/actor-filter";
+import { DueRangeCalendar } from "@/components/issue-due";
 import {
   type FilterChipModel,
   MenuSubmenu,
@@ -52,6 +53,7 @@ import {
   type IssuePullFilter,
   type IssueRelationFilter,
   issueDueBuckets,
+  localDate,
   matchableCount,
   toggleActor,
   toggleValue,
@@ -346,17 +348,48 @@ export function DueFilterItems({
   filters: IssueFilters;
   onChange: (filters: IssueFilters) => void;
 }) {
-  return issueDueBuckets.map((bucket) => (
-    <CheckRow
-      key={bucket}
-      leading={<CalendarGlyph />}
-      label={dueBucketLabels[bucket]}
-      checked={filters.due.includes(bucket)}
-      onClick={() =>
-        onChange(withDue(filters, { due: toggleValue(filters.due, bucket) }))
-      }
-    />
-  ));
+  const [range, setRange] = useState(false);
+  const picked = [filters.dueFrom, filters.dueTo]
+    .filter((day): day is string => day !== null)
+    .join(" – ");
+  return (
+    <>
+      {issueDueBuckets.map((bucket) => (
+        <CheckRow
+          key={bucket}
+          leading={<CalendarGlyph />}
+          label={dueBucketLabels[bucket]}
+          checked={filters.due.includes(bucket)}
+          onClick={() =>
+            onChange(
+              withDue(filters, { due: toggleValue(filters.due, bucket) }),
+            )
+          }
+        />
+      ))}
+      <MenuSeparator />
+      <CheckRow
+        leading={<CalendarGlyph />}
+        label={
+          <span className="truncate">
+            {picked === "" ? "Custom range" : picked}
+          </span>
+        }
+        checked={picked !== ""}
+        onClick={() => setRange(!range)}
+      />
+      {range ? (
+        <DueRangeCalendar
+          from={filters.dueFrom}
+          to={filters.dueTo}
+          today={localDate(Date.now())}
+          onChange={(from, to) =>
+            onChange({ ...filters, dueFrom: from, dueTo: to })
+          }
+        />
+      ) : null}
+    </>
+  );
 }
 
 const toggleList = (
