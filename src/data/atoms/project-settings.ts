@@ -153,6 +153,7 @@ export const projectMutations = {
   create: ApiClient.mutation("projects", "create"),
   update: ApiClient.mutation("projects", "update"),
   delete: ApiClient.mutation("projects", "delete"),
+  setOwner: ApiClient.mutation("projects", "setOwner"),
   restore: ApiClient.mutation("projects", "restore"),
   setRepoMode: ApiClient.mutation("projects", "setRepoMode"),
   addRepos: ApiClient.mutation("projects", "addRepos"),
