@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Menu, MenuContent } from "@/primitives/menu";
 import { filtersForView } from "./filters";
-import { DueFilterItems } from "./issues-filters";
+import { DueFilterItems, dueRangeLabel } from "./issues-filters";
 
 afterEach(cleanup);
 
@@ -39,6 +39,14 @@ describe("the due date filter", () => {
     };
     expect(last.dueFrom).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(last.dueTo).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it("prints one date when both ends are the same day", () => {
+    expect(dueRangeLabel("2026-11-19", "2026-11-19")).toBe("2026-11-19");
+    expect(dueRangeLabel("2026-11-19", "2026-11-25")).toBe(
+      "2026-11-19 – 2026-11-25",
+    );
+    expect(dueRangeLabel(null, null)).toBe("");
   });
 
   it("shows the chosen range on the custom row", () => {

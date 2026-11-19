@@ -1,8 +1,10 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { cx } from "@/components/activity-card";
 import { Button } from "@/primitives/button";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/primitives/drawer";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
+import { usePhone } from "@/primitives/responsive-menu";
 import { toast } from "@/primitives/toaster";
 import {
   mergePullAtom,
@@ -103,6 +105,7 @@ export function MergeControls({
   const reactivityKeys = pullReactivityKeys(orgId, pull.id);
   const disabled = gate.blocked || (isBlockedByChecks(gate) && !force);
   const panelMethod = mergeMethodLabels[method];
+  const phone = usePhone();
 
   if (pull.state === "merged" || pull.state === "closed") return null;
 
@@ -155,6 +158,167 @@ export function MergeControls({
       .finally(() => setBusy(null));
   };
 
+  const optionsButton = (
+    <Button
+      data-track-owner={track("MergeControls:PopoverTrigger.1")}
+      size="sm"
+      intent={gate.conflicts ? "neutral" : "accent"}
+      className="rounded-l-none border-l-0 px-2"
+      aria-label="Merge options"
+    >
+      <ChevronDownSmallIcon className="size-(--icon-sm)" />
+    </Button>
+  );
+
+  const mergeButton = (
+    <Button
+      data-track-owner={track("MergeControls:Button.3")}
+      size="sm"
+      intent={gate.conflicts ? "neutral" : "accent"}
+      className="min-w-0 flex-1 rounded-r-none"
+      loading={busy === "merge"}
+      disabled={disabled || busy !== null}
+      onClick={submit}
+    >
+      {gate.conflicts ? (
+        <CrossMediumIcon className="size-(--icon-sm)" />
+      ) : (
+        <MergedIcon className="size-(--icon-sm)" />
+      )}
+      {gate.conflicts ? "Merge conflicts" : "Merge"}
+    </Button>
+  );
+
+  /** The split button: Merge, then whichever options trigger the branch uses. */
+  const splitButton = (optionsTrigger: ReactNode) => (
+    <div className="flex items-stretch">
+      {mergeButton}
+      {optionsTrigger}
+    </div>
+  );
+
+  const panel = (
+    <div className="flex flex-col gap-3 px-2 pt-1 pb-2">
+      <div className="flex items-center gap-2 text-xs">
+        {gate.conflicts || gate.draft ? (
+          <CrossMediumIcon className="size-(--icon-sm) shrink-0 text-muted-foreground-2" />
+        ) : (
+          <CircleDashedIcon
+            className={cx(
+              "size-(--icon-sm) shrink-0",
+              isBlockedByChecks(gate)
+                ? "text-warning-fg"
+                : "text-muted-foreground-2",
+            )}
+          />
+        )}
+        <span className="min-w-0 flex-1 truncate text-muted-foreground-1">
+          {mergeGateCopy(gate, baseRef)}
+        </span>
+      </div>
+      <div className="flex flex-col gap-1">
+        {mergeMethods.map((candidate) => (
+          <button
+            key={candidate}
+            type="button"
+            data-track-owner={track("MergeMethodPanel:button.1")}
+            aria-pressed={method === candidate}
+            onClick={() => setMethod(candidate)}
+            data-selected={method === candidate ? "" : undefined}
+            className="flex w-full items-start gap-2 rounded px-2 py-1.5 text-left hover:bg-secondary data-[selected]:bg-secondary"
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm text-foreground">
+                {mergeMethodLabels[candidate].label}
+              </span>
+              <span className="block text-xs text-muted-foreground-2">
+                {mergeMethodLabels[candidate].description}
+              </span>
+            </span>
+            <span className="flex size-(--icon-sm) shrink-0 items-center justify-center">
+              {method === candidate && (
+                <span className="size-2 rounded-full bg-foreground" />
+              )}
+            </span>
+          </button>
+        ))}
+      </div>
+      {isBlockedByChecks(gate) && !gate.blocked && (
+        <button
+          type="button"
+          data-track-owner={track("MergePanel:button.1")}
+          aria-pressed={force}
+          onClick={() => setForce(!force)}
+          data-selected={force ? "" : undefined}
+          className="flex items-center gap-2 rounded px-2 py-1.5 text-left hover:bg-secondary data-[selected]:bg-secondary"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm text-foreground">Force merge</span>
+            <span className="block text-xs text-muted-foreground-2">
+              Attempt before checks pass
+            </span>
+          </span>
+        </button>
+      )}
+      <label className="flex flex-col gap-1">
+        <span className="text-xs text-muted-foreground-2">
+          Comment before merging
+        </span>
+        <textarea
+          aria-label="Comment before merging"
+          placeholder="Leave a comment (optional)"
+          value={comment}
+          onChange={(event) => setComment(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+              event.preventDefault();
+              submit();
+            }
+          }}
+          className="field-sizing-content min-h-12 w-full resize-none rounded border-hairline border-border-2 bg-transparent px-2 py-1.5 text-sm text-foreground outline-none placeholder:text-muted-foreground-3"
+        />
+      </label>
+      <Button
+        data-track-owner={track("MergePanel:button.2")}
+        size="sm"
+        intent={gate.conflicts ? "neutral" : "accent"}
+        loading={busy === "merge"}
+        disabled={disabled || busy !== null}
+        onClick={submit}
+      >
+        {panelMethod.label}
+      </Button>
+      <span className="h-px bg-border-1" />
+      {pull.autoMerge ? (
+        <button
+          type="button"
+          data-track-owner={track("AutoMergePanel:button[onClick=onDisable]")}
+          onClick={() => toggleAutoMerge(false)}
+          disabled={busy !== null}
+          className="flex flex-col items-start rounded px-2 py-1.5 text-left hover:bg-secondary"
+        >
+          <span className="text-sm text-foreground">Disable auto-merge</span>
+          <span className="text-xs text-muted-foreground-2">
+            Stop automatic merging
+          </span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          data-track-owner={track("AutoMergePanel:button.1")}
+          onClick={() => toggleAutoMerge(true)}
+          disabled={busy !== null}
+          className="flex flex-col items-start rounded px-2 py-1.5 text-left hover:bg-secondary"
+        >
+          <span className="text-sm text-foreground">Enable auto-merge</span>
+          <span className="text-xs text-muted-foreground-2">
+            Merge when checks pass
+          </span>
+        </button>
+      )}
+    </div>
+  );
+
   return (
     <div data-slot="merge-controls" className="flex flex-col gap-2">
       {behind && (
@@ -182,171 +346,19 @@ export function MergeControls({
           </Button>
         </div>
       )}
-      <Popover open={open} onOpenChange={setOpen}>
-        <div className="flex items-stretch">
-          <Button
-            data-track-owner={track("MergeControls:Button.3")}
-            size="sm"
-            intent={gate.conflicts ? "neutral" : "accent"}
-            className="min-w-0 flex-1 rounded-r-none"
-            loading={busy === "merge"}
-            disabled={disabled || busy !== null}
-            onClick={submit}
-          >
-            {gate.conflicts ? (
-              <CrossMediumIcon className="size-(--icon-sm)" />
-            ) : (
-              <MergedIcon className="size-(--icon-sm)" />
-            )}
-            {gate.conflicts ? "Merge conflicts" : "Merge"}
-          </Button>
-          <PopoverTrigger
-            render={
-              <Button
-                data-track-owner={track("MergeControls:PopoverTrigger.1")}
-                size="sm"
-                intent={gate.conflicts ? "neutral" : "accent"}
-                className="rounded-l-none border-l-0 px-2"
-                aria-label="Merge options"
-              />
-            }
-          >
-            <ChevronDownSmallIcon className="size-(--icon-sm)" />
-          </PopoverTrigger>
-        </div>
-        <PopoverContent align="end" className="w-72 p-0">
-          <div className="flex flex-col gap-3 px-2 pt-1 pb-2">
-            <div className="flex items-center gap-2 text-xs">
-              {gate.conflicts || gate.draft ? (
-                <CrossMediumIcon className="size-(--icon-sm) shrink-0 text-muted-foreground-2" />
-              ) : (
-                <CircleDashedIcon
-                  className={cx(
-                    "size-(--icon-sm) shrink-0",
-                    isBlockedByChecks(gate)
-                      ? "text-warning-fg"
-                      : "text-muted-foreground-2",
-                  )}
-                />
-              )}
-              <span className="min-w-0 flex-1 truncate text-muted-foreground-1">
-                {mergeGateCopy(gate, baseRef)}
-              </span>
-            </div>
-            <div className="flex flex-col gap-1">
-              {mergeMethods.map((candidate) => (
-                <button
-                  key={candidate}
-                  type="button"
-                  data-track-owner={track("MergeMethodPanel:button.1")}
-                  aria-pressed={method === candidate}
-                  onClick={() => setMethod(candidate)}
-                  data-selected={method === candidate ? "" : undefined}
-                  className="flex w-full items-start gap-2 rounded px-2 py-1.5 text-left hover:bg-secondary data-[selected]:bg-secondary"
-                >
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm text-foreground">
-                      {mergeMethodLabels[candidate].label}
-                    </span>
-                    <span className="block text-xs text-muted-foreground-2">
-                      {mergeMethodLabels[candidate].description}
-                    </span>
-                  </span>
-                  <span className="flex size-(--icon-sm) shrink-0 items-center justify-center">
-                    {method === candidate && (
-                      <span className="size-2 rounded-full bg-foreground" />
-                    )}
-                  </span>
-                </button>
-              ))}
-            </div>
-            {isBlockedByChecks(gate) && !gate.blocked && (
-              <button
-                type="button"
-                data-track-owner={track("MergePanel:button.1")}
-                aria-pressed={force}
-                onClick={() => setForce(!force)}
-                data-selected={force ? "" : undefined}
-                className="flex items-center gap-2 rounded px-2 py-1.5 text-left hover:bg-secondary data-[selected]:bg-secondary"
-              >
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm text-foreground">
-                    Force merge
-                  </span>
-                  <span className="block text-xs text-muted-foreground-2">
-                    Attempt before checks pass
-                  </span>
-                </span>
-              </button>
-            )}
-            <label className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground-2">
-                Comment before merging
-              </span>
-              <textarea
-                aria-label="Comment before merging"
-                placeholder="Leave a comment (optional)"
-                value={comment}
-                onChange={(event) => setComment(event.target.value)}
-                onKeyDown={(event) => {
-                  if (
-                    event.key === "Enter" &&
-                    (event.metaKey || event.ctrlKey)
-                  ) {
-                    event.preventDefault();
-                    submit();
-                  }
-                }}
-                className="field-sizing-content min-h-12 w-full resize-none rounded border-hairline border-border-2 bg-transparent px-2 py-1.5 text-sm text-foreground outline-none placeholder:text-muted-foreground-3"
-              />
-            </label>
-            <Button
-              data-track-owner={track("MergePanel:button.2")}
-              size="sm"
-              intent={gate.conflicts ? "neutral" : "accent"}
-              loading={busy === "merge"}
-              disabled={disabled || busy !== null}
-              onClick={submit}
-            >
-              {panelMethod.label}
-            </Button>
-            <span className="h-px bg-border-1" />
-            {pull.autoMerge ? (
-              <button
-                type="button"
-                data-track-owner={track(
-                  "AutoMergePanel:button[onClick=onDisable]",
-                )}
-                onClick={() => toggleAutoMerge(false)}
-                disabled={busy !== null}
-                className="flex flex-col items-start rounded px-2 py-1.5 text-left hover:bg-secondary"
-              >
-                <span className="text-sm text-foreground">
-                  Disable auto-merge
-                </span>
-                <span className="text-xs text-muted-foreground-2">
-                  Stop automatic merging
-                </span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                data-track-owner={track("AutoMergePanel:button.1")}
-                onClick={() => toggleAutoMerge(true)}
-                disabled={busy !== null}
-                className="flex flex-col items-start rounded px-2 py-1.5 text-left hover:bg-secondary"
-              >
-                <span className="text-sm text-foreground">
-                  Enable auto-merge
-                </span>
-                <span className="text-xs text-muted-foreground-2">
-                  Merge when checks pass
-                </span>
-              </button>
-            )}
-          </div>
-        </PopoverContent>
-      </Popover>
+      {phone ? (
+        <Drawer open={open} onOpenChange={setOpen}>
+          {splitButton(<DrawerTrigger render={optionsButton} />)}
+          <DrawerContent>{panel}</DrawerContent>
+        </Drawer>
+      ) : (
+        <Popover open={open} onOpenChange={setOpen}>
+          {splitButton(<PopoverTrigger render={optionsButton} />)}
+          <PopoverContent align="end" className="w-72 p-0">
+            {panel}
+          </PopoverContent>
+        </Popover>
+      )}
     </div>
   );
 }
