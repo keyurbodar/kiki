@@ -135,7 +135,7 @@ describe("keybinding dispatcher", () => {
     expect(stop).toHaveBeenCalledOnce();
 
     // The palette is open: its own row claims the chord, so this one stands down.
-    disposers.splice(0).forEach((dispose) => dispose());
+    for (const dispose of disposers.splice(0)) dispose();
     stop.mockClear();
     register(
       { "thread.stop": stop },
@@ -148,14 +148,17 @@ describe("keybinding dispatcher", () => {
   it("counts another surface's open menu as the page's, not its own", () => {
     const stop = vi.fn();
     register({ "thread.stop": stop });
-    register({ "commandMenu.toggle": noop }, {
-      capture: true,
-      context: () => ({ commandMenuOpen: true }),
-    });
+    register(
+      { "commandMenu.toggle": noop },
+      {
+        capture: true,
+        context: () => ({ commandMenuOpen: true }),
+      },
+    );
 
     press(".", { ctrlKey: true });
     expect(stop).not.toHaveBeenCalled();
-    disposers.splice(0).forEach((dispose) => dispose());
+    for (const dispose of disposers.splice(0)) dispose();
   });
 
   it("skips a scope whose guard says it is not mounted here", () => {
