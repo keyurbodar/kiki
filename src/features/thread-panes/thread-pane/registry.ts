@@ -1,6 +1,13 @@
 import type { ComponentType } from "react";
 
-export type PaneProps = { threadId: string };
+/** Capy's files tab carries a focus intent, so a shortcut can open it mid-search. */
+export type PaneFocus = "search" | "drive";
+
+export type PaneProps = {
+  threadId: string;
+  focus?: PaneFocus;
+  onFocus?: (focus: undefined) => void;
+};
 
 /**
  * Which of the thread's two strips offers a pane. Measured on live Capy: every

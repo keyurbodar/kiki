@@ -49,10 +49,13 @@ export function PaneContent({
   tab,
   threadId,
   orgId,
+  onFocus,
 }: {
   tab: PaneTab;
   threadId: string;
   orgId: OrgId | undefined;
+  /** Clears a files tab's focus intent once the pane has used it. */
+  onFocus?: (focus: undefined) => void;
 }) {
   switch (tab.kind) {
     case "issue":
@@ -102,7 +105,11 @@ export function PaneContent({
       const Pane = entry.component;
       return (
         <Suspense fallback={null}>
-          <Pane threadId={threadId} />
+          <Pane
+            threadId={threadId}
+            focus={tab.kind === "files" ? tab.focus : undefined}
+            onFocus={onFocus}
+          />
         </Suspense>
       );
     }

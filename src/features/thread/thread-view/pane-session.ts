@@ -28,11 +28,15 @@ const withoutStaleTransient = (
 ): readonly PaneTab[] =>
   tabs.filter((tab) => !isTransientTab(tab) || tabKey(tab) === active);
 
-/** Opens a tab, or brings it forward when the strip already holds it. */
+/**
+ * Opens a tab, or brings it forward when the strip already holds it. Re-opening
+ * replaces the held tab, so a second ask carries its new intent — the files
+ * pane's search focus, for one — instead of being swallowed by the old tab.
+ */
 export function openTab(session: PaneSession, tab: PaneTab): PaneSession {
   const key = tabKey(tab);
   const tabs = session.tabs.some((open) => tabKey(open) === key)
-    ? session.tabs
+    ? session.tabs.map((open) => (tabKey(open) === key ? tab : open))
     : [...session.tabs, tab];
   return { tabs: withoutStaleTransient(tabs, key), active: key };
 }
@@ -41,6 +45,23 @@ export function openTab(session: PaneSession, tab: PaneTab): PaneSession {
 export function selectTab(session: PaneSession, key: string): PaneSession {
   if (!session.tabs.some((tab) => tabKey(tab) === key)) return session;
   return { tabs: withoutStaleTransient(session.tabs, key), active: key };
+}
+
+/**
+ * Sets a files tab's focus intent. The pane clears it once it has focused, so
+ * pressing the shortcut again asks for the search field again.
+ */
+export function setTabFocus(
+  session: PaneSession,
+  key: string,
+  focus: "search" | undefined,
+): PaneSession {
+  const index = session.tabs.findIndex((tab) => tabKey(tab) === key);
+  const tab = session.tabs[index];
+  if (tab === undefined || tab.kind !== "files") return session;
+  const tabs = [...session.tabs];
+  tabs[index] = { ...tab, focus };
+  return { ...session, tabs };
 }
 
 /**

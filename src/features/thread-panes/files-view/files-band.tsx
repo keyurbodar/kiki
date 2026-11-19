@@ -1,6 +1,7 @@
 import { type KeyboardEvent, useEffect, useRef } from "react";
 import type { FilesFilter } from "@/components/file-browser/browser-state";
 import { CheckGlyph, FilterGlyph, SearchGlyph } from "@/components/file-home";
+import { shortcutGlyphText } from "@/features/shell/keyboard";
 import { Button } from "@/primitives/button";
 import { Input } from "@/primitives/input";
 import { Kbd } from "@/primitives/kbd";
@@ -20,11 +21,9 @@ const filterOptions: ReadonlyArray<readonly [FilesFilter, string]> = [
   ["thread", "This thread"],
 ];
 
-const isMac = () =>
-  typeof navigator !== "undefined" &&
-  /Mac|iPhone|iPad/.test(navigator.platform);
-
-export const searchShortcutLabel = () => (isMac() ? "⌘P" : "Ctrl P");
+/** The chip is the shortcut table's own binding for this row, not a copy of it. */
+export const searchShortcutLabel = () =>
+  shortcutGlyphText("files.search") ?? "";
 
 export type FilesBandProps = {
   query: string;
