@@ -396,6 +396,11 @@ const captureProbe = captureVoice(
   captureProbeJam,
   captureTimeline(captureProbeJam, 300, 3),
 );
+/** A side thread of the hardening plan: the panel opens it as a tab. */
+const captureSideIsolation = captureVoice(
+  "jam_capture_side_isolation",
+  captureTimeline("jam_capture_side_isolation", 88),
+);
 
 const captureHistory: ReadonlyArray<EventRowEncoded> = [
   capturePipeline.message(
@@ -781,6 +786,28 @@ const captureHistory: ReadonlyArray<EventRowEncoded> = [
   ),
   captureSide.reply(
     "The plan is in `docs/pipeline-plan.md`, with shard isolation as the first cut and the retry budget beside it.",
+  ),
+
+  captureSideIsolation.message(
+    "Take shard isolation first: keep one slow test from holding the release.",
+  ),
+  captureSideIsolation.reply(
+    [
+      "## Shard isolation",
+      "",
+      "Shard three is the only one that ever hangs, so the first cut is a per-test timeout inside the shard loop. The retry budget stays where it is.",
+    ].join("\n"),
+  ),
+  captureSideIsolation.call("toolu_capture_isolation_read", "read", {
+    path: "scripts/release/shard.sh",
+  }),
+  captureSideIsolation.result(
+    "toolu_capture_isolation_read",
+    "Read scripts/release/shard.sh.",
+    { path: "scripts/release/shard.sh", lines: 48 },
+  ),
+  captureSideIsolation.reply(
+    "The timeout wraps each test in the shard loop; a wedged test now fails in ninety seconds instead of holding the whole release.",
   ),
 
   captureProbe.message(

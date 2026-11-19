@@ -1,7 +1,7 @@
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { lazy, Suspense } from "react";
-import type { OrgId } from "@/data/api/schemas/ids";
+import type { JamId, OrgId } from "@/data/api/schemas/ids";
 import { overviewPullsAtom } from "@/data/atoms/overview";
 import type { TimelineRow } from "@/data/events";
 import { AttachmentPane } from "@/features/thread-panes/attachment-pane";
@@ -11,6 +11,7 @@ import { parsePull, valueList } from "@/features/thread-panes/overview/parse";
 import { PaneNotice } from "@/features/thread-panes/pane-notice";
 import { PaperPane } from "@/features/thread-panes/paper-pane";
 import { ServicePreviewPane } from "@/features/thread-panes/service-preview-pane";
+import { SubthreadPane } from "@/features/thread-panes/subthread-pane";
 import type { PaneTab } from "@/features/thread-panes/tab-strip";
 import { findPane } from "@/features/thread-panes/thread-pane";
 
@@ -103,6 +104,24 @@ export function PaneContent({
           jamId={tab.jamId}
           fileId={tab.fileId}
           title={tab.title}
+        />
+      );
+    case "side_thread":
+      return (
+        <SubthreadPane
+          orgId={orgId}
+          jamId={tab.jamId as JamId}
+          label="Side thread"
+        />
+      );
+    case "task":
+      return (
+        <SubthreadPane
+          orgId={orgId}
+          jamId={tab.jamId as JamId}
+          label={
+            tab.localIndex === null ? "Subagent" : `Subagent ${tab.localIndex}`
+          }
         />
       );
     case "attachment":
