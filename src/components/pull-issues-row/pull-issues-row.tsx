@@ -28,6 +28,11 @@ const pullIssuesQuery = Atom.family((key: string) => {
   });
 });
 
+/** The issues row a pull reads while its org is still resolving. */
+const idlePullIssues = Atom.make(AsyncResult.initial(false)) as ReturnType<
+  typeof pullIssuesQuery
+>;
+
 const issueLinkClassName = [
   "-mx-1 flex h-6 w-fit cursor-pointer items-center gap-1 rounded px-1 text-xs font-medium text-foreground",
   "outline-none select-none transition-colors duration-100 hover:bg-secondary data-[popup-open]:bg-secondary",
@@ -44,7 +49,11 @@ export type PullIssuesRowProps = {
 export function PullIssuesRow({ pullId, onOpenIssue }: PullIssuesRowProps) {
   const orgId = useIssueOrgId();
   const states = useIssueStates(orgId);
-  const result = useAtomValue(pullIssuesQuery(`${orgId ?? ""}/${pullId}`));
+  const result = useAtomValue(
+    orgId === undefined
+      ? idlePullIssues
+      : pullIssuesQuery(`${orgId}/${pullId}`),
+  );
   if (orgId === undefined || !AsyncResult.isSuccess(result)) return null;
   const issues = result.value;
   return (

@@ -1,6 +1,9 @@
 import { useAtomRefresh, useAtomSet } from "@effect/atom-react";
 import { type KeyboardEvent, useState } from "react";
-import { pullReviewersAtom } from "@/components/pull-view/atoms";
+import {
+  idlePullReviewersAtom,
+  pullReviewersAtom,
+} from "@/components/pull-view/atoms";
 import { goneOr } from "@/components/pull-view/gone";
 import {
   DotsHorizontalGlyph,
@@ -71,7 +74,9 @@ export function ReviewRowMenu({
 }: ReviewRowMenuProps) {
   const setReviewer = useAtomSet(setReviewerAtom, { mode: "promise" });
   const refreshReviewers = useAtomRefresh(
-    pullReviewersAtom(orgId ?? "", pull.id),
+    orgId === undefined
+      ? idlePullReviewersAtom
+      : pullReviewersAtom(orgId, pull.id),
   );
   const [dismissing, setDismissing] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -177,9 +182,7 @@ export function DismissReviewDialog({
   onDismissed,
 }: DismissReviewDialogProps) {
   const dismiss = useAtomSet(dismissReviewAtom, { mode: "promise" });
-  const refreshReviewers = useAtomRefresh(
-    pullReviewersAtom(orgId ?? "", pullId),
-  );
+  const refreshReviewers = useAtomRefresh(pullReviewersAtom(orgId, pullId));
   const [reason, setReason] = useState("");
   const [pending, setPending] = useState(false);
   const message = reason.trim();

@@ -7,6 +7,7 @@ import {
   billingReactivityKeys,
   confirmPlanAtom,
   createSetupIntentAtom,
+  idleBillingCatalogAtom,
   previewPlanAtom,
 } from "@/data/atoms/billing";
 import { basePlanId } from "@/lib/billing";
@@ -96,7 +97,9 @@ export function PlanPicker({
   onSelect,
   onPurchased,
 }: PlanPickerProps) {
-  const catalogResult = useAtomValue(billingCatalogAtom(orgId ?? ""));
+  const catalogResult = useAtomValue(
+    orgId === undefined ? idleBillingCatalogAtom : billingCatalogAtom(orgId),
+  );
   const preview = useAtomSet(previewPlanAtom, { mode: "promise" });
   const setupIntent = useAtomSet(createSetupIntentAtom, { mode: "promise" });
   const confirm = useAtomSet(confirmPlanAtom, { mode: "promise" });
