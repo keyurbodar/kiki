@@ -80,11 +80,24 @@ export function useShortcutGlyphs(command: string): string[] {
   return binding === undefined ? [] : (bindingGlyphs(binding) ?? []);
 }
 
-export function shortcutGlyphText(command: string): string | null {
-  const binding = currentBindings().find((row) => row.command === command)?.key;
-  const glyphs = binding === undefined ? null : bindingGlyphs(binding);
-  if (glyphs === null) return null;
+/**
+ * The glyphs as one printed chord: single keys run together (`⌘⇧O`), and
+ * anything spelled out stays legible (`Mod+Shift+O`).
+ */
+export function glyphChord(glyphs: ReadonlyArray<string>): string | undefined {
+  if (glyphs.length === 0) return undefined;
   return glyphs.some((glyph) => glyph.length > 1)
     ? glyphs.join("+")
     : glyphs.join("");
+}
+
+export function shortcutGlyphText(command: string): string | null {
+  const binding = currentBindings().find((row) => row.command === command)?.key;
+  const glyphs = binding === undefined ? null : bindingGlyphs(binding);
+  return glyphs === null ? null : (glyphChord(glyphs) ?? null);
+}
+
+/** The chord a command prints beside its label, or nothing when it has none. */
+export function useShortcutChord(command: string): string | undefined {
+  return glyphChord(useShortcutGlyphs(command));
 }
