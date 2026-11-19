@@ -7,7 +7,7 @@ import { useMachineUsage } from "@/components/machine-usage";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { Project } from "@/data/api/schemas/project";
 import { projectKey, projectSetupAtom } from "@/data/atoms/project-settings";
-import { projectsAtom } from "@/data/atoms/projects";
+import { idleProjectsAtom, projectsAtom } from "@/data/atoms/projects";
 import { jsonPayload } from "@/data/client/json";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
@@ -47,6 +47,7 @@ import {
   deleteAutomationAtom,
   disableAutomationAtom,
   enableAutomationAtom,
+  idleAutomationAtom,
   restoreAutomationAtom,
   triggerAutomationAtom,
   updateAutomationAtom,
@@ -91,10 +92,16 @@ export function AutomationEditorPage({
 }: AutomationEditorPageProps) {
   const orgId = useOrgId();
   const result = useAtomValue(
-    automationAtom(automationKey(orgId ?? "", automationId)),
+    orgId === undefined
+      ? idleAutomationAtom
+      : automationAtom(automationKey(orgId, automationId)),
   );
   const projects =
-    resultValue(useAtomValue(projectsAtom((orgId ?? "") as OrgId))) ?? [];
+    resultValue(
+      useAtomValue(
+        orgId === undefined ? idleProjectsAtom : projectsAtom(orgId as OrgId),
+      ),
+    ) ?? [];
   const automation = readAutomation(resultValue(result));
   if (orgId !== undefined && automation !== undefined)
     return (

@@ -1,4 +1,4 @@
-import { Atom } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import { ApiClient } from "../client/ApiClient.ts";
 import { queryTimeToLive } from "./conventions.ts";
 import { idleAtom } from "./idle.ts";
@@ -75,6 +75,11 @@ export const memberNames = (value: unknown): ReadonlyMap<string, string> => {
   }
   return names;
 };
+
+/** The member list a surface reads while its org is still resolving. */
+export const idleMembersAtom: ReturnType<typeof membersAtom> = Atom.make(
+  AsyncResult.initial(false),
+) as ReturnType<typeof membersAtom>;
 
 export const idleMemberNames = idleAtom<ReadonlyMap<string, string>>();
 

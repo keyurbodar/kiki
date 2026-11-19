@@ -7,7 +7,7 @@ import { useMachineUsage } from "@/components/machine-usage";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { Project } from "@/data/api/schemas/project";
 import { projectKey, projectSetupAtom } from "@/data/atoms/project-settings";
-import { projectsAtom } from "@/data/atoms/projects";
+import { idleProjectsAtom, projectsAtom } from "@/data/atoms/projects";
 import { useThreadsAtom } from "@/data/atoms/threads";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
@@ -95,7 +95,9 @@ export function NewAutomationPage({
 }: NewAutomationPageProps) {
   const orgId = useOrgId();
   const viewer = useViewer();
-  const projectsResult = useAtomValue(projectsAtom((orgId ?? "") as OrgId));
+  const projectsResult = useAtomValue(
+    orgId === undefined ? idleProjectsAtom : projectsAtom(orgId as OrgId),
+  );
   const threadsResult = useAtomValue(
     useThreadsAtom(orgId as OrgId | undefined),
   );

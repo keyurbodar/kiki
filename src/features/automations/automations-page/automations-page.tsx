@@ -14,7 +14,7 @@ import {
   ViewToolbar,
 } from "@/components/view-toolbar";
 import type { OrgId } from "@/data/api/schemas/ids";
-import { projectsAtom } from "@/data/atoms/projects";
+import { idleProjectsAtom, projectsAtom } from "@/data/atoms/projects";
 import { useThreadsAtom } from "@/data/atoms/threads";
 import { Button } from "@/primitives/button";
 import {
@@ -76,7 +76,9 @@ const track = (owner: string) =>
 const chipIcons = { remove: <CrossMedium />, check: <Checkmark /> };
 
 function useProjectOptions(orgId: string | undefined) {
-  const result = useAtomValue(projectsAtom((orgId ?? "") as OrgId));
+  const result = useAtomValue(
+    orgId === undefined ? idleProjectsAtom : projectsAtom(orgId as OrgId),
+  );
   if (orgId === undefined) return [];
   const projects = Option.getOrUndefined(AsyncResult.value(result)) ?? [];
   return projects
@@ -88,7 +90,9 @@ function useProjectOptions(orgId: string | undefined) {
 function useStandingThreads(
   orgId: string | undefined,
 ): ReadonlyMap<string, StandingThread> {
-  const projectsResult = useAtomValue(projectsAtom((orgId ?? "") as OrgId));
+  const projectsResult = useAtomValue(
+    orgId === undefined ? idleProjectsAtom : projectsAtom(orgId as OrgId),
+  );
   const threadsResult = useAtomValue(
     useThreadsAtom(orgId as OrgId | undefined),
   );

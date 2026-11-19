@@ -1,4 +1,4 @@
-import { Atom } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import { queryTimeToLive } from "@/data/atoms/conventions";
 import { ApiClient } from "@/data/client/ApiClient";
 
@@ -59,3 +59,8 @@ export const triggerAutomationAtom = ApiClient.mutation(
   "automations",
   "trigger",
 );
+
+/** One automation while the org is still resolving. */
+export const idleAutomationAtom: ReturnType<typeof automationAtom> = Atom.make(
+  AsyncResult.initial(false),
+) as ReturnType<typeof automationAtom>;
