@@ -11,6 +11,7 @@ import {
   type FilterSelection,
   useFilterSearch,
 } from "@/components/filter-search";
+import { PullStateIcon } from "@/components/pull-view/pull-parts";
 import {
   DateRangeSubmenu,
   DisplayChoiceSub,
@@ -78,6 +79,7 @@ import {
   Menu,
   MenuContent,
   MenuItem,
+  MenuSearchRow,
   MenuSeparator,
   MenuTrigger,
 } from "@/primitives/menu";
@@ -522,6 +524,11 @@ export function ThreadsPageView({
                 onChange={setFilters}
                 viewerId={viewerId}
                 projects={projects}
+                members={authorOptions.map((option) => ({
+                  id: option.id,
+                  label: option.label,
+                }))}
+                search={{ value: searchText, onChange: setSearchText }}
                 clearable={dirty}
                 now={now}
               />
@@ -721,6 +728,13 @@ type ThreadsFilterMenuProps = {
   onChange: (filters: ThreadFilters) => void;
   viewerId: string | undefined;
   projects: ReadonlyArray<ProjectSummary>;
+  /** Who can appear under Created by: the viewer first, then the organization's members. */
+  members: ReadonlyArray<{ readonly id: string; readonly label: string }>;
+  /** The page's own text filter, offered inline as Capy's `Filter threads` row. */
+  search: {
+    readonly value: string;
+    readonly onChange: (value: string) => void;
+  };
   clearable: boolean;
   now: number;
 };
@@ -733,11 +747,21 @@ const toggle = (values: ReadonlyArray<string>, value: string) =>
 const check = (on: boolean) =>
   on ? <span className={["ml-auto", menuCheckClassName].join(" ")} /> : null;
 
+export const prStatusOptions = [
+  { id: "none", label: "None" },
+  { id: "ready", label: "Open" },
+  { id: "draft", label: "Draft" },
+  { id: "merged", label: "Merged" },
+  { id: "closed", label: "Closed" },
+] as const;
+
 function ThreadsFilterMenu({
   filters,
   onChange,
   viewerId,
   projects,
+  members,
+  search,
   clearable,
 }: ThreadsFilterMenuProps) {
   const participants =
@@ -763,6 +787,16 @@ function ThreadsFilterMenu({
         <TooltipContent side="bottom">Filter</TooltipContent>
       </Tooltip>
       <MenuContent align="end" className="w-56">
+        <MenuSearchRow className="flex shrink-0 items-center">
+          <input
+            className="h-7 w-full min-w-0 rounded bg-transparent px-2 text-xs font-medium text-foreground outline-none placeholder:text-muted-foreground-2"
+            placeholder="Filter threads"
+            aria-label="Filter threads"
+            value={search.value}
+            onChange={(event) => search.onChange(event.target.value)}
+          />
+        </MenuSearchRow>
+        <MenuSeparator />
         <MenuSubmenu
           label="Participants"
           value={
@@ -819,6 +853,62 @@ function ThreadsFilterMenu({
             </MenuItem>
           ))}
         </MenuSubmenu>
+        <MenuSubmenu
+          label="Created by"
+          value={
+            filters.authors.length === 0
+              ? undefined
+              : String(filters.authors.length)
+          }
+          contentClassName="w-56"
+        >
+          {members.map((member) => (
+            <MenuItem
+              key={member.id}
+              closeOnClick={false}
+              onClick={() =>
+                onChange({
+                  ...filters,
+                  authors: toggle(filters.authors, member.id),
+                })
+              }
+            >
+              <span className={menuIconSlotClassName} />
+              {member.label}
+              {check(filters.authors.includes(member.id))}
+            </MenuItem>
+          ))}
+        </MenuSubmenu>
+        <MenuSubmenu
+          label="PR status"
+          value={
+            filters.prStates.length === 0
+              ? undefined
+              : String(filters.prStates.length)
+          }
+          contentClassName="w-44"
+        >
+          {prStatusOptions.map((option) => (
+            <MenuItem
+              key={option.id}
+              closeOnClick={false}
+              onClick={() =>
+                onChange({
+                  ...filters,
+                  prStates: toggle(filters.prStates, option.id),
+                })
+              }
+            >
+              <span className={menuIconSlotClassName}>
+                {option.id === "none" ? null : (
+                  <PullStateIcon state={option.id} />
+                )}
+              </span>
+              {option.label}
+              {check(filters.prStates.includes(option.id))}
+            </MenuItem>
+          ))}
+        </MenuSubmenu>
         <DateRangeSubmenu
           label="Created"
           value={filters.created}
@@ -847,7 +937,7 @@ function ThreadsFilterMenu({
         {clearable ? (
           <MenuItem onClick={() => onChange(defaultThreadFilters)}>
             <span className={menuIconSlotClassName} />
-            Clear filters
+            Reset to default
           </MenuItem>
         ) : null}
       </MenuContent>
