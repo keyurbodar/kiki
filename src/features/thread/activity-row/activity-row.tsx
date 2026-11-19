@@ -10,6 +10,7 @@ import {
   useElapsedMs,
 } from "@/features/thread/live-status";
 import { hasToolBody, ToolBody } from "@/features/thread/tool-body";
+import { ToolRefs } from "@/features/thread/tool-refs";
 import {
   Collapsible,
   CollapsiblePanel,
@@ -60,9 +61,13 @@ type RowProps = {
   defaultOpen?: boolean;
 };
 
-const head = (label: ReactNode, trailing?: ReactNode) => (
-  <span className="flex min-w-0 items-baseline tabular-nums">
+const head = (label: ReactNode, trailing?: ReactNode, refs?: ReactNode) => (
+  <span
+    data-slot="activity-row-head"
+    className="flex min-w-0 items-baseline tabular-nums"
+  >
     <span className="min-w-0 truncate">{label}</span>
+    {refs}
     {trailing}
   </span>
 );
@@ -181,8 +186,11 @@ function ToolLine({ row, open }: { row: ToolRow; open?: boolean }) {
     ) : undefined;
   return (
     <Row
-      label={<RowLabel text={toolLabel(row)} live={live} />}
-      trailing={trailing}
+      label={head(
+        <RowLabel text={toolLabel(row)} live={live} />,
+        trailing,
+        <ToolRefs args={row.args} />,
+      )}
       panel={hasToolBody(row) ? <ToolBody row={row} /> : undefined}
       defaultOpen={open}
     />

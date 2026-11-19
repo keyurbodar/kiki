@@ -32,8 +32,9 @@ export type ThreadChips = Pick<
   "threads" | "pullRequests" | "repository" | "issues"
 >;
 
-const chipStatus = (status: ThreadCard["status"]): ChipThread["status"] =>
-  status === "archived" ? "done" : status;
+export const chipStatus = (
+  status: ThreadCard["status"],
+): ChipThread["status"] => (status === "archived" ? "done" : status);
 
 const chipPull = (pull: ThreadCard["pulls"][number]): ChipPull => ({
   repo: pull.repo,

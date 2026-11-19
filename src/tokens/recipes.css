@@ -249,6 +249,19 @@
   }
 
   /*
+   * The reference chips beside a tool call's label: one baseline, one tight
+   * gap, and never a wrap, because the row's label is what truncates. The
+   * leading gap is the chip's own, so a call that names nothing moves nothing.
+   */
+  .kiki-tool-refs {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--row-gap-tight);
+    min-width: 0;
+    margin-inline-start: var(--row-gap-tight);
+  }
+
+  /*
    * A badge's box: the pill centres its content, so `data-size` picks the
    * height, inset and leading-glyph size that Capy's four badge sizes use.
    * The glyph rules are scoped to the sizes that had them, because a rule

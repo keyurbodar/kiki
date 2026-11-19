@@ -350,6 +350,37 @@ const mentionThread: EventRowEncoded[] = [
   }),
 ];
 
+/**
+ * A call that names another thread and a call that names a pull: each carries
+ * its reference in its own args, which is the only place a tool row can read
+ * one from, so the row draws a chip beside its label.
+ */
+const referenceThread: EventRowEncoded[] = [
+  prompt(taskJam, 9, "Check whether the settings thread is still running."),
+  turn(taskJam, 10, "toolu_state_thread_ref", "jams_get", {
+    params: { jamId: threads.darkMode.id },
+  }),
+  result(
+    taskJam,
+    11,
+    "toolu_state_thread_ref",
+    {},
+    "Add dark mode to settings: working",
+  ),
+  turn(taskJam, 12, "toolu_state_pull_ref", "pulls_get", {
+    repo: "acme/web",
+    number: 128,
+  }),
+  result(
+    taskJam,
+    13,
+    "toolu_state_pull_ref",
+    {},
+    "#128 Add dark mode to settings",
+  ),
+  reply(taskJam, 14, "Both are still in flight."),
+];
+
 export const threadStateSeeds: ReadonlyArray<EventRowEncoded> = [
   ...clarifyThread,
   ...environmentThread,
@@ -359,6 +390,7 @@ export const threadStateSeeds: ReadonlyArray<EventRowEncoded> = [
   ...taskThread,
   ...interruptedThread,
   ...mentionThread,
+  ...referenceThread,
 ];
 
 export const threadStateJamIds = [

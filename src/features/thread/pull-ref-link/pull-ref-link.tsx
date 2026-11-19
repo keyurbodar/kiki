@@ -1,6 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
-import { createContext, type ReactNode, useContext } from "react";
+import {
+  createContext,
+  type MouseEvent,
+  type ReactNode,
+  useContext,
+} from "react";
 import {
   isModifiedClick,
   type PullRef,
@@ -28,9 +33,16 @@ export type PullRefLinkProps = {
   href: string;
   className?: string;
   children?: ReactNode;
+  /** Runs before the link's own click handling, for a host that must keep the click. */
+  onClick?: (event: MouseEvent) => void;
 };
 
-export function PullRefLink({ href, className, children }: PullRefLinkProps) {
+export function PullRefLink({
+  href,
+  className,
+  children,
+  onClick,
+}: PullRefLinkProps) {
   const { pullRequests, openPr } = useContext(PullRefContext);
   const target = parsePullHref(href);
   const pull =
@@ -52,26 +64,34 @@ export function PullRefLink({ href, className, children }: PullRefLinkProps) {
 
   if (target === undefined) {
     return (
-      <a href={href} target="_blank" rel="noreferrer" className={classes}>
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        className={classes}
+        onClick={onClick}
+      >
         {content}
       </a>
     );
   }
+
+  const handleClick =
+    openPr === undefined && onClick === undefined
+      ? undefined
+      : (event: MouseEvent) => {
+          onClick?.(event);
+          if (openPr === undefined || isModifiedClick(event)) return;
+          event.preventDefault();
+          openPr({ number: target.number, url: pull?.url ?? href });
+        };
 
   return (
     <Link
       to="/pull/$owner/$repo/$prNumber"
       params={pullRouteParams(target.repositoryFullName, target.number)}
       className={classes}
-      onClick={
-        openPr === undefined
-          ? undefined
-          : (event) => {
-              if (isModifiedClick(event)) return;
-              event.preventDefault();
-              openPr({ number: target.number, url: pull?.url ?? href });
-            }
-      }
+      onClick={handleClick}
     >
       {content}
     </Link>
