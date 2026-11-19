@@ -75,7 +75,7 @@ export function FolderMenuItems({
         label={folder.hidden === true ? "Show in sidebar" : "Hide from sidebar"}
         onClick={actions.onToggleHidden}
       />
-      <ResponsiveMenuSeparator className="kiki-menu-divider" />
+      <ResponsiveMenuSeparator className="kiki-menu-divider bg-border-1" />
       {folder.viewerRole === "member" ? (
         <FolderRow
           icon="door"

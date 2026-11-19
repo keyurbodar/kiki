@@ -381,7 +381,6 @@
     height: 1px;
     margin-block: var(--row-gap-tight);
     margin-inline: calc(var(--menu-row-px) * -1);
-    background: var(--border-1);
   }
 
   /* A menu separator's breathing room, in one place. */
