@@ -53,9 +53,13 @@ import {
   toLabels,
   toReviewers,
   toThreadRefs,
+  viewerGithubLogin,
 } from "@/components/pull-view/pull-model";
 import { DiffStat, PullStateIcon } from "@/components/pull-view/pull-parts";
 import { resultValue } from "@/components/pull-view/result";
+import { ReviewButton } from "@/components/review-composer";
+import { membersAtom } from "@/data/atoms/members";
+import { currentUserAtom } from "@/data/atoms/session";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import {
@@ -962,6 +966,13 @@ export function PullHeading({ pull }: { pull: Pull }) {
   );
 }
 
+/** The viewer's GitHub login, so a pull they can review offers the composer. */
+function useViewerLogin(orgId: string): string | null {
+  const user = resultValue(useAtomValue(currentUserAtom));
+  const members = resultValue(useAtomValue(membersAtom(orgId)));
+  return viewerGithubLogin(members, user?.id);
+}
+
 export type OverviewTabProps = {
   pull: Pull;
   onOpenThread?: (jamId: string) => void;
@@ -977,6 +988,7 @@ export function OverviewTab({
 }: OverviewTabProps) {
   const orgId = usePullOrgId();
   const containerRef = useRef<HTMLDivElement>(null);
+  const viewerLogin = useViewerLogin(orgId);
   const checkRows = toCheckRows(
     resultValue(useAtomValue(pullChecksAtom(orgId, pull.id))) ?? [],
   );
@@ -996,7 +1008,14 @@ export function OverviewTab({
       <Description pull={pull} />
       {checkRows.length > 0 && <ChecksSection checkRows={checkRows} />}
       <Activity pull={pull} />
-      {railHosted && <MergeControls baseRef={pull.baseRef} pull={pull} />}
+      {railHosted && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-end">
+            <ReviewButton pull={pull} orgId={orgId} viewerLogin={viewerLogin} />
+          </div>
+          <MergeControls baseRef={pull.baseRef} pull={pull} />
+        </div>
+      )}
     </div>
   );
 }
