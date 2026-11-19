@@ -1,6 +1,7 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { Exit } from "effect";
 import { useState } from "react";
+import { ClaudeConnectDialog } from "@/components/claude-connect-dialog";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
 import { Card } from "@/primitives/card";
 import { toast } from "@/primitives/toaster";
@@ -93,6 +94,13 @@ export function ModelsPage() {
     null,
   );
   const [moveRequest, setMoveRequest] = useState<Credential | null>(null);
+  // A seat reconnects by pasting a fresh `claude setup-token` into the same
+  // dialog that connected it; the credential id makes it a re-link, not a new
+  // connection.
+  const [reconnectRequest, setReconnectRequest] = useState<{
+    credentialId: string;
+    label: string;
+  } | null>(null);
   // The rows carry a chevron and an expanded body; the state behind them was
   // never added, so every toggle was a no-op.
   const [openRows, setOpenRows] = useState<ReadonlyArray<string>>([]);
@@ -254,7 +262,15 @@ export function ModelsPage() {
                           label: entry.seat?.accountLabel ?? "",
                         })
                       }
-                      onReconnect={() => undefined}
+                      onReconnect={
+                        entry.seat?.service === "claude"
+                          ? () =>
+                              setReconnectRequest({
+                                credentialId: entry.id,
+                                label: entry.seat?.accountLabel ?? "",
+                              })
+                          : undefined
+                      }
                       onDisconnect={() => {
                         if (orgId === undefined) return;
                         void disconnect({
@@ -419,6 +435,16 @@ export function ModelsPage() {
               reactivityKeys: routingKeys(orgId),
             });
             if (failed(exit)) throw new Error("rename");
+          }}
+        />
+      )}
+      {reconnectRequest === null ? null : (
+        <ClaudeConnectDialog
+          reconnect={reconnectRequest}
+          onClose={() => setReconnectRequest(null)}
+          onConnected={() => {
+            setReconnectRequest(null);
+            toast.success("Subscription reconnected");
           }}
         />
       )}

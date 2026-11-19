@@ -115,7 +115,8 @@ export type SeatRowProps = {
   onToggle: () => void;
   onRefresh: () => void;
   onRename: () => void;
-  onReconnect: () => void;
+  /** Absent when this seat's service has no reconnect flow we serve. */
+  onReconnect?: () => void;
   onDisconnect: () => void;
 };
 
@@ -253,9 +254,11 @@ export function SeatRow({
               ? "Refresh usage"
               : "Refresh usage and plan"}
           </ResponsiveMenuItem>
-          <ResponsiveMenuItem onClick={onReconnect}>
-            Reconnect
-          </ResponsiveMenuItem>
+          {onReconnect === undefined ? null : (
+            <ResponsiveMenuItem onClick={onReconnect}>
+              Reconnect
+            </ResponsiveMenuItem>
+          )}
           <MenuSeparator />
           <ResponsiveMenuItem
             data-intent="danger"
