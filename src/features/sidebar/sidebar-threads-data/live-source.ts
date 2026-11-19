@@ -37,7 +37,7 @@ const idle = <A>(empty: A) => Atom.make(AsyncResult.success<A>(empty));
 
 const idleThreadsAtom = idle<ThreadCard[]>([]);
 const idleFoldersAtom = idle<ReadonlyArray<ThreadFolder>>([]);
-/** The board a shell renders before its org resolves; see `sidebarBoardAtom`. */
+/** The board a shell renders while its org is still resolving. */
 export const idleBoardAtom = idle<
   ReadonlyArray<{ folder: ThreadFolder; items: ReadonlyArray<ThreadCard> }>
 >([]);

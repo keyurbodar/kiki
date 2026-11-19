@@ -130,10 +130,11 @@ function SidebarThreadsPanelBody({
   const orgId = useSidebarOrgId();
   /*
    * An unresolved org means there is no board to read, not a board at "": asking
-   * for one issued `GET /orgs//folders/board`, which 404s on every shell mount,
-   * and Effect's cause-deduping then hashed that error's request graph — the
-   * whole router included — for 14s of blocked main thread. `live-source` picks
-   * the same idle atom for its copy of this read.
+   * for one issued `GET /orgs//folders/board`, which comes back not found on
+   * every shell mount, and Effect's cause-deduping then hashed that error's
+   * request graph — the whole router included — blocking the main thread long
+   * enough to time the route tests out. `live-source` picks the same idle atom
+   * for its copy of this read.
    */
   const board = useAtomValue(
     orgId === undefined ? idleBoardAtom : folderBoardAtom(orgId),
