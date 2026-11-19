@@ -36,6 +36,7 @@ import {
   type PaneSession,
   seedSession,
   selectTab,
+  setTabFocus,
 } from "@/features/thread/thread-view/pane-session";
 import { PaneSessionContext } from "@/features/thread/thread-view/pane-session-context";
 import { tabForKey } from "@/features/thread/thread-view/thread-tabs";
@@ -245,6 +246,7 @@ export function ThreadRoute({
     closePane: () => closeIn(openTabs.active),
     isDockOpen: () => activeDock !== undefined,
     toggleExpanded: () => setExpanded((current) => !current),
+    searchFiles: () => openTabIn({ kind: "files", focus: "search" }),
   };
   useEffect(
     () =>
@@ -333,6 +335,9 @@ export function ThreadRoute({
                 tab={activeDock}
                 threadId={threadId}
                 orgId={orgId as OrgId | undefined}
+                onFocus={() =>
+                  onSession?.(setTabFocus(openTabs, activeId, undefined))
+                }
               />
             </ThreadDock>
           ) : undefined

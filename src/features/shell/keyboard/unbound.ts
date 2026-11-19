@@ -21,9 +21,8 @@ export const unboundCommands: Record<string, string> = {
     "The image preview has no focused-preview state to scope the shortcut to",
   "media.sendComments":
     "The media comment layer keeps queued comments in local state",
-  "file.save": "The file view is read-only; there is no edit buffer to save",
-  "files.search":
-    "The files pane searches inside its own toolbar, not from a shell-level command",
+  "file.save":
+    "Capy's save writes an in-browser edit back to the machine from a file editor (thread-view's MachinePathView: editStateText, a baseSha mutation, toast \"File saved to machine\"); our machine file view is read-only, so there is no draft to save",
   "pull.copyLink":
     "There is no pull request page with a selected pull; copy link lives on each list row's menu",
   "pullTab.overview":
