@@ -1,8 +1,22 @@
-import type { ComponentProps, ReactNode } from "react";
+import {
+  type ComponentProps,
+  type ReactNode,
+  useLayoutEffect,
+  useRef,
+} from "react";
 import { WorkProgressEdge } from "@/features/thread/live-status";
 import { Button } from "@/primitives/button";
-import { RightPanelGroup } from "@/primitives/right-panel";
+import { RightPanel, RightPanelGroup } from "@/primitives/right-panel";
 import { MobileIcon } from "./mobile-icon";
+
+/**
+ * Capy's narrow pane host: the same `RightPanel` the desktop dock uses, laid
+ * over the transcript from below the tab strip to the bottom edge. The top is
+ * measured into `--thread-pane-top` because the header above it is `sticky` and
+ * grows with the safe area.
+ */
+const narrowPanelClassName =
+  "kiki-narrow-panel max-md:absolute max-md:flex max-md:w-full";
 
 export type MobileThreadTab = { id: string; label: string; icon: string };
 
@@ -23,8 +37,10 @@ export type MobileThreadViewProps = {
   onCloseTab: (id: string) => void;
   /** "Open a tab" drawer, with its trigger. */
   tabMenu?: ReactNode;
-  /** The chat timeline, or the active pane. */
+  /** The chat timeline, left under the pane when one is open. */
   children: ReactNode;
+  /** The open pane. Slides over the transcript instead of replacing it. */
+  pane?: ReactNode;
   /** Composer and its footer rail; shown on the Chat tab. */
   composer?: ReactNode;
 };
@@ -44,10 +60,27 @@ export function MobileThreadView({
   onCloseTab,
   tabMenu,
   children,
+  pane,
   composer,
 }: MobileThreadViewProps) {
+  const groupRef = useRef<HTMLDivElement>(null);
+  const stripRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const group = groupRef.current;
+    const strip = stripRef.current;
+    if (group === null || strip === null) return;
+    const measure = () =>
+      group.style.setProperty(
+        "--thread-pane-top",
+        `${strip.getBoundingClientRect().bottom - group.getBoundingClientRect().top}px`,
+      );
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(strip);
+    return () => observer.disconnect();
+  }, []);
   return (
-    <RightPanelGroup storageKey={null} className="flex-1">
+    <RightPanelGroup ref={groupRef} storageKey={null} className="flex-1">
       <div className="flex h-dvh min-h-0 min-w-0 flex-1 flex-col overflow-clip bg-panel pt-(--safe-top)">
         <header className="sticky top-0 z-(--z-top-bar) flex min-h-10 shrink-0 items-center bg-panel px-2">
           <WorkProgressEdge active={working} />
@@ -66,7 +99,10 @@ export function MobileThreadView({
             {options}
           </div>
         </header>
-        <div className="flex shrink-0 items-center border-b-(length:--border-width-hairline) border-border-1 px-2 pb-2">
+        <div
+          ref={stripRef}
+          className="flex shrink-0 items-center border-b-(length:--border-width-hairline) border-border-1 px-2 pb-2"
+        >
           <div
             role="tablist"
             aria-label="Thread tabs"
@@ -119,7 +155,7 @@ export function MobileThreadView({
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
           {children}
         </div>
-        {composer !== undefined && activeTab === CHAT_TAB && (
+        {composer !== undefined && (
           <div className="min-h-0 px-4 pb-[calc(0.25rem+var(--safe-bottom))]">
             <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col justify-end">
               {composer}
@@ -127,6 +163,16 @@ export function MobileThreadView({
           </div>
         )}
       </div>
+      {pane !== undefined && (
+        <RightPanel
+          open
+          fullscreen
+          className={narrowPanelClassName}
+          aria-label="Pane"
+        >
+          {pane}
+        </RightPanel>
+      )}
     </RightPanelGroup>
   );
 }
