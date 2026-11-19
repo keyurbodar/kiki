@@ -117,21 +117,32 @@ const fileUrlQuery = Atom.family((key: string) => {
   });
 });
 
+/**
+ * The URL source with no org behind it yet. It runs the same hooks as the
+ * API-backed source on purpose: the provider swaps between the two when the
+ * org arrives, and a source whose `useUrl` calls no hooks gives the mounted
+ * tiles a different hook order on that render, which React rejects.
+ */
+const idleFileUrl = Atom.make(AsyncResult.initial(true));
+
 export function apiAttachmentSource(
-  orgId: string,
+  orgId: string | undefined,
   jamId: string,
 ): AttachmentSource {
   return {
     useUrl: (file, _purpose, variant = "display") => {
-      const atom = fileUrlQuery(
-        JSON.stringify([
-          orgId,
-          jamId,
-          file.fileId,
-          fileVariant(file, variant),
-          file.name,
-        ]),
-      );
+      const atom =
+        orgId === undefined
+          ? idleFileUrl
+          : fileUrlQuery(
+              JSON.stringify([
+                orgId,
+                jamId,
+                file.fileId,
+                fileVariant(file, variant),
+                file.name,
+              ]),
+            );
       const result = useAtomValue(atom);
       const refresh = useAtomRefresh(atom);
       const [mediaFailedFor, setMediaFailedFor] = useState<string>();

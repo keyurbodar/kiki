@@ -57,7 +57,6 @@ import { registerCommands } from "@/features/shell/keyboard";
 import {
   AttachmentSourceProvider,
   apiAttachmentSource,
-  pendingAttachmentSource,
 } from "@/features/thread/attachment-gallery";
 import type { ClarifyAnswer } from "@/features/thread/clarify-takeover";
 import {
@@ -203,9 +202,7 @@ function takeoverProps(
  * so both resolve URLs through the same API-backed provider.
  */
 const attachmentSourceFor = (orgId: string | undefined, jamId: string) =>
-  orgId === undefined
-    ? pendingAttachmentSource
-    : apiAttachmentSource(orgId, jamId);
+  apiAttachmentSource(orgId, jamId);
 
 const machineStatusColor = (state: string): StatusColor => {
   if (state === "running" || state === "online") return "success";
