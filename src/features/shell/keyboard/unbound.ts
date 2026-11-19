@@ -38,21 +38,6 @@ export const unboundCommands: Record<string, string> = {
     "A two-key sequence has no matcher yet, and the column holds no pull request row",
   "paneTab.back":
     "The pane session keeps no record of the tab a tab was opened from",
-  "commandMenu.actions":
-    "The thread row menu opens from its own trigger; nothing tracks a selected row",
-  "list.next": "Thread, issue and pull lists have no roving selection to move",
-  "list.previous":
-    "Thread, issue and pull lists have no roving selection to move",
-  "list.check":
-    "Thread, issue and pull lists have no roving selection to check",
-  "menu.markUnread":
-    "The thread row menu opens from its own trigger; nothing tracks a selected row",
-  "menu.archive":
-    "The thread row menu opens from its own trigger; nothing tracks a selected row",
-  "menu.settle":
-    "The thread row menu opens from its own trigger; nothing tracks a selected row",
-  "menu.delete":
-    "The thread row menu opens from its own trigger; nothing tracks a selected row",
   "issue.status": "The issues list has no selected issue and no status menu",
   "issue.priority":
     "The issues list has no selected issue and no priority menu",

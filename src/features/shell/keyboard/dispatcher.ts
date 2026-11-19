@@ -1,7 +1,7 @@
 import {
   commandCatalog,
   type KeyEventLike,
-  resolveEventCommand,
+  matchesBinding,
 } from "@/features/settings/shortcuts-page/keybindings";
 import { currentBindings } from "./store";
 
@@ -45,16 +45,25 @@ export function isEditableTarget(target: EventTarget | null): boolean {
   return EDITABLE_TAGS.has(target.tagName.toLowerCase());
 }
 
+/**
+ * The command this scope runs for the key, or null. A scope answers with the
+ * last row it can actually run, so two contextual rows printed on one chord — a
+ * menu's `a` and an issue row's `a` — do not shadow each other across scopes
+ * that cannot act: whichever surface is open runs its own row.
+ */
 function scopeCommand(
   scope: CommandScope,
   event: KeyboardEvent,
 ): string | null {
-  const command = resolveEventCommand(
-    event as unknown as KeyEventLike,
-    currentBindings(),
-  );
-  if (command === null || scope.commands[command] === undefined) return null;
-  return command;
+  const bindings = currentBindings();
+  for (let index = bindings.length - 1; index >= 0; index -= 1) {
+    const binding = bindings[index];
+    if (binding === undefined) continue;
+    if (scope.commands[binding.command] === undefined) continue;
+    if (matchesBinding(event as unknown as KeyEventLike, binding.key))
+      return binding.command;
+  }
+  return null;
 }
 
 function runScope(scope: CommandScope, event: KeyboardEvent): boolean {

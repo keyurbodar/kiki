@@ -109,6 +109,18 @@ describe("keybinding dispatcher", () => {
     expect(order).toEqual(["capture"]);
   });
 
+  it("runs the row a surface has when another row prints the same key", () => {
+    // `menu.archive` and `issue.assignee` both default to "a"; each scope runs
+    // the row it holds, and a scope holding neither leaves the key alone.
+    const archive = vi.fn();
+    const other = vi.fn();
+    register({ "sidebar.toggle": other });
+    register({ "menu.archive": archive });
+    press("a", { code: "KeyA" });
+    expect(archive).toHaveBeenCalledOnce();
+    expect(other).not.toHaveBeenCalled();
+  });
+
   it("skips a scope whose guard says it is not mounted here", () => {
     const toggle = vi.fn();
     register({ "sidebar.toggle": toggle }, { when: () => false });

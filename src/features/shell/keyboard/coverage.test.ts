@@ -12,6 +12,7 @@ import {
   createThreadCommands,
 } from "@/features/thread/thread-route/thread-commands";
 import { createTabStripCommands } from "@/features/thread-panes/tab-strip/tab-strip-commands";
+import { createRovingCommands } from "./roving";
 import { unboundCommands } from "./unbound";
 
 const noop = () => undefined;
@@ -44,6 +45,7 @@ const surfaces = {
   composer: createComposerCommands(() => ({ focus: noop })),
   plusMenu: createPlusMenuCommands(() => ({ attach: () => undefined })),
   palette: createPaletteCommands({ toggle: noop }),
+  roving: createRovingCommands(),
 };
 
 const bound = new Map<string, string>(

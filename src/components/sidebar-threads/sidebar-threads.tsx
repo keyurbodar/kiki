@@ -7,6 +7,7 @@ import {
   ThreadStatusIcon,
   threadStatusState,
 } from "@/components/thread-status";
+import { useRovingList } from "@/features/shell/keyboard";
 import {
   CaptainAvatar as CaptainAvatarTile,
   DEFAULT_CAPTAIN_AVATAR,
@@ -278,6 +279,7 @@ export function CaptainRow({
           render={
             <Link to="/thread/$threadId" params={{ threadId: captain.id }} />
           }
+          data-roving-item=""
           aria-label={`${captain.name}${captain.hasUnreads ? ", unread" : ""}`}
           aria-current={active ? "page" : undefined}
           className={cx(
@@ -522,6 +524,7 @@ export function SidebarThreads({
   className,
   ...props
 }: SidebarThreadsProps) {
+  const roving = useRovingList();
   if (view === undefined) {
     return (
       <div
@@ -575,6 +578,7 @@ export function SidebarThreads({
         "mt-3 flex min-h-0 flex-1 flex-col [timeline-scope:--threads-scroll]",
         className,
       )}
+      {...roving}
       {...props}
     >
       <div

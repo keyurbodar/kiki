@@ -208,6 +208,7 @@ function ThreadRowActions({
                       <Button
                         variant="bare"
                         size="icon-shrink"
+                        data-roving-menu-trigger=""
                         aria-label="Thread actions"
                         className="relative p-1"
                         onClick={stopRowNavigation}
@@ -401,6 +402,7 @@ export function SidebarThreadRow({
             <Link to="/thread/$threadId" params={{ threadId: thread.id }} />
           }
           data-slot="sidebar-thread-row"
+          data-roving-item=""
           data-thread-preview=""
           data-sidebar-target={thread.id}
           aria-current={active ? "page" : undefined}

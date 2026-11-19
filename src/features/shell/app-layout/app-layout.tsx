@@ -8,7 +8,10 @@ import {
 } from "@/features/captains/dialogs";
 import { CommandPaletteHost } from "@/features/command-palette";
 import { SettingsSidebarPanel } from "@/features/settings/shell";
-import { registerCommands } from "@/features/shell/keyboard";
+import {
+  createRovingCommands,
+  registerCommands,
+} from "@/features/shell/keyboard";
 import {
   useLiveSidebarSource,
   useSidebarThreads,
@@ -100,6 +103,13 @@ function AppShellBody({ children, banner }: AppLayoutProps) {
   const router = useRouter();
   const sidebarStateRef = useRef({ threads, pathname });
   sidebarStateRef.current = { threads, pathname };
+
+  // The list keys run in the capture phase: a menu stops the keydown before it
+  // bubbles, and it is the menu's own arrow the list key stands for.
+  useEffect(
+    () => registerCommands(createRovingCommands(), { capture: true }),
+    [],
+  );
 
   useEffect(
     () =>

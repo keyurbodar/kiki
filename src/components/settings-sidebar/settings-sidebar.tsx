@@ -1,5 +1,6 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
 import type { MouseEventHandler, ReactNode } from "react";
+import { useRovingList } from "@/features/shell/keyboard";
 import { Input } from "@/primitives/input";
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
 import { SettingsNavPopups } from "./settings-nav-popups";
@@ -80,10 +81,12 @@ export function SettingsSidebar({
   footer,
 }: SettingsSidebarProps) {
   const searchActive = query.trim() !== "";
+  const roving = useRovingList();
   return (
     <div
       data-slot="settings-sidebar"
       className="flex h-full min-h-0 w-full flex-col pt-2 [[data-tab-strip]_&]:pt-0"
+      {...roving}
     >
       <header className="flex h-11 shrink-0 items-center gap-1 px-2">
         <Link
@@ -130,6 +133,7 @@ export function SettingsSidebar({
                   <div key={result.to} className="flex flex-col gap-px">
                     <button
                       type="button"
+                      data-roving-item=""
                       className={cx(
                         "relative flex h-7 w-full items-center gap-2 rounded px-2 text-left text-sm font-medium text-foreground transition-colors duration-100 outline-none select-none hover:bg-secondary focus-visible:outline-ring-inset [&_svg]:size-(--icon-sm) [&_svg]:shrink-0 [&_svg]:text-muted-foreground-1",
                         touchTarget,
@@ -143,6 +147,7 @@ export function SettingsSidebar({
                       <button
                         key={row.id}
                         type="button"
+                        data-roving-item=""
                         className={cx(
                           "relative flex h-7 w-full items-center rounded py-1 pr-2 pl-[calc(1rem+var(--icon-sm))] text-left text-sm font-normal text-muted-foreground-1 transition-colors duration-100 outline-none select-none hover:bg-secondary hover:text-foreground focus-visible:outline-ring-inset",
                           touchTarget,
@@ -177,6 +182,7 @@ export function SettingsSidebar({
                       key={link.to}
                       to={link.to}
                       data-slot="context-menu-trigger"
+                      data-roving-item=""
                       data-nav-row={link.to}
                       data-nav-label={link.label}
                       activeProps={{ className: "active" }}

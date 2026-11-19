@@ -582,23 +582,6 @@ export function matchesBinding(
   return chord.key === target.key;
 }
 
-/**
- * The command a keydown runs, or null. Later bindings win, as Capy resolves
- * them: a contextual row printed below a global one on the same chord takes it.
- */
-export function resolveEventCommand(
-  event: KeyEventLike,
-  bindings: readonly EffectiveBinding[],
-  mac = isMacPlatform(),
-): string | null {
-  for (let index = bindings.length - 1; index >= 0; index -= 1) {
-    const binding = bindings[index];
-    if (binding !== undefined && matchesBinding(event, binding.key, mac))
-      return binding.command;
-  }
-  return null;
-}
-
 export function reservedReason(
   command: string,
   binding: string,
