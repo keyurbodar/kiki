@@ -1,6 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult, type Atom } from "effect/reactivity";
-import type { OrgId } from "@/data/api/schemas/ids";
+import type { JamId, OrgId } from "@/data/api/schemas/ids";
 import type {
   IssueDetail,
   IssueLinkTarget,
@@ -75,6 +75,11 @@ export function useIssueActions(detail: IssueDetail, orgId: OrgId) {
       unlink({ params, payload: { target }, reactivityKeys }).then(
         () => true,
         fail("Could not unlink"),
+      ),
+    reorder: (threadOrder: ReadonlyArray<JamId>) =>
+      update({ params, payload: { threadOrder }, reactivityKeys }).then(
+        () => true,
+        fail("Could not reorder the threads"),
       ),
     relate: (relation: IssueRelationKind, issue: string) =>
       relate({ params, payload: { relation, issue }, reactivityKeys }).then(

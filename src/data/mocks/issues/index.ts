@@ -55,9 +55,11 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
       });
 
     const detail = (code: string) =>
-      find(code).pipe(
-        Effect.map(({ world, row }) => toIssueDetail(world, row)),
-      );
+      Effect.gen(function* () {
+        const { world, row } = yield* find(code);
+        const access = yield* Ref.get(db.threadAccess);
+        return toIssueDetail(world, row, access);
+      });
 
     const patchRow = (code: string, patch: Partial<IssueRow>) =>
       Ref.update(db.issues, (rows) =>
@@ -176,7 +178,7 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
       )
       .handle("update", ({ params, payload }) =>
         Effect.gen(function* () {
-          const { world } = yield* find(params.code);
+          const { world, row } = yield* find(params.code);
           const stateFromStatus =
             payload.status === undefined
               ? undefined
@@ -217,6 +219,13 @@ export const IssuesMock = mockGroup("issues", (handlers) =>
               : {}),
             ...(payload.parentCode !== undefined
               ? { parentCode: payload.parentCode }
+              : {}),
+            ...(payload.threadOrder !== undefined
+              ? {
+                  threadIds: payload.threadOrder.filter((jamId) =>
+                    row.threadIds.includes(jamId),
+                  ),
+                }
               : {}),
           });
           if (payload.description !== undefined) {

@@ -1,6 +1,11 @@
 import { Context, Effect, Layer, Ref } from "effect";
 import { HttpApiError } from "effect/http-api";
 import { world } from "../fixtures/world.ts";
+import {
+  sampleCaptainAccess,
+  sampleThreadAccess,
+  type ThreadAccess,
+} from "../jams/fixtures.ts";
 import { makeOrgState, type OrgState } from "../organizations/state.ts";
 
 type Widen<T> = T extends string
@@ -59,6 +64,12 @@ export type MockTables = {
   readonly jams: Ref.Ref<ReadonlyArray<JamRow>>;
   readonly orgState: OrgState;
   readonly hiddenThemes: Ref.Ref<ReadonlyArray<string>>;
+  /**
+   * Every thread's access row, including its owner. The jams group writes it
+   * (members, owner, unread) and the issues group reads the owner from it, so
+   * one store answers both surfaces.
+   */
+  readonly threadAccess: Ref.Ref<ReadonlyArray<ThreadAccess>>;
 };
 
 let sequence = 0;
@@ -101,14 +112,18 @@ export class MockDb extends Context.Service<MockDb, MockTables>()(
       ]);
       const orgState = yield* makeOrgState;
       const hiddenThemes = yield* Ref.make<ReadonlyArray<string>>([]);
+      const threadAccess = yield* Ref.make<ReadonlyArray<ThreadAccess>>(
+        structuredClone([...sampleThreadAccess, ...sampleCaptainAccess]),
+      );
       return MockDb.of({
         ...(Object.fromEntries(entries) as unknown as Omit<
           MockTables,
-          "jams" | "orgState" | "hiddenThemes"
+          "jams" | "orgState" | "hiddenThemes" | "threadAccess"
         >),
         jams,
         orgState,
         hiddenThemes,
+        threadAccess,
       });
     }),
   );

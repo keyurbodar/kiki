@@ -464,6 +464,62 @@
     left: 0;
   }
 
+  /*
+   * An issue's linked threads: one row each, as tight as Capy's, so a row and
+   * the handle in its gutter read as one line.
+   */
+  .kiki-thread-rows {
+    min-width: 0;
+    max-width: 100%;
+    gap: calc(var(--spacing) * 0.5);
+  }
+
+  /* The reorder handle that hangs in the gutter left of a thread row. */
+  .kiki-thread-handle-slot {
+    display: flex;
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: calc(var(--spacing) * -5);
+  }
+
+  /* A sortable handle that hangs in a row's gutter: Capy's 16 by 24 box. */
+  .kiki-sortable-handle-gutter {
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 6);
+  }
+
+  /*
+   * The column of linked values under a property row: one reference per line,
+   * each starting at the row's own edge.
+   */
+  .kiki-property-values {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    gap: calc(var(--spacing) * 0.5);
+  }
+
+  /* A thread row's actions trigger: one control, its glyph sized to 16px. */
+  .kiki-thread-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--h-control-xs);
+    height: var(--h-control-xs);
+    cursor: pointer;
+  }
+
+  .kiki-thread-actions svg {
+    width: var(--icon-xs);
+    height: var(--icon-xs);
+  }
+
+  /* A linked thread's actions menu, so the row names the menu, not a utility. */
+  .kiki-thread-actions-menu {
+    width: var(--menu-w-thread-actions);
+  }
+
   /* A menu separator's breathing room, in one place. */
   .kiki-menu-separator {
     margin-block: var(--row-gap-tight);
