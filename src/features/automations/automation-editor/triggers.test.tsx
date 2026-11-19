@@ -56,6 +56,26 @@ describe("an event trigger row", () => {
     });
   });
 
+  it("offers batching settings on a webhook trigger only", () => {
+    const { unmount } = render(
+      <TriggerRow
+        trigger={{ type: "incoming_webhook", conditions: {} }}
+        onChange={() => {}}
+        onRemove={() => {}}
+      />,
+    );
+    expect(screen.getByRole("switch", { name: "Group events" })).toBeTruthy();
+    unmount();
+    render(
+      <TriggerRow
+        trigger={githubTrigger()}
+        onChange={() => {}}
+        onRemove={() => {}}
+      />,
+    );
+    expect(screen.queryByRole("switch", { name: "Group events" })).toBeNull();
+  });
+
   it("keeps a schedule row free of event controls", () => {
     render(
       <TriggerRow

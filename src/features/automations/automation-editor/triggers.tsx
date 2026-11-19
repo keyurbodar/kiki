@@ -6,6 +6,7 @@ import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { eventOptions } from "../events";
+import { WebhookCoalescing } from "../webhook-coalescing";
 import { CalendarClock, CrossMedium, PlusMedium } from "./icons";
 import {
   type EventTrigger,
@@ -386,6 +387,12 @@ export function TriggerRow({
       {event === null ? null : (
         <ConditionsEditor trigger={event} onChange={(next) => onChange(next)} />
       )}
+      {event?.type === "incoming_webhook" ? (
+        <WebhookCoalescing
+          value={event.coalescing}
+          onChange={(coalescing) => onChange({ ...event, coalescing })}
+        />
+      ) : null}
     </div>
   );
 }
