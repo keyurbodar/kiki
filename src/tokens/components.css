@@ -56,6 +56,12 @@
   --skullet-radius: var(--spacing);
   /* Geometry recipes: the row and column scale src/tokens/recipes.css reads. */
   --menu-w: 208px;
+  /* A message's More menu: Capy's 224px on both the hover rail and the phone. */
+  --menu-w-message: 224px;
+  /* A message's action row: Copy and More, in flow under the body on a phone. */
+  --message-actions-gap: 2px;
+  --message-actions-pt: 4px;
+  --message-actions-indent: 6px;
   --row-h-dense: 28px;
   --row-h-compact: 32px;
   --row-h: 36px;

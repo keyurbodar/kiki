@@ -387,6 +387,23 @@
     align-items: var(--row-align);
   }
 
+  /*
+   * A message's action row: Copy and More in flow under the body, which is how
+   * Capy's phone shows the actions instead of the hover rail.
+   */
+  .kiki-message-actions {
+    display: flex;
+    align-items: var(--row-align);
+    gap: var(--message-actions-gap);
+    padding-block-start: var(--message-actions-pt);
+    margin-inline-start: calc(-1 * var(--message-actions-indent));
+  }
+
+  /* A message's More menu, at Capy's 224px on the rail and on the phone. */
+  .kiki-message-menu {
+    width: var(--menu-w-message);
+  }
+
   /* A menu's width, so a call site names the menu rather than a utility. */
   .kiki-menu {
     width: var(--menu-w);
