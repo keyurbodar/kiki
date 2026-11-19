@@ -73,7 +73,7 @@ layer(makeApiClientLayer(MockTransport))(
         });
         assert.deepStrictEqual(
           live.map((project) => project.code),
-          ["WEB", "API", "DOC"],
+          ["WEB", "API", "DOC", "HIR"],
         );
         assert.deepStrictEqual(
           deleted.map((project) => project.code),

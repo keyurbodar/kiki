@@ -96,6 +96,8 @@ export const sampleProjects = [
     logoIndex: 2,
     touchedMinutesAgo: 60 * 24 * 3,
   }),
+  // Private, so the projects page has a row for the `Set owner` action, which
+  // Capy gates to private projects. Deleting it silently unmounts that action.
   project({
     id: worldProjects.hiring.id,
     name: worldProjects.hiring.name,
