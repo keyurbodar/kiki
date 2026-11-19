@@ -223,7 +223,7 @@ export function SetOwnerDialog({
       }}
     >
       <DialogOverlay />
-      <DialogContent className="max-w-md">
+      <DialogContent>
         {project && (
           <>
             <DialogHeader>
@@ -240,10 +240,7 @@ export function SetOwnerDialog({
                 value={ownerId ?? undefined}
                 onValueChange={(next) => setOwnerId(next)}
               >
-                <MenuSelectTrigger
-                  aria-label="New owner"
-                  className="w-full justify-between data-[placeholder]:text-muted-foreground-3"
-                >
+                <MenuSelectTrigger aria-label="New owner">
                   <MenuSelectValue placeholder="Choose a member" />
                 </MenuSelectTrigger>
                 <MenuSelectContent>
