@@ -460,6 +460,7 @@ export function ThreadView({
   const orgIssues = useAtomValue(
     orgId === undefined ? idleAtom<IssueList>() : allIssuesAtom(orgId as OrgId),
   );
+  const { openTab } = usePaneSession();
   const chips = useMemo(() => {
     const codes = new Map<string, string>();
     for (const project of Option.getOrUndefined(AsyncResult.value(projects)) ??
@@ -483,6 +484,10 @@ export function ThreadView({
           className={className}
         />
       ),
+      // A "Subagent 2" chip opens that subagent beside the transcript, as
+      // Capy's chips do, instead of sitting inert.
+      openTask: (taskId: string) =>
+        openTab({ kind: "task", jamId: taskId, localIndex: null }),
       // A Paper link opens the canvas in the panel, as Capy's does, instead of
       // leaving the chip as a link out to another tab.
       paperOpener: (fileId: string) => () =>

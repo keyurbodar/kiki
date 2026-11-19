@@ -325,6 +325,18 @@ export const threads = {
     title: "Plan the pipeline hardening work",
     projectId: projects.web.id,
   },
+  captureSideIsolation: {
+    id: "jam_capture_side_isolation",
+    number: 52,
+    title: "Isolate the slow shards",
+    projectId: projects.web.id,
+  },
+  captureSideWatcher: {
+    id: "jam_capture_side_watcher",
+    number: 53,
+    title: "Sketch the release watcher",
+    projectId: projects.web.id,
+  },
   captureProbe: {
     id: "jam_01M7FP6GKY49R183VW3NBE3Y2Z",
     number: 45,
