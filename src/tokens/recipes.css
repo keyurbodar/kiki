@@ -430,6 +430,39 @@
     width: var(--menu-w);
   }
 
+  /* A pull's preview menu, sized for a service name over its hostname. */
+  .kiki-preview-menu {
+    width: var(--menu-w-previews);
+  }
+
+  /*
+   * The state mark on a preview chip's globe. The dot sits on the button
+   * surface, so it reads against the chip as well as the glyph.
+   */
+  .kiki-status-dot {
+    position: absolute;
+    right: calc(-1 * var(--status-dot-offset));
+    bottom: calc(-1 * var(--status-dot-offset));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    padding: var(--status-dot-ring);
+  }
+
+  .kiki-status-dot > * {
+    box-sizing: border-box;
+    width: var(--status-dot);
+    height: var(--status-dot);
+    border-radius: 9999px;
+  }
+
+  /* A deployment still building: a ring with a gap, turned by the caller. */
+  .kiki-status-dot[data-state="building"] > * {
+    border: var(--status-dot-stroke) solid currentColor;
+    border-inline-end-color: transparent;
+  }
+
   .kiki-menu-row {
     display: flex;
     align-items: var(--row-align);
