@@ -123,6 +123,8 @@ export type SidebarThreadsView = {
   filters: ThreadFilters;
   /** The inline filter row's text; empty means no text filter. */
   filterText: string;
+  /** The org's threads are still in flight, so the list draws its loading row. */
+  loading: boolean;
   sections: SidebarSection[];
   /** Folders hidden from the list, which the thread options menu offers back. */
   hiddenFolders: ReadonlyArray<SidebarHiddenFolder>;

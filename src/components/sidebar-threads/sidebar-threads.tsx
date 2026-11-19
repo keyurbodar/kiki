@@ -26,6 +26,7 @@ import {
   PreviewCardTrigger,
 } from "@/primitives/preview-card";
 import { ScrollArea } from "@/primitives/scroll-area";
+import { SkeletonBox } from "@/primitives/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   DropLine,
@@ -500,6 +501,69 @@ export type SidebarThreadRenderContext = {
   active: boolean;
 };
 
+/**
+ * Capy's `Loading threads` row: three section shapes drawn while the org's
+ * threads are in flight, so the list does not paint sample rows first.
+ */
+const loadingSections = [
+  { header: "25%", rows: ["60%", "45%"] },
+  { header: "35%", rows: ["50%", "70%", "38%", "56%"] },
+  { header: "30%", rows: ["56%", "38%"] },
+];
+
+export function SidebarThreadsLoading() {
+  return (
+    <div
+      role="status"
+      aria-label="Loading threads"
+      className="kiki-thread-skeleton"
+    >
+      {loadingSections.map((section, sectionIndex) => (
+        <div
+          key={`skeleton-section-${String(sectionIndex)}`}
+          className="kiki-thread-skeleton-section"
+        >
+          <div className="kiki-thread-skeleton-header">
+            <SkeletonBox
+              height="calc(var(--spacing) * 3)"
+              width="calc(var(--spacing) * 3)"
+            />
+            <SkeletonBox
+              height="calc(var(--spacing) * 2.5)"
+              width={section.header}
+            />
+          </div>
+          {section.rows.map((width, rowIndex) => (
+            <div
+              key={`skeleton-row-${String(sectionIndex)}-${String(rowIndex)}`}
+              className="kiki-thread-skeleton-row"
+            >
+              <span className="kiki-thread-skeleton-line">
+                <SkeletonBox height="calc(var(--spacing) * 3)" width={width} />
+                <SkeletonBox
+                  height="calc(var(--spacing) * 3.5)"
+                  width="calc(var(--spacing) * 3.5)"
+                  radius="50%"
+                />
+              </span>
+              <span className="kiki-thread-skeleton-meta">
+                <SkeletonBox
+                  height="calc(var(--spacing) * 2.5)"
+                  width="calc(var(--spacing) * 10)"
+                />
+                <SkeletonBox
+                  height="calc(var(--spacing) * 2.5)"
+                  width="calc(var(--spacing) * 5)"
+                />
+              </span>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export type SidebarThreadsProps = ComponentProps<"div"> & {
   view?: SidebarThreadsView;
   leading?: ReactNode;
@@ -586,7 +650,8 @@ export function SidebarThreads({
   const showCaptains = split ? captainsMode : true;
   const showThreads = split ? !captainsMode : true;
   const slim = view.density === "compact";
-  const captainList = captainsSource ?? view.captains;
+  const loading = view.loading;
+  const captainList = loading ? [] : (captainsSource ?? view.captains);
   const captainRows =
     captainList.length === 0 ? (
       <NewCaptainRow compact={slim} onClick={onNewCaptain} />
@@ -711,16 +776,20 @@ export function SidebarThreads({
                     {actions}
                   </div>
                 </div>
-                <ThreadSections
-                  view={view}
-                  renderThread={renderThread}
-                  onSectionOpenChange={onSectionOpenChange}
-                  onShowMore={onShowMore}
-                  onNewThread={onNewThread}
-                  renderSectionActions={renderSectionActions}
-                  renderSectionMenu={renderSectionMenu}
-                  drag={drag}
-                />
+                {loading ? (
+                  <SidebarThreadsLoading />
+                ) : (
+                  <ThreadSections
+                    view={view}
+                    renderThread={renderThread}
+                    onSectionOpenChange={onSectionOpenChange}
+                    onShowMore={onShowMore}
+                    onNewThread={onNewThread}
+                    renderSectionActions={renderSectionActions}
+                    renderSectionMenu={renderSectionMenu}
+                    drag={drag}
+                  />
+                )}
               </>
             ) : null}
           </div>

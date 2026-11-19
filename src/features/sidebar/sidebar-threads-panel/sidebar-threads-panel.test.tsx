@@ -808,3 +808,18 @@ describe("sidebar inline filter row", () => {
     });
   });
 });
+
+function LoadingHarness() {
+  const controller = useSidebarThreads({ loading: true });
+  return <SidebarThreadsPanel controller={controller} />;
+}
+
+describe("sidebar loading row", () => {
+  it("draws Capy's Loading threads row instead of sample rows", async () => {
+    await renderAt(<LoadingHarness />);
+    expect(
+      screen.getByRole("status", { name: "Loading threads" }),
+    ).toBeTruthy();
+    expect(screen.queryAllByRole("link")).toHaveLength(0);
+  });
+});

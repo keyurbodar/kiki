@@ -95,7 +95,7 @@ function AppShellBody({ children, banner }: AppLayoutProps) {
   const [sidebarLayout] = useSidebarLayout();
   const liveSource = useLiveSidebarSource(now);
   const threads = useSidebarThreads({
-    ...(liveSource === null ? {} : { source: liveSource }),
+    ...(liveSource === null ? { loading: true } : { source: liveSource }),
     layout: sidebarLayout,
   });
 
