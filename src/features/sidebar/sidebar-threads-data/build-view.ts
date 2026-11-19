@@ -160,10 +160,13 @@ export function buildSidebarThreadsView(
       defaultOpen?: boolean;
       limited?: boolean;
       countAtRest?: boolean;
+      /** A folder carries its own order, set by dragging its rows. */
+      ordered?: boolean;
       folder?: SourceFolder;
     } = {},
   ) => {
-    const sorted = threads.toSorted(compare);
+    const sorted =
+      options.ordered === true ? threads : threads.toSorted(compare);
     const limit =
       options.limited === false || prefs.expanded[id] === true
         ? sorted.length
@@ -210,7 +213,7 @@ export function buildSidebarThreadsView(
       folder.systemKind === "pinned" ? "pinned" : "folder",
       folder.name ?? "Pinned",
       members,
-      { folder },
+      { ordered: true, folder },
     );
   }
 
