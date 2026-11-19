@@ -25,8 +25,14 @@ import {
 import type { Project } from "@/data/api/schemas/project";
 import type { ThreadCardPage } from "@/data/api/schemas/thread";
 import { reactivityKeys } from "@/data/atoms/conventions";
+import {
+  idleMemberNames,
+  memberNames,
+  membersAtom,
+} from "@/data/atoms/members";
 import { projectsAtom } from "@/data/atoms/projects";
 import { useActiveOrgId } from "@/data/atoms/session";
+import { tagsAtom } from "@/data/atoms/threadOrganization";
 import { threadsAtom } from "@/data/atoms/threads";
 import { ApiClient } from "@/data/client/ApiClient";
 import {
@@ -121,6 +127,12 @@ const idleProjects: Atom.Atom<
   AsyncResult.AsyncResult<readonly Project[], unknown>
 > = Atom.make(AsyncResult.initial(false));
 
+const idleTags: Atom.Atom<
+  AsyncResult.AsyncResult<readonly TagLike[], unknown>
+> = Atom.make(AsyncResult.initial(false));
+
+type TagLike = { id: string; name: string };
+
 export function CommandPaletteHost({
   source,
   defaultOpen = false,
@@ -144,15 +156,29 @@ export function CommandPaletteHost({
   const projectsForOrg: Atom.Atom<
     AsyncResult.AsyncResult<readonly Project[], unknown>
   > = orgId === undefined ? idleProjects : projectsAtom(orgId);
+  const membersForOrg =
+    orgId === undefined
+      ? idleMemberNames
+      : (membersAtom(orgId) as typeof idleMemberNames);
+  const tagsForOrg =
+    orgId === undefined ? idleTags : (tagsAtom(orgId) as typeof idleTags);
   const threadsResult = useAtomValue(threadsForOrg);
   const projectsResult = useAtomValue(projectsForOrg);
+  const membersResult = useAtomValue(membersForOrg);
+  const tagsResult = useAtomValue(tagsForOrg);
   const orgThreads = resultValue(threadsResult)?.items ?? [];
   const orgProjects = resultValue(projectsResult) ?? [];
+  const orgMemberNames = useMemo(
+    () => memberNames(resultValue(membersResult)),
+    [membersResult],
+  );
+  const orgTags = resultValue(tagsResult) ?? [];
   const createThread = useAtomSet(createThreadAtom, { mode: "promise" });
   const createProject = useAtomSet(createProjectAtom, { mode: "promise" });
   const atomSource = useMemo(
-    () => sourceFromAtoms(orgThreads, orgProjects, now),
-    [orgThreads, orgProjects, now],
+    () =>
+      sourceFromAtoms(orgThreads, orgProjects, now, orgMemberNames, orgTags),
+    [orgThreads, orgProjects, now, orgMemberNames, orgTags],
   );
   const searchSource =
     source ?? (orgId === undefined ? sampleSearchSource(now) : atomSource);
