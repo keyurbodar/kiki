@@ -1,6 +1,7 @@
 import { RegistryProvider } from "@effect/atom-react";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+import type { OrgId } from "@/data/api/schemas/ids";
 import { orgId, threads } from "@/data/mocks/fixtures/world";
 import { PaneContent } from "./pane-content";
 
@@ -29,7 +30,7 @@ describe("a pane tab never opens to nothing", () => {
           title: "Web preview",
         }}
         threadId={threads.checkoutTest.id}
-        orgId={orgId}
+        orgId={orgId as OrgId}
       />,
     );
 
@@ -37,9 +38,7 @@ describe("a pane tab never opens to nothing", () => {
 
     const frame = await screen.findByTitle("Web preview");
     expect(frame.tagName).toBe("IFRAME");
-    expect(frame.getAttribute("src")).toBe(
-      "https://preview.example.com/8080",
-    );
+    expect(frame.getAttribute("src")).toBe("https://preview.example.com/8080");
     expect(screen.getByLabelText("Address")).toBeTruthy();
   });
 
