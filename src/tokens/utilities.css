@@ -46,14 +46,37 @@
 /*
  * Capy's scrollbars, from its production stylesheet: a thin native bar with a
  * muted thumb over a transparent track, set on every element rather than on the
- * handful of scroll containers we remembered. `.scrollbar-mini` is Capy's escape
- * hatch — where the engine still has ::-webkit-scrollbar, the platform's own
- * bar is drawn at its own width instead of the thin one.
+ * handful of scroll containers we remembered. The thumb is half the muted
+ * colour in light and a third of the muted foreground in dark. `.scrollbar-mini` is Capy's
+ * escape hatch — where the engine still has ::-webkit-scrollbar, the platform's
+ * own bar is drawn at its own width with a 1.5px thumb instead of the thin one.
  */
 @layer base {
   * {
     scrollbar-width: thin;
     scrollbar-color: var(--muted) transparent;
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    * {
+      scrollbar-color: color-mix(in oklch, var(--muted) 50%, transparent)
+        transparent;
+    }
+  }
+
+  .dark * {
+    scrollbar-color: var(--muted-foreground-2) transparent;
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .dark * {
+      scrollbar-color: color-mix(
+          in oklch,
+          var(--muted-foreground-2) 30%,
+          transparent
+        )
+        transparent;
+    }
   }
 }
 
@@ -68,6 +91,25 @@
   .scrollbar-mini {
     scrollbar-width: auto;
     scrollbar-color: auto;
+  }
+}
+
+.scrollbar-mini::-webkit-scrollbar {
+  width: 1.5px;
+}
+
+.scrollbar-mini::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-mini::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground-3);
+  border-radius: 9999px;
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+  .scrollbar-mini::-webkit-scrollbar-thumb {
+    background: color-mix(in oklch, var(--muted-foreground-3) 45%, transparent);
   }
 }
 
