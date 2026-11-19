@@ -637,12 +637,10 @@ export function ThreadView({
                                   }
                                 />
                                 {orgId === undefined ? null : (
-                                  <span className="ml-1 flex min-w-0 items-center gap-0.5">
-                                    <ThreadModelPicker
-                                      orgId={orgId}
-                                      jamId={threadId}
-                                    />
-                                  </span>
+                                  <ThreadModelPicker
+                                    orgId={orgId}
+                                    jamId={threadId}
+                                  />
                                 )}
                               </>
                             }
