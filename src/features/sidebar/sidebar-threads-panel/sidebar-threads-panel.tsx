@@ -28,7 +28,10 @@ import {
   type SidebarThreadsController,
   useSidebarThreads,
 } from "../sidebar-threads-data";
-import { useSidebarOrgId } from "../sidebar-threads-data/live-source";
+import {
+  idleBoardAtom,
+  useSidebarOrgId,
+} from "../sidebar-threads-data/live-source";
 import { CaptainOptionsMenu, ThreadOptionsMenu } from "../thread-options-menu";
 import { ThreadFiltersMenu } from "../thread-options-menu/thread-filters";
 import { CaptainRowMenu } from "../thread-row-actions/captain-row-menu";
@@ -119,7 +122,16 @@ function SidebarThreadsPanelBody({
   const navigate = useNavigate();
   const { view } = sidebar;
   const orgId = useSidebarOrgId();
-  const board = useAtomValue(folderBoardAtom((orgId ?? "") as never));
+  /*
+   * An unresolved org means there is no board to read, not a board at "": asking
+   * for one issued `GET /orgs//folders/board`, which 404s on every shell mount,
+   * and Effect's cause-deduping then hashed that error's request graph — the
+   * whole router included — for 14s of blocked main thread. `live-source` picks
+   * the same idle atom for its copy of this read.
+   */
+  const board = useAtomValue(
+    orgId === undefined ? idleBoardAtom : folderBoardAtom(orgId),
+  );
   const removeFromFolder = useAtomSet(removeFromFolderAtom, {
     mode: "promise",
   });

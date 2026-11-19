@@ -6,7 +6,7 @@ import {
   tierLimits,
 } from "@/components/plan-picker/plan-catalog";
 import type { OrgId } from "@/data/api/schemas/ids";
-import { billingAtom } from "@/data/atoms/billing";
+import { billingAtom, idleBillingAtom } from "@/data/atoms/billing";
 import { currentPlan, toBillingView } from "@/lib/billing";
 
 /** What the org's plan lets it pick, as the machine menu gates it. */
@@ -36,7 +36,9 @@ export const planMachineEntitlements = (
 export function useMachineEntitlements(
   orgId: OrgId | undefined,
 ): MachineEntitlements {
-  const result = useAtomValue(billingAtom(orgId ?? ""));
+  const result = useAtomValue(
+    orgId === undefined ? idleBillingAtom : billingAtom(orgId),
+  );
   if (orgId === undefined) return unlimited;
   const billing = AsyncResult.getOrElse(result, () => undefined);
   if (billing === undefined) return unlimited;

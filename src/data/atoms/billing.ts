@@ -1,4 +1,4 @@
-import { Atom } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import { ApiClient } from "../client/ApiClient.ts";
 import { queryTimeToLive } from "./conventions.ts";
 
@@ -10,6 +10,15 @@ export const billingAtom = Atom.family((orgId: string) =>
     reactivityKeys: billingReactivityKeys(orgId),
     timeToLive: queryTimeToLive,
   }),
+);
+
+/**
+ * The billing read a shell makes while its org is still resolving. Asking with
+ * an empty id is `GET /orgs//billing`, which fails, and a failed read costs the
+ * shell a full hash of the error's request graph; there is nothing to read yet.
+ */
+export const idleBillingAtom: ReturnType<typeof billingAtom> = Atom.make(
+  AsyncResult.success(undefined as never),
 );
 
 export const billingInvoicesAtom = Atom.family((orgId: string) =>
