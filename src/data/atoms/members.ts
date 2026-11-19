@@ -36,5 +36,47 @@ export const memberAvatars = (value: unknown): ReadonlyMap<string, string> => {
   return avatars;
 };
 
+export type MemberFace = {
+  readonly id: string;
+  readonly name: string;
+};
+
+/**
+ * userId → the display name a filter prints, from the undecoded member list.
+ * Rows the directory carries without a name are skipped.
+ */
+export const memberNames = (value: unknown): ReadonlyMap<string, string> => {
+  const rows = Array.isArray(value)
+    ? value
+    : typeof value === "object" && value !== null
+      ? ((value as { members?: unknown }).members ?? [])
+      : [];
+  const names = new Map<string, string>();
+  if (!Array.isArray(rows)) return names;
+  for (const row of rows) {
+    if (typeof row !== "object" || row === null) continue;
+    const entry = row as {
+      id?: unknown;
+      userId?: unknown;
+      firstName?: unknown;
+      lastName?: unknown;
+      name?: unknown;
+    };
+    const id = typeof entry.userId === "string" ? entry.userId : entry.id;
+    if (typeof id !== "string") continue;
+    const name =
+      typeof entry.name === "string"
+        ? entry.name
+        : [entry.firstName, entry.lastName]
+            .filter((part): part is string => typeof part === "string")
+            .join(" ")
+            .trim();
+    if (name !== "") names.set(id, name);
+  }
+  return names;
+};
+
+export const idleMemberNames = idleAtom<ReadonlyMap<string, string>>();
+
 /** The member avatars while the org is unknown, so nothing requests a placeholder org. */
 export const idleMemberAvatars = idleAtom<ReadonlyMap<string, string>>();

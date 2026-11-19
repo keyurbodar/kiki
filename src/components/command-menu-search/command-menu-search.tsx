@@ -7,7 +7,16 @@ import {
   useRef,
   useState,
 } from "react";
-import { HighlightedText } from "@/components/filter-search";
+import {
+  type FilterToken,
+  filterKeyLabels,
+  formatFilterToken,
+  HighlightedText,
+  mergeFilterToken,
+  parseFilterQuery,
+  removeFilterValue,
+  spliceFilterQuery,
+} from "@/components/filter-search";
 import {
   CommandMenu,
   CommandMenuFilter,
@@ -18,7 +27,7 @@ import {
 } from "@/primitives/command-menu";
 import { Icon, type IconId } from "@/primitives/icon";
 import {
-  paletteEmptyClass,
+  paletteEmptyBlockClass,
   paletteFilterClass,
   paletteFiltersClass,
   paletteGhostButtonClass,
@@ -27,6 +36,8 @@ import {
   paletteItemIconClass,
   paletteItemTrailingClass,
   paletteListClass,
+  paletteTokenChipClass,
+  paletteTokenRemoveClass,
 } from "./classes";
 import { PaletteHint, PaletteInput, PaletteItem, PaletteKeys } from "./parts";
 import {
@@ -41,6 +52,7 @@ import {
   type PaletteCaptain,
   type PaletteCommand,
   type PalettePull,
+  type PaletteSuggestion,
   type PaletteThread,
   type PullState,
   type RunOptions,
@@ -117,20 +129,75 @@ export function CommandMenuSearch({
   className,
   ...props
 }: CommandMenuSearchProps) {
-  const [query, setQuery] = useState(initialQuery);
+  const [text, setText] = useState(initialQuery);
+  const [tokens, setTokens] = useState<ReadonlyArray<FilterToken>>([]);
   const [category, setCategory] = useState<SearchCategory>(initialCategory);
   const [highlighted, setHighlighted] = useState<string | undefined>();
   const modifier = useRef(false);
   const results = useMemo(
-    () => buildSearchResults(query, category, data),
-    [query, category, data],
+    () => buildSearchResults(text, category, data, { tokens, now }),
+    [text, category, data, tokens, now],
   );
   const { parsed } = results;
+  const active = parsed.active;
+
+  /**
+   * Typing `author:sam ` commits the token to the row above and leaves the
+   * input holding only free text, which is what the results search.
+   */
+  const changeText = (next: string) => {
+    const parsedNext = parseFilterQuery(next, next.length);
+    if (parsedNext.tokens.length === 0) {
+      setText(next);
+      return;
+    }
+    const committed = parsedNext.tokens;
+    setTokens((current) => committed.reduce(mergeFilterToken, current));
+    setText(
+      committed.reduceRight(
+        (carry, token) => spliceFilterQuery(carry, token.start, token.end).text,
+        next,
+      ),
+    );
+  };
+
+  const pickSuggestion = (suggestion: PaletteSuggestion) => {
+    if (active === undefined) return;
+    if (active.kind === "key") {
+      setText(
+        spliceFilterQuery(
+          text,
+          active.start,
+          active.end,
+          `${suggestion.value}:`,
+        ).text,
+      );
+      return;
+    }
+    setTokens((current) =>
+      mergeFilterToken(current, {
+        key: active.key,
+        values: [suggestion.value],
+      }),
+    );
+    setText(spliceFilterQuery(text, active.start, active.end).text);
+  };
+
+  /** Puts a committed token back in the input so it can be edited. */
+  const editToken = (token: FilterToken) => {
+    setTokens((current) => removeFilterValue(current, token.key));
+    setText([formatFilterToken(token), text].filter(Boolean).join(" "));
+  };
+
+  const removeToken = (token: FilterToken, value?: string) =>
+    setTokens((current) => removeFilterValue(current, token.key, value));
+
+  const clearFilters = () => setTokens([]);
   const term = parsed.term;
   const mode = footerModeFor(highlighted, results);
 
   const compose = () =>
-    onCompose?.({ query, seed: parsed.actionsPrefix ? "" : parsed.text });
+    onCompose?.({ query: text, seed: parsed.actionsPrefix ? "" : parsed.text });
 
   const execute =
     (run: (options: RunOptions) => void, keepOpen?: boolean) =>
@@ -145,7 +212,7 @@ export function CommandMenuSearch({
   const selectCategory = (next: SearchCategory) => {
     setCategory(next);
     if (!parsed.actionsPrefix) return;
-    setQuery(stripActionsPrefix(query));
+    setText(stripActionsPrefix(text));
   };
 
   const clickActive = (input: HTMLInputElement) => {
@@ -173,6 +240,11 @@ export function CommandMenuSearch({
     if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
       event.preventDefault();
       clickActive(event.currentTarget);
+      return;
+    }
+    if (event.key === "Backspace" && text === "" && tokens.length > 0) {
+      event.preventDefault();
+      setTokens((current) => current.slice(0, -1));
       return;
     }
     if (event.key === "Escape") {
@@ -354,8 +426,8 @@ export function CommandMenuSearch({
         open
         mode="none"
         autoHighlight="always"
-        value={query}
-        onValueChange={(value) => setQuery(value)}
+        value={text}
+        onValueChange={(value) => changeText(value)}
         onItemHighlighted={(value) =>
           setHighlighted(typeof value === "string" ? value : undefined)
         }
@@ -375,6 +447,37 @@ export function CommandMenuSearch({
             </button>
           }
         />
+        {tokens.length === 0 ? null : (
+          <div data-slot="palette-tokens" className="kiki-filter-tokens">
+            {tokens.map((token) => (
+              <span
+                key={token.key}
+                className={`kiki-filter-token ${paletteTokenChipClass}`}
+              >
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  aria-label={`Edit ${filterKeyLabels[token.key]} filter`}
+                  className="kiki-filter-token-label outline-none hover:text-foreground"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => editToken(token)}
+                >
+                  {filterKeyLabels[token.key]}: {token.values.join(", ")}
+                </button>
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  aria-label={`Remove ${filterKeyLabels[token.key]} filter`}
+                  className={`kiki-filter-token-remove ${paletteTokenRemoveClass}`}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => removeToken(token)}
+                >
+                  <Icon name="x" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
         <CommandMenuFilters
           role="tablist"
           aria-label="Filter"
@@ -397,9 +500,57 @@ export function CommandMenuSearch({
           ))}
         </CommandMenuFilters>
         <CommandMenuList className={paletteListClass}>
-          <div data-slot="command-menu-empty" className={paletteEmptyClass}>
-            {results.emptyText}
-          </div>
+          {results.total === 0 && results.suggestions.length === 0 ? (
+            <div
+              data-slot="command-menu-empty"
+              className={paletteEmptyBlockClass}
+            >
+              {results.emptyText}
+              {tokens.length === 0 ? null : (
+                <button
+                  type="button"
+                  data-slot="button"
+                  className={paletteGhostButtonClass}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={clearFilters}
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          ) : null}
+          {results.suggestions.length === 0 ? null : (
+            <CommandMenuGroup
+              data-search-group="filter"
+              className={paletteGroupClass}
+            >
+              <CommandMenuGroupLabel className={paletteGroupLabelClass}>
+                {results.suggestions[0]?.group}
+              </CommandMenuGroupLabel>
+              {results.suggestions.map((suggestion) => (
+                <PaletteItem
+                  key={suggestion.id}
+                  value={`suggestion-${suggestion.id}`}
+                  onClick={() => pickSuggestion(suggestion)}
+                >
+                  <span className={paletteItemIconClass}>
+                    <Icon name="settings-slider-hor" />
+                  </span>
+                  <span className="kiki-cell truncate" data-col="text">
+                    <HighlightedText
+                      text={suggestion.label}
+                      term={active?.kind === "key" ? active.prefix : term}
+                    />
+                  </span>
+                  {suggestion.detail === undefined ? null : (
+                    <span className={paletteItemTrailingClass}>
+                      {suggestion.detail}
+                    </span>
+                  )}
+                </PaletteItem>
+              ))}
+            </CommandMenuGroup>
+          )}
           {results.groups.map((group) => (
             <CommandMenuGroup
               key={group.key}

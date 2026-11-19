@@ -26,6 +26,10 @@ export const paletteListClass =
 export const paletteEmptyClass =
   "hidden px-2 py-10 text-center text-sm text-muted-foreground-2 only:block";
 
+/** The empty state drawn beside other rows, which `only:block` would hide. */
+export const paletteEmptyBlockClass =
+  "kiki-palette-empty text-sm text-muted-foreground-2";
+
 export const paletteGroupClass = "flex flex-col gap-px";
 
 export const paletteGroupLabelClass =
@@ -44,6 +48,13 @@ export const paletteKbdClass =
 
 export const paletteFiltersClass =
   "flex shrink-0 items-center gap-0.5 overflow-x-auto px-1.5 pt-1.5 [scrollbar-width:none]";
+
+/** The chip a committed filter value wears; its geometry is the filter-token recipe. */
+export const paletteTokenChipClass =
+  "shrink-0 rounded border-hairline border-border-2 bg-card text-xs text-foreground shadow-plate";
+
+export const paletteTokenRemoveClass =
+  "rounded-r text-muted-foreground-2 outline-none hover:bg-secondary hover:text-foreground";
 
 export const paletteFilterClass =
   "inline-flex h-(--h-control-sm) shrink-0 cursor-pointer items-center rounded px-2.5 text-xs font-medium whitespace-nowrap text-muted-foreground-2 outline-none select-none transition-colors duration-100 hover:text-foreground aria-selected:bg-secondary aria-selected:text-foreground";
