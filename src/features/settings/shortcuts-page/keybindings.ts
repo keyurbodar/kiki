@@ -3,11 +3,39 @@ export type KeybindingCommand = {
   label: string;
   defaults: readonly string[];
   contextual?: boolean;
+  /** Runs while a text field has focus. Capy's When column says "Composer or thread body focused" for these and "not typing" for the rest. */
+  inEditable?: boolean;
 };
 
 export type KeybindOverrides = Record<string, string[] | null>;
 
-export const commandCatalog: ReadonlyArray<KeybindingCommand> = [
+/**
+ * Commands Capy runs even while a text field has focus. Its When column reads
+ * "Always" for most of these; the composer rows are scoped to the composer
+ * itself. Every other row is gated behind an unfocused page, as Capy gates it
+ * ("not typing", "list focused", "command menu open").
+ */
+const typingCommands = new Set([
+  "commandMenu.toggle",
+  "sidebar.toggle",
+  "pane.toggle",
+  "thread.new",
+  "settings.open",
+  "browser.open",
+  "diffs.open",
+  "composer.focus",
+  "composer.attach",
+  "composer.voice",
+  "thread.stop",
+  "history.back",
+  "history.forward",
+  "thread.previous",
+  "thread.next",
+  "paneTab.previous",
+  "paneTab.next",
+]);
+
+const catalog: ReadonlyArray<KeybindingCommand> = [
   {
     command: "commandMenu.toggle",
     label: "Open command menu",
@@ -287,6 +315,11 @@ export const commandCatalog: ReadonlyArray<KeybindingCommand> = [
   },
 ];
 
+export const commandCatalog: ReadonlyArray<KeybindingCommand> = catalog.map(
+  (row) =>
+    typingCommands.has(row.command) ? { ...row, inEditable: true } : row,
+);
+
 export const commandLabels: Record<string, string> = Object.fromEntries(
   commandCatalog.map((c) => [c.command, c.label]),
 );
@@ -522,6 +555,48 @@ export function captureDigitBinding(
   return normalizeBinding(
     [...modifiers.filter((m) => chord[m]), "digit"].join("+"),
   );
+}
+
+/**
+ * Whether a keydown is the binding. Both sides are read through the same
+ * capture path the settings recorder uses, so a shortcut the page accepts is
+ * exactly a shortcut the dispatcher honours.
+ */
+export function matchesBinding(
+  event: KeyEventLike,
+  binding: string,
+  mac = isMacPlatform(),
+): boolean {
+  const chords = parseBinding(binding);
+  const target = chords?.length === 1 ? chords[0] : undefined;
+  const pressed = captureBinding(event, mac);
+  const chord = pressed === null ? null : parseChord(pressed);
+  if (target === undefined || chord === null) return false;
+  if (chord.alt !== target.alt || chord.shift !== target.shift) return false;
+  const wantMeta = target.meta || (target.mod && mac);
+  const wantCtrl = target.ctrl || (target.mod && !mac);
+  const gotMeta = chord.meta || (chord.mod && mac);
+  const gotCtrl = chord.ctrl || (chord.mod && !mac);
+  if (gotMeta !== wantMeta || gotCtrl !== wantCtrl) return false;
+  if (target.key === "digit") return /^[1-9]$/.test(chord.key);
+  return chord.key === target.key;
+}
+
+/**
+ * The command a keydown runs, or null. Later bindings win, as Capy resolves
+ * them: a contextual row printed below a global one on the same chord takes it.
+ */
+export function resolveEventCommand(
+  event: KeyEventLike,
+  bindings: readonly EffectiveBinding[],
+  mac = isMacPlatform(),
+): string | null {
+  for (let index = bindings.length - 1; index >= 0; index -= 1) {
+    const binding = bindings[index];
+    if (binding !== undefined && matchesBinding(event, binding.key, mac))
+      return binding.command;
+  }
+  return null;
 }
 
 export function reservedReason(

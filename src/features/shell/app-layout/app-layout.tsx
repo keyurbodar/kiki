@@ -1,6 +1,6 @@
-import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { AppSidebar, useSidebarLayout } from "@/components/app-sidebar";
 import {
   CaptainDialog,
@@ -8,6 +8,7 @@ import {
 } from "@/features/captains/dialogs";
 import { CommandPaletteHost } from "@/features/command-palette";
 import { SettingsSidebarPanel } from "@/features/settings/shell";
+import { registerCommands } from "@/features/shell/keyboard";
 import {
   useLiveSidebarSource,
   useSidebarThreads,
@@ -23,9 +24,9 @@ import {
   SidebarProvider,
   useSidebarActions,
   useSidebarOpenMobile,
-  useSidebarShortcut,
   useSidebarState,
 } from "../sidebar-container";
+import { createShellCommands } from "./shell-commands";
 
 export type AppLayoutProps = { children: ReactNode; banner?: ReactNode };
 
@@ -96,7 +97,50 @@ function AppShellBody({ children, banner }: AppLayoutProps) {
     layout: sidebarLayout,
   });
 
-  useSidebarShortcut(toggle);
+  const router = useRouter();
+  const sidebarStateRef = useRef({ threads, pathname });
+  sidebarStateRef.current = { threads, pathname };
+
+  useEffect(
+    () =>
+      registerCommands(
+        createShellCommands(() => {
+          const { threads: live, pathname: here } = sidebarStateRef.current;
+          const order = live.view.sections.flatMap((section) =>
+            section.threads.map((thread) => thread.id),
+          );
+          const openThread = (index: number) => {
+            const id = order[index];
+            if (id !== undefined)
+              void navigate({
+                to: "/thread/$threadId",
+                params: { threadId: id },
+              });
+          };
+          return {
+            toggleSidebar: toggle,
+            toggleSidebarMode: () =>
+              live.setMode(
+                live.view.mode === "threads" ? "captains" : "threads",
+              ),
+            newThread: () => void navigate({ to: "/new" }),
+            openSettings: () => void navigate({ to: SETTINGS_PATH }),
+            back: () => router.history.back(),
+            forward: () => router.history.forward(),
+            stepThread: (delta) => {
+              if (order.length === 0) return;
+              const current = /^\/thread\/([^/]+)/.exec(here)?.[1];
+              const index = current === undefined ? -1 : order.indexOf(current);
+              if (index === -1) openThread(delta === 1 ? 0 : order.length - 1);
+              else openThread((index + delta + order.length) % order.length);
+            },
+            jumpThread: openThread,
+          };
+        }),
+      ),
+    [toggle, navigate, router],
+  );
+
   useEffect(() => {
     if (pathname) setOpenMobile(false);
   }, [pathname, setOpenMobile]);

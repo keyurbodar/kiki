@@ -161,7 +161,9 @@ export function RailMenuItems({
           <UndoGlyph />
         </span>
         <span>Reopen closed tab</span>
-        <span className={menuTrailing}>{shortcutFor("tab.reopen")}</span>
+        {onReopen === undefined ? null : (
+          <span className={menuTrailing}>{shortcutFor("tab.reopen")}</span>
+        )}
       </MenuItem>
       {entry !== undefined && (
         <MenuItem

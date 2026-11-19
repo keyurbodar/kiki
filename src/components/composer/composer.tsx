@@ -13,6 +13,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { shortcutGlyphText } from "@/features/shell/keyboard";
 import { cn } from "@/lib/cn";
 import { Button } from "@/primitives/button";
 import { DotGridIcon } from "@/primitives/dot-grid-icon";
@@ -570,7 +571,9 @@ export function Composer({
             <>
               <ToolbarAction
                 label="Attach files"
-                shortcut={attachShortcut}
+                shortcut={
+                  attachShortcut ?? shortcutGlyphText("composer.attach")
+                }
                 disabled={disabled}
                 onClick={() => fileInput.current?.click()}
               >

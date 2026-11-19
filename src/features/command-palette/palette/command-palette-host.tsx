@@ -30,6 +30,10 @@ import { useActiveOrgId } from "@/data/atoms/session";
 import { threadsAtom } from "@/data/atoms/threads";
 import { ApiClient } from "@/data/client/ApiClient";
 import {
+  type CommandHandlers,
+  registerCommands,
+} from "@/features/shell/keyboard";
+import {
   type CommandPaletteOpenDetail,
   useCommandPaletteOpen,
 } from "@/lib/command-palette-events";
@@ -61,11 +65,15 @@ export const viewForIntent = (intent: string | null): PaletteView =>
       ? { kind: "compose", from: "direct", seed: "" }
       : { kind: "search" };
 
-export const isPaletteToggle = (event: KeyboardEvent) =>
-  (event.metaKey || event.ctrlKey) &&
-  !event.altKey &&
-  !event.shiftKey &&
-  event.key.toLowerCase() === "k";
+/**
+ * The palette's keybinding, dispatched from the same 60-row table Settings
+ * prints, so a rebind of "Open command menu" reaches it.
+ */
+export const createPaletteCommands = (deps: {
+  toggle: () => void;
+}): CommandHandlers => ({
+  "commandMenu.toggle": () => deps.toggle(),
+});
 
 export const openTargetPath = (target: OpenTarget) => {
   switch (target.kind) {
@@ -166,17 +174,19 @@ export function CommandPaletteHost({
         : document.querySelector<HTMLElement>('button[aria-label="Search"]');
   }, []);
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (!isPaletteToggle(event)) return;
-      event.preventDefault();
-      rememberOpener(null);
-      setView({ kind: "search" });
-      setOpen((current) => !current);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [rememberOpener]);
+  useEffect(
+    () =>
+      registerCommands(
+        createPaletteCommands({
+          toggle: () => {
+            rememberOpener(null);
+            setView({ kind: "search" });
+            setOpen((current) => !current);
+          },
+        }),
+      ),
+    [rememberOpener],
+  );
 
   useCommandPaletteOpen(
     useCallback(

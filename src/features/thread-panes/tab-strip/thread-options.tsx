@@ -551,7 +551,11 @@ function MachineRows({
               owner="MachineOpenRows:ResponsiveMenuItem.1"
               icon={<PlusGlyph />}
               label="New terminal"
-              trailing={<Shortcut>{shortcutFor("shell.new")}</Shortcut>}
+              trailing={
+                shortcutFor("shell.new") === "" ? undefined : (
+                  <Shortcut>{shortcutFor("shell.new")}</Shortcut>
+                )
+              }
               onClick={() => {
                 if (machine.state === "asleep") onWake?.(machine.machineId);
                 onNewTerminal?.(machine.machineId);

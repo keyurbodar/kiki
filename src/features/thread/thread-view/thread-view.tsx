@@ -52,6 +52,7 @@ import {
   IssueStateIcon,
   issueStatusDefaults,
 } from "@/features/issues/issue-parts";
+import { registerCommands } from "@/features/shell/keyboard";
 import {
   AttachmentSourceProvider,
   apiAttachmentSource,
@@ -71,6 +72,7 @@ import {
 } from "@/features/thread/jam-chat";
 import type { EditTarget, ReplyTarget } from "@/features/thread/message-footer";
 import { type ExcerptMention, replyDraft } from "@/features/thread/reply-quote";
+import { createComposerCommands } from "@/features/thread/thread-route/thread-commands";
 import type { EditDraft } from "@/features/thread/timeline";
 import { useComposerSend } from "@/features/thread/use-composer-send";
 import { Button } from "@/primitives/button";
@@ -298,6 +300,16 @@ export function ThreadView({
   takeover,
 }: ThreadViewProps) {
   const composerHandle = useRef<ComposerHandle | null>(null);
+  useEffect(
+    () =>
+      registerCommands(
+        createComposerCommands(() => ({
+          focus: () => composerHandle.current?.focus(),
+        })),
+        { capture: true },
+      ),
+    [],
+  );
   const send = useComposerSend(threadId, editing?.eventId, (payload) =>
     composerHandle.current?.reset(payload),
   );
@@ -624,7 +636,6 @@ export function ThreadView({
                             leftControls={
                               <PlusMenu
                                 sources={mentionSources}
-                                attachShortcut="⌘/"
                                 onAttach={attachments.add}
                                 onPickCategory={(category) =>
                                   composerHandle.current?.typeCharacter(

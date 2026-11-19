@@ -26,9 +26,14 @@ export function readPreference<T>(
   }
 }
 
+export const PREFERENCE_CHANGE_EVENT = "kiki:preference";
+
 export function writePreference<T>(key: string, value: T) {
   window.localStorage.setItem(key, JSON.stringify(value));
   for (const listener of listeners) listener();
+  window.dispatchEvent(
+    new CustomEvent(PREFERENCE_CHANGE_EVENT, { detail: { key } }),
+  );
 }
 
 export function useLocalPreference<T>(
