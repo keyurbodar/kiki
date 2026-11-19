@@ -48,6 +48,41 @@ export function tabForKey(key: string | undefined): PaneTab | undefined {
   if (key === undefined) return undefined;
   const pane = tabForPane(findPane(key) ?? ({} as PaneEntry));
   if (pane !== undefined) return pane;
+  // Keys whose tab carries fields a colon can separate. The header's menu hands
+  // the strip a tab's key, so without these a side thread, a subagent, a
+  // service or a phone row closed the menu and opened nothing.
+  if (key.startsWith("side-thread:")) {
+    const jamId = key.slice("side-thread:".length);
+    return jamId === "" ? undefined : { kind: "side_thread", jamId };
+  }
+  if (key.startsWith("side-thread-draft:")) {
+    const draftId = key.slice("side-thread-draft:".length);
+    return draftId === "" ? undefined : { kind: "side_thread_draft", draftId };
+  }
+  if (key.startsWith("task:")) {
+    const jamId = key.slice("task:".length);
+    return jamId === "" ? undefined : { kind: "task", jamId, localIndex: null };
+  }
+  if (key.startsWith("service-preview:")) {
+    const [machineId = "", port = ""] = key
+      .slice("service-preview:".length)
+      .split(":");
+    const number = Number(port);
+    if (machineId === "" || !Number.isInteger(number) || number <= 0)
+      return undefined;
+    return {
+      kind: "service_preview",
+      machineId,
+      port: number,
+      title: `Port ${number}`,
+    };
+  }
+  if (key.startsWith("phone:")) {
+    const machineId = key.slice("phone:".length);
+    return machineId === ""
+      ? undefined
+      : { kind: "phone", machineId, label: "Phone" };
+  }
   if (key.startsWith("issue:")) {
     const code = key.slice("issue:".length);
     return code === "" ? undefined : { kind: "issue", code };

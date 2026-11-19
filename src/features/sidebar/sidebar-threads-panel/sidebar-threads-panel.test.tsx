@@ -347,6 +347,59 @@ describe("sidebar captain row menu", () => {
   });
 });
 
+const dragData = () => ({
+  types: ["application/x-capy-thread"],
+  setData: vi.fn(),
+  setDragImage: vi.fn(),
+  effectAllowed: "",
+  dropEffect: "",
+});
+
+const folderSource = (): SidebarSource => ({
+  ...source([thread()]),
+  folders: [
+    {
+      id: "fld_release",
+      name: "Release",
+      systemKind: null,
+      threadIds: [],
+    },
+  ],
+});
+
+describe("sidebar thread drag and drop", () => {
+  it("shows the insertion line where the dragged row would land", async () => {
+    await renderAt(<Harness sidebarSource={folderSource()} />);
+    const dataTransfer = dragData();
+    fireEvent.dragStart(rowLink(), { dataTransfer });
+    const zone = document.querySelector('[data-drop-section="threads:recent"]');
+    expect(zone).not.toBeNull();
+    fireEvent.dragOver(zone as Element, { dataTransfer, clientY: 0 });
+    expect(document.querySelector("[data-drop-line]")).not.toBeNull();
+    fireEvent.dragEnd(rowLink(), { dataTransfer });
+    expect(document.querySelector("[data-drop-line]")).toBeNull();
+  });
+
+  it("opens a collapsed folder the drag rests on", async () => {
+    await renderAt(<Harness sidebarSource={folderSource()} />);
+    const heading = screen.getByRole("button", { name: /Release/ });
+    fireEvent.click(heading);
+    expect(heading.getAttribute("aria-expanded")).toBe("false");
+    const zone = document.querySelector(
+      '[data-drop-section="folder:fld_release"]',
+    );
+    const dataTransfer = dragData();
+    fireEvent.dragStart(rowLink(), { dataTransfer });
+    fireEvent.dragOver(zone as Element, { dataTransfer, clientY: 0 });
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    expect(
+      screen
+        .getByRole("button", { name: /Release/ })
+        .getAttribute("aria-expanded"),
+    ).toBe("true");
+  });
+});
+
 describe("sidebar row action cluster", () => {
   it("mounts the cluster on the row so hovering it reveals Capy's actions", async () => {
     await renderAt(<Harness sidebarSource={source([thread()])} />);

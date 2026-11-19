@@ -1,4 +1,3 @@
-import type { SidebarLayout } from "@/components/sidebar-threads";
 import { isBoolean, oneOf } from "./local-preference";
 
 export const deliveries = ["steer", "interrupt", "queue"] as const;
@@ -38,11 +37,6 @@ export const deliveryLabels: Record<Delivery, string> = {
   steer: "Steer",
   interrupt: "Interrupt",
   queue: "Queue",
-};
-
-export const sidebarLayoutLabels: Record<SidebarLayout, string> = {
-  hybrid: "Hybrid",
-  split: "Split",
 };
 
 export const scrollNewMessagesKey = "kiki:scroll-new-messages-to-top";

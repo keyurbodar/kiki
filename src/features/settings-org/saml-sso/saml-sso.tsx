@@ -434,7 +434,9 @@ export function connectionDescription(
   const name = identityProviderName(provider);
   const domain = connection.domain;
   if (connection.state === "draft")
-    return `Finish setting up ${name} for ${domain} to turn it on`;
+    return domain === ""
+      ? `Finish setting up ${name} to turn it on`
+      : `Finish setting up ${name} for ${domain} to turn it on`;
   if (connection.state === "active" && connection.testedAt === null)
     return `Open this page in a private window and sign in with your ${domain} address to finish`;
   if (connection.state === "active" && connection.testedAt !== null)

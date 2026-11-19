@@ -33,6 +33,7 @@ function MenuRow({
   disabled,
   reason,
   intent,
+  command,
 }: {
   icon: IconId;
   label: string;
@@ -40,10 +41,13 @@ function MenuRow({
   disabled?: boolean;
   reason?: string;
   intent?: "danger";
+  /** The shortcut this row answers while the menu is open. */
+  command?: string;
 }) {
   return (
     <ResponsiveMenuItem
       data-intent={intent}
+      command={command}
       disabled={disabled}
       title={disabled ? reason : undefined}
       onClick={() => {
@@ -234,6 +238,7 @@ export function ThreadRowMenu({
         <MenuRow
           icon="email-2-unread"
           label="Mark as unread"
+          command="menu.markUnread"
           onClick={act(() => actions.markUnread(thread))}
         />
       )}
@@ -247,6 +252,7 @@ export function ThreadRowMenu({
         <MenuRow
           icon="checkmark-1"
           label="Settle"
+          command="menu.settle"
           onClick={act(() => actions.settle(thread))}
         />
       )}
@@ -260,6 +266,7 @@ export function ThreadRowMenu({
         <MenuRow
           icon="archive"
           label="Archive"
+          command="menu.archive"
           onClick={act(() => actions.archive(thread))}
         />
       )}
@@ -267,6 +274,7 @@ export function ThreadRowMenu({
         icon="trash-can"
         label="Delete"
         intent="danger"
+        command="menu.delete"
         disabled={!thread.owner}
         reason="Only the thread's owner can delete it"
         onClick={act(() => actions.remove(thread))}

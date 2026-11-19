@@ -28,6 +28,7 @@ import { allIssuesAtom } from "@/data/atoms/issues";
 import { projectsAtom } from "@/data/atoms/projects";
 import { threadMachinesAtom } from "@/data/atoms/setup";
 import { useThreadsAtom } from "@/data/atoms/threads";
+import { ApiClient } from "@/data/client/ApiClient.ts";
 import type { TimelineRow } from "@/data/events";
 import {
   ComposerAttachments,
@@ -86,6 +87,7 @@ import { RightPanelGroup } from "@/primitives/right-panel";
 import { toast } from "@/primitives/toaster";
 import { ChatSkeleton } from "./chat-skeleton";
 import { ThreadMessageActions } from "./message-actions";
+import { usePaneSession } from "./pane-session-context";
 import { threadChips } from "./thread-chips";
 import { threadHeaderClassName } from "./thread-header";
 import {
@@ -459,6 +461,7 @@ export function ThreadView({
   const orgIssues = useAtomValue(
     orgId === undefined ? idleAtom<IssueList>() : allIssuesAtom(orgId as OrgId),
   );
+  const { openTab } = usePaneSession();
   const chips = useMemo(() => {
     const codes = new Map<string, string>();
     for (const project of Option.getOrUndefined(AsyncResult.value(projects)) ??
@@ -481,14 +484,68 @@ export function ThreadView({
           className={className}
         />
       ),
+      // A "Subagent 2" chip opens that subagent beside the transcript, as
+      // Capy's chips do, instead of sitting inert.
+      openTask: (taskId: string) =>
+        openTab({ kind: "task", jamId: taskId, localIndex: null }),
+      // A Paper link opens the canvas in the panel, as Capy's does, instead of
+      // leaving the chip as a link out to another tab.
+      paperOpener: (fileId: string) => () =>
+        openTab({ kind: "paper", jamId: threadId, fileId, title: null }),
     }),
-    [chips],
+    [chips, openTab, threadId],
   );
   const navigate = useNavigate();
-  const commands = useMemo(
-    () => composerCommands({ newThread: () => void navigate({ to: "/new" }) }),
-    [navigate],
-  );
+  const compactRun = useAtomSet(ApiClient.mutation("events", "compact"), {
+    mode: "promise",
+  });
+  const forkThread = useAtomSet(ApiClient.mutation("jams", "fork"), {
+    mode: "promise",
+  });
+  const hasRows = rows.length > 0;
+  const commands = useMemo(() => {
+    const openThread = (id: string) =>
+      void navigate({ to: "/thread/$threadId", params: { threadId: id } });
+    return composerCommands({
+      newThread: () => void navigate({ to: "/new" }),
+      compact:
+        orgId === undefined || !hasRows
+          ? undefined
+          : () => {
+              compactRun({
+                params: { orgId, jamId: threadId },
+                reactivityKeys: [jamEventKey(threadId)],
+              })
+                // The fake socket carries no frame for a mutation this tab made,
+                // so the marker only lands when the feed is read again.
+                .then(() => refreshNewest())
+                .catch(() => toast.error("Could not compact the thread"));
+            },
+      fork:
+        orgId === undefined
+          ? undefined
+          : (mode) => {
+              forkThread({
+                params: { orgId, jamId: threadId },
+                payload: { requestId: crypto.randomUUID(), mode },
+                reactivityKeys: [reactivityKeys.threads(orgId as OrgId)],
+              })
+                .then((created) => {
+                  const id = (created as { id?: unknown }).id;
+                  if (typeof id === "string") openThread(id);
+                })
+                .catch(() => toast.error("Could not fork the thread"));
+            },
+    });
+  }, [
+    compactRun,
+    forkThread,
+    hasRows,
+    navigate,
+    orgId,
+    refreshNewest,
+    threadId,
+  ]);
   const attachments = useComposerAttachments(
     useFileUploader(orgId as OrgId | undefined),
   );

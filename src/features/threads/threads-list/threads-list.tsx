@@ -8,6 +8,7 @@ import { ThreadChipPreview } from "@/components/markdown-chips/previews";
 import { ProviderIcon, providerOfModelId } from "@/components/model-picker";
 import { ProjectChip } from "@/components/sidebar-threads";
 import { threadTagsAtom } from "@/data/atoms/threadOrganization";
+import { useRovingList } from "@/features/shell/keyboard";
 import { Badge } from "@/primitives/badge";
 import {
   ContextMenu,
@@ -179,6 +180,7 @@ export function ThreadRow({
     <Link
       to="/thread/$threadId"
       params={{ threadId: thread.id }}
+      data-roving-item=""
       data-thread-row={thread.id}
       draggable
       onDragStart={dragStart}
@@ -190,6 +192,7 @@ export function ThreadRow({
     >
       <button
         type="button"
+        data-roving-check=""
         aria-label={checked ? "Deselect thread" : "Select thread"}
         aria-pressed={checked}
         className={cx(
@@ -357,7 +360,10 @@ export function ThreadRow({
             {menu === undefined || menu.tags.length === 0 ? null : (
               <TagsRow threadId={thread.id} sources={menu} />
             )}
-            <MenuItem onClick={() => onArchive?.(thread.id, !thread.archived)}>
+            <MenuItem
+              command="menu.archive"
+              onClick={() => onArchive?.(thread.id, !thread.archived)}
+            >
               {thread.archived ? "Unarchive" : "Archive"}
             </MenuItem>
             <MenuSeparator />
@@ -550,6 +556,7 @@ export function ThreadsList({
   footer,
   icons,
 }: ThreadsListProps) {
+  const roving = useRovingList();
   const [openState, setOpenState] = useState<ReadonlyMap<string, boolean>>(
     new Map(),
   );
@@ -687,7 +694,10 @@ export function ThreadsList({
       : rowItem(item.thread, index);
 
   return (
-    <div className="@container/list relative flex min-h-0 flex-1 flex-col [--thread-code-width:max-content]">
+    <div
+      className="@container/list relative flex min-h-0 flex-1 flex-col [--thread-code-width:max-content]"
+      {...roving}
+    >
       <ScrollArea
         className="min-h-0 flex-1"
         viewportClassName="px-2 pt-1"

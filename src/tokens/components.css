@@ -38,6 +38,8 @@
   --sidebar-section-gap: 12px;
   --sidebar-section-header: 28px;
   --icon-button-pad: 4px;
+  --sidebar-drop-line: 2px;
+  --sidebar-drop-line-gap: 2px;
   --grid-gap-x: 24px;
   --grid-gap-y: 32px;
   --annotation-stroke: 1.5px;
@@ -62,6 +64,14 @@
   /* A trigger's filter chip, and the wider one its pattern filter uses. */
   --filter-chip-w: 224px;
   --filter-pattern-w: 288px;
+  /* A pull's preview menu: Capy's 384px, room for a service name over its host. */
+  --menu-w-previews: 384px;
+  /* The state mark on a preview chip's globe: the dot, its ring, and how far
+     past the corner it sits. */
+  --status-dot: 8px;
+  --status-dot-ring: 1px;
+  --status-dot-offset: 4px;
+  --status-dot-stroke: 1.5px;
   /* A message's action row: Copy and More, in flow under the body on a phone. */
   --message-actions-gap: 2px;
   --message-actions-pt: 4px;

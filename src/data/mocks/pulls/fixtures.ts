@@ -78,8 +78,30 @@ export const pullChecks = [
     startedAt: isoMinutesAgo(6),
     completedAt: null,
   },
+  {
+    id: "check_sample_vercel_web",
+    name: "Vercel – web",
+    status: "completed",
+    conclusion: "success",
+    detailsUrl: "https://kiki-git-feat-dark.vercel.app",
+    startedAt: isoMinutesAgo(32),
+    completedAt: isoMinutesAgo(27),
+  },
+  {
+    id: "check_sample_vercel_docs",
+    name: "Vercel – docs",
+    status: "in_progress",
+    conclusion: null,
+    detailsUrl: "https://kiki-docs-git-feat-dark.vercel.app",
+    startedAt: isoMinutesAgo(6),
+    completedAt: null,
+  },
 ];
 
+const deploymentCheck = (check: { readonly name: string }) =>
+  check.name.includes("Vercel");
+
+/** The same deployments on a pull whose build failed, so the chip has a failed state. */
 export const pullFailingChecks = [
   {
     id: "check_sample_lint",
@@ -90,7 +112,16 @@ export const pullFailingChecks = [
     startedAt: isoMinutesAgo(32),
     completedAt: isoMinutesAgo(30),
   },
-  ...pullChecks.slice(1),
+  ...pullChecks.slice(1).filter((check) => !deploymentCheck(check)),
+  {
+    id: "check_sample_vercel_web",
+    name: "Vercel – web",
+    status: "completed",
+    conclusion: "failure",
+    detailsUrl: "https://kiki-git-feat-dark.vercel.app",
+    startedAt: isoMinutesAgo(32),
+    completedAt: isoMinutesAgo(26),
+  },
 ];
 
 export const pullPassingChecks = pullChecks
@@ -1154,6 +1185,46 @@ export const xinPullComments = [
     githubReviewId: null,
   },
 ];
+
+/** A deploy bot's comment, where a pull's preview URLs live and nowhere else. */
+export const pullPreviewComments: Readonly<
+  Record<string, ReadonlyArray<Record<string, unknown>>>
+> = {
+  pr_sample_330: [
+    {
+      id: "cmt_deploy_330_1",
+      kind: "issue",
+      author: "vercel[bot]",
+      authorAvatarUrl: null,
+      authoredAt: isoMinutesAgo(14),
+      bodyMd:
+        "Preview deployments are ready:\n\n- web: https://kiki-git-feat-dark.vercel.app\n- docs: https://kiki-docs-git-feat-dark.vercel.app\n\nBoth previews build from commit `9e21c4f`.",
+      edited: false,
+      resolved: false,
+      outdated: false,
+      file: null,
+      line: null,
+      githubReviewId: null,
+    },
+  ],
+  pr_sample_334: [
+    {
+      id: "cmt_deploy_334_1",
+      kind: "issue",
+      author: "vercel[bot]",
+      authorAvatarUrl: null,
+      authoredAt: isoMinutesAgo(9),
+      bodyMd:
+        "Deploying this pull:\n\n- web: https://kiki-git-feat-dark.vercel.app\n- docs: https://kiki-docs-git-feat-dark.vercel.app\n\nThe docs build is still running.",
+      edited: false,
+      resolved: false,
+      outdated: false,
+      file: null,
+      line: null,
+      githubReviewId: null,
+    },
+  ],
+};
 
 export const xinPullReviews = [
   {
