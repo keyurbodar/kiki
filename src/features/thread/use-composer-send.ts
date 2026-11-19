@@ -28,6 +28,11 @@ export type ComposerSendFailure = (payload: ComposerPayload) => void;
  * row the store appends replaces the pending one by client key. `editOf` names
  * the sent message the text replaces, so the send is an edit rather than a new
  * message. Without a thread to send to, the composer keeps its text.
+ *
+ * A rejected send is the only thing that rolls the row back. The follow-up
+ * refresh is not part of the send: when it fails the message was still
+ * accepted, so the row and the text stay gone together and the timeline
+ * reconciles on its next read.
  */
 export function useComposerSend(
   jamId?: string,
@@ -52,6 +57,12 @@ export function useComposerSend(
   const appendPending = useAtomSet(appendPendingAtom(key));
   const removePending = useAtomSet(removePendingAtom(key));
   const refresh = useAtomSet(refreshNewestAtom(key), { mode: "promise" });
+  const refreshAfterSend = () =>
+    refresh()
+      .catch(() => refresh())
+      .catch(() =>
+        toast.error("Message sent, but the timeline could not refresh"),
+      );
   return (payload: ComposerPayload, delivery: ComposerDelivery = "steer") => {
     if (jamId === undefined || orgId === undefined) return false;
     const clientKey = crypto.randomUUID();
@@ -76,13 +87,14 @@ export function useComposerSend(
         ...(editOf === undefined ? {} : { editOf }),
       },
       reactivityKeys: [jamEventKey(jamId), reactivityKeys.threads(orgId)],
-    })
-      .then(() => refresh())
-      .catch(() => {
+    }).then(
+      () => void refreshAfterSend(),
+      () => {
         removePending(clientKey);
         onFailed?.(payload);
         toast.error("Could not send the message");
-      });
+      },
+    );
     return true;
   };
 }
