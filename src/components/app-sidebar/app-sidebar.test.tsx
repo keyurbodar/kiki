@@ -48,11 +48,12 @@ describe("AppSidebar", () => {
     ]);
   });
 
-  it("offers the mode toggle only in the split layout", async () => {
+  it("offers the mode toggle whatever the sidebar layout", async () => {
     const hybrid = await renderSidebar();
     expect(
       hybrid.container.querySelector('[data-slot="sidebar-mode"]'),
-    ).toBeNull();
+    ).not.toBeNull();
+    expect(screen.queryByRole("link", { name: "Home" })).toBeNull();
     cleanup();
     window.localStorage.setItem("capy-web:sidebar-layout", '"split"');
     const split = await renderSidebar();
