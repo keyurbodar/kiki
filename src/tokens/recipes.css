@@ -278,7 +278,6 @@
     width: var(--status-dot);
     height: var(--status-dot);
     border-radius: 9999px;
-    background: currentColor;
   }
 
   .kiki-mobile-build-code {

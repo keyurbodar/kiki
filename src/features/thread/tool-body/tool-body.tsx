@@ -233,7 +233,7 @@ function MobileBuildBody({ row }: { row: ToolRow }) {
       label: "Status",
       value: (
         <span className="kiki-mobile-build-status">
-          <span className={`kiki-mobile-build-dot ${status.tone}`} />
+          <span className={`kiki-mobile-build-dot bg-current ${status.tone}`} />
           {status.label}
         </span>
       ),
