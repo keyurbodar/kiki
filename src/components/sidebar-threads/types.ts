@@ -2,6 +2,7 @@ import type { ThreadPreviewProps } from "@/components/thread-preview";
 import type { ThreadRunStatus } from "@/components/thread-status";
 import type { CaptainCard } from "@/data/api/schemas/captain";
 import type { ThreadCard, ThreadOrigin } from "@/data/api/schemas/thread";
+import type { ThreadFilters } from "@/features/threads/threads-page/model";
 import type { CaptainAvatarValue } from "@/primitives/captain-avatar";
 
 export type SidebarMode = "threads" | "captains";
@@ -118,8 +119,12 @@ export type SidebarThreadsView = {
   sort: SidebarThreadSort;
   captainSort: SidebarCaptainSort;
   collapse: SidebarCollapse;
-  /** Origins the list is narrowed to; empty means every origin. */
-  filterOrigins: ReadonlyArray<ThreadOrigin>;
+  /** The facets the list is narrowed to, on the threads page's filter model. */
+  filters: ThreadFilters;
+  /** The inline filter row's text; empty means no text filter. */
+  filterText: string;
+  /** The org's threads are still in flight, so the list draws its loading row. */
+  loading: boolean;
   sections: SidebarSection[];
   /** Folders hidden from the list, which the thread options menu offers back. */
   hiddenFolders: ReadonlyArray<SidebarHiddenFolder>;

@@ -53,6 +53,15 @@ export type ProjectSummary = {
   readonly icon?: string;
 };
 
+/** Capy's PR status facet, shared by the threads page and the sidebar. */
+export const prStatusOptions = [
+  { id: "none", label: "None" },
+  { id: "ready", label: "Open" },
+  { id: "draft", label: "Draft" },
+  { id: "merged", label: "Merged" },
+  { id: "closed", label: "Closed" },
+] as const;
+
 export type ThreadFilters = {
   readonly projects: ReadonlyArray<string>;
   /** null means "me" (the viewer), [] means everyone. */

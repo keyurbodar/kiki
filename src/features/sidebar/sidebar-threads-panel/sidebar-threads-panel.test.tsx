@@ -402,6 +402,64 @@ const labelOf = (item: Element) => {
     : text;
 };
 
+describe("sidebar pull status", () => {
+  const pull = (state: "failed" | "pending" | "ready" | "merged") => ({
+    id: PullRequestId.make(`pr_sample_${state}`),
+    repo: "acme/web",
+    number: 128,
+    title: "Add dark mode to settings",
+    state,
+    additions: 1,
+    deletions: 0,
+    diffBreakdown: null,
+    author: "alex-sample",
+    authorAvatarUrl: "",
+    url: "https://github.com/acme/web/pull/128",
+  });
+  const rowWith = (
+    state: "failed" | "pending" | "ready" | "merged",
+    status: SourceThread["status"] = "idle",
+  ) => (
+    <Harness
+      sidebarSource={source([
+        thread({ status, card: card({ pulls: [pull(state)] }) }),
+      ])}
+    />
+  );
+  const label = () =>
+    [...document.querySelectorAll("[data-slot=sidebar-thread-row] span")].find(
+      (node) =>
+        ["PR failing", "Checks", "PR ready"].includes(
+          node.textContent?.trim() ?? "",
+        ),
+    );
+
+  it("names a failing pull request on an idle thread", async () => {
+    await renderAt(rowWith("failed"));
+    await waitFor(() => expect(label()?.textContent).toBe("PR failing"));
+    expect(label()?.className).toContain("text-destructive");
+  });
+
+  it("says Checks while a pull's checks run, and PR ready when they land", async () => {
+    await renderAt(rowWith("pending"));
+    await waitFor(() => expect(label()?.textContent).toBe("Checks"));
+    cleanup();
+    await renderAt(rowWith("ready"));
+    await waitFor(() => expect(label()?.textContent).toBe("PR ready"));
+    expect(label()?.className).toContain("text-success");
+  });
+
+  it("says nothing on a thread whose pulls are all merged", async () => {
+    await renderAt(rowWith("merged"));
+    await waitFor(() =>
+      expect(
+        document.querySelector("[data-slot=sidebar-thread-row]"),
+      ).not.toBeNull(),
+    );
+    expect(label()).toBeUndefined();
+  });
+});
+
 describe("sidebar row signals", () => {
   it("prints the unsent-draft mark on a thread whose composer holds text", async () => {
     const registry = await renderWithRegistry(
@@ -416,6 +474,17 @@ describe("sidebar row signals", () => {
     await waitFor(() =>
       expect(screen.queryByRole("img", { name: "Unsent draft" })).toBeNull(),
     );
+  });
+});
+
+describe("sidebar folder header", () => {
+  it("opens the new-thread composer with that folder already picked", async () => {
+    const router = await renderAt(<Harness sidebarSource={folderSource()} />);
+    fireEvent.click(screen.getByLabelText("New thread in Release"));
+    await waitFor(() => expect(router.state.location.pathname).toBe("/new"));
+    expect(router.state.location.search).toMatchObject({
+      folder: "fld_release",
+    });
   });
 });
 
@@ -434,7 +503,7 @@ describe("sidebar thread drag and drop", () => {
 
   it("opens a collapsed folder the drag rests on", async () => {
     await renderAt(<Harness sidebarSource={folderSource()} />);
-    const heading = screen.getByRole("button", { name: /Release/ });
+    const heading = screen.getByRole("button", { name: /^Release/ });
     fireEvent.click(heading);
     expect(heading.getAttribute("aria-expanded")).toBe("false");
     const zone = document.querySelector(
@@ -446,7 +515,7 @@ describe("sidebar thread drag and drop", () => {
     await new Promise((resolve) => setTimeout(resolve, 700));
     expect(
       screen
-        .getByRole("button", { name: /Release/ })
+        .getByRole("button", { name: /^Release/ })
         .getAttribute("aria-expanded"),
     ).toBe("true");
   });
@@ -607,9 +676,33 @@ describe("thread options menu", () => {
     const filters = await screen.findByText("Filters");
     fireEvent.pointerMove(filters);
     fireEvent.click(filters);
+    const origin = await screen.findByText("Origin");
+    fireEvent.pointerMove(origin);
+    fireEvent.click(origin);
     expect(await screen.findByText("Web")).toBeTruthy();
     expect(screen.getByText("Slack")).toBeTruthy();
     expect(screen.queryByText("Linear")).toBeNull();
+  });
+
+  it("narrows the list to an origin picked in the facet", async () => {
+    await renderAt(
+      <Harness
+        sidebarSource={source([
+          thread({ id: "jam_web", title: "Add dark mode" }),
+          thread({ id: "jam_slack", title: "Fix the parser", origin: "slack" }),
+        ])}
+      />,
+    );
+    openThreadOptions();
+    fireEvent.pointerMove(await screen.findByText("Filters"));
+    fireEvent.click(screen.getByText("Filters"));
+    fireEvent.pointerMove(await screen.findByText("Origin"));
+    fireEvent.click(screen.getByText("Origin"));
+    fireEvent.click(await screen.findByText("Slack"));
+    await waitFor(() => {
+      expect(screen.queryByRole("link", { name: /Add dark mode/ })).toBeNull();
+      expect(screen.getByRole("link", { name: /Fix the parser/ })).toBeTruthy();
+    });
   });
 
   it("creates a folder through the mock API from New folder", async () => {
@@ -664,5 +757,69 @@ describe("sidebar thread list scroll area", () => {
     await renderAt(<Harness sidebarSource={source([thread()])} />);
     const list = document.querySelector("[role=list]");
     expect(list?.closest("[data-slot=scroll-area-viewport]")).not.toBeNull();
+  });
+});
+
+describe("sidebar inline filter row", () => {
+  const twoThreads = () =>
+    source([
+      thread({ id: "jam_alpha", title: "Add dark mode", createdAt: ago(1) }),
+      thread({ id: "jam_beta", title: "Fix the parser", createdAt: ago(2) }),
+    ]);
+
+  it("opens the row from Search threads and narrows the list as it is typed", async () => {
+    await renderAt(<Harness sidebarSource={twoThreads()} />);
+    expect(screen.queryByLabelText("Filter threads")).toBeNull();
+    fireEvent.click(screen.getByLabelText("Thread options"));
+    fireEvent.click(screen.getByText("Search threads"));
+    const field = await screen.findByLabelText("Filter threads");
+    fireEvent.change(field, { target: { value: "parser" } });
+    await waitFor(() => {
+      expect(screen.queryByRole("link", { name: /Add dark mode/ })).toBeNull();
+      expect(screen.getByRole("link", { name: /Fix the parser/ })).toBeTruthy();
+    });
+  });
+
+  it("clears the text and returns the full list from Close filter", async () => {
+    await renderAt(<Harness sidebarSource={twoThreads()} />);
+    fireEvent.click(screen.getByLabelText("Thread options"));
+    fireEvent.click(screen.getByText("Search threads"));
+    fireEvent.change(await screen.findByLabelText("Filter threads"), {
+      target: { value: "parser" },
+    });
+    fireEvent.click(screen.getByLabelText("Close filter"));
+    await waitFor(() => {
+      expect(screen.getByRole("link", { name: /Add dark mode/ })).toBeTruthy();
+      expect(screen.getByRole("link", { name: /Fix the parser/ })).toBeTruthy();
+      expect(screen.queryByLabelText("Filter threads")).toBeNull();
+    });
+  });
+
+  it("closes on Escape and keeps the text in the prefs it was typed into", async () => {
+    await renderAt(<Harness sidebarSource={twoThreads()} />);
+    fireEvent.click(screen.getByLabelText("Thread options"));
+    fireEvent.click(screen.getByText("Search threads"));
+    const field = await screen.findByLabelText("Filter threads");
+    fireEvent.change(field, { target: { value: "dark" } });
+    fireEvent.keyDown(field, { key: "Escape" });
+    await waitFor(() => {
+      expect(screen.queryByLabelText("Filter threads")).toBeNull();
+      expect(screen.getByRole("link", { name: /Fix the parser/ })).toBeTruthy();
+    });
+  });
+});
+
+function LoadingHarness() {
+  const controller = useSidebarThreads({ loading: true });
+  return <SidebarThreadsPanel controller={controller} />;
+}
+
+describe("sidebar loading row", () => {
+  it("draws Capy's Loading threads row instead of sample rows", async () => {
+    await renderAt(<LoadingHarness />);
+    expect(
+      screen.getByRole("status", { name: "Loading threads" }),
+    ).toBeTruthy();
+    expect(screen.queryAllByRole("link")).toHaveLength(0);
   });
 });

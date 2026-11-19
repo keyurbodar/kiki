@@ -102,3 +102,17 @@ describe("ToolRefs", () => {
     expect(container.querySelectorAll("a")).toHaveLength(2);
   });
 });
+
+describe("ToolRefs file reference", () => {
+  it("draws the file a tool call names as a chip", async () => {
+    const container = await renderRefs({ path: "src/checkout/retry.ts" });
+    const chip = container.querySelector('[data-slot="tool-file-ref"]');
+    expect(chip).not.toBeNull();
+    expect(chip?.textContent).toBe("src/checkout/retry.ts");
+  });
+
+  it("draws nothing for a call that names no reference", async () => {
+    const container = await renderRefs({ command: "bun run test" });
+    expect(container.querySelector('[data-slot="tool-refs"]')).toBeNull();
+  });
+});

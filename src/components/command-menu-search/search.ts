@@ -1,4 +1,18 @@
-import { type MatchTier, matchText } from "@/components/filter-search";
+import {
+  type ActiveFilterToken,
+  type FilterKey,
+  type FilterToken,
+  filterKeyLabels,
+  filterValues,
+  keySuggestions,
+  type MatchTier,
+  matchText,
+  mergeFilterToken,
+  parseFilterQuery,
+  parseSince,
+  sincePresetLabels,
+  sincePresets,
+} from "@/components/filter-search";
 import type { IconId } from "@/primitives/icon";
 
 export const searchCategories = [
@@ -117,6 +131,10 @@ export type PaletteThread = {
   projectName?: string;
   archived?: boolean;
   hasUnreads?: boolean;
+  /** Who started the thread, so `author:` can name them. */
+  author?: string;
+  /** The thread's tag names, so `label:` can name them. */
+  labels?: ReadonlyArray<string>;
 };
 
 export type PaletteCaptain = {
@@ -249,20 +267,39 @@ export type ParsedQuery = {
   text: string;
   actionsPrefix: boolean;
   category: SearchCategory;
+  /** The `key:value` tokens the query carries, already split off the free text. */
+  tokens: ReadonlyArray<FilterToken>;
+  /** The token the caret sits in, which decides what the row above the results offers. */
+  active: ActiveFilterToken | undefined;
 };
 
+/**
+ * Capy's palette accepts typed operators: `author:`, `captain:`, `repo:`,
+ * `status:`, `label:` and `since:`, each taking a comma-separated value list.
+ */
 export const parseQuery = (
   query: string,
   category: SearchCategory,
+  caret: number = query.length,
 ): ParsedQuery => {
   const text = query.trim();
   const actionsPrefix = query.trimStart().startsWith(">");
-  const term = (actionsPrefix ? text.slice(1) : text).trim().toLowerCase();
+  const parsed = parseFilterQuery(query, Math.min(caret, query.length));
+  const term = (actionsPrefix ? text.slice(1) : parsed.text)
+    .trim()
+    .toLowerCase();
   return {
     term,
-    text,
+    text: parsed.text,
     actionsPrefix,
     category: actionsPrefix ? "actions" : category,
+    tokens: actionsPrefix
+      ? []
+      : parsed.tokens.map((token) => ({
+          key: token.key,
+          values: token.values,
+        })),
+    active: actionsPrefix ? undefined : parsed.active,
   };
 };
 
@@ -310,6 +347,8 @@ export type SearchGroup =
 export type SearchResults = {
   parsed: ParsedQuery;
   groups: SearchGroup[];
+  /** The `key:` / value rows the query is mid-token on. */
+  suggestions: ReadonlyArray<PaletteSuggestion>;
   compose: boolean;
   emptyText: string;
   total: number;
@@ -358,24 +397,249 @@ const commandGroup = (
         items: ranked.map((entry) => entry.item),
       };
 
+/** A token value matched against a field: case-insensitive, substrings welcome. */
+const named = (field: string | undefined, values: ReadonlyArray<string>) =>
+  field !== undefined &&
+  values.some((value) => field.toLowerCase().includes(value.toLowerCase()));
+
+const equals = (field: string, values: ReadonlyArray<string>) =>
+  values.some((value) => value.toLowerCase() === field.toLowerCase());
+
+const sinceBoundary = (values: ReadonlyArray<string>, now: number) => {
+  const dates = values.flatMap(
+    (value) => parseSince(value, new Date(now)) ?? [],
+  );
+  return dates.length === 0
+    ? undefined
+    : Math.min(...dates.map((date) => date.getTime()));
+};
+
+/** One token against one row; inside a key the values are OR'd. */
+const tokenMatches = (
+  token: FilterToken,
+  fields: {
+    readonly author?: string;
+    readonly status?: string;
+    readonly repo?: string;
+    readonly captain?: string;
+    readonly labels?: ReadonlyArray<string>;
+    readonly updatedAt: number;
+  },
+  now: number,
+): boolean => {
+  const values = token.values.filter((value) => value !== "");
+  if (values.length === 0) return true;
+  if (token.key === "author") return named(fields.author, values);
+  if (token.key === "captain") return named(fields.captain, values);
+  if (token.key === "repo") return named(fields.repo, values);
+  if (token.key === "status")
+    return fields.status !== undefined && equals(fields.status, values);
+  if (token.key === "label")
+    return (
+      fields.labels !== undefined &&
+      values.some((value) =>
+        fields.labels?.some(
+          (label) => label.toLowerCase() === value.toLowerCase(),
+        ),
+      )
+    );
+  const boundary = sinceBoundary(values, now);
+  return boundary === undefined ? true : fields.updatedAt >= boundary;
+};
+
+/** Applies every token to one row; values inside a key are OR'd, keys are AND'd. */
+export const matchesTokens = (
+  fields: {
+    readonly author?: string;
+    readonly status?: string;
+    readonly repo?: string;
+    readonly captain?: string;
+    readonly labels?: ReadonlyArray<string>;
+    readonly updatedAt: number;
+  },
+  tokens: ReadonlyArray<FilterToken>,
+  now: number,
+): boolean => tokens.every((token) => tokenMatches(token, fields, now));
+
+export type PaletteSuggestion = {
+  readonly id: string;
+  /** "Filter by" for a key row, else the group the value belongs to. */
+  readonly group: string;
+  readonly label: string;
+  /** What the row inserts: a key name or a value. */
+  readonly value: string;
+  readonly detail?: string;
+  readonly icon?: IconId;
+};
+
+const distinct = (values: ReadonlyArray<string | undefined>) =>
+  [
+    ...new Set(
+      values.filter(
+        (value): value is string => value !== undefined && value !== "",
+      ),
+    ),
+  ].sort((a, b) => a.localeCompare(b));
+
+/** Ranks a pull state in Capy's order, with anything unrecognised last. */
+const pullStateRank = (value: string) => {
+  const index = statusValues.indexOf(value);
+  return index === -1 ? statusValues.length : index;
+};
+
+const statusValues = [
+  "open",
+  "draft",
+  "merged",
+  "closed",
+  "working",
+  "waiting",
+  "failed",
+  "idle",
+];
+
+/** Every value a key can take, from what the palette is actually holding. */
+export const filterChoices = (
+  key: FilterKey,
+  data: CommandMenuSearchData,
+): ReadonlyArray<string> => {
+  switch (key) {
+    case "author":
+      return distinct([
+        ...data.threads.map((thread) => thread.author),
+        ...data.pulls.map((pull) => pull.author),
+      ]);
+    case "captain":
+      return distinct(data.captains.map((captain) => captain.name));
+    case "repo":
+      return distinct(data.pulls.map((pull) => pull.repo));
+    case "status":
+      return distinct([
+        ...data.threads.map((thread) => thread.status),
+        ...data.pulls.map((pull) => pull.state),
+      ]).sort((a, b) => pullStateRank(a) - pullStateRank(b));
+    case "label":
+      return distinct(data.threads.flatMap((thread) => thread.labels ?? []));
+    case "since":
+      return sincePresets.map((preset) => preset);
+  }
+};
+
+const sinceDetail = (value: string) =>
+  sincePresets.find((preset) => preset === value) === undefined
+    ? undefined
+    : sincePresetLabels[value as keyof typeof sincePresetLabels];
+
+const keyDetail: Record<FilterKey, string> = {
+  author: "Who started the thread",
+  captain: "Which Captain the thread belongs to",
+  repo: "The pull request's repository",
+  status: "Thread or pull request state",
+  label: "A tag on the thread",
+  since: "Updated within this window",
+};
+
+/** The rows the palette offers above its results for the token under the caret. */
+export const filterSuggestions = (
+  active: ActiveFilterToken | undefined,
+  data: CommandMenuSearchData,
+): ReadonlyArray<PaletteSuggestion> => {
+  if (active === undefined) return [];
+  if (active.kind === "key") {
+    if (active.prefix.length < 2) return [];
+    // Only offer a key the palette is actually holding values for; a key with
+    // nothing to pick would open an empty page.
+    return keySuggestions(active.prefix)
+      .filter((key) => filterChoices(key, data).length > 0)
+      .map((key) => ({
+        id: `key-${key}`,
+        group: "Filter by",
+        label: `${key}:`,
+        value: key,
+        detail: keyDetail[key],
+      }));
+  }
+  const partial = active.partial.trim().toLowerCase();
+  const chosen = [
+    ...filterValues([{ key: active.key, values: active.values }], active.key),
+  ];
+  const choices = filterChoices(active.key, data).filter(
+    (choice) =>
+      !chosen.some((value) => value.toLowerCase() === choice.toLowerCase()),
+  );
+  const matching = choices.filter((choice) =>
+    choice.toLowerCase().includes(partial),
+  );
+  const rows: PaletteSuggestion[] = matching.map((choice) => ({
+    id: `value-${active.key}-${choice}`,
+    group: filterKeyLabels[active.key],
+    label: choice,
+    value: choice,
+    detail: active.key === "since" ? sinceDetail(choice) : undefined,
+  }));
+  // A value that matches nothing still becomes a token, so it can be removed
+  // on its own rather than leaving the query stuck.
+  if (
+    partial !== "" &&
+    !matching.some((choice) => choice.toLowerCase() === partial)
+  )
+    rows.push({
+      id: `raw-${active.key}-${partial}`,
+      group: filterKeyLabels[active.key],
+      label: active.partial.trim(),
+      value: active.partial.trim(),
+    });
+  return rows;
+};
+
+export const emptyFilters = (parsed: ParsedQuery) => parsed.tokens.length === 0;
+
+export type SearchOptions = {
+  /** Tokens already committed to the row above the results. */
+  readonly tokens?: ReadonlyArray<FilterToken>;
+  readonly now?: number;
+};
+
 export const buildSearchResults = (
   query: string,
   selectedCategory: SearchCategory,
   data: CommandMenuSearchData,
+  options: SearchOptions = {},
 ): SearchResults => {
   const parsed = parseQuery(query, selectedCategory);
   const { term, category } = parsed;
-  const shows = (kind: ResultKind) => showsKind(category, kind);
-  const idle = term === "" && category === "all";
+  const tokens = (options.tokens ?? []).reduce(mergeFilterToken, [
+    ...parsed.tokens,
+  ]);
+  const now = options.now ?? Date.now();
+  const filtered = tokens.length > 0;
+  // A value page replaces the result list, and a typed operator narrows the
+  // results to the kinds it can filter rather than leaving the other groups
+  // listed unfiltered beside them.
+  const valuePage = parsed.active?.kind === "value";
+  const shows = (kind: ResultKind) =>
+    valuePage
+      ? false
+      : filtered
+        ? kind === "thread" || kind === "pull" || kind === "captain"
+        : showsKind(category, kind);
+  const idle = term === "" && category === "all" && !filtered;
   const cap = category === "actions" ? undefined : groupLimit;
 
+  const captainRows = data.captains.filter((captain) =>
+    matchesTokens(
+      { captain: captain.name, updatedAt: captain.updatedAt },
+      tokens,
+      now,
+    ),
+  );
   const captains = shows("captain")
     ? rank(
         term === ""
-          ? data.captains
+          ? captainRows
               .filter((captain) => captain.archived !== true)
               .toSorted((a, b) => b.updatedAt - a.updatedAt)
-          : data.captains.filter((captain) => captain.archived !== true),
+          : captainRows.filter((captain) => captain.archived !== true),
         (captain) => [captain.name, captain.description ?? ""],
         term,
       ).slice(
@@ -393,9 +657,21 @@ export const buildSearchResults = (
       ? rankCommands(data.currentThread.commands, term)
       : [];
 
+  const threadRows = data.threads.filter((thread) =>
+    matchesTokens(
+      {
+        author: thread.author,
+        status: thread.status,
+        labels: thread.labels,
+        updatedAt: thread.updatedAt,
+      },
+      tokens,
+      now,
+    ),
+  );
   const threads = shows("thread")
     ? term === ""
-      ? data.threads
+      ? threadRows
           .filter((thread) => thread.archived !== true)
           .toSorted(
             (a, b) =>
@@ -405,7 +681,7 @@ export const buildSearchResults = (
           .slice(0, category === "threads" ? undefined : recentThreadLimit)
           .map((item) => ({ item, score: 0 }))
       : rank(
-          data.threads,
+          threadRows,
           (thread) => [thread.title, thread.projectName ?? ""],
           term,
           2,
@@ -425,10 +701,22 @@ export const buildSearchResults = (
     shows("account") && !idle ? ofKind("account").slice(0, cap) : [];
   const admin = shows("admin") && !idle ? ofKind("admin").slice(0, cap) : [];
 
+  const pullRows = data.pulls.filter((pull) =>
+    matchesTokens(
+      {
+        author: pull.author,
+        repo: pull.repo,
+        status: pull.state,
+        updatedAt: pull.updatedAt,
+      },
+      tokens,
+      now,
+    ),
+  );
   const pulls =
-    shows("pull") && term.length >= pullSearchMinLength
+    shows("pull") && (filtered || term.length >= pullSearchMinLength)
       ? rank(
-          data.pulls,
+          pullRows,
           (pull) => [
             pull.title,
             `#${pull.number}`,
@@ -545,9 +833,11 @@ export const buildSearchResults = (
   const sorted =
     term === "" ? present : present.toSorted((a, b) => b.score - a.score);
   const total = sorted.reduce((sum, group) => sum + group.items.length, 0);
+  const withTokens = { ...parsed, tokens };
   return {
-    parsed,
+    parsed: withTokens,
     groups: sorted,
+    suggestions: filterSuggestions(parsed.active, data),
     compose:
       (category === "all" || category === "threads") &&
       term !== "" &&

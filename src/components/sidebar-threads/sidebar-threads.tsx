@@ -8,6 +8,7 @@ import {
   threadStatusState,
 } from "@/components/thread-status";
 import { useRovingList } from "@/features/shell/keyboard";
+import { Button } from "@/primitives/button";
 import {
   CaptainAvatar as CaptainAvatarTile,
   DEFAULT_CAPTAIN_AVATAR,
@@ -17,12 +18,16 @@ import {
   ContextMenuContent,
   ContextMenuTrigger,
 } from "@/primitives/context-menu";
+import { Icon } from "@/primitives/icon";
+import { Input } from "@/primitives/input";
 import {
   PreviewCard,
   PreviewCardContent,
   PreviewCardTrigger,
 } from "@/primitives/preview-card";
 import { ScrollArea } from "@/primitives/scroll-area";
+import { SkeletonBox } from "@/primitives/skeleton";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   DropLine,
   folderIdOf,
@@ -496,6 +501,69 @@ export type SidebarThreadRenderContext = {
   active: boolean;
 };
 
+/**
+ * Capy's `Loading threads` row: three section shapes drawn while the org's
+ * threads are in flight, so the list does not paint sample rows first.
+ */
+const loadingSections = [
+  { header: "25%", rows: ["60%", "45%"] },
+  { header: "35%", rows: ["50%", "70%", "38%", "56%"] },
+  { header: "30%", rows: ["56%", "38%"] },
+];
+
+export function SidebarThreadsLoading() {
+  return (
+    <div
+      role="status"
+      aria-label="Loading threads"
+      className="kiki-thread-skeleton"
+    >
+      {loadingSections.map((section, sectionIndex) => (
+        <div
+          key={`skeleton-section-${String(sectionIndex)}`}
+          className="kiki-thread-skeleton-section"
+        >
+          <div className="kiki-thread-skeleton-header">
+            <SkeletonBox
+              height="calc(var(--spacing) * 3)"
+              width="calc(var(--spacing) * 3)"
+            />
+            <SkeletonBox
+              height="calc(var(--spacing) * 2.5)"
+              width={section.header}
+            />
+          </div>
+          {section.rows.map((width, rowIndex) => (
+            <div
+              key={`skeleton-row-${String(sectionIndex)}-${String(rowIndex)}`}
+              className="kiki-thread-skeleton-row"
+            >
+              <span className="kiki-thread-skeleton-line">
+                <SkeletonBox height="calc(var(--spacing) * 3)" width={width} />
+                <SkeletonBox
+                  height="calc(var(--spacing) * 3.5)"
+                  width="calc(var(--spacing) * 3.5)"
+                  radius="50%"
+                />
+              </span>
+              <span className="kiki-thread-skeleton-meta">
+                <SkeletonBox
+                  height="calc(var(--spacing) * 2.5)"
+                  width="calc(var(--spacing) * 10)"
+                />
+                <SkeletonBox
+                  height="calc(var(--spacing) * 2.5)"
+                  width="calc(var(--spacing) * 5)"
+                />
+              </span>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export type SidebarThreadsProps = ComponentProps<"div"> & {
   view?: SidebarThreadsView;
   leading?: ReactNode;
@@ -533,6 +601,18 @@ export type SidebarThreadsProps = ComponentProps<"div"> & {
   renderSectionMenu?: (section: SidebarSection) => ReactNode;
   /** Drag and drop; omitted where the list has no data layer behind the move. */
   drag?: SidebarDragController;
+  /**
+   * The inline `Filter threads` row: present while the row is open, which swaps
+   * the section's title for the field and adds its close control to the header.
+   */
+  filter?: SidebarInlineFilter;
+};
+
+export type SidebarInlineFilter = {
+  text: string;
+  onChange: (text: string) => void;
+  /** Clears the text and closes the row. */
+  onClose: () => void;
 };
 
 export function SidebarThreads({
@@ -552,6 +632,7 @@ export function SidebarThreads({
   renderSectionActions,
   renderSectionMenu,
   drag,
+  filter,
   className,
   ...props
 }: SidebarThreadsProps) {
@@ -569,7 +650,8 @@ export function SidebarThreads({
   const showCaptains = split ? captainsMode : true;
   const showThreads = split ? !captainsMode : true;
   const slim = view.density === "compact";
-  const captainList = captainsSource ?? view.captains;
+  const loading = view.loading;
+  const captainList = loading ? [] : (captainsSource ?? view.captains);
   const captainRows =
     captainList.length === 0 ? (
       <NewCaptainRow compact={slim} onClick={onNewCaptain} />
@@ -650,21 +732,64 @@ export function SidebarThreads({
                     showCaptains && "mt-(--sidebar-section-gap)",
                   )}
                 >
-                  <span className="px-2 text-sm font-medium text-foreground select-none">
-                    Threads
-                  </span>
-                  <div className="ml-auto flex items-center">{actions}</div>
+                  {filter === undefined ? (
+                    <span className="px-2 text-sm font-medium text-foreground select-none">
+                      Threads
+                    </span>
+                  ) : (
+                    <Input
+                      // biome-ignore lint/a11y/noAutofocus: Capy focuses the row it just opened
+                      autoFocus
+                      variant="blank"
+                      size="sm"
+                      className="text-xs font-medium"
+                      icon={<Icon name="magnifying-glass" />}
+                      aria-label="Filter threads"
+                      placeholder="Filter threads"
+                      value={filter.text}
+                      onChange={(event) => filter.onChange(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Escape") filter.onClose();
+                      }}
+                    />
+                  )}
+                  <div className="ml-auto flex items-center">
+                    {filter === undefined ? null : (
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label="Close filter"
+                              onClick={filter.onClose}
+                            >
+                              <Icon name="x" />
+                            </Button>
+                          }
+                        />
+                        <TooltipContent side="bottom">
+                          Close filter
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                    {actions}
+                  </div>
                 </div>
-                <ThreadSections
-                  view={view}
-                  renderThread={renderThread}
-                  onSectionOpenChange={onSectionOpenChange}
-                  onShowMore={onShowMore}
-                  onNewThread={onNewThread}
-                  renderSectionActions={renderSectionActions}
-                  renderSectionMenu={renderSectionMenu}
-                  drag={drag}
-                />
+                {loading ? (
+                  <SidebarThreadsLoading />
+                ) : (
+                  <ThreadSections
+                    view={view}
+                    renderThread={renderThread}
+                    onSectionOpenChange={onSectionOpenChange}
+                    onShowMore={onShowMore}
+                    onNewThread={onNewThread}
+                    renderSectionActions={renderSectionActions}
+                    renderSectionMenu={renderSectionMenu}
+                    drag={drag}
+                  />
+                )}
               </>
             ) : null}
           </div>

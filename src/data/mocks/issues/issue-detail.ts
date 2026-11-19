@@ -35,6 +35,7 @@ import {
 } from "../../api/schemas/issue.ts";
 import type { Row } from "../db/MockDb.ts";
 import { isoMinutesAgo, people, threads, viewer } from "../fixtures/world.ts";
+import type { ThreadAccess } from "../jams/fixtures.ts";
 
 /**
  * Issue page fixtures (D1b). The shared world (fixtures/world.ts) stores issues
@@ -346,7 +347,16 @@ export const toIssueSummary = (world: IssueWorld, row: WorldIssue) => {
   });
 };
 
-export const toIssueDetail = (world: IssueWorld, row: WorldIssue) => {
+/**
+ * The issue page for one row. `access` is every thread's access row, which is
+ * where a linked thread's owner lives: the dot marks a thread this viewer owns
+ * and is therefore woken by.
+ */
+export const toIssueDetail = (
+  world: IssueWorld,
+  row: WorldIssue,
+  access: ReadonlyArray<ThreadAccess> = [],
+) => {
   const extra = extraOf(world.extras, row.code);
   const parent = row.parentCode
     ? world.issues.find((other) => other.code === row.parentCode)
@@ -402,6 +412,9 @@ export const toIssueDetail = (world: IssueWorld, row: WorldIssue) => {
               title: thread.title,
               status: "idle",
               captain: false,
+              owner:
+                access.find((entry) => entry.jamId === thread.id)?.ownerId ===
+                viewer.id,
             }),
           ]
         : [];

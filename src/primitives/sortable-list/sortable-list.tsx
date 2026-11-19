@@ -19,6 +19,7 @@ import { cx } from "class-variance-authority";
 import {
   type ComponentProps,
   createContext,
+  type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
   useContext,
@@ -168,6 +169,16 @@ export type SortableHandleProps = {
   disabled?: boolean;
   title?: string;
   className?: string;
+  /**
+   * `square` is the control-sized handle a settings list uses; `gutter` is the
+   * narrower box a row's own gutter holds, sized by a recipe.
+   */
+  box?: "square" | "gutter";
+  /**
+   * Runs before the sensor's own key handler, so a surface can claim a
+   * modifier such as Alt + Arrow and leave the plain keys to the drag.
+   */
+  onKeyDown?: (event: KeyboardEvent<HTMLButtonElement>) => void;
 };
 
 export function SortableHandle({
@@ -175,6 +186,8 @@ export function SortableHandle({
   disabled = false,
   title,
   className,
+  box = "square",
+  onKeyDown,
 }: SortableHandleProps) {
   const row = useContext(SortableRowContext);
   if (row === null)
@@ -189,7 +202,8 @@ export function SortableHandle({
       data-dragging={row.isDragging ? "" : undefined}
       onClick={stopPropagation}
       className={cx(
-        "relative grid size-6 shrink-0 touch-none place-items-center rounded text-muted-foreground-3 outline-none",
+        "relative grid shrink-0 touch-none place-items-center rounded text-muted-foreground-3 outline-none",
+        box === "gutter" ? "kiki-sortable-handle-gutter" : "size-6",
         "transition-[color,opacity] duration-hover hover:text-foreground focus-visible:outline-ring-inset",
         "opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100 data-[dragging]:opacity-100 pointer-coarse:opacity-100",
         "pointer-coarse:after:absolute pointer-coarse:after:top-1/2 pointer-coarse:after:left-1/2 pointer-coarse:after:size-full pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11 pointer-coarse:after:-translate-x-1/2 pointer-coarse:after:-translate-y-1/2",
@@ -202,6 +216,10 @@ export function SortableHandle({
       )}
       {...row.attributes}
       {...row.listeners}
+      onKeyDown={(event) => {
+        onKeyDown?.(event);
+        row.listeners?.onKeyDown?.(event);
+      }}
     >
       <DotGrid2x3 className="size-3.5" />
     </button>

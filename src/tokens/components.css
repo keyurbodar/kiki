@@ -61,6 +61,8 @@
   --menu-w: 208px;
   /* A message's More menu: Capy's 224px on both the hover rail and the phone. */
   --menu-w-message: 224px;
+  /* A linked thread's actions menu: Capy's 192px, room for its two rows. */
+  --menu-w-thread-actions: 192px;
   /* A trigger's filter chip, and the wider one its pattern filter uses. */
   --filter-chip-w: 224px;
   --filter-pattern-w: 288px;

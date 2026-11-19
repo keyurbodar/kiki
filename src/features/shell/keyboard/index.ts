@@ -11,11 +11,14 @@ export {
   type RovingListProps,
   useRovingList,
 } from "./roving";
+export { ShortcutTooltip, type ShortcutTooltipProps } from "./shortcut-tooltip";
 export {
   currentBindings,
+  glyphChord,
   KEYBINDS_KEY,
   readOverrides,
   shortcutGlyphText,
   useKeybindings,
+  useShortcutChord,
   useShortcutGlyphs,
 } from "./store";

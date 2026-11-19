@@ -16,6 +16,12 @@ import type {
 } from "@/components/sidebar-threads";
 import type { ThreadRunStatus } from "@/components/thread-status";
 import type { ThreadOrigin } from "@/data/api/schemas/thread";
+import {
+  defaultThreadFilters,
+  filterThreads,
+  type ThreadFilters,
+  type ThreadListItem,
+} from "@/features/threads/threads-page/model";
 
 export const GROUP_ROW_LIMIT = 10;
 
@@ -76,6 +82,8 @@ export type SourceCaptain = Omit<SidebarCaptain, "age"> & {
 
 export type SidebarSource = {
   now: Date;
+  /** Nothing has landed yet, so the list shows Capy's `Loading threads` row. */
+  loading?: boolean;
   threads: SourceThread[];
   folders: SourceFolder[];
   projects: SidebarProject[];
@@ -91,8 +99,10 @@ export type SidebarPrefs = {
   sort: SidebarThreadSort;
   captainSort: SidebarCaptainSort;
   collapse: SidebarCollapse;
-  /** Empty means every origin; otherwise only threads started from these. */
-  filterOrigins: ReadonlyArray<ThreadOrigin>;
+  /** Capy's facet filters, on the threads page's own model. */
+  filters: ThreadFilters;
+  /** The inline `Filter threads` row's text, matched against title and preview. */
+  filterText: string;
   open: Record<string, boolean>;
   expanded: Record<string, boolean>;
 };
@@ -105,7 +115,8 @@ export const defaultSidebarPrefs: SidebarPrefs = {
   sort: "lastActive",
   captainSort: "activity",
   collapse: { working: true, settled: true },
-  filterOrigins: [],
+  filters: defaultThreadFilters,
+  filterText: "",
   open: {},
   expanded: {},
 };
@@ -134,6 +145,54 @@ const toRow = (thread: SourceThread, now: Date): SidebarThread => {
   };
 };
 
+const toDate = (value: unknown) =>
+  value instanceof Date ? value : new Date(String(value));
+
+const matchesFilterText = (thread: SourceThread, text: string) =>
+  (thread.title ?? "").toLowerCase().includes(text) ||
+  (thread.description ?? "").toLowerCase().includes(text);
+
+/**
+ * The sidebar's threads as the threads page's filter model reads them. The
+ * fields the card does not carry are the ones Capy's list derives rather than
+ * receives (archived idle days, thread number, automation and captain badges),
+ * so they arrive empty and the facets that read them are absent from the
+ * sidebar's menu.
+ */
+const toFacetRow = (thread: SourceThread): ThreadListItem => {
+  const card = thread.card;
+  return {
+    id: thread.id,
+    title: thread.title,
+    status: thread.status,
+    archived: thread.archived === true,
+    archivedIdleDays: null,
+    threadNumber: null,
+    userId: card?.userId ?? "",
+    participated: card?.participated ?? false,
+    origin: thread.origin ?? "web",
+    projectId: thread.projectId,
+    pinned: thread.pinned === true,
+    needsYou: thread.needsYou,
+    hasUnreads: thread.hasUnreads,
+    personal: card?.personal ?? false,
+    lastModelId: card?.lastModelId ?? null,
+    pulls: (card?.pulls ?? []).map((pull) => ({
+      state: pull.state,
+      number: pull.number,
+      repo: pull.repo,
+    })),
+    createdAt: thread.createdAt,
+    sortActivityAt:
+      card === undefined ? thread.updatedAt : toDate(card.sortActivityAt),
+    lastActivityAt: thread.updatedAt,
+    settledAt: thread.settled ? thread.updatedAt : null,
+    automationName: null,
+    automationId: null,
+    captain: null,
+  };
+};
+
 export function buildSidebarThreadsView(
   source: SidebarSource,
   prefs: SidebarPrefs,
@@ -141,11 +200,20 @@ export function buildSidebarThreadsView(
   const compare = byNewest(
     prefs.sort === "createdAt" ? "createdAt" : "updatedAt",
   );
+  const kept = new Set(
+    filterThreads(
+      source.threads.map((thread) => toFacetRow(thread)),
+      prefs.filters,
+      undefined,
+      source.now.getTime(),
+    ).map((thread) => thread.id),
+  );
+  const text = prefs.filterText.trim().toLowerCase();
   const live = source.threads.filter(
     (thread) =>
       thread.status !== "archived" &&
-      (prefs.filterOrigins.length === 0 ||
-        prefs.filterOrigins.includes(thread.origin ?? "web")),
+      kept.has(thread.id) &&
+      (text === "" || matchesFilterText(thread, text)),
   );
   const byId = new Map(live.map((thread) => [thread.id, thread]));
   const filed = new Set(source.folders.flatMap((folder) => folder.threadIds));
@@ -273,7 +341,9 @@ export function buildSidebarThreadsView(
     sort: prefs.sort,
     captainSort: prefs.captainSort,
     collapse: prefs.collapse,
-    filterOrigins: prefs.filterOrigins,
+    filters: prefs.filters,
+    filterText: prefs.filterText,
+    loading: source.loading === true,
     sections,
     hiddenFolders: source.folders
       .filter((folder) => folder.hidden === true)

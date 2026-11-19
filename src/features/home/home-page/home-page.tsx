@@ -4,6 +4,7 @@ import { AsyncResult } from "effect/reactivity";
 import {
   type ComponentProps,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -86,6 +87,8 @@ import { useStartThread } from "./use-start-thread";
 export type HomePageProps = ComponentProps<"div"> & {
   /** `?prompt=` on /new: a draft Capy seeds the composer with instead of the welcome. */
   prompt?: string;
+  /** `?folder=` on /new: the folder the draft already belongs to, as the sidebar's peek picked it. */
+  folder?: string;
 };
 
 /** Capy shows the welcome for an org that has nothing to start from yet, and never over a draft. */
@@ -232,6 +235,7 @@ function HomePageBody({
   projects = [],
   projectless = false,
   prompt,
+  folder,
   className,
   ...props
 }: HomePageBodyProps) {
@@ -246,6 +250,17 @@ function HomePageBody({
   const [model, setModel] = useState<ModelSelection>(defaultSelection);
   const [machineSize, setMachineSize] = useState<MachineSize | null>(null);
   const [organize, setOrganize] = useState<OrganizeDraft>(emptyOrganizeDraft);
+  // The sidebar's folder button can open /new while this page is already
+  // mounted, and a useState initializer would only run on a fresh mount: the
+  // pick has to land whenever the parameter appears, so this is an effect.
+  useEffect(() => {
+    if (folder === undefined) return;
+    setOrganize((current) =>
+      current.folderIds.includes(folder)
+        ? current
+        : { ...current, folderIds: [...current.folderIds, folder] },
+    );
+  }, [folder]);
   const composerRef = useRef<ComposerHandle>(null);
   const initialDraft = useRef(
     prompt === undefined ? undefined : payloadOf(prompt),

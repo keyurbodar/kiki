@@ -7,6 +7,13 @@ import { parsePullHref } from "@/features/thread/pull-ref-link/pull-ref";
  */
 
 const THREAD_KEYS = new Set(["threadId", "jamId", "thread_id", "jam_id"]);
+const FILE_KEYS = new Set([
+  "path",
+  "file",
+  "filePath",
+  "file_path",
+  "targetPath",
+]);
 const REPO_KEYS = new Set([
   "repo",
   "repository",
@@ -29,6 +36,8 @@ export type ToolPullRef = { repositoryFullName: string; number: number };
 export type ToolRefsFound = {
   threadId?: string;
   pull?: ToolPullRef;
+  /** A workspace path the call named, as a file tool carries it. */
+  file?: string;
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -41,6 +50,18 @@ const count = (value: unknown) =>
   typeof value === "number" && Number.isInteger(value) && value > 0
     ? value
     : undefined;
+
+/** A workspace path, not a URL and not a bare word: `src/a.ts`, `~/notes.md`, `/tmp/x`. */
+const pathFromValue = (value: unknown) => {
+  const candidate = text(value);
+  if (candidate === undefined) return;
+  if (!candidate.includes("/")) return;
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(candidate)) return;
+  if (candidate.startsWith("#")) return;
+  const name = candidate.split("/").at(-1) ?? "";
+  if (name === "" || /\s/.test(candidate)) return;
+  return candidate;
+};
 
 const pullFromRecord = (
   record: Record<string, unknown>,
@@ -62,10 +83,12 @@ const pullFromRecord = (
 export function refsInArgs(args: unknown): ToolRefsFound {
   let threadId: string | undefined;
   let pull: ToolPullRef | undefined;
+  let file: string | undefined;
 
   const visit = (value: unknown, depth: number) => {
     if (depth > MAX_DEPTH) return;
-    if (threadId !== undefined && pull !== undefined) return;
+    if (threadId !== undefined && pull !== undefined && file !== undefined)
+      return;
     if (typeof value === "string") {
       const target = parsePullHref(value.trim());
       if (pull === undefined && target !== undefined) pull = target;
@@ -81,6 +104,7 @@ export function refsInArgs(args: unknown): ToolRefsFound {
         const id = text(entry);
         if (id !== undefined) threadId = id;
       }
+      if (file === undefined && FILE_KEYS.has(key)) file = pathFromValue(entry);
     }
     if (pull === undefined) pull = pullFromRecord(value);
     for (const entry of Object.values(value)) visit(entry, depth + 1);
@@ -90,5 +114,6 @@ export function refsInArgs(args: unknown): ToolRefsFound {
   return {
     ...(threadId === undefined ? {} : { threadId }),
     ...(pull === undefined ? {} : { pull }),
+    ...(file === undefined ? {} : { file }),
   };
 }

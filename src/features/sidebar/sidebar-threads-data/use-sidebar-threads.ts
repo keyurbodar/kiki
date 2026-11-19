@@ -9,7 +9,7 @@ import type {
   SidebarThreadSort,
   SidebarThreadsView,
 } from "@/components/sidebar-threads";
-import type { ThreadOrigin } from "@/data/api/schemas/thread";
+import type { ThreadFilters } from "@/features/threads/threads-page/model";
 import {
   buildSidebarThreadsView,
   defaultSidebarPrefs,
@@ -25,7 +25,8 @@ export type SidebarThreadsController = {
   setGrouping: (grouping: SidebarGrouping) => void;
   setSort: (sort: SidebarThreadSort) => void;
   setCaptainSort: (sort: SidebarCaptainSort) => void;
-  setFilterOrigins: (origins: ReadonlyArray<ThreadOrigin>) => void;
+  setFilters: (filters: ThreadFilters) => void;
+  setFilterText: (text: string) => void;
   setCollapse: (shelf: SidebarShelf, collapsed: boolean) => void;
   setSectionOpen: (sectionId: string, open: boolean) => void;
   showMore: (sectionId: string) => void;
@@ -34,6 +35,8 @@ export type SidebarThreadsController = {
 export function useSidebarThreads(
   options: {
     source?: SidebarSource;
+    /** Nothing has landed yet: the list draws Capy's `Loading threads` row. */
+    loading?: boolean;
     layout?: SidebarLayout;
     initialPrefs?: Partial<SidebarPrefs>;
   } = {},
@@ -45,10 +48,15 @@ export function useSidebarThreads(
   }));
   // The layout is a stored preference the settings page writes, not view state,
   // so it is read on every render instead of being copied into prefs.
-  const view = buildSidebarThreadsView(options.source ?? fallbackSource, {
-    ...prefs,
-    layout: options.layout ?? defaultSidebarPrefs.layout,
-  });
+  const view = buildSidebarThreadsView(
+    options.loading === true
+      ? { ...fallbackSource, loading: true }
+      : (options.source ?? fallbackSource),
+    {
+      ...prefs,
+      layout: options.layout ?? defaultSidebarPrefs.layout,
+    },
+  );
   const update = (patch: Partial<SidebarPrefs>) =>
     setPrefs((current) => ({ ...current, ...patch }));
   return {
@@ -58,7 +66,8 @@ export function useSidebarThreads(
     setGrouping: (grouping) => update({ grouping }),
     setSort: (sort) => update({ sort }),
     setCaptainSort: (captainSort) => update({ captainSort }),
-    setFilterOrigins: (filterOrigins) => update({ filterOrigins }),
+    setFilters: (filters) => update({ filters }),
+    setFilterText: (filterText) => update({ filterText }),
     setCollapse: (shelf, collapsed) =>
       setPrefs((current) => {
         const open = { ...current.open };

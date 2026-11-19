@@ -500,14 +500,21 @@ type ThreadRow = {
   projectId?: string | null;
   archived?: boolean;
   hasUnreads?: boolean;
+  userId?: string;
+  tagIds?: ReadonlyArray<string>;
 };
 
 type ProjectRow = { id?: string; name?: string };
+
+type TagRow = { id?: string; name?: string };
 
 export const sourceFromAtoms = (
   threads: ReadonlyArray<ThreadRow>,
   projects: ReadonlyArray<ProjectRow>,
   now: number,
+  /** userId → display name, so `author:` can name a thread's owner. */
+  memberNames: ReadonlyMap<string, string> = new Map(),
+  tags: ReadonlyArray<TagRow> = [],
 ): PaletteSearchSource => ({
   captains: [],
   threads: threads.map(
@@ -527,6 +534,13 @@ export const sourceFromAtoms = (
         ?.name,
       archived: thread.archived,
       hasUnreads: thread.hasUnreads,
+      author:
+        thread.userId === undefined
+          ? undefined
+          : (memberNames.get(thread.userId) ?? undefined),
+      labels: (thread.tagIds ?? []).flatMap(
+        (tagId) => tags.find((tag) => tag.id === tagId)?.name ?? [],
+      ),
     }),
   ),
   pulls: [],
