@@ -35,6 +35,15 @@ export const initialFiles: ReadonlyArray<ThreadFile> = [
     updatedAt: isoMinutesAgo(30),
     updatedBy: people.alex.id,
   },
+  {
+    id: "file_sample_gateway_log",
+    path: "logs/gateway-timeout.log",
+    content:
+      "12:04:11 gateway POST /pay 504 (31200ms)\n12:04:12 checkout retry 1/2\n12:04:43 gateway POST /pay 504 (31201ms)\n12:04:44 checkout retry 2/2\n12:05:15 gateway POST /pay 504 (31200ms)\n12:05:15 checkout failed: retry budget exhausted\n",
+    mediaType: "text/plain",
+    updatedAt: isoMinutesAgo(84),
+    updatedBy: people.alex.id,
+  },
 ];
 
 export const initialVersions: ReadonlyArray<FileVersionRow> = [
