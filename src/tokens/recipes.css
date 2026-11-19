@@ -242,6 +242,54 @@
     padding-bottom: calc(var(--spacing) * 2);
   }
 
+  /*
+   * A remote build's own fields, the way Capy draws them: the label sizes to
+   * its word while the value takes what is left, on the tight row gap, with
+   * the commands and failure log sharing one gap under it.
+   */
+  .kiki-mobile-build {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 2);
+  }
+
+  .kiki-mobile-build-fields {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: calc(var(--spacing) * 4);
+    row-gap: calc(var(--spacing) * 1.5);
+    padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);
+  }
+
+  .kiki-mobile-build-value {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .kiki-mobile-build-status {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 1.5);
+  }
+
+  .kiki-mobile-build-dot {
+    width: var(--status-dot);
+    height: var(--status-dot);
+    border-radius: 9999px;
+    background: currentColor;
+  }
+
+  .kiki-mobile-build-code {
+    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  }
+
+  .kiki-mobile-build-scroll {
+    max-height: calc(var(--spacing) * 60);
+    overflow: auto;
+  }
+
   .kiki-chip-row {
     display: flex;
     flex-wrap: wrap;

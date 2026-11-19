@@ -180,12 +180,26 @@ function MobileCell({
   return (
     <>
       <span className="text-muted-foreground-3">{label}</span>
-      <span className="min-w-0 truncate text-foreground tabular-nums">
+      <span className="kiki-mobile-build-value text-foreground tabular-nums">
         {children}
       </span>
     </>
   );
 }
+
+/** What the build is doing: the call's own report, then what it implies. */
+const mobileStatusOf = (
+  row: ToolRow,
+  action: string | undefined,
+  reported: string | undefined,
+) => {
+  if (row.result?.isError) return MOBILE_STATUS.failed;
+  const known = reported === undefined ? undefined : MOBILE_STATUS[reported];
+  if (known !== undefined) return known;
+  return row.result === undefined || action === "start"
+    ? MOBILE_STATUS.building
+    : undefined;
+};
 
 /** Capy's mobile-build body: the call's own fields, in its own order. */
 function MobileBuildBody({ row }: { row: ToolRow }) {
@@ -194,14 +208,7 @@ function MobileBuildBody({ row }: { row: ToolRow }) {
   const data = asRecord(row.result?.data);
   const platform = words(args.platform);
   const written = words(source.output_path) ?? words(source.path);
-  const status = row.result?.isError
-    ? MOBILE_STATUS.failed
-    : MOBILE_STATUS[words(data.status) ?? ""] !== undefined
-      ? MOBILE_STATUS[words(data.status) ?? ""]
-      : row.result === undefined &&
-          (row.phase === "running" || row.phase === "forming")
-        ? MOBILE_STATUS.building
-        : MOBILE_STATUS[words(args.action) === "start" ? "building" : ""];
+  const status = mobileStatusOf(row, words(args.action), words(data.status));
   const version =
     words(data.version_id) ??
     /^Version (\S+) is the app's current build\.$/m.exec(resultText(row))?.[1];
@@ -225,8 +232,8 @@ function MobileBuildBody({ row }: { row: ToolRow }) {
     cells.push({
       label: "Status",
       value: (
-        <span className="flex items-center gap-1.5">
-          <span className={`size-2 rounded-full bg-current ${status.tone}`} />
+        <span className="kiki-mobile-build-status">
+          <span className={`kiki-mobile-build-dot ${status.tone}`} />
           {status.label}
         </span>
       ),
@@ -256,11 +263,11 @@ function MobileBuildBody({ row }: { row: ToolRow }) {
   if (cells.length === 0 && commands.length === 0 && failure === undefined)
     return null;
   return (
-    <div className="flex flex-col gap-2">
+    <div className="kiki-mobile-build">
       {cells.length > 0 && (
         <div
           data-slot="mobile-build"
-          className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 rounded-(--radius-card) border-[0.5px] border-border-1 bg-panel px-3 py-2.5 text-xs"
+          className="kiki-mobile-build-fields rounded-(--radius-card) border-[length:--spacing(0.125)] border-border-1 bg-panel text-xs"
         >
           {cells.map((cell) => (
             <MobileCell key={cell.label} label={cell.label}>
@@ -270,15 +277,15 @@ function MobileBuildBody({ row }: { row: ToolRow }) {
         </div>
       )}
       {commands.length > 0 && (
-        <div className="overflow-x-auto rounded-(--radius-card) border-[0.5px] border-border-1 bg-card">
-          <pre className="px-3 py-2 font-mono text-code-block leading-normal text-muted-foreground-1">
+        <div className="overflow-x-auto rounded-(--radius-card) border-[length:--spacing(0.125)] border-border-1 bg-card">
+          <pre className="kiki-mobile-build-code font-mono text-code-block leading-normal text-muted-foreground-1">
             {commands.map((command) => `$ ${command}`).join("\n")}
           </pre>
         </div>
       )}
       {failure !== undefined && (
-        <div className="max-h-60 overflow-auto rounded-(--radius-card) border-[0.5px] border-border-1 bg-card md:scroll-fade-b">
-          <pre className="px-3 py-2 font-mono text-code-block leading-normal break-words whitespace-pre-wrap text-muted-foreground-1">
+        <div className="kiki-mobile-build-scroll rounded-(--radius-card) border-[length:--spacing(0.125)] border-border-1 bg-card md:scroll-fade-b">
+          <pre className="kiki-mobile-build-code font-mono text-code-block leading-normal break-words whitespace-pre-wrap text-muted-foreground-1">
             {failure}
           </pre>
         </div>
