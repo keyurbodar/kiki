@@ -8,6 +8,7 @@ import type { OrgId } from "@/data/api/schemas/ids";
 import type { Project } from "@/data/api/schemas/project";
 import { projectKey, projectSetupAtom } from "@/data/atoms/project-settings";
 import { projectsAtom } from "@/data/atoms/projects";
+import { jsonPayload } from "@/data/client/json";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import {
@@ -206,7 +207,7 @@ export function AutomationEditor({
     setSaving(true);
     update({
       params,
-      payload: updatePayload(next, current, form),
+      payload: jsonPayload(updatePayload(next, current, form)),
       reactivityKeys,
     })
       .then(
