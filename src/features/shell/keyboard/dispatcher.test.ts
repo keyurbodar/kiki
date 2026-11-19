@@ -109,6 +109,18 @@ describe("keybinding dispatcher", () => {
     expect(order).toEqual(["capture"]);
   });
 
+  it("runs a punctuation shortcut whose key the platform withheld", () => {
+    const settings = vi.fn();
+    register({ "settings.open": settings });
+    // Chrome on Linux sends Ctrl+Comma as key "" code "Comma".
+    fireEvent.keyDown(document.body, {
+      key: "",
+      code: "Comma",
+      ctrlKey: true,
+    });
+    expect(settings).toHaveBeenCalledOnce();
+  });
+
   it("skips a scope whose guard says it is not mounted here", () => {
     const toggle = vi.fn();
     register({ "sidebar.toggle": toggle }, { when: () => false });

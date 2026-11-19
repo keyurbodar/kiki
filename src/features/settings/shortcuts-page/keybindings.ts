@@ -513,23 +513,33 @@ function codeKey(code: string) {
   return /^Digit([0-9])$/.exec(code)?.[1] ?? codeKeys[code] ?? null;
 }
 
+/** The key a physical code stands for, shared by every fallback below. */
+const codeToken = (code: string): string | null =>
+  codeKey(code) ?? shiftedCodes[code] ?? null;
+
 export function captureBinding(
   event: KeyEventLike,
   mac = isMacPlatform(),
 ): string | null {
   const lower = event.key.toLowerCase();
+  /**
+   * Some modifier chords give the page no character at all: Chrome on Linux
+   * sends Ctrl+Comma as `key: ""`, and AltGr sends control characters. The
+   * physical code names the key in that case, for the recorder and the matcher
+   * alike, so a punctuation binding still matches on those platforms.
+   */
+  const withheld = lower === "" || (lower.length === 1 && lower < " ");
   const deadOrAlt =
-    lower === "dead" || (event.altKey && /^[^\x20-\x7e]$/u.test(lower));
+    lower === "dead" ||
+    withheld ||
+    (event.altKey && /^[^\x20-\x7e]$/u.test(lower));
   const key =
     event.code === "Backquote"
       ? "`"
-      : ((deadOrAlt
-          ? (codeKey(event.code) ?? shiftedCodes[event.code])
-          : undefined) ??
+      : ((deadOrAlt ? codeToken(event.code) : undefined) ??
         (event.shiftKey ? shiftedCodes[event.code] : undefined) ??
-        lower);
-  if (key === "meta" || key === "control" || key === "alt" || key === "shift")
-    return null;
+        (withheld ? undefined : lower));
+  if (key === undefined || key === null || key === "") return null;
   const parts: string[] = [];
   if (mac ? event.metaKey : event.ctrlKey) parts.push("mod");
   if (mac && event.ctrlKey) parts.push("ctrl");
