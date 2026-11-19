@@ -22,6 +22,7 @@ import type { ChipIssue } from "@/components/markdown-chips";
 import type { JamId, OrgId } from "@/data/api/schemas/ids";
 import type { IssueList } from "@/data/api/schemas/issue";
 import { reactivityKeys } from "@/data/atoms/conventions";
+import { hasDraftAtom } from "@/data/atoms/drafts";
 import { jamEventKey, stopRunAtom } from "@/data/atoms/events";
 import { idleAtom } from "@/data/atoms/idle";
 import { allIssuesAtom } from "@/data/atoms/issues";
@@ -314,6 +315,7 @@ export function ThreadView({
   const send = useComposerSend(threadId, editing?.eventId, (payload) =>
     composerHandle.current?.reset(payload),
   );
+  const setHasDraft = useAtomSet(hasDraftAtom(threadId));
   const [jump, setJump] = useState<ChatJump | undefined>(undefined);
   const jumpCount = useRef(0);
   const jumpToSection = useCallback(
@@ -720,6 +722,12 @@ export function ThreadView({
                             autoFocus={draft !== undefined}
                             sources={mentionSources}
                             commands={commands}
+                            onChange={(payload) =>
+                              setHasDraft(
+                                payload.text.trim().length > 0 ||
+                                  payload.files.length > 0,
+                              )
+                            }
                             submitLabel="Send"
                             /* Capy's swap is `send when there is something to
                                send, stop otherwise`; a persistent submit would

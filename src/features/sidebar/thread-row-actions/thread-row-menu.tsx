@@ -9,8 +9,10 @@ import {
   threadTagsAtom,
   unassignTagAtom,
 } from "@/data/atoms/threadOrganization";
+import { useShortcutGlyphs } from "@/features/shell/keyboard";
 import { Icon } from "@/primitives/icon";
 import type { IconId } from "@/primitives/icon/icon-ids";
+import { Kbd } from "@/primitives/kbd";
 import {
   ResponsiveMenuItem,
   ResponsiveMenuLabel,
@@ -34,6 +36,7 @@ function MenuRow({
   reason,
   intent,
   command,
+  shortcut,
 }: {
   icon: IconId;
   label: string;
@@ -43,6 +46,8 @@ function MenuRow({
   intent?: "danger";
   /** The shortcut this row answers while the menu is open. */
   command?: string;
+  /** The chord printed after the label, read from the binding table. */
+  shortcut?: string;
 }) {
   return (
     <ResponsiveMenuItem
@@ -58,9 +63,20 @@ function MenuRow({
         <Icon name={icon} size="sm" />
       </span>
       {label}
+      {shortcut === undefined || shortcut === "" ? null : (
+        <Kbd className="ml-auto">{shortcut}</Kbd>
+      )}
     </ResponsiveMenuItem>
   );
 }
+
+/** The printed chord for a command, or nothing when the table binds none. */
+const chord = (glyphs: ReadonlyArray<string>): string | undefined =>
+  glyphs.length === 0
+    ? undefined
+    : glyphs.some((glyph) => glyph.length > 1)
+      ? glyphs.join("+")
+      : glyphs.join("");
 
 /**
  * Capy's thread context menu, in Capy's order. The sidebar's `…` cluster and the
@@ -127,6 +143,10 @@ export function ThreadRowMenu({
   renameKey?: string;
 }) {
   const actions = useThreadActions();
+  const unreadChord = chord(useShortcutGlyphs("menu.markUnread"));
+  const archiveChord = chord(useShortcutGlyphs("menu.archive"));
+  const settleChord = chord(useShortcutGlyphs("menu.settle"));
+  const deleteChord = chord(useShortcutGlyphs("menu.delete"));
   const act = (run: () => void) => () => {
     onClose?.();
     run();
@@ -239,6 +259,7 @@ export function ThreadRowMenu({
           icon="email-2-unread"
           label="Mark as unread"
           command="menu.markUnread"
+          shortcut={unreadChord}
           onClick={act(() => actions.markUnread(thread))}
         />
       )}
@@ -253,6 +274,7 @@ export function ThreadRowMenu({
           icon="checkmark-1"
           label="Settle"
           command="menu.settle"
+          shortcut={settleChord}
           onClick={act(() => actions.settle(thread))}
         />
       )}
@@ -267,12 +289,14 @@ export function ThreadRowMenu({
           icon="archive"
           label="Archive"
           command="menu.archive"
+          shortcut={archiveChord}
           onClick={act(() => actions.archive(thread))}
         />
       )}
       <MenuRow
         icon="trash-can"
         label="Delete"
+        shortcut={deleteChord}
         intent="danger"
         command="menu.delete"
         disabled={!thread.owner}
