@@ -6,6 +6,7 @@ const appended: Array<Record<string, unknown>> = [];
 const removed: Array<string> = [];
 const refreshed: unknown[] = [];
 let failNextSend = false;
+let failRefreshes = 0;
 
 vi.mock("@effect/atom-react", () => ({
   useAtomValue: (atom: { kind?: string }) =>
@@ -31,6 +32,10 @@ vi.mock("@effect/atom-react", () => ({
           return undefined;
         case "refresh":
           refreshed.push(input);
+          if (failRefreshes > 0) {
+            failRefreshes -= 1;
+            return Promise.reject(new Error("refresh refused"));
+          }
           return Promise.resolve(undefined);
         default:
           return undefined;
@@ -65,6 +70,7 @@ vi.mock("@/primitives/toaster", async () => ({
 }));
 
 const { useComposerSend } = await import("./use-composer-send");
+const { toast } = await import("@/primitives/toaster");
 
 const payload = { text: "reworded", mentions: [], files: [] };
 
@@ -73,6 +79,13 @@ const lastSentPayload = () =>
   (sent.at(-1)?.payload ?? {}) as Record<string, unknown>;
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+/** The messages toasted since `mark`, so a test sees only its own. */
+const toastsSince = (mark: number) =>
+  vi
+    .mocked(toast.error)
+    .mock.calls.slice(mark)
+    .map((call) => call[0]);
 
 describe("useComposerSend", () => {
   it("appends the row optimistically and sends the gesture with a client key", async () => {
@@ -131,5 +144,42 @@ describe("useComposerSend", () => {
     expect(removed.at(-1)).toBe(clientKey);
     expect(restored.at(-1)).toEqual(payload);
     failNextSend = false;
+  });
+
+  it("keeps the row when only the follow-up refresh fails, and retries it", async () => {
+    failRefreshes = 1;
+    const refreshedBefore = refreshed.length;
+    const toastsBefore = vi.mocked(toast.error).mock.calls.length;
+    const restored: Array<unknown> = [];
+    const { result } = renderHook(() =>
+      useComposerSend("jam_sample", undefined, (failed) =>
+        restored.push(failed),
+      ),
+    );
+    result.current(payload, "steer");
+    const clientKey = lastSentPayload().clientKey;
+    await flush();
+    await flush();
+    expect(removed).not.toContain(clientKey);
+    expect(appended.at(-1)).toMatchObject({ clientKey });
+    expect(restored).toEqual([]);
+    expect(refreshed.length - refreshedBefore).toBe(2);
+    expect(toastsSince(toastsBefore)).toEqual([]);
+  });
+
+  it("reports a refresh that keeps failing as a refresh, not a send", async () => {
+    failRefreshes = 2;
+    const toastsBefore = vi.mocked(toast.error).mock.calls.length;
+    const removedBefore = removed.length;
+    const { result } = renderHook(() => useComposerSend("jam_sample"));
+    result.current(payload, "steer");
+    const clientKey = lastSentPayload().clientKey;
+    await flush();
+    await flush();
+    expect(removed.length).toBe(removedBefore);
+    expect(removed).not.toContain(clientKey);
+    expect(toastsSince(toastsBefore)).toEqual([
+      "Message sent, but the timeline could not refresh",
+    ]);
   });
 });
