@@ -419,6 +419,17 @@ describe("sidebar row signals", () => {
   });
 });
 
+describe("sidebar folder header", () => {
+  it("opens the new-thread composer with that folder already picked", async () => {
+    const router = await renderAt(<Harness sidebarSource={folderSource()} />);
+    fireEvent.click(screen.getByLabelText("New thread in Release"));
+    await waitFor(() => expect(router.state.location.pathname).toBe("/new"));
+    expect(router.state.location.search).toMatchObject({
+      folder: "fld_release",
+    });
+  });
+});
+
 describe("sidebar thread drag and drop", () => {
   it("shows the insertion line where the dragged row would land", async () => {
     await renderAt(<Harness sidebarSource={folderSource()} />);
@@ -434,7 +445,7 @@ describe("sidebar thread drag and drop", () => {
 
   it("opens a collapsed folder the drag rests on", async () => {
     await renderAt(<Harness sidebarSource={folderSource()} />);
-    const heading = screen.getByRole("button", { name: /Release/ });
+    const heading = screen.getByRole("button", { name: /^Release/ });
     fireEvent.click(heading);
     expect(heading.getAttribute("aria-expanded")).toBe("false");
     const zone = document.querySelector(
@@ -446,7 +457,7 @@ describe("sidebar thread drag and drop", () => {
     await new Promise((resolve) => setTimeout(resolve, 700));
     expect(
       screen
-        .getByRole("button", { name: /Release/ })
+        .getByRole("button", { name: /^Release/ })
         .getAttribute("aria-expanded"),
     ).toBe("true");
   });

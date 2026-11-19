@@ -37,6 +37,7 @@ import {
   FolderMenuItems,
   FolderOptionsMenu,
 } from "../thread-row-actions/folder-menu";
+import { NewThreadInFolderButton } from "../thread-row-actions/new-thread-in-folder";
 import {
   ThreadActionsProvider,
   useThreadActions,
@@ -259,10 +260,13 @@ function SidebarThreadsPanelBody({
       renderSectionActions={(section) =>
         section.kind !== "folder" ||
         section.folder === undefined ? undefined : (
-          <FolderOptionsMenu
-            folder={section.folder}
-            actions={folderMenu(section.folder)}
-          />
+          <>
+            <NewThreadInFolderButton folder={section.folder} />
+            <FolderOptionsMenu
+              folder={section.folder}
+              actions={folderMenu(section.folder)}
+            />
+          </>
         )
       }
       renderSectionMenu={(section) =>

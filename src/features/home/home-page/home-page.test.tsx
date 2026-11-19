@@ -37,6 +37,12 @@ async function renderHome(path = "/new") {
 
 const composerSlot = () => document.querySelector("[data-slot=composer]");
 
+/** The composer menu's Folder row, whose trailing value names the folder it picked. */
+const folderRow = () =>
+  [...document.querySelectorAll("[data-slot=menu-row]")].find((item) =>
+    (item.textContent ?? "").startsWith("Folder"),
+  );
+
 describe("showsWelcome", () => {
   it("welcomes an org with nothing to start from", () => {
     expect(showsWelcome(undefined, [])).toBe(true);
@@ -152,6 +158,24 @@ describe("/new", () => {
     await renderHome("/new?prompt=Summarise%20the%20release");
     await waitFor(() => expect(composerSlot()).not.toBeNull());
     expect(screen.queryByRole("button", { name: "Add project" })).toBeNull();
+  });
+
+  it("starts the draft in the folder the sidebar's peek picked", async () => {
+    await renderHome("/new?folder=fld_sample_release");
+    await waitFor(() => expect(composerSlot()).not.toBeNull());
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Thread configuration" }),
+    );
+    await waitFor(() => expect(folderRow()?.textContent).toBe("FolderRelease"));
+  });
+
+  it("leaves the folder empty on a visit that picked none", async () => {
+    await renderHome();
+    await waitFor(() => expect(composerSlot()).not.toBeNull());
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Thread configuration" }),
+    );
+    await waitFor(() => expect(folderRow()?.textContent).toBe("Folder"));
   });
 
   it("mounts the fabric layer ahead of the wallpaper backdrop", async () => {
