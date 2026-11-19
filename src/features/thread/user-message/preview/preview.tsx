@@ -103,6 +103,7 @@ const agentRow = {
   placed: [],
   placing: [],
   modelId: "sample-model",
+  showFooter: true,
 } as never;
 
 const params = new URLSearchParams(location.search);

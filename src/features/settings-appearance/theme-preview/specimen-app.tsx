@@ -152,6 +152,7 @@ const agentRow = {
   placing: [],
   modelId: "model_specimen",
   reasoningMode: "medium",
+  showFooter: true,
 } as unknown as AgentMessageRow;
 
 const ACTIONS = { viewerUserId: VIEWER, now: AT.getTime() };

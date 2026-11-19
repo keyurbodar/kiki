@@ -10,8 +10,8 @@ import { UserMessage, type UserMessageRow } from "./user-message";
 
 let phoneSurface = false;
 
-vi.mock("@/features/mobile", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/features/mobile")>()),
+vi.mock("@/features/mobile/use-mobile", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/features/mobile/use-mobile")>()),
   useIsPhoneSurface: () => phoneSurface,
 }));
 
@@ -244,6 +244,22 @@ describe("UserMessage", () => {
 });
 
 describe("AgentMessage", () => {
+  const settledRow = {
+    id: "row_agent",
+    eventId: "01JBBBBBBBBBBBBBBBBBBBBBBB",
+    createdAt: new Date(2026, 10, 17, 9, 1),
+    type: "agent-message",
+    settled: true,
+    interrupted: false,
+    turnCloses: true,
+    text: "First.\n\nSecond.",
+    files: [],
+    uploads: [],
+    placed: [],
+    placing: [],
+    modelId: "sample-model",
+  };
+
   it("renders its files as a gallery after the sections", () => {
     render(
       <AgentMessage
@@ -306,6 +322,30 @@ describe("AgentMessage", () => {
       document.querySelector("[data-slot=message-status]")?.textContent,
     ).toBe("Interrupted");
     expect(document.querySelector("[data-slot=message-footer]")).toBeNull();
+  });
+
+  it("puts one Copy and More row under the message on a phone", () => {
+    phoneSurface = true;
+    render(<AgentMessage row={{ ...settledRow, showFooter: true } as never} />);
+    const footers = document.querySelectorAll("[data-slot=message-footer]");
+    expect(footers.length).toBe(1);
+    expect(screen.getByLabelText("Copy message")).toBeTruthy();
+    expect(screen.getByLabelText("More")).toBeTruthy();
+    expect(screen.queryByLabelText("Reply")).toBeNull();
+  });
+
+  it("shows no phone footer unless the timeline marks the message", () => {
+    phoneSurface = true;
+    render(<AgentMessage row={settledRow as never} />);
+    expect(document.querySelector("[data-slot=message-footer]")).toBeNull();
+  });
+
+  it("keeps the hover rail without a phone footer at a fine pointer", () => {
+    render(<AgentMessage row={{ ...settledRow, showFooter: true } as never} />);
+    expect(document.querySelectorAll("[data-slot=message-footer]").length).toBe(
+      2,
+    );
+    expect(screen.queryAllByLabelText("Copy message")).toHaveLength(2);
   });
 });
 
