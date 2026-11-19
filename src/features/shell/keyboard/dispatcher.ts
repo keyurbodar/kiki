@@ -1,4 +1,6 @@
 import {
+  ambiguousChords,
+  type CommandContext,
   commandCatalog,
   type KeyEventLike,
   resolveEventCommand,
@@ -13,6 +15,12 @@ export type CommandHandlers = Record<string, CommandHandler>;
 export type CommandScopeOptions = {
   /** Read at event time; a scope whose guard fails is skipped. */
   when?: () => boolean;
+  /**
+   * What this surface knows about the page when the key arrives, such as its
+   * own menu being open. Every scope resolves against it, because a menu that
+   * holds a chord holds it for the whole page.
+   */
+  context?: () => Partial<CommandContext>;
   /**
    * Run in the capture phase, ahead of a focused widget that consumes the key
    * itself (the composer editor stops Alt+Arrow before it bubbles).
@@ -45,6 +53,18 @@ export function isEditableTarget(target: EventTarget | null): boolean {
   return EDITABLE_TAGS.has(target.tagName.toLowerCase());
 }
 
+/**
+ * What the page knows when a key arrives: a surface's own news, such as its menu
+ * being open, is the page's news too, so every scope resolves against it.
+ */
+function readContext(): CommandContext {
+  const context: CommandContext = { commandMenuOpen: false };
+  for (const scope of [...globalScopes, ...captureScopes]) {
+    Object.assign(context, scope.options.context?.());
+  }
+  return context;
+}
+
 function scopeCommand(
   scope: CommandScope,
   event: KeyboardEvent,
@@ -52,6 +72,7 @@ function scopeCommand(
   const command = resolveEventCommand(
     event as unknown as KeyEventLike,
     currentBindings(),
+    readContext(),
   );
   if (command === null || scope.commands[command] === undefined) return null;
   return command;
@@ -128,6 +149,17 @@ export function registerCommands(
   commands: CommandHandlers,
   options: CommandScopeOptions = {},
 ): () => void {
+  // Two handlers on one chord with no `when` to tell them apart would lose one
+  // silently; name them instead. Development only: the table is static, so CI
+  // and the suite catch it and a shipped build never throws on a bad table.
+  if (import.meta.env.DEV) {
+    const [ambiguous] = ambiguousChords(Object.keys(commands));
+    if (ambiguous !== undefined) {
+      throw new Error(
+        `${ambiguous.commands.join(" and ")} both claim ${ambiguous.key} with no when to tell them apart`,
+      );
+    }
+  }
   listen();
   const scope: CommandScope = { commands, options };
   const scopes = options.capture ? captureScopes : globalScopes;

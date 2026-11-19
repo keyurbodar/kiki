@@ -174,6 +174,9 @@ export function CommandPaletteHost({
         : document.querySelector<HTMLElement>('button[aria-label="Search"]');
   }, []);
 
+  const openRef = useRef(open);
+  openRef.current = open;
+
   useEffect(
     () =>
       registerCommands(
@@ -184,6 +187,8 @@ export function CommandPaletteHost({
             setOpen((current) => !current);
           },
         }),
+        // What the resolver needs to tell a menu's own chords from the page's.
+        { context: () => ({ commandMenuOpen: openRef.current }) },
       ),
     [rememberOpener],
   );
