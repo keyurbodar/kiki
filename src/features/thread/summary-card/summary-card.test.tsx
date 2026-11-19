@@ -283,3 +283,57 @@ describe("PortRow", () => {
     expect(onOpenNewTab).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("BuildRow", () => {
+  const turn = {
+    prs: [],
+    ports: [],
+    automations: [],
+    environmentRequests: [],
+    setup: [
+      {
+        kind: "build" as const,
+        toolCallId: "toolu_build",
+        buildId: "build_1",
+        test: true,
+        status: "succeeded" as const,
+      },
+    ],
+  };
+
+  it("draws the status the build call reported", () => {
+    render(<SummaryCard turn={turn} />);
+    expect(screen.getByText("Test build")).toBeTruthy();
+    expect(screen.getByText("Succeeded")).toBeTruthy();
+  });
+
+  it("prefers the build's own record over the call's report", () => {
+    render(
+      <SummaryCard
+        turn={turn}
+        setupBuilds={[build({ id: "build_1", status: "failed" })]}
+      />,
+    );
+    expect(screen.getByText("Failed")).toBeTruthy();
+    expect(screen.queryByText("Succeeded")).toBeNull();
+  });
+
+  it("draws no chip when neither the record nor the call reported a status", () => {
+    render(
+      <SummaryCard
+        turn={{
+          ...turn,
+          setup: [
+            {
+              kind: "build" as const,
+              toolCallId: "toolu_build",
+              buildId: "build_1",
+              test: false,
+            },
+          ],
+        }}
+      />,
+    );
+    expect(screen.queryByText("Snapshot build")).toBeNull();
+  });
+});

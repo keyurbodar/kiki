@@ -235,19 +235,24 @@ export function BuildRow({ reference, build, now, onOpen }: BuildRowProps) {
     reference.test ? "test-build" : "snapshot-build",
     build === undefined ? "starting" : null,
   );
+  // The record is the live truth; the status the call itself reported is what
+  // a transcript can still say when that record is not on hand. A chip with
+  // neither draws nothing rather than an empty cell.
+  const status = build?.status ?? reference.status;
+  if (status === undefined && starting !== "starting") return null;
   const label =
-    build === undefined
-      ? starting === "starting"
-        ? "Starting"
-        : ""
-      : buildStatusLabel(build);
+    status === undefined
+      ? "Starting"
+      : build === undefined
+        ? BUILD_STATUS_LABEL[status]
+        : buildStatusLabel(build);
   const elapsed =
     build === undefined ? undefined : buildElapsedMs(build, now ?? Date.now());
   const content = (
     <>
       <span className={ROW_MARK}>
         <span
-          className={`size-2 rounded-full bg-current ${BUILD_STATUS_TONE[build?.status ?? "building"]}`}
+          className={`size-2 rounded-full bg-current ${BUILD_STATUS_TONE[status ?? "building"]}`}
         />
       </span>
       <span className="shrink-0 text-muted-foreground-2">

@@ -1,6 +1,8 @@
+import type { ReactNode } from "react";
 import { FileChip } from "@/components/markdown-chips";
 import type { ActivityRow } from "@/data/events";
 import { DiffBodyCard } from "@/features/thread/diff-body";
+import { formatElapsed } from "@/features/thread/summary-card";
 import { cleanOutput } from "./clean";
 import { EXPANDABLE_PATCH_LINES, patchForTool, patchPath } from "./patch";
 
@@ -44,6 +46,9 @@ const PROSE_FIELD: Record<string, string> = {
 /** A terminal call shows its command head and outcome; the output lives in the pane. */
 const TERMINAL_TOOLS: ReadonlySet<string> = new Set(["request_terminal"]);
 
+/** A remote build's fields, which the call carries instead of a printed log. */
+const MOBILE_BUILD = "mobile_build";
+
 /** A JSON block renders as the indented document Capy prints, beside the text. */
 const blockText = (block: Block) => {
   if (block.type === "text") return block.text;
@@ -79,6 +84,7 @@ const hasUnknownBlocks = (row: ToolRow) =>
 export function hasToolBody(row: ToolRow) {
   return (
     PROSE_FIELD[row.toolName] !== undefined ||
+    row.toolName === MOBILE_BUILD ||
     TERMINAL_TOOLS.has(row.toolName) ||
     patchForTool(row.toolName, row.args) !== undefined ||
     field(row.args, "command") !== undefined ||
@@ -126,7 +132,170 @@ function ProseBody({ text }: { text: string | undefined }) {
   );
 }
 
+const MOBILE_STATUS: Record<string, { label: string; tone: string }> = {
+  queued: { label: "Building", tone: "text-warning" },
+  building: { label: "Building", tone: "text-warning" },
+  succeeded: { label: "Succeeded", tone: "text-success" },
+  failed: { label: "Failed", tone: "text-destructive" },
+  cancelled: { label: "Cancelled", tone: "text-muted-foreground-2" },
+};
+
+const PLATFORM_LABEL: Record<string, string> = {
+  ios: "iOS",
+  android: "Android",
+};
+
+/** Capy names the artifact from the platform and the path it was written to. */
+const mobileTarget = (
+  platform: string | undefined,
+  path: string | undefined,
+) => {
+  const lower = path?.toLowerCase() ?? "";
+  if (platform === "ios")
+    return lower.includes("iphonesimulator") || lower.endsWith(".app")
+      ? "Simulator app"
+      : lower.includes("iphoneos") || lower.endsWith(".ipa")
+        ? "Device archive"
+        : undefined;
+  if (lower.endsWith(".aab")) return "App bundle";
+  if (lower.endsWith(".apk")) return "APK";
+  return undefined;
+};
+
+const asRecord = (value: unknown): Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+
+const words = (value: unknown) =>
+  typeof value === "string" && value.trim() !== "" ? value.trim() : undefined;
+
+function MobileCell({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <>
+      <span className="text-muted-foreground-3">{label}</span>
+      <span className="kiki-mobile-build-value text-foreground tabular-nums">
+        {children}
+      </span>
+    </>
+  );
+}
+
+/** What the build is doing: the call's own report, then what it implies. */
+const mobileStatusOf = (
+  row: ToolRow,
+  action: string | undefined,
+  reported: string | undefined,
+) => {
+  if (row.result?.isError) return MOBILE_STATUS.failed;
+  const known = reported === undefined ? undefined : MOBILE_STATUS[reported];
+  if (known !== undefined) return known;
+  return row.result === undefined || action === "start"
+    ? MOBILE_STATUS.building
+    : undefined;
+};
+
+/** Capy's mobile-build body: the call's own fields, in its own order. */
+function MobileBuildBody({ row }: { row: ToolRow }) {
+  const args = asRecord(row.args);
+  const source = asRecord(args.source);
+  const data = asRecord(row.result?.data);
+  const platform = words(args.platform);
+  const written = words(source.output_path) ?? words(source.path);
+  const status = mobileStatusOf(row, words(args.action), words(data.status));
+  const version =
+    words(data.version_id) ??
+    /^Version (\S+) is the app's current build\.$/m.exec(resultText(row))?.[1];
+  const buildId = words(data.build_id);
+  const app = words(args.app);
+  const target = mobileTarget(platform, written);
+  const elapsed =
+    row.result?.settledAt === undefined || row.startedAt === undefined
+      ? undefined
+      : Math.max(0, row.result.settledAt.getTime() - row.startedAt.getTime());
+  const commands = Array.isArray(source.commands)
+    ? source.commands.filter(
+        (command): command is string => typeof command === "string",
+      )
+    : [];
+  const failure = row.result?.isError
+    ? resultText(row) || words(data.error) || words(data.suggested_fix)
+    : undefined;
+  const cells: Array<{ label: string; value: ReactNode }> = [];
+  if (status !== undefined)
+    cells.push({
+      label: "Status",
+      value: (
+        <span className="kiki-mobile-build-status">
+          <span className={`kiki-mobile-build-dot bg-current ${status.tone}`} />
+          {status.label}
+        </span>
+      ),
+    });
+  if (platform !== undefined && PLATFORM_LABEL[platform] !== undefined)
+    cells.push({ label: "Platform", value: PLATFORM_LABEL[platform] });
+  if (target !== undefined) cells.push({ label: "Target", value: target });
+  if (app !== undefined) cells.push({ label: "App", value: app });
+  if (version !== undefined) cells.push({ label: "Version", value: version });
+  if (buildId !== undefined) cells.push({ label: "Build", value: buildId });
+  if (elapsed !== undefined)
+    cells.push({
+      label:
+        words(source.type) === "artifact" ? "Upload" : "Archive and upload",
+      value: formatElapsed(elapsed),
+    });
+  if (words(source.type) !== undefined && words(source.path) !== undefined)
+    cells.push({
+      label: words(source.type) === "artifact" ? "Artifact" : "Source",
+      value: words(source.path),
+    });
+  if (
+    words(source.type) === "workspace" &&
+    words(source.output_path) !== undefined
+  )
+    cells.push({ label: "Output", value: words(source.output_path) });
+  if (cells.length === 0 && commands.length === 0 && failure === undefined)
+    return null;
+  return (
+    <div className="kiki-mobile-build">
+      {cells.length > 0 && (
+        <div
+          data-slot="mobile-build"
+          className="kiki-mobile-build-fields rounded-(--radius-card) border-[length:--spacing(0.125)] border-border-1 bg-panel text-xs"
+        >
+          {cells.map((cell) => (
+            <MobileCell key={cell.label} label={cell.label}>
+              {cell.value}
+            </MobileCell>
+          ))}
+        </div>
+      )}
+      {commands.length > 0 && (
+        <div className="overflow-x-auto rounded-(--radius-card) border-[length:--spacing(0.125)] border-border-1 bg-card">
+          <pre className="kiki-mobile-build-code font-mono text-code-block leading-normal text-muted-foreground-1">
+            {commands.map((command) => `$ ${command}`).join("\n")}
+          </pre>
+        </div>
+      )}
+      {failure !== undefined && (
+        <div className="kiki-mobile-build-scroll rounded-(--radius-card) border-[length:--spacing(0.125)] border-border-1 bg-card md:scroll-fade-b">
+          <pre className="kiki-mobile-build-code font-mono text-code-block leading-normal break-words whitespace-pre-wrap text-muted-foreground-1">
+            {failure}
+          </pre>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ToolBody({ row }: ToolBodyProps) {
+  if (row.toolName === MOBILE_BUILD) return <MobileBuildBody row={row} />;
   const proseField = PROSE_FIELD[row.toolName];
   if (proseField !== undefined)
     return (

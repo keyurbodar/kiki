@@ -483,6 +483,19 @@ const pullOrPort = (tool: ToolRow) => {
       } as const);
 };
 
+/** The status a build call reports, in the four states a chip can draw. */
+const BUILD_STATUSES = [
+  "building",
+  "succeeded",
+  "failed",
+  "cancelled",
+] as const;
+
+const buildStatus = (value: string | undefined) =>
+  value === "queued"
+    ? ("building" as const)
+    : BUILD_STATUSES.find((status) => status === value);
+
 const setupChange = (tool: ToolRow) => {
   if (
     !SETUP_TOOLS.has(tool.toolName) ||
@@ -504,14 +517,15 @@ const setupChange = (tool: ToolRow) => {
   }
   if (tool.toolName === "environment_build_snapshot") {
     const buildId = readString(data, "build_id");
-    return buildId === undefined
-      ? undefined
-      : {
-          kind: "build",
-          toolCallId: tool.id,
-          buildId,
-          test: asRecord(tool.args).test === true,
-        };
+    if (buildId === undefined) return undefined;
+    const status = buildStatus(readString(data, "status"));
+    return {
+      kind: "build",
+      toolCallId: tool.id,
+      buildId,
+      test: asRecord(tool.args).test === true,
+      ...(status === undefined ? {} : { status }),
+    };
   }
   const enabled = asRecord(tool.args).enabled;
   return typeof enabled === "boolean"
