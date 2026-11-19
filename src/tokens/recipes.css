@@ -262,6 +262,61 @@
   }
 
   /*
+   * The typed filters a palette holds: one chip per operator value, drawn
+   * above the results beside the input that typed them. The chip is a label
+   * button and a remove button, so its height comes from a control rather
+   * than the badge's padding.
+   */
+  /* The list's empty state when rows sit beside it, which `only:block` hides. */
+  .kiki-palette-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: var(--row-align);
+    justify-content: center;
+    gap: var(--row-gap);
+    padding: var(--row-h-comfy) var(--row-px-tight);
+    text-wrap: balance;
+  }
+
+  .kiki-filter-tokens {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: var(--row-align);
+    gap: var(--row-gap-tight);
+    padding: var(--row-gap) var(--palette-row-px) 0;
+  }
+
+  .kiki-filter-token {
+    display: inline-flex;
+    align-items: var(--row-align);
+    max-width: 100%;
+    height: var(--h-control-xs);
+    overflow: clip;
+  }
+
+  .kiki-filter-token-label {
+    padding-inline: var(--badge-px-sm);
+    overflow: hidden;
+    cursor: pointer;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .kiki-filter-token-remove {
+    display: inline-flex;
+    align-items: var(--row-align);
+    justify-content: center;
+    width: var(--h-control-xs);
+    height: var(--h-control-xs);
+    cursor: pointer;
+  }
+
+  .kiki-filter-token-remove svg {
+    width: var(--icon-xs);
+    height: var(--icon-xs);
+  }
+
+  /*
    * A badge's box: the pill centres its content, so `data-size` picks the
    * height, inset and leading-glyph size that Capy's four badge sizes use.
    * The glyph rules are scoped to the sizes that had them, because a rule

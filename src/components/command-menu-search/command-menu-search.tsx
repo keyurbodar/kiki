@@ -36,10 +36,8 @@ import {
   paletteItemIconClass,
   paletteItemTrailingClass,
   paletteListClass,
-  paletteTokenClass,
-  paletteTokenLabelClass,
+  paletteTokenChipClass,
   paletteTokenRemoveClass,
-  paletteTokensClass,
 } from "./classes";
 import { PaletteHint, PaletteInput, PaletteItem, PaletteKeys } from "./parts";
 import {
@@ -450,14 +448,17 @@ export function CommandMenuSearch({
           }
         />
         {tokens.length === 0 ? null : (
-          <div data-slot="palette-tokens" className={paletteTokensClass}>
+          <div data-slot="palette-tokens" className="kiki-filter-tokens">
             {tokens.map((token) => (
-              <span key={token.key} className={paletteTokenClass}>
+              <span
+                key={token.key}
+                className={`kiki-filter-token ${paletteTokenChipClass}`}
+              >
                 <button
                   type="button"
                   tabIndex={-1}
                   aria-label={`Edit ${filterKeyLabels[token.key]} filter`}
-                  className={paletteTokenLabelClass}
+                  className="kiki-filter-token-label outline-none hover:text-foreground"
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => editToken(token)}
                 >
@@ -467,7 +468,7 @@ export function CommandMenuSearch({
                   type="button"
                   tabIndex={-1}
                   aria-label={`Remove ${filterKeyLabels[token.key]} filter`}
-                  className={paletteTokenRemoveClass}
+                  className={`kiki-filter-token-remove ${paletteTokenRemoveClass}`}
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => removeToken(token)}
                 >
@@ -535,7 +536,7 @@ export function CommandMenuSearch({
                   <span className={paletteItemIconClass}>
                     <Icon name="settings-slider-hor" />
                   </span>
-                  <span className="min-w-0 truncate">
+                  <span className="kiki-cell truncate" data-col="text">
                     <HighlightedText
                       text={suggestion.label}
                       term={active?.kind === "key" ? active.prefix : term}
