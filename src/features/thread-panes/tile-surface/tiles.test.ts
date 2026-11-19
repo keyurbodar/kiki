@@ -8,8 +8,10 @@ import {
   MIN_TILE_SIZE,
   measureSplit,
   minTileSize,
+  removeTile,
   SIDE_TILE,
   setTileRatio,
+  splitTile,
   type TileNode,
   tileLeafIds,
   tileNodeAt,
@@ -175,5 +177,75 @@ describe("clampSplitRatio", () => {
 
   it("weights the ratio when the split cannot fit both minimums", () => {
     expect(clampSplitRatio(0.5, 300, 200, 100)).toBeCloseTo(2 / 3);
+  });
+});
+
+describe("splitTile", () => {
+  it("puts the new tile after the split one on the right", () => {
+    const split = splitTile(a, "a", "right", "b");
+    expect(split).toEqual({
+      kind: "split",
+      axis: "row",
+      ratio: 0.5,
+      first: a,
+      second: b,
+    });
+  });
+
+  it("puts the new tile after the split one below it", () => {
+    const split = splitTile(a, "a", "bottom", "b");
+    expect(split).toEqual({
+      kind: "split",
+      axis: "column",
+      ratio: 0.5,
+      first: a,
+      second: b,
+    });
+  });
+
+  it("puts the new tile first on the left and on top", () => {
+    const left = splitTile(a, "a", "left", "b");
+    const top = splitTile(a, "a", "top", "b");
+    expect(left.kind === "split" && left.first).toEqual(b);
+    expect(left.kind === "split" && left.second).toEqual(a);
+    expect(top.kind === "split" && top.axis).toBe("column");
+    expect(top.kind === "split" && top.first).toEqual(b);
+  });
+
+  it("splits a tile inside a nested tree and leaves the rest alone", () => {
+    const split = splitTile(nested, "b", "right", "c");
+    expect(split.kind === "split" && split.first).toEqual(main);
+    const innerSplit =
+      split.kind === "split" && split.second.kind === "split"
+        ? split.second
+        : undefined;
+    expect(innerSplit?.second.kind).toBe("split");
+    expect(tileLeafIds(split)).toEqual(["main", "a", "b", "c"]);
+  });
+
+  it("returns the same tree when the tile is not there", () => {
+    expect(splitTile(nested, "missing", "right", "c")).toBe(nested);
+  });
+});
+
+describe("removeTile", () => {
+  it("gives the whole box to the tile left beside it", () => {
+    const split: TileNode = splitTile(a, "a", "right", "b");
+    expect(removeTile(split, "b")).toEqual(a);
+    expect(removeTile(split, "a")).toEqual(b);
+  });
+
+  it("collapses only the pair the tile left, keeping deeper splits", () => {
+    const split = splitTile(nested, "b", "bottom", "c");
+    const removed = removeTile(split, "c");
+    expect(tileLeafIds(removed ?? (null as never))).toEqual(["main", "a", "b"]);
+  });
+
+  it("leaves no tile behind when the last one goes", () => {
+    expect(removeTile(a, "a")).toBeNull();
+  });
+
+  it("returns the same tree when the tile is not there", () => {
+    expect(removeTile(nested, "missing")).toBe(nested);
   });
 });

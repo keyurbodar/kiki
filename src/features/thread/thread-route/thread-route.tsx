@@ -20,6 +20,7 @@ import {
   MobileThreadScreen,
   useIsPhoneSurface,
 } from "@/features/mobile/thread";
+import { useIsNarrow } from "@/features/mobile/use-mobile";
 import { registerCommands } from "@/features/shell/keyboard";
 import { formatClarifyAnswers } from "@/features/thread/clarify-takeover";
 import { ThreadCostBadge } from "@/features/thread/cost-badge";
@@ -32,11 +33,17 @@ import {
 } from "@/features/thread/thread-view";
 import {
   closeTab,
+  DOCK_GROUP,
+  moveTab,
   openTab,
   type PaneSession,
   seedSession,
   selectTab,
+  sessionGroups,
+  setGroupRatio,
   setTabFocus,
+  splitTab,
+  tabsInGroup,
 } from "@/features/thread/thread-view/pane-session";
 import { PaneSessionContext } from "@/features/thread/thread-view/pane-session-context";
 import { tabForKey } from "@/features/thread/thread-view/thread-tabs";
@@ -54,6 +61,7 @@ import {
   type PaneTab,
   tabKey,
 } from "@/features/thread-panes/tab-strip";
+import type { SplitDirection } from "@/features/thread-panes/tab-strip/rail-menu-items";
 import {
   useMachineBrowserSession,
   useThreadMachineEntries,
@@ -205,6 +213,8 @@ export function ThreadRoute({
     [orgId, sendAnswer],
   );
   const [expanded, setExpanded] = useState(false);
+  /** Capy has one pane below `md`, so it offers no split there either. */
+  const narrow = useIsNarrow();
   const sideThreads = useSideThreads(orgId ?? "", threadId);
   const entry = findPane(pane);
   const openTabs =
@@ -219,18 +229,29 @@ export function ThreadRoute({
     (tab) => tabKey(tab) === openTabs.active,
   );
   const dockOpen = activeDock !== undefined;
+  /** The dock's panes, as the split tree lays them out. */
+  const dockGroups = sessionGroups(openTabs).map((group) => ({
+    id: group,
+    tabs: tabsInGroup(openTabs, group),
+    activeId: openTabs.activeIn[group] ?? null,
+  }));
   useEffect(() => {
     if (!dockOpen) setExpanded(false);
   }, [dockOpen]);
   const sessionPane = entry === undefined ? parseSessionPane(pane) : undefined;
   const mainEntry =
     entry !== undefined && surfaceOf(entry) === "main" ? entry : undefined;
-  const activeId = openTabs.active;
   const headerActiveId =
     mainEntry === undefined ? CHAT_TAB_ID : activeTabId(mainEntry);
   const openTabIn = (tab: PaneTab) => onSession?.(openTab(openTabs, tab));
   const selectIn = (id: string) => onSession?.(selectTab(openTabs, id));
   const closeIn = (id: string) => onSession?.(closeTab(openTabs, id));
+  const splitIn = (id: string, direction: SplitDirection) =>
+    onSession?.(splitTab(openTabs, id, direction));
+  const moveIn = (id: string, group: string) =>
+    onSession?.(moveTab(openTabs, id, group));
+  const ratioIn = (path: string, ratio: number) =>
+    onSession?.(setGroupRatio(openTabs, path, ratio));
   /** A menu pick lands in the panel when its pane lives there, and in the chat
    * column otherwise — the two strips share one menu. */
   const openInStrip = (id: string) => {
@@ -314,8 +335,9 @@ export function ThreadRoute({
           dockOpen && activeDock !== undefined ? (
             <ThreadDock
               threadId={threadId}
-              tabs={openTabs.tabs}
-              activeId={activeId}
+              groups={dockGroups}
+              tiles={openTabs.tiles}
+              home={DOCK_GROUP}
               title={title}
               menu={{
                 sideThreads,
@@ -328,19 +350,23 @@ export function ThreadRoute({
               onOpenTab={openTabIn}
               onOpenBrowser={openBrowser}
               onCloseTab={closeIn}
-              onClose={() => closeIn(openTabs.active)}
               onToggleExpand={() => setExpanded((current) => !current)}
-            >
-              <PaneContent
-                tab={activeDock}
-                threadId={threadId}
-                orgId={orgId as OrgId | undefined}
-                onFocus={() =>
-                  onSession?.(setTabFocus(openTabs, activeId, undefined))
-                }
-                rows={timeline.rows}
-              />
-            </ThreadDock>
+              onSplitTab={narrow ? undefined : splitIn}
+              onMoveTab={moveIn}
+              onRatio={ratioIn}
+              renderPane={(tab) => (
+                <PaneContent
+                  key={tabKey(tab)}
+                  tab={tab}
+                  threadId={threadId}
+                  orgId={orgId as OrgId | undefined}
+                  onFocus={() =>
+                    onSession?.(setTabFocus(openTabs, tabKey(tab), undefined))
+                  }
+                  rows={timeline.rows}
+                />
+              )}
+            />
           ) : undefined
         }
         topBar={
