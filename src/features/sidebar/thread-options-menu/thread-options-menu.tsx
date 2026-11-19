@@ -337,9 +337,6 @@ export type CaptainOptionsMenuProps = {
   onOrderChange: (order: SidebarCaptainSort) => void;
   density: SidebarDensity;
   onDensityChange: (density: SidebarDensity) => void;
-  onNewFolder?: () => void;
-  /** Set while the Captains list cannot draw folder sections: the row renders disabled with this reason instead of creating an invisible folder. */
-  newFolderDisabledReason?: string;
 };
 
 export function CaptainOptionsMenu({
@@ -347,28 +344,14 @@ export function CaptainOptionsMenu({
   onOrderChange,
   density,
   onDensityChange,
-  onNewFolder,
-  newFolderDisabledReason,
 }: CaptainOptionsMenuProps) {
+  // Capy's Captain menu also carries New folder. That row is absent here because
+  // a captains-section folder still has no readable contents: the folder board
+  // endpoint returns thread cards only, so the folder would draw empty.
   return (
     <ResponsiveMenu>
       <OptionsTrigger label="Captain options" />
       <ResponsiveMenuContent align="end" className="w-60">
-        {onNewFolder === undefined ? null : (
-          <>
-            <ResponsiveMenuItem
-              disabled={newFolderDisabledReason !== undefined}
-              title={newFolderDisabledReason}
-              onClick={() => {
-                if (newFolderDisabledReason === undefined) onNewFolder();
-              }}
-            >
-              <MenuGlyph name="folder-add-left" />
-              New folder
-            </ResponsiveMenuItem>
-            <ResponsiveMenuSeparator className={menuSeparatorClassName} />
-          </>
-        )}
         <SubMenu
           icon="sort-arrow-up-down"
           label="Sort by"
