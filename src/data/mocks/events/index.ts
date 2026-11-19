@@ -236,8 +236,11 @@ export const EventsMock = mockGroup("events", (handlers) =>
           yield* threadExists(params.jamId);
           const rows = yield* Ref.get(eventsRef);
           const jamRows = rows.filter((row) => row.jamId === params.jamId);
+          // A jam with no stored events yet still needs a 26-character id here:
+          // the row is dropped as unreadable otherwise, and the marker never lands.
+          const id = yield* mintId;
           const event = {
-            id: yield* mintId,
+            id,
             jamId: params.jamId,
             kind: "compact",
             state: "committed",
@@ -246,7 +249,7 @@ export const EventsMock = mockGroup("events", (handlers) =>
               actor: { type: "user", userId: people.alex.id },
               origin: { type: "web", userId: people.alex.id },
               summary: "Compacted the checkout retry discussion.",
-              throughEventId: jamRows.at(-1)?.id ?? "",
+              throughEventId: jamRows.at(-1)?.id ?? id,
               triggeredBy: "manual",
             },
           } as EventRowEncoded;
