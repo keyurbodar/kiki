@@ -15,10 +15,11 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   defaultThreadsPageState,
   filterThreads,
+  prStatusOptions,
   type ThreadFilters,
   type ThreadListItem,
 } from "./model";
-import { prStatusOptions, ThreadsPageView } from "./threads-page";
+import { ThreadsPageView } from "./threads-page";
 
 afterEach(cleanup);
 

@@ -8,6 +8,7 @@ import {
   threadStatusState,
 } from "@/components/thread-status";
 import { useRovingList } from "@/features/shell/keyboard";
+import { Button } from "@/primitives/button";
 import {
   CaptainAvatar as CaptainAvatarTile,
   DEFAULT_CAPTAIN_AVATAR,
@@ -17,12 +18,15 @@ import {
   ContextMenuContent,
   ContextMenuTrigger,
 } from "@/primitives/context-menu";
+import { Icon } from "@/primitives/icon";
+import { Input } from "@/primitives/input";
 import {
   PreviewCard,
   PreviewCardContent,
   PreviewCardTrigger,
 } from "@/primitives/preview-card";
 import { ScrollArea } from "@/primitives/scroll-area";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   DropLine,
   folderIdOf,
@@ -533,6 +537,18 @@ export type SidebarThreadsProps = ComponentProps<"div"> & {
   renderSectionMenu?: (section: SidebarSection) => ReactNode;
   /** Drag and drop; omitted where the list has no data layer behind the move. */
   drag?: SidebarDragController;
+  /**
+   * The inline `Filter threads` row: present while the row is open, which swaps
+   * the section's title for the field and adds its close control to the header.
+   */
+  filter?: SidebarInlineFilter;
+};
+
+export type SidebarInlineFilter = {
+  text: string;
+  onChange: (text: string) => void;
+  /** Clears the text and closes the row. */
+  onClose: () => void;
 };
 
 export function SidebarThreads({
@@ -552,6 +568,7 @@ export function SidebarThreads({
   renderSectionActions,
   renderSectionMenu,
   drag,
+  filter,
   className,
   ...props
 }: SidebarThreadsProps) {
@@ -650,10 +667,49 @@ export function SidebarThreads({
                     showCaptains && "mt-(--sidebar-section-gap)",
                   )}
                 >
-                  <span className="px-2 text-sm font-medium text-foreground select-none">
-                    Threads
-                  </span>
-                  <div className="ml-auto flex items-center">{actions}</div>
+                  {filter === undefined ? (
+                    <span className="px-2 text-sm font-medium text-foreground select-none">
+                      Threads
+                    </span>
+                  ) : (
+                    <Input
+                      // biome-ignore lint/a11y/noAutofocus: Capy focuses the row it just opened
+                      autoFocus
+                      variant="blank"
+                      size="sm"
+                      className="text-xs font-medium"
+                      icon={<Icon name="magnifying-glass" />}
+                      aria-label="Filter threads"
+                      placeholder="Filter threads"
+                      value={filter.text}
+                      onChange={(event) => filter.onChange(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Escape") filter.onClose();
+                      }}
+                    />
+                  )}
+                  <div className="ml-auto flex items-center">
+                    {filter === undefined ? null : (
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label="Close filter"
+                              onClick={filter.onClose}
+                            >
+                              <Icon name="x" />
+                            </Button>
+                          }
+                        />
+                        <TooltipContent side="bottom">
+                          Close filter
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                    {actions}
+                  </div>
                 </div>
                 <ThreadSections
                   view={view}

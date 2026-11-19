@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { defaultThreadFilters } from "@/features/threads/threads-page/model";
 import {
   buildSidebarThreadsView,
   defaultSidebarPrefs,
@@ -241,27 +242,26 @@ describe("origin filter", () => {
   });
 
   it("narrows the list to the selected origins", () => {
-    expect(ids({ filterOrigins: ["slack"] })).toEqual(["slack-thread"]);
-    expect(ids({ filterOrigins: ["slack", "web"] })).toEqual([
-      "bare-thread",
-      "slack-thread",
-      "web-thread",
-    ]);
+    expect(
+      ids({ filters: { ...defaultThreadFilters, origins: ["slack"] } }),
+    ).toEqual(["slack-thread"]);
+    expect(
+      ids({ filters: { ...defaultThreadFilters, origins: ["slack", "web"] } }),
+    ).toEqual(["bare-thread", "slack-thread", "web-thread"]);
   });
 
   it("treats a thread with no origin as a web thread", () => {
-    expect(ids({ filterOrigins: ["web"] })).toEqual([
-      "bare-thread",
-      "web-thread",
-    ]);
+    expect(
+      ids({ filters: { ...defaultThreadFilters, origins: ["web"] } }),
+    ).toEqual(["bare-thread", "web-thread"]);
   });
 
   it("carries the active filter through to the view", () => {
     expect(
       buildSidebarThreadsView(
         source({ threads }),
-        prefs({ filterOrigins: ["web"] }),
-      ).filterOrigins,
+        prefs({ filters: { ...defaultThreadFilters, origins: ["web"] } }),
+      ).filters.origins,
     ).toEqual(["web"]);
   });
 });

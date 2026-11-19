@@ -676,9 +676,33 @@ describe("thread options menu", () => {
     const filters = await screen.findByText("Filters");
     fireEvent.pointerMove(filters);
     fireEvent.click(filters);
+    const origin = await screen.findByText("Origin");
+    fireEvent.pointerMove(origin);
+    fireEvent.click(origin);
     expect(await screen.findByText("Web")).toBeTruthy();
     expect(screen.getByText("Slack")).toBeTruthy();
     expect(screen.queryByText("Linear")).toBeNull();
+  });
+
+  it("narrows the list to an origin picked in the facet", async () => {
+    await renderAt(
+      <Harness
+        sidebarSource={source([
+          thread({ id: "jam_web", title: "Add dark mode" }),
+          thread({ id: "jam_slack", title: "Fix the parser", origin: "slack" }),
+        ])}
+      />,
+    );
+    openThreadOptions();
+    fireEvent.pointerMove(await screen.findByText("Filters"));
+    fireEvent.click(screen.getByText("Filters"));
+    fireEvent.pointerMove(await screen.findByText("Origin"));
+    fireEvent.click(screen.getByText("Origin"));
+    fireEvent.click(await screen.findByText("Slack"));
+    await waitFor(() => {
+      expect(screen.queryByRole("link", { name: /Add dark mode/ })).toBeNull();
+      expect(screen.getByRole("link", { name: /Fix the parser/ })).toBeTruthy();
+    });
   });
 
   it("creates a folder through the mock API from New folder", async () => {
@@ -733,5 +757,54 @@ describe("sidebar thread list scroll area", () => {
     await renderAt(<Harness sidebarSource={source([thread()])} />);
     const list = document.querySelector("[role=list]");
     expect(list?.closest("[data-slot=scroll-area-viewport]")).not.toBeNull();
+  });
+});
+
+describe("sidebar inline filter row", () => {
+  const twoThreads = () =>
+    source([
+      thread({ id: "jam_alpha", title: "Add dark mode", createdAt: ago(1) }),
+      thread({ id: "jam_beta", title: "Fix the parser", createdAt: ago(2) }),
+    ]);
+
+  it("opens the row from Search threads and narrows the list as it is typed", async () => {
+    await renderAt(<Harness sidebarSource={twoThreads()} />);
+    expect(screen.queryByLabelText("Filter threads")).toBeNull();
+    fireEvent.click(screen.getByLabelText("Thread options"));
+    fireEvent.click(screen.getByText("Search threads"));
+    const field = await screen.findByLabelText("Filter threads");
+    fireEvent.change(field, { target: { value: "parser" } });
+    await waitFor(() => {
+      expect(screen.queryByRole("link", { name: /Add dark mode/ })).toBeNull();
+      expect(screen.getByRole("link", { name: /Fix the parser/ })).toBeTruthy();
+    });
+  });
+
+  it("clears the text and returns the full list from Close filter", async () => {
+    await renderAt(<Harness sidebarSource={twoThreads()} />);
+    fireEvent.click(screen.getByLabelText("Thread options"));
+    fireEvent.click(screen.getByText("Search threads"));
+    fireEvent.change(await screen.findByLabelText("Filter threads"), {
+      target: { value: "parser" },
+    });
+    fireEvent.click(screen.getByLabelText("Close filter"));
+    await waitFor(() => {
+      expect(screen.getByRole("link", { name: /Add dark mode/ })).toBeTruthy();
+      expect(screen.getByRole("link", { name: /Fix the parser/ })).toBeTruthy();
+      expect(screen.queryByLabelText("Filter threads")).toBeNull();
+    });
+  });
+
+  it("closes on Escape and keeps the text in the prefs it was typed into", async () => {
+    await renderAt(<Harness sidebarSource={twoThreads()} />);
+    fireEvent.click(screen.getByLabelText("Thread options"));
+    fireEvent.click(screen.getByText("Search threads"));
+    const field = await screen.findByLabelText("Filter threads");
+    fireEvent.change(field, { target: { value: "dark" } });
+    fireEvent.keyDown(field, { key: "Escape" });
+    await waitFor(() => {
+      expect(screen.queryByLabelText("Filter threads")).toBeNull();
+      expect(screen.getByRole("link", { name: /Fix the parser/ })).toBeTruthy();
+    });
   });
 });

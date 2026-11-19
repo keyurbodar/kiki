@@ -2,7 +2,7 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Glyph,
   type SidebarFolder,
@@ -10,7 +10,12 @@ import {
 } from "@/components/sidebar-threads";
 import { THREAD_DRAG_TYPE, withMoved } from "@/components/sidebar-threads/dnd";
 import { ThreadPreview } from "@/components/thread-preview";
-import type { ThreadOrigin } from "@/data/api/schemas/thread";
+import {
+  idleMemberNames,
+  memberNames,
+  membersAtom,
+} from "@/data/atoms/members";
+import { currentUserAtom } from "@/data/atoms/session";
 import {
   addToFolderAtom,
   folderBoardAtom,
@@ -30,8 +35,12 @@ import {
   useSidebarThreads,
 } from "../sidebar-threads-data";
 import { useSidebarOrgId } from "../sidebar-threads-data/live-source";
-import { CaptainOptionsMenu, ThreadOptionsMenu } from "../thread-options-menu";
-import { ThreadFiltersMenu } from "../thread-options-menu/thread-filters";
+import {
+  activeFacetCount,
+  CaptainOptionsMenu,
+  ThreadFilterFacets,
+  ThreadOptionsMenu,
+} from "../thread-options-menu";
 import { CaptainRowMenu } from "../thread-row-actions/captain-row-menu";
 import {
   type FolderMenuActions,
@@ -50,7 +59,6 @@ export type SidebarThreadsPanelProps = {
   onNewThread?: () => void;
   onNewCaptain?: () => void;
   onNewFolder?: () => void;
-  onSearch?: () => void;
   onViewAll?: () => void;
   onMarkAllRead?: () => void;
 };
@@ -86,7 +94,6 @@ export function SidebarThreadsPanel({
   onNewThread,
   onNewCaptain,
   onNewFolder,
-  onSearch,
   onViewAll,
   onMarkAllRead,
 }: SidebarThreadsPanelProps) {
@@ -98,7 +105,6 @@ export function SidebarThreadsPanel({
         onNewThread={onNewThread}
         onNewCaptain={onNewCaptain}
         onNewFolder={onNewFolder}
-        onSearch={onSearch}
         onViewAll={onViewAll}
         onMarkAllRead={onMarkAllRead}
       />
@@ -111,7 +117,6 @@ function SidebarThreadsPanelBody({
   onNewThread,
   onNewCaptain,
   onNewFolder,
-  onSearch,
   onViewAll,
   onMarkAllRead,
 }: SidebarThreadsPanelProps & { controller: SidebarThreadsController }) {
@@ -201,8 +206,37 @@ function SidebarThreadsPanelBody({
   });
   const markAllRead = onMarkAllRead ?? threadActions.markAllRead;
   const viewAll = onViewAll ?? (() => void navigate({ to: "/threads" }));
-  const onFilterOrigins = (next: ReadonlyArray<ThreadOrigin>) =>
-    sidebar.setFilterOrigins(next);
+  const filters = view.filters;
+  const [filterOpen, setFilterOpen] = useState(false);
+  const closeFilter = () => {
+    sidebar.setFilterText("");
+    setFilterOpen(false);
+  };
+  const viewerId = Option.getOrUndefined(
+    AsyncResult.value(useAtomValue(currentUserAtom)),
+  )?.id;
+  const names = memberNames(
+    Option.getOrUndefined(
+      AsyncResult.value(
+        useAtomValue(
+          orgId === undefined
+            ? idleMemberNames
+            : (membersAtom(orgId) as typeof idleMemberNames),
+        ),
+      ),
+    ),
+  );
+  const authors = [
+    ...new Set(
+      view.sections.flatMap((section) =>
+        section.threads.flatMap((thread) => thread.card?.userId ?? []),
+      ),
+    ),
+  ];
+  const members = authors.map((id) => ({
+    id,
+    label: id === viewerId ? "Me" : (names.get(id) ?? id),
+  }));
   const captainActions = (
     <>
       <HeaderButton label="New Captain" onClick={onNewCaptain} />
@@ -232,16 +266,16 @@ function SidebarThreadsPanelBody({
         onCollapseChange={sidebar.setCollapse}
         onNewFolder={newFolder}
         onMarkAllRead={markAllRead}
-        onSearch={onSearch}
-        filterCount={view.filterOrigins.length}
+        onSearch={() => setFilterOpen(true)}
+        filterCount={activeFacetCount(filters)}
         filters={
-          origins.length === 0 ? undefined : (
-            <ThreadFiltersMenu
-              origins={origins}
-              selected={view.filterOrigins}
-              onChange={onFilterOrigins}
-            />
-          )
+          <ThreadFilterFacets
+            filters={filters}
+            onChange={sidebar.setFilters}
+            origins={origins}
+            projects={Object.values(view.projects)}
+            members={members}
+          />
         }
         onViewAll={viewAll}
         hiddenFolders={view.hiddenFolders}
@@ -256,6 +290,15 @@ function SidebarThreadsPanelBody({
       view={view}
       drag={drag}
       actions={actions}
+      filter={
+        filterOpen
+          ? {
+              text: view.filterText,
+              onChange: sidebar.setFilterText,
+              onClose: closeFilter,
+            }
+          : undefined
+      }
       captainActions={captainActions}
       renderRowMenu={(thread, rowKey) => (
         <ThreadRowMenu thread={thread} renameKey={rowKey} />
