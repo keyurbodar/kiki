@@ -23,6 +23,7 @@ import {
   DialogOverlay,
   DialogTitle,
 } from "@/primitives/dialog";
+import { Input } from "@/primitives/input";
 import {
   MenuSelect,
   MenuSelectContent,
@@ -30,7 +31,6 @@ import {
   MenuSelectTrigger,
   MenuSelectValue,
 } from "@/primitives/menu-select";
-import { Input } from "@/primitives/input";
 import { toast } from "@/primitives/toaster";
 
 type Target = Pick<

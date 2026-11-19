@@ -114,8 +114,9 @@ function ProjectsDirectory({ orgId }: { readonly orgId: OrgId }) {
     useState<ProjectSettingsDirectoryEntry | null>(null);
   const [deleting, setDeleting] =
     useState<ProjectSettingsDirectoryEntry | null>(null);
-  const [owning, setOwning] =
-    useState<ProjectSettingsDirectoryEntry | null>(null);
+  const [owning, setOwning] = useState<ProjectSettingsDirectoryEntry | null>(
+    null,
+  );
 
   const offset = directory === undefined ? 0 : (directory.page - 1) * pageSize;
 
