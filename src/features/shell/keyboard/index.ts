@@ -7,6 +7,11 @@ export {
   registerCommands,
 } from "./dispatcher";
 export {
+  createRovingCommands,
+  type RovingListProps,
+  useRovingList,
+} from "./roving";
+export {
   currentBindings,
   KEYBINDS_KEY,
   readOverrides,

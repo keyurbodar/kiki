@@ -170,6 +170,7 @@ const at = {
   delivered: isoMinutesAgo(74),
   cancelledTurn: isoMinutesAgo(4),
   updateLine: isoMinutesAgo(1.99),
+  paper: isoMinutesAgo(0.5),
 };
 
 /** The ids the outline and the message versions below point at. */
@@ -394,6 +395,11 @@ const captureSide = captureVoice(
 const captureProbe = captureVoice(
   captureProbeJam,
   captureTimeline(captureProbeJam, 300, 3),
+);
+/** A side thread of the hardening plan: the panel opens it as a tab. */
+const captureSideIsolation = captureVoice(
+  "jam_capture_side_isolation",
+  captureTimeline("jam_capture_side_isolation", 88),
 );
 
 const captureHistory: ReadonlyArray<EventRowEncoded> = [
@@ -782,6 +788,28 @@ const captureHistory: ReadonlyArray<EventRowEncoded> = [
     "The plan is in `docs/pipeline-plan.md`, with shard isolation as the first cut and the retry budget beside it.",
   ),
 
+  captureSideIsolation.message(
+    "Take shard isolation first: keep one slow test from holding the release.",
+  ),
+  captureSideIsolation.reply(
+    [
+      "## Shard isolation",
+      "",
+      "Shard three is the only one that ever hangs, so the first cut is a per-test timeout inside the shard loop. The retry budget stays where it is.",
+    ].join("\n"),
+  ),
+  captureSideIsolation.call("toolu_capture_isolation_read", "read", {
+    path: "scripts/release/shard.sh",
+  }),
+  captureSideIsolation.result(
+    "toolu_capture_isolation_read",
+    "Read scripts/release/shard.sh.",
+    { path: "scripts/release/shard.sh", lines: 48 },
+  ),
+  captureSideIsolation.reply(
+    "The timeout wraps each test in the shard loop; a wedged test now fails in ninety seconds instead of holding the whole release.",
+  ),
+
   captureProbe.message(
     [
       "Trace the flaky shard timeout from last night's release and tell me whether the retry budget hid it.",
@@ -1016,7 +1044,14 @@ export const seedEvents: ReadonlyArray<EventRowEncoded> = [
       actor: user(people.alex.id),
       origin: web(people.alex.id),
       text: "The checkout test times out when the payment gateway is slow.",
-      files: [],
+      files: [
+        {
+          fileId: "file_sample_gateway_log",
+          name: "gateway-timeout.log",
+          mediaType: "text/plain",
+          sizeBytes: 258,
+        },
+      ],
       delivery: "queue",
     },
     "answered",
@@ -1384,6 +1419,20 @@ export const seedEvents: ReadonlyArray<EventRowEncoded> = [
         "",
         "I opened a follow-up thread for the explorer failures and left the snapshot change for whoever owns acme/api this week. No credentials were touched and every branch this run created was pushed before the machine slept.",
       ].join("\n"),
+      files: [],
+      delivery: "queue",
+    },
+    "answered",
+  ),
+  row(
+    checkoutJam,
+    at.paper,
+    36,
+    "message",
+    {
+      actor: user(people.alex.id),
+      origin: web(people.alex.id),
+      text: "The retry diagram is on Paper: https://app.paper.design/file/file_sample_spec",
       files: [],
       delivery: "queue",
     },

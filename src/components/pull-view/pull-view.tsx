@@ -24,14 +24,13 @@ import {
 } from "@/primitives/dialog";
 import { Icon } from "@/primitives/icon";
 import {
-  Menu,
-  MenuContent,
-  MenuItem,
-  MenuSeparator,
-  MenuSub,
-  MenuSubTrigger,
-  MenuTrigger,
-} from "@/primitives/menu";
+  ResponsiveMenu,
+  ResponsiveMenuContent,
+  ResponsiveMenuItem,
+  ResponsiveMenuSeparator,
+  ResponsiveMenuSub,
+  ResponsiveMenuTrigger,
+} from "@/primitives/responsive-menu";
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
 import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
@@ -103,7 +102,7 @@ export function ThreadMenuItem({
   onOpen: (jamId: string) => void;
 }) {
   return (
-    <MenuItem
+    <ResponsiveMenuItem
       data-track-owner={track("ThreadMenuItem:ResponsiveMenuItem.1")}
       onClick={() => onOpen(thread.id)}
     >
@@ -113,7 +112,7 @@ export function ThreadMenuItem({
       <span className="min-w-0 truncate">
         {thread.title ?? "Untitled thread"}
       </span>
-    </MenuItem>
+    </ResponsiveMenuItem>
   );
 }
 
@@ -133,8 +132,8 @@ export function PullThreadMenuItems({
       ))}
       {onChatWithCapy !== undefined && (
         <>
-          {threads.length > 0 && <MenuSeparator />}
-          <MenuItem
+          {threads.length > 0 && <ResponsiveMenuSeparator />}
+          <ResponsiveMenuItem
             data-track-owner={track(
               "PullThreadMenuItems:ResponsiveMenuItem[New thread with PR]",
             )}
@@ -144,7 +143,7 @@ export function PullThreadMenuItems({
               <PlusLargeIcon className="size-(--icon-sm)" />
             </span>
             New thread with PR
-          </MenuItem>
+          </ResponsiveMenuItem>
         </>
       )}
     </>
@@ -221,8 +220,8 @@ export function ChatWithCapyButton({
       )}
     >
       {button}
-      <Menu>
-        <MenuTrigger
+      <ResponsiveMenu>
+        <ResponsiveMenuTrigger
           data-track-owner={track("ChatWithCapyButton:ResponsiveMenuTrigger.1")}
           render={
             <Button
@@ -236,15 +235,15 @@ export function ChatWithCapyButton({
           }
         >
           <ChevronDownSmallIcon className="size-(--icon-sm)" />
-        </MenuTrigger>
-        <MenuContent className="w-64" align="end" finalFocus={false}>
+        </ResponsiveMenuTrigger>
+        <ResponsiveMenuContent className="w-64" align="end" finalFocus={false}>
           <PullThreadMenuItems
             threads={threads}
             onOpenThread={onOpenThread}
             onChatWithCapy={onChatWithCapy}
           />
-        </MenuContent>
-      </Menu>
+        </ResponsiveMenuContent>
+      </ResponsiveMenu>
     </span>
   );
 }
@@ -275,13 +274,9 @@ function MenuSubmenu({
   children: React.ReactNode;
 }) {
   return (
-    <MenuSub>
-      <MenuSubTrigger>
-        <span className={menuIconSlotClassName}>{icon}</span>
-        {label}
-      </MenuSubTrigger>
-      <MenuContent className={className}>{children}</MenuContent>
-    </MenuSub>
+    <ResponsiveMenuSub icon={icon} label={label} contentClassName={className}>
+      {children}
+    </ResponsiveMenuSub>
   );
 }
 
@@ -314,8 +309,8 @@ export function PullMenu({
       .catch(() => toast.error("GitHub refused"));
   return (
     <>
-      <Menu>
-        <MenuTrigger
+      <ResponsiveMenu>
+        <ResponsiveMenuTrigger
           data-track-owner={track("PullMenu:ResponsiveMenuTrigger.1")}
           render={
             <Button
@@ -327,9 +322,9 @@ export function PullMenu({
           }
         >
           <DotGrid1x3HorizontalIcon className="size-(--icon-sm)" />
-        </MenuTrigger>
-        <MenuContent align="end" className="w-56">
-          <MenuItem
+        </ResponsiveMenuTrigger>
+        <ResponsiveMenuContent align="end" className="w-56">
+          <ResponsiveMenuItem
             data-track-owner={track(
               "PullMenu:ResponsiveMenuItem[Open in GitHub]",
             )}
@@ -342,13 +337,13 @@ export function PullMenu({
             </span>
             Open in GitHub
             <span className={shortcutClassName}>O G</span>
-          </MenuItem>
+          </ResponsiveMenuItem>
           <MenuSubmenu
             icon={<SquareBehindSquare2Icon className="size-(--icon-sm)" />}
             label="Copy"
             className="w-48"
           >
-            <MenuItem
+            <ResponsiveMenuItem
               data-track-owner={track("PullMenu:ResponsiveMenuItem[Copy link]")}
               onClick={() => copyPullLink(pull, url)}
             >
@@ -356,8 +351,8 @@ export function PullMenu({
                 <ArrowShareRightIcon className="size-(--icon-sm)" />
               </span>
               Copy link
-            </MenuItem>
-            <MenuItem
+            </ResponsiveMenuItem>
+            <ResponsiveMenuItem
               data-track-owner={track(
                 "PullMenu:ResponsiveMenuItem[Copy link to guide]",
               )}
@@ -374,8 +369,8 @@ export function PullMenu({
                 <ArrowShareRightIcon className="size-(--icon-sm)" />
               </span>
               Copy link to guide
-            </MenuItem>
-            <MenuItem
+            </ResponsiveMenuItem>
+            <ResponsiveMenuItem
               data-track-owner={track(
                 "PullMenu:ResponsiveMenuItem[Copy GitHub link]",
               )}
@@ -391,8 +386,8 @@ export function PullMenu({
                 <Icon name="github" size="sm" />
               </span>
               Copy GitHub link
-            </MenuItem>
-            <MenuItem
+            </ResponsiveMenuItem>
+            <ResponsiveMenuItem
               data-track-owner={track(
                 "PullMenu:ResponsiveMenuItem[Copy branch name]",
               )}
@@ -404,7 +399,7 @@ export function PullMenu({
                 <BranchIcon className="size-(--icon-sm)" />
               </span>
               Copy branch name
-            </MenuItem>
+            </ResponsiveMenuItem>
           </MenuSubmenu>
           {onOpenThread !== undefined && threads.length > 0 ? (
             <MenuSubmenu
@@ -420,7 +415,7 @@ export function PullMenu({
             </MenuSubmenu>
           ) : (
             onChatWithCapy !== undefined && (
-              <MenuItem
+              <ResponsiveMenuItem
                 data-track-owner={track(
                   "PullMenu:ResponsiveMenuItem[New thread with PR]",
                 )}
@@ -430,12 +425,12 @@ export function PullMenu({
                   <Bubble2Icon className="size-(--icon-sm)" />
                 </span>
                 New thread with PR
-              </MenuItem>
+              </ResponsiveMenuItem>
             )
           )}
-          {pull.state !== "merged" && <MenuSeparator />}
+          {pull.state !== "merged" && <ResponsiveMenuSeparator />}
           {pull.state === "draft" && (
-            <MenuItem
+            <ResponsiveMenuItem
               data-track-owner={track(
                 "PullMenu:ResponsiveMenuItem[Mark ready for review]",
               )}
@@ -454,10 +449,10 @@ export function PullMenu({
                 <PullRequestIcon className="size-(--icon-sm)" />
               </span>
               Mark ready for review
-            </MenuItem>
+            </ResponsiveMenuItem>
           )}
           {open && pull.state !== "draft" && (
-            <MenuItem
+            <ResponsiveMenuItem
               data-track-owner={track(
                 "PullMenu:ResponsiveMenuItem[Convert to draft]",
               )}
@@ -476,10 +471,10 @@ export function PullMenu({
                 <DraftIcon className="size-(--icon-sm)" />
               </span>
               Convert to draft
-            </MenuItem>
+            </ResponsiveMenuItem>
           )}
           {open && (
-            <MenuItem
+            <ResponsiveMenuItem
               data-track-owner={track(
                 "PullMenu:ResponsiveMenuItem[Merge pull request]",
               )}
@@ -490,11 +485,11 @@ export function PullMenu({
                 <MergedIcon className="size-(--icon-sm)" />
               </span>
               Merge pull request
-            </MenuItem>
+            </ResponsiveMenuItem>
           )}
-          {open && <MenuSeparator />}
+          {open && <ResponsiveMenuSeparator />}
           {pull.state === "closed" ? (
-            <MenuItem
+            <ResponsiveMenuItem
               data-track-owner={track(
                 "PullMenu:ResponsiveMenuItem[Reopen pull request]",
               )}
@@ -506,10 +501,10 @@ export function PullMenu({
                 <PullRequestIcon className="size-(--icon-sm)" />
               </span>
               Reopen pull request
-            </MenuItem>
+            </ResponsiveMenuItem>
           ) : (
             pull.state !== "merged" && (
-              <MenuItem
+              <ResponsiveMenuItem
                 data-track-owner={track(
                   "PullMenu:ResponsiveMenuItem[Close pull request]",
                 )}
@@ -521,11 +516,11 @@ export function PullMenu({
                   <CrossMediumIcon className="size-(--icon-sm)" />
                 </span>
                 Close pull request
-              </MenuItem>
+              </ResponsiveMenuItem>
             )
           )}
-        </MenuContent>
-      </Menu>
+        </ResponsiveMenuContent>
+      </ResponsiveMenu>
       <ConfirmPullAction
         open={merging}
         onOpenChange={setMerging}

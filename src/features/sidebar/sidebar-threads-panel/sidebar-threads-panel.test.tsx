@@ -22,6 +22,7 @@ import type { ThreadCard } from "@/data/api/schemas/thread";
 import { threadAtom } from "@/data/atoms/jams";
 import { organizationsAtom } from "@/data/atoms/session";
 import { foldersAtom } from "@/data/atoms/threadOrganization";
+import { Toaster } from "@/primitives/toaster";
 import {
   buildSidebarThreadsView,
   defaultSidebarPrefs,
@@ -243,6 +244,28 @@ describe("sidebar row menu mutations", () => {
     });
   });
 
+  it("offers Undo on the settle toast, and takes it back", async () => {
+    const registry = await renderWithRegistry(
+      <>
+        <Harness sidebarSource={source([thread()])} />
+        <Toaster />
+      </>,
+    );
+    fireEvent.contextMenu(rowLink());
+    fireEvent.click(await screen.findByText("Settle"));
+    const undo = await screen.findByText("Undo");
+    expect(screen.getByText("Settled")).toBeTruthy();
+    fireEvent.click(undo);
+    await waitFor(() => {
+      const org = orgId(registry);
+      if (org === undefined) throw new Error("no org yet");
+      const card = Option.getOrUndefined(
+        AsyncResult.value(registry.get(threadAtom(`${org}/jam_sample_2`))),
+      );
+      expect(card?.settledAt ?? null).toBeNull();
+    });
+  });
+
   it("asks for confirmation before deleting", async () => {
     await renderWithRegistry(
       <Harness sidebarSource={source([thread({ owner: true })])} />,
@@ -344,6 +367,59 @@ describe("sidebar captain row menu", () => {
     fireEvent.contextMenu(captainRow());
     fireEvent.click(await screen.findByText("Delete"));
     expect(await screen.findByText(/deleted for everyone/)).toBeTruthy();
+  });
+});
+
+const dragData = () => ({
+  types: ["application/x-capy-thread"],
+  setData: vi.fn(),
+  setDragImage: vi.fn(),
+  effectAllowed: "",
+  dropEffect: "",
+});
+
+const folderSource = (): SidebarSource => ({
+  ...source([thread()]),
+  folders: [
+    {
+      id: "fld_release",
+      name: "Release",
+      systemKind: null,
+      threadIds: [],
+    },
+  ],
+});
+
+describe("sidebar thread drag and drop", () => {
+  it("shows the insertion line where the dragged row would land", async () => {
+    await renderAt(<Harness sidebarSource={folderSource()} />);
+    const dataTransfer = dragData();
+    fireEvent.dragStart(rowLink(), { dataTransfer });
+    const zone = document.querySelector('[data-drop-section="threads:recent"]');
+    expect(zone).not.toBeNull();
+    fireEvent.dragOver(zone as Element, { dataTransfer, clientY: 0 });
+    expect(document.querySelector("[data-drop-line]")).not.toBeNull();
+    fireEvent.dragEnd(rowLink(), { dataTransfer });
+    expect(document.querySelector("[data-drop-line]")).toBeNull();
+  });
+
+  it("opens a collapsed folder the drag rests on", async () => {
+    await renderAt(<Harness sidebarSource={folderSource()} />);
+    const heading = screen.getByRole("button", { name: /Release/ });
+    fireEvent.click(heading);
+    expect(heading.getAttribute("aria-expanded")).toBe("false");
+    const zone = document.querySelector(
+      '[data-drop-section="folder:fld_release"]',
+    );
+    const dataTransfer = dragData();
+    fireEvent.dragStart(rowLink(), { dataTransfer });
+    fireEvent.dragOver(zone as Element, { dataTransfer, clientY: 0 });
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    expect(
+      screen
+        .getByRole("button", { name: /Release/ })
+        .getAttribute("aria-expanded"),
+    ).toBe("true");
   });
 });
 

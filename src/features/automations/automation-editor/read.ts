@@ -74,6 +74,7 @@ export const readTrigger = (value: unknown): Trigger | undefined => {
     conditions: readConditions(value.conditions),
     runWhen: typeof value.runWhen === "string" ? value.runWhen : undefined,
     regex: typeof value.regex === "string" ? value.regex : undefined,
+    includeBots: value.includeBots === true ? true : undefined,
     ...(readCoalescing(value.coalescing) === undefined
       ? {}
       : { coalescing: readCoalescing(value.coalescing) }),

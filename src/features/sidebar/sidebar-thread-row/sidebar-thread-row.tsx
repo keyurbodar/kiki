@@ -2,7 +2,9 @@ import { Link } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import {
   type ComponentProps,
+  type DragEvent,
   type MouseEvent,
+  type PointerEvent,
   type ReactNode,
   useEffect,
   useRef,
@@ -47,6 +49,12 @@ export type SidebarThreadRowActions = {
   onRenameCancel?: () => void;
 };
 
+export type SidebarThreadRowDrag = {
+  dragging: boolean;
+  onDragStart: (event: DragEvent<HTMLElement>) => void;
+  onDragEnd: () => void;
+};
+
 export type SidebarThreadRowProps = ComponentProps<"div"> & {
   thread?: SidebarThread;
   project?: SidebarProject;
@@ -56,6 +64,8 @@ export type SidebarThreadRowProps = ComponentProps<"div"> & {
   preview?: ReactNode;
   /** Draws the row without its thread link, for a specimen that is not navigable. */
   decorative?: boolean;
+  /** Makes the row a drag source; omitted where a drag has nowhere to land. */
+  drag?: SidebarThreadRowDrag;
 };
 
 const stopRowNavigation = (event: MouseEvent) => {
@@ -161,6 +171,7 @@ function ThreadRowActions({
 }) {
   return (
     <span
+      data-drag-hide=""
       className={cx(
         "mask-fade-l [--mask-fade-ramp:--spacing(8)] absolute right-0 flex items-center pr-1.5 pl-9",
         slim ? "inset-y-0 rounded-r" : "top-1.5 h-5",
@@ -241,6 +252,7 @@ export function SidebarThreadRow({
   actions,
   preview,
   decorative = false,
+  drag,
   className,
   ...props
 }: SidebarThreadRowProps) {
@@ -348,6 +360,7 @@ export function SidebarThreadRow({
     slim ? "h-8 items-center" : "h-13 items-start py-1.5",
     "transition-colors duration-100 focus-visible:outline-ring-inset",
     active ? "bg-card shadow-row-open" : "group-hover/thread:bg-secondary",
+    drag?.dragging && "opacity-40",
   );
   const rowContent = slim ? (
     <>
@@ -401,10 +414,21 @@ export function SidebarThreadRow({
             <Link to="/thread/$threadId" params={{ threadId: thread.id }} />
           }
           data-slot="sidebar-thread-row"
+          data-roving-item=""
           data-thread-preview=""
           data-sidebar-target={thread.id}
           aria-current={active ? "page" : undefined}
           className={rowClassName}
+          draggable={drag !== undefined}
+          onPointerDown={
+            drag === undefined
+              ? undefined
+              : (event: PointerEvent<HTMLElement>) => {
+                  event.currentTarget.draggable = event.pointerType === "mouse";
+                }
+          }
+          onDragStart={drag?.onDragStart}
+          onDragEnd={drag?.onDragEnd}
         >
           {rowContent}
         </PreviewCardTrigger>

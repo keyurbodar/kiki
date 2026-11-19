@@ -1,20 +1,9 @@
 import { useEffect, useState } from "react";
-import {
-  usePagesAtTop,
-  useSidebarLayout,
-} from "@/components/app-sidebar/preferences";
 import { SettingsPage, SettingsSection } from "@/components/settings-page";
-import {
-  SIDEBAR_NAV_CONFIG,
-  sidebarNavPages,
-  toggleSidebarNavItem,
-  useSidebarNavPreference,
-} from "@/components/sidebar-nav-editor";
-import type { SidebarLayout } from "@/components/sidebar-threads";
+import { SidebarNavEditor } from "@/components/sidebar-nav-editor";
 import { desktopBridge } from "@/lib/desktop-bridge";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
-import { Icon } from "@/primitives/icon";
 import {
   MenuSelect,
   MenuSelectContent,
@@ -22,6 +11,11 @@ import {
   MenuSelectTrigger,
   MenuSelectValue,
 } from "@/primitives/menu-select";
+import {
+  ResponsiveMenu,
+  ResponsiveMenuContent,
+  ResponsiveMenuTrigger,
+} from "@/primitives/responsive-menu";
 import { SettingsRow } from "@/primitives/settings-row";
 import { Switch } from "@/primitives/switch";
 import { useLocalPreference } from "./local-preference";
@@ -45,7 +39,6 @@ import {
   scrollNewMessagesKey,
   searchEngineKey,
   searchEngines,
-  sidebarLayoutLabels,
 } from "./preferences";
 
 const isDesktop = () => desktopBridge() !== undefined;
@@ -99,8 +92,6 @@ export function GeneralPage() {
       <SettingsSection title="Interface">
         <Card rows>
           <SidebarPagesRow />
-          <SidebarLayoutRow />
-          <PagesAtTopRow />
           <ScrollNewMessagesRow />
         </Card>
       </SettingsSection>
@@ -151,87 +142,24 @@ export function GeneralPage() {
 }
 
 function SidebarPagesRow() {
-  const [open, setOpen] = useState(false);
-  const [entries, save] = useSidebarNavPreference();
-  return (
-    <>
-      <SettingsRow
-        id="sidebar-pages"
-        label="Sidebar pages"
-        description="Choose which pages show in the sidebar"
-      >
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Edit sidebar pages"
-          aria-expanded={open}
-          aria-controls="sidebar-pages-editor"
-          onClick={() => setOpen(!open)}
-        >
-          <Icon name="pencil" size="sm" />
-        </Button>
-      </SettingsRow>
-      {open ? (
-        <div
-          id="sidebar-pages-editor"
-          className="flex flex-col gap-1 px-4 py-2"
-        >
-          {sidebarNavPages(entries).map((page) => {
-            const { label, icon: PageIcon } = SIDEBAR_NAV_CONFIG[page.item];
-            return (
-              <div key={page.item} className="flex items-center gap-2 py-1">
-                <span className="flex size-4 shrink-0 items-center justify-center text-icon-muted">
-                  <PageIcon />
-                </span>
-                <span className="text-sm text-foreground">{label}</span>
-                <Switch
-                  className="ml-auto"
-                  checked={page.hidden !== true}
-                  onCheckedChange={() =>
-                    save(toggleSidebarNavItem(entries, page.item))
-                  }
-                  aria-label={label}
-                />
-              </div>
-            );
-          })}
-        </div>
-      ) : null}
-    </>
-  );
-}
-
-function SidebarLayoutRow() {
-  const [layout, setLayout] = useSidebarLayout();
   return (
     <SettingsRow
-      id="sidebar-layout"
-      label="Sidebar layout"
-      description="Hybrid shows Captains above threads, Split shows one at a time"
+      id="sidebar"
+      label="Sidebar"
+      description="Choose which pages show on the sidebar's bottom bar"
     >
-      <SelectControl<SidebarLayout>
-        items={sidebarLayoutLabels}
-        value={layout}
-        onValueChange={setLayout}
-        className="w-32"
-      />
-    </SettingsRow>
-  );
-}
-
-function PagesAtTopRow() {
-  const [pagesAtTop, setPagesAtTop] = usePagesAtTop();
-  return (
-    <SettingsRow
-      id="pages-at-top"
-      label="Pages at top"
-      description="List pages like Issues and Pull requests above Captains and threads"
-    >
-      <Switch
-        checked={pagesAtTop}
-        onCheckedChange={setPagesAtTop}
-        aria-label="Pages at top"
-      />
+      <ResponsiveMenu>
+        <ResponsiveMenuTrigger
+          render={
+            <Button variant="ghost" size="sm">
+              Pages
+            </Button>
+          }
+        />
+        <ResponsiveMenuContent align="end" className="w-52">
+          <SidebarNavEditor />
+        </ResponsiveMenuContent>
+      </ResponsiveMenu>
     </SettingsRow>
   );
 }

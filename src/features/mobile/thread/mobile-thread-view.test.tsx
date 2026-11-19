@@ -34,21 +34,54 @@ describe("MobileThreadView", () => {
     expect(onCloseTab).toHaveBeenCalledWith("overview");
   });
 
-  it("hides the composer on a pane tab", () => {
+  it("lays the pane over the transcript in the right panel", () => {
+    render(
+      <MobileThreadView
+        title="Sample thread"
+        sidebarTrigger={<button type="button">Open sidebar</button>}
+        tabs={tabs}
+        activeTab="overview"
+        onSelectTab={() => {}}
+        onCloseTab={() => {}}
+        pane={<div>pane body</div>}
+        composer={<div>composer</div>}
+      >
+        <div>timeline</div>
+      </MobileThreadView>,
+    );
+    const panel = document.querySelector("[data-slot=right-panel]");
+    expect(panel).not.toBeNull();
+    expect(panel?.getAttribute("data-state")).toBe("open");
+    expect(panel?.className ?? "").toContain("max-md:absolute");
+    expect(
+      document.querySelector("[data-slot=right-panel-content]")?.textContent,
+    ).toBe("pane body");
+    expect(screen.getByText("timeline")).toBeTruthy();
+    expect(screen.getByText("composer")).toBeTruthy();
+    expect(
+      document
+        .querySelector<HTMLElement>("[data-slot=right-panel-group]")
+        ?.style.getPropertyValue("--thread-pane-top"),
+    ).toMatch(/px$/);
+  });
+
+  it("mounts no panel while the chat tab is active", () => {
     render(
       <MobileThreadView
         title="Sample thread"
         sidebarTrigger={null}
         tabs={tabs}
-        activeTab="overview"
+        activeTab={CHAT_TAB}
         onSelectTab={() => {}}
         onCloseTab={() => {}}
         composer={<div>composer</div>}
       >
-        <div>pane</div>
+        <div>timeline</div>
       </MobileThreadView>,
     );
-    expect(screen.queryByText("composer")).toBeNull();
+    expect(document.querySelector("[data-slot=right-panel]")).toBeNull();
+    expect(screen.getByText("timeline")).toBeTruthy();
+    expect(screen.getByText("composer")).toBeTruthy();
   });
 });
 

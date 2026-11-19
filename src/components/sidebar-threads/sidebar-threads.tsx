@@ -7,6 +7,7 @@ import {
   ThreadStatusIcon,
   threadStatusState,
 } from "@/components/thread-status";
+import { useRovingList } from "@/features/shell/keyboard";
 import {
   CaptainAvatar as CaptainAvatarTile,
   DEFAULT_CAPTAIN_AVATAR,
@@ -22,6 +23,12 @@ import {
   PreviewCardTrigger,
 } from "@/primitives/preview-card";
 import { ScrollArea } from "@/primitives/scroll-area";
+import {
+  DropLine,
+  folderIdOf,
+  SectionDropZone,
+  type SidebarDragController,
+} from "./dnd";
 import { Glyph } from "./glyphs";
 import { SidebarRowPopups } from "./sidebar-row-popups";
 import type {
@@ -294,6 +301,7 @@ export function CaptainRow({
           render={
             <Link to="/thread/$threadId" params={{ threadId: captain.id }} />
           }
+          data-roving-item=""
           aria-label={`${captain.name}${captain.hasUnreads ? ", unread" : ""}`}
           aria-current={active ? "page" : undefined}
           className={cx(
@@ -523,6 +531,8 @@ export type SidebarThreadsProps = ComponentProps<"div"> & {
   renderSectionActions?: (section: SidebarSection) => ReactNode;
   /** The same folder menu, opened by a right-click on the header. */
   renderSectionMenu?: (section: SidebarSection) => ReactNode;
+  /** Drag and drop; omitted where the list has no data layer behind the move. */
+  drag?: SidebarDragController;
 };
 
 export function SidebarThreads({
@@ -541,9 +551,11 @@ export function SidebarThreads({
   renderCaptainMenu,
   renderSectionActions,
   renderSectionMenu,
+  drag,
   className,
   ...props
 }: SidebarThreadsProps) {
+  const roving = useRovingList();
   if (view === undefined) {
     return (
       <div
@@ -597,6 +609,7 @@ export function SidebarThreads({
         "mt-3 flex min-h-0 flex-1 flex-col [timeline-scope:--threads-scroll]",
         className,
       )}
+      {...roving}
       {...props}
     >
       <div
@@ -650,6 +663,7 @@ export function SidebarThreads({
                   onNewThread={onNewThread}
                   renderSectionActions={renderSectionActions}
                   renderSectionMenu={renderSectionMenu}
+                  drag={drag}
                 />
               </>
             ) : null}
@@ -668,6 +682,7 @@ function ThreadSections({
   onNewThread,
   renderSectionActions,
   renderSectionMenu,
+  drag,
 }: Pick<
   SidebarThreadsProps,
   | "renderThread"
@@ -676,16 +691,53 @@ function ThreadSections({
   | "onNewThread"
   | "renderSectionActions"
   | "renderSectionMenu"
+  | "drag"
 > & { view: SidebarThreadsView }) {
   const slim = view.density === "compact";
   const items: ReactNode[] = [];
   let afterRows = false;
+  const target = drag?.target ?? null;
   if (view.sections.every((section) => section.count === 0)) {
     items.push(
       <NewThreadRow key="threads:new" slim={slim} onClick={onNewThread} />,
     );
     afterRows = true;
   }
+  const rowsOfSection = (section: SidebarSection) => {
+    const threads = section.open ? section.threads : [];
+    const line = (index: number) =>
+      target?.sectionId === section.id && target.index === index
+        ? [`${section.id}:line`]
+        : [];
+    return (
+      <>
+        {threads.flatMap((thread, index) => [
+          ...line(index).map((key) => <DropLine key={key} />),
+          // biome-ignore lint/a11y/useSemanticElements: rows sit in Capy's div role=list
+          <div
+            key={`${section.id}:${thread.id}`}
+            role="listitem"
+            data-section-id={section.id}
+          >
+            {renderThread?.(thread, {
+              section,
+              density: view.density,
+              active: view.activeId === thread.id,
+            })}
+          </div>,
+        ])}
+        {line(threads.length).map((key) => (
+          <DropLine key={key} />
+        ))}
+        {section.hidden > 0 ? (
+          <GroupMoreRow
+            more={{ state: "hidden", count: section.hidden }}
+            onClick={() => onShowMore?.(section.id)}
+          />
+        ) : null}
+      </>
+    );
+  };
   for (const section of view.sections) {
     const droppable = section.kind === "folder" || section.kind === "pinned";
     if (section.count === 0 && !droppable) continue;
@@ -702,50 +754,41 @@ function ThreadSections({
       />
     );
     const menu = renderSectionMenu?.(section);
-    items.push(
-      <Fragment key={section.id}>
-        {menu === undefined || menu === null ? (
-          heading
-        ) : (
-          <ContextMenu>
-            <ContextMenuTrigger className="contents">
-              {heading}
-            </ContextMenuTrigger>
-            <ContextMenuContent className="kiki-menu">
-              {menu}
-            </ContextMenuContent>
-          </ContextMenu>
-        )}
-      </Fragment>,
-    );
+    const header =
+      menu === undefined || menu === null ? (
+        heading
+      ) : (
+        <ContextMenu>
+          <ContextMenuTrigger className="contents">
+            {heading}
+          </ContextMenuTrigger>
+          <ContextMenuContent className="kiki-menu">{menu}</ContextMenuContent>
+        </ContextMenu>
+      );
     afterRows = false;
-    if (!section.open) continue;
-    for (const thread of section.threads) {
-      afterRows = true;
-      items.push(
-        // biome-ignore lint/a11y/useSemanticElements: rows sit in Capy's div role=list
-        <div
-          key={`${section.id}:${thread.id}`}
-          role="listitem"
-          data-section-id={section.id}
+    if (section.open) afterRows = section.threads.length > 0;
+    const body = (
+      <>
+        {header}
+        {rowsOfSection(section)}
+      </>
+    );
+    items.push(
+      drag === undefined ? (
+        <Fragment key={section.id}>{body}</Fragment>
+      ) : (
+        <SectionDropZone
+          key={section.id}
+          sectionId={section.id}
+          drag={drag}
+          highlighted={
+            target?.sectionId === section.id && folderIdOf(section.id) === null
+          }
         >
-          {renderThread?.(thread, {
-            section,
-            density: view.density,
-            active: view.activeId === thread.id,
-          })}
-        </div>,
-      );
-    }
-    if (section.hidden > 0) {
-      items.push(
-        <GroupMoreRow
-          key={`${section.id}:more`}
-          more={{ state: "hidden", count: section.hidden }}
-          onClick={() => onShowMore?.(section.id)}
-        />,
-      );
-    }
+          {body}
+        </SectionDropZone>
+      ),
+    );
   }
   return items;
 }

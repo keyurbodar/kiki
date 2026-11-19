@@ -229,19 +229,28 @@ export type MenuItemProps = Omit<
   ComponentProps<typeof BaseMenu.Item>,
   "className"
 > &
-  MenuRowVariants & { className?: string };
+  MenuRowVariants & {
+    className?: string;
+    /**
+     * The shortcut this row answers while the menu is open (`menu.archive`),
+     * for the row the same action carries on the list beside it.
+     */
+    command?: string;
+  };
 
 export function MenuItem({
   density,
   interaction,
   intent,
   className,
+  command,
   ...props
 }: MenuItemProps) {
   return (
     <BaseMenu.Item
       data-slot="menu-item"
       data-intent={intentAttr(intent)}
+      data-menu-command={command}
       className={menuRowVariants({ density, interaction, intent, className })}
       {...props}
     />
