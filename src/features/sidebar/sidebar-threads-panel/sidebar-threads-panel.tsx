@@ -1,5 +1,9 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Glyph, SidebarThreads } from "@/components/sidebar-threads";
+import {
+  Glyph,
+  type SidebarFolder,
+  SidebarThreads,
+} from "@/components/sidebar-threads";
 import { ThreadPreview } from "@/components/thread-preview";
 import type { ThreadOrigin } from "@/data/api/schemas/thread";
 import { Button } from "@/primitives/button";
@@ -13,6 +17,11 @@ import {
 import { CaptainOptionsMenu, ThreadOptionsMenu } from "../thread-options-menu";
 import { ThreadFiltersMenu } from "../thread-options-menu/thread-filters";
 import { CaptainRowMenu } from "../thread-row-actions/captain-row-menu";
+import {
+  type FolderMenuActions,
+  FolderMenuItems,
+  FolderOptionsMenu,
+} from "../thread-row-actions/folder-menu";
 import {
   ThreadActionsProvider,
   useThreadActions,
@@ -102,6 +111,13 @@ function SidebarThreadsPanelBody({
     ),
   ].toSorted();
   const newFolder = onNewFolder ?? (() => threadActions.startNewFolder());
+  const folderMenu = (folder: SidebarFolder): FolderMenuActions => ({
+    onRename: () => threadActions.renameFolder(folder),
+    onShare: () => threadActions.shareFolder(folder),
+    onToggleHidden: () => threadActions.toggleFolderHidden(folder),
+    onLeave: () => threadActions.leaveFolder(folder),
+    onDelete: () => threadActions.removeFolder(folder),
+  });
   const markAllRead = onMarkAllRead ?? threadActions.markAllRead;
   const viewAll = onViewAll ?? (() => void navigate({ to: "/threads" }));
   const onFilterOrigins = (next: ReadonlyArray<ThreadOrigin>) =>
@@ -145,6 +161,10 @@ function SidebarThreadsPanelBody({
           )
         }
         onViewAll={viewAll}
+        hiddenFolders={view.hiddenFolders}
+        onShowFolder={(folder) =>
+          threadActions.toggleFolderHidden({ ...folder, hidden: true })
+        }
       />
     </>
   );
@@ -157,6 +177,24 @@ function SidebarThreadsPanelBody({
         <ThreadRowMenu thread={thread} renameKey={rowKey} />
       )}
       renderCaptainMenu={(captain) => <CaptainRowMenu captain={captain} />}
+      renderSectionActions={(section) =>
+        section.kind !== "folder" ||
+        section.folder === undefined ? undefined : (
+          <FolderOptionsMenu
+            folder={section.folder}
+            actions={folderMenu(section.folder)}
+          />
+        )
+      }
+      renderSectionMenu={(section) =>
+        section.kind !== "folder" ||
+        section.folder === undefined ? undefined : (
+          <FolderMenuItems
+            folder={section.folder}
+            actions={folderMenu(section.folder)}
+          />
+        )
+      }
       onSectionOpenChange={sidebar.setSectionOpen}
       onShowMore={sidebar.showMore}
       onNewThread={onNewThread}

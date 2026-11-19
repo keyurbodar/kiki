@@ -71,9 +71,21 @@ export type SidebarSectionKind =
   | "working"
   | "settled";
 
+export type SidebarFolder = {
+  id: string;
+  name: string;
+  visibility?: "private" | "shared";
+  viewerRole?: "owner" | "member" | "none";
+  ownerUserId?: string | null;
+  members?: ReadonlyArray<{ userId: string }>;
+  hidden?: boolean;
+};
+
 export type SidebarSection = {
   id: string;
   kind: SidebarSectionKind;
+  /** Set on folder-backed sections, whose header carries a folder menu. */
+  folder?: SidebarFolder;
   label: string;
   count: number;
   countAtRest: boolean;
@@ -96,6 +108,8 @@ export type SidebarCaptain = {
   card?: CaptainCard;
 };
 
+export type SidebarHiddenFolder = { id: string; name: string };
+
 export type SidebarThreadsView = {
   mode: SidebarMode;
   layout: SidebarLayout;
@@ -107,6 +121,8 @@ export type SidebarThreadsView = {
   /** Origins the list is narrowed to; empty means every origin. */
   filterOrigins: ReadonlyArray<ThreadOrigin>;
   sections: SidebarSection[];
+  /** Folders hidden from the list, which the thread options menu offers back. */
+  hiddenFolders: ReadonlyArray<SidebarHiddenFolder>;
   captains: SidebarCaptain[];
   projects: Record<string, SidebarProject>;
   activeId: string | null;

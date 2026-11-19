@@ -362,6 +362,28 @@
     text-align: start;
   }
 
+  /* A folder header's options button, held over the chevron's cell. */
+  .kiki-sidebar-section-actions {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  /* A bare icon trigger's own hit area. */
+  .kiki-icon-button {
+    padding: var(--icon-button-pad);
+  }
+
+  /* A divider between menu rows, bleeding to the popup's own padding. */
+  .kiki-menu-divider {
+    height: 1px;
+    margin-block: var(--row-gap-tight);
+    margin-inline: calc(var(--menu-row-px) * -1);
+    background: var(--border-1);
+  }
+
   /* A menu separator's breathing room, in one place. */
   .kiki-menu-separator {
     margin-block: var(--row-gap-tight);

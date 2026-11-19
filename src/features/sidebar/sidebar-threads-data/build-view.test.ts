@@ -101,6 +101,40 @@ describe("buildSidebarThreadsView", () => {
     expect(view.sections[1]?.threads.map((t) => t.id)).toEqual(["b"]);
   });
 
+  it("hides a hidden folder and offers it back by name", () => {
+    const view = buildSidebarThreadsView(
+      source({
+        threads: [thread("a"), thread("b")],
+        folders: [
+          {
+            id: "f1",
+            name: "Release",
+            systemKind: null,
+            threadIds: ["a"],
+            hidden: true,
+            viewerRole: "owner",
+            visibility: "shared",
+          },
+          { id: "f2", name: "Later", systemKind: null, threadIds: ["b"] },
+        ],
+      }),
+      prefs(),
+    );
+    expect(view.sections.some((section) => section.id === "folder:f1")).toBe(
+      false,
+    );
+    expect(view.hiddenFolders).toEqual([{ id: "f1", name: "Release" }]);
+    expect(view.sections.find((s) => s.id === "folder:f2")?.folder).toEqual({
+      id: "f2",
+      name: "Later",
+      visibility: undefined,
+      viewerRole: undefined,
+      ownerUserId: undefined,
+      members: undefined,
+      hidden: false,
+    });
+  });
+
   it("sorts by last active or created and limits groups until expanded", () => {
     const threads = Array.from({ length: GROUP_ROW_LIMIT + 3 }, (_, i) =>
       thread(`t${i}`, { updatedAt: hoursAgo(i), createdAt: hoursAgo(100 - i) }),

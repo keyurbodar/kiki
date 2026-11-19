@@ -93,6 +93,11 @@ describe("sidebar mapping", () => {
       name: "Release",
       systemKind: null,
       threadIds: [],
+      hidden: false,
+      visibility: "private",
+      viewerRole: "owner",
+      ownerUserId: null,
+      members: [],
     });
   });
 

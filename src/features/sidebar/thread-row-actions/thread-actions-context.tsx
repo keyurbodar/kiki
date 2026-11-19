@@ -5,7 +5,10 @@ import { createContext, type ReactNode, useContext, useState } from "react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ShareDialogProvider } from "@/components/share-dialog";
 import { useOpenShareDialog } from "@/components/share-dialog/share-dialog-context";
-import type { SidebarThread } from "@/components/sidebar-threads";
+import type {
+  SidebarFolder,
+  SidebarThread,
+} from "@/components/sidebar-threads";
 import type { JamId, OrgId, ThreadFolderId } from "@/data/api/schemas/ids";
 import type { ThreadFolder } from "@/data/api/schemas/threadOrganization";
 import {
@@ -29,15 +32,19 @@ import {
 import {
   addToFolderAtom,
   createFolderAtom,
+  deleteFolderAtom,
   foldersAtom,
+  leaveFolderAtom,
   pinThreadsAtom,
+  renameFolderAtom,
+  setFolderHiddenAtom,
   threadOrganizationKeys,
   unpinThreadsAtom,
 } from "@/data/atoms/threadOrganization";
 import { CaptainProfileDialog } from "@/features/captains/dialogs/captain-profile-dialog";
 import { toast } from "@/primitives/toaster";
 import { useSidebarOrgId } from "../sidebar-threads-data/live-source";
-import { NewFolderDialog } from "./new-folder-dialog";
+import { NewFolderDialog, RenameFolderDialog } from "./new-folder-dialog";
 
 export type ThreadFolderChoice = { id: string; name: string };
 
@@ -76,6 +83,12 @@ export type ThreadActions = {
   markAllRead: () => void;
   /** Opens the New folder dialog the header menu's first row needs. */
   startNewFolder: (section?: "threads" | "captains") => void;
+  /** The folder header's menu, in Capy's order. */
+  renameFolder: (folder: SidebarFolder) => void;
+  shareFolder: (folder: SidebarFolder) => void;
+  toggleFolderHidden: (folder: SidebarFolder) => void;
+  leaveFolder: (folder: SidebarFolder) => void;
+  removeFolder: (folder: SidebarFolder) => void;
 };
 
 const ThreadActionsContext = createContext<ThreadActions | null>(null);
@@ -154,6 +167,12 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
   const addToFolder = useAtomSet(addToFolderAtom, { mode: "promise" });
   const promote = useAtomSet(promoteThreadAtom, { mode: "promise" });
   const createFolder = useAtomSet(createFolderAtom, { mode: "promise" });
+  const renameFolder = useAtomSet(renameFolderAtom, { mode: "promise" });
+  const deleteFolder = useAtomSet(deleteFolderAtom, { mode: "promise" });
+  const setFolderHidden = useAtomSet(setFolderHiddenAtom, { mode: "promise" });
+  const leaveFolder = useAtomSet(leaveFolderAtom, { mode: "promise" });
+  const [folderRename, setFolderRename] = useState<SidebarFolder | null>(null);
+  const [folderDelete, setFolderDelete] = useState<SidebarFolder | null>(null);
   const folders = useAtomValue(
     orgId === undefined ? noFoldersAtom : foldersAtom(orgId),
   );
@@ -350,6 +369,43 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
       setRenamingKey(null);
     },
     startNewFolder: (section = "threads") => setNewFolder({ section }),
+    renameFolder: (folder) => setFolderRename(folder),
+    shareFolder: (folder) =>
+      openShare?.({
+        kind: "folder",
+        folder: {
+          id: folder.id,
+          name: folder.name,
+          visibility: folder.visibility ?? "private",
+          ownerUserId: folder.ownerUserId ?? null,
+          members: folder.members ?? [],
+        },
+      }),
+    toggleFolderHidden: (folder) => {
+      if (orgId === undefined) return;
+      const hide = folder.hidden !== true;
+      run(
+        setFolderHidden({
+          params: { orgId, folderId: folder.id as unknown as ThreadFolderId },
+          payload: { hidden: hide },
+          reactivityKeys: threadOrganizationKeys(orgId),
+        }),
+        hide ? "Folder hidden" : "Folder shown",
+        hide ? "Couldn't hide the folder" : "Couldn't show the folder",
+      );
+    },
+    leaveFolder: (folder) => {
+      if (orgId === undefined) return;
+      run(
+        leaveFolder({
+          params: { orgId, folderId: folder.id as unknown as ThreadFolderId },
+          reactivityKeys: threadOrganizationKeys(orgId),
+        }),
+        "Left the folder",
+        "Couldn't leave the folder",
+      );
+    },
+    removeFolder: (folder) => setFolderDelete(folder),
     markAllRead: () => {
       if (orgId === undefined) return;
       run(
@@ -383,6 +439,55 @@ function ThreadActionsBody({ children }: { children: ReactNode }) {
             }),
             "Folder created",
             "Couldn't create the folder",
+          );
+        }}
+      />
+      <RenameFolderDialog
+        open={folderRename !== null}
+        name={folderRename?.name ?? ""}
+        onOpenChange={(open) => {
+          if (!open) setFolderRename(null);
+        }}
+        onRename={(name) => {
+          const folder = folderRename;
+          setFolderRename(null);
+          if (folder === null || orgId === undefined) return;
+          run(
+            renameFolder({
+              params: {
+                orgId,
+                folderId: folder.id as unknown as ThreadFolderId,
+              },
+              payload: { name },
+              reactivityKeys: threadOrganizationKeys(orgId),
+            }),
+            "Folder renamed",
+            "Couldn't rename the folder",
+          );
+        }}
+      />
+      <ConfirmDialog
+        open={folderDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setFolderDelete(null);
+        }}
+        title="Delete folder"
+        description={`Threads in ${folderDelete?.name ?? "this folder"} are not deleted.`}
+        confirmLabel="Delete folder"
+        onConfirm={() => {
+          const folder = folderDelete;
+          setFolderDelete(null);
+          if (folder === null || orgId === undefined) return;
+          run(
+            deleteFolder({
+              params: {
+                orgId,
+                folderId: folder.id as unknown as ThreadFolderId,
+              },
+              reactivityKeys: threadOrganizationKeys(orgId),
+            }),
+            "Folder deleted",
+            "Couldn't delete the folder",
           );
         }}
       />
