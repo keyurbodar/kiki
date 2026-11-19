@@ -1,4 +1,4 @@
-import { Atom } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import { JamId, type OrgId } from "../api/schemas/ids.ts";
 import { ApiClient } from "../client/ApiClient.ts";
 import { queryTimeToLive } from "./conventions.ts";
@@ -133,5 +133,21 @@ export const machineSessionsAtom = (
   jamId: string,
   machineId: string,
 ) => machineSessionsQuery(`${setupKey(orgId, jamId)}/${machineId}`);
+
+/** A thread's machines, previews and sessions while the org is still resolving. */
+export const idleThreadMachinesAtom: ReturnType<typeof threadMachinesAtom> =
+  Atom.make(AsyncResult.initial(false)) as ReturnType<
+    typeof threadMachinesAtom
+  >;
+
+export const idleMachinePreviewsAtom: ReturnType<typeof machinePreviewsAtom> =
+  Atom.make(AsyncResult.initial(false)) as ReturnType<
+    typeof machinePreviewsAtom
+  >;
+
+export const idleMachineSessionsAtom: ReturnType<typeof machineSessionsAtom> =
+  Atom.make(AsyncResult.initial(false)) as ReturnType<
+    typeof machineSessionsAtom
+  >;
 
 export const rerunSetupAtom = ApiClient.mutation("machines", "rerunSetup");

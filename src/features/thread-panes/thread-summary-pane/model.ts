@@ -1,4 +1,4 @@
-import { Atom } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import type { IssueSummary } from "@/data/api/schemas/issue";
 import { queryTimeToLive, reactivityKeys } from "@/data/atoms/conventions";
 import { ApiClient } from "@/data/client/ApiClient";
@@ -38,6 +38,13 @@ const activityQuery = Atom.family((value: string) => {
 
 export const captainIssueActivityAtom = (orgId: string, jamId: string) =>
   activityQuery(key(orgId, jamId));
+
+/** The Captain's issue activity while the org is still resolving. */
+export const idleCaptainIssueActivityAtom: ReturnType<
+  typeof captainIssueActivityAtom
+> = Atom.make(AsyncResult.initial(false)) as ReturnType<
+  typeof captainIssueActivityAtom
+>;
 
 /** One issue of the "In progress" section: the issue and the thread working it. */
 export type InProgressIssue = {

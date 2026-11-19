@@ -2,7 +2,7 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useCallback, useMemo } from "react";
 import type { JamId, OrgId } from "@/data/api/schemas/ids";
-import { orgMembersAtom } from "@/data/atoms/activity";
+import { idleOrgMembersAtom, orgMembersAtom } from "@/data/atoms/activity";
 import { currentUserAtom } from "@/data/atoms/session";
 import type { Actor, EventId, MessageVersion } from "@/data/events";
 import {
@@ -82,7 +82,9 @@ export function ThreadMessageActions({
 }) {
   const user = useAtomValue(currentUserAtom);
   const viewerUserId = AsyncResult.isSuccess(user) ? user.value.id : undefined;
-  const memberResult = useAtomValue(orgMembersAtom(orgId ?? ""));
+  const memberResult = useAtomValue(
+    orgId === undefined ? idleOrgMembersAtom : orgMembersAtom(orgId),
+  );
   const byId = useMemo(
     () =>
       toMembers(

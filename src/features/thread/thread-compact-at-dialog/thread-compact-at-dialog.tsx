@@ -1,6 +1,10 @@
 import { useAtomRefresh, useAtomSet } from "@effect/atom-react";
 import { useId, useState } from "react";
-import { contextUsageAtom, jamEventKey } from "@/data/atoms/events";
+import {
+  contextUsageAtom,
+  idleContextUsageAtom,
+  jamEventKey,
+} from "@/data/atoms/events";
 import {
   setThreadCompactAtAtom,
   threadDeviceKeys,
@@ -48,7 +52,9 @@ export function ThreadCompactAtDialog({
   viewerOwnsThread = false,
   onClose,
 }: ThreadCompactAtDialogProps) {
-  const refreshContext = useAtomRefresh(contextUsageAtom(orgId ?? "", jamId));
+  const refreshContext = useAtomRefresh(
+    orgId === undefined ? idleContextUsageAtom : contextUsageAtom(orgId, jamId),
+  );
   const setThreadCompactAt = useAtomSet(setThreadCompactAtAtom, {
     mode: "promise",
   });

@@ -1,4 +1,4 @@
-import { Atom } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import { ApiClient } from "../client/ApiClient.ts";
 import { queryTimeToLive } from "./conventions.ts";
 
@@ -20,3 +20,8 @@ const paperFilesFamily = Atom.family((key: string) => {
  */
 export const paperFilesAtom = (orgId: string, jamId: string) =>
   paperFilesFamily(keyed({ orgId, jamId }));
+
+/** The Paper session's files while the org is still resolving. */
+export const idlePaperFilesAtom: ReturnType<typeof paperFilesAtom> = Atom.make(
+  AsyncResult.initial(false),
+) as ReturnType<typeof paperFilesAtom>;

@@ -187,6 +187,11 @@ export const refreshNewestAtom = Atom.family((key: string) =>
   ),
 );
 
+/** The refresh a view mounts before its org is known: there is nothing to reread. */
+export const idleRefreshNewestAtom = timelineRuntime.fn<void>()(
+  () => Effect.void,
+);
+
 /** Appends the row a send shows before the store answers it. */
 export const appendPendingAtom = Atom.family((key: string) =>
   timelineRuntime.fn<PendingMessage>()((message, get) =>

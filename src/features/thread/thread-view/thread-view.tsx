@@ -79,6 +79,7 @@ import { pendingReplyAtom, useReplyDraft } from "@/features/thread/reply-quote";
 import { createComposerCommands } from "@/features/thread/thread-route/thread-commands";
 import {
   type EditDraft,
+  idleRefreshNewestAtom,
   refreshNewestAtom,
   threadKey,
 } from "@/features/thread/timeline";
@@ -382,7 +383,9 @@ export function ThreadView({
   const orgId = handlers.orgId;
   const stopRun = useAtomSet(stopRunAtom, { mode: "promise" });
   const refreshNewest = useAtomSet(
-    refreshNewestAtom(threadKey((orgId ?? "") as OrgId, threadId as JamId)),
+    orgId === undefined
+      ? idleRefreshNewestAtom
+      : refreshNewestAtom(threadKey(orgId as OrgId, threadId as JamId)),
     { mode: "promise" },
   );
   const [stopping, setStopping] = useState(false);

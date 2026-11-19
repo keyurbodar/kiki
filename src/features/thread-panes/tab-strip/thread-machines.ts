@@ -4,6 +4,9 @@ import { useMemo } from "react";
 import type { JamId, OrgId } from "@/data/api/schemas/ids";
 import { idleAtom } from "@/data/atoms/idle";
 import {
+  idleMachinePreviewsAtom,
+  idleMachineSessionsAtom,
+  idleThreadMachinesAtom,
   machinePreviewsAtom,
   machineSessionsAtom,
   projectSetupAtom,
@@ -141,15 +144,20 @@ export function useMachineBrowserSession(
   orgId: OrgId | undefined,
   threadId: JamId,
 ): MachineBrowserSession | undefined {
-  const org = (orgId ?? "") as OrgId;
-  const machines = useAtomValue(threadMachinesAtom(org, threadId));
+  const machines = useAtomValue(
+    orgId === undefined
+      ? idleThreadMachinesAtom
+      : threadMachinesAtom(orgId, threadId),
+  );
   const firstMachineId =
     AsyncResult.isSuccess(machines) &&
     rows(machines.value, "machines").length > 0
       ? (text(record(rows(machines.value, "machines")[0]).id) ?? "")
       : "";
   const sessions = useAtomValue(
-    machineSessionsAtom(org, threadId, firstMachineId),
+    orgId === undefined
+      ? idleMachineSessionsAtom
+      : machineSessionsAtom(orgId, threadId, firstMachineId),
   );
   return useMemo(() => {
     if (orgId === undefined || !AsyncResult.isSuccess(sessions))
@@ -182,10 +190,17 @@ export function useThreadMachineEntries(
   projectId?: string | undefined,
 ): ReadonlyArray<MachineEntry> {
   // The route resolves the org from the session read, so a missing one is the
-  // pre-resolution frame; the same empty key the timeline and edit draft use.
-  const org = (orgId ?? "") as OrgId;
-  const machines = useAtomValue(threadMachinesAtom(org, threadId));
-  const previews = useAtomValue(machinePreviewsAtom(org, threadId));
+  // pre-resolution frame: there is no machine list to read until it arrives.
+  const machines = useAtomValue(
+    orgId === undefined
+      ? idleThreadMachinesAtom
+      : threadMachinesAtom(orgId, threadId),
+  );
+  const previews = useAtomValue(
+    orgId === undefined
+      ? idleMachinePreviewsAtom
+      : machinePreviewsAtom(orgId, threadId),
+  );
   // A thread holds one machine in practice, and a hook cannot run per row, so
   // the first machine's shells are the ones the menu lists.
   const firstMachineId =
@@ -194,12 +209,16 @@ export function useThreadMachineEntries(
       ? (text(record(rows(machines.value, "machines")[0]).id) ?? "")
       : "";
   const sessions = useAtomValue(
-    machineSessionsAtom(org, threadId, firstMachineId),
+    orgId === undefined
+      ? idleMachineSessionsAtom
+      : machineSessionsAtom(orgId, threadId, firstMachineId),
   );
   // A thread with no project has no setup to read, and a setup read keyed on an
-  // empty project id would subscribe to a key nothing fills.
+  // empty project or org id would subscribe to a key nothing fills.
   const setup = useAtomValue(
-    projectId === undefined ? noSetupAtom : projectSetupAtom(org, projectId),
+    projectId === undefined || orgId === undefined
+      ? noSetupAtom
+      : projectSetupAtom(orgId, projectId),
   );
   return useMemo(() => {
     if (orgId === undefined) return [];

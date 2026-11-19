@@ -1,4 +1,4 @@
-import { Atom } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import type { OrgId } from "../api/schemas/ids.ts";
 import { ApiClient } from "../client/ApiClient.ts";
 import { queryTimeToLive, reactivityKeys } from "./conventions.ts";
@@ -69,6 +69,11 @@ const captainActivityQuery = Atom.family((key: string) => {
 /** The issues a Captain's crew is working on, with the crew's activity on them. */
 export const captainIssueActivityAtom = (orgId: OrgId, jamId: string) =>
   captainActivityQuery(`${orgId}/${jamId}`);
+
+/** The org's full issue list while the org is still resolving. */
+export const idleAllIssuesAtom: ReturnType<typeof allIssuesAtom> = Atom.make(
+  AsyncResult.initial(false),
+) as ReturnType<typeof allIssuesAtom>;
 
 export const createIssueAtom = ApiClient.mutation("issues", "create");
 export const updateIssueAtom = ApiClient.mutation("issues", "update");

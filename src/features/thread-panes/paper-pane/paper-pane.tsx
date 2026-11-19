@@ -3,7 +3,7 @@ import { Exit } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useEffect, useMemo, useState } from "react";
 import type { OrgId } from "@/data/api/schemas/ids";
-import { paperFilesAtom } from "@/data/atoms/paper";
+import { idlePaperFilesAtom, paperFilesAtom } from "@/data/atoms/paper";
 import { ApiClient } from "@/data/client/ApiClient.ts";
 import { PaperView } from "@/features/thread/paper-view";
 import {
@@ -36,7 +36,9 @@ const rows = (value: unknown): ReadonlyArray<Record<string, unknown>> =>
  * before the canvas loads.
  */
 export function PaperPane({ orgId, jamId, fileId, title }: PaperPaneProps) {
-  const files = useAtomValue(paperFilesAtom(orgId ?? "", jamId));
+  const files = useAtomValue(
+    orgId === undefined ? idlePaperFilesAtom : paperFilesAtom(orgId, jamId),
+  );
   const mint = useMemo(() => ApiClient.mutation("paper", "mintPaperEmbed"), []);
   const request = useAtomSet(mint, { mode: "promiseExit" });
   const [embed, setEmbed] = useState<Embed | undefined>();

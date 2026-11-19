@@ -1,4 +1,4 @@
-import { Atom } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import { ApiClient } from "../client/ApiClient.ts";
 import { queryTimeToLive } from "./conventions.ts";
 
@@ -16,6 +16,10 @@ const contextUsageQuery = Atom.family((key: string) => {
 /** `GET events/context-usage` for one thread: the context meter's source. */
 export const contextUsageAtom = (orgId: string, jamId: string) =>
   contextUsageQuery(`${orgId}/${jamId}`);
+
+/** The context meter's read while the org is still resolving. */
+export const idleContextUsageAtom: ReturnType<typeof contextUsageAtom> =
+  Atom.make(AsyncResult.initial(false)) as ReturnType<typeof contextUsageAtom>;
 
 const messageVersionsQuery = Atom.family((key: string) => {
   const [orgId = "", jamId = "", eventId = ""] = key.split("/");
