@@ -32,7 +32,14 @@ async function renderPull(path = pullPath) {
   return router;
 }
 
-describe("/pull/keyurbodar/xin/118", () => {
+/*
+ * Each case mounts the whole route tree and waits for the pull, its checks and
+ * the sidebar to settle: 12.8-14.5s idle, 17.6s under a loaded CI runner, so
+ * the suite's 20s budget left no headroom and this file timed out on #648's
+ * first run. The file's own budget is raised rather than the global one,
+ * because these are the only cases that build the full router per test.
+ */
+describe("/pull/keyurbodar/xin/118", { timeout: 45_000 }, () => {
   it("renders the pull's title, checks and conversation", async () => {
     await renderPull();
     expect(
