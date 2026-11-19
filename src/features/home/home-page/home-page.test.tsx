@@ -114,7 +114,17 @@ describe("projectEnvironmentState", () => {
   });
 });
 
-describe("/new", () => {
+/*
+ * Each case mounts the whole route tree, the composer and the sidebar:
+ * 14.2-14.9s idle on main's sources, 14.6-18.3s with this branch's tooltip work
+ * (the first case is the cold one), and over 20s on the CI runner, where the
+ * suite's 20s budget killed the first three cases on #651's first run. The
+ * extra second is the router mount, not the tooltips: the same cases measured
+ * against unmodified sources sit in the same band. This file's budget is raised
+ * rather than the global one, because these are the only cases that build the
+ * full router per test.
+ */
+describe("/new", { timeout: 45_000 }, () => {
   it("centers the composer without the welcome once the org has projects", async () => {
     await renderHome();
     await waitFor(() => expect(composerSlot()).not.toBeNull());
