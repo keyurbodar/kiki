@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
-  isPaletteToggle,
+  createPaletteCommands,
   openTargetPath,
   viewForIntent,
 } from "./command-palette-host";
@@ -30,14 +30,13 @@ describe("command palette host", () => {
     });
   });
 
-  it("toggles on Cmd or Ctrl+K only", () => {
-    const key = (init: KeyboardEventInit) => new KeyboardEvent("keydown", init);
-    expect(isPaletteToggle(key({ key: "k", metaKey: true }))).toBe(true);
-    expect(isPaletteToggle(key({ key: "K", ctrlKey: true }))).toBe(true);
-    expect(isPaletteToggle(key({ key: "k" }))).toBe(false);
-    expect(
-      isPaletteToggle(key({ key: "k", metaKey: true, shiftKey: true })),
-    ).toBe(false);
+  it("hands the command menu toggle to the dispatcher", () => {
+    const toggle = vi.fn();
+    const commands = createPaletteCommands({ toggle });
+    commands["commandMenu.toggle"]?.(
+      new KeyboardEvent("keydown", { key: "k", ctrlKey: true }),
+    );
+    expect(toggle).toHaveBeenCalledOnce();
   });
 
   it("builds the paths rows open", () => {

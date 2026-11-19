@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { bindingGlyphs } from "@/features/settings/shortcuts-page/keybindings";
 import { findPane, keepsPaneParam } from "@/features/thread-panes/thread-pane";
-import { formatShortcut } from "./shortcut";
+import { isMacPlatform, shortcutFor } from "./shortcut";
 import {
   closeTargets,
   cycleTabId,
@@ -186,15 +187,28 @@ describe("tabLink", () => {
   });
 });
 
-describe("formatShortcut", () => {
-  it("prints mac glyphs in Capy's modifier order", () => {
-    expect(formatShortcut("mod+shift+l", true)).toBe("⇧⌘L");
-    expect(formatShortcut("ctrl+shift+`", true)).toBe("⌃⇧`");
-    expect(formatShortcut("mod+alt+shift+arrowleft", true)).toBe("⌥⇧⌘←");
+describe("shortcutFor", () => {
+  const printed = (binding: string) => {
+    const mac = isMacPlatform();
+    return (bindingGlyphs(binding, mac) ?? []).join(mac ? "" : "+");
+  };
+
+  it("prints the binding the dispatcher matches for the command", () => {
+    window.localStorage.removeItem("kiki:keybinds");
+    expect(shortcutFor("diffs.open")).toBe(printed("mod+shift+g"));
+    expect(shortcutFor("tab.close")).toBe(printed("mod+w"));
   });
 
-  it("spells modifiers out elsewhere", () => {
-    expect(formatShortcut("mod+shift+g", false)).toBe("Ctrl+Shift+G");
-    expect(formatShortcut("mod+w", false)).toBe("Ctrl+W");
+  it("follows the rebind the Shortcuts page recorded", () => {
+    window.localStorage.setItem(
+      "kiki:keybinds",
+      JSON.stringify({ "diffs.open": ["mod+shift+d"] }),
+    );
+    expect(shortcutFor("diffs.open")).toBe(printed("mod+shift+d"));
+    window.localStorage.removeItem("kiki:keybinds");
+  });
+
+  it("prints nothing for a command this build cannot run", () => {
+    expect(shortcutFor("shell.new")).toBe("");
   });
 });

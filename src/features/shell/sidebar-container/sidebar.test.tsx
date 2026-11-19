@@ -11,7 +11,6 @@ import {
   useSidebarActions,
   useSidebarState,
 } from "./sidebar-state";
-import { isSidebarToggleShortcut } from "./use-sidebar-shortcut";
 
 let actions: ReturnType<typeof useSidebarActions>;
 let state: ReturnType<typeof useSidebarState>;
@@ -129,21 +128,5 @@ describe("resize rail", () => {
     act(() => actions.setWidth(300));
     fireEvent.doubleClick(slot(container, "sidebar-rail"));
     expect(state.width).toBe(240);
-  });
-});
-
-describe("keyboard shortcut", () => {
-  it("matches mod+b only", () => {
-    const key = (init: KeyboardEventInit) => new KeyboardEvent("keydown", init);
-    expect(isSidebarToggleShortcut(key({ key: "b", metaKey: true }))).toBe(
-      true,
-    );
-    expect(isSidebarToggleShortcut(key({ key: "B", ctrlKey: true }))).toBe(
-      true,
-    );
-    expect(isSidebarToggleShortcut(key({ key: "b" }))).toBe(false);
-    expect(
-      isSidebarToggleShortcut(key({ key: "b", metaKey: true, shiftKey: true })),
-    ).toBe(false);
   });
 });

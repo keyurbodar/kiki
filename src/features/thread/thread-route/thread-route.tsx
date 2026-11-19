@@ -2,7 +2,7 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { copyText } from "@/components/file-view/copy";
 import type { EventId, JamId, OrgId } from "@/data/api/schemas/ids";
 import { automationsAtom, idleAutomationsAtom } from "@/data/atoms/automations";
@@ -20,6 +20,7 @@ import {
   MobileThreadScreen,
   useIsPhoneSurface,
 } from "@/features/mobile/thread";
+import { registerCommands } from "@/features/shell/keyboard";
 import { formatClarifyAnswers } from "@/features/thread/clarify-takeover";
 import { ThreadCostBadge } from "@/features/thread/cost-badge";
 import type { EditTarget } from "@/features/thread/message-footer";
@@ -66,6 +67,10 @@ import {
   writesPaneParam,
 } from "@/features/thread-panes/thread-pane";
 import { PaneContent } from "./pane-content";
+import {
+  createThreadCommands,
+  type ThreadCommandDeps,
+} from "./thread-commands";
 
 export type ThreadRouteProps = {
   threadId: string;
@@ -234,6 +239,23 @@ export function ThreadRoute({
     if (tab !== undefined && dock) openTabIn(tab);
     else onSelectPane?.(id);
   };
+  const paneCommandsRef = useRef<ThreadCommandDeps | null>(null);
+  paneCommandsRef.current = {
+    openPane: openInStrip,
+    closePane: () => closeIn(openTabs.active),
+    isDockOpen: () => activeDock !== undefined,
+    toggleExpanded: () => setExpanded((current) => !current),
+  };
+  useEffect(
+    () =>
+      registerCommands(
+        createThreadCommands(
+          () => paneCommandsRef.current as ThreadCommandDeps,
+        ),
+        { capture: true },
+      ),
+    [],
+  );
   const pulls = useAtomValue(
     orgId === undefined
       ? overviewPullsAtom("" as OrgId, "")

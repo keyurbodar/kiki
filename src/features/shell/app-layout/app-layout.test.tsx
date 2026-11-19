@@ -51,7 +51,8 @@ it("opens the command palette from the shell", async () => {
   const { container } = await renderAt("/pulls");
   expect(container.querySelector("[data-slot=sidebar-wrapper]")).not.toBeNull();
   expect(document.querySelector("[data-slot=command-menu]")).toBeNull();
-  fireEvent.keyDown(document, { key: "k", metaKey: true });
+  // The suite runs on a Linux platform, where Capy's `mod` is Control.
+  fireEvent.keyDown(document.body, { key: "k", ctrlKey: true });
   expect(await screen.findByRole("dialog")).toBeTruthy();
   expect(document.querySelectorAll("[data-slot=command-menu]").length).toBe(1);
 });

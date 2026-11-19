@@ -22,6 +22,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { registerCommands } from "@/features/shell/keyboard";
 import { Button } from "@/primitives/button";
 import {
   ContextMenu,
@@ -37,9 +38,12 @@ import {
 } from "@/primitives/responsive-menu";
 import { PlusGlyph } from "./glyphs";
 import { RailMenuItems, type SplitDirection } from "./rail-menu-items";
-import { matchesShortcut, SHORTCUTS } from "./shortcut";
 import { ChatTab, PaneTabButton, type TabSignals } from "./tab-button";
 import { tabIcon } from "./tab-icon";
+import {
+  createTabStripCommands,
+  type TabStripCommandDeps,
+} from "./tab-strip-commands";
 import {
   CHAT_TAB_ID,
   type PaneTab,
@@ -286,85 +290,49 @@ export function TabStrip({
   const orderKeys = railTabs.map((tab) => tab.id).join("|");
 
   // The strip prints Capy's bindings beside its menu items, so the strip is
-  // what binds them: a shortcut that only ever appears as a label is a dead
-  // control, and the label cannot drift from the handler this way.
-  useEffect(() => {
-    const closable = new Set(
-      closableKeys === "" ? [] : closableKeys.split("|"),
-    );
-    const order = orderKeys === "" ? [] : orderKeys.split("|");
-    const onKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.defaultPrevented || event.repeat || event.isComposing) return;
-      const target = event.target;
-      if (
-        target instanceof Element &&
-        target.closest("input, textarea, select, [contenteditable='true']") !==
-          null
-      ) {
-        return;
-      }
-      const select = (id: string) => {
-        if (id === CHAT_TAB_ID) chatTab?.onSelect();
-        else onSelectTab(id);
-      };
-      const step = (direction: 1 | -1) => {
-        if (order.length < 2) return;
-        const current = order.indexOf(activeId ?? CHAT_TAB_ID);
-        const next = order[(current + direction + order.length) % order.length];
-        if (next === undefined) return;
-        event.preventDefault();
-        select(next);
-      };
-      if (matchesShortcut(SHORTCUTS["tab.close"], event)) {
-        const closing = closeShortcutTarget ?? activeId ?? null;
-        if (closing === null || !closable.has(closing)) return;
-        if (onCloseTab === undefined) return;
-        event.preventDefault();
-        onCloseTab(closing);
-        return;
-      }
-      if (matchesShortcut(SHORTCUTS["tab.reopen"], event)) {
-        if (onReopenTab === undefined) return;
-        event.preventDefault();
-        onReopenTab();
-        return;
-      }
-      if (matchesShortcut(SHORTCUTS["paneTab.previous"], event)) {
-        step(-1);
-        return;
-      }
-      if (matchesShortcut(SHORTCUTS["paneTab.next"], event)) {
-        step(1);
-        return;
-      }
-      if (matchesShortcut(SHORTCUTS["browser.open"], event)) {
-        event.preventDefault();
-        onOpenBrowser();
-        return;
-      }
-      const newSideThread = menu?.onNewSideThread;
-      if (
-        newSideThread !== undefined &&
-        matchesShortcut(SHORTCUTS["sideThread.new"], event)
-      ) {
-        event.preventDefault();
-        newSideThread();
-      }
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [
-    activeId,
-    chatTab,
-    closeShortcutTarget,
-    closableKeys,
-    menu,
-    onCloseTab,
-    onOpenBrowser,
-    onReopenTab,
-    onSelectTab,
-    orderKeys,
-  ]);
+  // what binds them, through the shell dispatcher and the same 60-row table
+  // Settings prints: the label cannot drift from the handler this way.
+  const closable = new Set(closableKeys === "" ? [] : closableKeys.split("|"));
+  const order = orderKeys === "" ? [] : orderKeys.split("|");
+  const select = (id: string) => {
+    if (id === CHAT_TAB_ID) chatTab?.onSelect();
+    else onSelectTab(id);
+  };
+  const actionsRef = useRef<TabStripCommandDeps>({
+    close: () => false,
+    reopen: () => false,
+    step: () => false,
+    openBrowser: () => undefined,
+    newSideThread: () => false,
+  });
+  actionsRef.current = {
+    close: () => {
+      const closing = closeShortcutTarget ?? activeId ?? null;
+      if (closing === null || !closable.has(closing)) return false;
+      onCloseTab?.(closing);
+    },
+    reopen: () => {
+      if (onReopenTab === undefined) return false;
+      onReopenTab();
+    },
+    step: (direction) => {
+      if (order.length < 2) return false;
+      const current = order.indexOf(activeId ?? CHAT_TAB_ID);
+      const next = order[(current + direction + order.length) % order.length];
+      if (next === undefined) return false;
+      select(next);
+    },
+    openBrowser: () => onOpenBrowser(),
+    newSideThread: () => {
+      if (menu?.onNewSideThread === undefined) return false;
+      menu.onNewSideThread();
+    },
+  };
+
+  useEffect(
+    () => registerCommands(createTabStripCommands(() => actionsRef.current)),
+    [],
+  );
 
   const tabButtonProps = (tab: PaneTab) => ({
     tab,

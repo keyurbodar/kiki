@@ -1,4 +1,5 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
+import { registerCommands, shortcutGlyphText } from "@/features/shell/keyboard";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { MenuSeparator, menuRowVariants } from "@/primitives/menu";
@@ -9,6 +10,7 @@ import {
   ResponsiveMenuTrigger,
 } from "@/primitives/responsive-menu";
 import { MENU_LABEL, MENU_LEADING, MENU_TRAILING } from "./menu-surface";
+import { createPlusMenuCommands } from "./plus-menu-commands";
 import type { MentionSource } from "./types";
 
 export type PlusMenuProps = {
@@ -38,6 +40,24 @@ export function PlusMenu({
   environmentVariables,
 }: PlusMenuProps) {
   const input = useRef<HTMLInputElement>(null);
+  const attachRef = useRef(onAttach);
+  attachRef.current = onAttach;
+  // The chip this menu prints is the dispatcher's own binding, so a rebind in
+  // Settings moves both. The capture scope beats the composer editor.
+  useEffect(
+    () =>
+      registerCommands(
+        createPlusMenuCommands(() => ({
+          attach: () => {
+            if (attachRef.current === undefined) return false;
+            input.current?.click();
+          },
+        })),
+        { capture: true },
+      ),
+    [],
+  );
+  const attachLabel = attachShortcut ?? shortcutGlyphText("composer.attach");
   const staged = environmentVariables?.stagedCount ?? 0;
   return (
     <>
@@ -89,8 +109,8 @@ export function PlusMenu({
               <Icon name="paperclip-1" />
             </span>
             <span className={MENU_LABEL}>Upload attachment</span>
-            {onAttach !== undefined && attachShortcut ? (
-              <span className={MENU_TRAILING}>{attachShortcut}</span>
+            {onAttach !== undefined && attachLabel ? (
+              <span className={MENU_TRAILING}>{attachLabel}</span>
             ) : null}
           </ResponsiveMenuItem>
           {environmentVariables !== undefined ? (
