@@ -34,10 +34,11 @@
   }
 }
 
-::selection {
-  background: var(--color-primary-20);
-  color: var(--color-primary-ink);
-}
+/*
+ * Capy sets no global ::selection: text fields opt in with
+ * `selection:bg-primary-20` and everywhere else the platform's own selection
+ * shows. Only the quote highlight is global, and it is Capy's.
+ */
 
 ::highlight(selection-quote) {
   background: var(--color-primary-20);
