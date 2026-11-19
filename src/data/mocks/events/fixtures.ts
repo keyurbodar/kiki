@@ -170,6 +170,7 @@ const at = {
   delivered: isoMinutesAgo(74),
   cancelledTurn: isoMinutesAgo(4),
   updateLine: isoMinutesAgo(1.99),
+  paper: isoMinutesAgo(0.5),
 };
 
 /** The ids the outline and the message versions below point at. */
@@ -1391,6 +1392,20 @@ export const seedEvents: ReadonlyArray<EventRowEncoded> = [
         "",
         "I opened a follow-up thread for the explorer failures and left the snapshot change for whoever owns acme/api this week. No credentials were touched and every branch this run created was pushed before the machine slept.",
       ].join("\n"),
+      files: [],
+      delivery: "queue",
+    },
+    "answered",
+  ),
+  row(
+    checkoutJam,
+    at.paper,
+    36,
+    "message",
+    {
+      actor: user(people.alex.id),
+      origin: web(people.alex.id),
+      text: "The retry diagram is on Paper: https://app.paper.design/file/file_sample_spec",
       files: [],
       delivery: "queue",
     },
