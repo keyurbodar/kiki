@@ -77,12 +77,12 @@ import { Icon } from "@/primitives/icon";
 import { ICON_IDS, type IconId } from "@/primitives/icon/icon-ids";
 import { Input } from "@/primitives/input";
 import {
-  Menu,
-  MenuContent,
-  MenuItem,
-  MenuSeparator,
-  MenuTrigger,
-} from "@/primitives/menu";
+  ResponsiveMenu,
+  ResponsiveMenuContent,
+  ResponsiveMenuItem,
+  ResponsiveMenuSeparator,
+  ResponsiveMenuTrigger,
+} from "@/primitives/responsive-menu";
 import { RightPanel, RightPanelGroup } from "@/primitives/right-panel";
 import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
@@ -549,7 +549,7 @@ export function ThreadsPageView({
                     onStateChange((current) => ({ ...current, ordering }))
                   }
                 />
-                <MenuSeparator />
+                <ResponsiveMenuSeparator />
                 <DisplayToggle
                   label="Show duplicates in sections"
                   checked={state.showFiledThreads}
@@ -769,11 +769,11 @@ function ThreadsFilterMenu({
   const everyone =
     filters.participants !== null && filters.participants.length === 0;
   return (
-    <Menu>
+    <ResponsiveMenu>
       <Tooltip>
         <TooltipTrigger
           render={
-            <MenuTrigger
+            <ResponsiveMenuTrigger
               render={
                 <button
                   type="button"
@@ -786,13 +786,13 @@ function ThreadsFilterMenu({
         />
         <TooltipContent side="bottom">Filter</TooltipContent>
       </Tooltip>
-      <MenuContent align="end" className="w-56">
+      <ResponsiveMenuContent align="end" className="w-56">
         <MenuSearchInput
           placeholder="Filter threads"
           value={search.value}
           onChange={search.onChange}
         />
-        <MenuSeparator />
+        <ResponsiveMenuSeparator />
         <MenuSubmenu
           label="Participants"
           value={
@@ -804,23 +804,23 @@ function ThreadsFilterMenu({
           }
           contentClassName="w-56"
         >
-          <MenuItem
+          <ResponsiveMenuItem
             closeOnClick={false}
             onClick={() => onChange({ ...filters, participants: [] })}
           >
             <span className={menuIconSlotClassName} />
             Everyone
             {check(everyone)}
-          </MenuItem>
+          </ResponsiveMenuItem>
           {viewerId === undefined ? null : (
-            <MenuItem
+            <ResponsiveMenuItem
               closeOnClick={false}
               onClick={() => onChange({ ...filters, participants: null })}
             >
               <span className={menuIconSlotClassName} />
               Me
               {check(filters.participants === null)}
-            </MenuItem>
+            </ResponsiveMenuItem>
           )}
         </MenuSubmenu>
         <MenuSubmenu
@@ -833,7 +833,7 @@ function ThreadsFilterMenu({
           contentClassName="w-56"
         >
           {projects.map((project) => (
-            <MenuItem
+            <ResponsiveMenuItem
               key={project.id}
               closeOnClick={false}
               onClick={() =>
@@ -846,7 +846,7 @@ function ThreadsFilterMenu({
               <span className={menuIconSlotClassName} />
               {project.name}
               {check(filters.projects.includes(project.id))}
-            </MenuItem>
+            </ResponsiveMenuItem>
           ))}
         </MenuSubmenu>
         <MenuSubmenu
@@ -859,7 +859,7 @@ function ThreadsFilterMenu({
           contentClassName="kiki-menu-filter"
         >
           {members.map((member) => (
-            <MenuItem
+            <ResponsiveMenuItem
               key={member.id}
               closeOnClick={false}
               onClick={() =>
@@ -872,7 +872,7 @@ function ThreadsFilterMenu({
               <span className={menuIconSlotClassName} />
               {member.label}
               {check(filters.authors.includes(member.id))}
-            </MenuItem>
+            </ResponsiveMenuItem>
           ))}
         </MenuSubmenu>
         <MenuSubmenu
@@ -885,7 +885,7 @@ function ThreadsFilterMenu({
           contentClassName="kiki-menu-filter"
         >
           {prStatusOptions.map((option) => (
-            <MenuItem
+            <ResponsiveMenuItem
               key={option.id}
               closeOnClick={false}
               onClick={() =>
@@ -902,7 +902,7 @@ function ThreadsFilterMenu({
               </span>
               {option.label}
               {check(filters.prStates.includes(option.id))}
-            </MenuItem>
+            </ResponsiveMenuItem>
           ))}
         </MenuSubmenu>
         <DateRangeSubmenu
@@ -916,8 +916,8 @@ function ThreadsFilterMenu({
           value={filters.updated}
           onChange={(updated) => onChange({ ...filters, updated })}
         />
-        <MenuSeparator />
-        <MenuItem
+        <ResponsiveMenuSeparator />
+        <ResponsiveMenuItem
           closeOnClick={false}
           onClick={() =>
             onChange({
@@ -929,15 +929,15 @@ function ThreadsFilterMenu({
           <span className={menuIconSlotClassName} />
           Archived only
           {check(filters.archived === "only")}
-        </MenuItem>
+        </ResponsiveMenuItem>
         {clearable ? (
-          <MenuItem onClick={() => onChange(defaultThreadFilters)}>
+          <ResponsiveMenuItem onClick={() => onChange(defaultThreadFilters)}>
             <span className={menuIconSlotClassName} />
             Reset to default
-          </MenuItem>
+          </ResponsiveMenuItem>
         ) : null}
-      </MenuContent>
-    </Menu>
+      </ResponsiveMenuContent>
+    </ResponsiveMenu>
   );
 }
 

@@ -12,14 +12,14 @@ import {
 } from "@/components/view-toolbar";
 import { dateRangeLabel } from "@/components/view-toolbar/date-range";
 import { Icon } from "@/primitives/icon";
+import { MenuSearchRow } from "@/primitives/menu";
 import {
-  Menu,
-  MenuContent,
-  MenuItem,
-  MenuSearchRow,
-  MenuSeparator,
-  MenuTrigger,
-} from "@/primitives/menu";
+  ResponsiveMenu,
+  ResponsiveMenuContent,
+  ResponsiveMenuItem,
+  ResponsiveMenuSeparator,
+  ResponsiveMenuTrigger,
+} from "@/primitives/responsive-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { InitialsAvatar } from "../automations-list/automations-list";
 import {
@@ -103,7 +103,7 @@ export function OptionSearchList({
         />
       </MenuSearchRow>
       {visible.map((option) => (
-        <MenuItem
+        <ResponsiveMenuItem
           key={option.key}
           closeOnClick={false}
           onClick={() => onToggle(option.key)}
@@ -113,7 +113,7 @@ export function OptionSearchList({
           )}
           <span className="min-w-0 truncate">{option.label}</span>
           {check(option.checked)}
-        </MenuItem>
+        </ResponsiveMenuItem>
       ))}
     </>
   );
@@ -158,7 +158,7 @@ function SourceItems({
   onToggle: (type: TriggerType) => void;
 }) {
   return triggerTypes.map((type) => (
-    <MenuItem
+    <ResponsiveMenuItem
       key={type}
       data-track-owner={track("AutomationsFilterMenu:ResponsiveMenuItem.1")}
       closeOnClick={false}
@@ -169,7 +169,7 @@ function SourceItems({
       </span>
       {triggerTypeLabels[type]}
       {check(sources.includes(type))}
-    </MenuItem>
+    </ResponsiveMenuItem>
   ));
 }
 
@@ -181,7 +181,7 @@ export function StatusItems({
   onChange: (value: AutomationStatus | null) => void;
 }) {
   return (Object.keys(statusLabels) as AutomationStatus[]).map((status) => (
-    <MenuItem
+    <ResponsiveMenuItem
       key={status}
       data-track-owner={track("StatusItems:ResponsiveMenuItem.1")}
       closeOnClick={false}
@@ -189,7 +189,7 @@ export function StatusItems({
     >
       {statusLabels[status]}
       {check(value === status)}
-    </MenuItem>
+    </ResponsiveMenuItem>
   ));
 }
 
@@ -233,12 +233,12 @@ export function AutomationsFilterMenu({
   clearable,
 }: AutomationsFilterMenuProps) {
   return (
-    <Menu>
+    <ResponsiveMenu>
       <Tooltip>
         <TooltipTrigger
           data-track-owner={track("AutomationsFilterMenu:TooltipTrigger.1")}
           render={
-            <MenuTrigger
+            <ResponsiveMenuTrigger
               data-track-owner={track(
                 "AutomationsFilterMenu:ResponsiveMenuTrigger.1",
               )}
@@ -254,12 +254,12 @@ export function AutomationsFilterMenu({
               }
             >
               <Filter />
-            </MenuTrigger>
+            </ResponsiveMenuTrigger>
           }
         />
         <TooltipContent side="bottom">Filter</TooltipContent>
       </Tooltip>
-      <MenuContent align="end" className="w-56">
+      <ResponsiveMenuContent align="end" className="w-56">
         <MenuSubmenu
           icon={<Filter />}
           label="Source"
@@ -333,8 +333,8 @@ export function AutomationsFilterMenu({
         />
         {clearable ? (
           <>
-            <MenuSeparator />
-            <MenuItem
+            <ResponsiveMenuSeparator />
+            <ResponsiveMenuItem
               data-track-owner={track(
                 "AutomationsFilterMenu:ResponsiveMenuItem[Clear filters]",
               )}
@@ -345,11 +345,11 @@ export function AutomationsFilterMenu({
                 <CrossMedium />
               </span>
               Clear filters
-            </MenuItem>
+            </ResponsiveMenuItem>
           </>
         ) : null}
-      </MenuContent>
-    </Menu>
+      </ResponsiveMenuContent>
+    </ResponsiveMenu>
   );
 }
 

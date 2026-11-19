@@ -10,12 +10,11 @@ import {
 } from "@/data/api/schemas/issue";
 import { issueLabelsAtom, issueStatesAtom } from "@/data/atoms/issues";
 import { Icon } from "@/primitives/icon";
+import { MenuGroup, MenuLabel } from "@/primitives/menu";
 import {
-  MenuCheckboxItem,
-  MenuGroup,
-  MenuItem,
-  MenuLabel,
-} from "@/primitives/menu";
+  ResponsiveMenuCheckboxItem,
+  ResponsiveMenuItem,
+} from "@/primitives/responsive-menu";
 import {
   IssueLabelDot,
   IssuePriorityIcon,
@@ -151,7 +150,7 @@ export function IssueStatusOptions({
           <MenuGroup key={type}>
             <MenuLabel>{type === "open" ? "Open" : "Closed"}</MenuLabel>
             {group.map((state) => (
-              <MenuItem
+              <ResponsiveMenuItem
                 key={state.id}
                 onClick={() => state.id !== current && onPick(state.id)}
               >
@@ -163,7 +162,7 @@ export function IssueStatusOptions({
                   checked={state.id === current}
                   index={query === "" ? ordered.indexOf(state) : undefined}
                 />
-              </MenuItem>
+              </ResponsiveMenuItem>
             ))}
           </MenuGroup>
         );
@@ -192,7 +191,7 @@ export function IssuePriorityOptions({
     <>
       <PickerSearch label="Change priority" query={query} onQuery={setQuery} />
       {priorities.map((priority, index) => (
-        <MenuItem
+        <ResponsiveMenuItem
           key={priority}
           onClick={() => priority !== current && onPick(priority)}
         >
@@ -204,7 +203,7 @@ export function IssuePriorityOptions({
             checked={priority === current}
             index={query === "" ? index : undefined}
           />
-        </MenuItem>
+        </ResponsiveMenuItem>
       ))}
       {priorities.length === 0 && (
         <div className={menuEmpty}>No matching priorities</div>
@@ -234,7 +233,7 @@ export function IssueLabelOptions({
       {labels.map((label) => {
         const checked = selected.includes(label.id);
         return (
-          <MenuCheckboxItem
+          <ResponsiveMenuCheckboxItem
             key={label.id}
             checked={checked}
             closeOnClick={false}
@@ -251,7 +250,7 @@ export function IssueLabelOptions({
             </span>
             <span className="min-w-0 truncate">{label.name}</span>
             <OptionCheck checked={checked} />
-          </MenuCheckboxItem>
+          </ResponsiveMenuCheckboxItem>
         );
       })}
       {labels.length === 0 && (

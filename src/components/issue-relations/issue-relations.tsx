@@ -4,12 +4,17 @@ import { type MouseEvent, type ReactNode, useState } from "react";
 import { CircleBanGlyph } from "@/components/issue-pickers";
 import type { IssueRelationRef } from "@/data/api/schemas/issue";
 import { Badge } from "@/primitives/badge";
-import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
 import {
   PreviewCard,
   PreviewCardContent,
   PreviewCardTrigger,
 } from "@/primitives/preview-card";
+import {
+  ResponsiveMenu,
+  ResponsiveMenuContent,
+  ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
+} from "@/primitives/responsive-menu";
 
 export type IssueRelationSide = "blockedBy" | "blocking";
 
@@ -166,8 +171,8 @@ export function IssueRelationChip({
           {face}
         </PreviewCardTrigger>
       ) : (
-        <Menu open={open} onOpenChange={setOpen}>
-          <MenuTrigger
+        <ResponsiveMenu open={open} onOpenChange={setOpen}>
+          <ResponsiveMenuTrigger
             render={
               <PreviewCardTrigger
                 render={
@@ -183,14 +188,14 @@ export function IssueRelationChip({
             }
           >
             {face}
-          </MenuTrigger>
-          <MenuContent align="end" className="w-80">
+          </ResponsiveMenuTrigger>
+          <ResponsiveMenuContent align="end" className="w-80">
             {/* biome-ignore lint/a11y/noStaticElementInteractions: keeps menu clicks from reaching the list row */}
             {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard activation goes through the menu items */}
             <div onClick={(event) => event.stopPropagation()}>
               {heading("px-2 pt-1 pb-0.5")}
               {rows.map((row) => (
-                <MenuItem
+                <ResponsiveMenuItem
                   key={row.ref === undefined ? "more" : row.code}
                   onClick={(event) => openIssue(row.code, event)}
                 >
@@ -202,11 +207,11 @@ export function IssueRelationChip({
                       glyph={stateGlyph?.(row.ref)}
                     />
                   )}
-                </MenuItem>
+                </ResponsiveMenuItem>
               ))}
             </div>
-          </MenuContent>
-        </Menu>
+          </ResponsiveMenuContent>
+        </ResponsiveMenu>
       )}
       {!open && (
         <PreviewCardContent
