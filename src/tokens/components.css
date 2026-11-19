@@ -59,6 +59,14 @@
   --menu-w: 208px;
   /* A message's More menu: Capy's 224px on both the hover rail and the phone. */
   --menu-w-message: 224px;
+  /* A pull's preview menu: Capy's 384px, room for a service name over its host. */
+  --menu-w-previews: 384px;
+  /* The state mark on a preview chip's globe: the dot, its ring, and how far
+     past the corner it sits. */
+  --status-dot: 8px;
+  --status-dot-ring: 1px;
+  --status-dot-offset: 4px;
+  --status-dot-stroke: 1.5px;
   /* A message's action row: Copy and More, in flow under the body on a phone. */
   --message-actions-gap: 2px;
   --message-actions-pt: 4px;

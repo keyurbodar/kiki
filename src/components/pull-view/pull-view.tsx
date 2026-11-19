@@ -63,6 +63,7 @@ import {
   PullRequestIcon,
   SquareBehindSquare2Icon,
 } from "./icons";
+import { PreviewChip } from "./preview-chip";
 import {
   type Pull,
   type PullThreadRef,
@@ -868,6 +869,14 @@ export function PullView({
             foldEarly={current === "guide"}
           />
         )}
+        <span
+          className={cx(
+            "contents",
+            current === "guide" ? "@max-xl/pull:hidden" : "@max-md/pull:hidden",
+          )}
+        >
+          <PreviewChip orgId={orgId} pull={pull} />
+        </span>
       </div>
       <div className="flex min-h-0 flex-1">
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
