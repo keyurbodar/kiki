@@ -3,12 +3,17 @@ import { useNavigate } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import { AsyncResult } from "effect/reactivity";
 import { type ReactNode, useMemo, useState } from "react";
+import { FailedRead } from "@/components/failed-read";
 import {
   overviewPullSortAtom,
   type PullSort,
 } from "@/components/overview-section";
 import { JamId, type OrgId } from "@/data/api/schemas/ids";
-import { archiveJamsAtom } from "@/data/atoms/captains";
+import {
+  archiveJamsAtom,
+  captainsAtom,
+  idleCaptainsAtom,
+} from "@/data/atoms/captains";
 import { reactivityKeys } from "@/data/atoms/conventions";
 import { jamEventKey, sendMessageAtom } from "@/data/atoms/events";
 import { allIssuesAtom } from "@/data/atoms/issues";
@@ -166,7 +171,8 @@ function SummarySection({
 }: {
   sectionId: string;
   label: string;
-  count: number;
+  /** Omitted when the surface does not know the count — a failed read is not zero. */
+  count?: number;
   action?: ReactNode;
   children: ReactNode;
 }) {
@@ -184,9 +190,11 @@ function SummarySection({
           className="h-full flex-1 gap-1.5 px-2 text-sm"
         >
           <span className="text-foreground">{label}</span>
-          <span className="font-normal text-muted-foreground-3 tabular-nums">
-            {count}
-          </span>
+          {count === undefined ? null : (
+            <span className="font-normal text-muted-foreground-3 tabular-nums">
+              {count}
+            </span>
+          )}
           <Icon
             name="chevron-down-small"
             size="sm"
@@ -210,6 +218,9 @@ export type ThreadSummaryRows = {
 };
 
 export type ThreadSummaryBodyProps = ThreadSummaryRows & {
+  /** The crew read failed, so no thread rows are known — not that there are none. */
+  threadsFailed?: boolean;
+  onRetryThreads?: () => void;
   now: number;
   sort: PullSort;
   onSort: (sort: PullSort) => void;
@@ -229,6 +240,8 @@ export type ThreadSummaryBodyProps = ThreadSummaryRows & {
 export function ThreadSummaryBody({
   inProgress,
   threads,
+  threadsFailed = false,
+  onRetryThreads,
   subagents,
   pulls,
   now,
@@ -262,51 +275,62 @@ export function ThreadSummaryBody({
           ))}
         </SummarySection>
       )}
-      {threads.length === 0 ? null : (
+      {threads.length === 0 && !threadsFailed ? null : (
         <SummarySection
           sectionId="threads"
           label="Threads"
-          count={threads.length}
+          count={threadsFailed ? undefined : threads.length}
         >
-          {threads.map((thread) => (
-            <SummaryRow
-              key={thread.id}
-              slot="thread-summary-thread-row"
-              title={thread.title ?? "Untitled thread"}
-              meta={crewMeta(thread, now)}
-              tone={threadTone(thread.status)}
-              unread={thread.unread}
-              onClick={() => onOpenThread(thread)}
-              menu={
-                <ContextMenuContent className="w-60">
-                  <MenuItem onClick={() => onOpenThread(thread)}>
-                    <span className={menuIcon}>
-                      <Icon name="arrow-corner-up-right" size="sm" />
-                    </span>
-                    Open as its own thread
-                  </MenuItem>
-                  <MenuItem onClick={() => onMessageThread(thread)}>
-                    <span className={menuIcon}>
-                      <Icon name="bubble-text" size="sm" />
-                    </span>
-                    Message thread
-                  </MenuItem>
-                  <MenuItem onClick={() => onRemoveThread(thread)}>
-                    <span className={menuIcon}>
-                      <Icon name="user-remove" size="sm" />
-                    </span>
-                    Remove from crew
-                  </MenuItem>
-                  <MenuItem onClick={() => onArchiveThread(thread)}>
-                    <span className={menuIcon}>
-                      <Icon name="mailbox" size="sm" />
-                    </span>
-                    Archive thread
-                  </MenuItem>
-                </ContextMenuContent>
-              }
+          {threadsFailed ? (
+            // A crew that could not load must not read as a thread with no
+            // crew: the section stays, and says what failed, with its retry.
+            <FailedRead
+              slot="thread-summary-crew-failed"
+              line="Couldn't load this thread's crew"
+              sub="Its crew did not load"
+              onRetry={onRetryThreads}
             />
-          ))}
+          ) : (
+            threads.map((thread) => (
+              <SummaryRow
+                key={thread.id}
+                slot="thread-summary-thread-row"
+                title={thread.title ?? "Untitled thread"}
+                meta={crewMeta(thread, now)}
+                tone={threadTone(thread.status)}
+                unread={thread.unread}
+                onClick={() => onOpenThread(thread)}
+                menu={
+                  <ContextMenuContent className="w-60">
+                    <MenuItem onClick={() => onOpenThread(thread)}>
+                      <span className={menuIcon}>
+                        <Icon name="arrow-corner-up-right" size="sm" />
+                      </span>
+                      Open as its own thread
+                    </MenuItem>
+                    <MenuItem onClick={() => onMessageThread(thread)}>
+                      <span className={menuIcon}>
+                        <Icon name="bubble-text" size="sm" />
+                      </span>
+                      Message thread
+                    </MenuItem>
+                    <MenuItem onClick={() => onRemoveThread(thread)}>
+                      <span className={menuIcon}>
+                        <Icon name="user-remove" size="sm" />
+                      </span>
+                      Remove from crew
+                    </MenuItem>
+                    <MenuItem onClick={() => onArchiveThread(thread)}>
+                      <span className={menuIcon}>
+                        <Icon name="mailbox" size="sm" />
+                      </span>
+                      Archive thread
+                    </MenuItem>
+                  </ContextMenuContent>
+                }
+              />
+            ))
+          )}
         </SummarySection>
       )}
       {subagents.length === 0 ? null : (
@@ -380,7 +404,19 @@ export function ThreadSummaryPane({ threadId }: PaneProps) {
     overviewPullsAtom(orgId ?? ("" as never), threadId),
   );
   const issuesResult = useAtomValue(allIssuesAtom(orgId ?? ("" as never)));
-  const { crew } = useCaptainCrew(orgId, threadId);
+  const captainsResult = useAtomValue(
+    orgId === undefined ? idleCaptainsAtom : captainsAtom(orgId),
+  );
+  // Only a Captain has a crew to read: asking for one on any other thread is a
+  // request that can only answer 404, which would paint a false failure.
+  const isCaptain =
+    AsyncResult.isSuccess(captainsResult) &&
+    captainsResult.value.some((card) => card.id === threadId);
+  const {
+    crew,
+    failed: crewFailed,
+    retry: retryCrew,
+  } = useCaptainCrew(orgId, threadId, isCaptain);
   const activityResult = useAtomValue(
     captainIssueActivityAtom(orgId ?? "", threadId),
   );
@@ -433,6 +469,8 @@ export function ThreadSummaryPane({ threadId }: PaneProps) {
         <ScrollAreaViewport className="min-h-0 flex-1">
           <ThreadSummaryBody
             {...rows}
+            threadsFailed={crewFailed}
+            onRetryThreads={retryCrew}
             now={now}
             sort={sort}
             onSort={setSort}

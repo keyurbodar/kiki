@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import type { ComponentProps, MouseEvent, ReactNode } from "react";
 import { useState } from "react";
+import { FailedRead } from "@/components/failed-read";
 import {
   openUnlessModified,
   PullPreview,
@@ -56,6 +57,9 @@ export type ThreadPreviewProps = Omit<ComponentProps<"div">, "children"> & {
   members?: readonly ReactNode[];
   asks?: readonly PreviewAsk[];
   crew?: readonly PreviewCrewMember[];
+  /** The crew read failed, so `crew` is empty because nothing loaded. */
+  crewFailed?: boolean;
+  onRetryCrew?: () => void;
   issues?: readonly PreviewIssue[];
   tasks?: readonly PreviewTask[];
   multirepo?: boolean;
@@ -128,6 +132,8 @@ export function ThreadPreview({
   members,
   asks,
   crew = [],
+  crewFailed = false,
+  onRetryCrew,
   issues = [],
   tasks = [],
   multirepo = false,
@@ -289,6 +295,15 @@ export function ThreadPreview({
               />
             )}
           </>
+        )}
+        {crewFailed && (
+          // An empty crew from a failed read is not a Captain without threads.
+          <FailedRead
+            slot="captain-preview-crew-failed"
+            line="Couldn't load this Captain's crew"
+            sub="Its crew did not load"
+            onRetry={onRetryCrew}
+          />
         )}
         {quietCrew.length > 0 && (
           <>
