@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import {
   DueDatePicker,
   isOverdue,
@@ -26,7 +26,7 @@ import {
   User,
   UserEdit,
 } from "@/components/issue-parts";
-import type { OrgId } from "@/data/api/schemas/ids";
+import { JamId, type OrgId } from "@/data/api/schemas/ids";
 import {
   type IssueActor,
   type IssueDetail,
@@ -58,6 +58,12 @@ import {
   MenuLabel,
   MenuTrigger,
 } from "@/primitives/menu";
+import {
+  SortableHandle,
+  SortableList,
+  SortableRowProvider,
+  useSortableRow,
+} from "@/primitives/sortable-list";
 import { useIssueViewContext } from "./context";
 import {
   LinkMenu,
@@ -65,6 +71,7 @@ import {
   relationLabels,
   UnlinkButton,
 } from "./link-menus";
+import { ThreadActionsMenu } from "./thread-actions-menu";
 import type { IssueActions } from "./use-issue";
 
 const refLink = cx(issuePropertyValue, "min-w-0");
@@ -206,45 +213,152 @@ function PullValueRow({
 
 function ThreadValueRow({
   thread,
+  owner,
+  sortable,
+  onNudge,
+  onMakeOwner,
   onUnlink,
 }: {
   thread: IssueThreadLink;
+  owner: boolean;
+  sortable: boolean;
+  onNudge: (delta: number) => void;
+  onMakeOwner: () => void;
   onUnlink: () => void;
 }) {
   const { openThread } = useIssueViewContext();
+  const { row, nodeProps } = useSortableRow(thread.jamId, !sortable);
   return (
-    <span
-      data-thread-row
-      className="group/row group/link relative flex min-w-0 max-w-full items-center gap-1"
-    >
-      <Link
-        to="/thread/$threadId"
-        params={{ threadId: thread.jamId }}
-        className={refLink}
-        onClick={(event) => {
-          if (openThread?.(thread.jamId) === true) event.preventDefault();
-        }}
+    <SortableRowProvider row={row}>
+      <span
+        {...nodeProps}
+        data-thread-row
+        className={cx(
+          "group/row group/link relative flex min-w-0 max-w-full items-center gap-1",
+          nodeProps.className,
+        )}
       >
-        <span className={issuePropertyGlyph}>
-          <Bubble className="size-(--icon-xs) text-icon-muted" />
-        </span>
-        <span className="min-w-0 truncate">{thread.title}</span>
-        {!thread.captain && thread.code !== null && (
-          <span className="shrink-0 font-normal text-muted-foreground-2">
-            {thread.code}
+        {sortable && (
+          <span className="kiki-thread-handle-slot">
+            <SortableHandle
+              box="gutter"
+              label={thread.code ?? thread.title}
+              title="Drag or Alt ↑ ↓ to reorder"
+              onKeyDown={(event) => {
+                if (!event.altKey) return;
+                if (event.key !== "ArrowUp" && event.key !== "ArrowDown") {
+                  return;
+                }
+                event.preventDefault();
+                onNudge(event.key === "ArrowUp" ? -1 : 1);
+              }}
+            />
           </span>
         )}
-      </Link>
-      {thread.owner === true && (
-        <span
-          role="img"
-          aria-label="Owner: woken by updates"
-          title="Owner: woken by updates"
-          className="size-1.5 shrink-0 rounded-full bg-success"
+        <Link
+          to="/thread/$threadId"
+          params={{ threadId: thread.jamId }}
+          className={refLink}
+          onClick={(event) => {
+            if (openThread?.(thread.jamId) === true) event.preventDefault();
+          }}
+        >
+          <span className={issuePropertyGlyph}>
+            <Bubble className="size-(--icon-xs) text-icon-muted" />
+          </span>
+          <span className="min-w-0 truncate">{thread.title}</span>
+          {!thread.captain && thread.code !== null && (
+            <span className="shrink-0 font-normal text-muted-foreground-2">
+              {thread.code}
+            </span>
+          )}
+        </Link>
+        {owner && (
+          <span
+            role="img"
+            aria-label="Owner: woken by updates"
+            title="Owner: woken by updates"
+            className="size-1.5 shrink-0 rounded-full bg-success"
+          />
+        )}
+        {sortable ? (
+          <ThreadActionsMenu
+            label={thread.code ?? thread.title}
+            canMakeOwner={!owner}
+            onMakeOwner={onMakeOwner}
+            onUnlink={onUnlink}
+          />
+        ) : (
+          <UnlinkButton label="Unlink thread" onClick={onUnlink} />
+        )}
+      </span>
+    </SortableRowProvider>
+  );
+}
+
+type PendingOrder = {
+  readonly from: string;
+  readonly ids: ReadonlyArray<JamId>;
+};
+
+/**
+ * An issue's linked threads, reorderable once there are two: the handle writes
+ * the new order, and the row's menu makes a thread the issue's first one. The
+ * dot marks the thread whose owner is woken by updates, and follows the first
+ * row while a reorder is in flight, as Capy's does.
+ */
+function ThreadRows({
+  threads,
+  onReorder,
+  onUnlink,
+}: {
+  threads: ReadonlyArray<IssueThreadLink>;
+  onReorder: (order: ReadonlyArray<JamId>) => Promise<boolean>;
+  onUnlink: (jamId: JamId) => void;
+}) {
+  const [pending, setPending] = useState<PendingOrder | null>(null);
+  const ids = threads.map((thread) => thread.jamId);
+  const joined = ids.join();
+  useEffect(() => {
+    if (pending !== null && pending.ids.join() === joined) setPending(null);
+  }, [pending, joined]);
+  const applied = pending !== null && pending.from === joined;
+  const order = applied ? pending.ids : ids;
+  const byId = new Map(threads.map((thread) => [thread.jamId, thread]));
+  const rows = order.flatMap((jamId) => byId.get(jamId) ?? []);
+  const firstIsOwner = threads[0]?.owner === true;
+  const commit = (next: ReadonlyArray<string>) => {
+    const kept = next.flatMap((jamId) =>
+      threads.some((thread) => thread.jamId === jamId)
+        ? [JamId.make(jamId)]
+        : [],
+    );
+    setPending({ from: joined, ids: kept });
+    void onReorder(kept).then((landed) => {
+      if (!landed) setPending(null);
+    });
+  };
+  const nudge = (jamId: JamId, to: number) => {
+    if (to < 0 || to >= order.length || order.indexOf(jamId) === to) return;
+    const rest = order.filter((id) => id !== jamId);
+    commit([...rest.slice(0, to), jamId, ...rest.slice(to)]);
+  };
+  if (rows.length === 0) return null;
+  const sortable = rows.length > 1;
+  return (
+    <SortableList ids={order} onReorder={commit} className="kiki-thread-rows">
+      {rows.map((thread, index) => (
+        <ThreadValueRow
+          key={thread.jamId}
+          thread={thread}
+          owner={applied ? firstIsOwner && index === 0 : thread.owner === true}
+          sortable={sortable}
+          onNudge={(delta) => nudge(thread.jamId, index + delta)}
+          onMakeOwner={() => nudge(thread.jamId, 0)}
+          onUnlink={() => onUnlink(thread.jamId)}
         />
-      )}
-      <UnlinkButton label="Unlink thread" onClick={onUnlink} />
-    </span>
+      ))}
+    </SortableList>
   );
 }
 
@@ -289,7 +403,7 @@ function RelationList({
   const relations = detail.relations ?? [];
   const hidden = relations.length - shown;
   return (
-    <span className="flex min-w-0 flex-col items-start gap-0.5">
+    <span className="kiki-property-values">
       <RelationRows
         orgId={orgId}
         items={relations.slice(0, shown)}
@@ -589,7 +703,7 @@ export function PropertyRows({
         icon={<PullRequest />}
         label={detail.pulls.length > 1 ? "Pull requests" : "Pull request"}
       >
-        <span className="flex min-w-0 flex-col items-start gap-0.5">
+        <span className="kiki-property-values">
           {detail.pulls
             .filter((pull) => !closedPulls.includes(pull))
             .map(pullRow)}
@@ -632,17 +746,16 @@ export function PropertyRows({
           />
         </span>
       </IssuePropertyRow>
-      <IssuePropertyRow icon={<Bubble />} label="Threads">
-        <span className="flex min-w-0 flex-col items-start gap-0.5">
-          {detail.threads.map((thread) => (
-            <ThreadValueRow
-              key={thread.jamId}
-              thread={thread}
-              onUnlink={() =>
-                void actions.unlink({ kind: "thread", jamId: thread.jamId })
-              }
-            />
-          ))}
+      <IssuePropertyRow
+        icon={<Bubble />}
+        label={detail.threads.length > 1 ? "Threads" : "Thread"}
+      >
+        <span className="kiki-property-values">
+          <ThreadRows
+            threads={detail.threads}
+            onReorder={actions.reorder}
+            onUnlink={(jamId) => void actions.unlink({ kind: "thread", jamId })}
+          />
           <LinkMenu
             label="Link thread"
             placeholder="Thread code like FRO-12"

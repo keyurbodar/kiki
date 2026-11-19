@@ -172,6 +172,7 @@ export const JamsMock = mockGroup("jams", (handlers) =>
       threadTagAssignments,
       threadFolderItems,
       captains,
+      threadAccess,
     } = yield* MockDb;
     const threads = yield* Ref.make<ReadonlyArray<ThreadCard>>(sampleThreads);
 
@@ -254,10 +255,7 @@ export const JamsMock = mockGroup("jams", (handlers) =>
           }),
       );
     };
-    const access = yield* Ref.make<ReadonlyArray<ThreadAccess>>([
-      ...sampleThreadAccess,
-      ...sampleCaptainAccess,
-    ]);
+    const access = threadAccess;
     const accessRequests =
       yield* Ref.make<ReadonlyArray<(typeof sampleAccessRequests)[number]>>(
         sampleAccessRequests,

@@ -92,6 +92,41 @@ describe("issues mock", () => {
     }),
   );
 
+  it.effect(
+    "marks a linked thread whose owner is the viewer, and reorders them",
+    () =>
+      Effect.gen(function* () {
+        const registry = AtomRegistry.make();
+        const atom = issueAtom(orgId, "ACME-4");
+        registry.mount(atom);
+        const before = yield* AtomRegistry.getResult(registry, atom);
+        assert.deepStrictEqual(
+          before.threads.map((thread) => [thread.title, thread.owner]),
+          [
+            ["Paginate the orders endpoint", true],
+            ["Rate limit the public search API", false],
+          ],
+        );
+
+        const reversed = [...before.threads]
+          .reverse()
+          .map((thread) => thread.jamId);
+        registry.set(updateIssueAtom, {
+          params: { orgId, code: "ACME-4" },
+          payload: { threadOrder: reversed },
+          reactivityKeys: keys("ACME-4"),
+        });
+        yield* AtomRegistry.getResult(registry, updateIssueAtom);
+        const after = yield* AtomRegistry.getResult(registry, atom, {
+          suspendOnWaiting: true,
+        });
+        assert.deepStrictEqual(
+          after.threads.map((thread) => thread.jamId),
+          reversed,
+        );
+      }),
+  );
+
   it.effect("links a pull request by repo and number", () =>
     Effect.gen(function* () {
       const registry = AtomRegistry.make();

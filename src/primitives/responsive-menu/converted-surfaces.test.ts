@@ -16,6 +16,7 @@ import { describe, expect, it } from "vitest";
 const converted = [
   "src/components/actor-filter/actor-filter.tsx",
   "src/components/issue-relations/issue-relations.tsx",
+  "src/components/issue-view/thread-actions-menu.tsx",
   "src/components/issues-filters/issues-filters.tsx",
   "src/components/issues-list/issues-list.tsx",
   "src/components/issues-toolbar/issues-toolbar.tsx",

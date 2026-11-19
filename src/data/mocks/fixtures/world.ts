@@ -685,7 +685,7 @@ export const issues = [
   issue(4, "Pick a default page size for orders", "ist_sample_todo", {
     projectId: projects.api.id,
     assigneeId: people.alex.id,
-    threadIds: [threads.paginate.id],
+    threadIds: [threads.paginate.id, threads.rateLimit.id],
     updatedMinutesAgo: 90,
   }),
   issue(5, "Search API rate limit", "ist_sample_in_progress", {
