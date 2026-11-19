@@ -1,5 +1,5 @@
 import { useAtomValue } from "@effect/atom-react";
-import { AsyncResult } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import type { OrgId } from "@/data/api/schemas/ids";
 import type { Project } from "@/data/api/schemas/project";
 import { projectsAtom } from "@/data/atoms/projects";
@@ -14,10 +14,17 @@ import {
 
 export type PickedProject = { id: string; name: string };
 
+/** The org's projects while the org is still resolving. */
+const idleProjects = Atom.make(AsyncResult.initial(false)) as ReturnType<
+  typeof projectsAtom
+>;
+
 export function useProjects(
   orgId: string | undefined,
 ): ReadonlyArray<PickedProject> {
-  const result = useAtomValue(projectsAtom((orgId ?? "") as OrgId));
+  const result = useAtomValue(
+    orgId === undefined ? idleProjects : projectsAtom(orgId as OrgId),
+  );
   if (orgId === undefined || !AsyncResult.isSuccess(result)) return [];
   return result.value.map((project) => ({
     id: project.id,
@@ -29,7 +36,9 @@ export function useProjects(
 export function useOrgProjects(
   orgId: string | undefined,
 ): ReadonlyArray<Project> {
-  const result = useAtomValue(projectsAtom((orgId ?? "") as OrgId));
+  const result = useAtomValue(
+    orgId === undefined ? idleProjects : projectsAtom(orgId as OrgId),
+  );
   if (orgId === undefined || !AsyncResult.isSuccess(result)) return [];
   return result.value;
 }

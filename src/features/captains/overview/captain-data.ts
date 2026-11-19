@@ -1,4 +1,4 @@
-import { Atom } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import type { DriveEntry, DriveVolume } from "@/components/drive-file-pane";
 import { JamId, OrgId } from "@/data/api/schemas/ids";
 import { queryTimeToLive } from "@/data/atoms/conventions";
@@ -237,6 +237,14 @@ export const captainCrewAtom = (orgId: string, jamId: string) =>
 export const captainDriveAtom = (orgId: string, jamId: string) =>
   driveQuery(key(orgId, jamId));
 export const captainDriveKey = (jamId: string) => `captain-drive:${jamId}`;
+
+/** A Captain and the drive it owns, while the org is still resolving. */
+export const idleCaptainAtom: ReturnType<typeof captainAtom> = Atom.make(
+  AsyncResult.initial(false),
+) as ReturnType<typeof captainAtom>;
+
+export const idleCaptainDriveAtom: ReturnType<typeof captainDriveAtom> =
+  Atom.make(AsyncResult.initial(false)) as ReturnType<typeof captainDriveAtom>;
 
 export const updateCaptainAtom = ApiClient.mutation("captains", "update");
 export const leaveCrewAtom = ApiClient.mutation("captains", "leaveCrew");

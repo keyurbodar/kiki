@@ -1,7 +1,7 @@
 import { useAtomRefresh, useAtomSet } from "@effect/atom-react";
 import { Atom } from "effect/reactivity";
 import { type ListingKind, listingKey } from "@/data/api/schemas/explore";
-import { orgListingsAtom } from "@/data/atoms/explore";
+import { idleOrgListingsAtom, orgListingsAtom } from "@/data/atoms/explore";
 
 export type AddedListing = {
   kind: ListingKind;
@@ -36,7 +36,9 @@ export const recordAdded = (
 
 export function useRecordAdded(orgId: string | undefined) {
   const setRecent = useAtomSet(recentlyAddedAtom);
-  const refreshIndex = useAtomRefresh(orgListingsAtom(orgId ?? ""));
+  const refreshIndex = useAtomRefresh(
+    orgId === undefined ? idleOrgListingsAtom : orgListingsAtom(orgId),
+  );
   return (listings: ReadonlyArray<AddedListing>) => {
     if (orgId === undefined) return;
     setRecent((recent) => recordAdded(recent, orgId, listings));
