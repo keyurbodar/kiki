@@ -1,5 +1,10 @@
 import type { LocalPull } from "@/features/thread/local-pull-rows";
-import type { OverviewPull, OverviewTask, OverviewThreadStatus } from "./model";
+import type {
+  OverviewPort,
+  OverviewPull,
+  OverviewTask,
+  OverviewThreadStatus,
+} from "./model";
 
 type Row = Record<string, unknown>;
 
@@ -84,6 +89,19 @@ const PULL_STATES = [
   "failed",
   "closed",
 ] as const;
+
+/** One exposed port, from a `machines.listServicePreviews` row. */
+export function parsePort(row: Row): OverviewPort | undefined {
+  const machineId = text(row.machineId);
+  const port = num(row.port);
+  if (machineId === "" || !Number.isInteger(port) || port <= 0)
+    return undefined;
+  return {
+    machineId,
+    port,
+    title: text(row.title) || text(row.label) || `Port ${port}`,
+  };
+}
 
 export function parsePull(row: Row): OverviewPull | undefined {
   const url = text(row.url);

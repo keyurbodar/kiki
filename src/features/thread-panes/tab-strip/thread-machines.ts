@@ -9,6 +9,7 @@ import {
   projectSetupAtom,
   threadMachinesAtom,
 } from "@/data/atoms/setup";
+import type { PaneTab } from "./tabs";
 import type {
   CommandEntry,
   MachineEntry,
@@ -81,12 +82,25 @@ const servicesOf = (
     const label = text(preview.label);
     if (label === null || text(preview.machineId) !== machineId) return [];
     const running = text(preview.status) === "running";
+    const port = Number(text(preview.port));
     return [
       {
         name: label,
         repository,
         statusLabel: running ? "Running" : "Stopped",
         statusColor: running ? "success" : "neutral",
+        // A row without its tab opened an empty panel: the menu listed the
+        // service and the press did nothing. The port is what names it.
+        ...(Number.isInteger(port) && port > 0
+          ? {
+              tab: {
+                kind: "service_preview",
+                machineId,
+                port,
+                title: label,
+              } satisfies PaneTab,
+            }
+          : {}),
       },
     ];
   });

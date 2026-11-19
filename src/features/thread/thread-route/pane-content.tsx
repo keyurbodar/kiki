@@ -6,6 +6,7 @@ import { overviewPullsAtom } from "@/data/atoms/overview";
 import { BrowserPane } from "@/features/thread-panes/browser-pane";
 import { MachinePathView } from "@/features/thread-panes/machine-path-view";
 import { parsePull, valueList } from "@/features/thread-panes/overview/parse";
+import { ServicePreviewPane } from "@/features/thread-panes/service-preview-pane";
 import type { PaneTab } from "@/features/thread-panes/tab-strip";
 import { findPane } from "@/features/thread-panes/thread-pane";
 
@@ -84,6 +85,16 @@ export function PaneContent({
         <Suspense fallback={null}>
           <BrowserPane threadId={threadId} sessionId={tab.id} url={tab.url} />
         </Suspense>
+      );
+    case "service_preview":
+      return (
+        <ServicePreviewPane
+          orgId={orgId}
+          jamId={threadId}
+          machineId={tab.machineId}
+          port={tab.port}
+          title={tab.title}
+        />
       );
     default: {
       const entry = findPane(tab.kind);
