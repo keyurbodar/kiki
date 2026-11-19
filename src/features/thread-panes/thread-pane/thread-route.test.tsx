@@ -214,3 +214,99 @@ describe("side threads in the open-a-tab menu", () => {
     expect(page?.textContent).toContain("Stub the payment gateway in CI");
   });
 });
+
+describe("dock groups", () => {
+  /** The dock's own plus menu: the header strip offers one too. */
+  const openTabsMenu = async () => {
+    const buttons = await screen.findAllByRole(
+      "button",
+      { name: "Open a tab" },
+      { timeout: 3000 },
+    );
+    fireEvent.click(buttons[buttons.length - 1] as HTMLElement);
+  };
+
+  const rightClickTab = (key: string) => {
+    const tab = document.querySelector(`[data-pane-tab="${key}"]`);
+    expect(tab).not.toBeNull();
+    fireEvent.contextMenu(tab as Element, { button: 2 });
+  };
+
+  const groupCount = () =>
+    document.querySelectorAll("[data-tile-group]").length;
+  const dividerCount = () =>
+    document.querySelectorAll("[data-slot=tile-divider]").length;
+
+  it("splits the dock into two panes from the tab's own menu", async () => {
+    await renderThread("pane=overview");
+    await openTabsMenu();
+    fireEvent.click(
+      await screen.findByText("Setup", undefined, { timeout: 3000 }),
+    );
+    await waitFor(() => expect(groupCount()).toBe(1));
+
+    rightClickTab("setup");
+    fireEvent.click(
+      await screen.findByText("Split right", undefined, { timeout: 3000 }),
+    );
+
+    await waitFor(() => expect(groupCount()).toBe(2));
+    expect(dividerCount()).toBe(1);
+    expect(
+      document.querySelectorAll("[data-slot=thread-dock-header]"),
+    ).toHaveLength(2);
+    expect(
+      document.querySelectorAll("[data-pane-tab]").length,
+    ).toBeGreaterThanOrEqual(2);
+  });
+
+  it("keeps the split across a pane change inside the same thread", async () => {
+    const router = await renderThread("pane=overview");
+    await openTabsMenu();
+    fireEvent.click(
+      await screen.findByText("Setup", undefined, { timeout: 3000 }),
+    );
+    rightClickTab("setup");
+    fireEvent.click(
+      await screen.findByText("Split right", undefined, { timeout: 3000 }),
+    );
+    await waitFor(() => expect(groupCount()).toBe(2));
+
+    await router.navigate({
+      to: "/thread/$threadId",
+      params: { threadId: "jam_sample_0001" },
+      search: { pane: "overview" },
+    });
+
+    await waitFor(() =>
+      expect(router.state.location.search).toEqual({ pane: "overview" }),
+    );
+    expect(groupCount()).toBe(2);
+    expect(dividerCount()).toBe(1);
+  });
+
+  it("closes one of the two panes and gives the survivor the whole dock", async () => {
+    await renderThread("pane=overview");
+    await openTabsMenu();
+    fireEvent.click(
+      await screen.findByText("Setup", undefined, { timeout: 3000 }),
+    );
+    rightClickTab("setup");
+    fireEvent.click(
+      await screen.findByText("Split right", undefined, { timeout: 3000 }),
+    );
+    await waitFor(() => expect(groupCount()).toBe(2));
+
+    const leaves = [
+      ...document.querySelectorAll<HTMLElement>("[data-tile-leaf]"),
+    ];
+    const pane = leaves[leaves.length - 1];
+    if (pane === undefined) throw new Error("the split has no second pane");
+    fireEvent.click(pane.querySelector('[aria-label="Close pane"]') as Element);
+
+    await waitFor(() => expect(groupCount()).toBe(1));
+    expect(dividerCount()).toBe(0);
+    const survivor = document.querySelector<HTMLElement>("[data-tile-leaf]");
+    expect(survivor?.style.width).toBe("100%");
+  });
+});

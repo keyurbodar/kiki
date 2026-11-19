@@ -90,12 +90,40 @@ export type TabStripProps = ComponentProps<"div"> & {
   onPinTab?: (id: string) => void;
   onReorderTab?: (id: string, before: string | undefined) => void;
   onSplitTab?: (id: string, direction: SplitDirection) => void;
+  /** The dock group this strip shows, so a tab dragged to another one moves. */
+  group?: string;
+  onDropTab?: (id: string, group: string) => void;
   onOpenTab?: (tab: PaneTab) => void;
   onOpenBrowser?: () => void;
   onAutoCloseChange?: (autoClose: boolean) => void;
 };
 
 const noop = () => {};
+
+/**
+ * The dock group under the pointer at the moment a tab is let go. A drag inside
+ * one strip only sees that strip's own tabs as drop targets, so a tab dragged
+ * into a neighbouring pane finds its group by hit-testing the panes instead.
+ */
+function groupAtDropPoint(event: DragEndEvent): string | undefined {
+  if (!(event.activatorEvent instanceof MouseEvent)) return undefined;
+  const x = event.activatorEvent.clientX + event.delta.x;
+  const y = event.activatorEvent.clientY + event.delta.y;
+  for (const pane of document.querySelectorAll<HTMLElement>(
+    "[data-tile-group]",
+  )) {
+    const rect = pane.getBoundingClientRect();
+    if (
+      x >= rect.left &&
+      x <= rect.right &&
+      y >= rect.top &&
+      y <= rect.bottom
+    ) {
+      return pane.dataset.tileGroup;
+    }
+  }
+  return undefined;
+}
 
 /** Opens the strip's context menu from the keyboard (Menu key, Shift+F10). */
 function openContextMenuFromKeyboard(event: KeyboardEvent<HTMLDivElement>) {
@@ -257,6 +285,8 @@ export function TabStrip({
   onPinTab,
   onReorderTab,
   onSplitTab,
+  group,
+  onDropTab,
   onOpenTab = noop,
   onOpenBrowser = noop,
   onAutoCloseChange = noop,
@@ -352,8 +382,14 @@ export function TabStrip({
     setDraggingId(String(event.active.id));
   const onDragEnd = (event: DragEndEvent) => {
     setDraggingId(null);
-    if (event.over === null) return;
     const id = String(event.active.id);
+    const dropped =
+      onDropTab === undefined ? undefined : groupAtDropPoint(event);
+    if (dropped !== undefined && dropped !== group) {
+      onDropTab?.(id, dropped);
+      return;
+    }
+    if (event.over === null) return;
     const before = reorderBefore(ids, id, String(event.over.id));
     if (before !== null) onReorderTab?.(id, before);
   };

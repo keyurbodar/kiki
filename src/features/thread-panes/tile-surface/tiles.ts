@@ -1,5 +1,8 @@
 export type TileAxis = "row" | "column";
 
+/** Where a split puts the new tile, as Capy's four drop zones name it. */
+export type TileDirection = "left" | "right" | "top" | "bottom";
+
 export type TileNode =
   | { kind: "group"; id: string }
   | {
@@ -193,6 +196,53 @@ export const tileRatioVars = (node: TileNode, path = ""): [string, number][] =>
         ...tileRatioVars(node.first, `${path}0`),
         ...tileRatioVars(node.second, `${path}1`),
       ];
+
+/**
+ * Splits the tile `id` in two, putting a new tile `newId` on `direction`'s
+ * side at `ratio`, as Capy does: the split is a row for a side-by-side pair and
+ * a column for a stacked one, and the split tile keeps its own subtree.
+ */
+export const splitTile = (
+  node: TileNode,
+  id: string,
+  direction: TileDirection,
+  newId: string,
+  ratio = 0.5,
+): TileNode => {
+  if (node.kind === "split") {
+    const first = splitTile(node.first, id, direction, newId, ratio);
+    const second = splitTile(node.second, id, direction, newId, ratio);
+    return first === node.first && second === node.second
+      ? node
+      : { ...node, first, second };
+  }
+  if (node.id !== id) return node;
+  const fresh: TileNode = { kind: "group", id: newId };
+  const before = direction === "left" || direction === "top";
+  return {
+    kind: "split",
+    axis: direction === "left" || direction === "right" ? "row" : "column",
+    ratio,
+    first: before ? fresh : node,
+    second: before ? node : fresh,
+  };
+};
+
+/**
+ * Drops a tile out of the tree. A split left with one side collapses into that
+ * side, so the tile that shared it takes the whole box; the last tile leaves
+ * `null`.
+ */
+export const removeTile = (node: TileNode, id: string): TileNode | null => {
+  if (node.kind === "group") return node.id === id ? null : node;
+  const first = removeTile(node.first, id);
+  const second = removeTile(node.second, id);
+  if (first === null) return second;
+  if (second === null) return first;
+  return first === node.first && second === node.second
+    ? node
+    : { ...node, first, second };
+};
 
 export const tileNodeAt = (node: TileNode, path: string): TileNode =>
   path === "" || node.kind === "group"

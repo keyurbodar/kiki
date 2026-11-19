@@ -230,6 +230,8 @@ export type TileGroupProps = {
   id: string;
   /** The group's tab strip. */
   strip?: ReactNode;
+  /** The `data-slot` the dock marks its own bar with. */
+  stripSlot?: string;
   /** Actions after the strip (expand, close). */
   trailing?: ReactNode;
   onFocus?: (id: string) => void;
@@ -240,6 +242,7 @@ export type TileGroupProps = {
 export function TileGroup({
   id,
   strip,
+  stripSlot,
   trailing,
   onFocus,
   children,
@@ -251,7 +254,10 @@ export function TileGroup({
       onPointerDownCapture={() => onFocus?.(id)}
       onFocusCapture={() => onFocus?.(id)}
     >
-      <div className="flex min-h-11 shrink-0 items-center gap-1 border-b-hairline border-border-1 px-2">
+      <div
+        data-slot={stripSlot}
+        className="flex min-h-11 shrink-0 items-center gap-1 border-b-hairline border-border-1 px-2"
+      >
         {strip}
         {trailing}
       </div>
