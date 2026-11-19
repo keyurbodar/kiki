@@ -278,6 +278,8 @@ export type ResponsiveMenuItemProps = Omit<
   Pick<MenuRowVariants, "intent" | "density"> & {
     className?: string;
     render?: ReactElement;
+    /** The shortcut this row answers while the menu is open. */
+    command?: string;
   };
 
 export function ResponsiveMenuItem({
@@ -287,6 +289,7 @@ export function ResponsiveMenuItem({
   density,
   disabled,
   closeOnClick = true,
+  command,
   onClick,
   onKeyDown,
   onPointerEnter,
@@ -309,6 +312,7 @@ export function ResponsiveMenuItem({
       onPointerLeave,
       "data-slot": "responsive-menu-item",
       "data-intent": intent === "danger" ? "danger" : undefined,
+      "data-menu-command": command,
       className: cx(
         menuRowVariants({ interaction: "button", intent, density }),
         className,
@@ -329,6 +333,7 @@ export function ResponsiveMenuItem({
     <MenuItem
       {...itemProps}
       id={id}
+      command={command}
       render={render}
       className={className}
       intent={intent}

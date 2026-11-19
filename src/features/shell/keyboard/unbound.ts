@@ -34,20 +34,7 @@ export const unboundCommands: Record<string, string> = {
   "paneTab.back":
     "The pane session keeps no record of the tab a tab was opened from",
   "commandMenu.actions":
-    "The thread row menu opens from its own trigger and nothing tracks a selected row, so no action menu exists for the shortcut to open. It keeps Capy's `mod+.` under `when: commandMenuOpen`, the resolver scopes it away from `thread.stop` correctly, and the chord runs nothing until a row menu publishes a handler",
-  "list.next": "Thread, issue and pull lists have no roving selection to move",
-  "list.previous":
-    "Thread, issue and pull lists have no roving selection to move",
-  "list.check":
-    "Thread, issue and pull lists have no roving selection to check",
-  "menu.markUnread":
-    "The thread row menu opens from its own trigger; nothing tracks a selected row",
-  "menu.archive":
-    "The thread row menu opens from its own trigger; nothing tracks a selected row",
-  "menu.settle":
-    "The thread row menu opens from its own trigger; nothing tracks a selected row",
-  "menu.delete":
-    "The thread row menu opens from its own trigger; nothing tracks a selected row",
+    "The row menu opens from its own trigger or its `…` button, and no action menu is mounted for a chord to open: `mod+.` is `thread.stop` while a run is live, and the palette — the only surface that reports `commandMenuOpen` — has no per-thread action menu to open from its results",
   "issue.status": "The issues list has no selected issue and no status menu",
   "issue.priority":
     "The issues list has no selected issue and no priority menu",

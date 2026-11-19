@@ -54,10 +54,17 @@ export function isEditableTarget(target: EventTarget | null): boolean {
 }
 
 /**
- * What the page knows when a key arrives: a surface's own news, such as its menu
- * being open, is the page's news too, so every scope resolves against it.
+ * The command this scope runs for the key, or null. The scope's own rows are
+ * resolved, so two contextual rows printed on one chord — a menu's `a` and an
+ * issue row's `a`, neither of which a `when` can tell apart — do not shadow
+ * each other across scopes that cannot act: whichever surface is open runs its
+ * own row, and the page's context still decides the rows that do carry a `when`.
  */
 function readContext(): CommandContext {
+  /*
+   * What the page knows when a key arrives: a surface's own news, such as its
+   * menu being open, is the page's news too, so every scope resolves against it.
+   */
   const context: CommandContext = { commandMenuOpen: false };
   for (const scope of [...globalScopes, ...captureScopes]) {
     Object.assign(context, scope.options.context?.());
@@ -69,13 +76,14 @@ function scopeCommand(
   scope: CommandScope,
   event: KeyboardEvent,
 ): string | null {
-  const command = resolveEventCommand(
+  const own = currentBindings().filter(
+    (binding) => scope.commands[binding.command] !== undefined,
+  );
+  return resolveEventCommand(
     event as unknown as KeyEventLike,
-    currentBindings(),
+    own,
     readContext(),
   );
-  if (command === null || scope.commands[command] === undefined) return null;
-  return command;
 }
 
 function runScope(scope: CommandScope, event: KeyboardEvent): boolean {

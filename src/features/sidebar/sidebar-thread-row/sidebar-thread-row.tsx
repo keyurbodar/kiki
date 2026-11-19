@@ -414,6 +414,7 @@ export function SidebarThreadRow({
             <Link to="/thread/$threadId" params={{ threadId: thread.id }} />
           }
           data-slot="sidebar-thread-row"
+          data-roving-item=""
           data-thread-preview=""
           data-sidebar-target={thread.id}
           aria-current={active ? "page" : undefined}
