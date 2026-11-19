@@ -11,6 +11,7 @@ import {
   useRef,
   useState,
 } from "react";
+import type { PullRequestState } from "@/components/diff-cards/cards/pull-request-state";
 import { ProviderIcon, providerOfModelId } from "@/components/model-picker";
 import {
   Glyph,
@@ -57,6 +58,20 @@ export type SidebarThreadRowDrag = {
   onDragStart: (event: DragEvent<HTMLElement>) => void;
   onDragEnd: () => void;
 };
+
+/**
+ * Capy's row label for an idle thread's pull requests, in its order: a failing
+ * one is worth the line even when a later one is ready.
+ */
+const pullLabelByState: ReadonlyArray<{
+  state: PullRequestState;
+  label: string;
+  className: string;
+}> = [
+  { state: "failed", label: "PR failing", className: "text-destructive" },
+  { state: "pending", label: "Checks", className: "text-warning-fg" },
+  { state: "ready", label: "PR ready", className: "text-success" },
+];
 
 export type SidebarThreadRowProps = ComponentProps<"div"> & {
   thread?: SidebarThread;
@@ -313,6 +328,20 @@ export function SidebarThreadRow({
         <Icon name="pencil" size="sm" />
       </span>
     ) : null;
+  const pullLabel =
+    !busy && ask === undefined && thread.status === "idle"
+      ? pullLabelByState.find((candidate) =>
+          (thread.card?.pulls ?? []).some(
+            (pull) => pull.state === candidate.state,
+          ),
+        )
+      : undefined;
+  const pullMark =
+    pullLabel === undefined ? null : (
+      <span className={cx("shrink-0 text-xs font-medium", pullLabel.className)}>
+        {pullLabel.label}
+      </span>
+    );
   const statusMark = busy ? (
     <span
       className={cx(
@@ -381,7 +410,7 @@ export function SidebarThreadRow({
     <>
       {title}
       <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
-        {needsYou ? <NeedsYouDot /> : (draft ?? statusMark)}
+        {needsYou ? <NeedsYouDot /> : (draft ?? pullMark ?? statusMark)}
         {age}
       </span>
     </>
@@ -392,7 +421,7 @@ export function SidebarThreadRow({
         {needsYou && ask === undefined ? (
           <NeedsYouDot />
         ) : (
-          (draft ?? statusMark)
+          (draft ?? pullMark ?? statusMark)
         )}
         {age}
       </span>

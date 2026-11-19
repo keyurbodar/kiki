@@ -26,7 +26,14 @@ async function renderRoute(path: string) {
 
 const crumb = () => document.querySelector("h1")?.textContent ?? "";
 
-describe("drive scope routes", () => {
+/*
+ * Each case mounts the whole route tree and waits for the scope's files and the
+ * sidebar to settle: 14.4-16.3s idle, and 20.7s on the CI runner, where the
+ * suite's 20s budget killed "opens a file named in the search params" on #652's
+ * first run. The file's own budget is raised rather than the global one,
+ * because these are the only cases that build the full router per test.
+ */
+describe("drive scope routes", { timeout: 45_000 }, () => {
   it("lists the organization scope's files under a Drive crumb", async () => {
     await renderRoute("/drive/organization");
     expect(await screen.findByText("AGENTS.md")).toBeTruthy();
