@@ -12,6 +12,8 @@ import {
 import { useStoredState } from "@/components/model-picker/use-stored-state";
 import { copyText } from "@/components/pull-view";
 import type { JamId, OrgId } from "@/data/api/schemas/ids";
+import { reactivityKeys } from "@/data/atoms/conventions";
+import { jamEventKey, stopRunAtom } from "@/data/atoms/events";
 import { organizationsAtom } from "@/data/atoms/session";
 import { openHandoffAtom, threadDeviceKeys } from "@/data/atoms/thread-devices";
 import type { ComposerCommandId } from "@/features/composer/composer-commands";
@@ -23,7 +25,11 @@ import { useSidebarActions } from "@/features/shell/sidebar-container";
 import { handoffFailure } from "@/features/thread/device-offline-state";
 import { JamChat } from "@/features/thread/jam-chat";
 import { ThreadMessageActions } from "@/features/thread/thread-view/message-actions";
-import { useThreadTimeline } from "@/features/thread/timeline";
+import {
+  refreshNewestAtom,
+  threadKey,
+  useThreadTimeline,
+} from "@/features/thread/timeline";
 import { useComposerSend } from "@/features/thread/use-composer-send";
 import { useSideThreads } from "@/features/thread-panes/side-threads";
 import { type PaneTab, tabLink } from "@/features/thread-panes/tab-strip";
@@ -227,6 +233,28 @@ function MobileThreadBody({
 }: MobileThreadBodyProps) {
   const send = useComposerSend(threadId);
   const timeline = useThreadTimeline((orgId ?? "") as OrgId, threadId as JamId);
+  /** A run is in flight while the transcript's turn is open or the stream is mid-turn. */
+  const running =
+    timeline.turnOpen ||
+    timeline.live.phase === "streaming" ||
+    timeline.live.phase === "compacting";
+  const stopRun = useAtomSet(stopRunAtom, { mode: "promise" });
+  const refreshNewest = useAtomSet(
+    refreshNewestAtom(threadKey((orgId ?? "") as OrgId, threadId as JamId)),
+    { mode: "promise" },
+  );
+  const stop = () => {
+    if (orgId === undefined || !running) return;
+    stopRun({
+      params: { orgId, jamId: threadId },
+      reactivityKeys: [
+        jamEventKey(threadId),
+        reactivityKeys.threads(orgId as OrgId),
+      ],
+    })
+      .then(() => refreshNewest())
+      .catch(() => toast.error("Could not stop run"));
+  };
   const navigate = useNavigate();
   const composerRef = useRef<ComposerHandle>(null);
   const openHandoff = useAtomSet(openHandoffAtom, { mode: "promiseExit" });
@@ -331,6 +359,8 @@ function MobileThreadBody({
         <>
           <MobileComposer
             ref={composerRef}
+            working={running}
+            onStop={stop}
             onCommand={runCommand}
             onSend={(text) =>
               void send({

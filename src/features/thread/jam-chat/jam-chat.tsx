@@ -27,7 +27,6 @@ import type { TimelineRow as TimelineRowData } from "@/data/events";
 import {
   AttachmentSourceProvider,
   apiAttachmentSource,
-  pendingAttachmentSource,
 } from "@/features/thread/attachment-gallery/attachment-source";
 import { QuoteSelectionLayer } from "@/features/thread/quote-selection";
 import type { ExcerptMention } from "@/features/thread/reply-quote";
@@ -134,9 +133,7 @@ export function JamChat({
       Option.getOrUndefined(AsyncResult.value(organizations)) ?? [],
       selectedOrgId,
     );
-    return orgId === undefined || jamId === undefined
-      ? pendingAttachmentSource
-      : apiAttachmentSource(orgId, jamId);
+    return apiAttachmentSource(orgId, jamId ?? "");
   }, [jamId, organizations, selectedOrgId]);
   const [viewport, setViewport] = useState<HTMLDivElement | null>(null);
   const gaps = useMemo(() => computeRowGaps(rows), [rows]);

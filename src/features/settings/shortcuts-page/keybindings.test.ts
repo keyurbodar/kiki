@@ -7,6 +7,7 @@ import {
   commandLabels,
   conflictReason,
   effectiveBindings,
+  matchesBinding,
   normalizeBinding,
   parseBinding,
   reservedReason,
@@ -56,6 +57,29 @@ describe("capturing keys", () => {
     expect(captureBinding(key({ ctrlKey: true }), false)).toBe("mod+k");
     expect(captureBinding(key({ ctrlKey: true }), true)).toBe("ctrl+k");
     expect(captureBinding(key({ metaKey: true }), false)).toBe("meta+k");
+  });
+
+  it("names a punctuation key the platform withheld from its code", () => {
+    // Chrome on Linux sends Ctrl+Comma with no character at all.
+    expect(
+      captureBinding(key({ key: "", code: "Comma", ctrlKey: true }), false),
+    ).toBe("mod+,");
+    expect(
+      captureBinding(key({ key: "", code: "Slash", ctrlKey: true }), false),
+    ).toBe("mod+/");
+    expect(
+      captureBinding(
+        key({ key: "\u0000", code: "Backslash", ctrlKey: true }),
+        false,
+      ),
+    ).toBe("mod+\\");
+    expect(
+      matchesBinding(
+        key({ key: "", code: "Comma", ctrlKey: true }),
+        "mod+,",
+        false,
+      ),
+    ).toBe(true);
   });
 
   it("ignores bare modifier presses", () => {

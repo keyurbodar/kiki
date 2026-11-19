@@ -3,9 +3,13 @@ import { AsyncResult } from "effect/reactivity";
 import { lazy, Suspense } from "react";
 import type { OrgId } from "@/data/api/schemas/ids";
 import { overviewPullsAtom } from "@/data/atoms/overview";
+import type { TimelineRow } from "@/data/events";
+import { AttachmentPane } from "@/features/thread-panes/attachment-pane";
 import { BrowserPane } from "@/features/thread-panes/browser-pane";
 import { MachinePathView } from "@/features/thread-panes/machine-path-view";
 import { parsePull, valueList } from "@/features/thread-panes/overview/parse";
+import { PaneNotice } from "@/features/thread-panes/pane-notice";
+import { ServicePreviewPane } from "@/features/thread-panes/service-preview-pane";
 import type { PaneTab } from "@/features/thread-panes/tab-strip";
 import { findPane } from "@/features/thread-panes/thread-pane";
 
@@ -48,10 +52,16 @@ export function PaneContent({
   tab,
   threadId,
   orgId,
+  onFocus,
+  rows = [],
 }: {
   tab: PaneTab;
   threadId: string;
   orgId: OrgId | undefined;
+  /** Clears a files tab's focus intent once the pane has used it. */
+  onFocus?: (focus: undefined) => void;
+  /** The transcript's rows, for the panes that resolve a file a message holds. */
+  rows?: readonly TimelineRow[];
 }) {
   switch (tab.kind) {
     case "issue":
@@ -85,13 +95,31 @@ export function PaneContent({
           <BrowserPane threadId={threadId} sessionId={tab.id} url={tab.url} />
         </Suspense>
       );
+    case "attachment":
+      return <AttachmentPane tab={tab} rows={rows} />;
+    case "service_preview":
+      return (
+        <ServicePreviewPane
+          orgId={orgId}
+          jamId={threadId}
+          machineId={tab.machineId}
+          port={tab.port}
+          title={tab.title}
+        />
+      );
     default: {
       const entry = findPane(tab.kind);
-      if (entry === undefined) return null;
+      // A kind with no pane used to return null here, so the tab opened and the
+      // panel painted nothing. Say what the tab is instead of standing empty.
+      if (entry === undefined) return <PaneNotice kind={tab.kind} />;
       const Pane = entry.component;
       return (
         <Suspense fallback={null}>
-          <Pane threadId={threadId} />
+          <Pane
+            threadId={threadId}
+            focus={tab.kind === "files" ? tab.focus : undefined}
+            onFocus={onFocus}
+          />
         </Suspense>
       );
     }

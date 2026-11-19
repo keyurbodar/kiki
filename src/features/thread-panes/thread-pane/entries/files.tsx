@@ -10,11 +10,13 @@ const FilesView = lazy(() =>
   })),
 );
 
-function FilesPane({ threadId }: PaneProps) {
+function FilesPane({ threadId, focus, onFocus }: PaneProps) {
   const { openTab } = usePaneSession();
   return (
     <FilesView
       jamId={threadId}
+      focus={focus}
+      onFocus={onFocus}
       onOpenMachineFile={(target) =>
         openTab({
           kind: "file",

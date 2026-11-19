@@ -1016,7 +1016,14 @@ export const seedEvents: ReadonlyArray<EventRowEncoded> = [
       actor: user(people.alex.id),
       origin: web(people.alex.id),
       text: "The checkout test times out when the payment gateway is slow.",
-      files: [],
+      files: [
+        {
+          fileId: "file_sample_gateway_log",
+          name: "gateway-timeout.log",
+          mediaType: "text/plain",
+          sizeBytes: 258,
+        },
+      ],
       delivery: "queue",
     },
     "answered",

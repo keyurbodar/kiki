@@ -61,6 +61,11 @@ export type SourceFolder = {
   name: string | null;
   systemKind: "pinned" | null;
   threadIds: string[];
+  hidden?: boolean;
+  visibility?: "private" | "shared";
+  viewerRole?: "owner" | "member" | "none";
+  ownerUserId?: string | null;
+  members?: ReadonlyArray<{ userId: string }>;
 };
 
 export type SourceCaptain = Omit<SidebarCaptain, "age"> & {
@@ -155,6 +160,7 @@ export function buildSidebarThreadsView(
       defaultOpen?: boolean;
       limited?: boolean;
       countAtRest?: boolean;
+      folder?: SourceFolder;
     } = {},
   ) => {
     const sorted = threads.toSorted(compare);
@@ -165,6 +171,19 @@ export function buildSidebarThreadsView(
     sections.push({
       id,
       kind,
+      ...(options.folder === undefined
+        ? {}
+        : {
+            folder: {
+              id: options.folder.id,
+              name: options.folder.name ?? "Pinned",
+              visibility: options.folder.visibility,
+              viewerRole: options.folder.viewerRole,
+              ownerUserId: options.folder.ownerUserId,
+              members: options.folder.members,
+              hidden: options.folder.hidden === true,
+            },
+          }),
       label,
       count: sorted.length,
       countAtRest: options.countAtRest ?? false,
@@ -176,9 +195,10 @@ export function buildSidebarThreadsView(
     });
   };
 
+  const visible = source.folders.filter((folder) => folder.hidden !== true);
   const folders = [
-    ...source.folders.filter((folder) => folder.systemKind === "pinned"),
-    ...source.folders.filter((folder) => folder.systemKind !== "pinned"),
+    ...visible.filter((folder) => folder.systemKind === "pinned"),
+    ...visible.filter((folder) => folder.systemKind !== "pinned"),
   ];
   for (const folder of folders) {
     const members = folder.threadIds.flatMap((id) => {
@@ -190,6 +210,7 @@ export function buildSidebarThreadsView(
       folder.systemKind === "pinned" ? "pinned" : "folder",
       folder.name ?? "Pinned",
       members,
+      { folder },
     );
   }
 
@@ -251,6 +272,9 @@ export function buildSidebarThreadsView(
     collapse: prefs.collapse,
     filterOrigins: prefs.filterOrigins,
     sections,
+    hiddenFolders: source.folders
+      .filter((folder) => folder.hidden === true)
+      .map((folder) => ({ id: folder.id, name: folder.name ?? "Pinned" })),
     captains: source.captains
       .filter((captain) => captain.status !== "archived")
       .toSorted(captainCompare)

@@ -187,6 +187,9 @@ export type ThreadOptionsMenuProps = {
   onMarkAllRead?: () => void;
   onSearch?: () => void;
   onViewAll?: () => void;
+  /** Folders the viewer hid, offered back here so hiding stays reversible. */
+  hiddenFolders?: ReadonlyArray<{ id: string; name: string }>;
+  onShowFolder?: (folder: { id: string; name: string }) => void;
 };
 
 export function ThreadOptionsMenu({
@@ -204,6 +207,8 @@ export function ThreadOptionsMenu({
   onMarkAllRead,
   onSearch,
   onViewAll,
+  hiddenFolders,
+  onShowFolder,
 }: ThreadOptionsMenuProps) {
   return (
     <ResponsiveMenu>
@@ -256,6 +261,23 @@ export function ThreadOptionsMenu({
           )}
         </SubMenu>
         <DensitySubMenu density={density} onDensityChange={onDensityChange} />
+        {hiddenFolders === undefined || hiddenFolders.length === 0 ? null : (
+          <SubMenu
+            icon="eye-open"
+            label="Hidden folders"
+            value={hiddenFolders.length}
+          >
+            {hiddenFolders.map((folder) => (
+              <ResponsiveMenuItem
+                key={folder.id}
+                onClick={() => onShowFolder?.(folder)}
+              >
+                <MenuGlyph name="folder-1" />
+                {folder.name}
+              </ResponsiveMenuItem>
+            ))}
+          </SubMenu>
+        )}
         <SubMenu
           icon="layers-three"
           label="Collapse"
@@ -315,9 +337,6 @@ export type CaptainOptionsMenuProps = {
   onOrderChange: (order: SidebarCaptainSort) => void;
   density: SidebarDensity;
   onDensityChange: (density: SidebarDensity) => void;
-  onNewFolder?: () => void;
-  /** Set while the Captains list cannot draw folder sections: the row renders disabled with this reason instead of creating an invisible folder. */
-  newFolderDisabledReason?: string;
 };
 
 export function CaptainOptionsMenu({
@@ -325,28 +344,14 @@ export function CaptainOptionsMenu({
   onOrderChange,
   density,
   onDensityChange,
-  onNewFolder,
-  newFolderDisabledReason,
 }: CaptainOptionsMenuProps) {
+  // Capy's Captain menu also carries New folder. That row is absent here because
+  // a captains-section folder still has no readable contents: the folder board
+  // endpoint returns thread cards only, so the folder would draw empty.
   return (
     <ResponsiveMenu>
       <OptionsTrigger label="Captain options" />
       <ResponsiveMenuContent align="end" className="w-60">
-        {onNewFolder === undefined ? null : (
-          <>
-            <ResponsiveMenuItem
-              disabled={newFolderDisabledReason !== undefined}
-              title={newFolderDisabledReason}
-              onClick={() => {
-                if (newFolderDisabledReason === undefined) onNewFolder();
-              }}
-            >
-              <MenuGlyph name="folder-add-left" />
-              New folder
-            </ResponsiveMenuItem>
-            <ResponsiveMenuSeparator className={menuSeparatorClassName} />
-          </>
-        )}
         <SubMenu
           icon="sort-arrow-up-down"
           label="Sort by"

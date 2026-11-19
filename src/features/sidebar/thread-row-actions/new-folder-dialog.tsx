@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/primitives/button";
 import {
   Dialog,
@@ -9,50 +9,48 @@ import {
 } from "@/primitives/dialog";
 import { Input } from "@/primitives/input";
 
-export function NewFolderDialog({
+function FolderNameDialog({
   open,
   onOpenChange,
-  onCreate,
+  title,
+  submitLabel,
+  initialName,
+  onSubmit,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreate: (name: string) => void;
+  title: string;
+  submitLabel: string;
+  initialName: string;
+  onSubmit: (name: string) => void;
 }) {
-  const [name, setName] = useState("");
-  const input = useRef<HTMLInputElement>(null);
+  const [name, setName] = useState(initialName);
   useEffect(() => {
-    if (open) setName("");
-  }, [open]);
-  const create = () => {
+    if (open) setName(initialName);
+  }, [open, initialName]);
+  const submit = () => {
     const trimmed = name.trim();
     if (trimmed === "") return;
-    onCreate(trimmed);
+    onSubmit(trimmed);
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent data-slot="new-folder-dialog" className="max-w-sm">
+      <DialogContent data-slot="folder-name-dialog" className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>New folder</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            create();
+            submit();
           }}
         >
           <Input
-            ref={input}
             autoFocus
             aria-label="Folder name"
             placeholder="Folder name"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                create();
-              }
-            }}
           />
           <DialogFooter>
             <Button
@@ -63,11 +61,55 @@ export function NewFolderDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={name.trim() === ""}>
-              Create folder
+              {submitLabel}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+export function NewFolderDialog({
+  open,
+  onOpenChange,
+  onCreate,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreate: (name: string) => void;
+}) {
+  return (
+    <FolderNameDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="New folder"
+      submitLabel="Create folder"
+      initialName=""
+      onSubmit={onCreate}
+    />
+  );
+}
+
+export function RenameFolderDialog({
+  open,
+  onOpenChange,
+  name,
+  onRename,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  name: string;
+  onRename: (name: string) => void;
+}) {
+  return (
+    <FolderNameDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Rename folder"
+      submitLabel="Rename folder"
+      initialName={name}
+      onSubmit={onRename}
+    />
   );
 }

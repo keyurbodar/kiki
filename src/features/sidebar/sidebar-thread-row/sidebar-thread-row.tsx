@@ -208,7 +208,6 @@ function ThreadRowActions({
                       <Button
                         variant="bare"
                         size="icon-shrink"
-                        data-roving-menu-trigger=""
                         aria-label="Thread actions"
                         className="relative p-1"
                         onClick={stopRowNavigation}

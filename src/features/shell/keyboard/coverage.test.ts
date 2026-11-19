@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createPlusMenuCommands } from "@/components/composer/plus-menu-commands";
+import { createSelectionCardCommands } from "@/components/selection-card";
 import { createPaletteCommands } from "@/features/command-palette/palette/command-palette-host";
 import {
   commandCatalog,
@@ -34,6 +35,7 @@ const surfaces = {
     closePane: noop,
     isDockOpen: () => false,
     toggleExpanded: noop,
+    searchFiles: noop,
   })),
   strip: createTabStripCommands(() => ({
     close: noop,
@@ -42,9 +44,12 @@ const surfaces = {
     openBrowser: noop,
     newSideThread: noop,
   })),
-  composer: createComposerCommands(() => ({ focus: noop })),
+  composer: createComposerCommands(() => ({ focus: noop, stop: () => false })),
   plusMenu: createPlusMenuCommands(() => ({ attach: () => undefined })),
   palette: createPaletteCommands({ toggle: noop }),
+  selectionCard: createSelectionCardCommands(() => ({
+    comment: () => false,
+  })),
   roving: createRovingCommands(),
 };
 

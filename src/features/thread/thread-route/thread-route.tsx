@@ -36,6 +36,7 @@ import {
   type PaneSession,
   seedSession,
   selectTab,
+  setTabFocus,
 } from "@/features/thread/thread-view/pane-session";
 import { PaneSessionContext } from "@/features/thread/thread-view/pane-session-context";
 import { tabForKey } from "@/features/thread/thread-view/thread-tabs";
@@ -245,6 +246,7 @@ export function ThreadRoute({
     closePane: () => closeIn(openTabs.active),
     isDockOpen: () => activeDock !== undefined,
     toggleExpanded: () => setExpanded((current) => !current),
+    searchFiles: () => openTabIn({ kind: "files", focus: "search" }),
   };
   useEffect(
     () =>
@@ -273,6 +275,11 @@ export function ThreadRoute({
       ),
     [pulls],
   );
+  /** A run is in flight while the transcript's turn is open or the stream is mid-turn. */
+  const running =
+    timeline.turnOpen ||
+    timeline.live.phase === "streaming" ||
+    timeline.live.phase === "compacting";
   const mainPane =
     entry !== undefined && surfaceOf(entry) === "main" ? (
       <Suspense fallback={null}>
@@ -288,6 +295,7 @@ export function ThreadRoute({
       <ThreadView
         threadId={threadId}
         rows={timeline.rows}
+        running={running}
         loading={timeline.loading}
         failed={timeline.failed}
         onRetry={timeline.retry}
@@ -327,6 +335,10 @@ export function ThreadRoute({
                 tab={activeDock}
                 threadId={threadId}
                 orgId={orgId as OrgId | undefined}
+                onFocus={() =>
+                  onSession?.(setTabFocus(openTabs, activeId, undefined))
+                }
+                rows={timeline.rows}
               />
             </ThreadDock>
           ) : undefined

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
-import type { ComponentProps, ReactNode } from "react";
+import { type ComponentProps, Fragment, type ReactNode } from "react";
 import {
   CrewCountBadge,
   NeedsYouDot,
@@ -12,6 +12,11 @@ import {
   CaptainAvatar as CaptainAvatarTile,
   DEFAULT_CAPTAIN_AVATAR,
 } from "@/primitives/captain-avatar";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuTrigger,
+} from "@/primitives/context-menu";
 import {
   PreviewCard,
   PreviewCardContent,
@@ -38,6 +43,8 @@ export type SectionHeadingProps = {
   count?: number | string;
   countAtRest?: boolean;
   slot?: ReactNode;
+  /** A folder header's options button, held over the chevron's cell. */
+  actions?: ReactNode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   className?: string;
@@ -48,12 +55,18 @@ export function SectionHeading({
   count,
   countAtRest = false,
   slot,
+  actions,
   open,
   onOpenChange,
   className,
 }: SectionHeadingProps) {
   return (
-    <div className={cx("group/folder flex min-w-0 items-center", className)}>
+    <div
+      className={cx(
+        "group/folder relative flex min-w-0 items-center",
+        className,
+      )}
+    >
       <button
         type="button"
         aria-expanded={open}
@@ -86,6 +99,9 @@ export function SectionHeading({
           <span className="ml-auto flex shrink-0 items-center">{slot}</span>
         )}
       </button>
+      {actions === undefined ? null : (
+        <span className="kiki-sidebar-section-actions">{actions}</span>
+      )}
     </div>
   );
 }
@@ -505,6 +521,10 @@ export type SidebarThreadsProps = ComponentProps<"div"> & {
   renderRowMenu?: (thread: SidebarThread, rowKey?: string) => ReactNode;
   /** The Captain menu the Captain rows open on right-click. */
   renderCaptainMenu?: (captain: SidebarCaptain) => ReactNode;
+  /** A folder header's options button. */
+  renderSectionActions?: (section: SidebarSection) => ReactNode;
+  /** The same folder menu, opened by a right-click on the header. */
+  renderSectionMenu?: (section: SidebarSection) => ReactNode;
 };
 
 export function SidebarThreads({
@@ -521,6 +541,8 @@ export function SidebarThreads({
   onNewCaptain,
   renderRowMenu,
   renderCaptainMenu,
+  renderSectionActions,
+  renderSectionMenu,
   className,
   ...props
 }: SidebarThreadsProps) {
@@ -630,6 +652,8 @@ export function SidebarThreads({
                   onSectionOpenChange={onSectionOpenChange}
                   onShowMore={onShowMore}
                   onNewThread={onNewThread}
+                  renderSectionActions={renderSectionActions}
+                  renderSectionMenu={renderSectionMenu}
                 />
               </>
             ) : null}
@@ -646,9 +670,16 @@ function ThreadSections({
   onSectionOpenChange,
   onShowMore,
   onNewThread,
+  renderSectionActions,
+  renderSectionMenu,
 }: Pick<
   SidebarThreadsProps,
-  "renderThread" | "onSectionOpenChange" | "onShowMore" | "onNewThread"
+  | "renderThread"
+  | "onSectionOpenChange"
+  | "onShowMore"
+  | "onNewThread"
+  | "renderSectionActions"
+  | "renderSectionMenu"
 > & { view: SidebarThreadsView }) {
   const slim = view.density === "compact";
   const items: ReactNode[] = [];
@@ -662,16 +693,34 @@ function ThreadSections({
   for (const section of view.sections) {
     const droppable = section.kind === "folder" || section.kind === "pinned";
     if (section.count === 0 && !droppable) continue;
-    items.push(
+    const gap = afterRows ? "mt-(--sidebar-section-gap)" : undefined;
+    const heading = (
       <SectionHeading
-        key={section.id}
         label={section.label}
         count={section.count}
         countAtRest={section.countAtRest}
         open={section.open}
         onOpenChange={(open) => onSectionOpenChange?.(section.id, open)}
-        className={afterRows ? "mt-(--sidebar-section-gap)" : undefined}
-      />,
+        actions={renderSectionActions?.(section)}
+        className={gap}
+      />
+    );
+    const menu = renderSectionMenu?.(section);
+    items.push(
+      <Fragment key={section.id}>
+        {menu === undefined || menu === null ? (
+          heading
+        ) : (
+          <ContextMenu>
+            <ContextMenuTrigger className="contents">
+              {heading}
+            </ContextMenuTrigger>
+            <ContextMenuContent className="kiki-menu">
+              {menu}
+            </ContextMenuContent>
+          </ContextMenu>
+        )}
+      </Fragment>,
     );
     afterRows = false;
     if (!section.open) continue;

@@ -136,45 +136,6 @@ function check(): boolean {
   return true;
 }
 
-/**
- * Open the active row's own menu, so the row actions are reachable without a
- * pointer: its `…` trigger where the row has one, else the context menu a
- * right-click would open on the row.
- */
-function openRowMenu(): boolean {
-  const list = activeList();
-  if (list === null) return false;
-  const index = activeIndex(list);
-  const row = index === -1 ? undefined : items(list)[index];
-  if (row === undefined) return false;
-  const owner = row.closest("[data-row-menu]") ?? row;
-  const trigger = owner.querySelector<HTMLElement>(
-    "[data-roving-menu-trigger]",
-  );
-  if (trigger !== null) {
-    // A menu trigger opens on the press, not on `click()` from script.
-    trigger.dispatchEvent(
-      new MouseEvent("mousedown", {
-        bubbles: true,
-        cancelable: true,
-        button: 0,
-      }),
-    );
-    return true;
-  }
-  const box = row.getBoundingClientRect();
-  row.dispatchEvent(
-    new MouseEvent("contextmenu", {
-      bubbles: true,
-      cancelable: true,
-      button: 2,
-      clientX: box.left + 12,
-      clientY: box.top + box.height / 2,
-    }),
-  );
-  return true;
-}
-
 /** Click the open menu's item that claims `command`. */
 function pick(command: string): boolean {
   const menu = openMenu();
@@ -202,7 +163,6 @@ export const createRovingCommands = (): CommandHandlers => ({
     return list === null ? false : moveToList(list, -1);
   },
   "list.check": () => check(),
-  "commandMenu.actions": () => openRowMenu(),
   "menu.markUnread": () => pick("menu.markUnread"),
   "menu.archive": () => pick("menu.archive"),
   "menu.settle": () => pick("menu.settle"),

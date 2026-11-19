@@ -121,6 +121,11 @@ export function mapFolder(
     name: folder.name,
     systemKind: folder.systemKind,
     threadIds: [...threadIds],
+    hidden: folder.hidden,
+    visibility: folder.visibility,
+    viewerRole: folder.viewerRole,
+    ownerUserId: folder.ownerUserId,
+    members: folder.members.map((member) => ({ userId: member.userId })),
   };
 }
 

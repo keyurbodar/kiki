@@ -21,6 +21,7 @@ import {
   SummaryIcon,
   useMessageActions,
 } from "@/features/thread/message-footer";
+import { useAttachmentOpener } from "@/features/thread/thread-view/pane-session-context";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import {
@@ -68,6 +69,7 @@ export function AgentMessage({
 }: AgentMessageProps) {
   const sections = useMemo(() => splitSections(row.text), [row.text]);
   const phone = useIsPhoneSurface();
+  const openAttachment = useAttachmentOpener();
   return (
     <div
       data-slot="agent-message"
@@ -90,6 +92,7 @@ export function AgentMessage({
         <AttachmentGallery
           entries={row.files.map(({ file, title }) => ({ file, title }))}
           onOpenMedia={onOpenMedia}
+          onOpenFile={(entry) => openAttachment(entry)}
         />
       )}
       {row.interrupted && <MessageStatus>Interrupted</MessageStatus>}

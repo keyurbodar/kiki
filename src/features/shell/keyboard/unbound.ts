@@ -4,12 +4,8 @@
  * a surface nor listed here, so a label that does nothing cannot ship quietly.
  */
 export const unboundCommands: Record<string, string> = {
-  "thread.stop":
-    "The thread composer has no stop control wired; Capy's runs stop from the send button's own state",
   "composer.voice":
     "No transcription backend, so the composer never renders a voice control to start",
-  "selection.comment":
-    "Selecting transcript text does not open a comment composer yet",
   "request.allow": "The access-request card submits from its own button",
   "request.submit": "The request form submits from its own button",
   "shell.focus":
@@ -25,9 +21,8 @@ export const unboundCommands: Record<string, string> = {
     "The image preview has no focused-preview state to scope the shortcut to",
   "media.sendComments":
     "The media comment layer keeps queued comments in local state",
-  "file.save": "The file view is read-only; there is no edit buffer to save",
-  "files.search":
-    "The files pane searches inside its own toolbar, not from a shell-level command",
+  "file.save":
+    "Capy's save writes an in-browser edit back to the machine from a file editor (thread-view's MachinePathView: editStateText, a baseSha mutation, toast \"File saved to machine\"); our machine file view is read-only, so there is no draft to save",
   "pull.copyLink":
     "There is no pull request page with a selected pull; copy link lives on each list row's menu",
   "pullTab.overview":
@@ -38,6 +33,8 @@ export const unboundCommands: Record<string, string> = {
     "A two-key sequence has no matcher yet, and the column holds no pull request row",
   "paneTab.back":
     "The pane session keeps no record of the tab a tab was opened from",
+  "commandMenu.actions":
+    "The row menu opens from its own trigger or its `…` button; Capy gives the chord `mod+.` under `when: commandMenuOpen`, and here it belongs to `thread.stop` while a run is live, because the resolver cannot tell a focused composer from an open command menu",
   "issue.status": "The issues list has no selected issue and no status menu",
   "issue.priority":
     "The issues list has no selected issue and no priority menu",
