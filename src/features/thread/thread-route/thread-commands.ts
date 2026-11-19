@@ -27,10 +27,15 @@ export const createThreadCommands = (
 });
 
 /** The composer's own keybindings, registered by the view that holds its editor. */
-export type ComposerCommandDeps = { focus: () => void };
+export type ComposerCommandDeps = {
+  focus: () => void;
+  /** Stops the running turn; false when nothing is running, so the key falls through. */
+  stop: () => boolean;
+};
 
 export const createComposerCommands = (
   read: () => ComposerCommandDeps,
 ): CommandHandlers => ({
   "composer.focus": () => read().focus(),
+  "thread.stop": () => read().stop(),
 });

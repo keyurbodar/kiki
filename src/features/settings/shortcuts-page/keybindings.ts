@@ -203,7 +203,10 @@ const catalog: ReadonlyArray<KeybindingCommand> = [
   {
     command: "commandMenu.actions",
     label: "Thread actions",
-    defaults: ["mod+."],
+    /* Capy gives this `mod+.` under `when: commandMenuOpen`, which our resolver
+       cannot express, and the chord belongs to the stop control while a run is
+       live; the row prints unassigned until the resolver can scope it. */
+    defaults: [],
     contextual: true,
   },
   {

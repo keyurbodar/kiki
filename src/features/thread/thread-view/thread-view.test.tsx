@@ -42,6 +42,7 @@ const timeline = (overrides: Partial<ThreadTimeline> = {}): ThreadTimeline => ({
 });
 
 const sends = vi.hoisted(() => [] as Array<{ text: string }>);
+const refreshed = vi.hoisted(() => [] as string[]);
 
 vi.mock("@/features/thread/use-composer-send", () => ({
   useComposerSend: () => (payload: { text: string }) => {
@@ -69,7 +70,14 @@ vi.mock("@/features/thread/timeline", async () => {
     viewedVersionAtom: Atom.family((_key: string) => Atom.make(null)),
     appendPendingAtom: Atom.family((_key: string) => Atom.make(null)),
     removePendingAtom: Atom.family((_key: string) => Atom.make(null)),
-    refreshNewestAtom: Atom.family((_key: string) => Atom.make(null)),
+    refreshNewestAtom: Atom.family((_key: string) =>
+      Atom.writable(
+        () => undefined,
+        () => {
+          refreshed.push("newest");
+        },
+      ),
+    ),
   };
 });
 
@@ -271,6 +279,60 @@ describe("thread composer chrome", () => {
     fireEvent.click(chip);
     expect(writeText).toHaveBeenCalledWith(branch);
     expect(slot(container, "composer")).not.toBeNull();
+  });
+});
+
+describe("thread composer stop control", () => {
+  const handlers = {
+    orgId: "org_sample",
+    parentJamId: null,
+    onClarifySubmit: () => undefined,
+  };
+
+  const renderView = (turnOpen: boolean) =>
+    render(
+      <RegistryProvider>
+        <ThreadView
+          threadId={threads.checkoutTest.id}
+          rows={messages}
+          running={turnOpen}
+          handlers={handlers}
+        />
+      </RegistryProvider>,
+    );
+
+  afterEach(() => {
+    refreshed.length = 0;
+  });
+
+  it("swaps the send control for stop while a run is in flight", () => {
+    const running = renderView(true);
+    expect(screen.getByRole("button", { name: "Stop run" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Send" })).toBeNull();
+    running.unmount();
+
+    renderView(false);
+    expect(screen.getByRole("button", { name: "Send" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Stop run" })).toBeNull();
+  });
+
+  it("stops the run from the control and reads the newest events", async () => {
+    renderView(true);
+    fireEvent.click(screen.getByRole("button", { name: "Stop run" }));
+    await waitFor(() => expect(refreshed.length).toBe(1));
+  });
+
+  it("binds the shortcut to the same stop while a run is in flight", async () => {
+    renderView(true);
+    fireEvent.keyDown(window, { key: ".", code: "Period", ctrlKey: true });
+    await waitFor(() => expect(refreshed.length).toBe(1));
+  });
+
+  it("leaves the shortcut unbound when nothing is running", async () => {
+    renderView(false);
+    fireEvent.keyDown(window, { key: ".", code: "Period", ctrlKey: true });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(refreshed).toEqual([]);
   });
 });
 

@@ -40,6 +40,9 @@ export const messageVersionsAtom = (
 /** `POST jams/:jamId/message`: sends a composer message to a thread. */
 export const sendMessageAtom = ApiClient.mutation("events", "message");
 
+/** `POST jams/:jamId/interrupt`: stops the turn a thread is running. */
+export const stopRunAtom = ApiClient.mutation("events", "interrupt");
+
 /** `POST messages/:eventId/send-now`: promotes a queued message. */
 export const sendNowMessageAtom = ApiClient.mutation(
   "events",
