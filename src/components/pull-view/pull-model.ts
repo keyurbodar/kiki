@@ -199,6 +199,32 @@ export const toPull = (value: unknown): Pull | undefined => {
   };
 };
 
+/**
+ * The viewer's GitHub login from the org's member directory, which is the
+ * only place the contract carries it. `null` when GitHub is not connected for
+ * them, so a surface that cannot review says so instead of guessing.
+ */
+export const viewerGithubLogin = (
+  members: unknown,
+  userId: string | undefined,
+): string | null => {
+  if (userId === undefined) return null;
+  const rows = Array.isArray(members)
+    ? members
+    : typeof members === "object" && members !== null
+      ? ((members as { members?: unknown }).members ?? [])
+      : [];
+  if (!Array.isArray(rows)) return null;
+  for (const row of rows) {
+    const entry = record(row);
+    const id = str(entry.id) ?? str(entry.userId);
+    if (id !== userId) continue;
+    const login = str(entry.githubLogin);
+    return login === null || login === "" ? null : login;
+  }
+  return null;
+};
+
 export const toCheckRows = (value: unknown): ReadonlyArray<CheckRow> =>
   list(value).flatMap((item) => {
     const raw = record(item);

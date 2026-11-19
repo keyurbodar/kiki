@@ -58,6 +58,18 @@ describe("/pull/keyurbodar/xin/118", () => {
     expect(screen.getAllByText("Platform captain").length).toBe(1);
   });
 
+  it("offers the review composer to a viewer who is not the author", async () => {
+    await renderPull();
+    const review = await screen.findByRole("button", { name: "Review" });
+    fireEvent.click(review);
+    expect(await screen.findByLabelText("Add review summary")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Comment" })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Request changes" }),
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Approve" })).toBeTruthy();
+  });
+
   it("opens one file body at a time on the page host", async () => {
     await renderPull(`${pullPath}?tab=diff`);
     const first = await waitFor(() => {
