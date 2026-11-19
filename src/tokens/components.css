@@ -59,6 +59,9 @@
   --menu-w: 208px;
   /* A message's More menu: Capy's 224px on both the hover rail and the phone. */
   --menu-w-message: 224px;
+  /* A trigger's filter chip, and the wider one its pattern filter uses. */
+  --filter-chip-w: 224px;
+  --filter-pattern-w: 288px;
   /* A message's action row: Copy and More, in flow under the body on a phone. */
   --message-actions-gap: 2px;
   --message-actions-pt: 4px;
