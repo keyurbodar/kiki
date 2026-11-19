@@ -38,6 +38,7 @@ import { toast } from "@/primitives/toaster";
 import { AutomationUsageSection } from "../automation-usage";
 import { OwnerSelect } from "../owner-select";
 import { RunsInRows, RunsInSelect, useProjectThreads } from "../runs-in-select";
+import { AutomationBatchesSection } from "../webhook-batches";
 import {
   automationAtom,
   automationKey,
@@ -537,6 +538,12 @@ export function AutomationEditor({
                 machineUsage={machineUsage}
               />
             )}
+            <AutomationBatchesSection
+              automationId={current.id}
+              hasWebhook={current.triggers.some(
+                (trigger) => trigger.type === "incoming_webhook",
+              )}
+            />
             <AutomationUsageSection orgId={orgId} automationId={current.id} />
             <AutomationDriveRow automationId={current.id} title={name} />
           </div>

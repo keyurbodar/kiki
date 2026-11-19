@@ -147,8 +147,8 @@ export const AutomationsMock = mockGroup("automations", (handlers) =>
         const updated = {
           ...current,
           status,
-          flushedAt:
-            status === "flushed" ? DateTime.formatIso(minutesAgo(0)) : null,
+          closedAt:
+            status === "queued" ? DateTime.formatIso(minutesAgo(0)) : null,
         };
         yield* Ref.set(
           batchesRef,
@@ -375,11 +375,17 @@ export const AutomationsMock = mockGroup("automations", (handlers) =>
           return yield* view(updated);
         }),
       )
-      .handle("listBatches", ({ params }) =>
+      .handle("listBatches", ({ params, query }) =>
         Effect.gen(function* () {
           yield* find(params.automationId);
           const rows = yield* Ref.get(batchesRef);
-          return rows.filter((row) => row.automationId === params.automationId);
+          const status = text(query.status);
+          const limit = Number(query.limit ?? 20);
+          const items = rows
+            .filter((row) => row.automationId === params.automationId)
+            .filter((row) => status === undefined || row.status === status)
+            .slice(0, Number.isFinite(limit) ? limit : 20);
+          return { items, cursor: null };
         }),
       )
       .handle("cancelBatch", ({ params }) =>
@@ -391,7 +397,7 @@ export const AutomationsMock = mockGroup("automations", (handlers) =>
       .handle("flushBatch", ({ params }) =>
         Effect.gen(function* () {
           yield* find(params.automationId);
-          return yield* setBatchStatus(params.batchId, "flushed");
+          return yield* setBatchStatus(params.batchId, "queued");
         }),
       )
       .handle("delete", ({ params }) =>

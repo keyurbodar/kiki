@@ -14,15 +14,44 @@ export interface AutomationBatch {
   readonly id: string;
   readonly automationId: string;
   readonly kind: string;
-  readonly status:
-    | "starting"
-    | "collecting"
-    | "ready"
-    | "cancelled"
-    | "flushed";
+  readonly status: "collecting" | "queued" | "cancelled";
   readonly itemCount: number;
   readonly createdAt: string;
   readonly flushedAt: string | null;
+  /** The live batch shape the automation page's panel decodes. */
+  readonly triggerId: string;
+  readonly group: ReadonlyArray<string | number | boolean>;
+  readonly eventCount: number;
+  readonly byteCount: number;
+  readonly firstEventAt: string;
+  readonly lastEventAt: string;
+  readonly dispatchAfter: string;
+  readonly maxEvents: number;
+  readonly maxWaitSeconds: number;
+  readonly quietPeriodSeconds: number | null;
+  readonly closedAt: string | null;
+  readonly reason:
+    | "count"
+    | "quiet"
+    | "max_wait"
+    | "bytes"
+    | "manual"
+    | "cancelled"
+    | "configuration_changed"
+    | "disabled"
+    | "project_deleted"
+    | null;
+  readonly runId: string | null;
+  readonly runStatus:
+    | "queued"
+    | "running"
+    | "completed"
+    | "failed"
+    | "skipped"
+    | "cancelled"
+    | null;
+  readonly jamId: string | null;
+  readonly failure: string | null;
 }
 
 export interface AutomationUsage {
@@ -96,24 +125,72 @@ export const batches: ReadonlyArray<AutomationBatch> = [
     itemCount: 3,
     createdAt: isoMinutesAgo(8 * 60),
     flushedAt: null,
+    triggerId: "trigger_sample_deps_webhook",
+    group: [],
+    eventCount: 3,
+    byteCount: 4_182,
+    firstEventAt: isoMinutesAgo(8 * 60),
+    lastEventAt: isoMinutesAgo(3),
+    dispatchAfter: isoMinutesAgo(-2),
+    maxEvents: 20,
+    maxWaitSeconds: 60,
+    quietPeriodSeconds: null,
+    closedAt: null,
+    reason: null,
+    runId: null,
+    runStatus: null,
+    jamId: null,
+    failure: null,
   },
   {
     id: "batch_sample_changelog",
     automationId: "auto_sample_changelog",
     kind: "schedule",
-    status: "ready",
+    status: "queued",
     itemCount: 12,
     createdAt: isoMinutesAgo(25 * 60),
     flushedAt: null,
+    triggerId: "trigger_sample_changelog_schedule",
+    group: ["docs"],
+    eventCount: 12,
+    byteCount: 18_640,
+    firstEventAt: isoMinutesAgo(25 * 60),
+    lastEventAt: isoMinutesAgo(24 * 60),
+    dispatchAfter: isoMinutesAgo(24 * 60),
+    maxEvents: 20,
+    maxWaitSeconds: 900,
+    quietPeriodSeconds: null,
+    closedAt: isoMinutesAgo(24 * 60),
+    reason: "count",
+    runId: "run_sample_changelog_1",
+    runStatus: "completed",
+    jamId: threads.gettingStarted.id,
+    failure: null,
   },
   {
     id: "batch_sample_followup",
     automationId: "auto_sample_pr_followup",
     kind: "event",
-    status: "flushed",
+    status: "cancelled",
     itemCount: 1,
     createdAt: isoMinutesAgo(2 * 24 * 60),
     flushedAt: isoMinutesAgo(2 * 24 * 60 - 4),
+    triggerId: "trigger_sample_followup_github",
+    group: ["acme/web"],
+    eventCount: 1,
+    byteCount: 962,
+    firstEventAt: isoMinutesAgo(2 * 24 * 60),
+    lastEventAt: isoMinutesAgo(2 * 24 * 60),
+    dispatchAfter: isoMinutesAgo(2 * 24 * 60 - 4),
+    maxEvents: 20,
+    maxWaitSeconds: 60,
+    quietPeriodSeconds: 30,
+    closedAt: isoMinutesAgo(2 * 24 * 60 - 4),
+    reason: "count",
+    runId: "run_sample_followup_1",
+    runStatus: "cancelled",
+    jamId: threads.darkMode.id,
+    failure: null,
   },
 ];
 
