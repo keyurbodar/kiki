@@ -1,5 +1,4 @@
 import { useNavigate } from "@tanstack/react-router";
-import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
 import { CaptainCrewSection } from "./crew-section";
 import { CaptainDriveSection } from "./drive-section";
 import { CaptainOverviewEmpty } from "./overview-empty";
@@ -27,37 +26,28 @@ export function CaptainOverviewHome({ jamId }: { jamId: string }) {
   };
 
   return (
-    <div data-slot="captain-overview" className="flex min-h-0 flex-1 flex-col">
-      <ScrollArea className="min-h-0 flex-1">
-        <ScrollAreaViewport className="min-h-0 flex-1">
-          <div className="flex min-h-full flex-col gap-1 p-2">
-            {empty ? (
-              <CaptainOverviewEmpty
-                jamId={jamId}
-                onOpenIssues={() => void navigate({ to: "/issues" })}
-                onOpenDrive={() => openDrive()}
-              />
-            ) : (
-              <>
-                <CaptainCrewSection
-                  jamId={jamId}
-                  onOpenThread={(threadId) =>
-                    void navigate({
-                      to: "/thread/$threadId",
-                      params: { threadId },
-                    })
-                  }
-                />
-                <CaptainDriveSection
-                  jamId={jamId}
-                  onOpenDrive={() => openDrive()}
-                  onOpenFile={(path) => openDrive(path)}
-                />
-              </>
-            )}
-          </div>
-        </ScrollAreaViewport>
-      </ScrollArea>
+    <div data-slot="captain-overview" className="kiki-list">
+      {empty ? (
+        <CaptainOverviewEmpty
+          jamId={jamId}
+          onOpenIssues={() => void navigate({ to: "/issues" })}
+          onOpenDrive={() => openDrive()}
+        />
+      ) : (
+        <>
+          <CaptainCrewSection
+            jamId={jamId}
+            onOpenThread={(threadId) =>
+              void navigate({ to: "/thread/$threadId", params: { threadId } })
+            }
+          />
+          <CaptainDriveSection
+            jamId={jamId}
+            onOpenDrive={() => openDrive()}
+            onOpenFile={(path) => openDrive(path)}
+          />
+        </>
+      )}
     </div>
   );
 }
