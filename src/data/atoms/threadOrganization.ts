@@ -91,3 +91,8 @@ export const unassignTagAtom = ApiClient.mutation(
   "threadOrganization",
   "unassignTag",
 );
+
+export const reorderFolderItemsAtom = ApiClient.mutation(
+  "threadOrganization",
+  "reorderFolderItems",
+);
