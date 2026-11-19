@@ -60,7 +60,11 @@ export function CaptainPreviewCard({
     () => (AsyncResult.isSuccess(catalog) ? parseEntries(catalog.value) : []),
     [catalog],
   );
-  const { crew } = useCaptainCrew(orgId, card.id);
+  const {
+    crew,
+    failed: crewFailed,
+    retry: retryCrew,
+  } = useCaptainCrew(orgId, card.id);
   const owner = usePeople(orgId).memberOf(card.userId);
   const model = useMemo(() => {
     if (card.lastModelId === null) return undefined;
@@ -85,6 +89,8 @@ export function CaptainPreviewCard({
         title: member.title,
         needsYou: member.needsYou,
       }))}
+      crewFailed={crewFailed}
+      onRetryCrew={retryCrew}
     />
   );
 }

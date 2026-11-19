@@ -1,8 +1,9 @@
-import { useAtomSet, useAtomValue } from "@effect/atom-react";
+import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { AsyncResult } from "effect/reactivity";
 import { useMemo, useState } from "react";
 import { AppTopBar } from "@/components/app-top-bar";
+import { FailedRead } from "@/components/failed-read";
 import {
   FilterChipBar,
   newSavedViewId,
@@ -30,6 +31,7 @@ import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   createPullAtom,
+  pullsAtom,
   pullsPagesAtom,
   pullsReactivityKey,
 } from "./data/atoms";
@@ -183,9 +185,12 @@ function PullsPageFor({ orgId }: { orgId: string }) {
   const term = prefs.search.trim();
   const searching = term !== "";
 
-  const result = useAtomValue(
-    pullsPagesAtom(orgId, toListRequest(filters, term, now, pageLimit)),
-  );
+  const request = toListRequest(filters, term, now, pageLimit);
+  const result = useAtomValue(pullsPagesAtom(orgId, request));
+  // `pullsPagesAtom` only folds the page results together, so refreshing it
+  // re-reads the same cached failure; re-running the first page is what sends
+  // a request the list can recover from.
+  const retryPulls = useAtomRefresh(pullsAtom(orgId, request, null));
   const unfiltered = useAtomValue(
     pullsPagesAtom(orgId, toListRequest(emptyFilters, "", now, pageLimit)),
   );
@@ -381,7 +386,14 @@ function PullsPageFor({ orgId }: { orgId: string }) {
         <ScrollAreaViewport className="size-full overflow-auto overscroll-contain">
           <div className="flex min-h-full flex-col pb-16">
             {AsyncResult.isFailure(result) ? (
-              <EmptyState text="Action failed" />
+              // "Action failed" said nothing about what did not load, and
+              // offered no way to load it again.
+              <FailedRead
+                slot="pulls-load-failed"
+                line="Couldn't load pull requests"
+                sub="The list did not load"
+                onRetry={retryPulls}
+              />
             ) : (
               <PullsList
                 sections={AsyncResult.isInitial(result) ? [] : sections}
