@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
+import { PullStateIcon } from "@/components/pull-view/pull-parts";
 import {
   Glyph,
   type GlyphName,
@@ -9,6 +10,12 @@ import {
   type SidebarShelf,
   type SidebarThreadSort,
 } from "@/components/sidebar-threads";
+import type { ThreadOrigin } from "@/data/api/schemas/thread";
+import {
+  defaultThreadFilters,
+  prStatusOptions,
+  type ThreadFilters,
+} from "@/features/threads/threads-page/model";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import {
@@ -57,15 +64,25 @@ export const collapseLabel = ({ working, settled }: SidebarCollapse) =>
         ? "Settled"
         : "None";
 
-type MenuGlyphName = GlyphName | "folder-1";
+/** The glyphs the sprite carries, plus the icon-set keys these menus need. */
+type MenuGlyphName = GlyphName | "user" | "folder-1" | "circle-dashed";
+
+const iconGlyphs = {
+  "folder-1": "folder-1",
+  "circle-dashed": "circle-dashed",
+  user: "user",
+} as const satisfies Record<string, ComponentProps<typeof Icon>["name"]>;
 
 function MenuGlyph({ name }: { name: MenuGlyphName }) {
   return (
     <span className={menuIconClassName}>
-      {name === "folder-1" ? (
-        <Icon name={name} className="size-full" />
+      {name in iconGlyphs ? (
+        <Icon
+          name={iconGlyphs[name as keyof typeof iconGlyphs]}
+          className="size-full"
+        />
       ) : (
-        <Glyph name={name} className="size-full" />
+        <Glyph name={name as GlyphName} className="size-full" />
       )}
     </span>
   );
@@ -311,7 +328,7 @@ export function ThreadOptionsMenu({
                 icon="filter-1"
                 label="Filters"
                 value={filterCount > 0 ? filterCount : undefined}
-                contentClassName="w-56"
+                contentClassName="kiki-menu-filter"
               >
                 {filters}
               </SubMenu>
@@ -383,3 +400,179 @@ export function CaptainOptionsMenu({
     </ResponsiveMenu>
   );
 }
+
+type ThreadFilterFacetsProps = {
+  filters: ThreadFilters;
+  onChange: (filters: ThreadFilters) => void;
+  origins: ReadonlyArray<ThreadOrigin>;
+  projects: ReadonlyArray<{ readonly id: string; readonly name: string }>;
+  members: ReadonlyArray<{ readonly id: string; readonly label: string }>;
+};
+
+const originLabels: Record<ThreadOrigin, string> = {
+  web: "Web",
+  slack: "Slack",
+  linear: "Linear",
+  github: "GitHub",
+  api: "API",
+  capy: "Capy",
+  automation: "Automation",
+};
+
+const toggle = (values: ReadonlyArray<string>, value: string) =>
+  values.includes(value)
+    ? values.filter((existing) => existing !== value)
+    : [...values, value];
+
+/** A submenu row's trailing value: how many facets inside it are picked. */
+const countLabel = (count: number) => (count === 0 ? undefined : String(count));
+
+const emptyThreadFilters = (filters: ThreadFilters) =>
+  filters.projects.length === 0 &&
+  filters.authors.length === 0 &&
+  filters.prStates.length === 0 &&
+  filters.origins.length === 0;
+
+/**
+ * Capy's sidebar filter facets. They write the threads page's own `ThreadFilters`,
+ * so the two surfaces cannot disagree about what "Created by" or "PR status"
+ * means. Participants is absent: the sidebar's card carries no participant list,
+ * so the facet could only ever empty the list.
+ */
+export function ThreadFilterFacets({
+  filters,
+  onChange,
+  origins,
+  projects,
+  members,
+}: ThreadFilterFacetsProps) {
+  return (
+    <>
+      {projects.length === 0 ? null : (
+        <SubMenu
+          icon="folder-1"
+          label="Project"
+          value={countLabel(filters.projects.length)}
+          contentClassName="kiki-menu-filter"
+        >
+          {projects.map((project) => (
+            <ResponsiveMenuItem
+              key={project.id}
+              closeOnClick={false}
+              onClick={() =>
+                onChange({
+                  ...filters,
+                  projects: toggle(filters.projects, project.id),
+                })
+              }
+            >
+              <MenuGlyph name="box-2" />
+              {project.name}
+              <Check on={filters.projects.includes(project.id)} />
+            </ResponsiveMenuItem>
+          ))}
+        </SubMenu>
+      )}
+      {members.length === 0 ? null : (
+        <SubMenu
+          icon="user"
+          label="Created by"
+          value={countLabel(filters.authors.length)}
+          contentClassName="kiki-menu-filter"
+        >
+          {members.map((member) => (
+            <ResponsiveMenuItem
+              key={member.id}
+              closeOnClick={false}
+              onClick={() =>
+                onChange({
+                  ...filters,
+                  authors: toggle(filters.authors, member.id),
+                })
+              }
+            >
+              <span className={menuIconClassName}>
+                <Icon name="user" className="size-full" />
+              </span>
+              {member.label}
+              <Check on={filters.authors.includes(member.id)} />
+            </ResponsiveMenuItem>
+          ))}
+        </SubMenu>
+      )}
+      <SubMenu
+        icon="filter-1"
+        label="PR status"
+        value={countLabel(filters.prStates.length)}
+        contentClassName="w-56"
+      >
+        {prStatusOptions.map((option) => (
+          <ResponsiveMenuItem
+            key={option.id}
+            closeOnClick={false}
+            onClick={() =>
+              onChange({
+                ...filters,
+                prStates: toggle(filters.prStates, option.id),
+              })
+            }
+          >
+            <span className={menuIconClassName}>
+              {option.id === "none" ? null : (
+                <PullStateIcon state={option.id} />
+              )}
+            </span>
+            {option.label}
+            <Check on={filters.prStates.includes(option.id)} />
+          </ResponsiveMenuItem>
+        ))}
+      </SubMenu>
+      {origins.length === 0 ? null : (
+        <SubMenu
+          icon="circle-dashed"
+          label="Origin"
+          value={countLabel(filters.origins.length)}
+          contentClassName="kiki-menu-filter"
+        >
+          {origins.map((origin) => (
+            <ResponsiveMenuItem
+              key={origin}
+              closeOnClick={false}
+              onClick={() =>
+                onChange({
+                  ...filters,
+                  origins: toggle(filters.origins, origin),
+                })
+              }
+            >
+              <span className={menuIconClassName}>
+                <Icon
+                  name={origin === "slack" ? "bubble-dots" : "circle-dashed"}
+                  className="size-full"
+                />
+              </span>
+              {originLabels[origin]}
+              <Check on={filters.origins.includes(origin)} />
+            </ResponsiveMenuItem>
+          ))}
+        </SubMenu>
+      )}
+      <ResponsiveMenuItem
+        disabled={emptyThreadFilters(filters)}
+        onClick={() => onChange(defaultThreadFilters)}
+      >
+        <span className={menuIconClassName}>
+          <Icon name="arrow-rotate-clockwise" className="size-full" />
+        </span>
+        Reset to default
+      </ResponsiveMenuItem>
+    </>
+  );
+}
+
+/** How many facets are narrowing the list, for the trigger's badge. */
+export const activeFacetCount = (filters: ThreadFilters) =>
+  filters.projects.length +
+  filters.authors.length +
+  filters.prStates.length +
+  filters.origins.length;

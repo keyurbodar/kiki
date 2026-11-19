@@ -96,6 +96,7 @@ import {
   groupingLabels,
   orderingLabels,
   type ProjectSummary,
+  prStatusOptions,
   type ThreadFilters,
   type ThreadListItem,
   type ThreadSection,
@@ -746,14 +747,6 @@ const toggle = (values: ReadonlyArray<string>, value: string) =>
 
 const check = (on: boolean) =>
   on ? <span className={["ml-auto", menuCheckClassName].join(" ")} /> : null;
-
-export const prStatusOptions = [
-  { id: "none", label: "None" },
-  { id: "ready", label: "Open" },
-  { id: "draft", label: "Draft" },
-  { id: "merged", label: "Merged" },
-  { id: "closed", label: "Closed" },
-] as const;
 
 function ThreadsFilterMenu({
   filters,

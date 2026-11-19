@@ -17,7 +17,6 @@ import {
   useSidebarThreads,
 } from "@/features/sidebar/sidebar-threads-data";
 import { SidebarThreadsPanel } from "@/features/sidebar/sidebar-threads-panel";
-import { openCommandPalette } from "@/lib/command-palette-events";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import { Icon } from "@/primitives/icon";
@@ -174,7 +173,6 @@ function AppShellBody({ children, banner }: AppLayoutProps) {
           controller={threads}
           onNewThread={() => navigate({ to: "/new" })}
           onNewCaptain={() => setCaptainDialog({ kind: "create" })}
-          onSearch={() => openCommandPalette("thread")}
         />
       }
     />
