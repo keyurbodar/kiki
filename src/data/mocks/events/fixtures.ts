@@ -1020,7 +1020,39 @@ const versionedAskContext = row(
   },
 );
 
+/** The side thread a pane opens: a child jam needs a transcript of its own. */
+const sideThreadJam = "jam_sample_child1";
+
 export const seedEvents: ReadonlyArray<EventRowEncoded> = [
+  row(
+    sideThreadJam,
+    isoMinutesAgo(26),
+    1,
+    "message",
+    {
+      actor: user(people.alex.id),
+      origin: web(people.alex.id),
+      text: "Can the payment gateway be stubbed in CI?",
+      files: [],
+      delivery: "queue",
+    },
+    "answered",
+  ),
+  row(sideThreadJam, isoMinutesAgo(25), 2, "assistant", {
+    actor: agent(sideThreadJam),
+    origin: sys,
+    model: sampleModel,
+    route: { source: "capy" },
+    usage: sampleUsage,
+    stopReason: "end_turn",
+    blocks: [
+      {
+        id: "blk_sample_side_text",
+        type: "text",
+        text: "It can. The stub lives behind a flag the checkout suite sets, so the retry test never reaches the network.",
+      },
+    ],
+  }),
   row(
     checkoutJam,
     at.prompt,

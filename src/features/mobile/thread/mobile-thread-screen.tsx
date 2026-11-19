@@ -21,9 +21,11 @@ import {
   ComposerFooter,
   FooterTrigger,
 } from "@/features/composer/composer-footer";
+import { ReplyBar } from "@/features/composer/message-queue";
 import { useSidebarActions } from "@/features/shell/sidebar-container";
 import { handoffFailure } from "@/features/thread/device-offline-state";
 import { JamChat } from "@/features/thread/jam-chat";
+import { useReplyDraft } from "@/features/thread/reply-quote";
 import { ThreadMessageActions } from "@/features/thread/thread-view/message-actions";
 import {
   refreshNewestAtom,
@@ -257,6 +259,8 @@ function MobileThreadBody({
   };
   const navigate = useNavigate();
   const composerRef = useRef<ComposerHandle>(null);
+  const { replying, startReply, cancelReply, clearReply } =
+    useReplyDraft(composerRef);
   const openHandoff = useAtomSet(openHandoffAtom, { mode: "promiseExit" });
   const sideThreads = useSideThreads(orgId ?? "", threadId);
   const moveToCloud = async () => {
@@ -362,18 +366,29 @@ function MobileThreadBody({
       }
       composer={
         <>
+          {replying !== null && (
+            <ReplyBar
+              name={replying.name}
+              text={replying.text}
+              onCancel={cancelReply}
+            />
+          )}
           <MobileComposer
             ref={composerRef}
             working={running}
             onStop={stop}
             onCommand={runCommand}
-            onSend={(text) =>
-              void send({
-                text,
-                mentions: [],
-                files: [],
-              } satisfies ComposerPayload)
-            }
+            onSend={(text) => {
+              if (
+                !send({
+                  text,
+                  mentions: [],
+                  files: [],
+                } satisfies ComposerPayload)
+              )
+                return;
+              clearReply();
+            }}
             addMenu={
               <MobileAddDrawer
                 trigger={<MobileComposerAddTrigger />}
@@ -432,7 +447,7 @@ function MobileThreadBody({
       }
     >
       {chat ?? (
-        <ThreadMessageActions orgId={orgId} jamId={threadId}>
+        <ThreadMessageActions orgId={orgId} jamId={threadId} reply={startReply}>
           <JamChat
             data-thread-id={threadId}
             jamId={threadId}
