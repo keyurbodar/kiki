@@ -4,7 +4,7 @@
  * and of the hover cluster before it is shown.
  */
 const GHOST_CLASS =
-  "pointer-events-none fixed top-0 left-0 z-(--z-overlay-content) overflow-hidden rounded border-[0.5px] border-border-2 bg-popover shadow-overlay will-change-transform";
+  "kiki-drag-ghost pointer-events-none z-(--z-overlay-content) overflow-hidden rounded border-[length:var(--border-width-hairline)] border-border-2 bg-popover shadow-overlay will-change-transform";
 
 const transparentImage = () => {
   const canvas = document.createElement("canvas");

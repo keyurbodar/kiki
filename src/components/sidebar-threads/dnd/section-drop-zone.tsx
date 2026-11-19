@@ -68,7 +68,7 @@ export function DropLine() {
     <div
       aria-hidden
       data-drop-line=""
-      className="-mx-1 my-0.5 h-0.5 shrink-0 rounded-full bg-primary"
+      className="kiki-sidebar-drop-line -mx-1 shrink-0 rounded-full bg-primary"
     />
   );
 }

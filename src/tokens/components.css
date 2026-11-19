@@ -37,6 +37,8 @@
   --sidebar-pin-label-gap: 4px;
   --sidebar-section-gap: 12px;
   --sidebar-section-header: 28px;
+  --sidebar-drop-line: 2px;
+  --sidebar-drop-line-gap: 2px;
   --grid-gap-x: 24px;
   --grid-gap-y: 32px;
   --annotation-stroke: 1.5px;

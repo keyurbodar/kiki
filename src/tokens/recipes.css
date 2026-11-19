@@ -362,6 +362,19 @@
     text-align: start;
   }
 
+  /* The insertion line a thread drop draws between two sidebar rows. */
+  .kiki-sidebar-drop-line {
+    margin-block: var(--sidebar-drop-line-gap);
+    height: var(--sidebar-drop-line);
+  }
+
+  /* The row clone that follows the pointer during a drag, before transform. */
+  .kiki-drag-ghost {
+    position: fixed;
+    top: 0;
+    left: 0;
+  }
+
   /* A menu separator's breathing room, in one place. */
   .kiki-menu-separator {
     margin-block: var(--row-gap-tight);
