@@ -1009,12 +1009,10 @@ export function OverviewTab({
       {checkRows.length > 0 && <ChecksSection checkRows={checkRows} />}
       <Activity pull={pull} />
       {railHosted && (
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-end">
-            <ReviewButton pull={pull} orgId={orgId} viewerLogin={viewerLogin} />
-          </div>
+        <>
+          <ReviewButton pull={pull} orgId={orgId} viewerLogin={viewerLogin} />
           <MergeControls baseRef={pull.baseRef} pull={pull} />
-        </div>
+        </>
       )}
     </div>
   );
