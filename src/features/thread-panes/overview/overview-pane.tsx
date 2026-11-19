@@ -11,6 +11,7 @@ import {
   SurfaceRow,
   SurfaceStack,
 } from "@/components/overview-section";
+import { idleAtom } from "@/data/atoms/idle";
 import { modelsAtom } from "@/data/atoms/models";
 import {
   overviewChildrenAtom,
@@ -66,6 +67,10 @@ import {
 import { overviewModels, overviewSurfaces, threadTodos } from "./sources";
 
 const sailUrl = CAPY_ILLUSTRATIONS.sail;
+
+/** Standing in for the reads keyed on an org that has not resolved yet. */
+const idleMachineRows = idleAtom<unknown>();
+const idleCatalog = idleAtom<unknown>();
 
 export type OverviewPaneProps = PaneProps;
 
@@ -282,13 +287,23 @@ export function OverviewPane({ threadId }: OverviewPaneProps) {
     machinePreviewsAtom(orgId ?? ("" as never), threadId),
   );
   const machineRows = useAtomValue(
-    threadMachinesAtom(orgId ?? ("" as never), threadId),
+    orgId === undefined
+      ? idleMachineRows
+      : threadMachinesAtom(orgId as never, threadId),
   );
-  const catalog = useAtomValue(modelsAtom(orgId ?? ""));
+  const catalog = useAtomValue(
+    orgId === undefined ? idleCatalog : modelsAtom(orgId),
+  );
   const gitStatus = useAtomValue(statusAtom(threadId));
   const gitTurns = useAtomValue(turnsAtom(threadId));
   const gitPatch = useAtomValue(patchAtom(threadId));
-  const feed = useAtomValue(threadFeedAtom(`${orgId ?? ""}/${threadId}`));
+  // A key that cannot collide with a real org/jam pair while the org resolves:
+  // the feed atom then holds its empty default, which is what todos read.
+  const feed = useAtomValue(
+    threadFeedAtom(
+      orgId === undefined ? ":unresolved" : `${orgId}/${threadId}`,
+    ),
+  );
   const refreshChildren = useAtomRefresh(childrenAtom);
   const refreshPulls = useAtomRefresh(pullsAtom);
   const refreshLocalPulls = useAtomRefresh(localPullsAtom);
