@@ -9,7 +9,7 @@ import {
   threadTagsAtom,
   unassignTagAtom,
 } from "@/data/atoms/threadOrganization";
-import { useShortcutGlyphs } from "@/features/shell/keyboard";
+import { useShortcutChord } from "@/features/shell/keyboard";
 import { Icon } from "@/primitives/icon";
 import type { IconId } from "@/primitives/icon/icon-ids";
 import { Kbd } from "@/primitives/kbd";
@@ -69,14 +69,6 @@ function MenuRow({
     </ResponsiveMenuItem>
   );
 }
-
-/** The printed chord for a command, or nothing when the table binds none. */
-const chord = (glyphs: ReadonlyArray<string>): string | undefined =>
-  glyphs.length === 0
-    ? undefined
-    : glyphs.some((glyph) => glyph.length > 1)
-      ? glyphs.join("+")
-      : glyphs.join("");
 
 /**
  * Capy's thread context menu, in Capy's order. The sidebar's `…` cluster and the
@@ -143,10 +135,10 @@ export function ThreadRowMenu({
   renameKey?: string;
 }) {
   const actions = useThreadActions();
-  const unreadChord = chord(useShortcutGlyphs("menu.markUnread"));
-  const archiveChord = chord(useShortcutGlyphs("menu.archive"));
-  const settleChord = chord(useShortcutGlyphs("menu.settle"));
-  const deleteChord = chord(useShortcutGlyphs("menu.delete"));
+  const unreadChord = useShortcutChord("menu.markUnread");
+  const archiveChord = useShortcutChord("menu.archive");
+  const settleChord = useShortcutChord("menu.settle");
+  const deleteChord = useShortcutChord("menu.delete");
   const act = (run: () => void) => () => {
     onClose?.();
     run();

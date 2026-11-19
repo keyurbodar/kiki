@@ -29,6 +29,7 @@ import {
 import { SidebarSetupCard } from "@/components/sidebar-setup-card";
 import { SidebarThreads } from "@/components/sidebar-threads";
 import { UserMenu } from "@/components/user-menu";
+import { ShortcutTooltip } from "@/features/shell/keyboard";
 import { openCommandPalette } from "@/lib/command-palette-events";
 import { Button } from "@/primitives/button";
 import {
@@ -361,71 +362,61 @@ export function AppSidebar({
           </Tooltip>
         )}
         <div className="ml-auto flex items-center">
-          <Tooltip>
-            <TooltipTrigger
-              data-track-owner="shared/app-sidebar.tsx#AppSidebar:TooltipTrigger.4"
-              render={
-                <Button
-                  data-track-owner="shared/app-sidebar.tsx#AppSidebar:Button[Search]"
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label="Search"
-                  className={ghostIconSmButton}
-                  onClick={() => openCommandPalette()}
-                >
-                  <MagnifyingGlassIcon />
-                </Button>
-              }
-            />
-            <TooltipContent side="bottom">Search</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger
-              data-track-owner="shared/app-sidebar.tsx#AppSidebar:TooltipTrigger.5"
-              render={
-                <Button
-                  data-track-owner="shared/app-sidebar.tsx#AppSidebar:Button.1"
-                  render={
-                    <Link
-                      data-track-owner="shared/app-sidebar.tsx#AppSidebar:Link.3"
-                      to="/new"
-                    />
-                  }
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={SIDEBAR_NAV_CONFIG.newThread.label}
-                  data-track-action="thread.new"
-                  className={ghostIconSmButton}
-                >
-                  <EditSmallIcon />
-                </Button>
-              }
-            />
-            <TooltipContent side="bottom">
-              {SIDEBAR_NAV_CONFIG.newThread.label}
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger
-              data-track-owner="ui/sidebar.tsx#SidebarTrigger:TooltipTrigger.1"
-              render={
-                <Button
-                  data-track-owner="ui/sidebar.tsx#SidebarTrigger:Button[onClick=toggle]"
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
-                  aria-pressed={sidebarOpen}
-                  className={ghostIconSmButton}
-                  onClick={onSidebarToggle}
-                >
-                  <Icon name="sidebar-simple-left-wide" size="sm" />
-                </Button>
-              }
-            />
-            <TooltipContent side="bottom">
-              {sidebarOpen ? "Close sidebar" : "Open sidebar"}
-            </TooltipContent>
-          </Tooltip>
+          <ShortcutTooltip
+            command="commandMenu.toggle"
+            label="Search"
+            render={
+              <Button
+                data-track-owner="shared/app-sidebar.tsx#AppSidebar:Button[Search]"
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Search"
+                className={ghostIconSmButton}
+                onClick={() => openCommandPalette()}
+              >
+                <MagnifyingGlassIcon />
+              </Button>
+            }
+          />
+          <ShortcutTooltip
+            command="thread.new"
+            label={SIDEBAR_NAV_CONFIG.newThread.label}
+            render={
+              <Button
+                data-track-owner="shared/app-sidebar.tsx#AppSidebar:Button.1"
+                render={
+                  <Link
+                    data-track-owner="shared/app-sidebar.tsx#AppSidebar:Link.3"
+                    to="/new"
+                  />
+                }
+                variant="ghost"
+                size="icon-sm"
+                aria-label={SIDEBAR_NAV_CONFIG.newThread.label}
+                data-track-action="thread.new"
+                className={ghostIconSmButton}
+              >
+                <EditSmallIcon />
+              </Button>
+            }
+          />
+          <ShortcutTooltip
+            command="sidebar.toggle"
+            label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+            render={
+              <Button
+                data-track-owner="ui/sidebar.tsx#SidebarTrigger:Button[onClick=toggle]"
+                variant="ghost"
+                size="icon-sm"
+                aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+                aria-pressed={sidebarOpen}
+                className={ghostIconSmButton}
+                onClick={onSidebarToggle}
+              >
+                <Icon name="sidebar-simple-left-wide" size="sm" />
+              </Button>
+            }
+          />
         </div>
       </header>
       {pagesBar}

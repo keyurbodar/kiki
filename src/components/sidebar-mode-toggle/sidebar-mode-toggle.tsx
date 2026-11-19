@@ -12,8 +12,8 @@ import {
   segmentedXsButton,
 } from "@/components/app-sidebar/classes";
 import { ListBulletsIcon, ShipIcon } from "@/components/app-sidebar/icons";
+import { ShortcutTooltip } from "@/features/shell/keyboard";
 import { Button } from "@/primitives/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 
 export type SidebarMode = "captains" | "threads";
 
@@ -135,30 +135,29 @@ export function SidebarModeToggle({
         className="pointer-events-none absolute origin-left bg-card shadow-card"
       />
       {SIDEBAR_MODES.map(([value, label, ModeIcon]) => (
-        <Tooltip key={value}>
-          <TooltipTrigger
-            data-track-owner="shared/sidebar-mode-toggle.tsx#SidebarModeToggle:TooltipTrigger.1"
-            render={
-              <Button
-                data-track-owner="shared/sidebar-mode-toggle.tsx#SidebarModeToggle:Button.1"
-                type="button"
-                size="xs"
-                variant="segmented"
-                aria-label={label}
-                aria-pressed={current === value}
-                data-selected={current === value ? "" : undefined}
-                onClick={() => {
-                  if (mode === undefined) setLocalMode(value);
-                  onModeChange?.(value);
-                }}
-                className={segmentedXsButton}
-              >
-                <ModeIcon className="size-(--icon-sm)" />
-              </Button>
-            }
-          />
-          <TooltipContent side="bottom">{label}</TooltipContent>
-        </Tooltip>
+        <ShortcutTooltip
+          key={value}
+          command="sidebar.mode"
+          label={label}
+          render={
+            <Button
+              data-track-owner="shared/sidebar-mode-toggle.tsx#SidebarModeToggle:Button.1"
+              type="button"
+              size="xs"
+              variant="segmented"
+              aria-label={label}
+              aria-pressed={current === value}
+              data-selected={current === value ? "" : undefined}
+              onClick={() => {
+                if (mode === undefined) setLocalMode(value);
+                onModeChange?.(value);
+              }}
+              className={segmentedXsButton}
+            >
+              <ModeIcon className="size-(--icon-sm)" />
+            </Button>
+          }
+        />
       ))}
       {children}
     </div>
