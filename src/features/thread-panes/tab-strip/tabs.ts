@@ -6,7 +6,7 @@ export type PaneTab =
   | { kind: "chat" }
   | { kind: "overview" }
   | { kind: "diffs"; jamId?: string }
-  | { kind: "files"; jamId?: string }
+  | { kind: "files"; jamId?: string; focus?: "search" }
   | { kind: "setup"; jamId?: string }
   | { kind: "captain_issues" }
   | { kind: "issue"; code: string }

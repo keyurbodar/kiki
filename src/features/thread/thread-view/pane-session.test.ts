@@ -7,6 +7,7 @@ import {
   openTab,
   seedSession,
   selectTab,
+  setTabFocus,
 } from "./pane-session";
 
 const overview: PaneTab = { kind: "overview" };
@@ -54,6 +55,29 @@ describe("openTab", () => {
     const twice = openTab(once, pr);
     expect(twice.tabs).toHaveLength(1);
     expect(twice.active).toBe(once.active);
+  });
+
+  it("replaces a held tab, so a second ask carries its new intent", () => {
+    const session = openTab(emptySession, { kind: "files" });
+    const focused = openTab(session, { kind: "files", focus: "search" });
+    expect(focused.tabs).toHaveLength(1);
+    expect(focused.tabs[0]).toEqual({ kind: "files", focus: "search" });
+  });
+});
+
+describe("setTabFocus", () => {
+  it("asks the files tab for its search field, and clears the ask", () => {
+    const session = openTab(emptySession, { kind: "files" });
+    const asked = setTabFocus(session, "files", "search");
+    expect(asked.tabs[0]).toEqual({ kind: "files", focus: "search" });
+    expect(setTabFocus(asked, "files", undefined).tabs[0]).toEqual({
+      kind: "files",
+    });
+  });
+
+  it("leaves other pane kinds alone", () => {
+    const session = openTab(emptySession, overview);
+    expect(setTabFocus(session, "overview", "search")).toBe(session);
   });
 });
 
