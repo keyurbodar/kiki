@@ -1,12 +1,9 @@
 /**
  * What the running app knows when a key arrives: the flags Capy's When column
- * names. A row reads only what it needs.
+ * names. A row reads only what it needs, and the dispatcher merges in what a
+ * surface alone knows, such as its own menu being open.
  */
 export type CommandContext = {
-  /** A text field has focus: the composer's editor, an input, a textarea. */
-  editableFocus: boolean;
-  /** The composer holds focus. */
-  composerFocus: boolean;
   /** A command menu, or a thread's action menu, is open over the page. */
   commandMenuOpen: boolean;
 };
@@ -18,16 +15,13 @@ export type CommandWhen = (context: CommandContext) => boolean;
  * that needs them rather than inlined per command.
  */
 export const commandWhen = {
-  /** From the composer, which a menu is not covering. */
-  inComposer: (context: CommandContext) =>
-    context.composerFocus && !context.commandMenuOpen,
   /** While a menu is open, because the menu owns the chord there. */
   menuOpen: (context: CommandContext) => context.commandMenuOpen,
+  /** Only while no menu covers the page; the menu's row takes the chord. */
+  menuClosed: (context: CommandContext) => !context.commandMenuOpen,
 } satisfies Record<string, CommandWhen>;
 
 export const emptyCommandContext: CommandContext = {
-  editableFocus: false,
-  composerFocus: false,
   commandMenuOpen: false,
 };
 
@@ -40,7 +34,7 @@ export type KeybindingCommand = {
   inEditable?: boolean;
   /**
    * Tells two rows on one chord apart, as Capy does: it prints `mod+.` twice,
-   * for Stop run (composer focus) and Thread actions (menu open). A row without
+   * for Stop run (no menu open) and Thread actions (menu open). A row without
    * one must own its chord alone.
    */
   when?: CommandWhen;
@@ -103,7 +97,7 @@ const catalog: ReadonlyArray<KeybindingCommand> = [
     label: "Stop run",
     defaults: ["mod+."],
     contextual: true,
-    when: commandWhen.inComposer,
+    when: commandWhen.menuClosed,
   },
   {
     command: "composer.attach",
@@ -243,10 +237,9 @@ const catalog: ReadonlyArray<KeybindingCommand> = [
   {
     command: "commandMenu.actions",
     label: "Thread actions",
-    /* Capy gives this `mod+.` under `when: commandMenuOpen`, which our resolver
-       cannot express, and the chord belongs to the stop control while a run is
-       live; the row prints unassigned until the resolver can scope it. */
-    defaults: [],
+    /* Capy prints `mod+.` twice: this row takes the chord while a menu is open,
+       and `thread.stop` takes it from the composer. */
+    defaults: ["mod+."],
     contextual: true,
     when: commandWhen.menuOpen,
   },

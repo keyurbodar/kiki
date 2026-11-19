@@ -16,7 +16,6 @@ import {
   Composer,
   type ComposerHandle,
   type ComposerPayload,
-  type ComposerStop,
   PlusMenu,
 } from "@/components/composer";
 import type { ChipIssue } from "@/components/markdown-chips";
@@ -134,8 +133,6 @@ export type ThreadViewProps = {
   paneExpanded?: boolean;
   /** Replaces the composer when no request is waiting on an answer. */
   composer?: ReactNode;
-  /** The run's stop control, shown while the thread is working. */
-  stop?: ComposerStop;
   /** The sent message the composer is editing, from the thread's edit draft. */
   editing?: EditDraft | null;
   /** Opens the composer on a sent message. */
@@ -306,7 +303,6 @@ export function ThreadView({
   mainPane,
   paneExpanded = false,
   composer,
-  stop,
   editing,
   onEditMessage,
   onCancelEdit,
@@ -652,7 +648,6 @@ export function ThreadView({
                         >
                           <Composer
                             ref={composerHandle}
-                            stop={stop}
                             onSubmit={submit}
                             onFilesAdded={attachments.add}
                             attachments={

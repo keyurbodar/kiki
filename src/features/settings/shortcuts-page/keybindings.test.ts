@@ -187,15 +187,7 @@ describe("when predicates", () => {
     ...over,
   });
   const bindings = effectiveBindings({});
-  const context = (
-    over: Partial<{
-      editableFocus: boolean;
-      composerFocus: boolean;
-      commandMenuOpen: boolean;
-    }>,
-  ) => ({
-    editableFocus: false,
-    composerFocus: false,
+  const context = (over: Partial<{ commandMenuOpen: boolean }>) => ({
     commandMenuOpen: false,
     ...over,
   });
@@ -205,17 +197,12 @@ describe("when predicates", () => {
       resolveEventCommand(
         press({}),
         bindings,
-        context({ composerFocus: true }),
-      ),
-    ).toBe("thread.stop");
-    expect(
-      resolveEventCommand(
-        press({}),
-        bindings,
         context({ commandMenuOpen: true }),
       ),
     ).toBe("commandMenu.actions");
-    expect(resolveEventCommand(press({}), bindings, context({}))).toBeNull();
+    expect(resolveEventCommand(press({}), bindings, context({}))).toBe(
+      "thread.stop",
+    );
   });
 
   it("reports a chord two rows claim with nothing to tell them apart", () => {

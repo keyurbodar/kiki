@@ -128,28 +128,34 @@ describe("keybinding dispatcher", () => {
     ).toThrow(/mod\+enter/);
   });
 
-  it("reads composer focus, and lets a surface say its menu is open", () => {
-    const composer = document.createElement("div");
-    composer.setAttribute("data-slot", "composer");
-    const editor = document.createElement("div");
-    editor.contentEditable = "true";
-    composer.append(editor);
-    document.body.append(composer);
-
+  it("stands down when a surface says its menu has the chord", () => {
     const stop = vi.fn();
-    const dispose = register({ "thread.stop": stop });
-    press(".", { ctrlKey: true }, editor);
+    expect(() => register({ "thread.stop": stop })).not.toThrow();
+    press(".", { ctrlKey: true });
     expect(stop).toHaveBeenCalledOnce();
 
     // The palette is open: its own row claims the chord, so this one stands down.
-    dispose();
+    disposers.splice(0).forEach((dispose) => dispose());
     stop.mockClear();
     register(
       { "thread.stop": stop },
       { context: () => ({ commandMenuOpen: true }) },
     );
-    press(".", { ctrlKey: true }, editor);
+    press(".", { ctrlKey: true });
     expect(stop).not.toHaveBeenCalled();
+  });
+
+  it("counts another surface's open menu as the page's, not its own", () => {
+    const stop = vi.fn();
+    register({ "thread.stop": stop });
+    register({ "commandMenu.toggle": noop }, {
+      capture: true,
+      context: () => ({ commandMenuOpen: true }),
+    });
+
+    press(".", { ctrlKey: true });
+    expect(stop).not.toHaveBeenCalled();
+    disposers.splice(0).forEach((dispose) => dispose());
   });
 
   it("skips a scope whose guard says it is not mounted here", () => {

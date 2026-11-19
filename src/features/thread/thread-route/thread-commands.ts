@@ -12,8 +12,6 @@ export type ThreadCommandDeps = {
   toggleExpanded: () => void;
   /** Opens the Files pane with its search field focused, as Capy's ⌘P does. */
   searchFiles: () => void;
-  /** Stops the run in flight; the row is scoped to composer focus. */
-  stopRun: () => void;
 };
 
 export const createThreadCommands = (
@@ -29,7 +27,6 @@ export const createThreadCommands = (
   },
   "diffs.open": () => read().openPane("diffs"),
   "files.search": () => read().searchFiles(),
-  "thread.stop": () => read().stopRun(),
 });
 
 /** The composer's own keybindings, registered by the view that holds its editor. */

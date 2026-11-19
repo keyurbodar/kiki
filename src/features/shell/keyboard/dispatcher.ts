@@ -16,8 +16,9 @@ export type CommandScopeOptions = {
   /** Read at event time; a scope whose guard fails is skipped. */
   when?: () => boolean;
   /**
-   * What this surface knows about the page when the key arrives — whether its
-   * own menu is open, say — merged over the focus flags the dispatcher reads.
+   * What this surface knows about the page when the key arrives, such as its
+   * own menu being open. Every scope resolves against it, because a menu that
+   * holds a chord holds it for the whole page.
    */
   context?: () => Partial<CommandContext>;
   /**
@@ -52,29 +53,16 @@ export function isEditableTarget(target: EventTarget | null): boolean {
   return EDITABLE_TAGS.has(target.tagName.toLowerCase());
 }
 
-/** Focus flags a keydown carries, before a surface adds what it alone knows. */
-function readContext(event: KeyboardEvent): CommandContext {
-  const element = event.target instanceof Element ? event.target : null;
-  const active = document.activeElement;
-  const inComposer = (node: Element | null) =>
-    node?.closest('[data-slot="composer"]') != null;
-  return {
-    editableFocus: isEditableTarget(event.target),
-    composerFocus: inComposer(element) || inComposer(active),
-    commandMenuOpen: false,
-  };
-}
-
-export function debugResolve(event: KeyboardEvent) {
-  const context = readContext(event);
-  return {
-    context,
-    command: resolveEventCommand(
-      event as unknown as KeyEventLike,
-      currentBindings(),
-      context,
-    ),
-  };
+/**
+ * What the page knows when a key arrives: a surface's own news, such as its menu
+ * being open, is the page's news too, so every scope resolves against it.
+ */
+function readContext(): CommandContext {
+  const context: CommandContext = { commandMenuOpen: false };
+  for (const scope of [...globalScopes, ...captureScopes]) {
+    Object.assign(context, scope.options.context?.());
+  }
+  return context;
 }
 
 function scopeCommand(
@@ -84,7 +72,7 @@ function scopeCommand(
   const command = resolveEventCommand(
     event as unknown as KeyEventLike,
     currentBindings(),
-    { ...readContext(event), ...scope.options.context?.() },
+    readContext(),
   );
   if (command === null || scope.commands[command] === undefined) return null;
   return command;
@@ -161,18 +149,6 @@ export function registerCommands(
   commands: CommandHandlers,
   options: CommandScopeOptions = {},
 ): () => void {
-  // Two handlers on one chord without a `when` to tell them apart would lose
-  // one silently; say which instead. Development only: the table is static, so
-  // CI and the test suite catch it and a shipped build never throws on it.
-  if (import.meta.env.DEV) {
-    const ambiguous = ambiguousChords(Object.keys(commands));
-    const first = ambiguous[0];
-    if (first !== undefined) {
-      throw new Error(
-        `${first.commands.join(" and ")} both claim ${first.key} with no when to tell them apart`,
-      );
-    }
-  }
   // Two handlers on one chord with no `when` to tell them apart would lose one
   // silently; name them instead. Development only: the table is static, so CI
   // and the suite catch it and a shipped build never throws on a bad table.
