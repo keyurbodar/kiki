@@ -51,9 +51,7 @@ describe("editor copy", () => {
   it("titles triggers and initials", () => {
     expect(triggerTitle(defaultTrigger("schedule"))).toBe("On a schedule");
     expect(triggerTitle(defaultTrigger("on_demand"))).toBe("Manual run");
-    expect(triggerTitle(defaultTrigger("github"))).toBe(
-      "GitHub pull request opened",
-    );
+    expect(triggerTitle(defaultTrigger("github"))).toBe("GitHub");
     expect(initialsOf("Alex Morgan")).toBe("AM");
   });
 });

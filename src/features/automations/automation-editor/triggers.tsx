@@ -1,11 +1,22 @@
 import { useState } from "react";
+import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
-import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
+import {
+  Menu,
+  MenuContent,
+  MenuGroup,
+  MenuItem,
+  MenuLabel,
+  MenuSub,
+  MenuSubContent,
+  MenuSubTrigger,
+  MenuTrigger,
+} from "@/primitives/menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
-import { eventOptions } from "../events";
+import { eventGroups, eventOptions, eventStatus } from "../events";
 import { WebhookCoalescing } from "../webhook-coalescing";
 import { CalendarClock, CrossMedium, PlusMedium } from "./icons";
 import {
@@ -17,7 +28,12 @@ import {
   type TriggerType,
   triggerLabels,
 } from "./model";
-import { menuIconClass, OptionChip } from "./parts";
+import {
+  menuIconClass,
+  menuLabelClass,
+  menuTrailingClass,
+  OptionChip,
+} from "./parts";
 import {
   buildCron,
   hourIntervals,
@@ -46,15 +62,11 @@ export function TriggerIcon({ type }: { type: TriggerType }) {
   }
 }
 
-const humanize = (value: string) => value.replaceAll("_", " ");
-
 export const triggerTitle = (trigger: Trigger) => {
   if (trigger.type === "schedule") return "On a schedule";
   if (trigger.type === "on_demand") return "Manual run";
   if (trigger.type === "incoming_webhook") return "Webhook request";
-  return trigger.event === undefined
-    ? triggerLabels[trigger.type]
-    : `${triggerLabels[trigger.type]} ${humanize(trigger.event)}`;
+  return triggerLabels[trigger.type];
 };
 
 const presetOptions = [
@@ -405,7 +417,7 @@ const integrationTriggers: ReadonlyArray<EventTriggerType> = [
 ];
 
 export type AddTriggerMenuProps = {
-  onAdd: (type: TriggerType) => void;
+  onAdd: (type: TriggerType, event?: string) => void;
 };
 
 export function AddTriggerMenu({ onAdd }: AddTriggerMenuProps) {
@@ -415,7 +427,7 @@ export function AddTriggerMenu({ onAdd }: AddTriggerMenuProps) {
         <PlusMedium />
         Add trigger
       </MenuTrigger>
-      <MenuContent align="end" className="w-64">
+      <MenuContent align="end" className="kiki-menu">
         <MenuItem onClick={() => onAdd("schedule")}>
           <span className={menuIconClass}>
             <CalendarClock />
@@ -423,12 +435,46 @@ export function AddTriggerMenu({ onAdd }: AddTriggerMenuProps) {
           On a schedule
         </MenuItem>
         {integrationTriggers.map((type) => (
-          <MenuItem key={type} onClick={() => onAdd(type)}>
-            <span className={menuIconClass}>
-              <TriggerIcon type={type} />
-            </span>
-            {triggerLabels[type]}
-          </MenuItem>
+          <MenuSub key={type}>
+            <MenuSubTrigger>
+              <span className={menuIconClass}>
+                <TriggerIcon type={type} />
+              </span>
+              {triggerLabels[type]}
+            </MenuSubTrigger>
+            <MenuSubContent className="kiki-menu">
+              {(eventGroups[type] ?? []).map((group) => (
+                <MenuGroup key={group.label}>
+                  <MenuLabel>{group.label}</MenuLabel>
+                  {group.leaves.map((leaf) => {
+                    const coming = eventStatus(type, leaf.event);
+                    return (
+                      <MenuItem
+                        key={leaf.event}
+                        disabled={coming === "coming_soon"}
+                        onClick={() => onAdd(type, leaf.event)}
+                      >
+                        <span className={menuIconClass}>
+                          <TriggerIcon type={type} />
+                        </span>
+                        <span className={menuLabelClass}>{leaf.label}</span>
+                        {coming === "coming_soon" ? (
+                          <Badge
+                            size="sm"
+                            variant="ghost"
+                            className={menuTrailingClass}
+                            glyph={false}
+                          >
+                            Coming soon
+                          </Badge>
+                        ) : null}
+                      </MenuItem>
+                    );
+                  })}
+                </MenuGroup>
+              ))}
+            </MenuSubContent>
+          </MenuSub>
         ))}
         <MenuItem onClick={() => onAdd("incoming_webhook")}>
           <span className={menuIconClass}>

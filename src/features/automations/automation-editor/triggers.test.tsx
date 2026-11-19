@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { EventTrigger } from "./model";
+import { eventGroups, eventLabels, eventStatus } from "../events";
+import { defaultTrigger, type EventTrigger } from "./model";
 import { TriggerRow } from "./triggers";
 
 afterEach(cleanup);
@@ -88,5 +89,34 @@ describe("an event trigger row", () => {
     expect(
       document.querySelector('[data-slot="trigger-condition"]'),
     ).toBeNull();
+  });
+});
+
+describe("the events the add-trigger menu offers", () => {
+  it("names every leaf it lists", () => {
+    for (const [type, groups] of Object.entries(eventGroups)) {
+      for (const group of groups ?? []) {
+        expect(group.leaves.length).toBeGreaterThan(0);
+        for (const leaf of group.leaves)
+          expect(eventLabels[type]?.[leaf.event]).toBeDefined();
+      }
+    }
+  });
+
+  it("puts Sentry's events behind Coming soon", () => {
+    expect(eventStatus("sentry", "any_issue")).toBe("coming_soon");
+    expect(eventStatus("sentry", "event_alert")).toBe("coming_soon");
+    expect(eventStatus("slack", "channel_created")).toBe("coming_soon");
+    expect(eventStatus("github", "pull_request_merged")).toBe("shipped");
+    expect(eventStatus("slack", "reaction")).toBe("shipped");
+    expect(eventStatus("linear", "end_cycle")).toBe("shipped");
+  });
+
+  it("adds the event the leaf was picked from", () => {
+    expect(defaultTrigger("github", "pull_request_merged")).toEqual({
+      type: "github",
+      event: "pull_request_merged",
+      conditions: {},
+    });
   });
 });

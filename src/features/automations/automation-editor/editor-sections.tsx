@@ -191,9 +191,9 @@ export function EditorSections({
           subtitle="Runs when any of these conditions are met"
           action={
             <AddTriggerMenu
-              onAdd={(type) =>
+              onAdd={(type, event) =>
                 applyResult(
-                  addTrigger(form, defaultTrigger(type), nextSchedule),
+                  addTrigger(form, defaultTrigger(type, event), nextSchedule),
                   form,
                   setForm,
                 )
