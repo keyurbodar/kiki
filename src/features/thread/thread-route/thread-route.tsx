@@ -338,6 +338,7 @@ export function ThreadRoute({
                 onFocus={() =>
                   onSession?.(setTabFocus(openTabs, activeId, undefined))
                 }
+                rows={timeline.rows}
               />
             </ThreadDock>
           ) : undefined

@@ -29,6 +29,7 @@ import {
   useMessageActions,
 } from "@/features/thread/message-footer";
 import { parseReply, ReplyQuote } from "@/features/thread/reply-quote";
+import { useAttachmentOpener } from "@/features/thread/thread-view/pane-session-context";
 import { VersionSwitcher } from "@/features/thread/version-switcher";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
@@ -111,6 +112,7 @@ export function UserMessage({
   ...props
 }: UserMessageProps) {
   const actions = useMessageActions();
+  const openAttachment = useAttachmentOpener();
   const [localExpanded, setLocalExpanded] = useState(false);
   const mine =
     actions.viewerUserId !== undefined &&
@@ -245,6 +247,7 @@ export function UserMessage({
             entries={attachments}
             align={mine ? "end" : "start"}
             onOpenMedia={onOpenMedia}
+            onOpenFile={(entry) => openAttachment(entry)}
           />
         )}
         {(body !== "" || reply !== undefined) && (
