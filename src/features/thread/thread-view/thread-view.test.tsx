@@ -80,6 +80,10 @@ vi.mock("@/features/thread/timeline", async () => {
         },
       ),
     ),
+    idleRefreshNewestAtom: Atom.writable(
+      () => undefined,
+      () => undefined,
+    ),
   };
 });
 

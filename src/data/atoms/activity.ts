@@ -1,4 +1,4 @@
-import { Atom } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import { ApiClient } from "../client/ApiClient.ts";
 import { queryTimeToLive } from "./conventions.ts";
 
@@ -51,6 +51,11 @@ export const orgHourlyActivityAtom = Atom.family((key: string) => {
     timeToLive: queryTimeToLive,
   });
 });
+
+/** The member directory while the org is still resolving. */
+export const idleOrgMembersAtom: ReturnType<typeof orgMembersAtom> = Atom.make(
+  AsyncResult.initial(false),
+) as ReturnType<typeof orgMembersAtom>;
 
 export const orgMembersAtom = Atom.family((orgId: string) =>
   ApiClient.query("members", "listMembers", {

@@ -16,8 +16,13 @@ import {
 } from "@/data/atoms/captains";
 import { reactivityKeys } from "@/data/atoms/conventions";
 import { jamEventKey, sendMessageAtom } from "@/data/atoms/events";
-import { allIssuesAtom } from "@/data/atoms/issues";
-import { overviewChildrenAtom, overviewPullsAtom } from "@/data/atoms/overview";
+import { allIssuesAtom, idleAllIssuesAtom } from "@/data/atoms/issues";
+import {
+  idleOverviewChildrenAtom,
+  idleOverviewPullsAtom,
+  overviewChildrenAtom,
+  overviewPullsAtom,
+} from "@/data/atoms/overview";
 import {
   type CrewThread,
   leaveCrewAtom,
@@ -62,6 +67,7 @@ import {
   captainIssueActivityAtom,
   crewMeta,
   type InProgressIssue,
+  idleCaptainIssueActivityAtom,
   inProgressIssues,
   issueMeta,
   subagentMeta,
@@ -398,12 +404,18 @@ export function ThreadSummaryPane({ threadId }: PaneProps) {
   const now = Date.now();
 
   const childrenResult = useAtomValue(
-    overviewChildrenAtom(orgId ?? ("" as never), threadId),
+    orgId === undefined
+      ? idleOverviewChildrenAtom
+      : overviewChildrenAtom(orgId, threadId),
   );
   const pullsResult = useAtomValue(
-    overviewPullsAtom(orgId ?? ("" as never), threadId),
+    orgId === undefined
+      ? idleOverviewPullsAtom
+      : overviewPullsAtom(orgId, threadId),
   );
-  const issuesResult = useAtomValue(allIssuesAtom(orgId ?? ("" as never)));
+  const issuesResult = useAtomValue(
+    orgId === undefined ? idleAllIssuesAtom : allIssuesAtom(orgId),
+  );
   const captainsResult = useAtomValue(
     orgId === undefined ? idleCaptainsAtom : captainsAtom(orgId),
   );
@@ -418,7 +430,9 @@ export function ThreadSummaryPane({ threadId }: PaneProps) {
     retry: retryCrew,
   } = useCaptainCrew(orgId, threadId, isCaptain);
   const activityResult = useAtomValue(
-    captainIssueActivityAtom(orgId ?? "", threadId),
+    orgId === undefined
+      ? idleCaptainIssueActivityAtom
+      : captainIssueActivityAtom(orgId, threadId),
   );
 
   const rows = useMemo<ThreadSummaryRows>(() => {

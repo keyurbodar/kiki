@@ -28,6 +28,7 @@ import { JamChat } from "@/features/thread/jam-chat";
 import { useReplyDraft } from "@/features/thread/reply-quote";
 import { ThreadMessageActions } from "@/features/thread/thread-view/message-actions";
 import {
+  idleRefreshNewestAtom,
   refreshNewestAtom,
   threadKey,
   useThreadTimeline,
@@ -242,7 +243,9 @@ function MobileThreadBody({
     timeline.live.phase === "compacting";
   const stopRun = useAtomSet(stopRunAtom, { mode: "promise" });
   const refreshNewest = useAtomSet(
-    refreshNewestAtom(threadKey((orgId ?? "") as OrgId, threadId as JamId)),
+    orgId === undefined
+      ? idleRefreshNewestAtom
+      : refreshNewestAtom(threadKey(orgId as OrgId, threadId as JamId)),
     { mode: "promise" },
   );
   const stop = () => {
@@ -262,7 +265,7 @@ function MobileThreadBody({
   const { replying, startReply, cancelReply, clearReply } =
     useReplyDraft(composerRef);
   const openHandoff = useAtomSet(openHandoffAtom, { mode: "promiseExit" });
-  const sideThreads = useSideThreads(orgId ?? "", threadId);
+  const sideThreads = useSideThreads(orgId, threadId);
   const moveToCloud = async () => {
     if (orgId === undefined) return;
     const exit = await openHandoff({

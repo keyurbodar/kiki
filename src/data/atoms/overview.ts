@@ -1,4 +1,4 @@
-import { Atom } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import type { OrgId } from "../api/schemas/ids.ts";
 import { ApiClient } from "../client/ApiClient.ts";
 import { queryTimeToLive } from "./conventions.ts";
@@ -41,6 +41,21 @@ const localPullsQuery = Atom.family((key: string) => {
 
 export const overviewLocalPullsAtom = (orgId: OrgId, jamId: string) =>
   localPullsQuery(threadKey(orgId, jamId));
+
+/** The thread's children and pulls while the org is still resolving. */
+export const idleOverviewChildrenAtom: ReturnType<typeof overviewChildrenAtom> =
+  Atom.make(AsyncResult.initial(false)) as ReturnType<
+    typeof overviewChildrenAtom
+  >;
+
+export const idleOverviewPullsAtom: ReturnType<typeof overviewPullsAtom> =
+  Atom.make(AsyncResult.initial(false)) as ReturnType<typeof overviewPullsAtom>;
+
+export const idleOverviewLocalPullsAtom: ReturnType<
+  typeof overviewLocalPullsAtom
+> = Atom.make(AsyncResult.initial(false)) as ReturnType<
+  typeof overviewLocalPullsAtom
+>;
 
 export const overviewRemoveLocalPullAtom = ApiClient.mutation(
   "pulls",

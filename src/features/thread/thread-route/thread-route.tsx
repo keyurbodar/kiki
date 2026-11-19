@@ -215,7 +215,7 @@ export function ThreadRoute({
   const [expanded, setExpanded] = useState(false);
   /** Capy has one pane below `md`, so it offers no split there either. */
   const narrow = useIsNarrow();
-  const sideThreads = useSideThreads(orgId ?? "", threadId);
+  const sideThreads = useSideThreads(orgId, threadId);
   const entry = findPane(pane);
   const openTabs =
     session ??

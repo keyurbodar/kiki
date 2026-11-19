@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
-import { EventId, EventRow, MessageVersion } from "@/data/events";
+import { type EventId, EventRow, MessageVersion } from "@/data/events";
 import { applyViewedVersion, buildTimeline } from "./build";
 
 const decodeEvent = Schema.decodeUnknownSync(EventRow);

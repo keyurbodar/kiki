@@ -3,7 +3,10 @@ import { Exit } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useEffect, useMemo, useState } from "react";
 import type { OrgId } from "@/data/api/schemas/ids";
-import { machinePreviewsAtom } from "@/data/atoms/setup";
+import {
+  idleMachinePreviewsAtom,
+  machinePreviewsAtom,
+} from "@/data/atoms/setup";
 import { ApiClient } from "@/data/client/ApiClient.ts";
 import { ServicePreviewSurface } from "@/features/thread/service-preview-surface";
 import { previewArt } from "@/features/thread/service-preview-surface/art.ts";
@@ -40,7 +43,9 @@ export function ServicePreview({
   port,
 }: ServicePreviewProps) {
   const previews = useAtomValue(
-    machinePreviewsAtom((orgId ?? "") as OrgId, jamId),
+    orgId === undefined
+      ? idleMachinePreviewsAtom
+      : machinePreviewsAtom(orgId as OrgId, jamId),
   );
   const handoff = useHandoff();
   const [state, setState] = useState<Handoff | undefined>();

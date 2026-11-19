@@ -13,12 +13,20 @@ import {
 } from "@/components/overview-section";
 import { modelsAtom } from "@/data/atoms/models";
 import {
+  idleOverviewChildrenAtom,
+  idleOverviewLocalPullsAtom,
+  idleOverviewPullsAtom,
   overviewChildrenAtom,
   overviewLocalPullsAtom,
   overviewPullsAtom,
   overviewRemoveLocalPullAtom,
 } from "@/data/atoms/overview";
-import { machinePreviewsAtom, threadMachinesAtom } from "@/data/atoms/setup";
+import {
+  idleMachinePreviewsAtom,
+  idleThreadMachinesAtom,
+  machinePreviewsAtom,
+  threadMachinesAtom,
+} from "@/data/atoms/setup";
 import { useIssueOrgId } from "@/features/issues/issue-parts";
 import { usePaneSession } from "@/features/thread/thread-view/pane-session-context";
 import { threadFeedAtom } from "@/features/thread/timeline";
@@ -269,26 +277,38 @@ export function OverviewPane({ threadId }: OverviewPaneProps) {
   const removeLocalPull = useAtomSet(overviewRemoveLocalPullAtom, {
     mode: "promiseExit",
   });
-  const childrenAtom = overviewChildrenAtom(orgId ?? ("" as never), threadId);
-  const pullsAtom = overviewPullsAtom(orgId ?? ("" as never), threadId);
-  const localPullsAtom = overviewLocalPullsAtom(
-    orgId ?? ("" as never),
-    threadId,
-  );
+  const childrenAtom =
+    orgId === undefined
+      ? idleOverviewChildrenAtom
+      : overviewChildrenAtom(orgId, threadId);
+  const pullsAtom =
+    orgId === undefined
+      ? idleOverviewPullsAtom
+      : overviewPullsAtom(orgId, threadId);
+  const localPullsAtom =
+    orgId === undefined
+      ? idleOverviewLocalPullsAtom
+      : overviewLocalPullsAtom(orgId, threadId);
   const children = useAtomValue(childrenAtom);
   const pulls = useAtomValue(pullsAtom);
   const localPulls = useAtomValue(localPullsAtom);
   const previews = useAtomValue(
-    machinePreviewsAtom(orgId ?? ("" as never), threadId),
+    orgId === undefined
+      ? idleMachinePreviewsAtom
+      : machinePreviewsAtom(orgId, threadId),
   );
   const machineRows = useAtomValue(
-    threadMachinesAtom(orgId ?? ("" as never), threadId),
+    orgId === undefined
+      ? idleThreadMachinesAtom
+      : threadMachinesAtom(orgId, threadId),
   );
-  const catalog = useAtomValue(modelsAtom(orgId ?? ""));
+  const catalog = useAtomValue(modelsAtom(orgId));
   const gitStatus = useAtomValue(statusAtom(threadId));
   const gitTurns = useAtomValue(turnsAtom(threadId));
   const gitPatch = useAtomValue(patchAtom(threadId));
-  const feed = useAtomValue(threadFeedAtom(`${orgId ?? ""}/${threadId}`));
+  const feed = useAtomValue(
+    threadFeedAtom(orgId === undefined ? "" : `${orgId}/${threadId}`),
+  );
   const refreshChildren = useAtomRefresh(childrenAtom);
   const refreshPulls = useAtomRefresh(pullsAtom);
   const refreshLocalPulls = useAtomRefresh(localPullsAtom);

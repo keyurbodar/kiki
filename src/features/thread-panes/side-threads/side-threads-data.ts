@@ -18,6 +18,11 @@ export const sideThreadsAtom = Atom.family((key: string) => {
   });
 });
 
+/** The side threads a thread reads while its org is still resolving. */
+const idleSideThreads: ReturnType<typeof sideThreadsAtom> = Atom.make(
+  AsyncResult.initial(false),
+) as ReturnType<typeof sideThreadsAtom>;
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
@@ -32,7 +37,11 @@ export function toSideThreads(rows: unknown): SideThread[] {
   });
 }
 
-export function useSideThreads(orgId: string, jamId: string) {
-  const result = useAtomValue(sideThreadsAtom(`${orgId}/${jamId}`));
+export function useSideThreads(orgId: string | undefined, jamId: string) {
+  const result = useAtomValue(
+    orgId === undefined
+      ? idleSideThreads
+      : sideThreadsAtom(`${orgId}/${jamId}`),
+  );
   return toSideThreads(Option.getOrUndefined(AsyncResult.value(result)));
 }
