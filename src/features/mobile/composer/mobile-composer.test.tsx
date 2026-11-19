@@ -64,7 +64,7 @@ async function open() {
 
 describe("phone composer commands", () => {
   it("lists the commands that run, with skills last", () => {
-    expect(commandNames("")).toEqual(["new"]);
+    expect(commandNames("")).toEqual(["plan", "new"]);
     expect(commandRows("").at(-1)).toEqual({
       type: "skills",
       source: expect.objectContaining({ label: "Skills" }),
@@ -80,6 +80,8 @@ describe("phone composer commands", () => {
     const { type } = await open();
     await type("/");
     const menu = document.querySelector('[data-slot="composer-command-menu"]');
+    expect(menu?.textContent).toContain("Plan mode");
+    expect(menu?.textContent).toContain("/plan");
     expect(menu?.textContent).toContain("New thread");
     expect(menu?.textContent).toContain("/new");
     expect(menu?.textContent).toContain("Skills");
@@ -134,7 +136,7 @@ describe("MobileComposer", () => {
     expect(screen.getByRole("button", { name: "Model" })).toBeTruthy();
   });
 
-  it("runs the highlighted command on Enter", async () => {
+  it("inserts plan mode on Enter, the row the menu highlights first", async () => {
     const onCommand = vi.fn();
     const ref = createRef<ComposerHandle>();
     render(
@@ -143,6 +145,25 @@ describe("MobileComposer", () => {
     const editor = await screen.findByLabelText("Message");
     act(() => ref.current?.typeCharacter("/"));
     await settle();
+    fireEvent.keyDown(editor, { key: "Enter" });
+    await settle();
+    expect(onCommand).not.toHaveBeenCalled();
+    expect(editor.textContent).toContain("/plan ");
+    expect(
+      document.querySelector('[data-slot="composer-command-menu"]'),
+    ).toBeNull();
+  });
+
+  it("runs the row a second Enter lands on", async () => {
+    const onCommand = vi.fn();
+    const ref = createRef<ComposerHandle>();
+    render(
+      <MobileComposer ref={ref} onSend={() => {}} onCommand={onCommand} />,
+    );
+    const editor = await screen.findByLabelText("Message");
+    act(() => ref.current?.typeCharacter("/"));
+    await settle();
+    fireEvent.keyDown(editor, { key: "ArrowDown" });
     fireEvent.keyDown(editor, { key: "Enter" });
     expect(onCommand).toHaveBeenCalledWith("new");
     expect(
