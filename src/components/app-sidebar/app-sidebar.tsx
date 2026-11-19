@@ -59,11 +59,12 @@ import {
   MagnifyingGlassIcon,
   SettingsSliderThreeIcon,
 } from "./icons";
-import { usePagesAtTop, useSidebarLayout } from "./preferences";
+import { usePagesAtTop } from "./preferences";
 
 export const SIDEBAR_BAR_ITEM_WIDTH = 28;
 
 export type AppSidebarProps = ComponentProps<"div"> & {
+  /** Capy offers the switch when there is a Captain to switch to. */
   showModeToggle?: boolean;
   threadsSlot?: ReactNode;
   mode?: SidebarMode;
@@ -129,7 +130,6 @@ export function AppSidebar({
   ...props
 }: AppSidebarProps) {
   const [storedNav, saveStoredNav] = useSidebarNavPreference();
-  const [layout] = useSidebarLayout();
   const [pagesAtTop] = usePagesAtTop();
   const nav = useSidebarNav(
     navOptions ?? { value: storedNav, onChange: saveStoredNav },
@@ -326,7 +326,7 @@ export function AppSidebar({
       {...props}
     >
       <header className="flex h-11 shrink-0 items-center gap-1 px-2 pl-4">
-        {showModeToggle && layout === "split" ? (
+        {showModeToggle ? (
           <div className="flex">
             <SidebarModeToggle
               data-track-owner="shared/app-sidebar.tsx#AppSidebar:SidebarModeToggle.1"
