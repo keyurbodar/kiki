@@ -8,8 +8,6 @@ export const unboundCommands: Record<string, string> = {
     "The thread composer has no stop control wired; Capy's runs stop from the send button's own state",
   "composer.voice":
     "No transcription backend, so the composer never renders a voice control to start",
-  "selection.comment":
-    "Selecting transcript text does not open a comment composer yet",
   "request.allow": "The access-request card submits from its own button",
   "request.submit": "The request form submits from its own button",
   "shell.focus":

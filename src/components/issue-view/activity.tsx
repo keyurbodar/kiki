@@ -44,6 +44,7 @@ import {
 } from "./activity-items";
 import { useIssueViewContext } from "./context";
 import { IssueComposer } from "./issue-composer";
+import type { IssueQuote } from "./issue-view";
 import type { IssueActions } from "./use-issue";
 
 const pageSize = 50;
@@ -323,10 +324,13 @@ export function IssueActivity({
   orgId,
   detail,
   actions,
+  quote,
 }: {
   orgId: OrgId | undefined;
   detail: IssueDetail;
   actions: IssueActions;
+  /** A selected description passage the comment box is seeded with. */
+  quote?: IssueQuote | null;
 }) {
   const [filter, setFilter] = useState<ActivityFilter>("all");
   const [limit, setLimit] = useState(pageSize);
@@ -407,6 +411,7 @@ export function IssueActivity({
         placeholder="Leave a comment"
         submitLabel="Comment"
         editorClassName="min-h-12"
+        quote={quote}
         onSubmit={(text) => actions.comment(text)}
       />
     </div>

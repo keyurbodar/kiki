@@ -165,6 +165,7 @@ function IssueViewBody({
   detail: IssueDetail;
 }) {
   const actions = useIssueActions(detail, orgId);
+  const [quote, setQuote] = useState<IssueQuote | null>(null);
   return (
     <div
       data-slot="issue-view"
@@ -172,7 +173,11 @@ function IssueViewBody({
     >
       <IssueHeading detail={detail} />
       <PropertyRows orgId={orgId} detail={detail} actions={actions} />
-      <Description detail={detail} actions={actions} />
+      <Description
+        detail={detail}
+        actions={actions}
+        onQuote={(text) => setQuote({ text, nonce: Date.now() })}
+      />
       {detail.subIssues.length > 0 && (
         <SubIssuesSection
           orgId={orgId}
@@ -180,10 +185,18 @@ function IssueViewBody({
           closed={detail.issue.closedSubIssueCount}
         />
       )}
-      <IssueActivity orgId={orgId} detail={detail} actions={actions} />
+      <IssueActivity
+        orgId={orgId}
+        detail={detail}
+        actions={actions}
+        quote={quote}
+      />
     </div>
   );
 }
+
+/** A selected description passage the comment box is seeded with. */
+export type IssueQuote = { text: string; nonce: number };
 
 /** Marks an unread issue seen once the viewer has it open. */
 function useMarkSeen(

@@ -1,9 +1,6 @@
 import { createPortal } from "react-dom";
-import {
-  type ComposerPayload,
-  SelectionBox,
-  SelectionToolbar,
-} from "@/components/composer";
+import { type ComposerPayload, SelectionBox } from "@/components/composer";
+import { SelectionCard } from "@/components/selection-card";
 import {
   type ExcerptMention,
   excerptMention,
@@ -68,8 +65,8 @@ export function QuoteSelectionLayer({
 
   return (
     <>
-      <SelectionToolbar
-        selection={selection === null ? undefined : tooltip(selection)}
+      <SelectionCard
+        selection={selection === null ? null : tooltip(selection)}
         side={selection?.side}
         onComment={() => openBox("")}
         onCopy={dismiss}
