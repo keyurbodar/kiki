@@ -11,13 +11,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  [data-slot="sheet-content"],
-  [data-slot="side-sheet-content"] {
-    translate: 0 !important;
-  }
-}
-
 [data-slot="sheet-content"],
 [data-slot="sheet-overlay"] {
   -webkit-app-region: no-drag;

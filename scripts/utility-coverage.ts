@@ -1,5 +1,15 @@
 /**
  * The guard answers one question: does this class token produce a CSS rule?
+ *
+ * It runs that question twice: once over utility-shaped tokens (a class that
+ * looks like Tailwind but compiles to nothing), and once over component-shaped
+ * tokens — a plain kebab word in a `className` list that is neither a Tailwind
+ * utility nor a selector in one of our stylesheets. The second sweep exists
+ * because `chat-scroller` sat in the transcript for weeks styling nothing: the
+ * first sweep skipped the whole literal it appeared in, since that literal also
+ * held utilities and `chat-scroller` is not one of them.
+ *
+ * And it still cannot tell a component class Capy defines from a utility composition Capy writes inline,
  * It cannot tell a component class Capy defines from a utility composition
  * Capy writes inline, so a token this file reports as unstyled may be inert in
  * Capy too rather than a rule we never ported. Check the bundle before
@@ -83,6 +93,34 @@ export const KNOWN_UNSTYLED: ReadonlyArray<{
     file: "src/features/thread-panes/diffs-view/diffs-view.tsx",
     token: "bg-accent",
     note: "no --accent token exists in either tree",
+  },
+];
+
+/**
+ * Component-shaped classes that are deliberately not CSS: markers another
+ * system reads, and names both trees compose from utilities. Every entry needs
+ * the reason; a stale one — a class that styles something again — fails the
+ * check so the list cannot grow silently.
+ */
+export const KNOWN_DEAD_COMPONENT_CLASSES: ReadonlyArray<{
+  file: string;
+  token: string;
+  note: string;
+}> = [
+  {
+    file: "src/components/diff-tab/diff-file-card.tsx",
+    token: "diff-comment-discussion",
+    note: "a marker both trees compose from utilities; Capy defines no such rule either",
+  },
+  {
+    file: "src/features/explore/setup-panel/setup-panel-art.tsx",
+    token: "ph-no-capture",
+    note: "PostHog's privacy marker, an attribute for its recorder rather than a style",
+  },
+  {
+    file: "src/primitives/dither/dither-shader.tsx",
+    token: "ph-no-capture",
+    note: "PostHog's privacy marker, an attribute for its recorder rather than a style",
   },
 ];
 
@@ -209,7 +247,7 @@ const UTILITY_PREFIXES = [
   "[",
 ];
 
-const isUtility = (token: string) =>
+export const isUtility = (token: string) =>
   UTILITY_PREFIXES.some((prefix) => token.startsWith(prefix));
 
 /** Utility words that carry no variant, dash or bracket. */
@@ -340,6 +378,75 @@ export function findClassCandidates(source: string): ClassCandidate[] {
   return found;
 }
 
+/**
+ * Component-shaped tokens: a plain kebab-case word with no variant, bracket or
+ * arbitrary value. These are the names a stylesheet is expected to define
+ * (`chat-scroller`, `kiki-menu-row`), so a component token that Tailwind does
+ * not compile and no stylesheet selects is a class that styles nothing.
+ */
+const isComponentShaped = (token: string) =>
+  /^[a-z][a-z0-9]*(-[a-z0-9]+)+$/.test(token);
+
+/**
+ * Every component-shaped class token written in a `className` attribute,
+ * regardless of whether the literal around it also holds utilities.
+ */
+export function findComponentClassCandidates(source: string): ClassCandidate[] {
+  const found: ClassCandidate[] = [];
+  const seen = new Set<string>();
+  const lineOf = (offset: number) => source.slice(0, offset).split("\n").length;
+
+  let index = source.indexOf(CLASS_ATTRIBUTE);
+  while (index !== -1) {
+    let cursor = index + CLASS_ATTRIBUTE.length;
+    while (source[cursor] === " " || source[cursor] === "\n") cursor++;
+    if (source[cursor] !== "=") {
+      index = source.indexOf(CLASS_ATTRIBUTE, cursor);
+      continue;
+    }
+    cursor++;
+    while (source[cursor] === " " || source[cursor] === "\n") cursor++;
+
+    const quote = source[cursor];
+    const spans: { text: string; offset: number }[] = [];
+    if (quote === '"' || quote === "'") {
+      const end = source.indexOf(quote, cursor + 1);
+      if (end === -1) break;
+      spans.push({ text: source.slice(cursor + 1, end), offset: cursor + 1 });
+      cursor = end + 1;
+    } else if (quote === "{") {
+      // A single-token literal in braces is ambiguous: `buttonVariants({ size:
+      // "icon-sm" })` names a variant and `visibility === "message-hover"`
+      // compares a prop, and neither is a class. Only a space-separated list is
+      // certainly a class list, so a lone class token in braces is left to the
+      // utility sweep and to review.
+      spans.push(
+        ...literalsInBraces(source, cursor).filter((span) =>
+          span.text.includes(" "),
+        ),
+      );
+      cursor = index + CLASS_ATTRIBUTE.length;
+    } else {
+      index = source.indexOf(CLASS_ATTRIBUTE, cursor);
+      continue;
+    }
+
+    for (const span of spans) {
+      for (const match of span.text.matchAll(/\S+/g)) {
+        const token = match[0];
+        if (!isComponentShaped(token) || isSkipped(token)) continue;
+        if (isUtility(token)) continue;
+        if (seen.has(token)) continue;
+        seen.add(token);
+        found.push({ token, line: lineOf(span.offset + (match.index ?? 0)) });
+      }
+    }
+
+    index = source.indexOf(CLASS_ATTRIBUTE, cursor);
+  }
+  return found;
+}
+
 /** The selector Tailwind emits for a class, with variants and arbitrary values escaped. */
 export function selectorOf(token: string): string {
   const head = `.${token.replace(/[^\w-]/g, (char) => `\\${char}`)}`;
@@ -351,6 +458,33 @@ export function isAllowed(unstyled: UnstyledClass): boolean {
   return KNOWN_UNSTYLED.some(
     (known) => known.file === unstyled.file && known.token === unstyled.token,
   );
+}
+
+export function isAllowedDead(dead: UnstyledClass): boolean {
+  return KNOWN_DEAD_COMPONENT_CLASSES.some(
+    (known) => known.file === dead.file && known.token === dead.token,
+  );
+}
+
+export type DeadComponentVerdict = {
+  /** Allowlisted, but it styles something now: the entry should go. */
+  stale: UnstyledClass[];
+  /** No rule anywhere, and nobody has claimed it. */
+  unknown: UnstyledClass[];
+};
+
+export function classifyDeadComponentClasses(
+  hits: ReadonlyArray<UnstyledClass & { styled: boolean }>,
+): DeadComponentVerdict {
+  const stale: UnstyledClass[] = [];
+  const unknown: UnstyledClass[] = [];
+  for (const { file, token, line, styled } of hits) {
+    const entry = { file, token, line };
+    const allowed = isAllowedDead(entry);
+    if (!styled && !allowed) unknown.push(entry);
+    if (styled && allowed) stale.push(entry);
+  }
+  return { stale, unknown };
 }
 
 export type ClassVerdict = {

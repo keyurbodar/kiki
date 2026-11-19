@@ -4,7 +4,9 @@ import { join, resolve } from "node:path";
 import { compile } from "@tailwindcss/node";
 import {
   classify,
+  classifyDeadComponentClasses,
   findClassCandidates,
+  findComponentClassCandidates,
   selectorOf,
   type UnstyledClass,
 } from "./utility-coverage";
@@ -30,6 +32,10 @@ export type UtilityCoverageResult = {
   readonly stale: ReadonlyArray<UnstyledClass>;
   /** No rule anywhere, and nobody has claimed it. */
   readonly unknown: ReadonlyArray<UnstyledClass>;
+  /** A component-shaped class that compiles to nothing and no stylesheet selects. */
+  readonly dead: ReadonlyArray<UnstyledClass>;
+  /** Allowlisted dead class that styles something now: the entry should go. */
+  readonly staleDead: ReadonlyArray<UnstyledClass>;
   /** Set when Tailwind could not compile, so the check was skipped. */
   readonly skipped?: string;
 };
@@ -55,11 +61,20 @@ export async function runUtilityCoverage(
     .join("\n");
 
   const candidates = new Map<string, ReturnType<typeof findClassCandidates>>();
+  const componentCandidates = new Map<
+    string,
+    ReturnType<typeof findComponentClassCandidates>
+  >();
   const tokens = new Set<string>();
+  const componentTokens = new Set<string>();
   for (const file of sourceFiles) {
-    const found = findClassCandidates(readFileSync(file, "utf8"));
+    const source = readFileSync(file, "utf8");
+    const found = findClassCandidates(source);
     candidates.set(file, found);
     for (const { token } of found) tokens.add(token);
+    const component = findComponentClassCandidates(source);
+    componentCandidates.set(file, component);
+    for (const { token } of component) componentTokens.add(token);
   }
 
   let compiled: string;
@@ -68,12 +83,14 @@ export async function runUtilityCoverage(
       base: resolve(root),
       onDependency() {},
     });
-    compiled = compiler.build([...tokens]);
+    compiled = compiler.build([...tokens, ...componentTokens]);
   } catch (error) {
     return {
       files: sourceFiles,
       stale: [],
       unknown: [],
+      dead: [],
+      staleDead: [],
       skipped: error instanceof Error ? error.message : String(error),
     };
   }
@@ -89,5 +106,18 @@ export async function runUtilityCoverage(
     }
   }
 
-  return { files: sourceFiles, ...classify(hits) };
+  const deadHits: (UnstyledClass & { styled: boolean })[] = [];
+  for (const [file, found] of componentCandidates) {
+    for (const { token, line } of found) {
+      deadHits.push({ file, token, line, styled: covers(token) });
+    }
+  }
+  const deadVerdict = classifyDeadComponentClasses(deadHits);
+
+  return {
+    files: sourceFiles,
+    dead: deadVerdict.unknown,
+    staleDead: deadVerdict.stale,
+    ...classify(hits),
+  };
 }

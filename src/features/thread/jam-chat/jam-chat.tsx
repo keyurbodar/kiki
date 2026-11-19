@@ -36,6 +36,7 @@ import { anchorShift, type ChatAnchor, positionOf } from "./anchor";
 import { ChatScrollPill } from "./chat-scroll-pill";
 import { ChatStamp } from "./chat-stamp";
 import { type ChatJump, type JumpList, jumpToRow } from "./jump-to-row";
+import { markScrolling } from "./mark-scrolling";
 import {
   computeRowGaps,
   countMessagesBelow,
@@ -199,7 +200,9 @@ export function JamChat({
 
   const handleScroll = useCallback(() => {
     const node = scroller.current;
-    if (node !== null) sync(node);
+    if (node === null) return;
+    markScrolling(node);
+    sync(node);
   }, [sync]);
 
   /** Holds the reader's place: the end while reading it, else the anchored row. */

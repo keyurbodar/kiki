@@ -3,7 +3,9 @@ import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   classify,
+  classifyDeadComponentClasses,
   findClassCandidates,
+  findComponentClassCandidates,
   isAllowed,
   KNOWN_UNSTYLED,
   selectorOf,
@@ -49,6 +51,41 @@ describe("findClassCandidates", () => {
   });
 });
 
+describe("findComponentClassCandidates", () => {
+  it("reads a component class beside utilities", () => {
+    expect(
+      findComponentClassCandidates(
+        `<div className="chat-scroller flex overflow-y-auto" />`,
+      ),
+    ).toEqual([{ token: "chat-scroller", line: 1 }]);
+  });
+
+  it("ignores a single-token variant argument in braces", () => {
+    expect(
+      findComponentClassCandidates(
+        `<div className={buttonVariants({ size: "icon-sm" })} />`,
+      ),
+    ).toEqual([]);
+  });
+
+  it("reads a component class out of a multi-token list in braces", () => {
+    expect(
+      findComponentClassCandidates(
+        `<div className={cx("kiki-badge flex", open && "kiki-badge-open p-2")} />`,
+      ),
+    ).toEqual([
+      { token: "kiki-badge", line: 1 },
+      { token: "kiki-badge-open", line: 1 },
+    ]);
+  });
+
+  it("ignores utility-shaped tokens", () => {
+    expect(
+      findComponentClassCandidates(`<div className="bg-card text-sm" />`),
+    ).toEqual([]);
+  });
+});
+
 describe("selectorOf", () => {
   it("escapes variants and arbitrary values the way Tailwind does", () => {
     expect(selectorOf("md:pt-16")).toBe(".md\\:pt-16");
@@ -81,6 +118,27 @@ describe("classify", () => {
       stale: [{ file: known.file, token: known.token, line: 3 }],
       unknown: [],
     });
+  });
+});
+
+describe("classifyDeadComponentClasses", () => {
+  it("flags a component class with no rule", () => {
+    expect(
+      classifyDeadComponentClasses([
+        { file: "src/a.tsx", token: "chat-scroller", line: 2, styled: false },
+      ]),
+    ).toEqual({
+      stale: [],
+      unknown: [{ file: "src/a.tsx", token: "chat-scroller", line: 2 }],
+    });
+  });
+
+  it("passes a component class a stylesheet selects", () => {
+    expect(
+      classifyDeadComponentClasses([
+        { file: "src/a.tsx", token: "kiki-badge", line: 2, styled: true },
+      ]),
+    ).toEqual({ stale: [], unknown: [] });
   });
 });
 
@@ -135,6 +193,27 @@ describe("runUtilityCoverage against a real tree", () => {
     expect(result.unknown).toEqual([]);
     expect(result.stale).toEqual([]);
     expect(result.files.length).toBe(1);
+  });
+
+  it("fails on a component class no stylesheet selects", async () => {
+    const root = fixture({
+      "styles.css": "@import 'tailwindcss';",
+      "panel.tsx": `<div className="chat-scroller flex overflow-y-auto" />`,
+    });
+    const result = await runUtilityCoverage({ root });
+    expect(result.skipped).toBeUndefined();
+    expect(result.dead.map((entry) => entry.token)).toEqual(["chat-scroller"]);
+  });
+
+  it("passes a component class its stylesheet selects", async () => {
+    const root = fixture({
+      "styles.css": "@import 'tailwindcss';",
+      "panel.css":
+        ".chat-scroller { scrollbar-color: transparent transparent; }",
+      "panel.tsx": `<div className="chat-scroller flex overflow-y-auto" />`,
+    });
+    const result = await runUtilityCoverage({ root });
+    expect(result.dead).toEqual([]);
   });
 
   it("reads a class a component stylesheet defines", async () => {

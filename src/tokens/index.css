@@ -13,6 +13,7 @@
 @import "./themes/default.css";
 @import "./themes/presets.css";
 @import "./motion.css";
+@import "./reduced-motion.css";
 @import "./effects.css";
 @import "./rich-content.css";
 @import "./base.css";
