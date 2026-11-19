@@ -1,4 +1,4 @@
-import { useAtomValue } from "@effect/atom-react";
+import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import { Option } from "effect";
@@ -20,8 +20,10 @@ import {
   PlusMenu,
 } from "@/components/composer";
 import type { ChipIssue } from "@/components/markdown-chips";
-import type { OrgId } from "@/data/api/schemas/ids";
+import type { JamId, OrgId } from "@/data/api/schemas/ids";
 import type { IssueList } from "@/data/api/schemas/issue";
+import { reactivityKeys } from "@/data/atoms/conventions";
+import { jamEventKey, stopRunAtom } from "@/data/atoms/events";
 import { idleAtom } from "@/data/atoms/idle";
 import { allIssuesAtom } from "@/data/atoms/issues";
 import { projectsAtom } from "@/data/atoms/projects";
@@ -54,7 +56,7 @@ import {
   IssueStateIcon,
   issueStatusDefaults,
 } from "@/features/issues/issue-parts";
-import { registerCommands } from "@/features/shell/keyboard";
+import { registerCommands, shortcutGlyphText } from "@/features/shell/keyboard";
 import {
   AttachmentSourceProvider,
   apiAttachmentSource,
@@ -74,7 +76,11 @@ import {
 import type { EditTarget, ReplyTarget } from "@/features/thread/message-footer";
 import { type ExcerptMention, replyDraft } from "@/features/thread/reply-quote";
 import { createComposerCommands } from "@/features/thread/thread-route/thread-commands";
-import type { EditDraft } from "@/features/thread/timeline";
+import {
+  type EditDraft,
+  refreshNewestAtom,
+  threadKey,
+} from "@/features/thread/timeline";
 import { useComposerSend } from "@/features/thread/use-composer-send";
 import { Button } from "@/primitives/button";
 import { RightPanelGroup } from "@/primitives/right-panel";
@@ -104,6 +110,8 @@ export type ThreadTakeoverHandlers = {
 export type ThreadViewProps = {
   threadId: string;
   rows: readonly TimelineRow[];
+  /** The thread's run is in flight: the composer's send control becomes stop. */
+  running?: boolean;
   /** Where answers and dismissals go; the view owns the local dismissal state. */
   handlers: ThreadTakeoverHandlers;
   loading?: boolean;
@@ -283,6 +291,7 @@ const footerMachine = (rows: readonly unknown[]): FooterMachine | null => {
 export function ThreadView({
   threadId,
   rows,
+  running = false,
   handlers,
   loading = false,
   failed = false,
@@ -304,16 +313,6 @@ export function ThreadView({
   takeover,
 }: ThreadViewProps) {
   const composerHandle = useRef<ComposerHandle | null>(null);
-  useEffect(
-    () =>
-      registerCommands(
-        createComposerCommands(() => ({
-          focus: () => composerHandle.current?.focus(),
-        })),
-        { capture: true },
-      ),
-    [],
-  );
   const send = useComposerSend(threadId, editing?.eventId, (payload) =>
     composerHandle.current?.reset(payload),
   );
@@ -404,6 +403,39 @@ export function ThreadView({
     return edited;
   }, [rows]);
   const orgId = handlers.orgId;
+  const stopRun = useAtomSet(stopRunAtom, { mode: "promise" });
+  const refreshNewest = useAtomSet(
+    refreshNewestAtom(threadKey((orgId ?? "") as OrgId, threadId as JamId)),
+    { mode: "promise" },
+  );
+  const [stopping, setStopping] = useState(false);
+  /** Aborts the turn in flight; false when there is none to abort. */
+  const stop = useCallback(() => {
+    if (orgId === undefined || !running || stopping) return false;
+    setStopping(true);
+    stopRun({
+      params: { orgId, jamId: threadId },
+      reactivityKeys: [
+        jamEventKey(threadId),
+        reactivityKeys.threads(orgId as OrgId),
+      ],
+    })
+      .then(() => refreshNewest())
+      .catch(() => toast.error("Could not stop run"))
+      .finally(() => setStopping(false));
+    return true;
+  }, [orgId, refreshNewest, running, stopRun, stopping, threadId]);
+  useEffect(
+    () =>
+      registerCommands(
+        createComposerCommands(() => ({
+          focus: () => composerHandle.current?.focus(),
+          stop,
+        })),
+        { capture: true },
+      ),
+    [stop],
+  );
   const orgThreads = useAtomValue(useThreadsAtom(orgId as OrgId | undefined));
   const drive = useDriveListing(orgId, {});
   const skills = useMemo(
@@ -637,7 +669,20 @@ export function ThreadView({
                             sources={mentionSources}
                             commands={commands}
                             submitLabel="Send"
-                            submitPersistent
+                            /* Capy's swap is `send when there is something to
+                               send, stop otherwise`; a persistent submit would
+                               always look like something, so the stop control
+                               could never take its place. */
+                            submitPersistent={!running}
+                            stop={
+                              running
+                                ? {
+                                    onStop: stop,
+                                    pending: stopping,
+                                    shortcut: shortcutGlyphText("thread.stop"),
+                                  }
+                                : undefined
+                            }
                             leftControls={
                               <>
                                 <PlusMenu

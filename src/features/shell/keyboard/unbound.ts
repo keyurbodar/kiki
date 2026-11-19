@@ -21,9 +21,8 @@ export const unboundCommands: Record<string, string> = {
     "The image preview has no focused-preview state to scope the shortcut to",
   "media.sendComments":
     "The media comment layer keeps queued comments in local state",
-  "file.save": "The file view is read-only; there is no edit buffer to save",
-  "files.search":
-    "The files pane searches inside its own toolbar, not from a shell-level command",
+  "file.save":
+    "Capy's save writes an in-browser edit back to the machine from a file editor (thread-view's MachinePathView: editStateText, a baseSha mutation, toast \"File saved to machine\"); our machine file view is read-only, so there is no draft to save",
   "pull.copyLink":
     "There is no pull request page with a selected pull; copy link lives on each list row's menu",
   "pullTab.overview":
@@ -35,7 +34,7 @@ export const unboundCommands: Record<string, string> = {
   "paneTab.back":
     "The pane session keeps no record of the tab a tab was opened from",
   "commandMenu.actions":
-    "The thread row menu opens from its own trigger; nothing tracks a selected row",
+    "The thread row menu opens from its own trigger; nothing tracks a selected row. Capy gives it `mod+.` under `when: commandMenuOpen`, and that chord is free for `thread.stop` here because the resolver cannot yet tell a focused composer from an open command menu",
   "list.next": "Thread, issue and pull lists have no roving selection to move",
   "list.previous":
     "Thread, issue and pull lists have no roving selection to move",
