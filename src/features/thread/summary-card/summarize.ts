@@ -25,9 +25,22 @@ export type SummaryAutomation = { bound: boolean };
 
 export type SummaryEnvironmentRequest = { variables: readonly string[] };
 
+export type SummaryBuildStatus =
+  | "building"
+  | "succeeded"
+  | "failed"
+  | "cancelled";
+
 export type SummarySetupReference =
   | { kind: "version"; versionId: string; toolCallId: string }
-  | { kind: "build"; buildId: string; test: boolean; toolCallId: string }
+  | {
+      kind: "build";
+      buildId: string;
+      test: boolean;
+      toolCallId: string;
+      /** What the call itself reported, for when the build's record is not on hand. */
+      status?: SummaryBuildStatus;
+    }
   | { kind: "snapshots"; enabled: boolean; toolCallId: string };
 
 export type SummarySetupVersion = { id: string; versionNumber: number };

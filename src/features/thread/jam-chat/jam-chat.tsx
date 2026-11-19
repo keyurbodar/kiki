@@ -4,7 +4,6 @@ import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import {
   type ComponentProps,
-  createContext,
   type ReactNode,
   useCallback,
   useContext,
@@ -36,11 +35,11 @@ import { ChatScrollPill } from "./chat-scroll-pill";
 import { ChatStamp } from "./chat-stamp";
 import { type ChatJump, type JumpList, jumpToRow } from "./jump-to-row";
 import { markScrolling } from "./mark-scrolling";
+import { RowContext } from "./row-context";
 import {
   computeRowGaps,
   countMessagesBelow,
   defaultGap,
-  type RowGap,
   rowGapStyle,
   rowKey,
 } from "./row-gaps";
@@ -56,9 +55,6 @@ const START_REARM = 240;
 
 const chatScroller =
   "chat-scroller md:scroll-fade-y h-full min-h-0 overflow-x-hidden overflow-y-auto overscroll-y-contain [overflow-anchor:none] [&>div>div:has(>[data-chat-row-id]):focus-within]:z-(--z-chat-row-lift) [&>div>div:has(>[data-chat-row-id]):focus-within]:[contain:layout_style]! [&>div>div:has(>[data-chat-row-id]):hover]:z-(--z-chat-row-lift) [&>div>div:has(>[data-chat-row-id]):hover]:[contain:layout_style]! [&>div>div:has(>[data-chat-row-id]):has([data-popup-open])]:z-(--z-chat-row-lift) [&>div>div:has(>[data-chat-row-id]):has([data-popup-open])]:[contain:layout_style]! md:pointer-coarse:[&>div>div:has(>[data-chat-row-id]):has([data-slot=user-message])]:[contain:layout_style]!";
-
-type ChatRowContext = { gaps: ReadonlyMap<string, RowGap>; now?: number };
-const RowContext = createContext<ChatRowContext>({ gaps: new Map() });
 
 /** No references resolved: every code stays the text it was written as. */
 const emptyChips: MarkdownChipsContextValue = {};
@@ -137,7 +133,7 @@ export function JamChat({
   }, [jamId, organizations, selectedOrgId]);
   const [viewport, setViewport] = useState<HTMLDivElement | null>(null);
   const gaps = useMemo(() => computeRowGaps(rows), [rows]);
-  const context = useMemo(() => ({ gaps, now }), [gaps, now]);
+  const context = useMemo(() => ({ gaps, now, jamId }), [gaps, now, jamId]);
   const [atEnd, setAtEnd] = useState(true);
   const [lastVisibleKey, setLastVisibleKey] = useState<string | null>(null);
   const rowList = useMemo(

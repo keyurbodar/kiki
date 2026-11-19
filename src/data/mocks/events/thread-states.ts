@@ -132,6 +132,7 @@ const threadIds = {
 const clarifyJam = threads.rateLimit.id;
 const envJam = threads.checkoutTest.id;
 const mcpJam = threads.darkMode.id;
+const setupJam = threads.darkMode.id;
 const errorJam = threads.bundler.id;
 const reviewJam = threads.paginate.id;
 const taskJam = threads.gettingStarted.id;
@@ -381,6 +382,98 @@ const referenceThread: EventRowEncoded[] = [
   reply(taskJam, 14, "Both are still in flight."),
 ];
 
+/**
+ * A turn whose Setup calls each carry their outcome in the result, which is the
+ * only place a summary row can read a version, a build or a snapshot change
+ * from. The project has a build record and a Setup version, so the chips join.
+ */
+const setupThread: EventRowEncoded[] = [
+  prompt(setupJam, 20, "Snapshot the build config and start a test build."),
+  turn(setupJam, 21, "toolu_state_apply_setup", "environment_apply_setup", {}),
+  result(
+    setupJam,
+    22,
+    "toolu_state_apply_setup",
+    {
+      active_version: "ver_sample_proj_sample_web",
+      vm_size: "large",
+    },
+    "Saved Setup as version 2.",
+  ),
+  turn(
+    setupJam,
+    23,
+    "toolu_state_build_snapshot",
+    "environment_build_snapshot",
+    {
+      test: true,
+    },
+  ),
+  result(
+    setupJam,
+    24,
+    "toolu_state_build_snapshot",
+    { build_id: "snapbuild_sample_web_3", status: "queued" },
+    "Snapshot build snapbuild_sample_web_3 started.",
+  ),
+  turn(
+    setupJam,
+    25,
+    "toolu_state_configure_snapshots",
+    "environment_configure_snapshots",
+    { enabled: true },
+  ),
+  result(
+    setupJam,
+    26,
+    "toolu_state_configure_snapshots",
+    { enabled: true },
+    "Snapshots enabled.",
+  ),
+  reply(setupJam, 27, "The snapshot build is running."),
+  // A later exchange, so the turn above is not the thread's last one and its
+  // summary card is emitted.
+  prompt(setupJam, 28, "Leave it queued."),
+  reply(setupJam, 29, "It will finish on its own."),
+];
+
+/**
+ * A remote mobile build: the call carries the app, the platform and the source
+ * it built, and the result carries the build and the version it produced.
+ */
+const mobileBuildThread: EventRowEncoded[] = [
+  prompt(taskJam, 20, "Build the guide app for the simulator."),
+  turn(taskJam, 21, "toolu_state_mobile_build", "mobile_build", {
+    action: "start",
+    platform: "ios",
+    app: "acme-guide",
+    source: {
+      type: "workspace",
+      path: "apps/guide",
+      output_path:
+        "ios/build/Build/Products/Debug-iphonesimulator/AcmeGuide.app",
+      commands: [
+        "bun install",
+        "bunx expo prebuild --platform ios",
+        "xcodebuild -workspace ios/AcmeGuide.xcworkspace -scheme AcmeGuide -sdk iphonesimulator -configuration Debug",
+      ],
+    },
+  }),
+  result(
+    taskJam,
+    22,
+    "toolu_state_mobile_build",
+    {
+      build_id: "01K9PHIOS00000000000000004",
+      operation_id: "op_state_mobile_build",
+      status: "succeeded",
+      version_id: "7f3c9a21",
+    },
+    "Version 7f3c9a21 is the app's current build.",
+  ),
+  reply(taskJam, 23, "The guide app is built and ready to run."),
+];
+
 export const threadStateSeeds: ReadonlyArray<EventRowEncoded> = [
   ...clarifyThread,
   ...environmentThread,
@@ -391,6 +484,8 @@ export const threadStateSeeds: ReadonlyArray<EventRowEncoded> = [
   ...interruptedThread,
   ...mentionThread,
   ...referenceThread,
+  ...setupThread,
+  ...mobileBuildThread,
 ];
 
 export const threadStateJamIds = [

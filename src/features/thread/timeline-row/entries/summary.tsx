@@ -1,7 +1,9 @@
+import { useTranscriptJamId } from "@/features/thread/jam-chat/row-context";
 import {
   SummaryCard,
   type SummarySetupReference,
 } from "@/features/thread/summary-card";
+import { usePaneSession } from "@/features/thread/thread-view/pane-session-context";
 import { defineTimelineRow, type TimelineRowOf } from "../registry";
 
 const isSetupReference = (value: unknown): value is SummarySetupReference =>
@@ -13,6 +15,8 @@ const isSetupReference = (value: unknown): value is SummarySetupReference =>
     value.kind === "snapshots");
 
 function SummaryRow({ row }: { row: TimelineRowOf<"summary"> }) {
+  const jamId = useTranscriptJamId();
+  const { openTab } = usePaneSession();
   return (
     <SummaryCard
       turn={{
@@ -33,6 +37,12 @@ function SummaryRow({ row }: { row: TimelineRowOf<"summary"> }) {
         ),
         setup: row.setup.filter(isSetupReference),
       }}
+      jamId={jamId}
+      onOpenSetup={
+        jamId === undefined
+          ? undefined
+          : () => openTab({ kind: "setup", jamId })
+      }
     />
   );
 }

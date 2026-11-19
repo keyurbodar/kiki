@@ -301,3 +301,94 @@ it("says how many earlier lines a long output dropped", () => {
     container.querySelector("pre")?.textContent?.startsWith("line 50"),
   ).toBe(true);
 });
+
+const mobileBuild = (over: Record<string, unknown> = {}) =>
+  toolRow({
+    toolName: "mobile_build",
+    args: {
+      action: "start",
+      platform: "ios",
+      app: "acme-guide",
+      source: {
+        type: "workspace",
+        path: "apps/guide",
+        output_path:
+          "ios/build/Build/Products/Debug-iphonesimulator/AcmeGuide.app",
+        commands: ["bun install", "xcodebuild -scheme AcmeGuide"],
+      },
+    },
+    result: {
+      blocks: [{ type: "text", text: "Remote build started" }],
+      data: {
+        build_id: "01K9PHIOS00000000000000004",
+        status: "succeeded",
+        version_id: "7f3c9a21",
+      },
+      isError: false,
+      settledAt: at(2_400),
+    },
+    ...over,
+  });
+
+it("draws a remote build as its own fields, not as a log of nothing", () => {
+  const { container } = render(<ToolBody row={mobileBuild()} />);
+  const text = container.textContent ?? "";
+  expect(text).toContain("Succeeded");
+  expect(text).toContain("iOS");
+  expect(text).toContain("Simulator app");
+  expect(text).toContain("acme-guide");
+  expect(text).toContain("7f3c9a21");
+  expect(text).toContain("01K9PHIOS00000000000000004");
+  expect(text).toContain("$ bun install");
+  expect(text).not.toContain("No output");
+});
+
+it("reads the build's version out of the result when the field is absent", () => {
+  const { container } = render(
+    <ToolBody
+      row={mobileBuild({
+        result: {
+          blocks: [
+            {
+              type: "text",
+              text: "Version 7f3c9a21 is the app's current build.",
+            },
+          ],
+          data: { build_id: "build_1", status: "succeeded" },
+          isError: false,
+          settledAt: at(2_400),
+        },
+      })}
+    />,
+  );
+  expect(container.textContent).toContain("7f3c9a21");
+});
+
+it("shows a failed remote build's error instead of the fields alone", () => {
+  const { container } = render(
+    <ToolBody
+      row={mobileBuild({
+        result: {
+          blocks: [{ type: "text", text: "Gradle task :app:compile failed" }],
+          data: { build_id: "build_1", status: "failed" },
+          isError: true,
+          settledAt: at(2_400),
+        },
+      })}
+    />,
+  );
+  expect(container.textContent).toContain("Failed");
+  expect(container.textContent).toContain("Gradle task :app:compile failed");
+});
+
+it("counts a remote build as a body even when it printed nothing", () => {
+  expect(
+    hasToolBody(
+      toolRow({
+        toolName: "mobile_build",
+        args: { action: "start", platform: "ios", app: "acme-guide" },
+        result: { blocks: [], data: {}, isError: false, settledAt: at(2_400) },
+      }),
+    ),
+  ).toBe(true);
+});
