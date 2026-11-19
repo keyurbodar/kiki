@@ -17,6 +17,7 @@ const GUARDS = [
   "scripts/check-custom-properties.ts",
   "scripts/check-geometry.ts",
   "scripts/check-deletions.ts",
+  "scripts/check-empty-org-atoms.ts",
 ];
 
 const pkg = JSON.parse(readFileSync("package.json", "utf8")) as {
