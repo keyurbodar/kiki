@@ -28,8 +28,7 @@ type Capability = {
   readonly label: string;
   readonly icon: IconId;
   readonly searchTerms?: ReadonlyArray<string>;
-} & /** A row that types its command into the composer for the user to send. */
-(
+} /** A row that types its command into the composer for the user to send. */ & (
   | { readonly text: string }
   /** A row that runs what the surface provides, or nothing when it provides none. */
   | {
