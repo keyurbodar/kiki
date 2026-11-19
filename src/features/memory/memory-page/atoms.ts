@@ -1,4 +1,4 @@
-import { Atom } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import { OrgId } from "@/data/api/schemas/ids.ts";
 import { queryTimeToLive } from "@/data/atoms/conventions.ts";
 import { ApiClient } from "@/data/client/ApiClient.ts";
@@ -42,6 +42,15 @@ export const memoryReadAtom = Atom.family((key: string) => {
     timeToLive: queryTimeToLive,
   });
 });
+
+/** The memory list and read while the org is still resolving. */
+export const idleMemoryListAtom: ReturnType<typeof memoryListAtom> = Atom.make(
+  AsyncResult.initial(false),
+) as ReturnType<typeof memoryListAtom>;
+
+export const idleMemoryReadAtom: ReturnType<typeof memoryReadAtom> = Atom.make(
+  AsyncResult.initial(false),
+) as ReturnType<typeof memoryReadAtom>;
 
 export const editMemoryAtom = ApiClient.mutation("memory", "edit");
 export const forgetMemoryAtom = ApiClient.mutation("memory", "forget");

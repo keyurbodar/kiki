@@ -149,20 +149,23 @@ export const useOrgId = () => {
   return organizations?.[0]?.id as string | undefined;
 };
 
-const emptyAtom: Atom.Atom<AsyncResult.AsyncResult<unknown, never>> = Atom.make(
-  AsyncResult.initial<unknown, never>(),
-);
+/** The settings reads a page takes while its org is still resolving. */
+export const idleSettingsAtom: Atom.Atom<
+  AsyncResult.AsyncResult<unknown, never>
+> = Atom.make(AsyncResult.initial<unknown, never>());
 
 export const useRouting = (orgId: string | undefined) => {
   const raw = successValue(
-    useAtomValue(orgId === undefined ? emptyAtom : routingAtom(orgId)),
+    useAtomValue(orgId === undefined ? idleSettingsAtom : routingAtom(orgId)),
   );
   return raw === undefined ? undefined : decodeRouting(raw);
 };
 
 export const useModelsSettings = (orgId: string | undefined) => {
   const raw = successValue(
-    useAtomValue(orgId === undefined ? emptyAtom : modelsSettingsAtom(orgId)),
+    useAtomValue(
+      orgId === undefined ? idleSettingsAtom : modelsSettingsAtom(orgId),
+    ),
   );
   return raw === undefined ? undefined : decodeSettings(raw);
 };
@@ -172,10 +175,14 @@ export const useCatalog = () =>
 
 export const useCompactAt = (orgId: string | undefined) => {
   const org = successValue(
-    useAtomValue(orgId === undefined ? emptyAtom : orgCompactAtAtom(orgId)),
+    useAtomValue(
+      orgId === undefined ? idleSettingsAtom : orgCompactAtAtom(orgId),
+    ),
   );
   const mine = successValue(
-    useAtomValue(orgId === undefined ? emptyAtom : myCompactAtAtom(orgId)),
+    useAtomValue(
+      orgId === undefined ? idleSettingsAtom : myCompactAtAtom(orgId),
+    ),
   );
   return { org: decodeCompactAt(org), mine: decodeCompactAt(mine) };
 };

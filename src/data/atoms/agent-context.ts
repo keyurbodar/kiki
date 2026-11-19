@@ -1,5 +1,5 @@
 import { Effect, Exit, Schema } from "effect";
-import { Atom } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import { VolumeId, VolumeVersionId } from "../api/schemas/drive.ts";
 import { OrgId } from "../api/schemas/ids.ts";
 import { ApiClient } from "../client/ApiClient.ts";
@@ -392,5 +392,16 @@ export const captainsAtom = Atom.family((orgId: string) =>
       .pipe(Effect.flatMap(decode(Schema.Array(Captain)))),
   ),
 );
+
+/** The agent context a settings surface reads while the org is resolving. */
+export const idleCaptainsAtom: ReturnType<typeof captainsAtom> = Atom.make(
+  AsyncResult.initial(false),
+) as ReturnType<typeof captainsAtom>;
+
+export const idleAgentContextPreviewAtom: ReturnType<
+  typeof agentContextPreviewAtom
+> = Atom.make(AsyncResult.initial(false)) as ReturnType<
+  typeof agentContextPreviewAtom
+>;
 
 export const driveWriteAtom = ApiClient.mutation("volumes", "write");

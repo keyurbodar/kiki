@@ -1,6 +1,6 @@
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
-import { billingAtom } from "@/data/atoms/billing";
+import { billingAtom, idleBillingAtom } from "@/data/atoms/billing";
 import { useActiveOrgId } from "@/data/atoms/session";
 import { type BillingView, toBillingView } from "@/lib/billing";
 
@@ -8,7 +8,9 @@ import { type BillingView, toBillingView } from "@/lib/billing";
 export const useBillingOrgId = useActiveOrgId;
 
 export function useBillingView(orgId: string | undefined) {
-  const result = useAtomValue(billingAtom(orgId ?? ""));
+  const result = useAtomValue(
+    orgId === undefined ? idleBillingAtom : billingAtom(orgId),
+  );
   const value = AsyncResult.getOrElse(result, () => undefined);
   const billing: BillingView | undefined =
     orgId === undefined || value === undefined

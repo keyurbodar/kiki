@@ -44,6 +44,17 @@ export const idleBillingCatalogAtom: ReturnType<typeof billingCatalogAtom> =
     typeof billingCatalogAtom
   >;
 
+/** The invoice list a billing page reads while its org is still resolving. */
+export const idleBillingInvoicesAtom: ReturnType<typeof billingInvoicesAtom> =
+  Atom.make(AsyncResult.initial(false)) as ReturnType<
+    typeof billingInvoicesAtom
+  >;
+
+/** The org's members while the org is still resolving. */
+export const idleOrgMembersAtom: ReturnType<typeof orgMembersAtom> = Atom.make(
+  AsyncResult.initial(false),
+) as ReturnType<typeof orgMembersAtom>;
+
 export const orgMembersAtom = Atom.family((orgId: string) =>
   ApiClient.query("members", "listMembers", {
     params: { orgId },

@@ -55,7 +55,7 @@ export function CaptainPreviewCard({
     organizations,
     useAtomValue(selectedOrgIdAtom),
   );
-  const catalog = useAtomValue(modelsAtom(orgId ?? ""));
+  const catalog = useAtomValue(modelsAtom(orgId));
   const entries = useMemo(
     () => (AsyncResult.isSuccess(catalog) ? parseEntries(catalog.value) : []),
     [catalog],

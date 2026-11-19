@@ -5,9 +5,9 @@ import { reactivityKeys } from "./conventions.ts";
 
 export const modelCatalogTimeToLive: Duration.Input = "1 hour";
 
-export const modelsAtom = Atom.family((orgId: string) =>
+export const modelsAtom = Atom.family((orgId: string | undefined) =>
   ApiClient.query("models", "list", {
-    query: orgId === "" ? {} : { orgId },
+    query: orgId === undefined || orgId === "" ? {} : { orgId },
     reactivityKeys: [reactivityKeys.modelCatalog],
     timeToLive: modelCatalogTimeToLive,
   }),

@@ -1,4 +1,4 @@
-import { Atom } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import type { JamId, OrgId } from "../api/schemas/ids.ts";
 import { ApiClient } from "../client/ApiClient.ts";
 import { queryTimeToLive, reactivityKeys } from "./conventions.ts";
@@ -33,6 +33,10 @@ export const tagsAtom = Atom.family((orgId: OrgId) =>
   }),
 );
 
+export const idleTagsAtom: ReturnType<typeof tagsAtom> = Atom.make(
+  AsyncResult.initial(false),
+) as ReturnType<typeof tagsAtom>;
+
 export const threadTagsKey = (orgId: OrgId, jamId: JamId) =>
   `${orgId}/${jamId}`;
 
@@ -44,6 +48,10 @@ export const threadTagsAtom = Atom.family((key: string) => {
     timeToLive: queryTimeToLive,
   });
 });
+
+export const idleThreadTagsAtom: ReturnType<typeof threadTagsAtom> = Atom.make(
+  AsyncResult.initial(false),
+) as ReturnType<typeof threadTagsAtom>;
 
 export const pinThreadsAtom = ApiClient.mutation("threadOrganization", "pin");
 

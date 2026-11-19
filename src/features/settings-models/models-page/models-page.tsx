@@ -16,6 +16,7 @@ import {
   decodeCompactAt,
   decodeSettings,
   disconnectSeatAtom,
+  idleSettingsAtom,
   isCapyCredits,
   MemberRows,
   ModelsTable,
@@ -66,11 +67,16 @@ const failed = (exit: Exit.Exit<unknown, unknown>) => Exit.isFailure(exit);
 
 export function ModelsPage() {
   const orgId = useOrgId();
-  const orgKey = orgId ?? "";
   const { admin, routing, catalog } = useRoutingData();
-  const settingsResult = useAtomValue(modelsSettingsAtom(orgKey));
-  const orgCompactAtResult = useAtomValue(orgCompactAtAtom(orgKey));
-  const myCompactAtResult = useAtomValue(myCompactAtAtom(orgKey));
+  const settingsResult = useAtomValue(
+    orgId === undefined ? idleSettingsAtom : modelsSettingsAtom(orgId),
+  );
+  const orgCompactAtResult = useAtomValue(
+    orgId === undefined ? idleSettingsAtom : orgCompactAtAtom(orgId),
+  );
+  const myCompactAtResult = useAtomValue(
+    orgId === undefined ? idleSettingsAtom : myCompactAtAtom(orgId),
+  );
   const reorder = useAtomSet(reorderConnectionsAtom, { mode: "promiseExit" });
   const disconnect = useAtomSet(disconnectSeatAtom, { mode: "promiseExit" });
   const refreshClaudeSeat = useAtomSet(refreshClaudeSeatAtom, {

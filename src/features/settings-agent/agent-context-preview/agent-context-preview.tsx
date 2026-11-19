@@ -8,6 +8,8 @@ import {
   agentModelsAtom,
   captainsAtom,
   driveScopesFilesAtom,
+  idleAgentContextPreviewAtom,
+  idleCaptainsAtom,
 } from "@/data/atoms/agent-context";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
@@ -179,7 +181,11 @@ export function AgentContextPreview({
 }) {
   const { orgId } = useAgentOrg();
   const crews = (
-    resultValue(useAtomValue(captainsAtom(orgId ?? ""))) ?? []
+    resultValue(
+      useAtomValue(
+        orgId === undefined ? idleCaptainsAtom : captainsAtom(orgId),
+      ),
+    ) ?? []
   ).filter((captain) => captain.projectId === project.id);
   const models = resultValue(useAtomValue(agentModelsAtom)) ?? [];
   const [previewAs, setPreviewAs] = useState("you");
@@ -203,13 +209,16 @@ export function AgentContextPreview({
   );
   const filesLoaded = resultValue(filesResult);
   const files = filesLoaded?.files ?? [];
-  const serverAtom = agentContextPreviewAtom(
-    agentContextPreviewKey(orgId ?? "", {
-      projectId: project.id,
-      model: model?.id,
-      captainJamId: crew?.id,
-    }),
-  );
+  const serverAtom =
+    orgId === undefined
+      ? idleAgentContextPreviewAtom
+      : agentContextPreviewAtom(
+          agentContextPreviewKey(orgId, {
+            projectId: project.id,
+            model: model?.id,
+            captainJamId: crew?.id,
+          }),
+        );
   const serverResult = useAtomValue(serverAtom);
   const retry = useAtomRefresh(serverAtom);
   const server = resultValue(serverResult);
