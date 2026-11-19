@@ -505,9 +505,28 @@ export function ThreadView({
     mode: "promise",
   });
   const hasRows = rows.length > 0;
+  const openThread = useCallback(
+    (id: string) =>
+      void navigate({ to: "/thread/$threadId", params: { threadId: id } }),
+    [navigate],
+  );
+  const forkThreadAndOpen = useCallback(
+    (mode: "copy" | "summary") => {
+      if (orgId === undefined) return;
+      forkThread({
+        params: { orgId, jamId: threadId },
+        payload: { requestId: crypto.randomUUID(), mode },
+        reactivityKeys: [reactivityKeys.threads(orgId as OrgId)],
+      })
+        .then((created) => {
+          const id = (created as { id?: unknown }).id;
+          if (typeof id === "string") openThread(id);
+        })
+        .catch(() => toast.error("Could not fork the thread"));
+    },
+    [forkThread, openThread, orgId, threadId],
+  );
   const commands = useMemo(() => {
-    const openThread = (id: string) =>
-      void navigate({ to: "/thread/$threadId", params: { threadId: id } });
     return composerCommands({
       newThread: () => void navigate({ to: "/new" }),
       compact:
@@ -523,25 +542,11 @@ export function ThreadView({
                 .then(() => refreshNewest())
                 .catch(() => toast.error("Could not compact the thread"));
             },
-      fork:
-        orgId === undefined
-          ? undefined
-          : (mode) => {
-              forkThread({
-                params: { orgId, jamId: threadId },
-                payload: { requestId: crypto.randomUUID(), mode },
-                reactivityKeys: [reactivityKeys.threads(orgId as OrgId)],
-              })
-                .then((created) => {
-                  const id = (created as { id?: unknown }).id;
-                  if (typeof id === "string") openThread(id);
-                })
-                .catch(() => toast.error("Could not fork the thread"));
-            },
+      fork: orgId === undefined ? undefined : forkThreadAndOpen,
     });
   }, [
     compactRun,
-    forkThread,
+    forkThreadAndOpen,
     hasRows,
     navigate,
     orgId,
@@ -610,6 +615,7 @@ export function ThreadView({
     <ThreadMessageActions
       orgId={handlers.orgId}
       jamId={threadId}
+      forkQuote={(kind) => forkThreadAndOpen(kind)}
       reply={startReply}
       editMessage={onEditMessage}
       editedRowIds={editedRowIds}
