@@ -1,19 +1,34 @@
+import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useNavigate } from "@tanstack/react-router";
+import { Option } from "effect";
+import { AsyncResult } from "effect/reactivity";
+import { useMemo } from "react";
 import {
   Glyph,
   type SidebarFolder,
   SidebarThreads,
 } from "@/components/sidebar-threads";
+import { THREAD_DRAG_TYPE, withMoved } from "@/components/sidebar-threads/dnd";
 import { ThreadPreview } from "@/components/thread-preview";
 import type { ThreadOrigin } from "@/data/api/schemas/thread";
+import {
+  addToFolderAtom,
+  folderBoardAtom,
+  removeFromFolderAtom,
+  reorderFolderItemsAtom,
+  threadOrganizationKeys,
+} from "@/data/atoms/threadOrganization";
 import { Button } from "@/primitives/button";
+import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { CaptainPreviewCard } from "../sidebar-captain-preview";
+import { useSidebarThreadDrag } from "../sidebar-dnd";
 import { SidebarThreadRow } from "../sidebar-thread-row";
 import {
   type SidebarThreadsController,
   useSidebarThreads,
 } from "../sidebar-threads-data";
+import { useSidebarOrgId } from "../sidebar-threads-data/live-source";
 import { CaptainOptionsMenu, ThreadOptionsMenu } from "../thread-options-menu";
 import { ThreadFiltersMenu } from "../thread-options-menu/thread-filters";
 import { CaptainRowMenu } from "../thread-row-actions/captain-row-menu";
@@ -103,6 +118,71 @@ function SidebarThreadsPanelBody({
   const threadActions = useThreadActions();
   const navigate = useNavigate();
   const { view } = sidebar;
+  const orgId = useSidebarOrgId();
+  const board = useAtomValue(folderBoardAtom((orgId ?? "") as never));
+  const removeFromFolder = useAtomSet(removeFromFolderAtom, {
+    mode: "promise",
+  });
+  const addToFolder = useAtomSet(addToFolderAtom, { mode: "promise" });
+  const reorderFolderItems = useAtomSet(reorderFolderItemsAtom, {
+    mode: "promise",
+  });
+  const membersOf = useMemo(() => {
+    const map = new Map<string, ReadonlyArray<string>>();
+    const sections = Option.getOrUndefined(AsyncResult.value(board)) ?? [];
+    for (const section of sections) {
+      map.set(
+        section.folder.id,
+        section.items.map((thread) => thread.id),
+      );
+    }
+    return map;
+  }, [board]);
+  const folderOf = (threadId: string) => {
+    for (const [folderId, ids] of membersOf) {
+      if (ids.includes(threadId)) return folderId;
+    }
+    return undefined;
+  };
+  const writeOrder = (folderId: string, jamIds: ReadonlyArray<string>) => {
+    if (orgId === undefined) return Promise.resolve();
+    return reorderFolderItems({
+      params: { orgId, folderId: folderId as never },
+      payload: { jamIds: [...jamIds] as never },
+      reactivityKeys: threadOrganizationKeys(orgId),
+    });
+  };
+  const drag = useSidebarThreadDrag({
+    move: (threadId, folderId, index) => {
+      if (orgId === undefined) return;
+      const order = withMoved(membersOf.get(folderId) ?? [], threadId, index);
+      addToFolder({
+        params: { orgId, folderId: folderId as never },
+        payload: { jamIds: [threadId] as never },
+        reactivityKeys: threadOrganizationKeys(orgId),
+      })
+        .then(() => writeOrder(folderId, order).then(() => undefined))
+        .catch(() => toast.error("Could not move the thread"));
+    },
+    reorder: (threadId, folderId, index) => {
+      const order = withMoved(membersOf.get(folderId) ?? [], threadId, index);
+      writeOrder(folderId, order).catch(() =>
+        toast.error("Could not reorder the threads"),
+      );
+    },
+    unfile: (threadId) => {
+      const folderId = folderOf(threadId);
+      if (orgId === undefined || folderId === undefined) return;
+      removeFromFolder({
+        params: { orgId, folderId: folderId as never },
+        payload: { jamIds: [threadId] as never },
+        reactivityKeys: threadOrganizationKeys(orgId),
+      }).catch(() => toast.error("Could not move the thread"));
+    },
+    isSectionOpen: (sectionId) =>
+      view.sections.find((section) => section.id === sectionId)?.open ?? true,
+    openSection: (sectionId) => sidebar.setSectionOpen(sectionId, true),
+  });
   const origins = [
     ...new Set(
       view.sections.flatMap((section) =>
@@ -171,6 +251,7 @@ function SidebarThreadsPanelBody({
   return (
     <SidebarThreads
       view={view}
+      drag={drag}
       actions={actions}
       captainActions={captainActions}
       renderRowMenu={(thread, rowKey) => (
@@ -218,6 +299,15 @@ function SidebarThreadsPanelBody({
             project={project}
             density={density}
             active={active}
+            drag={{
+              dragging: drag.threadId === thread.id,
+              onDragStart: (event) => {
+                event.dataTransfer.effectAllowed = "move";
+                event.dataTransfer.setData(THREAD_DRAG_TYPE, thread.id);
+                drag.start(thread.id, section.id, event);
+              },
+              onDragEnd: drag.end,
+            }}
             actions={{
               onSettle: thread.settled
                 ? undefined
