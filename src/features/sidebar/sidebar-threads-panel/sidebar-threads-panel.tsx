@@ -130,8 +130,6 @@ function SidebarThreadsPanelBody({
         onOrderChange={sidebar.setCaptainSort}
         density={view.density}
         onDensityChange={sidebar.setDensity}
-        onNewFolder={() => threadActions.startNewFolder("captains")}
-        newFolderDisabledReason="The Captains list does not draw folder sections yet"
       />
     </>
   );

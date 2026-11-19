@@ -519,11 +519,14 @@ describe("thread options menu", () => {
 });
 
 describe("captain options menu", () => {
-  it("renders New folder beside sort and density", async () => {
+  // Capy's Captain menu carries a New folder that creates a captains-section
+  // folder. The folder board endpoint returns thread cards only, so such a
+  // folder would draw empty and the row is left out rather than dead.
+  it("renders sort and density without a New folder row", async () => {
     await renderAt(<Harness sidebarSource={source([thread()])} />);
     fireEvent.click(screen.getByLabelText("Captain options"));
-    expect(await screen.findByText("New folder")).toBeTruthy();
-    expect(screen.getByText("Sort by")).toBeTruthy();
+    expect(await screen.findByText("Sort by")).toBeTruthy();
+    expect(screen.queryByText("New folder")).toBeNull();
   });
 });
 
