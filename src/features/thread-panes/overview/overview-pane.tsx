@@ -11,22 +11,22 @@ import {
   SurfaceRow,
   SurfaceStack,
 } from "@/components/overview-section";
+import { modelsAtom } from "@/data/atoms/models";
 import {
   overviewChildrenAtom,
   overviewLocalPullsAtom,
   overviewPullsAtom,
   overviewRemoveLocalPullAtom,
 } from "@/data/atoms/overview";
-import { modelsAtom } from "@/data/atoms/models";
 import { machinePreviewsAtom, threadMachinesAtom } from "@/data/atoms/setup";
 import { useIssueOrgId } from "@/features/issues/issue-parts";
+import { usePaneSession } from "@/features/thread/thread-view/pane-session-context";
+import { threadFeedAtom } from "@/features/thread/timeline";
 import {
   patchAtom,
   statusAtom,
   turnsAtom,
 } from "@/features/thread-panes/diffs-view/diffs-view";
-import { threadFeedAtom } from "@/features/thread/timeline";
-import { usePaneSession } from "@/features/thread/thread-view/pane-session-context";
 import type { PaneProps } from "@/features/thread-panes/thread-pane/registry";
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
 import { toast } from "@/primitives/toaster";
@@ -53,7 +53,6 @@ import {
   parseTask,
   valueList,
 } from "./parse";
-import { overviewModels, overviewSurfaces, threadTodos } from "./sources";
 import {
   LocalPullRow,
   type OpenPull,
@@ -64,6 +63,7 @@ import {
   TaskRow,
   TodoRow,
 } from "./rows";
+import { overviewModels, overviewSurfaces, threadTodos } from "./sources";
 
 const sailUrl = CAPY_ILLUSTRATIONS.sail;
 
