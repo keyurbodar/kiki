@@ -42,7 +42,7 @@ const surfaces = {
     openBrowser: noop,
     newSideThread: noop,
   })),
-  composer: createComposerCommands(() => ({ focus: noop })),
+  composer: createComposerCommands(() => ({ focus: noop, stop: () => false })),
   plusMenu: createPlusMenuCommands(() => ({ attach: () => undefined })),
   palette: createPaletteCommands({ toggle: noop }),
   selectionCard: createSelectionCardCommands(() => ({

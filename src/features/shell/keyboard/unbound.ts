@@ -4,8 +4,6 @@
  * a surface nor listed here, so a label that does nothing cannot ship quietly.
  */
 export const unboundCommands: Record<string, string> = {
-  "thread.stop":
-    "The thread composer has no stop control wired; Capy's runs stop from the send button's own state",
   "composer.voice":
     "No transcription backend, so the composer never renders a voice control to start",
   "request.allow": "The access-request card submits from its own button",
@@ -37,7 +35,7 @@ export const unboundCommands: Record<string, string> = {
   "paneTab.back":
     "The pane session keeps no record of the tab a tab was opened from",
   "commandMenu.actions":
-    "The thread row menu opens from its own trigger; nothing tracks a selected row",
+    "The thread row menu opens from its own trigger; nothing tracks a selected row. Capy gives it `mod+.` under `when: commandMenuOpen`, and that chord is free for `thread.stop` here because the resolver cannot yet tell a focused composer from an open command menu",
   "list.next": "Thread, issue and pull lists have no roving selection to move",
   "list.previous":
     "Thread, issue and pull lists have no roving selection to move",
