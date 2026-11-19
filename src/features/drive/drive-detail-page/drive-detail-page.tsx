@@ -46,6 +46,7 @@ import {
 } from "./draft";
 import { clearDraftText, draftText } from "./draft-text";
 import { DriveConfirmDialog } from "./drive-confirm-dialog";
+import { DriveSearch } from "./drive-search";
 import { PaneMessage } from "./pane-message";
 import { type DriveEntry, useDriveListing } from "./use-drive-listing";
 import { useDriveSession } from "./use-drive-session";
@@ -543,6 +544,12 @@ export function DriveDetailPage({ mount, file }: DriveDetailPageProps) {
               ))}
               <span className="min-w-0 truncate">{trail.title}</span>
             </span>
+          }
+          trailing={
+            <DriveSearch
+              paths={entries.map((entry) => entry.path)}
+              onOpen={open}
+            />
           }
         />
         {writer.driveFull !== undefined && (
