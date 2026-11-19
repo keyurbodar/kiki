@@ -420,12 +420,6 @@ function ProjectRow({
                 Set owner
               </MenuItem>
             )}
-            <MenuItem
-              onClick={() => toast("Sharing arrives with the members editor")}
-            >
-              <Glyph name="share" className="size-(--icon-sm)" />
-              Share
-            </MenuItem>
             <MenuItem intent="danger" onClick={onDelete}>
               <Glyph name="trash" className="size-(--icon-sm)" />
               Delete

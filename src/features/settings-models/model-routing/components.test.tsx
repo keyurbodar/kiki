@@ -221,6 +221,31 @@ describe("connection rows", () => {
     ).toBeTruthy();
   });
 
+  it("offers Reconnect only where a reconnect flow exists", () => {
+    const seat = (onReconnect?: () => void) => (
+      <SeatRow
+        seat={sampleSeat}
+        credentialId="cred_sample_seat"
+        routing={sampleRouting}
+        fableColumn={false}
+        draggable={false}
+        expanded
+        onToggle={vi.fn()}
+        onRefresh={vi.fn()}
+        onRename={vi.fn()}
+        onReconnect={onReconnect}
+        onDisconnect={vi.fn()}
+      />
+    );
+    const { unmount } = wrap(seat(vi.fn()));
+    fireEvent.click(screen.getByRole("button", { name: /Actions for/ }));
+    expect(screen.getByText("Reconnect")).toBeTruthy();
+    unmount();
+    wrap(seat(undefined));
+    fireEvent.click(screen.getByRole("button", { name: /Actions for/ }));
+    expect(screen.queryByText("Reconnect")).toBeNull();
+  });
+
   it("labels the usage columns", () => {
     wrap(<ConnectionsHeader fable />);
     expect(screen.getByText("5h used")).toBeTruthy();
