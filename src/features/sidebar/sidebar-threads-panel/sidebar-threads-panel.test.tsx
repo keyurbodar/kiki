@@ -19,6 +19,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { CaptainCard } from "@/data/api/schemas/captain";
 import { PullRequestId } from "@/data/api/schemas/ids";
 import type { ThreadCard } from "@/data/api/schemas/thread";
+import { hasDraftAtom } from "@/data/atoms/drafts";
 import { threadAtom } from "@/data/atoms/jams";
 import { organizationsAtom } from "@/data/atoms/session";
 import { foldersAtom } from "@/data/atoms/threadOrganization";
@@ -333,8 +334,10 @@ describe("sidebar captain row menu", () => {
     await renderAt(<Harness sidebarSource={source([thread()], [captain()])} />);
     fireEvent.contextMenu(captainRow());
     await screen.findByText("Open in new tab");
+    // A state row prints its chord after the label, so the label is the row's
+    // own text without the hint element.
     const labels = [...document.querySelectorAll("[role=menuitem]")].map(
-      (item) => item.textContent?.trim(),
+      (item) => labelOf(item),
     );
     expect(labels).toEqual([
       "Open in new tab",
@@ -388,6 +391,32 @@ const folderSource = (): SidebarSource => ({
       threadIds: [],
     },
   ],
+});
+
+/** A menu row's text without the chord printed after it. */
+const labelOf = (item: Element) => {
+  const text = (item.textContent ?? "").trim();
+  const hint = item.querySelector("[data-slot=kbd]")?.textContent ?? "";
+  return hint !== "" && text.endsWith(hint)
+    ? text.slice(0, -hint.length).trim()
+    : text;
+};
+
+describe("sidebar row signals", () => {
+  it("prints the unsent-draft mark on a thread whose composer holds text", async () => {
+    const registry = await renderWithRegistry(
+      <Harness sidebarSource={source([thread()])} />,
+    );
+    expect(screen.queryByRole("img", { name: "Unsent draft" })).toBeNull();
+    registry.set(hasDraftAtom(thread().id), true);
+    await waitFor(() =>
+      expect(screen.getByRole("img", { name: "Unsent draft" })).toBeTruthy(),
+    );
+    registry.set(hasDraftAtom(thread().id), false);
+    await waitFor(() =>
+      expect(screen.queryByRole("img", { name: "Unsent draft" })).toBeNull(),
+    );
+  });
 });
 
 describe("sidebar thread drag and drop", () => {
@@ -453,8 +482,10 @@ describe("sidebar row menu", () => {
     );
     fireEvent.contextMenu(rowLink());
     await screen.findByText("Open in new tab");
+    // A state row prints its chord after the label, so the label is the row's
+    // own text without the hint element.
     const labels = [...document.querySelectorAll("[role=menuitem]")].map(
-      (item) => item.textContent?.trim(),
+      (item) => labelOf(item),
     );
     expect(labels).toEqual([
       "Share",
@@ -470,6 +501,28 @@ describe("sidebar row menu", () => {
       "Settle",
       "Archive",
       "Delete",
+    ]);
+  });
+
+  it("prints each state row's chord from the binding table", async () => {
+    await renderAt(
+      <Harness
+        sidebarSource={source([thread({ owner: true, hasUnreads: false })])}
+      />,
+    );
+    fireEvent.contextMenu(rowLink());
+    await screen.findByText("Open in new tab");
+    const hints = [...document.querySelectorAll("[role=menuitem]")].flatMap(
+      (item) => {
+        const hint = item.querySelector("[data-slot=kbd]")?.textContent;
+        return hint === undefined ? [] : [[labelOf(item), hint]];
+      },
+    );
+    expect(hints).toEqual([
+      ["Mark as unread", "U"],
+      ["Settle", "S"],
+      ["Archive", "A"],
+      ["Delete", "D"],
     ]);
   });
 

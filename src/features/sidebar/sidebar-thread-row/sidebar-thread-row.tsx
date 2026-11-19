@@ -1,3 +1,4 @@
+import { useAtomValue } from "@effect/atom-react";
 import { Link } from "@tanstack/react-router";
 import { cx } from "class-variance-authority";
 import {
@@ -20,7 +21,9 @@ import {
 } from "@/components/sidebar-threads";
 import { MachineIcon } from "@/components/thread-preview";
 import { NeedsYouDot, ThreadStatusIcon } from "@/components/thread-status";
+import { hasDraftAtom } from "@/data/atoms/drafts";
 import { Button } from "@/primitives/button";
+import { Icon } from "@/primitives/icon";
 import {
   PreviewCard,
   PreviewCardContent,
@@ -256,6 +259,7 @@ export function SidebarThreadRow({
   className,
   ...props
 }: SidebarThreadRowProps) {
+  const hasDraft = useAtomValue(hasDraftAtom(thread?.id ?? ""));
   if (thread === undefined) {
     return (
       <div data-slot="sidebar-thread-row" className={className} {...props} />
@@ -298,6 +302,17 @@ export function SidebarThreadRow({
         {thread.title ?? "Untitled thread"}
       </span>
     );
+  const draft =
+    !busy && !active && hasDraft ? (
+      <span
+        role="img"
+        aria-label="Unsent draft"
+        title="Unsent draft"
+        className="flex shrink-0 text-muted-foreground-2"
+      >
+        <Icon name="pencil" size="sm" />
+      </span>
+    ) : null;
   const statusMark = busy ? (
     <span
       className={cx(
@@ -366,7 +381,7 @@ export function SidebarThreadRow({
     <>
       {title}
       <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
-        {needsYou ? <NeedsYouDot /> : statusMark}
+        {needsYou ? <NeedsYouDot /> : (draft ?? statusMark)}
         {age}
       </span>
     </>
@@ -374,7 +389,11 @@ export function SidebarThreadRow({
     <span className="flex min-w-0 flex-1 flex-col gap-1">
       <span className="flex h-5 min-w-0 items-center gap-2">
         {title}
-        {needsYou && ask === undefined ? <NeedsYouDot /> : statusMark}
+        {needsYou && ask === undefined ? (
+          <NeedsYouDot />
+        ) : (
+          (draft ?? statusMark)
+        )}
         {age}
       </span>
       <span className="@container flex h-4 min-w-0 items-center gap-1.5 text-xs text-muted-foreground-3">
