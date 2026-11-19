@@ -118,6 +118,12 @@ describe("SAML setup", () => {
       connectionDescription({ ...connection, state: "failed" }, "okta"),
     ).toBe("Okta for acme.com is not working, remove it and add it again");
   });
+
+  it("leaves no blank domain in a draft with none", () => {
+    expect(connectionDescription({ ...connection, domain: "" }, "okta")).toBe(
+      "Finish setting up Okta to turn it on",
+    );
+  });
 });
 
 describe("decoding", () => {
