@@ -1,6 +1,9 @@
-import { Link } from "@tanstack/react-router";
+import { useAtomSet } from "@effect/atom-react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import type { JamId, OrgId } from "@/data/api/schemas/ids";
 import { JamChat } from "@/features/thread/jam-chat";
+import type { ReplyTarget } from "@/features/thread/message-footer";
+import { pendingReplyAtom } from "@/features/thread/reply-quote";
 import { previewArt } from "@/features/thread/service-preview-surface/art.ts";
 import { PreviewEmptyState } from "@/features/thread/service-preview-surface/empty-state.tsx";
 import { ThreadMessageActions } from "@/features/thread/thread-view/message-actions";
@@ -19,11 +22,21 @@ export type SubthreadPaneProps = {
 /**
  * The `task` and `side_thread` tabs: another thread's conversation, beside the
  * one being read. The panel reads the child's own feed, so a subagent's rows
- * arrive while the parent transcript stays on screen; the header opens the
- * thread on its own route, where it can be replied to.
+ * arrive while the parent transcript stays on screen.
+ *
+ * A pane has no composer, so Reply here opens the thread on its own route with
+ * the quote waiting in that screen's draft: the pane's header already sends the
+ * reader there to write, and a footer action that did nothing would be worse
+ * than one that moves.
  */
 export function SubthreadPane({ orgId, jamId, label }: SubthreadPaneProps) {
   const timeline = useThreadTimeline(orgId, jamId);
+  const navigate = useNavigate();
+  const setPendingReply = useAtomSet(pendingReplyAtom(jamId));
+  const reply = (target: ReplyTarget) => {
+    setPendingReply(target);
+    void navigate({ to: "/thread/$threadId", params: { threadId: jamId } });
+  };
   return (
     <div
       data-slot="subthread-pane"
@@ -64,7 +77,7 @@ export function SubthreadPane({ orgId, jamId, label }: SubthreadPaneProps) {
           sub={`${label} has no messages`}
         />
       ) : (
-        <ThreadMessageActions orgId={orgId} jamId={jamId}>
+        <ThreadMessageActions orgId={orgId} jamId={jamId} reply={reply}>
           <JamChat
             data-thread-id={jamId}
             jamId={jamId}

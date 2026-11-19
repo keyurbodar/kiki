@@ -12,6 +12,8 @@ import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeThreadFixtures, TimelineRow } from "@/data/events";
 import { branches, orgId, threads } from "@/data/mocks/fixtures/world";
+import type { ReplyTarget } from "@/features/thread/message-footer";
+import { pendingReplyAtom } from "@/features/thread/reply-quote";
 import { ThreadRoute } from "@/features/thread/thread-route/thread-route";
 import {
   type EditDraft,
@@ -507,5 +509,72 @@ describe("editing a sent message", () => {
     await waitFor(() =>
       expect(screen.queryByText("Editing message")).toBeNull(),
     );
+  });
+});
+
+const pending: { set: (target: ReplyTarget) => void } = {
+  set: () => undefined,
+};
+
+const ReplySetter = () => {
+  pending.set = useAtomSet(pendingReplyAtom("jam_sample"));
+  return null;
+};
+
+describe("replying to a message", () => {
+  const handlers = {
+    orgId: "org_sample",
+    parentJamId: null,
+    onClarifySubmit: () => undefined,
+  };
+
+  const sent = rows.find((row) => row.type === "user-message") as Extract<
+    (typeof rows)[number],
+    { type: "user-message" }
+  >;
+  const target = {
+    eventId: sent.eventId as string,
+    rowId: sent.id,
+    section: 0,
+    name: "Keyur",
+    text: "a dark mode toggle",
+  };
+
+  const field = (container: HTMLElement) =>
+    container.querySelector("[contenteditable]") as HTMLElement | null;
+
+  pending.set = () => undefined;
+  it("takes the target a side thread's Reply handed over", async () => {
+    const { container } = render(
+      <RegistryProvider>
+        <ThreadView threadId="jam_sample" rows={messages} handlers={handlers} />
+        <ReplySetter />
+      </RegistryProvider>,
+    );
+    await waitFor(() => expect(field(container)).not.toBeNull());
+    await act(async () => pending.set(target));
+    await waitFor(() =>
+      expect(field(container)?.textContent ?? "").toContain(target.text),
+    );
+    expect(screen.getByText("Replying to")).toBeTruthy();
+  });
+
+  it("takes the excerpt back out on Cancel", async () => {
+    const { container } = render(
+      <RegistryProvider>
+        <ThreadView threadId="jam_sample" rows={messages} handlers={handlers} />
+        <ReplySetter />
+      </RegistryProvider>,
+    );
+    await waitFor(() => expect(field(container)).not.toBeNull());
+    await act(async () => pending.set(target));
+    await waitFor(() =>
+      expect(field(container)?.textContent ?? "").toContain(target.text),
+    );
+    fireEvent.click(screen.getByLabelText("Cancel reply"));
+    await waitFor(() =>
+      expect(field(container)?.textContent ?? "").not.toContain(target.text),
+    );
+    expect(screen.queryByText("Replying to")).toBeNull();
   });
 });

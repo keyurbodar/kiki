@@ -294,6 +294,43 @@ export function EditBar({ onCancel }: { onCancel: () => void }) {
   );
 }
 
+/**
+ * The bar a reply puts above the composer: who it quotes, the excerpt, and the
+ * one control that takes it back out. Drawn by `MessageQueue` on the desktop
+ * thread and mounted directly by the phone's composer, which has no queue.
+ */
+export function ReplyBar({
+  name,
+  text,
+  onCancel,
+}: {
+  name: string;
+  text: string;
+  onCancel: () => void;
+}) {
+  return (
+    <div className={barRow} data-slot="reply-bar">
+      <span className={barIcon}>
+        <Icon name="arrow-share-left" className="size-(--icon-sm)" />
+      </span>
+      <span className="flex min-w-0 flex-1 gap-1.5 text-sm">
+        <span className="mask-fade-r max-w-3/5 shrink-0 overflow-hidden whitespace-nowrap text-muted-foreground [--mask-fade-ramp:calc(var(--spacing)*4)]">
+          Replying to{" "}
+          <span className="font-medium text-foreground">{name}</span>
+        </span>
+        <span className="mask-fade-r min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm text-muted-foreground [--mask-fade-ramp:calc(var(--spacing)*8)]">
+          {text}
+        </span>
+      </span>
+      <IconButton
+        label="Cancel reply"
+        icon={<Icon name="cross-medium" />}
+        onClick={onCancel}
+      />
+    </div>
+  );
+}
+
 export type MessageQueueProps = Omit<ComponentProps<"div">, "children"> & {
   rows: ReadonlyArray<QueueRowData>;
   viewerUserId?: string;
@@ -351,29 +388,7 @@ export function MessageQueue({
       {...props}
     >
       {inventory}
-      {replying !== undefined && (
-        <div className={barRow}>
-          <span className={barIcon}>
-            <Icon name="arrow-share-left" className="size-(--icon-sm)" />
-          </span>
-          <span className="flex min-w-0 flex-1 gap-1.5 text-sm">
-            <span className="mask-fade-r max-w-3/5 shrink-0 overflow-hidden whitespace-nowrap text-muted-foreground [--mask-fade-ramp:calc(var(--spacing)*4)]">
-              Replying to{" "}
-              <span className="font-medium text-foreground">
-                {replying.name}
-              </span>
-            </span>
-            <span className="mask-fade-r min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm text-muted-foreground [--mask-fade-ramp:calc(var(--spacing)*8)]">
-              {replying.text}
-            </span>
-          </span>
-          <IconButton
-            label="Cancel reply"
-            icon={<Icon name="cross-medium" />}
-            onClick={replying.onCancel}
-          />
-        </div>
-      )}
+      {replying !== undefined && <ReplyBar {...replying} />}
       <div
         aria-hidden={staying < 2}
         className={cx(

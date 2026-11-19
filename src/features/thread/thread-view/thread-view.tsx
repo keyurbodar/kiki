@@ -74,8 +74,8 @@ import {
   rowForJump,
   rowKey,
 } from "@/features/thread/jam-chat";
-import type { EditTarget, ReplyTarget } from "@/features/thread/message-footer";
-import { type ExcerptMention, replyDraft } from "@/features/thread/reply-quote";
+import type { EditTarget } from "@/features/thread/message-footer";
+import { pendingReplyAtom, useReplyDraft } from "@/features/thread/reply-quote";
 import { createComposerCommands } from "@/features/thread/thread-route/thread-commands";
 import {
   type EditDraft,
@@ -160,9 +160,6 @@ const noQueueActions: MessageQueueProps["actions"] = {
   departing: new Map(),
   act: () => Promise.resolve(false),
 };
-
-/** The reply a message put in the draft: the bar above the composer reads it, Cancel takes the excerpt back out. */
-type Replying = { name: string; text: string; excerpt: ExcerptMention };
 
 /** Capy answers one request at a time: the newest one still waiting. */
 function pendingRequest(
@@ -362,38 +359,18 @@ export function ThreadView({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [draft, cancelEdit]);
 
-  const [replying, setReplying] = useState<Replying | null>(null);
-
-  const startReply = useCallback((target: ReplyTarget) => {
-    const composer = composerHandle.current;
-    if (composer === null) return;
-    const { draft: next, excerpt } = replyDraft(composer.getPayload(), target);
-    composer.focus();
-    composer.reset(next);
-    setReplying({ name: target.name, text: target.text, excerpt });
-  }, []);
-
-  const cancelReply = useCallback(() => {
-    const composer = composerHandle.current;
-    const payload = composer?.getPayload();
-    if (composer !== null && payload !== undefined && replying !== null) {
-      const rest = payload.text.slice(replying.excerpt.end).replace(/^\n+/, "");
-      const shift = payload.text.length - rest.length;
-      composer.reset({
-        text: rest,
-        mentions: payload.mentions
-          .filter((mention) => mention.id !== replying.excerpt.id)
-          .map((mention) => ({
-            ...mention,
-            start: mention.start - shift,
-            end: mention.end - shift,
-          })),
-        files: payload.files,
-        caret: null,
-      });
-    }
-    setReplying(null);
-  }, [replying]);
+  const { replying, startReply, cancelReply, clearReply } =
+    useReplyDraft(composerHandle);
+  // A side thread's Reply arrives as a target this screen owes its composer.
+  const pendingReply = useAtomValue(pendingReplyAtom(threadId));
+  const clearPendingReply = useAtomSet(pendingReplyAtom(threadId));
+  // Runs every render on purpose: the target is only spendable once the
+  // composer exists, and checking each commit cannot consume it early.
+  useEffect(() => {
+    if (pendingReply === null || composerHandle.current === null) return;
+    startReply(pendingReply);
+    clearPendingReply(null);
+  });
 
   const editedRowIds = useMemo(() => {
     const edited = new Set<string>();
@@ -559,7 +536,7 @@ export function ThreadView({
   const submit = (payload: ComposerPayload) => {
     if (!send(payload)) return false;
     attachments.clearSent();
-    setReplying(null);
+    clearReply();
     return true;
   };
   const machineRows = useAtomValue(

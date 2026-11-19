@@ -1,5 +1,6 @@
 import { Context, Effect, Layer, Ref } from "effect";
 import { HttpApiError } from "effect/http-api";
+import { childThreads } from "../children/fixtures.ts";
 import { world } from "../fixtures/world.ts";
 import {
   sampleCaptainAccess,
@@ -100,6 +101,17 @@ export class MockDb extends Context.Service<MockDb, MockTables>()(
           number: thread.number,
           title: thread.title,
           projectId: thread.projectId,
+        })),
+        // A side thread or subagent is a thread too: a pane opens its jam id and
+        // reads its transcript there, so the child ids belong in this store.
+        ...childThreads.map((child) => ({
+          id: child.id,
+          number: child.number,
+          title: child.title,
+          projectId:
+            Object.values(world.threads).find(
+              (thread) => thread.id === child.parentId,
+            )?.projectId ?? world.threads.checkoutTest.projectId,
         })),
         // A Captain is a thread: the threads surface links its jam id, so the
         // Captain ids belong in the same store the other groups resolve against.
