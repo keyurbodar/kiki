@@ -70,3 +70,43 @@ describe("refsInArgs", () => {
     expect(refsInArgs(deep)).toEqual({});
   });
 });
+
+describe("refsInArgs file references", () => {
+  it("reads the path a file tool names", () => {
+    expect(refsInArgs({ path: "src/checkout/retry.ts" })).toEqual({
+      file: "src/checkout/retry.ts",
+    });
+  });
+
+  it("reads a snake_case file path nested in a params record", () => {
+    expect(
+      refsInArgs({ params: { file_path: "/home/user/notes.md" } }),
+    ).toEqual({ file: "/home/user/notes.md" });
+  });
+
+  it("carries a thread, a pull and a file together", () => {
+    expect(
+      refsInArgs({
+        jamId: "jam_sample_0002",
+        repo: "acme/web",
+        number: 7,
+        path: "src/app.tsx",
+      }),
+    ).toEqual({
+      threadId: "jam_sample_0002",
+      pull: { repositoryFullName: "acme/web", number: 7 },
+      file: "src/app.tsx",
+    });
+  });
+
+  it("ignores a url behind a path key and a bare word without a slash", () => {
+    expect(refsInArgs({ path: "https://example.com/a/b.md" })).toEqual({});
+    expect(refsInArgs({ file: "retry.ts" })).toEqual({});
+  });
+
+  it("does not read a path out of a command's prose", () => {
+    expect(
+      refsInArgs({ command: "bun run test:checkout", description: "suite" }),
+    ).toEqual({});
+  });
+});

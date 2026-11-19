@@ -4,6 +4,7 @@ import { cx } from "class-variance-authority";
 import { Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { useMemo } from "react";
+import { FileChip } from "@/components/markdown-chips/chips";
 import {
   chipIconClass,
   chipLinkClass,
@@ -21,8 +22,9 @@ import { chipStatus } from "@/features/thread/thread-view/thread-chips";
 import { refsInArgs, type ToolPullRef } from "./args-refs";
 
 /**
- * The references a tool call's own payload names, drawn beside its label:
- * a thread the call pointed at, and a pull it asked about. A call that names
+ * The references a tool call's own payload names, drawn beside its label: a
+ * thread the call pointed at, a pull it asked about, and the workspace file a
+ * file tool names. A call that names
  * neither renders nothing at all, so the row keeps the shape it had.
  */
 
@@ -77,13 +79,23 @@ function ToolPullRefChip({ pull }: { pull: ToolPullRef }) {
 
 export function ToolRefs({ args }: { args: unknown }) {
   const refs = useMemo(() => refsInArgs(args), [args]);
-  if (refs.threadId === undefined && refs.pull === undefined) return null;
+  if (
+    refs.threadId === undefined &&
+    refs.pull === undefined &&
+    refs.file === undefined
+  )
+    return null;
   return (
     <span data-slot="tool-refs" className="kiki-tool-refs">
       {refs.threadId === undefined ? null : (
         <ToolThreadRef threadId={refs.threadId} />
       )}
       {refs.pull === undefined ? null : <ToolPullRefChip pull={refs.pull} />}
+      {refs.file === undefined ? null : (
+        <span data-slot="tool-file-ref">
+          <FileChip value={refs.file} />
+        </span>
+      )}
     </span>
   );
 }
