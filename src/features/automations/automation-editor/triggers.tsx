@@ -2,7 +2,7 @@ import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import { useState } from "react";
 import { EmojiPickerPopover } from "@/components/emoji-picker";
-import { membersAtom } from "@/data/atoms/members";
+import { idleMembersAtom, membersAtom } from "@/data/atoms/members";
 import { Badge } from "@/primitives/badge";
 import { Button } from "@/primitives/button";
 import { ChipMenu, ChipMenuTrigger } from "@/primitives/chip-menu";
@@ -233,7 +233,9 @@ const toggleValue = (
 /** The org's members by GitHub login, for the authors filter's suggestions. */
 function useMemberLogins(): ReadonlyArray<ConditionOption> {
   const orgId = useOrgId();
-  const result = useAtomValue(membersAtom(orgId ?? ""));
+  const result = useAtomValue(
+    orgId === undefined ? idleMembersAtom : membersAtom(orgId),
+  );
   return AsyncResult.isSuccess(result) ? memberLogins(result.value) : [];
 }
 

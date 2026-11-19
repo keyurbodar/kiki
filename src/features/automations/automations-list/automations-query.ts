@@ -49,6 +49,12 @@ export const automationsPageAtom = Atom.family((key: string) => {
   });
 });
 
+/** One listPage read while the org is still resolving. */
+export const idleAutomationsPageAtom: ReturnType<typeof automationsPageAtom> =
+  Atom.make(AsyncResult.initial(false)) as ReturnType<
+    typeof automationsPageAtom
+  >;
+
 export const orgMembersAtom = Atom.family((orgId: string) =>
   ApiClient.query("members", "listMembers", {
     params: { orgId },
@@ -57,6 +63,11 @@ export const orgMembersAtom = Atom.family((orgId: string) =>
     timeToLive,
   }),
 );
+
+/** The org's members while the org is still resolving. */
+export const idleOrgMembersAtom: ReturnType<typeof orgMembersAtom> = Atom.make(
+  AsyncResult.initial(false),
+) as ReturnType<typeof orgMembersAtom>;
 
 export const enableAutomationAtom = ApiClient.mutation("automations", "enable");
 export const disableAutomationAtom = ApiClient.mutation(
@@ -108,7 +119,9 @@ export type OrgMember = {
 };
 
 export function useOrgMembers(orgId: string | undefined): OrgMember[] {
-  const result = useAtomValue(orgMembersAtom(orgId ?? ""));
+  const result = useAtomValue(
+    orgId === undefined ? idleOrgMembersAtom : orgMembersAtom(orgId),
+  );
   return orgId === undefined ? [] : decodeMembers(resultOf(result));
 }
 
@@ -126,7 +139,10 @@ export function useAutomationsPage(
   query: string,
   members: ReadonlyArray<OrgMember>,
 ): AutomationsPage {
-  const atom = automationsPageAtom(`${orgId ?? ""}\n${query}`);
+  const atom =
+    orgId === undefined
+      ? idleAutomationsPageAtom
+      : automationsPageAtom(`${orgId}\n${query}`);
   const result = useAtomValue(atom);
   const refresh = useAtomRefresh(atom);
   const nameOf = (userId: string) =>
