@@ -17,6 +17,7 @@ import {
   overviewPullsAtom,
   overviewRemoveLocalPullAtom,
 } from "@/data/atoms/overview";
+import { machinePreviewsAtom } from "@/data/atoms/setup";
 import { useIssueOrgId } from "@/features/issues/issue-parts";
 import { usePaneSession } from "@/features/thread/thread-view/pane-session-context";
 import type { PaneProps } from "@/features/thread-panes/thread-pane/registry";
@@ -38,7 +39,13 @@ import {
   subagentPaths,
   todoProgress,
 } from "./model";
-import { parseLocalPull, parsePull, parseTask, valueList } from "./parse";
+import {
+  parseLocalPull,
+  parsePort,
+  parsePull,
+  parseTask,
+  valueList,
+} from "./parse";
 import {
   LocalPullRow,
   type OpenPull,
@@ -263,6 +270,9 @@ export function OverviewPane({ threadId }: OverviewPaneProps) {
   const children = useAtomValue(childrenAtom);
   const pulls = useAtomValue(pullsAtom);
   const localPulls = useAtomValue(localPullsAtom);
+  const previews = useAtomValue(
+    machinePreviewsAtom(orgId ?? ("" as never), threadId),
+  );
   const refreshChildren = useAtomRefresh(childrenAtom);
   const refreshPulls = useAtomRefresh(pullsAtom);
   const refreshLocalPulls = useAtomRefresh(localPullsAtom);
@@ -272,6 +282,7 @@ export function OverviewPane({ threadId }: OverviewPaneProps) {
     AsyncResult.isFailure(localPulls);
   const pullRows = useResult(pulls);
   const localPullRows = useResult(localPulls);
+  const portRows = useResult(previews);
   const data = useMemo<OverviewData>(
     () => ({
       jamId: threadId,
@@ -287,11 +298,20 @@ export function OverviewPane({ threadId }: OverviewPaneProps) {
       localPulls: valueList(localPullRows)
         .map(parseLocalPull)
         .filter((pull): pull is NonNullable<typeof pull> => pull !== undefined),
-      ports: [],
+      // A preview row names the machine it runs on; the thread's own previews
+      // are the ones whose thread matches, and the empty field is a machine the
+      // mock does not tie to a thread.
+      ports: valueList(portRows)
+        .filter(
+          (row) =>
+            typeof row.threadId !== "string" || row.threadId === threadId,
+        )
+        .map(parsePort)
+        .filter((port): port is OverviewPort => port !== undefined),
       models: [],
       todos: null,
     }),
-    [children, localPullRows, pullRows, threadId],
+    [children, localPullRows, portRows, pullRows, threadId],
   );
   const openOverviewTab = (tab: unknown) => {
     const kind = (tab as { kind?: string }).kind;
