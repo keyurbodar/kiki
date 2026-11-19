@@ -1438,6 +1438,22 @@ export const seedEvents: ReadonlyArray<EventRowEncoded> = [
     },
     "answered",
   ),
+  row(checkoutJam, isoMinutesAgo(6), 41, "compact", {
+    actor: agent(checkoutJam),
+    origin: sys,
+    summary: "The retry landed; what is left is the flaky fixture.",
+    throughEventId: ids.followUp,
+    triggeredBy: "manual",
+    tokensBefore: 148_000,
+    todos: [
+      {
+        content: "Add a bounded retry around the gateway call",
+        status: "completed",
+      },
+      { content: "Stabilise the checkout fixture", status: "in_progress" },
+      { content: "Re-run the shard on the retry path", status: "pending" },
+    ],
+  }),
 ];
 
 export const outline: ReadonlyArray<EventOutlineSection> = [
