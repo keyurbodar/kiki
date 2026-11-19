@@ -402,6 +402,64 @@ const labelOf = (item: Element) => {
     : text;
 };
 
+describe("sidebar pull status", () => {
+  const pull = (state: "failed" | "pending" | "ready" | "merged") => ({
+    id: PullRequestId.make(`pr_sample_${state}`),
+    repo: "acme/web",
+    number: 128,
+    title: "Add dark mode to settings",
+    state,
+    additions: 1,
+    deletions: 0,
+    diffBreakdown: null,
+    author: "alex-sample",
+    authorAvatarUrl: "",
+    url: "https://github.com/acme/web/pull/128",
+  });
+  const rowWith = (
+    state: "failed" | "pending" | "ready" | "merged",
+    status: SourceThread["status"] = "idle",
+  ) => (
+    <Harness
+      sidebarSource={source([
+        thread({ status, card: card({ pulls: [pull(state)] }) }),
+      ])}
+    />
+  );
+  const label = () =>
+    [...document.querySelectorAll("[data-slot=sidebar-thread-row] span")].find(
+      (node) =>
+        ["PR failing", "Checks", "PR ready"].includes(
+          node.textContent?.trim() ?? "",
+        ),
+    );
+
+  it("names a failing pull request on an idle thread", async () => {
+    await renderAt(rowWith("failed"));
+    await waitFor(() => expect(label()?.textContent).toBe("PR failing"));
+    expect(label()?.className).toContain("text-destructive");
+  });
+
+  it("says Checks while a pull's checks run, and PR ready when they land", async () => {
+    await renderAt(rowWith("pending"));
+    await waitFor(() => expect(label()?.textContent).toBe("Checks"));
+    cleanup();
+    await renderAt(rowWith("ready"));
+    await waitFor(() => expect(label()?.textContent).toBe("PR ready"));
+    expect(label()?.className).toContain("text-success");
+  });
+
+  it("says nothing on a thread whose pulls are all merged", async () => {
+    await renderAt(rowWith("merged"));
+    await waitFor(() =>
+      expect(
+        document.querySelector("[data-slot=sidebar-thread-row]"),
+      ).not.toBeNull(),
+    );
+    expect(label()).toBeUndefined();
+  });
+});
+
 describe("sidebar row signals", () => {
   it("prints the unsent-draft mark on a thread whose composer holds text", async () => {
     const registry = await renderWithRegistry(
