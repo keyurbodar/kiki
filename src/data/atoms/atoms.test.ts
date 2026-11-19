@@ -33,7 +33,7 @@ describe("data atoms over MockServices", () => {
       );
       assert.deepStrictEqual(
         projects.map((project) => project.name),
-        ["Web app", "API", "Docs"],
+        ["Web app", "API", "Docs", "Hiring"],
       );
     }),
   );

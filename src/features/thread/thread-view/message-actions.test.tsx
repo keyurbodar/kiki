@@ -25,6 +25,11 @@ const Probe = () => {
   );
 };
 
+const ForkProbe = () => {
+  const actions = useMessageActions();
+  return <span>{actions.forkQuote === undefined ? "no-fork" : "fork"}</span>;
+};
+
 const ReplyProbe = () => {
   const actions = useMessageActions();
   return <span>{actions.reply === undefined ? "no-reply" : "reply"}</span>;
@@ -54,6 +59,19 @@ describe("ThreadMessageActions", () => {
     );
     await waitFor(() => {
       expect(screen.getByText("jump")).toBeTruthy();
+    });
+  });
+
+  it("hands the chat list the fork its section menu opens", async () => {
+    render(
+      <RegistryProvider>
+        <ThreadMessageActions orgId={orgId} forkQuote={() => {}}>
+          <ForkProbe />
+        </ThreadMessageActions>
+      </RegistryProvider>,
+    );
+    await waitFor(() => {
+      expect(screen.getByText("fork")).toBeTruthy();
     });
   });
 

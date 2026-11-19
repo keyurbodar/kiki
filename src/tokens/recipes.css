@@ -473,6 +473,11 @@
     width: var(--menu-w);
   }
 
+  /* A threads filter submenu, as wide as its menu so the two line up. */
+  .kiki-menu-filter {
+    width: var(--menu-w-message);
+  }
+
   /*
    * A filter chip's box. Capy caps chips and truncates the values they carry,
    * so a row of filters keeps one height whatever is selected.

@@ -10,6 +10,7 @@ import {
   type MessageActions,
   MessageActionsProvider,
   type MessageActor,
+  type QuoteSource,
   type ReplyTarget,
 } from "@/features/thread/message-footer";
 import { threadKey, viewedVersionAtom } from "@/features/thread/timeline";
@@ -64,6 +65,7 @@ export function ThreadMessageActions({
   editMessage,
   editedRowIds,
   jumpToSection,
+  forkQuote,
   children,
 }: {
   orgId: string | undefined;
@@ -74,6 +76,8 @@ export function ThreadMessageActions({
   editedRowIds?: ReadonlySet<string>;
   /** Scrolls the timeline to the row and section a quote points at. */
   jumpToSection?: (rowId: string, section: number) => void;
+  /** Forks the thread from a section's quote, with its full context or a summary. */
+  forkQuote?: (kind: "copy" | "summary", quote: QuoteSource) => void;
   children: ReactNode;
 }) {
   const user = useAtomValue(currentUserAtom);
@@ -106,6 +110,7 @@ export function ThreadMessageActions({
       editMessage,
       editedRowIds,
       jumpToSection,
+      forkQuote,
       viewVersion:
         orgId === undefined || jamId === undefined ? undefined : viewVersion,
       resolveActor: (actor: Actor): MessageActor | undefined => {
@@ -120,6 +125,7 @@ export function ThreadMessageActions({
       byId,
       editedRowIds,
       editMessage,
+      forkQuote,
       jamId,
       jumpToSection,
       orgId,

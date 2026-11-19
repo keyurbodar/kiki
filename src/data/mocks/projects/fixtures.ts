@@ -1,6 +1,6 @@
 import { DateTime } from "effect";
 import { CAPY_ILLUSTRATIONS } from "@/assets/brand";
-import { ProjectId } from "../../api/schemas/ids.ts";
+import { ProjectId, UserId } from "../../api/schemas/ids.ts";
 import {
   Project,
   type ProjectColor,
@@ -24,6 +24,8 @@ const project = (options: {
   readonly icon: string;
   readonly color: ProjectColor;
   readonly repos: ReadonlyArray<string>;
+  readonly visibility?: "org" | "private";
+  readonly ownerUserId?: string;
   readonly deleted?: boolean;
   readonly touchedMinutesAgo: number;
   readonly logoIndex?: number;
@@ -55,8 +57,11 @@ const project = (options: {
           mode: position === 0 ? "primary" : "lazy",
         }),
     ),
-    visibility: "org",
-    ownerUserId: null,
+    visibility: options.visibility ?? "org",
+    ownerUserId:
+      options.ownerUserId === undefined
+        ? null
+        : UserId.make(options.ownerUserId),
     members: [],
     viewerRole: "member",
     lastTouchedAt: minutesAgo(options.touchedMinutesAgo),
@@ -90,6 +95,19 @@ export const sampleProjects = [
     repos: worldProjects.docs.repos,
     logoIndex: 2,
     touchedMinutesAgo: 60 * 24 * 3,
+  }),
+  // Private, so the projects page has a row for the `Set owner` action, which
+  // Capy gates to private projects. Deleting it silently unmounts that action.
+  project({
+    id: worldProjects.hiring.id,
+    name: worldProjects.hiring.name,
+    code: worldProjects.hiring.code,
+    icon: "people",
+    color: "warning",
+    repos: worldProjects.hiring.repos,
+    visibility: "private",
+    ownerUserId: people.sam.id,
+    touchedMinutesAgo: 60 * 24 * 2,
   }),
   project({
     id: worldProjects.old.id,
