@@ -1,4 +1,5 @@
 export * from "./captain-data";
+export * from "./captain-overview-home";
 export * from "./crew-action";
 export * from "./crew-section";
 export * from "./crew-thread-row";

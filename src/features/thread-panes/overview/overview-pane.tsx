@@ -27,6 +27,7 @@ import {
   machinePreviewsAtom,
   threadMachinesAtom,
 } from "@/data/atoms/setup";
+import { CaptainOverviewHome, useCaptain } from "@/features/captains/overview";
 import { useIssueOrgId } from "@/features/issues/issue-parts";
 import { usePaneSession } from "@/features/thread/thread-view/pane-session-context";
 import { threadFeedAtom } from "@/features/thread/timeline";
@@ -270,6 +271,7 @@ const portUrl = (port: OverviewPort) =>
 
 export function OverviewPane({ threadId }: OverviewPaneProps) {
   const orgId = useIssueOrgId();
+  const captain = useCaptain(orgId, threadId);
   const navigate = useNavigate();
   const { openTab } = usePaneSession();
   const sort = useAtomValue(overviewPullSortAtom);
@@ -385,6 +387,8 @@ export function OverviewPane({ threadId }: OverviewPaneProps) {
       }),
     [gitPatch, gitStatus, gitTurns, machineRows],
   );
+  // A Captain is a thread, and its overview is its crew and its drive.
+  if (captain !== undefined) return <CaptainOverviewHome jamId={threadId} />;
   // An overview that could not load is not an empty overview: the sail and its
   // "nothing here" rows would claim the thread has no tasks, pulls or diffs.
   if (failed)
