@@ -37,7 +37,7 @@ export const unboundCommands: Record<string, string> = {
   "paneTab.back":
     "The pane session keeps no record of the tab a tab was opened from",
   "commandMenu.actions":
-    "The thread row menu opens from its own trigger; nothing tracks a selected row",
+    "The thread row menu opens from its own trigger; nothing tracks a selected row. Capy gives it `mod+.` under `when: commandMenuOpen`, and that chord is free for `thread.stop` here because the resolver cannot yet tell a focused composer from an open command menu",
   "list.next": "Thread, issue and pull lists have no roving selection to move",
   "list.previous":
     "Thread, issue and pull lists have no roving selection to move",
