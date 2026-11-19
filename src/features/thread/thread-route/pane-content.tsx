@@ -9,6 +9,7 @@ import { BrowserPane } from "@/features/thread-panes/browser-pane";
 import { MachinePathView } from "@/features/thread-panes/machine-path-view";
 import { parsePull, valueList } from "@/features/thread-panes/overview/parse";
 import { PaneNotice } from "@/features/thread-panes/pane-notice";
+import { PaperPane } from "@/features/thread-panes/paper-pane";
 import { ServicePreviewPane } from "@/features/thread-panes/service-preview-pane";
 import type { PaneTab } from "@/features/thread-panes/tab-strip";
 import { findPane } from "@/features/thread-panes/thread-pane";
@@ -94,6 +95,15 @@ export function PaneContent({
         <Suspense fallback={null}>
           <BrowserPane threadId={threadId} sessionId={tab.id} url={tab.url} />
         </Suspense>
+      );
+    case "paper":
+      return (
+        <PaperPane
+          orgId={orgId}
+          jamId={tab.jamId}
+          fileId={tab.fileId}
+          title={tab.title}
+        />
       );
     case "attachment":
       return <AttachmentPane tab={tab} rows={rows} />;

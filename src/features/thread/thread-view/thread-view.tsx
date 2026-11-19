@@ -86,6 +86,7 @@ import { RightPanelGroup } from "@/primitives/right-panel";
 import { toast } from "@/primitives/toaster";
 import { ChatSkeleton } from "./chat-skeleton";
 import { ThreadMessageActions } from "./message-actions";
+import { usePaneSession } from "./pane-session-context";
 import { threadChips } from "./thread-chips";
 import { threadHeaderClassName } from "./thread-header";
 import {
@@ -472,6 +473,7 @@ export function ThreadView({
       issues: Option.getOrUndefined(AsyncResult.value(orgIssues))?.issues ?? [],
     });
   }, [orgIssues, projects, orgThreads, threadId]);
+  const { openTab } = usePaneSession();
   const chipValue = useMemo(
     () => ({
       ...chips,
@@ -481,8 +483,12 @@ export function ThreadView({
           className={className}
         />
       ),
+      // A Paper link opens the canvas in the panel, as Capy's does, instead of
+      // leaving the chip as a link out to another tab.
+      paperOpener: (fileId: string) => () =>
+        openTab({ kind: "paper", jamId: threadId, fileId, title: null }),
     }),
-    [chips],
+    [chips, openTab, threadId],
   );
   const navigate = useNavigate();
   const commands = useMemo(
