@@ -40,7 +40,11 @@ import {
   CollapsibleTrigger,
 } from "@/primitives/collapsible";
 import { Icon } from "@/primitives/icon";
-import { Menu, MenuContent, MenuTrigger } from "@/primitives/menu";
+import {
+  ResponsiveMenu,
+  ResponsiveMenuContent,
+  ResponsiveMenuTrigger,
+} from "@/primitives/responsive-menu";
 import { toast } from "@/primitives/toaster";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { type IssueFilters, localDate, stateVisible } from "../issues-filters";
@@ -252,8 +256,8 @@ function IssueStatusMenu({
       }}
       onKeyDown={(event) => event.stopPropagation()}
     >
-      <Menu>
-        <MenuTrigger
+      <ResponsiveMenu>
+        <ResponsiveMenuTrigger
           dataSlot={null}
           aria-label="Change status"
           className="relative -m-1 flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-(--radius) outline-none hover:bg-secondary focus-visible:outline-ring-inset data-[popup-open]:bg-secondary pointer-coarse:after:absolute pointer-coarse:after:-inset-2.5"
@@ -261,8 +265,8 @@ function IssueStatusMenu({
           {state === undefined ? null : (
             <IssueStateIcon icon={state.icon} color={state.color} />
           )}
-        </MenuTrigger>
-        <MenuContent align="start" className="w-56">
+        </ResponsiveMenuTrigger>
+        <ResponsiveMenuContent align="start" className="w-56">
           <IssueStatusOptions
             orgId={orgId}
             current={issue.stateId}
@@ -277,8 +281,8 @@ function IssueStatusMenu({
               }).catch(() => toast.error("Could not change the status"))
             }
           />
-        </MenuContent>
-      </Menu>
+        </ResponsiveMenuContent>
+      </ResponsiveMenu>
     </span>
   );
 }

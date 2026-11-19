@@ -14,15 +14,15 @@ import {
   DialogTitle,
 } from "@/primitives/dialog";
 import { Input } from "@/primitives/input";
+import { MenuItem, MenuSeparator } from "@/primitives/menu";
 import {
-  Menu,
-  MenuContent,
-  MenuItem,
-  MenuSeparator,
-  MenuSub,
-  MenuSubTrigger,
-  MenuTrigger,
-} from "@/primitives/menu";
+  ResponsiveMenu,
+  ResponsiveMenuContent,
+  ResponsiveMenuItem,
+  ResponsiveMenuSeparator,
+  ResponsiveMenuSub,
+  ResponsiveMenuTrigger,
+} from "@/primitives/responsive-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   type DateRange,
@@ -323,8 +323,8 @@ export function FilterOperator({
         }));
   const current = items.find((item) => item.checked)?.label ?? "";
   return (
-    <Menu open={open} onOpenChange={setOpen}>
-      <MenuTrigger
+    <ResponsiveMenu open={open} onOpenChange={setOpen}>
+      <ResponsiveMenuTrigger
         render={
           <button
             type="button"
@@ -336,13 +336,13 @@ export function FilterOperator({
         }
       >
         {current}
-      </MenuTrigger>
-      <MenuContent
+      </ResponsiveMenuTrigger>
+      <ResponsiveMenuContent
         align="start"
         className={operator.kind === "binary" ? "w-32" : "w-40"}
       >
         {items.map((item) => (
-          <MenuItem
+          <ResponsiveMenuItem
             key={item.key}
             closeOnClick={false}
             onClick={() => {
@@ -356,10 +356,10 @@ export function FilterOperator({
                 {icons?.check}
               </span>
             ) : null}
-          </MenuItem>
+          </ResponsiveMenuItem>
         ))}
-      </MenuContent>
-    </Menu>
+      </ResponsiveMenuContent>
+    </ResponsiveMenu>
   );
 }
 
@@ -404,8 +404,8 @@ export function FilterValue({
       </span>
     );
   return (
-    <Menu open={open} onOpenChange={setOpen}>
-      <MenuTrigger
+    <ResponsiveMenu open={open} onOpenChange={setOpen}>
+      <ResponsiveMenuTrigger
         render={
           <button
             type="button"
@@ -415,13 +415,16 @@ export function FilterValue({
         }
       >
         {value}
-      </MenuTrigger>
-      <MenuContent align="start" className={selector.contentClassName}>
+      </ResponsiveMenuTrigger>
+      <ResponsiveMenuContent
+        align="start"
+        className={selector.contentClassName}
+      >
         <SelectorContent key={open ? "open" : "closed"}>
           {selector.content}
         </SelectorContent>
-      </MenuContent>
-    </Menu>
+      </ResponsiveMenuContent>
+    </ResponsiveMenu>
   );
 }
 
@@ -614,22 +617,14 @@ export function MenuSubmenu({
   children,
 }: MenuSubmenuProps) {
   return (
-    <MenuSub>
-      <MenuSubTrigger>
-        {icon === undefined ? null : (
-          <span className={menuIconSlotClassName}>{icon}</span>
-        )}
-        <span className="min-w-0 truncate">{label}</span>
-        {value === undefined ? null : (
-          <span className="ml-auto flex min-w-0 items-center truncate pl-3 text-muted-foreground-2">
-            {value}
-          </span>
-        )}
-      </MenuSubTrigger>
-      <MenuContent side="right" align="start" className={contentClassName}>
-        {children}
-      </MenuContent>
-    </MenuSub>
+    <ResponsiveMenuSub
+      icon={icon}
+      label={label}
+      value={value}
+      contentClassName={contentClassName}
+    >
+      {children}
+    </ResponsiveMenuSub>
   );
 }
 
@@ -657,7 +652,7 @@ export function DateRangeItems({
   return (
     <>
       {dateRangePresets.map((preset) => (
-        <MenuItem
+        <ResponsiveMenuItem
           key={preset}
           closeOnClick={false}
           onClick={() => onChange(value === preset ? null : preset)}
@@ -669,11 +664,11 @@ export function DateRangeItems({
               {icons?.check}
             </span>
           ) : null}
-        </MenuItem>
+        </ResponsiveMenuItem>
       ))}
       {renderCustom === undefined ? null : (
         <>
-          <MenuSeparator />
+          <ResponsiveMenuSeparator />
           <MenuSubmenu
             icon={icons?.calendar}
             label="Custom…"
@@ -733,11 +728,11 @@ export type DisplayMenuProps = { children: ReactNode; icon?: ReactNode };
 
 export function DisplayMenu({ children, icon }: DisplayMenuProps) {
   return (
-    <Menu>
+    <ResponsiveMenu>
       <Tooltip>
         <TooltipTrigger
           render={
-            <MenuTrigger
+            <ResponsiveMenuTrigger
               render={
                 <button
                   type="button"
@@ -747,15 +742,15 @@ export function DisplayMenu({ children, icon }: DisplayMenuProps) {
               }
             >
               {icon}
-            </MenuTrigger>
+            </ResponsiveMenuTrigger>
           }
         />
         <TooltipContent side="bottom">Display</TooltipContent>
       </Tooltip>
-      <MenuContent align="end" className="w-60">
+      <ResponsiveMenuContent align="end" className="w-60">
         {children}
-      </MenuContent>
-    </Menu>
+      </ResponsiveMenuContent>
+    </ResponsiveMenu>
   );
 }
 
@@ -784,14 +779,14 @@ export function DisplayChoiceSub<Key extends string>({
       contentClassName="w-44"
     >
       {(Object.keys(labels) as Key[]).map((key) => (
-        <MenuItem key={key} onClick={() => onPick(key)}>
+        <ResponsiveMenuItem key={key} onClick={() => onPick(key)}>
           {labels[key]}
           {value === key ? (
             <span className={cx("ml-auto", menuCheckClassName)}>
               {icons?.check}
             </span>
           ) : null}
-        </MenuItem>
+        </ResponsiveMenuItem>
       ))}
     </MenuSubmenu>
   );
@@ -813,7 +808,7 @@ export function DisplayToggle({
   icons,
 }: DisplayToggleProps) {
   return (
-    <MenuItem closeOnClick={false} onClick={onToggle}>
+    <ResponsiveMenuItem closeOnClick={false} onClick={onToggle}>
       {icon === undefined ? null : (
         <span className={menuIconSlotClassName}>{icon}</span>
       )}
@@ -823,7 +818,7 @@ export function DisplayToggle({
           {icons?.check}
         </span>
       ) : null}
-    </MenuItem>
+    </ResponsiveMenuItem>
   );
 }
 

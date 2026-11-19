@@ -29,12 +29,12 @@ import {
   ThreadGlyph,
 } from "@/features/pulls/pulls-list/pull-row/pull-icons";
 import {
-  Menu,
-  MenuContent,
-  MenuItem,
-  MenuSeparator,
-  MenuTrigger,
-} from "@/primitives/menu";
+  ResponsiveMenu,
+  ResponsiveMenuContent,
+  ResponsiveMenuItem,
+  ResponsiveMenuSeparator,
+  ResponsiveMenuTrigger,
+} from "@/primitives/responsive-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { type PullState, repoName } from "./data/pull";
 import {
@@ -111,7 +111,7 @@ function OptionsSubmenu({
       contentClassName="w-56"
     >
       {[...options, ...missing].map((option) => (
-        <MenuItem
+        <ResponsiveMenuItem
           key={option.id}
           closeOnClick={false}
           onClick={() => onChange(toggle(selected, option.id))}
@@ -119,7 +119,7 @@ function OptionsSubmenu({
           <span className={menuIconSlotClassName}>{option.icon ?? icon}</span>
           <span className="min-w-0 truncate">{option.label}</span>
           {selected.includes(option.id) ? <CheckMark /> : null}
-        </MenuItem>
+        </ResponsiveMenuItem>
       ))}
     </MenuSubmenu>
   );
@@ -140,11 +140,11 @@ export function PullsFilterMenu({
   onClear: () => void;
 }) {
   return (
-    <Menu>
+    <ResponsiveMenu>
       <Tooltip>
         <TooltipTrigger
           render={
-            <MenuTrigger
+            <ResponsiveMenuTrigger
               render={
                 <button
                   type="button"
@@ -159,7 +159,7 @@ export function PullsFilterMenu({
         </TooltipTrigger>
         <TooltipContent side="bottom">Filter</TooltipContent>
       </Tooltip>
-      <MenuContent align="end" className="w-56">
+      <ResponsiveMenuContent align="end" className="w-56">
         <MenuSubmenu
           icon={<PullRequestGlyph />}
           label="State"
@@ -174,7 +174,7 @@ export function PullsFilterMenu({
           contentClassName="w-44"
         >
           {stateOptions.map(({ value, label }) => (
-            <MenuItem
+            <ResponsiveMenuItem
               key={value}
               closeOnClick={false}
               onClick={() =>
@@ -189,7 +189,7 @@ export function PullsFilterMenu({
               </span>
               {label}
               {filters.states.includes(value) ? <CheckMark /> : null}
-            </MenuItem>
+            </ResponsiveMenuItem>
           ))}
         </MenuSubmenu>
         <OptionsSubmenu
@@ -251,7 +251,7 @@ export function PullsFilterMenu({
           contentClassName="w-44"
         >
           {(["linked", "none"] as const).map((thread) => (
-            <MenuItem
+            <ResponsiveMenuItem
               key={thread}
               closeOnClick={false}
               onClick={() =>
@@ -266,7 +266,7 @@ export function PullsFilterMenu({
               </span>
               {thread === "linked" ? "Has thread" : "No thread"}
               {filters.thread === thread ? <CheckMark /> : null}
-            </MenuItem>
+            </ResponsiveMenuItem>
           ))}
         </MenuSubmenu>
         <DateRangeSubmenu
@@ -286,17 +286,17 @@ export function PullsFilterMenu({
         />
         {clearable ? (
           <>
-            <MenuSeparator />
-            <MenuItem closeOnClick={false} onClick={onClear}>
+            <ResponsiveMenuSeparator />
+            <ResponsiveMenuItem closeOnClick={false} onClick={onClear}>
               <span className={menuIconSlotClassName}>
                 <CrossGlyph />
               </span>
               Clear filters
-            </MenuItem>
+            </ResponsiveMenuItem>
           </>
         ) : null}
-      </MenuContent>
-    </Menu>
+      </ResponsiveMenuContent>
+    </ResponsiveMenu>
   );
 }
 
@@ -322,7 +322,7 @@ export function PullsDisplayMenu({
         onPick={onGrouping}
         icons={toolbarIcons}
       />
-      <MenuSeparator />
+      <ResponsiveMenuSeparator />
       <DisplayToggle
         icon={<CrossGlyph />}
         label="Show empty sections"
@@ -375,7 +375,7 @@ export const pullFilterChips = (
         ariaLabel: `Change state filter value, currently ${summarize(labels, "states")}`,
         contentClassName: "w-44",
         content: stateOptions.map(({ value, label }) => (
-          <MenuItem
+          <ResponsiveMenuItem
             key={value}
             closeOnClick={false}
             onClick={() =>
@@ -387,7 +387,7 @@ export const pullFilterChips = (
             </span>
             {label}
             {filters.states.includes(value) ? <CheckMark /> : null}
-          </MenuItem>
+          </ResponsiveMenuItem>
         )),
       },
       onRemove: () =>

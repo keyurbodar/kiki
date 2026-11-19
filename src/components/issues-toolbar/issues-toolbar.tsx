@@ -7,7 +7,7 @@ import {
   ViewTab,
   ViewToolbar,
 } from "@/components/view-toolbar";
-import { MenuSeparator } from "@/primitives/menu";
+import { ResponsiveMenuSeparator } from "@/primitives/responsive-menu";
 import {
   emptyIssueFilters,
   filtersForView,
@@ -187,7 +187,7 @@ export function IssuesDisplayMenu({
         onPick={(subIssues) => onChange({ ...display, subIssues })}
         icons={icons}
       />
-      <MenuSeparator />
+      <ResponsiveMenuSeparator />
       <MenuSubmenu
         icon={<EyeOffGlyph />}
         label="Properties"
