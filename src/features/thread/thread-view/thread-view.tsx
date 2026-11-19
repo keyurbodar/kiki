@@ -474,7 +474,6 @@ export function ThreadView({
       issues: Option.getOrUndefined(AsyncResult.value(orgIssues))?.issues ?? [],
     });
   }, [orgIssues, projects, orgThreads, threadId]);
-  const { openTab } = usePaneSession();
   const chipValue = useMemo(
     () => ({
       ...chips,
