@@ -50,7 +50,7 @@ export const statusAtom = Atom.family((threadId: string) =>
   }),
 );
 
-const patchAtom = Atom.family((threadId: string) =>
+export const patchAtom = Atom.family((threadId: string) =>
   ApiClient.query("git", "patch", {
     params: gitParams(threadId),
     query: {},
@@ -58,7 +58,7 @@ const patchAtom = Atom.family((threadId: string) =>
   }),
 );
 
-const turnsAtom = Atom.family((threadId: string) =>
+export const turnsAtom = Atom.family((threadId: string) =>
   ApiClient.query("git", "turns", {
     params: gitParams(threadId),
     reactivityKeys: [`git:${threadId}`],

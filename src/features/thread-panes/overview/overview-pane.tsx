@@ -11,15 +11,22 @@ import {
   SurfaceRow,
   SurfaceStack,
 } from "@/components/overview-section";
+import { modelsAtom } from "@/data/atoms/models";
 import {
   overviewChildrenAtom,
   overviewLocalPullsAtom,
   overviewPullsAtom,
   overviewRemoveLocalPullAtom,
 } from "@/data/atoms/overview";
-import { machinePreviewsAtom } from "@/data/atoms/setup";
+import { machinePreviewsAtom, threadMachinesAtom } from "@/data/atoms/setup";
 import { useIssueOrgId } from "@/features/issues/issue-parts";
 import { usePaneSession } from "@/features/thread/thread-view/pane-session-context";
+import { threadFeedAtom } from "@/features/thread/timeline";
+import {
+  patchAtom,
+  statusAtom,
+  turnsAtom,
+} from "@/features/thread-panes/diffs-view/diffs-view";
 import type { PaneProps } from "@/features/thread-panes/thread-pane/registry";
 import { ScrollArea, ScrollAreaViewport } from "@/primitives/scroll-area";
 import { toast } from "@/primitives/toaster";
@@ -56,6 +63,7 @@ import {
   TaskRow,
   TodoRow,
 } from "./rows";
+import { overviewModels, overviewSurfaces, threadTodos } from "./sources";
 
 const sailUrl = CAPY_ILLUSTRATIONS.sail;
 
@@ -273,6 +281,14 @@ export function OverviewPane({ threadId }: OverviewPaneProps) {
   const previews = useAtomValue(
     machinePreviewsAtom(orgId ?? ("" as never), threadId),
   );
+  const machineRows = useAtomValue(
+    threadMachinesAtom(orgId ?? ("" as never), threadId),
+  );
+  const catalog = useAtomValue(modelsAtom(orgId ?? ""));
+  const gitStatus = useAtomValue(statusAtom(threadId));
+  const gitTurns = useAtomValue(turnsAtom(threadId));
+  const gitPatch = useAtomValue(patchAtom(threadId));
+  const feed = useAtomValue(threadFeedAtom(`${orgId ?? ""}/${threadId}`));
   const refreshChildren = useAtomRefresh(childrenAtom);
   const refreshPulls = useAtomRefresh(pullsAtom);
   const refreshLocalPulls = useAtomRefresh(localPullsAtom);
@@ -283,10 +299,12 @@ export function OverviewPane({ threadId }: OverviewPaneProps) {
   const pullRows = useResult(pulls);
   const localPullRows = useResult(localPulls);
   const portRows = useResult(previews);
+  const catalogValue = useResult(catalog);
+  const childRows = useResult(children);
   const data = useMemo<OverviewData>(
     () => ({
       jamId: threadId,
-      tasks: valueList(children).map(parseTask),
+      tasks: valueList(childRows).map(parseTask),
       pulls:
         pullRows === undefined
           ? undefined
@@ -308,10 +326,18 @@ export function OverviewPane({ threadId }: OverviewPaneProps) {
         )
         .map(parsePort)
         .filter((port): port is OverviewPort => port !== undefined),
-      models: [],
-      todos: null,
+      models: overviewModels(catalogValue),
+      todos: threadTodos(feed.events),
     }),
-    [children, localPullRows, portRows, pullRows, threadId],
+    [
+      catalogValue,
+      childRows,
+      feed.events,
+      localPullRows,
+      portRows,
+      pullRows,
+      threadId,
+    ],
   );
   const openOverviewTab = (tab: unknown) => {
     const kind = (tab as { kind?: string }).kind;
@@ -330,8 +356,14 @@ export function OverviewPane({ threadId }: OverviewPaneProps) {
     }
   };
   const surfaces = useMemo<OverviewSurfaces>(
-    () => ({ repos: [], turns: [], machine: null, sessions: undefined }),
-    [],
+    () =>
+      overviewSurfaces({
+        status: gitStatus,
+        turns: gitTurns,
+        patch: gitPatch,
+        machines: machineRows,
+      }),
+    [gitPatch, gitStatus, gitTurns, machineRows],
   );
   // An overview that could not load is not an empty overview: the sail and its
   // "nothing here" rows would claim the thread has no tasks, pulls or diffs.
