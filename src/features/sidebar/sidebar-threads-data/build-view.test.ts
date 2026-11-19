@@ -264,4 +264,16 @@ describe("origin filter", () => {
       ).filters.origins,
     ).toEqual(["web"]);
   });
+
+  it("carries the source's loading state to the view", () => {
+    expect(
+      buildSidebarThreadsView(
+        { ...source({ threads }), loading: true },
+        prefs(),
+      ).loading,
+    ).toBe(true);
+    expect(buildSidebarThreadsView(source({ threads }), prefs()).loading).toBe(
+      false,
+    );
+  });
 });

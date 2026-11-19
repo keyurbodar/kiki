@@ -82,6 +82,8 @@ export type SourceCaptain = Omit<SidebarCaptain, "age"> & {
 
 export type SidebarSource = {
   now: Date;
+  /** Nothing has landed yet, so the list shows Capy's `Loading threads` row. */
+  loading?: boolean;
   threads: SourceThread[];
   folders: SourceFolder[];
   projects: SidebarProject[];
@@ -341,6 +343,7 @@ export function buildSidebarThreadsView(
     collapse: prefs.collapse,
     filters: prefs.filters,
     filterText: prefs.filterText,
+    loading: source.loading === true,
     sections,
     hiddenFolders: source.folders
       .filter((folder) => folder.hidden === true)

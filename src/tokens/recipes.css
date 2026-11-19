@@ -646,6 +646,50 @@
     border-inline-end-color: transparent;
   }
 
+  /*
+   * The sidebar's `Loading threads` row. Capy draws three section shapes by
+   * hand while the org's threads are in flight, so the layout lives here and
+   * the bars come from the skeleton primitive.
+   */
+  .kiki-thread-skeleton {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .kiki-thread-skeleton-section {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: calc(var(--spacing) * 3);
+  }
+
+  .kiki-thread-skeleton-header,
+  .kiki-thread-skeleton-line,
+  .kiki-thread-skeleton-meta {
+    display: flex;
+    align-items: center;
+  }
+
+  .kiki-thread-skeleton-header {
+    height: calc(var(--spacing) * 7);
+    gap: calc(var(--spacing) * 1);
+    padding-inline: calc(var(--spacing) * 2);
+  }
+
+  .kiki-thread-skeleton-row {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 1);
+    padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+  }
+
+  .kiki-thread-skeleton-line {
+    gap: calc(var(--spacing) * 2);
+  }
+
+  .kiki-thread-skeleton-meta {
+    gap: calc(var(--spacing) * 1);
+  }
+
   .kiki-menu-row {
     display: flex;
     align-items: var(--row-align);
