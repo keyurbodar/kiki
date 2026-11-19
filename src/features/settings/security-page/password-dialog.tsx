@@ -47,7 +47,7 @@ export function PasswordDialog({
         >
           <DialogHeader>
             <DialogTitle>
-              {mode === "change" ? "Change password" : "Set password"}
+              {mode === "change" ? "Change password" : "Set a password"}
             </DialogTitle>
             <DialogDescription>
               Use it with your email to sign in
@@ -88,7 +88,7 @@ export function PasswordDialog({
               intent="accent"
               disabled={next === "" || (mode === "change" && current === "")}
             >
-              Save
+              {mode === "change" ? "Change password" : "Set password"}
             </Button>
           </DialogFooter>
         </form>
