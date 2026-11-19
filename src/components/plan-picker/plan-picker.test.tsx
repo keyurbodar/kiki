@@ -1,9 +1,23 @@
+import { RegistryProvider } from "@effect/atom-react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import * as failure from "@/data/mocks/failure";
 import { defaultPlanCatalog, leadTerms } from "./plan-catalog";
-import { LeadCard, PlanCheckout } from "./plan-picker";
+import { LeadCard, PlanCheckout, PlanPicker } from "./plan-picker";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
+
+/** The URLs the mock saw while `mount` ran, so a test can name the request
+ * a surface issues before its org is known. */
+const urlsWhileMounting = async (mount: () => void) => {
+  const spy = vi.spyOn(failure, "failsMockRequest");
+  mount();
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  return spy.mock.calls.map(([url]) => url);
+};
 
 const lite = defaultPlanCatalog.tiers[0];
 
@@ -59,5 +73,28 @@ describe("PlanCheckout", () => {
     expect(screen.getByText(/, cancel anytime/)).toBeTruthy();
     const back = screen.getByRole("button", { name: /Change plan/ });
     expect((back as HTMLButtonElement).disabled).toBe(true);
+  });
+});
+
+describe("PlanPicker before the org resolves", () => {
+  const picker = (orgId: string | undefined) => (
+    <RegistryProvider>
+      <PlanPicker orgId={orgId} surface="settings" onPurchased={() => {}} />
+    </RegistryProvider>
+  );
+
+  it("reads nothing org-scoped while the org is unresolved", async () => {
+    const urls = await urlsWhileMounting(() => render(picker(undefined)));
+    expect(urls.filter((url) => url.includes("/orgs//"))).toEqual([]);
+    expect(document.querySelector("[data-slot=skeleton-panel]")).not.toBeNull();
+  });
+
+  it("asks for the catalog once the org is known", async () => {
+    const urls = await urlsWhileMounting(() =>
+      render(picker("org_sample_acme")),
+    );
+    expect(
+      urls.some((url) => url.endsWith("/orgs/org_sample_acme/billing/catalog")),
+    ).toBe(true);
   });
 });

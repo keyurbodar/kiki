@@ -38,6 +38,12 @@ export const billingCatalogAtom = Atom.family((orgId: string) =>
   }),
 );
 
+/** The catalog a plan surface reads while its org is still resolving. */
+export const idleBillingCatalogAtom: ReturnType<typeof billingCatalogAtom> =
+  Atom.make(AsyncResult.initial(false)) as ReturnType<
+    typeof billingCatalogAtom
+  >;
+
 export const orgMembersAtom = Atom.family((orgId: string) =>
   ApiClient.query("members", "listMembers", {
     params: { orgId },

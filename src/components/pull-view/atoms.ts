@@ -1,4 +1,4 @@
-import { Atom } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import { queryTimeToLive } from "@/data/atoms/conventions";
 import { ApiClient } from "@/data/client/ApiClient";
 
@@ -47,6 +47,10 @@ const reviewersQuery = Atom.family((key: string) => {
 
 export const pullReviewersAtom = (orgId: string, pullId: string) =>
   reviewersQuery(join(orgId, pullId));
+
+/** The reviewers a menu subscribes to while its org is still resolving. */
+export const idlePullReviewersAtom: ReturnType<typeof pullReviewersAtom> =
+  Atom.make(AsyncResult.initial(false)) as ReturnType<typeof pullReviewersAtom>;
 
 const labelsQuery = Atom.family((key: string) => {
   const [orgId = "", pullId = ""] = split(key);
