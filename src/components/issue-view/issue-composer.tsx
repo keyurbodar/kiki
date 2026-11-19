@@ -1,5 +1,5 @@
 import { cx } from "class-variance-authority";
-import { type KeyboardEvent, useState } from "react";
+import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import {
   ArrowUp,
   Crown,
@@ -93,6 +93,7 @@ export function IssueComposer({
   autoFocus,
   disabled,
   editorClassName,
+  quote,
   onSubmit,
 }: {
   placeholder: string;
@@ -101,9 +102,26 @@ export function IssueComposer({
   autoFocus?: boolean;
   disabled?: boolean;
   editorClassName?: string;
+  /** A passage quoted from the issue, appended and focused when it arrives. */
+  quote?: { text: string; nonce: number } | null;
   onSubmit: (text: string) => Promise<boolean> | undefined;
 }) {
   const [text, setText] = useState(defaultValue);
+  const input = useRef<HTMLTextAreaElement>(null);
+  const seeded = useRef<number | null>(null);
+  useEffect(() => {
+    if (quote == null || seeded.current === quote.nonce) return;
+    seeded.current = quote.nonce;
+    const block = quote.text
+      .split("\n")
+      .map((line) => `> ${line}`)
+      .join("\n");
+    setText((current) =>
+      current.trim() === "" ? `${block}\n\n` : `${current}\n\n${block}\n\n`,
+    );
+    input.current?.focus();
+    input.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [quote]);
   const empty = text.trim() === "";
   const submit = () => {
     if (empty || disabled) return;
@@ -117,6 +135,7 @@ export function IssueComposer({
       className="flex flex-col rounded-(--radius-card) bg-(--composer-ground) shadow-(--sh-composer)"
     >
       <textarea
+        ref={input}
         aria-label={placeholder}
         placeholder={placeholder}
         value={text}

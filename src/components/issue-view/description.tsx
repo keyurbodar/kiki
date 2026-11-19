@@ -4,6 +4,7 @@ import {
   ChevronRightSmall,
   EditSmall,
 } from "@/components/issue-parts";
+import { SelectionCard, useSelectionCard } from "@/components/selection-card";
 import type { IssueDetail } from "@/data/api/schemas/issue";
 import { Button } from "@/primitives/button";
 import { IssueComposer } from "./issue-composer";
@@ -13,12 +14,17 @@ import type { IssueActions } from "./use-issue";
 export function Description({
   detail,
   actions,
+  onQuote,
 }: {
   detail: IssueDetail;
   actions: IssueActions;
+  /** Hands the selected text to the issue's comment box as a quote. */
+  onQuote?: (text: string) => void;
 }) {
   const [open, setOpen] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [body, setBody] = useState<HTMLDivElement | null>(null);
+  const quoted = useSelectionCard(open && !editing ? body : null);
   const [saving, setSaving] = useState(false);
   const save = (text: string) => {
     setSaving(true);
@@ -89,6 +95,7 @@ export function Description({
           </span>
         ) : (
           <div
+            ref={setBody}
             className="flex flex-col gap-2"
             data-quote-key={`issue:${detail.issue.code}`}
             data-quote-label={`${detail.issue.code} description`}
@@ -98,6 +105,17 @@ export function Description({
             </p>
           </div>
         ))}
+      <SelectionCard
+        selection={quoted.selection}
+        onComment={() => {
+          const text = quoted.selection?.text;
+          if (text === undefined || onQuote === undefined) return;
+          onQuote(text);
+          quoted.dismiss();
+        }}
+        onCopy={quoted.dismiss}
+        commentable={onQuote !== undefined}
+      />
     </div>
   );
 }

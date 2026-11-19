@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createPlusMenuCommands } from "@/components/composer/plus-menu-commands";
+import { createSelectionCardCommands } from "@/components/selection-card";
 import { createPaletteCommands } from "@/features/command-palette/palette/command-palette-host";
 import {
   commandCatalog,
@@ -44,6 +45,9 @@ const surfaces = {
   composer: createComposerCommands(() => ({ focus: noop })),
   plusMenu: createPlusMenuCommands(() => ({ attach: () => undefined })),
   palette: createPaletteCommands({ toggle: noop }),
+  selectionCard: createSelectionCardCommands(() => ({
+    comment: () => false,
+  })),
 };
 
 const bound = new Map<string, string>(
