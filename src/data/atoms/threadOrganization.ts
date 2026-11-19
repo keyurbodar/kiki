@@ -67,6 +67,16 @@ export const deleteFolderAtom = ApiClient.mutation(
   "deleteFolder",
 );
 
+export const setFolderHiddenAtom = ApiClient.mutation(
+  "threadOrganization",
+  "setFolderHidden",
+);
+
+export const leaveFolderAtom = ApiClient.mutation(
+  "threadOrganization",
+  "leaveFolder",
+);
+
 export const addToFolderAtom = ApiClient.mutation(
   "threadOrganization",
   "addToFolder",

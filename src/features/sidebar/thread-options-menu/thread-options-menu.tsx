@@ -187,6 +187,9 @@ export type ThreadOptionsMenuProps = {
   onMarkAllRead?: () => void;
   onSearch?: () => void;
   onViewAll?: () => void;
+  /** Folders the viewer hid, offered back here so hiding stays reversible. */
+  hiddenFolders?: ReadonlyArray<{ id: string; name: string }>;
+  onShowFolder?: (folder: { id: string; name: string }) => void;
 };
 
 export function ThreadOptionsMenu({
@@ -204,6 +207,8 @@ export function ThreadOptionsMenu({
   onMarkAllRead,
   onSearch,
   onViewAll,
+  hiddenFolders,
+  onShowFolder,
 }: ThreadOptionsMenuProps) {
   return (
     <ResponsiveMenu>
@@ -256,6 +261,23 @@ export function ThreadOptionsMenu({
           )}
         </SubMenu>
         <DensitySubMenu density={density} onDensityChange={onDensityChange} />
+        {hiddenFolders === undefined || hiddenFolders.length === 0 ? null : (
+          <SubMenu
+            icon="eye-open"
+            label="Hidden folders"
+            value={hiddenFolders.length}
+          >
+            {hiddenFolders.map((folder) => (
+              <ResponsiveMenuItem
+                key={folder.id}
+                onClick={() => onShowFolder?.(folder)}
+              >
+                <MenuGlyph name="folder-1" />
+                {folder.name}
+              </ResponsiveMenuItem>
+            ))}
+          </SubMenu>
+        )}
         <SubMenu
           icon="layers-three"
           label="Collapse"
