@@ -205,6 +205,12 @@ export const projects = {
     name: "Legacy site",
     repos: ["acme/legacy-site"],
   },
+  hiring: {
+    id: "proj_sample_hiring",
+    code: "HIR",
+    name: "Hiring",
+    repos: ["acme/hiring"],
+  },
 } as const satisfies Record<string, ProjectRef>;
 
 export const repos = [

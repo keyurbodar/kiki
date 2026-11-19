@@ -36,7 +36,11 @@ import {
   DirectoryRow,
   DirectoryTable,
 } from "./directory-table";
-import { DeleteProjectDialog, RenameProjectDialog } from "./project-dialogs";
+import {
+  DeleteProjectDialog,
+  RenameProjectDialog,
+  SetOwnerDialog,
+} from "./project-dialogs";
 import { repositoriesLabel, suggestedRepos } from "./suggestions";
 
 const snapshotLabels: Record<
@@ -110,6 +114,9 @@ function ProjectsDirectory({ orgId }: { readonly orgId: OrgId }) {
     useState<ProjectSettingsDirectoryEntry | null>(null);
   const [deleting, setDeleting] =
     useState<ProjectSettingsDirectoryEntry | null>(null);
+  const [owning, setOwning] = useState<ProjectSettingsDirectoryEntry | null>(
+    null,
+  );
 
   const offset = directory === undefined ? 0 : (directory.page - 1) * pageSize;
 
@@ -191,6 +198,7 @@ function ProjectsDirectory({ orgId }: { readonly orgId: OrgId }) {
                 })}
                 onRename={() => setRenaming(entry)}
                 onDelete={() => setDeleting(entry)}
+                onSetOwner={() => setOwning(entry)}
               />
             ))
           )}
@@ -322,6 +330,11 @@ function ProjectsDirectory({ orgId }: { readonly orgId: OrgId }) {
         project={deleting}
         onClose={() => setDeleting(null)}
       />
+      <SetOwnerDialog
+        orgId={orgId}
+        project={owning}
+        onClose={() => setOwning(null)}
+      />
     </section>
   );
 }
@@ -331,11 +344,13 @@ function ProjectRow({
   updated,
   onRename,
   onDelete,
+  onSetOwner,
 }: {
   readonly entry: ProjectSettingsDirectoryEntry;
   readonly updated: string;
   readonly onRename: () => void;
   readonly onDelete: () => void;
+  readonly onSetOwner: () => void;
 }) {
   const snapshot = snapshotLabels[entry.snapshotState];
   return (
@@ -399,6 +414,12 @@ function ProjectRow({
               <Glyph name="rename" className="size-(--icon-sm)" />
               Rename
             </MenuItem>
+            {entry.visibility === "private" && (
+              <MenuItem onClick={onSetOwner}>
+                <Icon name="user" size="sm" />
+                Set owner
+              </MenuItem>
+            )}
             <MenuItem
               onClick={() => toast("Sharing arrives with the members editor")}
             >

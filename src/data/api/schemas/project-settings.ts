@@ -1,6 +1,7 @@
 import { Schema } from "effect";
 import { withDefault } from "./defaults.ts";
 import { ActorId, ProjectId, Timestamp } from "./ids.ts";
+import { Visibility } from "./organization.ts";
 import { ProjectIcon } from "./project.ts";
 
 export const SnapshotState = Schema.Literals([
@@ -26,6 +27,7 @@ export class ProjectSettingsDirectoryEntry extends Schema.Class<ProjectSettingsD
   snapshotState: SnapshotState,
   sharedVariableCount: Schema.Int,
   personalVariableCount: Schema.Int,
+  visibility: Visibility.pipe(withDefault("org")),
 }) {}
 
 export class ProjectSettingsDirectoryPage extends Schema.Class<ProjectSettingsDirectoryPage>(

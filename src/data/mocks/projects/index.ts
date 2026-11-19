@@ -318,6 +318,7 @@ export const ProjectsMock = mockGroup("projects", (handlers) =>
             .length,
           personalVariableCount: (yield* listVariables("personal", project.id))
             .length,
+          visibility: project.visibility,
         });
       });
 
