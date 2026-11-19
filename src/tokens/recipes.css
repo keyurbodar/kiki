@@ -460,6 +460,30 @@
     width: var(--menu-w);
   }
 
+  /*
+   * A filter chip's box. Capy caps chips and truncates the values they carry,
+   * so a row of filters keeps one height whatever is selected.
+   */
+  .kiki-filter-chip {
+    max-width: var(--filter-chip-w);
+  }
+
+  .kiki-filter-chip[data-wide] {
+    max-width: var(--filter-pattern-w);
+  }
+
+  .kiki-filter-chip-value {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* The pattern filter's editor, at the wider of the two chip widths. */
+  .kiki-pattern-menu {
+    width: var(--filter-pattern-w);
+  }
+
   /* A pull's preview menu, sized for a service name over its hostname. */
   .kiki-preview-menu {
     width: var(--menu-w-previews);

@@ -29,31 +29,45 @@ describe("an event trigger row", () => {
     );
   });
 
-  it("shows every condition and drops one on its remove control", () => {
+  it("shows the event's primary filters whether or not they are set", () => {
+    render(
+      <TriggerRow
+        trigger={githubTrigger({ conditions: { repositories: ["acme/web"] } })}
+        onChange={() => {}}
+        onRemove={() => {}}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "repository filter" }).textContent,
+    ).toBe("inacme/web");
+    expect(
+      screen.getByRole("button", { name: "PR author filter" }).textContent,
+    ).toBe("byanyone");
+  });
+
+  it("moves a filter the menu offers onto its own row", () => {
     const onChange = vi.fn();
     render(
       <TriggerRow
         trigger={githubTrigger({
-          conditions: { repository: ["acme/web"], author: ["sam-sample"] },
+          event: "branch_push",
+          conditions: { actors: ["sam-sample"] },
         })}
         onChange={onChange}
         onRemove={() => {}}
       />,
     );
-    const repository = document.querySelector(
-      '[data-slot="trigger-condition"]',
-    );
-    expect(repository?.textContent).toContain("repository");
-    expect(repository?.textContent).toContain("acme/web");
+    const row = document.querySelector('[data-slot="trigger-filter-row"]');
+    expect(row?.textContent).toContain("and");
+    expect(row?.textContent).toContain("by");
+    expect(row?.textContent).toContain("sam-sample");
     fireEvent.click(
-      screen.getByRole("button", {
-        name: "Remove condition repository is acme/web",
-      }),
+      screen.getByRole("button", { name: "Remove actor filter" }),
     );
     expect(onChange).toHaveBeenCalledWith({
       type: "github",
-      event: "pull_request_merged",
-      conditions: { author: ["sam-sample"] },
+      event: "branch_push",
+      conditions: {},
     });
   });
 

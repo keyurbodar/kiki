@@ -29,6 +29,8 @@ export type EventTrigger = {
   conditions: Record<string, ReadonlyArray<string>>;
   runWhen?: string;
   regex?: string;
+  /** Whether a message from a bot can fire a Slack trigger. */
+  includeBots?: boolean;
   /** How a webhook trigger collects events before running them together. */
   coalescing?: WebhookCoalescingConfig;
 };

@@ -61,6 +61,9 @@
   --menu-w: 208px;
   /* A message's More menu: Capy's 224px on both the hover rail and the phone. */
   --menu-w-message: 224px;
+  /* A trigger's filter chip, and the wider one its pattern filter uses. */
+  --filter-chip-w: 224px;
+  --filter-pattern-w: 288px;
   /* A pull's preview menu: Capy's 384px, room for a service name over its host. */
   --menu-w-previews: 384px;
   /* The state mark on a preview chip's globe: the dot, its ring, and how far
