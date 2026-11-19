@@ -430,6 +430,11 @@
     width: var(--menu-w);
   }
 
+  /* A threads filter submenu, as wide as its menu so the two line up. */
+  .kiki-menu-filter {
+    width: var(--menu-w-message);
+  }
+
   /* A pull's preview menu, sized for a service name over its hostname. */
   .kiki-preview-menu {
     width: var(--menu-w-previews);

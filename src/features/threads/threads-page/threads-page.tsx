@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { DateTime } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import { type FormEvent, useEffect, useState } from "react";
+import { MenuSearchInput } from "@/components/actor-filter";
 import { AppTopBar } from "@/components/app-top-bar";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
@@ -79,7 +80,6 @@ import {
   Menu,
   MenuContent,
   MenuItem,
-  MenuSearchRow,
   MenuSeparator,
   MenuTrigger,
 } from "@/primitives/menu";
@@ -787,15 +787,11 @@ function ThreadsFilterMenu({
         <TooltipContent side="bottom">Filter</TooltipContent>
       </Tooltip>
       <MenuContent align="end" className="w-56">
-        <MenuSearchRow className="flex shrink-0 items-center">
-          <input
-            className="h-7 w-full min-w-0 rounded bg-transparent px-2 text-xs font-medium text-foreground outline-none placeholder:text-muted-foreground-2"
-            placeholder="Filter threads"
-            aria-label="Filter threads"
-            value={search.value}
-            onChange={(event) => search.onChange(event.target.value)}
-          />
-        </MenuSearchRow>
+        <MenuSearchInput
+          placeholder="Filter threads"
+          value={search.value}
+          onChange={search.onChange}
+        />
         <MenuSeparator />
         <MenuSubmenu
           label="Participants"
@@ -860,7 +856,7 @@ function ThreadsFilterMenu({
               ? undefined
               : String(filters.authors.length)
           }
-          contentClassName="w-56"
+          contentClassName="kiki-menu-filter"
         >
           {members.map((member) => (
             <MenuItem
@@ -886,7 +882,7 @@ function ThreadsFilterMenu({
               ? undefined
               : String(filters.prStates.length)
           }
-          contentClassName="w-44"
+          contentClassName="kiki-menu-filter"
         >
           {prStatusOptions.map((option) => (
             <MenuItem
