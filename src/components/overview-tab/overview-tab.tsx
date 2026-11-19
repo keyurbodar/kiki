@@ -62,15 +62,15 @@ import { membersAtom } from "@/data/atoms/members";
 import { currentUserAtom } from "@/data/atoms/session";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
+import { MenuSearchRow } from "@/primitives/menu";
 import {
-  Menu,
-  MenuCheckboxItem,
-  MenuContent,
-  MenuItem,
-  MenuLabel,
-  MenuSearchRow,
-  MenuTrigger,
-} from "@/primitives/menu";
+  ResponsiveMenu,
+  ResponsiveMenuCheckboxItem,
+  ResponsiveMenuContent,
+  ResponsiveMenuItem,
+  ResponsiveMenuLabel,
+  ResponsiveMenuTrigger,
+} from "@/primitives/responsive-menu";
 import { toast } from "@/primitives/toaster";
 
 const track = (owner: string) => `shared/pull-view/overview-tab.tsx#${owner}`;
@@ -190,8 +190,8 @@ export function StatusControl({ pull }: { pull: Pull }) {
       <Checkmark1Icon className="ml-auto size-(--icon-sm) shrink-0 text-foreground" />
     );
   return (
-    <Menu>
-      <MenuTrigger
+    <ResponsiveMenu>
+      <ResponsiveMenuTrigger
         data-track-owner={track("StatusControl:MenuTrigger.1")}
         render={
           <button
@@ -206,29 +206,29 @@ export function StatusControl({ pull }: { pull: Pull }) {
         </span>
         {statusLabels[current]}
         <ChevronDownSmallIcon className="size-(--icon-xs) text-icon-muted" />
-      </MenuTrigger>
-      <MenuContent align="start">
-        <MenuItem
+      </ResponsiveMenuTrigger>
+      <ResponsiveMenuContent align="start">
+        <ResponsiveMenuItem
           data-track-owner={track("StatusControl:MenuItem[Draft]")}
           disabled={current === "closed"}
           onClick={() => choose("draft")}
         >
           Draft{check("draft")}
-        </MenuItem>
-        <MenuItem
+        </ResponsiveMenuItem>
+        <ResponsiveMenuItem
           data-track-owner={track("StatusControl:MenuItem[Ready for review]")}
           onClick={() => choose("ready")}
         >
           Ready for review{check("ready")}
-        </MenuItem>
-        <MenuItem
+        </ResponsiveMenuItem>
+        <ResponsiveMenuItem
           data-track-owner={track("StatusControl:MenuItem[Closed]")}
           onClick={() => choose("closed")}
         >
           Closed{check("closed")}
-        </MenuItem>
-      </MenuContent>
-    </Menu>
+        </ResponsiveMenuItem>
+      </ResponsiveMenuContent>
+    </ResponsiveMenu>
   );
 }
 
@@ -275,8 +275,8 @@ export function ReviewersControl({ pull }: { pull: Pull }) {
       .finally(() => setBusy(null));
   };
   return (
-    <Menu>
-      <MenuTrigger
+    <ResponsiveMenu>
+      <ResponsiveMenuTrigger
         data-track-owner="shared/pull-view/reviewers-menu.tsx#ReviewersControl:ResponsiveMenuTrigger.1"
         render={
           <button
@@ -305,8 +305,8 @@ export function ReviewersControl({ pull }: { pull: Pull }) {
             </span>
           </span>
         )}
-      </MenuTrigger>
-      <MenuContent align="start" className="w-72">
+      </ResponsiveMenuTrigger>
+      <ResponsiveMenuContent align="start" className="w-72">
         <MenuSearchRow>
           <input
             className={menuSearchInputClassName}
@@ -318,9 +318,11 @@ export function ReviewersControl({ pull }: { pull: Pull }) {
         </MenuSearchRow>
         {matching.length > 0 && (
           <div>
-            <MenuLabel className={menuGroupLabelClassName}>Reviewers</MenuLabel>
+            <ResponsiveMenuLabel className={menuGroupLabelClassName}>
+              Reviewers
+            </ResponsiveMenuLabel>
             {matching.map((reviewer) => (
-              <MenuCheckboxItem
+              <ResponsiveMenuCheckboxItem
                 key={reviewer.login}
                 data-track-owner="shared/pull-view/reviewers-menu.tsx#ReviewersControl:ResponsiveMenuCheckboxItem.1"
                 checked
@@ -350,7 +352,7 @@ export function ReviewersControl({ pull }: { pull: Pull }) {
                       {reviewWords[reviewer.state]}
                     </span>
                   )}
-              </MenuCheckboxItem>
+              </ResponsiveMenuCheckboxItem>
             ))}
           </div>
         )}
@@ -359,8 +361,8 @@ export function ReviewersControl({ pull }: { pull: Pull }) {
             No matching reviewers
           </span>
         )}
-      </MenuContent>
-    </Menu>
+      </ResponsiveMenuContent>
+    </ResponsiveMenu>
   );
 }
 
@@ -381,8 +383,8 @@ export function LabelsControl({ pull }: { pull: Pull }) {
   const [busy, setBusy] = useState<string | null>(null);
   const setLabel = useAtomSet(setLabelAtom, { mode: "promise" });
   return (
-    <Menu open={open} onOpenChange={setOpen}>
-      <MenuTrigger
+    <ResponsiveMenu open={open} onOpenChange={setOpen}>
+      <ResponsiveMenuTrigger
         data-track-owner="shared/pull-view/labels-menu.tsx#LabelsControl:ResponsiveMenuTrigger.1"
         nativeButton={false}
         render={
@@ -409,8 +411,8 @@ export function LabelsControl({ pull }: { pull: Pull }) {
             </span>
           ))
         )}
-      </MenuTrigger>
-      <MenuContent align="start" className="w-80">
+      </ResponsiveMenuTrigger>
+      <ResponsiveMenuContent align="start" className="w-80">
         <MenuSearchRow>
           <input
             className={menuSearchInputClassName}
@@ -437,8 +439,8 @@ export function LabelsControl({ pull }: { pull: Pull }) {
             }}
           />
         )}
-      </MenuContent>
-    </Menu>
+      </ResponsiveMenuContent>
+    </ResponsiveMenu>
   );
 }
 
@@ -468,7 +470,7 @@ function LabelOptions({
   return labels.map((label) => {
     const applied = pull.labels.some((entry) => entry.name === label.name);
     return (
-      <MenuCheckboxItem
+      <ResponsiveMenuCheckboxItem
         key={label.name}
         data-track-owner="shared/pull-view/labels-menu.tsx#LabelsControl:ResponsiveMenuCheckboxItem.1"
         checked={applied}
@@ -477,7 +479,7 @@ function LabelOptions({
       >
         <LabelDot color={label.color} />
         <span className="min-w-0 flex-1 truncate">{label.name}</span>
-      </MenuCheckboxItem>
+      </ResponsiveMenuCheckboxItem>
     );
   });
 }

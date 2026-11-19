@@ -34,7 +34,7 @@ export const unboundCommands: Record<string, string> = {
   "paneTab.back":
     "The pane session keeps no record of the tab a tab was opened from",
   "commandMenu.actions":
-    "The row menu opens from its own trigger or its `…` button; Capy gives the chord `mod+.` under `when: commandMenuOpen`, and here it belongs to `thread.stop` while a run is live, because the resolver cannot tell a focused composer from an open command menu",
+    "The row menu opens from its own trigger or its `…` button, and no action menu is mounted for a chord to open: `mod+.` is `thread.stop` while a run is live, and the palette — the only surface that reports `commandMenuOpen` — has no per-thread action menu to open from its results",
   "issue.status": "The issues list has no selected issue and no status menu",
   "issue.priority":
     "The issues list has no selected issue and no priority menu",

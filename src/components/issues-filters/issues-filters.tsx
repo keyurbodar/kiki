@@ -74,6 +74,12 @@ export type IssueFilterSources = {
   readonly actors: ActorSources;
 };
 
+/** A picked range, one date wide when both ends land on the same day. */
+export const dueRangeLabel = (from: string | null, to: string | null) =>
+  from === null || to === null || from === to
+    ? (from ?? to ?? "")
+    : `${from} – ${to}`;
+
 export const dueBucketLabels: Record<IssueDueBucket, string> = {
   today: "Today",
   tomorrow: "Tomorrow",
@@ -349,9 +355,7 @@ export function DueFilterItems({
   onChange: (filters: IssueFilters) => void;
 }) {
   const [range, setRange] = useState(false);
-  const picked = [filters.dueFrom, filters.dueTo]
-    .filter((day): day is string => day !== null)
-    .join(" – ");
+  const picked = dueRangeLabel(filters.dueFrom, filters.dueTo);
   return (
     <>
       {issueDueBuckets.map((bucket) => (
@@ -859,11 +863,7 @@ export function issueFilterChips(
       .map((bucket) => dueBucketLabels[bucket]),
     ...(filters.dueFrom === null && filters.dueTo === null
       ? []
-      : [
-          [filters.dueFrom, filters.dueTo]
-            .filter((day) => day !== null)
-            .join(" – "),
-        ]),
+      : [dueRangeLabel(filters.dueFrom, filters.dueTo)]),
   ];
   const dueValue =
     dueLabels.length <= 2

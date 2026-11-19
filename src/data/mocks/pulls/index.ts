@@ -33,6 +33,7 @@ import {
   pullImage,
   pullIssues,
   pullLabels,
+  pullPreviewComments,
   pullReview,
   pullReviewers,
   pullReviewSkip,
@@ -324,6 +325,10 @@ export const PullsMock = mockGroup("pulls", (handlers) =>
           yield* findPull(params.pullId);
           if (params.pullId === xinPull.id) {
             return { ...xinPullActivity, comments: xinComments };
+          }
+          const previewComments = pullPreviewComments[params.pullId];
+          if (previewComments !== undefined) {
+            return { comments: previewComments };
           }
           const matching = pullActivity.filter(
             (item) => item.pullId === params.pullId,
