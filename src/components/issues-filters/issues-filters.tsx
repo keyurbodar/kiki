@@ -9,18 +9,18 @@ import {
 import { DueRangeCalendar } from "@/components/issue-due";
 import {
   type FilterChipModel,
-  MenuSubmenu,
   menuCheckClassName,
   menuIconSlotClassName,
   viewToolbarIconButtonClassName,
 } from "@/components/view-toolbar";
 import {
-  Menu,
-  MenuContent,
-  MenuItem,
-  MenuSeparator,
-  MenuTrigger,
-} from "@/primitives/menu";
+  ResponsiveMenu,
+  ResponsiveMenuContent,
+  ResponsiveMenuItem,
+  ResponsiveMenuSeparator,
+  ResponsiveMenuSub,
+  ResponsiveMenuTrigger,
+} from "@/primitives/responsive-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import {
   AtGlyph,
@@ -294,13 +294,13 @@ export function CheckRow({
   onClick: () => void;
 }) {
   return (
-    <MenuItem closeOnClick={false} onClick={onClick}>
+    <ResponsiveMenuItem closeOnClick={false} onClick={onClick}>
       {leading === undefined ? null : (
         <span className={menuIconSlotClassName}>{leading}</span>
       )}
       {label}
       {checked ? check : null}
-    </MenuItem>
+    </ResponsiveMenuItem>
   );
 }
 
@@ -371,7 +371,7 @@ export function DueFilterItems({
           }
         />
       ))}
-      <MenuSeparator />
+      <ResponsiveMenuSeparator />
       <CheckRow
         leading={<CalendarGlyph />}
         label={
@@ -432,7 +432,7 @@ export function IssuesFilterMenu({
           ? "project"
           : "label";
   const listSubmenu = (filter: ListFilter) => (
-    <MenuSubmenu
+    <ResponsiveMenuSub
       key={filter.key}
       icon={filter.icon}
       label={filter.label}
@@ -447,10 +447,10 @@ export function IssuesFilterMenu({
         checked={(key) => filters[filter.key].includes(key)}
         onToggle={(key) => onChange(toggleList(filters, filter, key))}
       />
-    </MenuSubmenu>
+    </ResponsiveMenuSub>
   );
   const actorSubmenu = (kind: ActorKind) => (
-    <MenuSubmenu
+    <ResponsiveMenuSub
       key={kind.key}
       icon={kind.icon}
       label={kind.label}
@@ -473,12 +473,12 @@ export function IssuesFilterMenu({
           })
         }
       />
-    </MenuSubmenu>
+    </ResponsiveMenuSub>
   );
   const peopleSubmenu = (kind: PeopleKind) => {
     const current = peopleFilter(filters, kind);
     return (
-      <MenuSubmenu
+      <ResponsiveMenuSub
         key={kind.key}
         icon={kind.icon}
         label={kind.label}
@@ -499,17 +499,17 @@ export function IssuesFilterMenu({
             )
           }
         />
-      </MenuSubmenu>
+      </ResponsiveMenuSub>
     );
   };
   const relationCount =
     filters.relations.length + filters.excludedRelations.length;
   return (
-    <Menu>
+    <ResponsiveMenu>
       <Tooltip>
         <TooltipTrigger
           render={
-            <MenuTrigger
+            <ResponsiveMenuTrigger
               render={
                 <button
                   type="button"
@@ -524,19 +524,19 @@ export function IssuesFilterMenu({
         </TooltipTrigger>
         <TooltipContent side="bottom">Filter</TooltipContent>
       </Tooltip>
-      <MenuContent align="end" className="w-56">
+      <ResponsiveMenuContent align="end" className="w-56">
         {lists
           .filter((filter) => shows(listSection(filter.key)))
           .map(listSubmenu)}
         {shows("due") ? (
-          <MenuSubmenu
+          <ResponsiveMenuSub
             icon={<CalendarGlyph />}
             label="Due date"
             value={dueCount(filters) > 0 ? dueCount(filters) : undefined}
             contentClassName="w-72"
           >
             <DueFilterItems filters={filters} onChange={onChange} />
-          </MenuSubmenu>
+          </ResponsiveMenuSub>
         ) : null}
         {actorKinds.filter((kind) => shows(kind.key)).map(actorSubmenu)}
         {peopleKinds
@@ -545,7 +545,7 @@ export function IssuesFilterMenu({
           )
           .map(peopleSubmenu)}
         {shows("relations") ? (
-          <MenuSubmenu
+          <ResponsiveMenuSub
             icon={<LinkGlyph />}
             label="Relations"
             value={relationCount > 0 ? relationCount : undefined}
@@ -574,10 +574,10 @@ export function IssuesFilterMenu({
                 />
               );
             })}
-          </MenuSubmenu>
+          </ResponsiveMenuSub>
         ) : null}
         {shows("pull") ? (
-          <MenuSubmenu
+          <ResponsiveMenuSub
             icon={<PullRequestGlyph />}
             label="Pull request"
             value={
@@ -606,9 +606,9 @@ export function IssuesFilterMenu({
                 }
               />
             ))}
-          </MenuSubmenu>
+          </ResponsiveMenuSub>
         ) : null}
-        <MenuSeparator />
+        <ResponsiveMenuSeparator />
         <CheckRow
           leading={<EyeOffGlyph />}
           label="Hide closed sub-issues"
@@ -622,17 +622,17 @@ export function IssuesFilterMenu({
         />
         {hasIssueFilters(filters) ? (
           <>
-            <MenuSeparator />
-            <MenuItem closeOnClick={false} onClick={onClear}>
+            <ResponsiveMenuSeparator />
+            <ResponsiveMenuItem closeOnClick={false} onClick={onClear}>
               <span className={menuIconSlotClassName}>
                 <CloseGlyph />
               </span>
               Clear filters
-            </MenuItem>
+            </ResponsiveMenuItem>
           </>
         ) : null}
-      </MenuContent>
-    </Menu>
+      </ResponsiveMenuContent>
+    </ResponsiveMenu>
   );
 }
 
@@ -1010,15 +1010,15 @@ export function IssuesMatchChip({
   if (matchableCount(filters) < 2) return null;
   const current = matchOptions.find((option) => option.value === filters.match);
   return (
-    <Menu>
-      <MenuTrigger
+    <ResponsiveMenu>
+      <ResponsiveMenuTrigger
         aria-label={`Change filter match, currently ${current?.label}`}
         className="inline-flex h-6 shrink-0 cursor-pointer items-center gap-1.5 rounded px-1.5 text-xs font-medium whitespace-nowrap text-foreground outline-none transition-colors duration-100 hover:bg-secondary focus-visible:outline-ring-inset"
       >
         <span className="font-normal text-muted-foreground-2">Match</span>
         {current?.label}
-      </MenuTrigger>
-      <MenuContent align="start" className="w-40">
+      </ResponsiveMenuTrigger>
+      <ResponsiveMenuContent align="start" className="w-40">
         {matchOptions.map((option) => (
           <CheckRow
             key={option.value}
@@ -1027,7 +1027,7 @@ export function IssuesMatchChip({
             onClick={() => onChange({ ...filters, match: option.value })}
           />
         ))}
-      </MenuContent>
-    </Menu>
+      </ResponsiveMenuContent>
+    </ResponsiveMenu>
   );
 }

@@ -3,12 +3,11 @@ import {
   menuCheckClassName,
   menuIconSlotClassName,
 } from "@/components/view-toolbar";
+import { MenuLabel, MenuSearchRow } from "@/primitives/menu";
 import {
-  MenuItem,
-  MenuLabel,
-  MenuSearchRow,
-  MenuSeparator,
-} from "@/primitives/menu";
+  ResponsiveMenuItem,
+  ResponsiveMenuSeparator,
+} from "@/primitives/responsive-menu";
 import {
   type ActorFilter,
   type ActorToggle,
@@ -63,13 +62,13 @@ export function ActorRow({
   onClick: () => void;
 }) {
   return (
-    <MenuItem closeOnClick={false} onClick={onClick}>
+    <ResponsiveMenuItem closeOnClick={false} onClick={onClick}>
       <span className={menuIconSlotClassName}>{leading}</span>
       <span className="min-w-0 truncate">{label}</span>
       {checked ? (
         <CheckGlyph className={`ml-auto ${menuCheckClassName}`} />
       ) : null}
-    </MenuItem>
+    </ResponsiveMenuItem>
   );
 }
 
@@ -185,7 +184,9 @@ export function ActorFilterItems({
       ) : null}
       {people.length > 0 ? (
         <>
-          {showMe || showNone || scopes.length > 0 ? <MenuSeparator /> : null}
+          {showMe || showNone || scopes.length > 0 ? (
+            <ResponsiveMenuSeparator />
+          ) : null}
           <MenuLabel className={sectionLabel}>People</MenuLabel>
           {people.map((person) => (
             <ActorRow
@@ -200,7 +201,7 @@ export function ActorFilterItems({
       ) : null}
       {captains.length > 0 ? (
         <>
-          <MenuSeparator />
+          <ResponsiveMenuSeparator />
           <MenuLabel className={sectionLabel}>Captains</MenuLabel>
           <div className="px-2 pb-1 text-xs font-normal text-muted-foreground-3">
             Includes each Captain's crew threads
@@ -218,7 +219,7 @@ export function ActorFilterItems({
       ) : null}
       {threads.length > 0 ? (
         <>
-          <MenuSeparator />
+          <ResponsiveMenuSeparator />
           <MenuLabel className={sectionLabel}>
             {needle === "" ? "Recent threads" : "Threads"}
           </MenuLabel>
