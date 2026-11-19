@@ -11,7 +11,7 @@ import { Schema } from "effect";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeThreadFixtures, TimelineRow } from "@/data/events";
-import { orgId } from "@/data/mocks/fixtures/world";
+import { branches, orgId, threads } from "@/data/mocks/fixtures/world";
 import { ThreadRoute } from "@/features/thread/thread-route/thread-route";
 import {
   type EditDraft,
@@ -84,11 +84,11 @@ const DraftSetter = () => {
   return null;
 };
 
-const renderRoute = (next: ThreadTimeline) => {
+const renderRoute = (next: ThreadTimeline, threadId = "jam_sample") => {
   current.timeline = next;
   return render(
     <RegistryProvider>
-      <ThreadRoute threadId="jam_sample" pane={undefined} />
+      <ThreadRoute threadId={threadId} pane={undefined} />
       <DraftSetter />
     </RegistryProvider>,
   );
@@ -234,6 +234,43 @@ describe("thread view composer slot", () => {
       timeline({ rows: messages, hasOlder: true, loadingOlder: true }),
     );
     expect(slot(container, "chat-loading-older")).not.toBeNull();
+  });
+});
+
+describe("thread composer chrome", () => {
+  const handlers = {
+    orgId: "org_sample",
+    parentJamId: null,
+    onClarifySubmit: () => undefined,
+  };
+
+  const renderView = (threadId: string) =>
+    render(
+      <RegistryProvider>
+        <ThreadView threadId={threadId} rows={messages} handlers={handlers} />
+      </RegistryProvider>,
+    );
+
+  it("mounts the model picker in the thread's composer", () => {
+    const { container } = renderView(threads.checkoutTest.id);
+    const trigger = screen.getByLabelText("Model");
+    expect(slot(container, "composer")?.contains(trigger)).toBe(true);
+    expect(trigger.getAttribute("aria-keyshortcuts")).toBe("Alt+/");
+  });
+
+  it("shows the thread's branch in the footer and copies it on click", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    const branch = branches[1];
+    const { container } = renderView(threads.checkoutTest.id);
+    const chip = await screen.findByLabelText(`Copy ${branch}`);
+    expect(chip.closest('[data-slot="composer-footer"]')).not.toBeNull();
+    fireEvent.click(chip);
+    expect(writeText).toHaveBeenCalledWith(branch);
+    expect(slot(container, "composer")).not.toBeNull();
   });
 });
 

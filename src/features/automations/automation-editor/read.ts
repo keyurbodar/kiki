@@ -1,3 +1,5 @@
+import type { WebhookCoalescingConfig } from "../webhook-coalescing";
+import { validateWebhookCoalescing } from "../webhook-coalescing";
 import type {
   Automation,
   ModelChoice,
@@ -33,6 +35,17 @@ const triggerTypes: ReadonlyArray<TriggerType> = [
   "linear",
 ];
 
+/** A stored batching config, kept only while it still validates. */
+const readCoalescing = (
+  value: unknown,
+): WebhookCoalescingConfig | undefined => {
+  if (!isRecord(value) || !Array.isArray(value.rules)) return undefined;
+  const coalescing = value as WebhookCoalescingConfig;
+  return validateWebhookCoalescing(coalescing) === undefined
+    ? coalescing
+    : undefined;
+};
+
 const readConditions = (value: unknown) =>
   isRecord(value)
     ? Object.fromEntries(
@@ -61,6 +74,9 @@ export const readTrigger = (value: unknown): Trigger | undefined => {
     conditions: readConditions(value.conditions),
     runWhen: typeof value.runWhen === "string" ? value.runWhen : undefined,
     regex: typeof value.regex === "string" ? value.regex : undefined,
+    ...(readCoalescing(value.coalescing) === undefined
+      ? {}
+      : { coalescing: readCoalescing(value.coalescing) }),
   };
 };
 

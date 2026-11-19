@@ -1,0 +1,41 @@
+/*
+ * Reduced motion, from Capy's production stylesheet: one block pins the
+ * overlays that would otherwise scale, translate or animate their height, and
+ * the looping surfaces stop. Capy pins the same slot list, so a dialog, menu,
+ * palette or hover card opens as a plain fade there and must here too.
+ */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="dialog-content"],
+  [data-slot="menu-content"],
+  [data-slot="context-menu-content"],
+  [data-slot="menu-select-content"],
+  [data-slot="menu-combobox-content"],
+  [data-slot="command-menu-content"],
+  [data-slot="popover-content"],
+  [data-slot="preview-card-content"] {
+    /* biome-ignore lint/complexity/noImportantStyles: Capy pins the overlay's enter scale so reduced motion never zooms, and the utility class sets it */
+    scale: 1 !important;
+  }
+
+  [data-slot="sheet-content"],
+  [data-slot="side-sheet-content"],
+  [data-slot="drawer-content"],
+  [data-slot="responsive-menu-level"],
+  [data-slot="chat-scroll-pill"] {
+    /* biome-ignore lint/complexity/noImportantStyles: Capy pins the panel translate; the drawer sets it inline while dragging */
+    translate: 0 !important;
+  }
+
+  [data-slot="collapsible-panel"],
+  [data-slot="work-group-preview"],
+  [data-slot="work-group-panel"],
+  [data-slot="clamped-body"] {
+    /* biome-ignore lint/complexity/noImportantStyles: Capy fades a collapsed surface under reduced motion instead of animating its height */
+    transition-property: opacity !important;
+    /* biome-ignore lint/complexity/noImportantStyles: same reason */
+    transition-duration: var(--duration-collapse) !important;
+    /* biome-ignore lint/complexity/noImportantStyles: same reason */
+    transition-delay: 0s !important;
+  }
+}

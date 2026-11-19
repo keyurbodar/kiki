@@ -23,9 +23,26 @@ for (const { file, token, line } of result.unknown) {
   );
 }
 
-if (result.stale.length + result.unknown.length > 0) {
+for (const { file, token, line } of result.staleDead) {
   console.error(
-    `\n${result.unknown.length} unstyled class(es) and ${result.stale.length} stale allowlist entr(ies).`,
+    `${file}:${line} "${token}" is on the known-dead list but has a rule now: delete its entry from scripts/utility-coverage.ts`,
+  );
+}
+for (const { file, token, line } of result.dead) {
+  console.error(
+    `${file}:${line} "${token}" is a component class with no rule: define it in a stylesheet, or drop it from the markup`,
+  );
+}
+
+if (
+  result.stale.length +
+    result.unknown.length +
+    result.dead.length +
+    result.staleDead.length >
+  0
+) {
+  console.error(
+    `\n${result.unknown.length} unstyled class(es), ${result.dead.length} dead component class(es) and ${result.stale.length} stale allowlist entr(ies).`,
   );
   process.exit(1);
 }

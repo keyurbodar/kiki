@@ -8,6 +8,7 @@ import type { OrgId } from "@/data/api/schemas/ids";
 import type { Project } from "@/data/api/schemas/project";
 import { projectKey, projectSetupAtom } from "@/data/atoms/project-settings";
 import { projectsAtom } from "@/data/atoms/projects";
+import { jsonPayload } from "@/data/client/json";
 import { Button } from "@/primitives/button";
 import { Card } from "@/primitives/card";
 import {
@@ -37,6 +38,7 @@ import { toast } from "@/primitives/toaster";
 import { AutomationUsageSection } from "../automation-usage";
 import { OwnerSelect } from "../owner-select";
 import { RunsInRows, RunsInSelect, useProjectThreads } from "../runs-in-select";
+import { AutomationBatchesSection } from "../webhook-batches";
 import {
   automationAtom,
   automationKey,
@@ -206,7 +208,7 @@ export function AutomationEditor({
     setSaving(true);
     update({
       params,
-      payload: updatePayload(next, current, form),
+      payload: jsonPayload(updatePayload(next, current, form)),
       reactivityKeys,
     })
       .then(
@@ -536,6 +538,12 @@ export function AutomationEditor({
                 machineUsage={machineUsage}
               />
             )}
+            <AutomationBatchesSection
+              automationId={current.id}
+              hasWebhook={current.triggers.some(
+                (trigger) => trigger.type === "incoming_webhook",
+              )}
+            />
             <AutomationUsageSection orgId={orgId} automationId={current.id} />
             <AutomationDriveRow automationId={current.id} title={name} />
           </div>

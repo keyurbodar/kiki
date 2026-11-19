@@ -1,3 +1,5 @@
+import type { WebhookCoalescingConfig } from "../webhook-coalescing";
+
 export type ThreadMode = "new" | "single";
 
 export type RunsIn = { threadMode: ThreadMode; singleJamId: string | null };
@@ -27,6 +29,8 @@ export type EventTrigger = {
   conditions: Record<string, ReadonlyArray<string>>;
   runWhen?: string;
   regex?: string;
+  /** How a webhook trigger collects events before running them together. */
+  coalescing?: WebhookCoalescingConfig;
 };
 
 export type Trigger = ScheduleTrigger | OnDemandTrigger | EventTrigger;

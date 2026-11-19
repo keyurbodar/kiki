@@ -1,6 +1,7 @@
 import { type ComponentProps, type ReactNode, useMemo } from "react";
 import { Markdown } from "@/components/markdown";
 import type { AgentMessageRow as AgentMessageRowSchema } from "@/data/events";
+import { useIsPhoneSurface } from "@/features/mobile/use-mobile";
 import {
   AttachmentGallery,
   type GalleryItem,
@@ -28,7 +29,12 @@ import {
   MenuSeparator,
   MenuTrigger,
 } from "@/primitives/menu";
-import { ResponsiveMenuItem } from "@/primitives/responsive-menu";
+import {
+  ResponsiveMenu,
+  ResponsiveMenuContent,
+  ResponsiveMenuItem,
+  ResponsiveMenuTrigger,
+} from "@/primitives/responsive-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
 import { sectionCopyText, splitSections } from "./sections";
 
@@ -43,7 +49,10 @@ export type AgentMessageRow = typeof AgentMessageRowSchema.Type;
 export const SECTION_GAP = "gap-[1.5em] max-md:gap-[1.25em]";
 
 export type AgentMessageProps = ComponentProps<"div"> & {
-  row: AgentMessageRow;
+  row: AgentMessageRow & {
+    /** The timeline marks the last settled message of an exchange. */
+    readonly showFooter?: boolean | undefined;
+  };
   /** True while this message belongs to the live turn and text is still arriving. */
   streaming?: boolean;
   /** Hands the clicked tile to the thread's lightbox. */
@@ -58,6 +67,7 @@ export function AgentMessage({
   ...props
 }: AgentMessageProps) {
   const sections = useMemo(() => splitSections(row.text), [row.text]);
+  const phone = useIsPhoneSurface();
   return (
     <div
       data-slot="agent-message"
@@ -73,6 +83,7 @@ export function AgentMessage({
           section={index}
           streaming={streaming && index === sections.length - 1}
           settled={row.settled && !streaming}
+          phone={phone}
         />
       ))}
       {row.files.length > 0 && (
@@ -82,6 +93,13 @@ export function AgentMessage({
         />
       )}
       {row.interrupted && <MessageStatus>Interrupted</MessageStatus>}
+      {phone && row.showFooter && row.settled && !streaming && (
+        <PhoneFooter
+          row={row}
+          section={sections.length - 1}
+          text={sections.at(-1) ?? row.text}
+        />
+      )}
     </div>
   );
 }
@@ -131,6 +149,8 @@ export type MessageSectionProps = Omit<ComponentProps<"div">, "children"> & {
   section: number;
   streaming?: boolean;
   settled?: boolean;
+  /** A phone shows one Copy + More row under the message instead of a rail per section. */
+  phone?: boolean;
 };
 
 /** One block of an agent message with its own hover rail. */
@@ -140,6 +160,7 @@ export function MessageSection({
   section,
   streaming = false,
   settled = false,
+  phone = false,
   className,
   ...props
 }: MessageSectionProps) {
@@ -150,8 +171,52 @@ export function MessageSection({
       {...props}
     >
       <Markdown text={text} streaming={streaming} gallery />
-      {settled && <SectionRail row={row} text={text} section={section} />}
+      {settled && !phone && (
+        <SectionRail row={row} text={text} section={section} />
+      )}
     </div>
+  );
+}
+
+/** Fork and side-chat rows, shared by the hover rail and the phone menu. */
+function QuoteMenuItems({ text }: { text: string }) {
+  const actions = useMessageActions();
+  if (actions.forkQuote === undefined && actions.sideChatQuote === undefined) {
+    return null;
+  }
+  const quote = { text, source: "Capy's response" };
+  return (
+    <>
+      <MenuSeparator />
+      {actions.forkQuote !== undefined && (
+        <>
+          <ResponsiveMenuItem
+            onClick={() => actions.forkQuote?.("copy", quote)}
+          >
+            <span className={MENU_ICON_SLOT}>
+              <BranchIcon />
+            </span>
+            Fork
+          </ResponsiveMenuItem>
+          <ResponsiveMenuItem
+            onClick={() => actions.forkQuote?.("summary", quote)}
+          >
+            <span className={MENU_ICON_SLOT}>
+              <SummaryIcon />
+            </span>
+            Fork summary
+          </ResponsiveMenuItem>
+        </>
+      )}
+      {actions.sideChatQuote !== undefined && (
+        <ResponsiveMenuItem onClick={() => actions.sideChatQuote?.(quote)}>
+          <span className={MENU_ICON_SLOT}>
+            <ChatBubbleIcon />
+          </span>
+          Side chat
+        </ResponsiveMenuItem>
+      )}
+    </>
   );
 }
 
@@ -165,7 +230,6 @@ function SectionRail({
   section: number;
 }) {
   const actions = useMessageActions();
-  const quote = { text, source: "Capy's response" };
   const reply = () =>
     actions.reply?.({
       eventId: row.eventId,
@@ -201,7 +265,7 @@ function SectionRail({
             </Button>
           }
         />
-        <MenuContent align="end" className="w-56">
+        <MenuContent align="end" className="kiki-message-menu">
           <ResponsiveMenuItem
             onClick={() => void navigator.clipboard?.writeText(row.text)}
           >
@@ -210,36 +274,7 @@ function SectionRail({
             </span>
             Copy whole message
           </ResponsiveMenuItem>
-          {(actions.forkQuote !== undefined ||
-            actions.sideChatQuote !== undefined) && <MenuSeparator />}
-          {actions.forkQuote !== undefined && (
-            <>
-              <ResponsiveMenuItem
-                onClick={() => actions.forkQuote?.("copy", quote)}
-              >
-                <span className={MENU_ICON_SLOT}>
-                  <BranchIcon />
-                </span>
-                Fork
-              </ResponsiveMenuItem>
-              <ResponsiveMenuItem
-                onClick={() => actions.forkQuote?.("summary", quote)}
-              >
-                <span className={MENU_ICON_SLOT}>
-                  <SummaryIcon />
-                </span>
-                Fork summary
-              </ResponsiveMenuItem>
-            </>
-          )}
-          {actions.sideChatQuote !== undefined && (
-            <ResponsiveMenuItem onClick={() => actions.sideChatQuote?.(quote)}>
-              <span className={MENU_ICON_SLOT}>
-                <ChatBubbleIcon />
-              </span>
-              Side chat
-            </ResponsiveMenuItem>
-          )}
+          <QuoteMenuItems text={text} />
           <MessageMeta
             modelId={row.modelId}
             reasoningMode={row.reasoningMode}
@@ -249,6 +284,61 @@ function SectionRail({
         </MenuContent>
       </Menu>
     </MessageFooter>
+  );
+}
+
+/**
+ * The phone's in-flow action row under a settled message: Copy, and a More
+ * menu carrying Reply, the quote actions and the message's model and time.
+ * Its More menu is a bottom drawer rather than an anchored popup.
+ */
+function PhoneFooter({
+  row,
+  section,
+  text,
+}: {
+  row: AgentMessageRow;
+  section: number;
+  text: string;
+}) {
+  const actions = useMessageActions();
+  const reply = () =>
+    actions.reply?.({
+      eventId: row.eventId,
+      rowId: row.id,
+      section,
+      name: actions.agentName ?? "Capy",
+      text,
+    });
+  return (
+    <div data-slot="message-footer" className="kiki-message-actions">
+      <CopyMessageButton text={row.text} />
+      <ResponsiveMenu>
+        <ResponsiveMenuTrigger
+          render={
+            <Button variant="ghost" size="icon-xs" aria-label="More">
+              <MoreIcon />
+            </Button>
+          }
+        />
+        <ResponsiveMenuContent align="start" className="kiki-message-menu">
+          <ResponsiveMenuItem onClick={reply}>
+            <span className={MENU_ICON_SLOT}>
+              <Icon name="arrow-share-left" />
+            </span>
+            Reply
+          </ResponsiveMenuItem>
+          <QuoteMenuItems text={text} />
+          <MessageMeta
+            modelId={row.modelId}
+            reasoningMode={row.reasoningMode}
+            mode={row.mode}
+            createdAt={row.createdAt}
+            separated
+          />
+        </ResponsiveMenuContent>
+      </ResponsiveMenu>
+    </div>
   );
 }
 

@@ -3,10 +3,15 @@ import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/primitives/menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/primitives/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/primitives/tooltip";
+import { eventOptions } from "../events";
+import { WebhookCoalescing } from "../webhook-coalescing";
 import { CalendarClock, CrossMedium, PlusMedium } from "./icons";
 import {
+  type EventTrigger,
   type EventTriggerType,
+  isEventTrigger,
   type ScheduleTrigger,
   type Trigger,
   type TriggerType,
@@ -171,6 +176,159 @@ export function ScheduleFields({ trigger, onChange }: ScheduleFieldsProps) {
   );
 }
 
+const conditionEntries = (conditions: EventTrigger["conditions"]) =>
+  Object.entries(conditions).flatMap(([field, values]) =>
+    values.map((value) => ({ field, value })),
+  );
+
+const withoutCondition = (
+  conditions: EventTrigger["conditions"],
+  field: string,
+  value: string,
+): EventTrigger["conditions"] => {
+  const kept = (conditions[field] ?? []).filter((entry) => entry !== value);
+  if (kept.length > 0) return { ...conditions, [field]: kept };
+  const { [field]: _dropped, ...rest } = conditions;
+  return rest;
+};
+
+const withCondition = (
+  conditions: EventTrigger["conditions"],
+  field: string,
+  value: string,
+): EventTrigger["conditions"] => ({
+  ...conditions,
+  [field]: [
+    ...(conditions[field] ?? []).filter((entry) => entry !== value),
+    value,
+  ],
+});
+
+/** The field/value pairs an event trigger is narrowed by. */
+function ConditionsEditor({
+  trigger,
+  onChange,
+}: {
+  trigger: EventTrigger;
+  onChange: (trigger: EventTrigger) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [field, setField] = useState("");
+  const [value, setValue] = useState("");
+  const entries = conditionEntries(trigger.conditions);
+  const addable = field.trim() !== "" && value.trim() !== "";
+  const add = () => {
+    if (!addable) return;
+    onChange({
+      ...trigger,
+      conditions: withCondition(trigger.conditions, field.trim(), value.trim()),
+    });
+    setField("");
+    setValue("");
+    setOpen(false);
+  };
+  return (
+    <div className="kiki-chip-row">
+      {entries.map((entry) => (
+        <span
+          key={`${entry.field}:${entry.value}`}
+          data-slot="trigger-condition"
+          data-size="xs"
+          className="kiki-badge text-xs text-muted-foreground-1"
+        >
+          <span className="text-muted-foreground-2">{entry.field}</span>
+          <span className="font-normal text-muted-foreground-2">is</span>
+          <span className="truncate font-medium text-foreground">
+            {entry.value}
+          </span>
+          <button
+            type="button"
+            aria-label={`Remove condition ${entry.field} is ${entry.value}`}
+            className="kiki-icon text-icon-muted hover:text-foreground"
+            data-size="xs"
+            onClick={() =>
+              onChange({
+                ...trigger,
+                conditions: withoutCondition(
+                  trigger.conditions,
+                  entry.field,
+                  entry.value,
+                ),
+              })
+            }
+          >
+            <CrossMedium />
+          </button>
+        </span>
+      ))}
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger
+          render={
+            <Button variant="ghost" size="xs" aria-label="Add condition" />
+          }
+        >
+          <PlusMedium />
+          Add condition
+        </PopoverTrigger>
+        <PopoverContent align="start" sideOffset={6} className="kiki-menu">
+          <div className="kiki-list">
+            <Input
+              size="xs"
+              aria-label="Condition field"
+              placeholder="Field, e.g. repository"
+              value={field}
+              onChange={(event) => setField(event.target.value)}
+            />
+            <Input
+              size="xs"
+              aria-label="Condition value"
+              placeholder="Value, e.g. acme/web"
+              value={value}
+              onChange={(event) => setValue(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  add();
+                }
+              }}
+            />
+            <Button
+              size="sm"
+              aria-label="Add the condition"
+              disabled={!addable}
+              onClick={add}
+            >
+              Add
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+/** The event a trigger fires on, out of the type's own vocabulary. */
+function EventField({
+  trigger,
+  onChange,
+}: {
+  trigger: EventTrigger;
+  onChange: (trigger: EventTrigger) => void;
+}) {
+  const options = eventOptions(trigger.type);
+  if (options.length === 0) return null;
+  const current = trigger.event ?? options[0]?.value ?? "";
+  return (
+    <OptionChip
+      ariaLabel="Event"
+      current={current}
+      options={options}
+      onPick={(event) => onChange({ ...trigger, event })}
+      searchPlaceholder="Search events"
+    />
+  );
+}
+
 export type TriggerRowProps = {
   trigger: Trigger;
   onChange: (trigger: Trigger) => void;
@@ -184,6 +342,7 @@ export function TriggerRow({
   onAddTime,
   onRemove,
 }: TriggerRowProps) {
+  const event = isEventTrigger(trigger) ? trigger : null;
   return (
     <div className="flex flex-col gap-2 px-4 py-3">
       <div className="flex flex-wrap items-center gap-1.5">
@@ -194,6 +353,9 @@ export function TriggerRow({
         {trigger.type === "schedule" ? (
           <ScheduleFields trigger={trigger} onChange={onChange} />
         ) : null}
+        {event === null ? null : (
+          <EventField trigger={event} onChange={(next) => onChange(next)} />
+        )}
         <span className="ml-auto flex items-center gap-0.5">
           {onAddTime === undefined ? null : (
             <Tooltip>
@@ -222,6 +384,15 @@ export function TriggerRow({
           </Button>
         </span>
       </div>
+      {event === null ? null : (
+        <ConditionsEditor trigger={event} onChange={(next) => onChange(next)} />
+      )}
+      {event?.type === "incoming_webhook" ? (
+        <WebhookCoalescing
+          value={event.coalescing}
+          onChange={(coalescing) => onChange({ ...event, coalescing })}
+        />
+      ) : null}
     </div>
   );
 }

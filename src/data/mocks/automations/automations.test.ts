@@ -63,9 +63,14 @@ describe("automations mock", () => {
           query: {},
         }),
       );
-      const batches = yield* read<
-        ReadonlyArray<{ id: string; status: string }>
-      >(
+      const batches = yield* read<{
+        items: ReadonlyArray<{
+          id: string;
+          status: string;
+          eventCount: number;
+        }>;
+        cursor: string | null;
+      }>(
         ApiClient.query("automations", "listBatches", {
           params: { orgId, automationId },
           query: {},
@@ -87,7 +92,9 @@ describe("automations mock", () => {
         page.items.map((item) => item.creatorUserId),
         people.alex.id,
       );
-      assert.isAbove(batches.length, 0);
+      assert.isAbove(batches.items.length, 0);
+      assert.isAbove(batches.items[0]!.eventCount, 0);
+      assert.isNull(batches.cursor);
       assert.isAbove(usage.totalRuns, 0);
     }),
   );
@@ -187,7 +194,7 @@ describe("automations mock", () => {
           reactivityKeys: [key],
         },
       );
-      assert.equal(flushed.status, "flushed");
+      assert.equal(flushed.status, "queued");
 
       const rotated = yield* mutate<{ webhookSecret: string }>(
         atom("rotateWebhook"),

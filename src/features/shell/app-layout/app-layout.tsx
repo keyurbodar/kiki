@@ -157,6 +157,7 @@ function AppShellBody({ children, banner }: AppLayoutProps) {
     <AppSidebar
       mode={threads.view.mode}
       onModeChange={threads.setMode}
+      showModeToggle={threads.view.captains.length > 0}
       onSidebarToggle={onToggle}
       threadsSlot={
         <SidebarThreadsPanel

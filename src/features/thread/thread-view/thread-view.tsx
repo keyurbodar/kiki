@@ -39,6 +39,7 @@ import {
   MachineTrigger,
   type SetupStep,
   type StatusColor,
+  ThreadBranchChip,
 } from "@/features/composer/composer-footer";
 import { ContextMeter } from "@/features/composer/context-meter";
 import {
@@ -77,6 +78,7 @@ import type { EditDraft } from "@/features/thread/timeline";
 import { useComposerSend } from "@/features/thread/use-composer-send";
 import { Button } from "@/primitives/button";
 import { RightPanelGroup } from "@/primitives/right-panel";
+import { toast } from "@/primitives/toaster";
 import { ChatSkeleton } from "./chat-skeleton";
 import { ThreadMessageActions } from "./message-actions";
 import { threadChips } from "./thread-chips";
@@ -85,6 +87,7 @@ import {
   skillsMentionSource,
   threadMentionSources,
 } from "./thread-mention-sources";
+import { ThreadModelPicker } from "./thread-model-picker";
 
 type ClarifyRow = Extract<TimelineRow, { type: "clarify" }>;
 type EnvironmentRequestRow = Extract<
@@ -634,15 +637,23 @@ export function ThreadView({
                             submitLabel="Send"
                             submitPersistent
                             leftControls={
-                              <PlusMenu
-                                sources={mentionSources}
-                                onAttach={attachments.add}
-                                onPickCategory={(category) =>
-                                  composerHandle.current?.typeCharacter(
-                                    `@${category}:`,
-                                  )
-                                }
-                              />
+                              <>
+                                <PlusMenu
+                                  sources={mentionSources}
+                                  onAttach={attachments.add}
+                                  onPickCategory={(category) =>
+                                    composerHandle.current?.typeCharacter(
+                                      `@${category}:`,
+                                    )
+                                  }
+                                />
+                                {orgId === undefined ? null : (
+                                  <ThreadModelPicker
+                                    orgId={orgId}
+                                    jamId={threadId}
+                                  />
+                                )}
+                              </>
                             }
                           />
                         </MessageQueue>
@@ -659,6 +670,17 @@ export function ThreadView({
                     <ComposerFooter
                       data-slot="composer-footer"
                       machine={<MachineTrigger machine={machines} />}
+                      branch={
+                        orgId === undefined ? undefined : (
+                          <ThreadBranchChip
+                            orgId={orgId}
+                            jamId={threadId}
+                            onCopied={(branch) =>
+                              toast.success("Copied", { description: branch })
+                            }
+                          />
+                        )
+                      }
                       meter={
                         orgId === undefined ? undefined : (
                           <ContextMeter orgId={orgId} jamId={threadId} />

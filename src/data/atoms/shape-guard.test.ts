@@ -77,9 +77,11 @@ import {
 } from "@/data/mocks/fixtures/world";
 import { sampleVolumes, shareId } from "@/data/mocks/volumes/fixtures";
 import { digest } from "@/data/mocks/volumes/index";
+import { gitStatusAtom } from "@/features/composer/composer-footer/thread-branch-chip";
 import { fileUrlAtom } from "@/features/mobile/mobile-view/screenshot-url";
 import { decodeCatalog } from "@/features/settings-models/model-routing/decode";
 import { emailPreferencesAtom } from "@/features/settings-notifications/email-page/atoms";
+import { statusAtom as diffsStatusAtom } from "@/features/thread-panes/diffs-view/diffs-view";
 import { captainIssueActivityAtom as paneIssueActivityAtom } from "@/features/thread-panes/thread-summary-pane/model";
 
 const orgId = worldOrgId as OrgId;
@@ -147,6 +149,19 @@ const readers: ReadonlyArray<{
       {
         name: "threadAtom",
         atom: threadAtom(`${orgId}/${threads.checkoutTest.id}`),
+      },
+    ],
+  },
+  {
+    endpoint: "git.status",
+    consumers: [
+      {
+        name: "diffs-view statusAtom",
+        atom: diffsStatusAtom(threads.checkoutTest.id),
+      },
+      {
+        name: "thread-branch-chip gitStatus",
+        atom: gitStatusAtom(`${orgId}\n${threads.checkoutTest.id}`),
       },
     ],
   },

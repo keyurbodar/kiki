@@ -43,7 +43,7 @@ const gitParams = (threadId: string) => ({
   jamId: threadId,
 });
 
-const statusAtom = Atom.family((threadId: string) =>
+export const statusAtom = Atom.family((threadId: string) =>
   ApiClient.query("git", "status", {
     params: gitParams(threadId),
     reactivityKeys: [`git:${threadId}`],
