@@ -10,6 +10,8 @@ export type ThreadCommandDeps = {
   closePane: () => void;
   isDockOpen: () => boolean;
   toggleExpanded: () => void;
+  /** Stops the run in flight; the row is scoped to composer focus. */
+  stopRun: () => void;
 };
 
 export const createThreadCommands = (
@@ -24,6 +26,7 @@ export const createThreadCommands = (
     read().toggleExpanded();
   },
   "diffs.open": () => read().openPane("diffs"),
+  "thread.stop": () => read().stopRun(),
 });
 
 /** The composer's own keybindings, registered by the view that holds its editor. */

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { registerCommands } from "./dispatcher";
 import { KEYBINDS_KEY } from "./store";
 
+const noop = () => undefined;
 const disposers: Array<() => void> = [];
 const register = (...args: Parameters<typeof registerCommands>) => {
   const dispose = registerCommands(...args);
@@ -119,6 +120,36 @@ describe("keybinding dispatcher", () => {
       ctrlKey: true,
     });
     expect(settings).toHaveBeenCalledOnce();
+  });
+
+  it("refuses two handlers on one chord with nothing to tell them apart", () => {
+    expect(() =>
+      register({ "request.allow": noop, "request.submit": noop }),
+    ).toThrow(/mod\+enter/);
+  });
+
+  it("reads composer focus, and lets a surface say its menu is open", () => {
+    const composer = document.createElement("div");
+    composer.setAttribute("data-slot", "composer");
+    const editor = document.createElement("div");
+    editor.contentEditable = "true";
+    composer.append(editor);
+    document.body.append(composer);
+
+    const stop = vi.fn();
+    const dispose = register({ "thread.stop": stop });
+    press(".", { ctrlKey: true }, editor);
+    expect(stop).toHaveBeenCalledOnce();
+
+    // The palette is open: its own row claims the chord, so this one stands down.
+    dispose();
+    stop.mockClear();
+    register(
+      { "thread.stop": stop },
+      { context: () => ({ commandMenuOpen: true }) },
+    );
+    press(".", { ctrlKey: true }, editor);
+    expect(stop).not.toHaveBeenCalled();
   });
 
   it("skips a scope whose guard says it is not mounted here", () => {

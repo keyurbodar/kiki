@@ -7,6 +7,7 @@ import { copyText } from "@/components/file-view/copy";
 import type { EventId, JamId, OrgId } from "@/data/api/schemas/ids";
 import { automationsAtom, idleAutomationsAtom } from "@/data/atoms/automations";
 import { captainsAtom, idleCaptainsAtom } from "@/data/atoms/captains";
+import { interruptAtom } from "@/data/atoms/events";
 import { overviewPullsAtom } from "@/data/atoms/overview";
 import {
   organizationsAtom,
@@ -20,7 +21,7 @@ import {
   MobileThreadScreen,
   useIsPhoneSurface,
 } from "@/features/mobile/thread";
-import { registerCommands } from "@/features/shell/keyboard";
+import { registerCommands, shortcutGlyphText } from "@/features/shell/keyboard";
 import { formatClarifyAnswers } from "@/features/thread/clarify-takeover";
 import { ThreadCostBadge } from "@/features/thread/cost-badge";
 import type { EditTarget } from "@/features/thread/message-footer";
@@ -172,6 +173,15 @@ export function ThreadRoute({
       title: browserSession.title,
     });
   };
+  const interrupt = useAtomSet(interruptAtom, { mode: "promiseExit" });
+  const [stopping, setStopping] = useState(false);
+  const stopRun = () => {
+    if (orgId === undefined || stopping) return;
+    setStopping(true);
+    void interrupt({
+      params: { orgId: orgId as OrgId, jamId: threadId as JamId },
+    }).finally(() => setStopping(false));
+  };
   const wakeMachine = useAtomSet(wakeMachineAtom);
   const onWake = (machineId: string) => {
     if (orgId === undefined) return;
@@ -245,6 +255,7 @@ export function ThreadRoute({
     closePane: () => closeIn(openTabs.active),
     isDockOpen: () => activeDock !== undefined,
     toggleExpanded: () => setExpanded((current) => !current),
+    stopRun,
   };
   useEffect(
     () =>
@@ -287,6 +298,15 @@ export function ThreadRoute({
     <PaneSessionContext.Provider value={{ openTab: openTabIn }}>
       <ThreadView
         threadId={threadId}
+        stop={
+          working
+            ? {
+                onStop: stopRun,
+                pending: stopping,
+                shortcut: shortcutGlyphText("thread.stop"),
+              }
+            : undefined
+        }
         rows={timeline.rows}
         loading={timeline.loading}
         failed={timeline.failed}

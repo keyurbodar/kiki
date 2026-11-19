@@ -34,6 +34,7 @@ const surfaces = {
     closePane: noop,
     isDockOpen: () => false,
     toggleExpanded: noop,
+    stopRun: noop,
   })),
   strip: createTabStripCommands(() => ({
     close: noop,

@@ -1,3 +1,36 @@
+/**
+ * What the running app knows when a key arrives: the flags Capy's When column
+ * names. A row reads only what it needs.
+ */
+export type CommandContext = {
+  /** A text field has focus: the composer's editor, an input, a textarea. */
+  editableFocus: boolean;
+  /** The composer holds focus. */
+  composerFocus: boolean;
+  /** A command menu, or a thread's action menu, is open over the page. */
+  commandMenuOpen: boolean;
+};
+
+export type CommandWhen = (context: CommandContext) => boolean;
+
+/**
+ * The conditions Capy's table expresses, named once and reused by every row
+ * that needs them rather than inlined per command.
+ */
+export const commandWhen = {
+  /** From the composer, which a menu is not covering. */
+  inComposer: (context: CommandContext) =>
+    context.composerFocus && !context.commandMenuOpen,
+  /** While a menu is open, because the menu owns the chord there. */
+  menuOpen: (context: CommandContext) => context.commandMenuOpen,
+} satisfies Record<string, CommandWhen>;
+
+export const emptyCommandContext: CommandContext = {
+  editableFocus: false,
+  composerFocus: false,
+  commandMenuOpen: false,
+};
+
 export type KeybindingCommand = {
   command: string;
   label: string;
@@ -5,6 +38,12 @@ export type KeybindingCommand = {
   contextual?: boolean;
   /** Runs while a text field has focus. Capy's When column says "Composer or thread body focused" for these and "not typing" for the rest. */
   inEditable?: boolean;
+  /**
+   * Tells two rows on one chord apart, as Capy does: it prints `mod+.` twice,
+   * for Stop run (composer focus) and Thread actions (menu open). A row without
+   * one must own its chord alone.
+   */
+  when?: CommandWhen;
 };
 
 export type KeybindOverrides = Record<string, string[] | null>;
@@ -64,6 +103,7 @@ const catalog: ReadonlyArray<KeybindingCommand> = [
     label: "Stop run",
     defaults: ["mod+."],
     contextual: true,
+    when: commandWhen.inComposer,
   },
   {
     command: "composer.attach",
@@ -205,6 +245,7 @@ const catalog: ReadonlyArray<KeybindingCommand> = [
     label: "Thread actions",
     defaults: ["mod+."],
     contextual: true,
+    when: commandWhen.menuOpen,
   },
   {
     command: "list.next",
@@ -599,14 +640,44 @@ export function matchesBinding(
 export function resolveEventCommand(
   event: KeyEventLike,
   bindings: readonly EffectiveBinding[],
+  context: CommandContext = emptyCommandContext,
   mac = isMacPlatform(),
 ): string | null {
   for (let index = bindings.length - 1; index >= 0; index -= 1) {
     const binding = bindings[index];
-    if (binding !== undefined && matchesBinding(event, binding.key, mac))
-      return binding.command;
+    if (binding === undefined) continue;
+    if (binding.when !== undefined && !binding.when(context)) continue;
+    if (matchesBinding(event, binding.key, mac)) return binding.command;
   }
   return null;
+}
+
+/**
+ * The chords two rows claim between them, where at least one row has no `when`
+ * to tell them apart: whoever comes later in the table would win everywhere.
+ */
+export function ambiguousChords(
+  commands: Iterable<string>,
+): Array<{ key: string; commands: string[] }> {
+  const claimed = new Map<string, KeybindingCommand[]>();
+  for (const command of commands) {
+    const row = catalog.find((candidate) => candidate.command === command);
+    if (row === undefined) continue;
+    for (const binding of row.defaults) {
+      const key = normalizeBinding(binding);
+      if (key === null) continue;
+      claimed.set(key, [...(claimed.get(key) ?? []), row]);
+    }
+  }
+  return [...claimed.entries()]
+    .filter(
+      ([, rows]) =>
+        rows.length > 1 && rows.some((row) => row.when === undefined),
+    )
+    .map(([key, rows]) => ({
+      key,
+      commands: rows.map((row) => row.command),
+    }));
 }
 
 export function reservedReason(
@@ -650,6 +721,7 @@ export type EffectiveBinding = {
   key: string;
   command: string;
   contextual: boolean;
+  when?: CommandWhen;
 };
 
 export function effectiveBindings(
@@ -673,6 +745,7 @@ export function effectiveBindings(
       key,
       command: c.command,
       contextual: c.contextual === true,
+      ...(c.when === undefined ? {} : { when: c.when }),
     }));
   });
 }

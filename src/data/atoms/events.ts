@@ -46,5 +46,8 @@ export const sendNowMessageAtom = ApiClient.mutation(
   "sendNowMessage",
 );
 
+/** `POST jams/:jamId/interrupt`: stops the run in progress. */
+export const interruptAtom = ApiClient.mutation("events", "interrupt");
+
 /** `POST messages/:eventId/cancel`: discards a queued message. */
 export const cancelMessageAtom = ApiClient.mutation("events", "cancelMessage");

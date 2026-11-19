@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  ambiguousChords,
   bindingGlyphs,
   captureBinding,
   captureDigitBinding,
@@ -11,6 +12,7 @@ import {
   normalizeBinding,
   parseBinding,
   reservedReason,
+  resolveEventCommand,
 } from "./keybindings";
 import { whenLabels } from "./when-labels";
 
@@ -171,5 +173,55 @@ describe("the catalog", () => {
     for (const [clause, label] of Object.entries(whenLabels)) {
       expect(label.length, clause).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("when predicates", () => {
+  const press = (over: Partial<Parameters<typeof captureBinding>[0]>) => ({
+    key: ".",
+    code: "Period",
+    metaKey: false,
+    ctrlKey: true,
+    altKey: false,
+    shiftKey: false,
+    ...over,
+  });
+  const bindings = effectiveBindings({});
+  const context = (
+    over: Partial<{
+      editableFocus: boolean;
+      composerFocus: boolean;
+      commandMenuOpen: boolean;
+    }>,
+  ) => ({
+    editableFocus: false,
+    composerFocus: false,
+    commandMenuOpen: false,
+    ...over,
+  });
+
+  it("gives one chord to the row whose condition holds", () => {
+    expect(
+      resolveEventCommand(
+        press({}),
+        bindings,
+        context({ composerFocus: true }),
+      ),
+    ).toBe("thread.stop");
+    expect(
+      resolveEventCommand(
+        press({}),
+        bindings,
+        context({ commandMenuOpen: true }),
+      ),
+    ).toBe("commandMenu.actions");
+    expect(resolveEventCommand(press({}), bindings, context({}))).toBeNull();
+  });
+
+  it("reports a chord two rows claim with nothing to tell them apart", () => {
+    expect(ambiguousChords(["thread.stop", "commandMenu.actions"])).toEqual([]);
+    expect(ambiguousChords(["request.allow", "request.submit"])).toEqual([
+      { key: "mod+enter", commands: ["request.allow", "request.submit"] },
+    ]);
   });
 });

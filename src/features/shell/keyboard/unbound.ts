@@ -4,8 +4,6 @@
  * a surface nor listed here, so a label that does nothing cannot ship quietly.
  */
 export const unboundCommands: Record<string, string> = {
-  "thread.stop":
-    "The thread composer has no stop control wired; Capy's runs stop from the send button's own state",
   "composer.voice":
     "No transcription backend, so the composer never renders a voice control to start",
   "request.allow": "The access-request card submits from its own button",
