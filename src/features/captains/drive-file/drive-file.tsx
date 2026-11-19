@@ -11,6 +11,7 @@ import { FileState, MissingFile } from "@/components/missing-file";
 import {
   type CaptainDrive,
   captainDriveAtom,
+  idleCaptainDriveAtom,
   useCaptainDrive,
   useCaptainOrgId,
 } from "@/features/captains/overview";
@@ -112,7 +113,9 @@ export function CaptainDriveFileView({
 }: CaptainDriveFileViewProps) {
   const orgId = useCaptainOrgId(orgIdProp);
   const { drive, failed } = useCaptainDrive(orgId, jamId);
-  const refresh = useAtomRefresh(captainDriveAtom(orgId ?? "", jamId));
+  const refresh = useAtomRefresh(
+    orgId === undefined ? idleCaptainDriveAtom : captainDriveAtom(orgId, jamId),
+  );
   const [opened, setOpened] = useState<{ path: string; version: string }>();
   const home: CaptainDriveHome = {
     kind: "drive",

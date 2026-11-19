@@ -8,6 +8,8 @@ import {
   captainAtom,
   captainCrewAtom,
   captainDriveAtom,
+  idleCaptainAtom,
+  idleCaptainDriveAtom,
   sortCrew,
   toCaptain,
   toCaptainDrive,
@@ -15,7 +17,9 @@ import {
 } from "./captain-data";
 
 export function useCaptain(orgId: string | undefined, jamId: string) {
-  const result = useAtomValue(captainAtom(orgId ?? "", jamId));
+  const result = useAtomValue(
+    orgId === undefined ? idleCaptainAtom : captainAtom(orgId, jamId),
+  );
   return orgId !== undefined && AsyncResult.isSuccess(result)
     ? toCaptain(result.value)
     : undefined;
@@ -66,7 +70,9 @@ export function useCaptainDrive(
   orgId: string | undefined,
   jamId: string,
 ): CaptainDriveState {
-  const result = useAtomValue(captainDriveAtom(orgId ?? "", jamId));
+  const result = useAtomValue(
+    orgId === undefined ? idleCaptainDriveAtom : captainDriveAtom(orgId, jamId),
+  );
   if (orgId === undefined)
     return { drive: undefined, waiting: false, failed: false };
   return {

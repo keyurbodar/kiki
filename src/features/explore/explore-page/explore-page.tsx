@@ -4,7 +4,7 @@ import { DateTime, Option } from "effect";
 import { AsyncResult } from "effect/reactivity";
 import type { ReactNode } from "react";
 import { ExploreCard } from "@/data/api/schemas/explore";
-import { orgListingsAtom } from "@/data/atoms/explore";
+import { idleOrgListingsAtom, orgListingsAtom } from "@/data/atoms/explore";
 import { Button } from "@/primitives/button";
 import { Icon } from "@/primitives/icon";
 import { Input } from "@/primitives/input";
@@ -374,7 +374,9 @@ const sampleSkillCards: ReadonlyArray<ExploreCard> = [
 
 export function ExplorePage({ kind, search, onSearch }: ExplorePageProps) {
   const orgId = useOrgId();
-  const result = useAtomValue(orgListingsAtom(orgId ?? ""));
+  const result = useAtomValue(
+    orgId === undefined ? idleOrgListingsAtom : orgListingsAtom(orgId),
+  );
   const index = Option.getOrUndefined(AsyncResult.value(result));
   const failed = AsyncResult.isFailure(result);
   const label = exploreLabels[kind];

@@ -1,4 +1,4 @@
-import { Atom } from "effect/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import type { ListingKind } from "../api/schemas/explore.ts";
 import { ApiClient } from "../client/ApiClient.ts";
 
@@ -24,6 +24,10 @@ export const orgListingsAtom = Atom.family((orgId: string) =>
     timeToLive: "1 minute",
   }),
 );
+
+/** The listing index while the org is still resolving. */
+export const idleOrgListingsAtom: ReturnType<typeof orgListingsAtom> =
+  Atom.make(AsyncResult.initial(false)) as ReturnType<typeof orgListingsAtom>;
 
 export const reportListingAtom = ApiClient.mutation("explore", "report");
 

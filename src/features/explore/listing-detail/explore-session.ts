@@ -1,7 +1,7 @@
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult } from "effect/reactivity";
 import type { ExploreIndex } from "@/data/api/schemas/explore";
-import { orgListingsAtom } from "@/data/atoms/explore";
+import { idleOrgListingsAtom, orgListingsAtom } from "@/data/atoms/explore";
 import { currentUserAtom, organizationsAtom } from "@/data/atoms/session";
 import {
   recentlyAddedAtom,
@@ -48,7 +48,9 @@ export function useExploreIndex() {
   const orgId = useOrgId();
   const signedIn = useSignedIn();
   const recent = useRecentlyAdded(orgId);
-  const result = useAtomValue(orgListingsAtom(orgId ?? ""));
+  const result = useAtomValue(
+    orgId === undefined ? idleOrgListingsAtom : orgListingsAtom(orgId),
+  );
   const index =
     signedIn && orgId !== undefined ? successValue(result) : undefined;
   return mergeRecentlyAdded(index, recent);
