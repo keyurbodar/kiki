@@ -4,6 +4,7 @@ import { AsyncResult } from "effect/reactivity";
 import { useEffect } from "react";
 import { organizationsAtom } from "@/data/atoms/session";
 import { InvitationsDialog } from "./invitations-dialog";
+import { InvitesEmpty } from "./invites-empty";
 import {
   invitationsDialogOpenAtom,
   shouldOpenInvitations,
@@ -23,7 +24,9 @@ export function InvitesPage() {
     if (open) setOpen(true);
   }, [open, setOpen]);
 
-  if (!open) return null;
+  // Still resolving: neither an invitation to show nor an empty list to claim.
+  if (!open && result.waiting && !AsyncResult.isFailure(result)) return null;
+  if (!open) return <InvitesEmpty />;
   return (
     <InvitationsDialog
       onClosed={() => void navigate({ to: "/new", replace: true })}

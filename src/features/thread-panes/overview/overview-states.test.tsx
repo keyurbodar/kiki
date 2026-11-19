@@ -74,4 +74,20 @@ describe("the overview pane's three states", () => {
       document.querySelector("[data-slot=overview-load-failed]"),
     ).not.toBeNull();
   });
+
+  it("draws a Captain's crew and drive in the overview of its own thread", async () => {
+    await renderPane("overview", "jam_sample_cap1");
+    await waitFor(
+      () =>
+        expect(
+          document.querySelector("[data-slot=captain-overview]"),
+        ).not.toBeNull(),
+      { timeout: 4000 },
+    );
+    // A Captain with no crew and no files gets its own empty page, with the two
+    // ways out of it, instead of a thread overview it does not have.
+    expect(screen.getByText("Issues")).toBeTruthy();
+    expect(screen.getByText("Drive")).toBeTruthy();
+    expect(document.querySelector('img[alt="Overview is empty"]')).toBeNull();
+  });
 });
